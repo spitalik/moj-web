@@ -1,4 +1,4 @@
-const CACHE = 'clickrush-v3';
+const CACHE = 'clickrush-v4';
 const ASSETS = [
   './index.html',
   './manifest.json',
