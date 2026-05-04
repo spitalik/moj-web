@@ -35,9 +35,7 @@
     height: 100%;
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
-  }
-
-  body {
+  }  body {
     background: var(--bg);
     color: var(--text);
     font-family: 'Space Mono', monospace;
@@ -50,7 +48,6 @@
     overflow-x: hidden;
     user-select: none;
     padding: calc(var(--safe-top) + 1rem) 1rem calc(var(--safe-bottom) + 1rem);
-    touch-action: pan-y;
   }
 
   h1 {
@@ -73,11 +70,12 @@
   }
 
   .version {
-    font-size: 0.55rem;
-    color: #333344;
+    font-size: 0.65rem;
+    color: #ff4c4c;
     letter-spacing: 0.2em;
     text-align: center;
     margin-bottom: 1rem;
+    font-weight: 700;
   }
 
   .stats {
@@ -141,7 +139,7 @@
     position: relative;
     overflow: hidden;
     cursor: crosshair;
-    touch-action: manipulation;
+    touch-action: none;
   }
 
   .arena::before {
@@ -248,6 +246,7 @@
     transition: background 0.15s, color 0.15s;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    min-height: 44px;
   }
 
   button:hover, button:active { background: var(--accent); color: #0a0a0f; }
@@ -647,9 +646,6 @@ function handleTargetHit(e) {
   }, 80);
 }
 
-target.addEventListener('click', handleTargetHit);
-target.addEventListener('touchstart', handleTargetHit, { passive: false });
-
 function handleArenaMiss(e) {
   if (e.target === target) return;
   if (!running) { startGame(); return; }
@@ -657,16 +653,14 @@ function handleArenaMiss(e) {
   const ripple = document.createElement('div');
   ripple.className = 'miss-ripple';
   const rect = arena.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  ripple.style.left = (clientX - rect.left) + 'px';
-  ripple.style.top = (clientY - rect.top) + 'px';
+  ripple.style.left = (e.clientX - rect.left) + 'px';
+  ripple.style.top = (e.clientY - rect.top) + 'px';
   arena.appendChild(ripple);
   setTimeout(() => ripple.remove(), 450);
 }
 
+target.addEventListener('click', handleTargetHit);
 arena.addEventListener('click', handleArenaMiss);
-arena.addEventListener('touchstart', handleArenaMiss, { passive: true });
 
 startBtn.addEventListener('click', startGame);
 resetBtn.addEventListener('click', resetGame);
@@ -689,9 +683,6 @@ document.getElementById('play-again-btn').addEventListener('click', () => {
 document.getElementById('close-results-btn').addEventListener('click', () => {
   overlay.classList.remove('show');
 });
-
-// Prevent double-tap zoom only inside the game arena, NOT on buttons/overlays
-arena.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 </script>
 </body>
 </html>
