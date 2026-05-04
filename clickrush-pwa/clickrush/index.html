@@ -31,11 +31,10 @@
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  html, body {
+  html {
     height: 100%;
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
   }
 
   body {
@@ -46,36 +45,37 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    justify-content: flex-start;
+    overflow-y: auto;
+    overflow-x: hidden;
     user-select: none;
-    padding-top: var(--safe-top);
-    padding-bottom: var(--safe-bottom);
+    padding: calc(var(--safe-top) + 1rem) 1rem calc(var(--safe-bottom) + 1rem);
+    touch-action: pan-y;
   }
 
   h1 {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2rem, 8vw, 4rem);
+    font-size: clamp(1.8rem, 7vw, 4rem);
     letter-spacing: 0.12em;
     color: var(--accent);
     text-align: center;
     line-height: 1;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.1rem;
   }
 
   .subtitle {
-    font-size: 0.62rem;
+    font-size: 0.58rem;
     color: var(--muted);
-    letter-spacing: 0.25em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     text-align: center;
-    margin-bottom: 1.6rem;
+    margin-bottom: 1rem;
   }
 
   .stats {
     display: flex;
     gap: 2rem;
-    margin-bottom: 1.4rem;
+    margin-bottom: 0.8rem;
     align-items: flex-end;
   }
 
@@ -95,13 +95,13 @@
 
   .stat-value {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.4rem;
+    font-size: clamp(1.8rem, 6vw, 2.4rem);
     line-height: 1;
     color: var(--text);
     transition: color 0.15s;
   }
 
-  .stat-value.big { font-size: 3.2rem; color: var(--accent); }
+  .stat-value.big { font-size: clamp(2.2rem, 8vw, 3.2rem); color: var(--accent); }
   #timer-value.urgent { color: var(--danger); }
 
   .timer-bar-wrap {
@@ -109,7 +109,7 @@
     height: 4px;
     background: #1e1e2e;
     border-radius: 2px;
-    margin-bottom: 1.4rem;
+    margin-bottom: 0.8rem;
     overflow: hidden;
   }
 
@@ -125,8 +125,8 @@
   #timer-bar.urgent { background: var(--danger); }
 
   .arena {
-    width: min(400px, 90vw);
-    height: min(400px, 90vw);
+    width: min(400px, 88vw, 55vh);
+    height: min(400px, 88vw, 55vh);
     background: var(--surface);
     border: 1px solid #22223a;
     border-radius: 18px;
@@ -219,7 +219,7 @@
   }
 
   .controls {
-    margin-top: 1.4rem;
+    margin-top: 0.8rem;
     display: flex;
     gap: 0.8rem;
     flex-wrap: wrap;
@@ -250,9 +250,10 @@
   .difficulty-row {
     display: flex;
     gap: 0.4rem;
-    margin-top: 0.5rem;
+    margin-top: 0.4rem;
     justify-content: center;
     flex-wrap: wrap;
+    padding-bottom: 0.5rem;
   }
 
   .diff-btn {
@@ -294,12 +295,14 @@
   .results-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(10,10,15,0.92);
+    background: rgba(10,10,15,0.94);
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 10;
-    padding: 1rem;
+    z-index: 100;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .results-overlay.show { display: flex; }
@@ -308,12 +311,13 @@
     background: var(--surface);
     border: 1px solid #22223a;
     border-radius: 24px;
-    padding: 2rem 2.5rem;
+    padding: 1.6rem 1.8rem;
     text-align: center;
-    min-width: 260px;
-    max-width: 360px;
+    min-width: 240px;
+    max-width: 340px;
     width: 100%;
     animation: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin: auto;
   }
 
   @keyframes pop-in {
@@ -677,8 +681,8 @@ document.getElementById('close-results-btn').addEventListener('click', () => {
   overlay.classList.remove('show');
 });
 
-// Prevent double-tap zoom on mobile
-document.addEventListener('touchend', e => e.preventDefault(), { passive: false });
+// Prevent double-tap zoom only inside the game arena, NOT on buttons/overlays
+arena.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 </script>
 </body>
 </html>
