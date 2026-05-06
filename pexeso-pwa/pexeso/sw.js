@@ -1,4 +1,4 @@
-const CACHE = 'pexeso-v1';
+const CACHE = 'pexeso-v2';
 const FILES = [
   './index.html',
   './manifest.json',
