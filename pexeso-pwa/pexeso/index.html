@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -26,7 +26,6 @@
   --text-dim: rgba(240,237,232,0.22);
   --accent: #e8d5a3;
   --accent-dim: rgba(232,213,163,0.15);
-  --green: #4ade80;
   --green-dim: rgba(74,222,128,0.12);
   --radius: 14px;
   --radius-sm: 8px;
@@ -52,6 +51,41 @@ body {
 
 .screen { display: none; width: 100%; max-width: 520px; padding: 2rem 1.25rem; flex-direction: column; min-height: auto; justify-content: center; }
 .screen.active { display: flex; }
+
+/* ── LANG SWITCHER ── */
+.lang-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.25rem;
+}
+
+.lang-toggle {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text-muted);
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: background 0.15s, color 0.15s;
+}
+
+.lang-btn.active {
+  background: var(--accent);
+  color: #0a0a0a;
+  font-weight: 500;
+}
 
 /* ── MENU ── */
 #screen-menu { align-items: center; justify-content: center; gap: 0; position: relative; z-index: 1; }
@@ -117,28 +151,22 @@ body {
 
 /* ── CARDS ── */
 .card { aspect-ratio: 1; cursor: pointer; perspective: 800px; }
-
 .card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(.4,0,.2,1); border-radius: var(--radius); }
-
 .card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
-
 .card-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
-
 .card-front { background: var(--surface); transition: border-color 0.2s, background 0.2s; }
 .card:hover:not(.flipped):not(.matched) .card-front { border-color: var(--border-hover); background: var(--surface2); }
 .card-front::after { content: '?'; font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text-dim); }
-
 .card-back { background: var(--surface2); transform: rotateY(180deg); font-size: min(9vw, 2.8rem); }
 .card.matched .card-face.card-back { background: var(--green-dim); border-color: rgba(74,222,128,0.25); }
 
 #message { text-align: center; margin-top: 1rem; font-size: 13px; color: var(--text-muted); min-height: 18px; letter-spacing: 0.02em; }
 
 /* ── WIN ── */
-#win-banner { display: none; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 2rem; }
+#win-banner { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
 .win-emoji { font-size: 60px; margin-bottom: 1.25rem; }
 .win-title { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--text); margin-bottom: 4px; }
 .win-subtitle { font-size: 14px; color: var(--text-muted); }
-
 .win-stats { display: flex; gap: 12px; justify-content: center; margin: 1.5rem 0 2rem; }
 .win-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 24px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .win-stat .num { font-size: 28px; font-weight: 300; color: var(--accent); line-height: 1; }
@@ -170,22 +198,34 @@ body {
 
 <div id="particles"></div>
 <div id="install-banner">
-  <span>📲 Nainštalovať Pexeso na plochu</span>
-  <button class="btn-install" id="btn-install">Inštalovať</button>
+  <span id="t-install-text"></span>
+  <button class="btn-install" id="btn-install"></button>
   <button class="btn-x" id="install-close">✕</button>
 </div>
 
 <!-- MENU -->
 <div id="screen-menu" class="screen active">
+  <div class="lang-bar">
+    <div class="lang-toggle">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="sk">SK</button>
+    </div>
+  </div>
   <div class="logo">Pexeso</div>
-  <div class="logo-sub">Hra pamäte</div>
-  <div class="sets-label">Vyber sadu kartičiek</div>
+  <div class="logo-sub" id="t-tagline"></div>
+  <div class="sets-label" id="t-choose-set"></div>
   <div class="sets-grid" id="sets-grid"></div>
-  <button class="btn-start" id="btn-start">Začať hru</button>
+  <button class="btn-start" id="btn-start"></button>
 </div>
 
 <!-- GAME -->
 <div id="screen-game" class="screen">
+  <div class="lang-bar">
+    <div class="lang-toggle">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="sk">SK</button>
+    </div>
+  </div>
   <div class="game-header">
     <div class="game-title">
       <span id="game-set-icon"></span>
@@ -196,33 +236,129 @@ body {
         <div class="stat-pill">⟳ <strong id="moves">0</strong></div>
         <div class="stat-pill">⏱ <strong id="timer">0s</strong></div>
       </div>
-      <button class="btn-back" onclick="goMenu()">Menu</button>
+      <button class="btn-back" id="t-menu-btn" onclick="goMenu()"></button>
     </div>
   </div>
   <div id="grid"></div>
-  <div id="message">Otočte dve kartičky a nájdite zhodu!</div>
+  <div id="message"></div>
   <div id="win-banner">
     <div class="win-emoji" id="win-emoji"></div>
-    <div class="win-title">Výborne!</div>
-    <div class="win-subtitle">Všetky páry nájdené</div>
+    <div class="win-title" id="t-win-title"></div>
+    <div class="win-subtitle" id="t-win-subtitle"></div>
     <div class="win-stats">
-      <div class="win-stat"><div class="num" id="win-moves">0</div><div class="lbl">Ťahy</div></div>
-      <div class="win-stat"><div class="num" id="win-time">0s</div><div class="lbl">Čas</div></div>
+      <div class="win-stat"><div class="num" id="win-moves">0</div><div class="lbl" id="t-lbl-moves"></div></div>
+      <div class="win-stat"><div class="num" id="win-time">0s</div><div class="lbl" id="t-lbl-time"></div></div>
     </div>
     <div class="btn-row">
-      <button class="btn-secondary" onclick="goMenu()">Zmeniť sadu</button>
-      <button class="btn-primary" onclick="startGame()">Hrať znova</button>
+      <button class="btn-secondary" id="t-change-set" onclick="goMenu()"></button>
+      <button class="btn-primary" id="t-play-again" onclick="startGame()"></button>
     </div>
   </div>
 </div>
 
 <script>
+// ── TRANSLATIONS ──
+const I18N = {
+  en: {
+    tagline:       'Memory Game',
+    chooseSet:     'Choose a card set',
+    startBtn:      'Start Game',
+    menuBtn:       'Menu',
+    msgFlip:       'Flip two cards to find a match!',
+    msgMatch:      '✓ Match! Keep going…',
+    msgNoMatch:    'No match…',
+    winTitle:      'Well done!',
+    winSubtitle:   'All pairs found',
+    lblMoves:      'Moves',
+    lblTime:       'Time',
+    changeSet:     'Change set',
+    playAgain:     'Play again',
+    installText:   '📲 Install Pexeso',
+    installBtn:    'Install',
+    sets: {
+      animals:   'Animals',
+      trees:     'Trees',
+      flowers:   'Flowers',
+      space:     'Space',
+      buildings: 'Buildings',
+    }
+  },
+  sk: {
+    tagline:       'Hra pamäte',
+    chooseSet:     'Vyber sadu kartičiek',
+    startBtn:      'Začať hru',
+    menuBtn:       'Menu',
+    msgFlip:       'Otočte dve kartičky a nájdite zhodu!',
+    msgMatch:      '✓ Zhoda! Pokračujte…',
+    msgNoMatch:    'Žiadna zhoda…',
+    winTitle:      'Výborne!',
+    winSubtitle:   'Všetky páry nájdené',
+    lblMoves:      'Ťahy',
+    lblTime:       'Čas',
+    changeSet:     'Zmeniť sadu',
+    playAgain:     'Hrať znova',
+    installText:   '📲 Nainštalovať Pexeso',
+    installBtn:    'Inštalovať',
+    sets: {
+      animals:   'Zvieratká',
+      trees:     'Stromy',
+      flowers:   'Kvety',
+      space:     'Vesmír',
+      buildings: 'Budovy',
+    }
+  }
+};
+
+let lang = 'en';
+
+function t(key) { return I18N[lang][key] || key; }
+function tSet(id) { return I18N[lang].sets[id] || id; }
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.getElementById('t-tagline').textContent       = t('tagline');
+  document.getElementById('t-choose-set').textContent    = t('chooseSet');
+  document.getElementById('btn-start').textContent       = t('startBtn');
+  document.getElementById('t-menu-btn').textContent      = t('menuBtn');
+  document.getElementById('t-win-title').textContent     = t('winTitle');
+  document.getElementById('t-win-subtitle').textContent  = t('winSubtitle');
+  document.getElementById('t-lbl-moves').textContent     = t('lblMoves');
+  document.getElementById('t-lbl-time').textContent      = t('lblTime');
+  document.getElementById('t-change-set').textContent    = t('changeSet');
+  document.getElementById('t-play-again').textContent    = t('playAgain');
+  document.getElementById('t-install-text').textContent  = t('installText');
+  document.getElementById('btn-install').textContent     = t('installBtn');
+
+  // update active message if game is running
+  const msg = document.getElementById('message');
+  if (msg.style.display !== 'none' && matched === 0 && moves === 0) {
+    msg.textContent = t('msgFlip');
+  }
+
+  // re-render set names
+  document.querySelectorAll('.set-btn').forEach(btn => {
+    const nameEl = btn.querySelector('.set-name');
+    if (nameEl) nameEl.textContent = tSet(btn.dataset.setId);
+  });
+
+  // update game set badge
+  if (currentSet) {
+    document.getElementById('game-set-name').textContent = tSet(currentSet.id);
+  }
+
+  // sync all lang toggles
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+}
+
+// ── SETS ──
 const SETS = [
-  { id:'animals',   name:'Zvieratká', icon:'🐾', emojis:['🐶','🐱','🦊','🐻','🐼','🦁','🐯','🐨'] },
-  { id:'trees',     name:'Stromy',    icon:'🌲', emojis:['🌲','🌴','🌳','🌵','🎋','🎍','🍀','🌿'] },
-  { id:'flowers',   name:'Kvety',     icon:'🌸', emojis:['🌸','🌺','🌻','🌹','🌷','💐','🪷','🌼'] },
-  { id:'space',     name:'Vesmír',    icon:'🚀', emojis:['🚀','🪐','⭐','🌙','☄️','🌍','🔭','👾'] },
-  { id:'buildings', name:'Budovy',    icon:'🏛️', emojis:['🏛️','🗼','🏰','⛩️','🕌','🗽','🏯','🕍'] },
+  { id:'animals',   icon:'🐾', emojis:['🐶','🐱','🦊','🐻','🐼','🦁','🐯','🐨'] },
+  { id:'trees',     icon:'🌲', emojis:['🌲','🌴','🌳','🌵','🎋','🎍','🍀','🌿'] },
+  { id:'flowers',   icon:'🌸', emojis:['🌸','🌺','🌻','🌹','🌷','💐','🪷','🌼'] },
+  { id:'space',     icon:'🚀', emojis:['🚀','🪐','⭐','🌙','☄️','🌍','🔭','👾'] },
+  { id:'buildings', icon:'🏛️', emojis:['🏛️','🗼','🏰','⛩️','🕌','🗽','🏯','🕍'] },
 ];
 
 let selectedSetId = 'animals';
@@ -231,13 +367,23 @@ let flipped = [], matched = 0, moves = 0, lock = false;
 let timerInterval, seconds = 0, started = false;
 let particleInterval = null;
 
+// ── LANG TOGGLE HANDLER ──
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    lang = btn.dataset.lang;
+    applyLang();
+  });
+});
+
+// ── MENU ──
 function renderMenu() {
   const grid = document.getElementById('sets-grid');
   grid.innerHTML = '';
   SETS.forEach(set => {
     const btn = document.createElement('button');
     btn.className = 'set-btn' + (set.id === selectedSetId ? ' selected' : '');
-    btn.innerHTML = `<span class="set-icon">${set.icon}</span><span class="set-name">${set.name}</span>`;
+    btn.dataset.setId = set.id;
+    btn.innerHTML = `<span class="set-icon">${set.icon}</span><span class="set-name">${tSet(set.id)}</span>`;
     btn.onclick = () => {
       selectedSetId = set.id;
       document.querySelectorAll('.set-btn').forEach(b => b.classList.remove('selected'));
@@ -265,6 +411,7 @@ function goMenu() {
   spawnParticles(currentSet.emojis);
 }
 
+// ── PARTICLES ──
 function spawnParticles(emojis) {
   const container = document.getElementById('particles');
   container.innerHTML = '';
@@ -285,6 +432,7 @@ function spawnParticles(emojis) {
   particleInterval = setInterval(spawn, 1000);
 }
 
+// ── GAME ──
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -299,12 +447,12 @@ function startGame() {
   flipped = []; matched = 0; moves = 0; lock = false; seconds = 0; started = false;
   document.getElementById('moves').textContent = 0;
   document.getElementById('timer').textContent = '0s';
-  document.getElementById('message').textContent = 'Otočte dve kartičky a nájdite zhodu!';
+  document.getElementById('message').textContent = t('msgFlip');
   document.getElementById('message').style.display = 'block';
   document.getElementById('win-banner').style.display = 'none';
   document.getElementById('grid').style.display = 'grid';
   document.getElementById('game-set-icon').textContent = currentSet.icon;
-  document.getElementById('game-set-name').textContent = currentSet.name;
+  document.getElementById('game-set-name').textContent = tSet(currentSet.id);
   document.getElementById('win-emoji').textContent = currentSet.icon;
 
   const deck = shuffle([...currentSet.emojis, ...currentSet.emojis]);
@@ -341,14 +489,14 @@ function flipCard(card) {
       a.classList.add('matched'); b.classList.add('matched');
       matched++;
       flipped = []; lock = false;
-      document.getElementById('message').textContent = matched < 8 ? '✓ Zhoda! Pokračujte…' : '';
+      document.getElementById('message').textContent = matched < 8 ? t('msgMatch') : '';
       if (matched === 8) endGame();
     } else {
-      document.getElementById('message').textContent = 'Žiadna zhoda…';
+      document.getElementById('message').textContent = t('msgNoMatch');
       setTimeout(() => {
         a.classList.remove('flipped'); b.classList.remove('flipped');
         flipped = []; lock = false;
-        document.getElementById('message').textContent = 'Otočte dve kartičky a nájdite zhodu!';
+        document.getElementById('message').textContent = t('msgFlip');
       }, 950);
     }
   }
@@ -363,7 +511,7 @@ function endGame() {
   document.getElementById('win-banner').style.display = 'flex';
 }
 
-// PWA install
+// ── PWA ──
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault(); deferredPrompt = e;
@@ -386,6 +534,8 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(console.error);
 }
 
+// ── INIT ──
+applyLang();
 renderMenu();
 spawnParticles(SETS[0].emojis);
 </script>
