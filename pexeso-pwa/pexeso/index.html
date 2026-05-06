@@ -46,10 +46,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 0 0 env(safe-area-inset-bottom);
 }
 
-.screen { display: none; width: 100%; max-width: 520px; padding: 2rem 1.25rem; flex-direction: column; min-height: 100dvh; }
+.screen { display: none; width: 100%; max-width: 520px; padding: 2rem 1.25rem; flex-direction: column; min-height: auto; justify-content: center; }
 .screen.active { display: flex; }
 
 /* ── MENU ── */
