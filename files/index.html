@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0d0d1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GamePad">
+<title>GamePad</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0d0d1a;
+    --bg2: #12122a;
+    --bg3: #1a1a38;
+    --accent: #7c6fff;
+    --accent2: #00e5ff;
+    --text: #e0deff;
+    --muted: #5a5880;
+    --border: #2a2850;
+    --green: #33ff66;
+    --amber: #ffcc00;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-family: 'Share Tech Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    padding: 32px 24px 0;
+    text-align: center;
+    position: relative;
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(32px, 8vw, 56px);
+    letter-spacing: 6px;
+    color: var(--accent);
+    text-shadow:
+      0 0 40px rgba(124, 111, 255, 0.6),
+      0 0 80px rgba(124, 111, 255, 0.2);
+    animation: pulse 4s ease-in-out infinite;
+  }
+
+  .logo span {
+    color: var(--accent2);
+    text-shadow:
+      0 0 40px rgba(0, 229, 255, 0.6),
+      0 0 80px rgba(0, 229, 255, 0.2);
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.85; }
+  }
+
+  .tagline {
+    margin-top: 8px;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* Decorative line */
+  .divider {
+    margin: 24px auto 0;
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    opacity: 0.5;
+  }
+
+  /* ---- SEARCH / FILTER ---- */
+  .toolbar {
+    padding: 24px 20px 0;
+    display: flex;
+    gap: 10px;
+    max-width: 700px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  #search {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 10px 12px 10px 38px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  #search::placeholder { color: var(--muted); }
+  #search:focus { border-color: var(--accent); }
+
+  .tag-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .tag-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tag-btn:hover, .tag-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(124,111,255,0.1);
+  }
+
+  /* ---- STATS BAR ---- */
+  .stats-bar {
+    display: flex;
+    gap: 20px;
+    padding: 20px 20px 0;
+    max-width: 700px;
+    margin: 0 auto;
+    justify-content: flex-end;
+  }
+
+  .stat {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .stat strong {
+    color: var(--accent2);
+    font-weight: 400;
+  }
+
+  /* ---- GAME GRID ---- */
+  main {
+    padding: 16px 20px 40px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  #games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  /* ---- GAME CARD ---- */
+  .game-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .game-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: 0 8px 30px rgba(124,111,255,0.2);
+  }
+
+  .game-card:active { transform: scale(0.97); }
+
+  .card-art {
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 60%, var(--bg2));
+  }
+
+  .card-body {
+    padding: 12px 14px 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .card-title {
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+
+  .card-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .card-tag {
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 1px solid;
+    text-transform: uppercase;
+  }
+
+  .tag-arcade { color: #33ff66; border-color: #33ff6633; background: rgba(51,255,102,0.06); }
+  .tag-puzzle { color: #ffcc00; border-color: #ffcc0033; background: rgba(255,204,0,0.06); }
+  .tag-action { color: #ff6633; border-color: #ff663333; background: rgba(255,102,51,0.06); }
+  .tag-strategy { color: #00e5ff; border-color: #00e5ff33; background: rgba(0,229,255,0.06); }
+
+  .play-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 11px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .game-card:hover .play-btn {
+    background: var(--accent);
+    color: white;
+  }
+
+  /* New badge */
+  .badge-new {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--accent);
+    color: white;
+    font-size: 9px;
+    letter-spacing: 2px;
+    padding: 3px 7px;
+    border-radius: 3px;
+    z-index: 1;
+    font-family: 'Orbitron', monospace;
+  }
+
+  /* Empty state */
+  .empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+
+  /* ---- PWA INSTALL BANNER ---- */
+  #install-banner {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: none;
+    align-items: center;
+    gap: 16px;
+    z-index: 500;
+    max-width: 360px;
+    width: calc(100% - 40px);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  }
+
+  .banner-text { flex: 1; }
+  .banner-text strong { display: block; font-size: 13px; margin-bottom: 2px; color: var(--text); font-weight: 400; }
+  .banner-text span { font-size: 11px; color: var(--muted); }
+  .banner-btns { display: flex; gap: 8px; }
+  .btn-install {
+    background: var(--accent);
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 5px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-dismiss {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  /* ---- FOOTER ---- */
+  footer {
+    text-align: center;
+    padding: 0 20px 30px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  /* Animations on load */
+  .game-card {
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GAME<span>PAD</span></div>
+  <div class="tagline">Herná Knižnica &nbsp;·&nbsp; HTML5 &nbsp;·&nbsp; Offline Ready</div>
+  <div class="divider"></div>
+</header>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" id="search" placeholder="Hľadaj hru..." autocomplete="off">
+  </div>
+  <div class="tag-filters" id="tag-filters">
+    <button class="tag-btn active" data-tag="all">VŠETKY</button>
+    <button class="tag-btn" data-tag="arcade">ARKÁDA</button>
+    <button class="tag-btn" data-tag="puzzle">PUZZLE</button>
+    <button class="tag-btn" data-tag="action">AKCIA</button>
+    <button class="tag-btn" data-tag="strategy">STRATÉGIA</button>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat">Hry: <strong id="stat-count">0</strong></div>
+  <div class="stat">Offline: <strong id="stat-offline">✓</strong></div>
+</div>
+
+<main>
+  <div id="games-grid"></div>
+</main>
+
+<footer>
+  © GAMEPAD &nbsp;·&nbsp; Funguje offline ako PWA aplikácia
+</footer>
+
+<div id="install-banner">
+  <div class="banner-text">
+    <strong>Pridaj na plochu</strong>
+    <span>Hraj offline ako natívna app</span>
+  </div>
+  <div class="banner-btns">
+    <button class="btn-install" id="btn-install">INŠTALOVAŤ</button>
+    <button class="btn-dismiss" id="btn-dismiss">×</button>
+  </div>
+</div>
+
+<script>
+// ─── GAME DATABASE ──────────────────────────────────────────────────────────
+// Na pridanie novej hry stačí pridať objekt do tohto poľa:
+const GAMES = [
+  {
+    id: 'snake',
+    title: 'SNAKE',
+    desc: 'Klasická hadová hra. Zbieraj jedlo a nerob si do seba.',
+    emoji: '🐍',
+    tags: ['arcade'],
+    color: '#0d1f0d',
+    accentColor: '#33ff66',
+    file: 'games/snake.html',
+    isNew: false,
+  },
+  {
+    id: 'tetris',
+    title: 'TETRIS',
+    desc: 'Skladaj bloky a čisti riadky. Čím dlhšie vydržíš, tým rýchlejšie.',
+    emoji: '🟪',
+    tags: ['puzzle'],
+    color: '#100d2a',
+    accentColor: '#7c6fff',
+    file: 'games/tetris.html',
+    isNew: false,
+  },
+  // ── Ďalšia hra (príklad šablóny):
+  // {
+  //   id: 'breakout',
+  //   title: 'BREAKOUT',
+  //   desc: 'Rozbíjaj bloky pálkou a loptičkou.',
+  //   emoji: '🧱',
+  //   tags: ['arcade', 'action'],
+  //   color: '#1a0f00',
+  //   accentColor: '#ff9900',
+  //   file: 'games/breakout.html',
+  //   isNew: true,
+  // },
+];
+
+// ─── TAG LABELS ─────────────────────────────────────────────────────────────
+const TAG_LABELS = { arcade: 'ARKÁDA', puzzle: 'PUZZLE', action: 'AKCIA', strategy: 'STRATÉGIA' };
+const TAG_CLASSES = { arcade: 'tag-arcade', puzzle: 'tag-puzzle', action: 'tag-action', strategy: 'tag-strategy' };
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let activeTag = 'all';
+let searchQuery = '';
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function renderGames() {
+  const grid = document.getElementById('games-grid');
+  const q = searchQuery.toLowerCase();
+
+  const filtered = GAMES.filter(g => {
+    const tagMatch = activeTag === 'all' || g.tags.includes(activeTag);
+    const searchMatch = !q || g.title.toLowerCase().includes(q) || g.desc.toLowerCase().includes(q);
+    return tagMatch && searchMatch;
+  });
+
+  document.getElementById('stat-count').textContent = GAMES.length;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty">ŽIADNE HRY NENÁJDENÉ</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map((g, i) => `
+    <a class="game-card" href="${g.file}" style="animation-delay: ${i * 0.05}s">
+      ${g.isNew ? '<div class="badge-new">NOVÁ</div>' : ''}
+      <div class="card-art" style="background: ${g.color};">
+        <span>${g.emoji}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${g.title}</div>
+        <div class="card-desc">${g.desc}</div>
+        <div class="card-footer">
+          <div class="card-tags">
+            ${g.tags.map(t => `<span class="card-tag ${TAG_CLASSES[t] || 'tag-arcade'}">${TAG_LABELS[t] || t}</span>`).join('')}
+          </div>
+          <div class="play-btn">▶</div>
+        </div>
+      </div>
+    </a>
+  `).join('');
+}
+
+// ─── FILTERS ─────────────────────────────────────────────────────────────────
+document.getElementById('tag-filters').addEventListener('click', e => {
+  const btn = e.target.closest('.tag-btn');
+  if (!btn) return;
+  document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeTag = btn.dataset.tag;
+  renderGames();
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  renderGames();
+});
+
+// ─── PWA INSTALL ─────────────────────────────────────────────────────────────
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('install-banner');
+  banner.style.display = 'flex';
+});
+
+document.getElementById('btn-install').addEventListener('click', () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById('install-banner').style.display = 'none';
+  });
+});
+
+document.getElementById('btn-dismiss').addEventListener('click', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+
+// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => { document.getElementById('stat-offline').textContent = '✓'; })
+      .catch(() => { document.getElementById('stat-offline').textContent = '–'; });
+  });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderGames();
+</script>
+</body>
+</html>
