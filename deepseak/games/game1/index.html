@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Space Shooter</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Get language from URL parameter or parent message
+        let currentLang = 'en';
+        
+        // Check URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const langParam = urlParams.get('lang');
+        if (langParam) {
+            currentLang = langParam;
+        }
+        
+        // Listen for language changes from parent
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'languageChange') {
+                currentLang = event.data.lang;
+                updateGameLanguage();
+            }
+        });
+        
+        // Game translations
+        const gameTranslations = {
+            en: {
+                score: 'Score',
+                lives: 'Lives',
+                game_over: 'Game Over',
+                restart: 'Restart',
+                level: 'Level'
+            },
+            es: {
+                score: 'Puntuación',
+                lives: 'Vidas',
+                game_over: 'Juego Terminado',
+                restart: 'Reiniciar',
+                level: 'Nivel'
+            },
+            pt: {
+                score: 'Pontuação',
+                lives: 'Vidas',
+                game_over: 'Fim de Jogo',
+                restart: 'Reiniciar',
+                level: 'Nível'
+            },
+            de: {
+                score: 'Punktzahl',
+                lives: 'Leben',
+                game_over: 'Spiel vorbei',
+                restart: 'Neustart',
+                level: 'Level'
+            },
+            fr: {
+                score: 'Score',
+                lives: 'Vies',
+                game_over: 'Partie terminée',
+                restart: 'Recommencer',
+                level: 'Niveau'
+            },
+            it: {
+                score: 'Punteggio',
+                lives: 'Vite',
+                game_over: 'Game Over',
+                restart: 'Ricomincia',
+                level: 'Livello'
+            },
+            ru: {
+                score: 'Очки',
+                lives: 'Жизни',
+                game_over: 'Игра окончена',
+                restart: 'Заново',
+                level: 'Уровень'
+            },
+            tr: {
+                score: 'Skor',
+                lives: 'Can',
+                game_over: 'Oyun Bitti',
+                restart: 'Yeniden Başla',
+                level: 'Seviye'
+            },
+            ja: {
+                score: 'スコア',
+                lives: 'ライフ',
+                game_over: 'ゲームオーバー',
+                restart: 'リスタート',
+                level: 'レベル'
+            },
+            ko: {
+                score: '점수',
+                lives: '생명',
+                game_over: '게임 오버',
+                restart: '다시 시작',
+                level: '레벨'
+            },
+            zh: {
+                score: '分数',
+                lives: '生命',
+                game_over: '游戏结束',
+                restart: '重新开始',
+                level: '关卡'
+            }
+        };
+        
+        function updateGameLanguage() {
+            document.documentElement.lang = currentLang;
+            // Game-specific language updates
+            const t = gameTranslations[currentLang] || gameTranslations.en;
+            document.querySelectorAll('[data-game-translate]').forEach(el => {
+                const key = el.getAttribute('data-game-translate');
+                if (t[key]) el.textContent = t[key];
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div class="game-ui">
+            <span class="ui-score" data-game-translate="score">Score: <span id="scoreValue">0</span></span>
+            <span class="ui-lives" data-game-translate="lives">Lives: <span id="livesValue">3</span></span>
+        </div>
+        <div class="game-over hidden" id="gameOver">
+            <h2 data-game-translate="game_over">Game Over</h2>
+            <p>Score: <span id="finalScore">0</span></p>
+            <button id="restartBtn" data-game-translate="restart">Restart</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

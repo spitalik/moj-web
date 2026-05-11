@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="description" content="100 free mobile games - no license restrictions">
+    <meta name="theme-color" content="#0f172a">
+    <title>🎮 GameHub | 100 Free Games</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Particle Background -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-top">
+                <div class="logo">
+                    <span class="logo-icon">🎮</span>
+                    <h1 class="logo-text" data-translate="app_title">GameHub</h1>
+                </div>
+                <div class="header-actions">
+                    <!-- Language Selector -->
+                    <div class="language-selector">
+                        <button class="lang-btn" id="langToggle" aria-label="Select language">
+                            <span class="current-flag">🇺🇸</span>
+                            <span class="current-lang">EN</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="language-dropdown" id="langDropdown">
+                            <div class="lang-search">
+                                <input type="text" id="langSearch" placeholder="Search language...">
+                            </div>
+                            <div class="lang-list">
+                                <button class="lang-option active" data-lang="en">
+                                    <span class="flag">🇺🇸</span>
+                                    <span class="name">English</span>
+                                    <span class="native">English</span>
+                                </button>
+                                <button class="lang-option" data-lang="es">
+                                    <span class="flag">🇪🇸</span>
+                                    <span class="name">Spanish</span>
+                                    <span class="native">Español</span>
+                                </button>
+                                <button class="lang-option" data-lang="pt">
+                                    <span class="flag">🇧🇷</span>
+                                    <span class="name">Portuguese</span>
+                                    <span class="native">Português</span>
+                                </button>
+                                <button class="lang-option" data-lang="de">
+                                    <span class="flag">🇩🇪</span>
+                                    <span class="name">German</span>
+                                    <span class="native">Deutsch</span>
+                                </button>
+                                <button class="lang-option" data-lang="fr">
+                                    <span class="flag">🇫🇷</span>
+                                    <span class="name">French</span>
+                                    <span class="native">Français</span>
+                                </button>
+                                <button class="lang-option" data-lang="it">
+                                    <span class="flag">🇮🇹</span>
+                                    <span class="name">Italian</span>
+                                    <span class="native">Italiano</span>
+                                </button>
+                                <button class="lang-option" data-lang="ru">
+                                    <span class="flag">🇷🇺</span>
+                                    <span class="name">Russian</span>
+                                    <span class="native">Русский</span>
+                                </button>
+                                <button class="lang-option" data-lang="tr">
+                                    <span class="flag">🇹🇷</span>
+                                    <span class="name">Turkish</span>
+                                    <span class="native">Türkçe</span>
+                                </button>
+                                <button class="lang-option" data-lang="ja">
+                                    <span class="flag">🇯🇵</span>
+                                    <span class="name">Japanese</span>
+                                    <span class="native">日本語</span>
+                                </button>
+                                <button class="lang-option" data-lang="ko">
+                                    <span class="flag">🇰🇷</span>
+                                    <span class="name">Korean</span>
+                                    <span class="native">한국어</span>
+                                </button>
+                                <button class="lang-option" data-lang="zh">
+                                    <span class="flag">🇨🇳</span>
+                                    <span class="name">Chinese</span>
+                                    <span class="native">中文</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Theme Toggle -->
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hero Section -->
+            <div class="hero">
+                <h2 class="hero-title">
+                    <span class="gradient-text" data-translate="hero_title">100 Free Games</span>
+                </h2>
+                <p class="hero-subtitle" data-translate="hero_subtitle">No ads. No licenses. Just pure fun.</p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">100+</span>
+                        <span class="stat-label" data-translate="stat_games">Games</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">11</span>
+                        <span class="stat-label" data-translate="stat_languages">Languages</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">∞</span>
+                        <span class="stat-label" data-translate="stat_free">Free</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search and Filters -->
+        <div class="search-section">
+            <div class="search-container">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    data-translate="search_placeholder"
+                    placeholder="Search games..."
+                    autocomplete="off"
+                >
+                <button class="clear-search" id="clearSearch" aria-label="Clear search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Category Pills -->
+            <div class="categories-scroll">
+                <div class="categories" id="categories">
+                    <button class="category-pill active" data-category="all">
+                        <span class="cat-icon">🌈</span>
+                        <span data-translate="category_all">All Games</span>
+                    </button>
+                    <button class="category-pill" data-category="action">
+                        <span class="cat-icon">⚡</span>
+                        <span data-translate="category_action">Action</span>
+                    </button>
+                    <button class="category-pill" data-category="puzzle">
+                        <span class="cat-icon">🧩</span>
+                        <span data-translate="category_puzzle">Puzzle</span>
+                    </button>
+                    <button class="category-pill" data-category="arcade">
+                        <span class="cat-icon">🕹️</span>
+                        <span data-translate="category_arcade">Arcade</span>
+                    </button>
+                    <button class="category-pill" data-category="strategy">
+                        <span class="cat-icon">♟️</span>
+                        <span data-translate="category_strategy">Strategy</span>
+                    </button>
+                    <button class="category-pill" data-category="word">
+                        <span class="cat-icon">📝</span>
+                        <span data-translate="category_word">Word</span>
+                    </button>
+                    <button class="category-pill" data-category="card">
+                        <span class="cat-icon">🃏</span>
+                        <span data-translate="category_card">Card</span>
+                    </button>
+                    <button class="category-pill" data-category="reflex">
+                        <span class="cat-icon">🎯</span>
+                        <span data-translate="category_reflex">Reflex</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sort Options -->
+        <div class="sort-section">
+            <span class="sort-label" data-translate="sort_by">Sort by:</span>
+            <button class="sort-btn active" data-sort="popular">
+                <span data-translate="sort_popular">Popular</span>
+            </button>
+            <button class="sort-btn" data-sort="newest">
+                <span data-translate="sort_newest">Newest</span>
+            </button>
+            <button class="sort-btn" data-sort="name">
+                <span data-translate="sort_name">Name</span>
+            </button>
+            <button class="sort-btn" data-sort="rating">
+                <span data-translate="sort_rating">Rating</span>
+            </button>
+        </div>
+
+        <!-- Games Grid -->
+        <div class="games-container">
+            <div class="games-grid" id="gamesGrid">
+                <!-- Games will be loaded dynamically -->
+                <div class="loading-skeleton" style="--delay: 0s"></div>
+                <div class="loading-skeleton" style="--delay: 0.1s"></div>
+                <div class="loading-skeleton" style="--delay: 0.2s"></div>
+                <div class="loading-skeleton" style="--delay: 0.3s"></div>
+                <div class="loading-skeleton" style="--delay: 0.4s"></div>
+                <div class="loading-skeleton" style="--delay: 0.5s"></div>
+            </div>
+        </div>
+
+        <!-- Load More -->
+        <div class="load-more-container" id="loadMoreContainer">
+            <button class="load-more-btn" id="loadMoreBtn">
+                <span data-translate="load_more">Load More Games</span>
+                <span class="remaining-count" id="remainingCount">85</span>
+            </button>
+        </div>
+
+        <!-- No Results -->
+        <div class="no-results hidden" id="noResults">
+            <div class="no-results-icon">🔍</div>
+            <h3 data-translate="no_games_found">No games found</h3>
+            <p data-translate="try_different_search">Try different keywords or category</p>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p data-translate="footer_text">All games are open source and free to play. No license restrictions.</p>
+            <div class="footer-links">
+                <a href="#" data-translate="about">About</a>
+                <a href="#" data-translate="privacy">Privacy</a>
+                <a href="#" data-translate="terms">Terms</a>
+                <a href="#" data-translate="contact">Contact</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Game Preview Modal -->
+    <div class="modal-overlay hidden" id="gameModal">
+        <div class="modal">
+            <button class="modal-close" id="modalClose">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="modal-content" id="modalContent"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/translations.js"></script>
+    <script src="js/games.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
