@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tetris · GamePad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../i18n.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg:#050507; --bg1:#0c0c10; --bg2:#111116;
+  --text:#f0eeff; --muted:rgba(240,238,255,0.38); --dim:rgba(240,238,255,0.18);
+  --border:rgba(255,255,255,0.07); --border-h:rgba(255,255,255,0.14);
+  --accent:#a78bfa; --accent-dim:rgba(167,139,250,0.14);
+}
+html, body {
+  background: var(--bg); min-height: 100vh;
+  font-family: 'DM Sans', sans-serif; color: var(--text);
+  -webkit-font-smoothing: antialiased; user-select: none; overflow: hidden;
+}
+body::before {
+  content: ''; position: fixed; width: 600px; height: 600px;
+  top: -200px; right: -200px;
+  background: radial-gradient(circle, rgba(120,90,255,0.09) 0%, transparent 65%);
+  border-radius: 50%; pointer-events: none; z-index: 0;
+}
+#back-btn {
+  position: fixed; top: 20px; left: 20px; z-index: 10;
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--muted); padding: 7px 14px; border-radius: 100px;
+  text-decoration: none; font-size: 12px; font-weight: 500;
+  transition: border-color 0.18s, color 0.18s;
+}
+#back-btn:hover { border-color: var(--border-h); color: var(--text); }
+.page {
+  position: relative; z-index: 1; min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 20px 30px; gap: 14px;
+}
+.top-bar { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 310px; }
+.game-title {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; flex: 1;
+}
+.stat-pill {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 100px;
+  padding: 5px 12px; font-size: 12px; font-weight: 500; color: var(--muted);
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.stat-pill span { color: var(--accent); font-variant-numeric: tabular-nums; min-width: 14px; }
+.play-area { display: flex; align-items: flex-start; gap: 12px; }
+.canvas-wrap {
+  position: relative; border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; background: var(--bg1); flex-shrink: 0;
+}
+canvas { display: block; }
+.side { display: flex; flex-direction: column; gap: 10px; width: 90px; }
+.side-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.side-label { font-size: 10px; font-weight: 500; letter-spacing: 1.5px; color: var(--dim); text-transform: uppercase; margin-bottom: 4px; }
+.side-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+#next-canvas { display: block; margin-top: 6px; border-radius: 6px; }
+#overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: rgba(5,5,7,0.84); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+#overlay h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -0.5px; }
+.hint { font-size: 12px; color: var(--muted); font-weight: 300; }
+.score-big { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; color: var(--accent); letter-spacing: -2px; line-height: 1; }
+.score-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.play-btn {
+  margin-top: 6px; background: var(--accent-dim);
+  border: 1px solid rgba(167,139,250,0.3); color: var(--accent);
+  padding: 11px 32px; border-radius: 100px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+}
+.play-btn:hover { background: rgba(167,139,250,0.22); border-color: rgba(167,139,250,0.45); }
+.dpad { display: grid; grid-template-columns: repeat(4, 52px); gap: 5px; }
+.d {
+  height: 52px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--muted); font-size: 15px;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px;
+  cursor: pointer; transition: background 0.12s, border-color 0.12s, color 0.12s;
+  -webkit-tap-highlight-color: transparent; font-family: 'DM Sans', sans-serif;
+}
+.d span { font-size: 9px; opacity: 0.5; letter-spacing: 0.5px; text-transform: uppercase; }
+.d:active, .d.pressed { background: var(--accent-dim); border-color: rgba(167,139,250,0.3); color: var(--accent); }
+</style>
+</head>
+<body>
+<a href="../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<div class="page">
+  <div class="top-bar">
+    <div class="game-title" id="lbl-title"></div>
+    <div class="stat-pill"><span id="lbl-score"></span> <span id="score-top">0</span></div>
+    <div class="stat-pill">Lv <span id="level-top">1</span></div>
+  </div>
+
+  <div class="play-area">
+    <div class="canvas-wrap">
+      <canvas id="c" width="200" height="400"></canvas>
+      <div id="overlay">
+        <div style="font-size:40px;margin-bottom:4px">🟪</div>
+        <h2 id="ov-title"></h2>
+        <div class="hint" id="ov-hint1"></div>
+        <div class="hint" id="ov-hint2"></div>
+        <button class="play-btn" id="ov-play" onclick="startGame()"></button>
+      </div>
+    </div>
+    <div class="side">
+      <div class="side-card">
+        <div class="side-label" id="lbl-score2"></div>
+        <div class="side-val" id="score">0</div>
+      </div>
+      <div class="side-card">
+        <div class="side-label" id="lbl-level"></div>
+        <div class="side-val" id="level">1</div>
+      </div>
+      <div class="side-card">
+        <div class="side-label" id="lbl-lines"></div>
+        <div class="side-val" id="lines">0</div>
+      </div>
+      <div class="side-card">
+        <div class="side-label" id="lbl-next"></div>
+        <canvas id="next-canvas" width="80" height="80"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="dpad">
+    <button class="d" id="d-left"   onpointerdown="move(-1)">◄<span id="lbl-left">Left</span></button>
+    <button class="d" id="d-rotate" onpointerdown="rotate()">↻<span id="lbl-rotate"></span></button>
+    <button class="d" id="d-right"  onpointerdown="move(1)">►<span id="lbl-right">Right</span></button>
+    <button class="d" id="d-drop"   onpointerdown="drop()">▼<span id="lbl-drop"></span></button>
+  </div>
+</div>
+
+<script>
+function applyLang() {
+  document.getElementById('lbl-back').textContent    = t('back');
+  document.getElementById('lbl-title').textContent   = t('tetrisTitle');
+  document.getElementById('lbl-score').textContent   = t('tetrisScore');
+  document.getElementById('lbl-score2').textContent  = t('tetrisScore');
+  document.getElementById('lbl-level').textContent   = t('tetrisLevel');
+  document.getElementById('lbl-lines').textContent   = t('tetrisLines');
+  document.getElementById('lbl-next').textContent    = t('tetrisNext');
+  document.getElementById('ov-title').textContent    = t('tetrisTitle');
+  document.getElementById('ov-hint1').textContent    = t('tetrisHint1');
+  document.getElementById('ov-hint2').textContent    = t('tetrisHint2');
+  document.getElementById('ov-play').textContent     = t('tetrisPlay');
+  document.getElementById('lbl-rotate').textContent  = t('rotate');
+  document.getElementById('lbl-drop').textContent    = t('drop');
+}
+applyLang();
+
+const C = document.getElementById('c');
+const ctx = C.getContext('2d');
+const NC = document.getElementById('next-canvas');
+const nctx = NC.getContext('2d');
+const SZ = 20, COLS = 10, ROWS = 20;
+
+const BASE_SHAPES = [
+  [[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],
+  [[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]],
+];
+const COLORS = ['#00d4ff','#ffd166','#a78bfa','#ff9f43','#54a0ff','#4dff91','#ff6b6b'];
+
+let board, shapes, piece, px, py, next, score, level, lines, running, interval;
+
+function newBoard() { return Array.from({length:ROWS},()=>Array(COLS).fill(0)); }
+
+function startGame() {
+  document.getElementById('overlay').style.display = 'none';
+  board = newBoard();
+  shapes = BASE_SHAPES.map(s => s.map(r=>[...r]));
+  score=0; level=1; lines=0; next=rand(); running=true;
+  spawn(); clearInterval(interval); interval=setInterval(tick,550); updateInfo();
+}
+
+function rand() { return Math.floor(Math.random()*BASE_SHAPES.length); }
+
+function spawn() {
+  piece=next; next=rand();
+  px=Math.floor(COLS/2)-Math.floor(shapes[piece][0].length/2); py=0;
+  if(collide(px,py,shapes[piece])) gameOver();
+  drawNext();
+}
+
+function collide(x,y,shape) {
+  return shape.some((row,ry)=>row.some((v,cx)=>v&&(x+cx<0||x+cx>=COLS||y+ry>=ROWS||(board[y+ry]&&board[y+ry][x+cx]))));
+}
+
+function rotate() {
+  if(!running) return;
+  const s=shapes[piece];
+  const rot=s[0].map((_,i)=>s.map(r=>r[i]).reverse());
+  if(!collide(px,py,rot)) shapes[piece]=rot;
+  draw(); pulse('d-rotate');
+}
+
+function move(dx) {
+  if(!running) return;
+  if(!collide(px+dx,py,shapes[piece])) px+=dx;
+  draw(); pulse(dx<0?'d-left':'d-right');
+}
+
+function drop() {
+  if(!running) return;
+  while(!collide(px,py+1,shapes[piece])) py++;
+  lock(); pulse('d-drop');
+}
+
+function tick() {
+  if(!collide(px,py+1,shapes[piece])){py++;draw();}else lock();
+}
+
+function lock() {
+  shapes[piece].forEach((row,ry)=>row.forEach((v,cx)=>{if(v)board[py+ry][px+cx]=piece+1;}));
+  let cleared=0;
+  for(let r=ROWS-1;r>=0;r--){
+    if(board[r].every(v=>v)){board.splice(r,1);board.unshift(Array(COLS).fill(0));cleared++;r++;}
+  }
+  if(cleared){
+    const pts=[0,100,300,500,800];
+    score+=(pts[cleared]||1000)*level; lines+=cleared; level=Math.floor(lines/10)+1;
+    clearInterval(interval); interval=setInterval(tick,Math.max(80,550-level*45));
+    updateInfo();
+  }
+  spawn(); draw();
+}
+
+function updateInfo() {
+  ['score','score-top'].forEach(id=>document.getElementById(id).textContent=score);
+  ['level','level-top'].forEach(id=>document.getElementById(id).textContent=level);
+  document.getElementById('lines').textContent=lines;
+}
+
+function drawNext() {
+  nctx.fillStyle='#0c0c10'; nctx.fillRect(0,0,80,80);
+  const shape=shapes[next], col=COLORS[next];
+  const ox=Math.floor((4-shape[0].length)/2), oy=Math.floor((4-shape.length)/2);
+  shape.forEach((row,r)=>row.forEach((v,c)=>{
+    if(v){
+      nctx.fillStyle=col+'22'; nctx.fillRect((ox+c)*20,(oy+r)*20,20,20);
+      nctx.fillStyle=col;
+      nctx.beginPath();nctx.roundRect((ox+c)*20+2,(oy+r)*20+2,16,16,3);nctx.fill();
+      nctx.fillStyle='rgba(255,255,255,0.18)';nctx.fillRect((ox+c)*20+2,(oy+r)*20+2,16,3);
+    }
+  }));
+}
+
+function draw() {
+  ctx.fillStyle='#0c0c10'; ctx.fillRect(0,0,200,400);
+  ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1;
+  for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*SZ,0);ctx.lineTo(x*SZ,400);ctx.stroke();}
+  for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*SZ);ctx.lineTo(200,y*SZ);ctx.stroke();}
+  board.forEach((row,r)=>row.forEach((v,c)=>{if(v)drawBlock(c,r,COLORS[v-1]);}));
+  // ghost
+  let gy=py; while(!collide(px,gy+1,shapes[piece]))gy++;
+  if(gy!==py){
+    shapes[piece].forEach((row,r)=>row.forEach((v,c)=>{
+      if(v){
+        ctx.fillStyle=COLORS[piece]+'18'; ctx.fillRect((px+c)*SZ+1,(gy+r)*SZ+1,SZ-2,SZ-2);
+        ctx.strokeStyle=COLORS[piece]+'33'; ctx.lineWidth=1;
+        ctx.strokeRect((px+c)*SZ+1.5,(gy+r)*SZ+1.5,SZ-3,SZ-3);
+      }
+    }));
+  }
+  shapes[piece].forEach((row,r)=>row.forEach((v,c)=>{if(v)drawBlock(px+c,py+r,COLORS[piece]);}));
+}
+
+function drawBlock(c,r,col) {
+  const x=c*SZ+1,y=r*SZ+1,w=SZ-2,h=SZ-2;
+  ctx.fillStyle=col+'22'; ctx.fillRect(c*SZ,r*SZ,SZ,SZ);
+  ctx.fillStyle=col; ctx.beginPath(); ctx.roundRect(x,y,w,h,3); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.18)'; ctx.fillRect(x,y,w,3);
+  ctx.fillStyle='rgba(0,0,0,0.15)'; ctx.fillRect(x,y+h-3,w,3);
+}
+
+function gameOver() {
+  clearInterval(interval); running=false;
+  const ov=document.getElementById('overlay');
+  ov.innerHTML=`
+    <div class="score-label">${t('tetrisScore')}</div>
+    <div class="score-big">${score}</div>
+    <div class="hint">${t('tetrisLvlLines',{l:level,n:lines})}</div>
+    <button class="play-btn" onclick="startGame()" style="margin-top:10px">${t('tetrisAgain')}</button>
+  `;
+  ov.style.display='flex';
+}
+
+function pulse(id) {
+  const el=document.getElementById(id); if(!el) return;
+  el.classList.add('pressed'); setTimeout(()=>el.classList.remove('pressed'),150);
+}
+
+document.addEventListener('keydown',e=>{
+  if(!running){if(e.code==='Space'||e.code==='Enter')startGame();return;}
+  if(e.code==='ArrowLeft' ||e.code==='KeyA'){e.preventDefault();move(-1);}
+  if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();move(1);}
+  if(e.code==='ArrowUp'   ||e.code==='KeyW'){e.preventDefault();rotate();}
+  if(e.code==='ArrowDown' ||e.code==='KeyS'){e.preventDefault();drop();}
+  if(e.code==='Space'){e.preventDefault();drop();}
+});
+
+let tx=0,ty=0,ts=0;
+C.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;ts=Date.now();},{passive:true});
+C.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty,dt=Date.now()-ts;
+  if(dt<200&&Math.abs(dx)<10&&Math.abs(dy)<10){rotate();return;}
+  if(Math.abs(dx)>Math.abs(dy)){if(Math.abs(dx)>20)move(dx>0?1:-1);}
+  else{if(dy>30)drop();}
+},{passive:true});
+
+draw();
+</script>
+</body>
+</html>
