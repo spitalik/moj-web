@@ -98,7 +98,7 @@ function setMode(m,el){
 setMode('cpu',document.getElementById('m-cpu'));
 
 function resetBall(dir=1){
-  const angle=(Math.random()-.5)*0.8;const bs=DIFFS[diffIdx].ballSpeed;
+  const angle=(Math.random()-.5)*0.8;const bs=DIFFS[diffIdx].ballSpd;
   ball={x:W/2,y:H/2,vx:dir*bs,vy:Math.sin(angle)*bs,speed:bs};
 }
 

@@ -68,7 +68,7 @@ let bird,pipes,score,best=0,running,animId,bgX=0;
 
 function startGame(){
   document.getElementById('overlay').style.display='none';
-  const dd=DIFFS[diffIdx];GAP=dd.gap;SPEED=dd.speed;GRAVITY=dd.gravity;JUMP=dd.jump;
+  const dd=DIFFS[diffIdx];GAP=dd.gap;SPEED=dd.pipeSpeed;GRAVITY=dd.grav;JUMP=dd.jump;
   bird={x:W*0.25,y:H/2,vy:0,angle:0};
   pipes=[];score=0;running=true;
   cancelAnimationFrame(animId);loop();
