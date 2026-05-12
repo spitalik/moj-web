@@ -14,234 +14,109 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="i18n.js"></script>
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-:root {
-  --bg:      #050507;
-  --bg1:     #0c0c10;
-  --bg2:     #111116;
-  --bg3:     #18181f;
-  --border:  rgba(255,255,255,0.07);
-  --border-h:rgba(255,255,255,0.14);
-  --text:    #f0eeff;
-  --muted:   rgba(240,238,255,0.38);
-  --dim:     rgba(240,238,255,0.18);
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;
+  --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
+  --text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);
 }
-html { background: var(--bg); }
-body {
-  background: var(--bg); color: var(--text);
-  min-height: 100vh; font-family: 'DM Sans', sans-serif;
-  font-weight: 400; overflow-x: hidden; -webkit-font-smoothing: antialiased;
-}
-.bg-glow { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-.bg-glow::before {
-  content: ''; position: absolute; width: 700px; height: 700px;
-  top: -250px; left: -150px;
-  background: radial-gradient(circle, rgba(90,65,255,0.1) 0%, transparent 65%);
-  border-radius: 50%;
-}
-.bg-glow::after {
-  content: ''; position: absolute; width: 500px; height: 500px;
-  top: 50px; right: -200px;
-  background: radial-gradient(circle, rgba(0,200,255,0.07) 0%, transparent 65%);
-  border-radius: 50%;
-}
-.container { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 20px; }
+html{background:var(--bg);}
+body{background:var(--bg);color:var(--text);min-height:100vh;font-family:'DM Sans',sans-serif;font-weight:400;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.bg-glow::before{content:'';position:absolute;width:700px;height:700px;top:-250px;left:-150px;background:radial-gradient(circle,rgba(90,65,255,0.1) 0%,transparent 65%);border-radius:50%;}
+.bg-glow::after{content:'';position:absolute;width:500px;height:500px;top:50px;right:-200px;background:radial-gradient(circle,rgba(0,200,255,0.07) 0%,transparent 65%);border-radius:50%;}
+.container{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:0 20px;}
 
-/* ── HEADER ── */
-header { padding: 44px 0 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.header-text {}
-.wordmark {
-  font-family: 'Syne', sans-serif; font-weight: 800;
-  font-size: clamp(36px, 9vw, 62px); letter-spacing: -2px; line-height: 1;
-  background: linear-gradient(140deg, #ffffff 25%, rgba(160,140,255,0.85) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.subtitle { margin-top: 6px; font-size: 13px; font-weight: 300; color: var(--muted); }
+/* HEADER */
+header{padding:44px 0 0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.header-text{}
+.wordmark{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(36px,9vw,62px);letter-spacing:-2px;line-height:1;background:linear-gradient(140deg,#ffffff 25%,rgba(160,140,255,0.85) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.subtitle{margin-top:6px;font-size:13px;font-weight:300;color:var(--muted);}
 
-/* ── LANGUAGE PICKER ── */
-.lang-wrap { position: relative; flex-shrink: 0; margin-top: 4px; }
+/* LANGUAGE PICKER */
+.lang-wrap{position:relative;flex-shrink:0;margin-top:4px;}
+#lang-btn{display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:border-color .18s;white-space:nowrap;user-select:none;}
+#lang-btn:hover{border-color:var(--border-h);}
+#lang-btn .flag{font-size:16px;line-height:1;}
+#lang-btn .chevron{font-size:9px;color:var(--muted);transition:transform .2s;margin-left:2px;}
+.lang-wrap.open #lang-btn .chevron{transform:rotate(180deg);}
+#lang-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--bg3);border:1px solid var(--border-h);border-radius:14px;padding:6px;min-width:180px;z-index:100;box-shadow:0 16px 48px rgba(0,0,0,0.6);animation:dropIn .18s ease both;}
+@keyframes dropIn{from{opacity:0;transform:translateY(-6px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.lang-wrap.open #lang-dropdown{display:block;}
+.lang-option{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--muted);transition:background .14s,color .14s;user-select:none;}
+.lang-option:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+.lang-option.active{color:var(--text);background:rgba(255,255,255,0.07);}
+.lang-option .flag{font-size:18px;line-height:1;}
+.lang-option .check{margin-left:auto;font-size:11px;color:rgba(160,140,255,0.8);}
 
-#lang-btn {
-  display: flex; align-items: center; gap: 7px;
-  background: var(--bg2); border: 1px solid var(--border);
-  color: var(--text); padding: 8px 14px;
-  border-radius: 100px; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-  transition: border-color 0.18s; white-space: nowrap;
-  user-select: none;
-}
-#lang-btn:hover { border-color: var(--border-h); }
-#lang-btn .flag { font-size: 16px; line-height: 1; }
-#lang-btn .chevron {
-  font-size: 9px; color: var(--muted);
-  transition: transform 0.2s; margin-left: 2px;
-}
-.lang-wrap.open #lang-btn .chevron { transform: rotate(180deg); }
+/* TOOLBAR */
+.toolbar{margin-top:36px;display:flex;flex-direction:column;gap:10px;}
+.search-wrap{position:relative;}
+.search-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;display:flex;}
+#search{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:13px 16px 13px 44px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:400;outline:none;transition:border-color .2s,background .2s;-webkit-appearance:none;}
+#search::placeholder{color:var(--dim);}
+#search:focus{border-color:var(--border-h);background:var(--bg3);}
+.filters{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.filter-btn:hover{border-color:var(--border-h);color:var(--text);}
+.filter-btn.active{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.18);color:var(--text);}
 
-#lang-dropdown {
-  display: none;
-  position: absolute; top: calc(100% + 8px); right: 0;
-  background: var(--bg3);
-  border: 1px solid var(--border-h);
-  border-radius: 14px;
-  padding: 6px;
-  min-width: 180px;
-  z-index: 100;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
-  animation: dropIn 0.18s ease both;
-}
-@keyframes dropIn {
-  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-.lang-wrap.open #lang-dropdown { display: block; }
+/* SECTION */
+.section-head{margin-top:38px;margin-bottom:14px;display:flex;align-items:baseline;justify-content:space-between;}
+.section-label{font-size:11px;font-weight:500;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;}
+#count-label{font-size:11px;color:var(--dim);}
 
-.lang-option {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: 8px;
-  cursor: pointer; font-size: 13px; font-weight: 400;
-  color: var(--muted); transition: background 0.14s, color 0.14s;
-  user-select: none;
-}
-.lang-option:hover { background: rgba(255,255,255,0.05); color: var(--text); }
-.lang-option.active { color: var(--text); background: rgba(255,255,255,0.07); }
-.lang-option .flag { font-size: 18px; line-height: 1; }
-.lang-option .check { margin-left: auto; font-size: 11px; color: rgba(160,140,255,0.8); }
+/* GRID */
+#games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding-bottom:60px;}
 
-/* ── TOOLBAR ── */
-.toolbar { margin-top: 36px; display: flex; flex-direction: column; gap: 10px; }
-.search-wrap { position: relative; }
-.search-icon {
-  position: absolute; left: 15px; top: 50%;
-  transform: translateY(-50%); color: var(--muted); pointer-events: none; display: flex;
-}
-#search {
-  width: 100%; background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; color: var(--text);
-  padding: 13px 16px 13px 44px;
-  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 400;
-  outline: none; transition: border-color 0.2s, background 0.2s; -webkit-appearance: none;
-}
-#search::placeholder { color: var(--dim); }
-#search:focus { border-color: var(--border-h); background: var(--bg3); }
-.filters { display: flex; gap: 6px; flex-wrap: wrap; }
-.filter-btn {
-  background: var(--bg2); border: 1px solid var(--border);
-  color: var(--muted); padding: 7px 16px; border-radius: 100px;
-  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
-  cursor: pointer; transition: all 0.18s; white-space: nowrap;
-}
-.filter-btn:hover { border-color: var(--border-h); color: var(--text); }
-.filter-btn.active { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.18); color: var(--text); }
+/* CARD */
+.game-card{background:var(--bg1);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;text-decoration:none;color:inherit;display:flex;flex-direction:column;transition:border-color .22s,transform .22s;position:relative;animation:fadeUp .35s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.game-card:hover{border-color:var(--border-h);transform:translateY(-3px);}
+.game-card:active{transform:scale(0.98);}
+.card-hero{height:120px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;font-size:52px;}
+.card-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,var(--bg1) 100%);}
+.card-hero::before{content:'';position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(-45deg,transparent,transparent 3px,rgba(255,255,255,0.012) 3px,rgba(255,255,255,0.012) 6px);}
+.card-emoji{position:relative;z-index:2;filter:drop-shadow(0 4px 20px rgba(0,0,0,0.5));}
+.badge-new{position:absolute;top:10px;right:10px;z-index:3;background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.18);color:#fff;font-size:9px;font-weight:500;letter-spacing:1.5px;padding:3px 9px;border-radius:100px;text-transform:uppercase;}
+.card-body{padding:14px 16px 16px;flex:1;display:flex;flex-direction:column;gap:5px;}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;letter-spacing:-.3px;color:var(--text);}
+.card-desc{font-size:12px;font-weight:300;color:var(--muted);line-height:1.6;flex:1;}
+.card-footer{margin-top:12px;display:flex;align-items:center;justify-content:space-between;}
+.card-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.card-tag{font-size:10px;font-weight:500;letter-spacing:.3px;padding:3px 9px;border-radius:100px;border:1px solid;}
+.tag-arcade  {color:#4dff91;border-color:rgba(77,255,145,0.22); background:rgba(77,255,145,0.06);}
+.tag-puzzle  {color:#ffd166;border-color:rgba(255,209,102,0.22);background:rgba(255,209,102,0.06);}
+.tag-action  {color:#ff6b6b;border-color:rgba(255,107,107,0.22);background:rgba(255,107,107,0.06);}
+.tag-strategy{color:#4dc9ff;border-color:rgba(77,201,255,0.22); background:rgba(77,201,255,0.06);}
+.tag-memory  {color:#a78bfa;border-color:rgba(167,139,250,0.22);background:rgba(167,139,250,0.06);}
+.play-arrow{width:30px;height:30px;border-radius:50%;border:1px solid var(--border-h);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;flex-shrink:0;transition:all .18s;}
+.game-card:hover .play-arrow{background:rgba(255,255,255,0.06);color:var(--text);border-color:rgba(255,255,255,0.25);}
 
-/* ── SECTION ── */
-.section-head { margin-top: 38px; margin-bottom: 14px; display: flex; align-items: baseline; justify-content: space-between; }
-.section-label { font-size: 11px; font-weight: 500; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; }
-#count-label { font-size: 11px; color: var(--dim); }
+/* EMPTY */
+.empty{grid-column:1/-1;text-align:center;padding:80px 20px;}
+.empty p{font-size:13px;color:var(--dim);}
 
-/* ── GRID ── */
-#games-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px; padding-bottom: 60px;
-}
-
-/* ── CARD ── */
-.game-card {
-  background: var(--bg1); border: 1px solid var(--border);
-  border-radius: 16px; overflow: hidden; cursor: pointer;
-  text-decoration: none; color: inherit;
-  display: flex; flex-direction: column;
-  transition: border-color 0.22s, transform 0.22s; position: relative;
-  animation: fadeUp 0.35s ease both;
-}
-@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
-.game-card:hover { border-color: var(--border-h); transform: translateY(-3px); }
-.game-card:active { transform: scale(0.98); }
-
-.card-hero {
-  height: 120px; display: flex; align-items: center; justify-content: center;
-  position: relative; overflow: hidden; font-size: 52px;
-}
-.card-hero::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, transparent 45%, var(--bg1) 100%);
-}
-.card-hero::before {
-  content: ''; position: absolute; inset: 0; z-index: 1;
-  background: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 6px);
-}
-.card-emoji { position: relative; z-index: 2; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.5)); }
-.badge-new {
-  position: absolute; top: 10px; right: 10px; z-index: 3;
-  background: rgba(255,255,255,0.1); backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.18); color: #fff;
-  font-size: 9px; font-weight: 500; letter-spacing: 1.5px;
-  padding: 3px 9px; border-radius: 100px; text-transform: uppercase;
-}
-.card-body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; gap: 5px; }
-.card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; letter-spacing: -0.3px; color: var(--text); }
-.card-desc { font-size: 12px; font-weight: 300; color: var(--muted); line-height: 1.6; flex: 1; }
-.card-footer { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
-.card-tags { display: flex; gap: 5px; flex-wrap: wrap; }
-.card-tag { font-size: 10px; font-weight: 500; letter-spacing: 0.3px; padding: 3px 9px; border-radius: 100px; border: 1px solid; }
-.tag-arcade   { color:#4dff91; border-color:rgba(77,255,145,0.22);  background:rgba(77,255,145,0.06); }
-.tag-puzzle   { color:#ffd166; border-color:rgba(255,209,102,0.22); background:rgba(255,209,102,0.06); }
-.tag-action   { color:#ff6b6b; border-color:rgba(255,107,107,0.22); background:rgba(255,107,107,0.06); }
-.tag-strategy { color:#4dc9ff; border-color:rgba(77,201,255,0.22);  background:rgba(77,201,255,0.06); }
-.play-arrow {
-  width: 30px; height: 30px; border-radius: 50%;
-  border: 1px solid var(--border-h);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--muted); font-size: 11px; flex-shrink: 0;
-  transition: all 0.18s;
-}
-.game-card:hover .play-arrow { background: rgba(255,255,255,0.06); color: var(--text); border-color: rgba(255,255,255,0.25); }
-
-/* ── EMPTY ── */
-.empty { grid-column: 1/-1; text-align: center; padding: 80px 20px; }
-.empty p { font-size: 13px; color: var(--dim); }
-
-/* ── PWA BANNER ── */
-#install-banner {
-  display: none; position: fixed; bottom: 24px; left: 50%;
-  transform: translateX(-50%);
-  background: rgba(16,16,22,0.88); backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border-h); border-radius: 16px;
-  padding: 16px 20px; align-items: center; gap: 16px;
-  z-index: 500; max-width: 360px; width: calc(100% - 40px);
-}
-.banner-text { flex: 1; }
-.banner-text strong { display: block; font-size: 13px; font-weight: 500; margin-bottom: 2px; }
-.banner-text span   { font-size: 12px; color: var(--muted); font-weight: 300; }
-.banner-btns { display: flex; gap: 8px; flex-shrink: 0; }
-.btn-install {
-  background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.18);
-  color: #fff; padding: 8px 16px; border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
-  cursor: pointer; white-space: nowrap; transition: background 0.18s;
-}
-.btn-install:hover { background: rgba(255,255,255,0.14); }
-.btn-dismiss {
-  background: transparent; border: 1px solid var(--border);
-  color: var(--muted); width: 34px; height: 34px; border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 16px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; transition: border-color 0.18s;
-}
-.btn-dismiss:hover { border-color: var(--border-h); color: var(--text); }
+/* PWA BANNER */
+#install-banner{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(16,16,22,0.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border-h);border-radius:16px;padding:16px 20px;align-items:center;gap:16px;z-index:500;max-width:360px;width:calc(100% - 40px);}
+.banner-text{flex:1;}
+.banner-text strong{display:block;font-size:13px;font-weight:500;margin-bottom:2px;}
+.banner-text span{font-size:12px;color:var(--muted);font-weight:300;}
+.banner-btns{display:flex;gap:8px;flex-shrink:0;}
+.btn-install{background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.18);color:#fff;padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .18s;}
+.btn-install:hover{background:rgba(255,255,255,0.14);}
+.btn-dismiss{background:transparent;border:1px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .18s;}
+.btn-dismiss:hover{border-color:var(--border-h);color:var(--text);}
 </style>
 </head>
 <body>
 <div class="bg-glow"></div>
-
 <div class="container">
   <header>
     <div class="header-text">
-      <div class="wordmark" id="wordmark">GamePad</div>
+      <div class="wordmark">GamePad</div>
       <div class="subtitle" id="subtitle"></div>
     </div>
-
-    <!-- Language picker -->
     <div class="lang-wrap" id="lang-wrap">
       <button id="lang-btn" aria-label="Select language">
         <span class="flag" id="lang-flag">🇺🇸</span>
@@ -255,9 +130,7 @@ header { padding: 44px 0 0; display: flex; align-items: flex-start; justify-cont
   <div class="toolbar">
     <div class="search-wrap">
       <span class="search-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </span>
       <input type="text" id="search" autocomplete="off" spellcheck="false">
     </div>
@@ -267,6 +140,7 @@ header { padding: 44px 0 0; display: flex; align-items: flex-start; justify-cont
       <button class="filter-btn" data-tag="puzzle"></button>
       <button class="filter-btn" data-tag="action"></button>
       <button class="filter-btn" data-tag="strategy"></button>
+      <button class="filter-btn" data-tag="memory"></button>
     </div>
   </div>
 
@@ -274,7 +148,6 @@ header { padding: 44px 0 0; display: flex; align-items: flex-start; justify-cont
     <span class="section-label" id="section-label"></span>
     <span id="count-label"></span>
   </div>
-
   <div id="games-grid"></div>
 </div>
 
@@ -290,133 +163,96 @@ header { padding: 44px 0 0; display: flex; align-items: flex-start; justify-cont
 </div>
 
 <script>
-// ── GAME DATABASE ─────────────────────────────────────────────────────────────
-// title/desc keys reference i18n.js — e.g. titleKey:'snakeTitle' → t('snakeTitle')
+// ── GAME DATABASE ─────────────────────────────────────────────────────────
 const GAMES = [
-  {
-    id: 'snake',
-    titleKey: 'snakeTitle',
-    descKey:  'snakeDesc',
-    emoji: '🐍',
-    tags: ['arcade'],
-    heroColor: '#071a0b',
-    file: 'games/snake.html',
-    isNew: false,
-  },
-  {
-    id: 'tetris',
-    titleKey: 'tetrisTitle',
-    descKey:  'tetrisDesc',
-    emoji: '🟪',
-    tags: ['puzzle'],
-    heroColor: '#0e0b1f',
-    file: 'games/tetris.html',
-    isNew: false,
-  },
+  {id:'snake',     titleKey:'snakeTitle',   descKey:'snakeDesc',   emoji:'🐍', tags:['arcade'],   heroColor:'#071a0b', file:'games/snake/index.html',          isNew:false},
+  {id:'breakout',  titleKey:'breakoutTitle',descKey:'breakoutDesc',emoji:'🧱', tags:['arcade'],   heroColor:'#1a0c00', file:'games/breakout/index.html',       isNew:false},
+  {id:'asteroids', titleKey:'astTitle',     descKey:'astDesc',     emoji:'🚀', tags:['action'],   heroColor:'#120005', file:'games/asteroids/index.html',      isNew:false},
+  {id:'flappydot', titleKey:'flappyTitle',  descKey:'flappyDesc',  emoji:'🟢', tags:['action'],   heroColor:'#071a0b', file:'games/flappydot/index.html',      isNew:false},
+  {id:'pong',      titleKey:'pongTitle',    descKey:'pongDesc',    emoji:'🏓', tags:['arcade'],   heroColor:'#001a1f', file:'games/pong/index.html',           isNew:false},
+  {id:'2048',      titleKey:'g2048Title',   descKey:'g2048Desc',   emoji:'🔢', tags:['puzzle'],   heroColor:'#1a1200', file:'games/2048/index.html',           isNew:false},
+  {id:'minesweeper',titleKey:'mineTitle',   descKey:'mineDesc',    emoji:'💣', tags:['puzzle'],   heroColor:'#001015', file:'games/minesweeper/index.html',    isNew:false},
+  {id:'simon',     titleKey:'simonTitle',   descKey:'simonDesc',   emoji:'🧠', tags:['memory'],   heroColor:'#0e0b1f', file:'games/simon/index.html',          isNew:false},
+  {id:'tower-defense',titleKey:'tdTitle',   descKey:'tdDesc',      emoji:'🏰', tags:['strategy'], heroColor:'#001a10', file:'games/tower-defense/index.html',  isNew:false},
+  {id:'platformer',titleKey:'platTitle',    descKey:'platDesc',    emoji:'🏃', tags:['action'],   heroColor:'#1a1400', file:'games/platformer/index.html',     isNew:false},
   // ── Šablóna pre ďalšiu hru:
-  // {
-  //   id: 'breakout',
-  //   titleKey: 'breakoutTitle',   // pridaj kľúče do i18n.js
-  //   descKey:  'breakoutDesc',
-  //   emoji: '🧱',
-  //   tags: ['arcade'],
-  //   heroColor: '#1a0a00',
-  //   file: 'games/breakout.html',
-  //   isNew: true,
-  // },
+  // {id:'meno',titleKey:'menoTitle',descKey:'menoDesc',emoji:'🎮',tags:['arcade'],heroColor:'#0f0a00',file:'games/meno/index.html',isNew:true},
 ];
 
-const TAG_CLASS = { arcade:'tag-arcade', puzzle:'tag-puzzle', action:'tag-action', strategy:'tag-strategy' };
-const TAG_FILTER_KEY = { all:'filterAll', arcade:'filterArcade', puzzle:'filterPuzzle', action:'filterAction', strategy:'filterStrategy' };
-const TAG_LABEL_KEY  = { arcade:'tagArcade', puzzle:'tagPuzzle', action:'tagAction', strategy:'tagStrategy' };
+const TAG_CLASS  = {arcade:'tag-arcade',puzzle:'tag-puzzle',action:'tag-action',strategy:'tag-strategy',memory:'tag-memory'};
+const TAG_FILTER = {all:'filterAll',arcade:'filterArcade',puzzle:'filterPuzzle',action:'filterAction',strategy:'filterStrategy',memory:'filterMemory'};
+const TAG_LABEL  = {arcade:'tagArcade',puzzle:'tagPuzzle',action:'tagAction',strategy:'tagStrategy',memory:'tagMemory'};
 
-let activeTag = 'all';
-let searchQuery = '';
+let activeTag='all', searchQuery='';
 
-// ── Apply language to all static UI strings ──────────────────────────────────
-function applyLang() {
+// ── Lang ──────────────────────────────────────────────────────────────────
+function applyLang(){
   document.getElementById('subtitle').textContent       = t('appSubtitle');
   document.getElementById('search').placeholder         = t('searchPlaceholder');
   document.getElementById('section-label').textContent  = t('sectionGames');
   document.getElementById('install-title').textContent  = t('installTitle');
   document.getElementById('install-sub').textContent    = t('installSub');
   document.getElementById('btn-install').textContent    = t('installBtn');
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.textContent = t(TAG_FILTER_KEY[btn.dataset.tag]);
+  document.querySelectorAll('.filter-btn').forEach(btn=>{
+    const key = TAG_FILTER[btn.dataset.tag];
+    btn.textContent = key ? t(key) : btn.dataset.tag;
   });
   updateLangBtn();
   renderGames();
 }
 
-// ── Language button & dropdown ────────────────────────────────────────────────
-function updateLangBtn() {
-  const tr = currentT();
-  document.getElementById('lang-flag').textContent = tr.flag;
-  document.getElementById('lang-name').textContent = tr.name;
+function updateLangBtn(){
+  const tr=currentT();
+  document.getElementById('lang-flag').textContent=tr.flag;
+  document.getElementById('lang-name').textContent=tr.name;
 }
 
-function buildDropdown() {
-  const current = getLang();
-  const dd = document.getElementById('lang-dropdown');
-  dd.innerHTML = LANGUAGES.map(code => {
-    const tr = TRANSLATIONS[code];
-    return `
-      <div class="lang-option${code === current ? ' active' : ''}" data-code="${code}">
-        <span class="flag">${tr.flag}</span>
-        <span>${tr.name}</span>
-        ${code === current ? '<span class="check">✓</span>' : ''}
-      </div>
-    `;
+function buildDropdown(){
+  const current=getLang();
+  document.getElementById('lang-dropdown').innerHTML=LANGUAGES.map(code=>{
+    const tr=TRANSLATIONS[code];
+    return `<div class="lang-option${code===current?' active':''}" data-code="${code}">
+      <span class="flag">${tr.flag}</span><span>${tr.name}</span>
+      ${code===current?'<span class="check">✓</span>':''}
+    </div>`;
   }).join('');
 }
 
-document.getElementById('lang-btn').addEventListener('click', e => {
+document.getElementById('lang-btn').addEventListener('click',e=>{
   e.stopPropagation();
-  const wrap = document.getElementById('lang-wrap');
-  const opening = !wrap.classList.contains('open');
-  if (opening) buildDropdown();
+  const wrap=document.getElementById('lang-wrap');
+  if(!wrap.classList.contains('open'))buildDropdown();
   wrap.classList.toggle('open');
 });
-
-document.getElementById('lang-dropdown').addEventListener('click', e => {
-  const opt = e.target.closest('.lang-option');
-  if (!opt) return;
+document.getElementById('lang-dropdown').addEventListener('click',e=>{
+  const opt=e.target.closest('.lang-option');if(!opt)return;
   setLang(opt.dataset.code);
   document.getElementById('lang-wrap').classList.remove('open');
   applyLang();
 });
-
-document.addEventListener('click', e => {
-  if (!document.getElementById('lang-wrap').contains(e.target)) {
+document.addEventListener('click',e=>{
+  if(!document.getElementById('lang-wrap').contains(e.target))
     document.getElementById('lang-wrap').classList.remove('open');
-  }
 });
 
-// ── Render games ──────────────────────────────────────────────────────────────
-function renderGames() {
-  const grid = document.getElementById('games-grid');
-  const q = searchQuery.toLowerCase().trim();
-
-  const filtered = GAMES.filter(g => {
-    const tagOk    = activeTag === 'all' || g.tags.includes(activeTag);
-    const title    = t(g.titleKey).toLowerCase();
-    const desc     = t(g.descKey).toLowerCase();
-    const searchOk = !q || title.includes(q) || desc.includes(q);
-    return tagOk && searchOk;
+// ── Render games ──────────────────────────────────────────────────────────
+function renderGames(){
+  const grid=document.getElementById('games-grid');
+  const q=searchQuery.toLowerCase().trim();
+  const filtered=GAMES.filter(g=>{
+    const tagOk=activeTag==='all'||g.tags.includes(activeTag);
+    const title=t(g.titleKey).toLowerCase(), desc=t(g.descKey).toLowerCase();
+    return tagOk&&(!q||title.includes(q)||desc.includes(q));
   });
-
-  const n = GAMES.length, f = filtered.length;
-  document.getElementById('count-label').textContent =
-    f === n ? t('countAll', {n}) : t('countFiltered', {f, n});
-
-  if (!filtered.length) {
-    grid.innerHTML = `<div class="empty"><p>${t('noResults')}</p></div>`;
-    return;
+  const n=GAMES.length,f=filtered.length;
+  document.getElementById('count-label').textContent=
+    f===n?t('countAll',{n}):t('countFiltered',{f,n});
+  if(!filtered.length){
+    grid.innerHTML=`<div class="empty"><p>${t('noResults')}</p></div>`;return;
   }
-
-  grid.innerHTML = filtered.map((g, i) => `
-    <a class="game-card" href="${g.file}" style="animation-delay:${i*0.06}s">
-      ${g.isNew ? `<div class="badge-new">${t('badgeNew')}</div>` : ''}
+  grid.innerHTML=filtered.map((g,i)=>`
+    <a class="game-card" href="${g.file}" style="animation-delay:${i*.05}s">
+      ${g.isNew?`<div class="badge-new">${t('badgeNew')}</div>`:''}
       <div class="card-hero" style="background:${g.heroColor}">
         <span class="card-emoji">${g.emoji}</span>
       </div>
@@ -425,54 +261,37 @@ function renderGames() {
         <div class="card-desc">${t(g.descKey)}</div>
         <div class="card-footer">
           <div class="card-tags">
-            ${g.tags.map(tag => `<span class="card-tag ${TAG_CLASS[tag]||'tag-arcade'}">${t(TAG_LABEL_KEY[tag]||'tagArcade')}</span>`).join('')}
+            ${g.tags.map(tag=>`<span class="card-tag ${TAG_CLASS[tag]||'tag-arcade'}">${t(TAG_LABEL[tag]||'tagArcade')}</span>`).join('')}
           </div>
           <div class="play-arrow">▶</div>
         </div>
       </div>
-    </a>
-  `).join('');
+    </a>`).join('');
 }
 
-// ── Filters & search ──────────────────────────────────────────────────────────
-document.getElementById('filters').addEventListener('click', e => {
-  const btn = e.target.closest('.filter-btn');
-  if (!btn) return;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  activeTag = btn.dataset.tag;
-  renderGames();
+// ── Filters ───────────────────────────────────────────────────────────────
+document.getElementById('filters').addEventListener('click',e=>{
+  const btn=e.target.closest('.filter-btn');if(!btn)return;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');activeTag=btn.dataset.tag;renderGames();
 });
+document.getElementById('search').addEventListener('input',e=>{searchQuery=e.target.value;renderGames();});
 
-document.getElementById('search').addEventListener('input', e => {
-  searchQuery = e.target.value;
-  renderGames();
+// ── PWA ───────────────────────────────────────────────────────────────────
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-banner').style.display='flex';
 });
-
-// ── PWA install ───────────────────────────────────────────────────────────────
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredPrompt = e;
-  document.getElementById('install-banner').style.display = 'flex';
-});
-document.getElementById('btn-install').addEventListener('click', () => {
-  if (!deferredPrompt) return;
+document.getElementById('btn-install').addEventListener('click',()=>{
+  if(!deferredPrompt)return;
   deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(() => {
-    deferredPrompt = null;
-    document.getElementById('install-banner').style.display = 'none';
-  });
+  deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-banner').style.display='none';});
 });
-document.getElementById('btn-dismiss').addEventListener('click', () => {
-  document.getElementById('install-banner').style.display = 'none';
-});
+document.getElementById('btn-dismiss').addEventListener('click',()=>{document.getElementById('install-banner').style.display='none';});
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
 
-// ── Service Worker ────────────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────
 applyLang();
 </script>
 </body>

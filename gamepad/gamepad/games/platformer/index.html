@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platform Jumper · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#ffd166;--cdim:rgba(255,209,102,0.14);}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;}
+body::before{content:'';position:fixed;width:500px;height:500px;bottom:-150px;left:-100px;background:radial-gradient(circle,rgba(255,209,102,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;}
+.hud{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:10px;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;}
+#ctrl-area{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:10;}
+.ctrl-btn{width:60px;height:60px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;color:var(--muted);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .1s;}
+.ctrl-btn:active,.ctrl-btn.pressed{background:var(--cdim);border-color:rgba(255,209,102,.3);color:var(--c);}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.9);backdrop-filter:blur(10px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
+.score-big{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--c);letter-spacing:-2px;line-height:1;}
+.hint{font-size:12px;color:var(--muted);text-align:center;}
+.play-btn{margin-top:6px;background:var(--cdim);border:1px solid rgba(255,209,102,.3);color:var(--c);padding:11px 32px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .18s;}
+.play-btn:hover{background:rgba(255,209,102,.25);}
+.diff-row{display:flex;gap:8px;}
+.diff-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.diff-btn:hover,.diff-btn.active{border-color:var(--border-h);color:var(--text);background:rgba(255,255,255,0.08);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div class="hud">
+  <div class="stat-pill"><span id="lbl-score-txt"></span> <span id="hud-score">0</span></div>
+  <div class="stat-pill"><span id="lbl-best-txt"></span> <span id="hud-best">0</span></div>
+  <div class="stat-pill">❤️ <span id="hud-lives">3</span></div>
+</div>
+<canvas id="c"></canvas>
+<div id="ctrl-area">
+  <button class="ctrl-btn" id="btn-left">◄</button>
+  <button class="ctrl-btn" id="btn-jump">▲</button>
+  <button class="ctrl-btn" id="btn-right">►</button>
+</div>
+<div id="overlay">
+  <div style="font-size:44px">🏃</div>
+  <h2 id="ov-title"></h2>
+  <div class="diff-row" id="diff-row"></div>
+  <div class="hint" id="ov-hint"></div>
+  <button class="play-btn" id="ov-play" onclick="startGame()"></button>
+</div>
+<script>
+document.getElementById('lbl-back').textContent=t('back');
+document.getElementById('lbl-score-txt').textContent=t('platScore');
+document.getElementById('lbl-best-txt').textContent=t('platBest');
+document.getElementById('ov-title').textContent=t('platTitle');
+document.getElementById('ov-hint').textContent=t('platHint');
+document.getElementById('ov-play').textContent=t('platPlay');
+
+const DIFFS=[
+  {key:'easy',  gravity:0.4,  jumpForce:-11, speed:3.0, gapMin:60, gapMax:100, platW:120},
+  {key:'medium',gravity:0.5,  jumpForce:-12, speed:4.0, gapMin:80, gapMax:130, platW:90},
+  {key:'hard',  gravity:0.62, jumpForce:-13, speed:5.5, gapMin:100,gapMax:160, platW:68},
+];
+let diffIdx=1;
+const dr=document.getElementById('diff-row');
+DIFFS.forEach((d,i)=>{
+  const btn=document.createElement('button');
+  btn.className='diff-btn'+(i===1?' active':'');
+  btn.textContent=t('diff'+d.key.charAt(0).toUpperCase()+d.key.slice(1));
+  btn.onclick=()=>{diffIdx=i;dr.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};
+  dr.appendChild(btn);
+});
+
+const C=document.getElementById('c'),ctx=C.getContext('2d');
+let W,H;
+function resize(){W=C.width=window.innerWidth;H=C.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+
+let player,platforms,coins,particles,score,best=0,lives,scrollX,running,animId,bgStars;
+const keys={};
+
+const PLAT_H=14,COIN_R=8,PLAYER_W=22,PLAYER_H=28;
+
+function makePlatforms(){
+  const plats=[];
+  const d=DIFFS[diffIdx];
+  // ground platform at start
+  plats.push({x:-200,y:H-80,w:500,type:'ground'});
+  let lastX=280,lastY=H-80;
+  for(let i=0;i<200;i++){
+    const gap=d.gapMin+Math.random()*(d.gapMax-d.gapMin);
+    const dy=(Math.random()-.45)*120;
+    const ny=Math.max(H*0.25,Math.min(H-100,lastY+dy));
+    const pw=d.platW+Math.random()*40;
+    plats.push({x:lastX+gap,y:ny,w:pw,type:'normal'});
+    lastX+=gap+pw;lastY=ny;
+  }
+  return plats;
+}
+
+function makeCoins(plats){
+  return plats.filter(p=>p.type==='normal').slice(0,80).map(p=>({x:p.x+p.w/2,y:p.y-30,alive:true}));
+}
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  const d=DIFFS[diffIdx];
+  platforms=makePlatforms();
+  coins=makeCoins(platforms);
+  player={x:100,y:H-140,vx:0,vy:0,onGround:false,jumps:0,dir:1,trail:[]};
+  score=0;lives=3;scrollX=0;running=true;
+  bgStars=Array.from({length:60},()=>({x:Math.random()*5000,y:Math.random()*H,r:Math.random()<0.3?1.5:1}));
+  updateHUD();
+  cancelAnimationFrame(animId);loop();
+}
+
+function updateHUD(){
+  document.getElementById('hud-score').textContent=score;
+  document.getElementById('hud-best').textContent=best;
+  document.getElementById('hud-lives').textContent=lives;
+}
+
+function loop(){if(!running)return;update();draw();animId=requestAnimationFrame(loop);}
+
+function update(){
+  const d=DIFFS[diffIdx];
+  if(keys['ArrowLeft']||keys['KeyA']){player.vx=-d.speed;player.dir=-1;}
+  else if(keys['ArrowRight']||keys['KeyD']){player.vx=d.speed;player.dir=1;}
+  else player.vx*=0.8;
+
+  player.vy+=d.gravity;
+  player.x+=player.vx;
+  player.y+=player.vy;
+  player.onGround=false;
+
+  // scroll
+  const scrollTarget=player.x-W*0.35;
+  scrollX+=(scrollTarget-scrollX)*0.12;
+
+  // platform collision
+  for(const p of platforms){
+    const px=p.x-scrollX,py=p.y;
+    if(player.x+PLAYER_W/2>px&&player.x-PLAYER_W/2<px+p.w&&player.y+PLAYER_H>py&&player.y+PLAYER_H<py+PLAT_H+player.vy+2&&player.vy>=0){
+      player.y=py-PLAYER_H;player.vy=0;player.onGround=true;player.jumps=0;
+    }
+  }
+  // top score
+  const progress=Math.max(0,player.x-100);
+  score=Math.max(score,Math.floor(progress/10));
+  if(score>best)best=score;
+  updateHUD();
+
+  // coins
+  coins.forEach(coin=>{
+    if(!coin.alive)return;
+    const cx=coin.x-scrollX;
+    if(Math.hypot(cx-player.x,coin.y-player.y)<COIN_R+PLAYER_W/2){
+      coin.alive=false;score+=50;best=Math.max(best,score);
+      for(let i=0;i<8;i++)particles.push({x:cx,y:coin.y,vx:(Math.random()-.5)*4,vy:(Math.random()-1)*4,life:20,color:'#ffd166'});
+      updateHUD();
+    }
+  });
+
+  // trail
+  player.trail.unshift({x:player.x-scrollX,y:player.y+PLAYER_H/2});
+  if(player.trail.length>8)player.trail.pop();
+
+  // particles
+  if(!particles)particles=[];
+  particles=particles.filter(p=>p.life>0);
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life--;});
+
+  // fell off
+  if(player.y>H+100){
+    lives--;updateHUD();
+    if(lives<=0){gameOver();return;}
+    player.y=H-200;player.vy=0;player.vx=0;
+  }
+}
+
+function draw(){
+  ctx.fillStyle='#060810';ctx.fillRect(0,0,W,H);
+  // stars parallax
+  ctx.fillStyle='rgba(255,255,255,0.25)';
+  bgStars.forEach(s=>{const sx=(s.x-scrollX*0.2+W*10)%W;ctx.fillRect(sx,s.y,s.r,s.r);});
+  // platforms
+  platforms.forEach(p=>{
+    const px=p.x-scrollX;
+    if(px>W+50||px+p.w<-50)return;
+    const isGround=p.type==='ground';
+    ctx.fillStyle=isGround?'rgba(255,209,102,0.06)':'rgba(255,209,102,0.08)';
+    ctx.fillRect(px,p.y,p.w,PLAT_H);
+    ctx.fillStyle=isGround?'rgba(255,209,102,0.5)':'#ffd166';
+    ctx.beginPath();ctx.roundRect(px,p.y,p.w,PLAT_H,isGround?0:4);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillRect(px+4,p.y+2,p.w-8,3);
+  });
+  // coins
+  coins.forEach(coin=>{
+    if(!coin.alive)return;
+    const cx=coin.x-scrollX;
+    if(cx<-20||cx>W+20)return;
+    ctx.fillStyle='#ffd166';ctx.shadowColor='#ffd166';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(cx,coin.y,COIN_R,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.4)';ctx.beginPath();ctx.arc(cx-2,coin.y-2,3,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+  });
+  // particles
+  if(particles)particles.forEach(p=>{
+    ctx.globalAlpha=p.life/20;ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
+  });ctx.globalAlpha=1;
+  // player trail
+  player.trail.forEach((pt,i)=>{
+    const a=(1-i/player.trail.length)*0.3;
+    ctx.globalAlpha=a;ctx.fillStyle='#ffd166';
+    ctx.beginPath();ctx.arc(pt.x,pt.y,4*(1-i/player.trail.length),0,Math.PI*2);ctx.fill();
+  });ctx.globalAlpha=1;
+  // player
+  const px=player.x-PLAYER_W/2,py=player.y;
+  ctx.fillStyle='rgba(255,209,102,0.1)';ctx.fillRect(px-2,py-2,PLAYER_W+4,PLAYER_H+4);
+  ctx.fillStyle='#ffd166';ctx.shadowColor='rgba(255,209,102,0.5)';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.roundRect(px,py,PLAYER_W,PLAYER_H,5);ctx.fill();
+  ctx.shadowBlur=0;
+  // eyes
+  ctx.fillStyle='#050507';
+  const ex=player.dir>0?px+14:px+4;
+  ctx.beginPath();ctx.arc(ex,py+8,3,0,Math.PI*2);ctx.fill();
+}
+
+function jump(){
+  const d=DIFFS[diffIdx];
+  if(player.onGround||(player.jumps<1)){player.vy=d.jumpForce;player.jumps++;}}
+
+function gameOver(){
+  cancelAnimationFrame(animId);running=false;
+  const ov=document.getElementById('overlay');
+  ov.innerHTML=`<div style="font-size:44px">💫</div>
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px">${t('platOver')}</h2>
+    <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--c);letter-spacing:-2px">${score}</div>
+    <div style="font-size:12px;color:var(--muted)">${t('platBest')}: ${best}</div>
+    <div class="diff-row" id="diff-row2"></div>
+    <button class="play-btn" onclick="startGame()" style="margin-top:8px">${t('platAgain')}</button>`;
+  ov.style.display='flex';
+  const dr2=document.getElementById('diff-row2');
+  DIFFS.forEach((d,i)=>{
+    const btn=document.createElement('button');
+    btn.className='diff-btn'+(i===diffIdx?' active':'');
+    btn.textContent=t('diff'+d.key.charAt(0).toUpperCase()+d.key.slice(1));
+    btn.onclick=()=>{diffIdx=i;dr2.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};
+    dr2.appendChild(btn);
+  });
+}
+
+document.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if((e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW')&&running){e.preventDefault();jump();}
+  if(!running&&(e.code==='Space'||e.code==='Enter'))startGame();
+});
+document.addEventListener('keyup',e=>keys[e.code]=false);
+
+[['btn-left','ArrowLeft'],['btn-right','ArrowRight']].forEach(([id,code])=>{
+  const el=document.getElementById(id);
+  el.addEventListener('pointerdown',()=>{keys[code]=true;el.classList.add('pressed');});
+  el.addEventListener('pointerup',()=>{keys[code]=false;el.classList.remove('pressed');});
+  el.addEventListener('pointerleave',()=>{keys[code]=false;el.classList.remove('pressed');});
+});
+document.getElementById('btn-jump').addEventListener('pointerdown',()=>{jump();document.getElementById('btn-jump').classList.add('pressed');});
+document.getElementById('btn-jump').addEventListener('pointerup',()=>document.getElementById('btn-jump').classList.remove('pressed'));
+
+ctx.fillStyle='#060810';ctx.fillRect(0,0,W,H);
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// ==================== MAIN APPLICATION ====================
+// js/main.js - OPRAVENÁ VERZIA
 class GameHub {
     constructor() {
         this.currentCategory = 'all';
@@ -6,7 +6,6 @@ class GameHub {
         this.displayCount = 15;
         this.allGames = gamesData;
         this.filteredGames = [...this.allGames];
-        
         this.init();
     }
 
@@ -15,7 +14,6 @@ class GameHub {
         this.createParticles();
         this.bindEvents();
         this.renderGames();
-        this.setupLanguageListener();
     }
 
     cacheDom() {
@@ -36,24 +34,20 @@ class GameHub {
     }
 
     createParticles() {
-        const container = document.getElementById('particles');
-        if (!container) return;
-
+        const c = document.getElementById('particles');
+        if (!c) return;
         const colors = ['#6366f1', '#8b5cf6', '#d946ef', '#06b6d4', '#10b981'];
-        
         for (let i = 0; i < 30; i++) {
-            const particle = document.createElement('div');
-            particle.classList.add('particle');
-            
-            const size = Math.random() * 6 + 2;
-            particle.style.width = size + 'px';
-            particle.style.height = size + 'px';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-            particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
-            particle.style.animationDelay = Math.random() * 10 + 's';
-            
-            container.appendChild(particle);
+            const p = document.createElement('div');
+            p.classList.add('particle');
+            const s = Math.random() * 6 + 2;
+            p.style.width = s + 'px';
+            p.style.height = s + 'px';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.background = colors[Math.floor(Math.random() * colors.length)];
+            p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            p.style.animationDelay = Math.random() * 10 + 's';
+            c.appendChild(p);
         }
     }
 
@@ -61,21 +55,22 @@ class GameHub {
         // Search
         this.searchInput.addEventListener('input', () => this.handleSearch());
         this.clearSearch.addEventListener('click', () => this.clearSearchInput());
-        
+
         // Categories
-        document.getElementById('categories').addEventListener('click', (e) => {
-            const pill = e.target.closest('.category-pill');
-            if (!pill) return;
-            
-            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-            
-            this.currentCategory = pill.dataset.category;
-            this.displayCount = 15;
-            this.filterAndRender();
-        });
-        
-        // Sort
+        const categoriesEl = document.getElementById('categories');
+        if (categoriesEl) {
+            categoriesEl.addEventListener('click', (e) => {
+                const pill = e.target.closest('.category-pill');
+                if (!pill) return;
+                document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                this.currentCategory = pill.dataset.category;
+                this.displayCount = 15;
+                this.filterAndRender();
+            });
+        }
+
+        // Sort buttons
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -84,90 +79,120 @@ class GameHub {
                 this.filterAndRender();
             });
         });
-        
+
         // Load more
-        this.loadMoreBtn.addEventListener('click', () => {
-            this.displayCount += 15;
-            this.renderGames();
-        });
-        
-        // Language
-        this.langToggle.addEventListener('click', () => this.toggleLangDropdown());
-        this.langDropdown.querySelectorAll('.lang-option').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const lang = btn.dataset.lang;
-                langManager.setLanguage(lang);
+        if (this.loadMoreBtn) {
+            this.loadMoreBtn.addEventListener('click', () => {
+                this.displayCount += 15;
+                this.renderGames();
+            });
+        }
+
+        // Language toggle
+        if (this.langToggle) {
+            this.langToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
                 this.toggleLangDropdown();
             });
-        });
-        this.langSearch.addEventListener('input', (e) => this.filterLanguages(e.target.value));
-        
-        // Close dropdown on outside click
+        }
+
+        // Close language dropdown on outside click
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.language-selector')) {
+            if (this.langDropdown && !e.target.closest('#langToggle') && !e.target.closest('#langDropdown')) {
                 this.langDropdown.classList.remove('show');
-                this.langToggle.classList.remove('active');
+                this.langToggle?.classList.remove('active');
             }
         });
-        
-        // Theme
-        this.themeToggle.addEventListener('click', () => this.toggleTheme());
-        
-        // Modal
-        this.modalClose.addEventListener('click', () => this.closeModal());
-        this.gameModal.addEventListener('click', (e) => {
-            if (e.target === this.gameModal) this.closeModal();
-        });
-        
-        // Keyboard
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') this.closeModal();
-        });
-    }
 
-    setupLanguageListener() {
-        document.addEventListener('languageChanged', (e) => {
-            this.filterAndRender();
+        // Language selection
+        if (this.langDropdown) {
+            // Delegovaný event - dôležité, lebo tlačidlá sa generujú dynamicky
+            this.langDropdown.addEventListener('click', (e) => {
+                const opt = e.target.closest('.lang-option');
+                if (opt) {
+                    const lang = opt.dataset.lang;
+                    langManager.setLanguage(lang);
+                    this.toggleLangDropdown();
+                    this.filterAndRender();
+                }
+            });
+        }
+
+        // Language search
+        if (this.langSearch) {
+            this.langSearch.addEventListener('input', (e) => {
+                const q = e.target.value.toLowerCase();
+                if (this.langDropdown) {
+                    this.langDropdown.querySelectorAll('.lang-option').forEach(o => {
+                        o.style.display = o.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
+                    });
+                }
+            });
+        }
+
+        // Theme toggle
+        if (this.themeToggle) {
+            this.themeToggle.addEventListener('click', () => this.toggleTheme());
+        }
+
+        // Modal close button
+        if (this.modalClose) {
+            this.modalClose.addEventListener('click', () => this.closeModal());
+        }
+
+        // Close modal on overlay click
+        if (this.gameModal) {
+            this.gameModal.addEventListener('click', (e) => {
+                if (e.target === this.gameModal) {
+                    this.closeModal();
+                }
+            });
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.gameModal?.classList.contains('show')) {
+                this.closeModal();
+            }
         });
     }
 
     handleSearch() {
-        const query = this.searchInput.value.trim();
-        if (query.length > 0) {
-            this.clearSearch.classList.add('visible');
-        } else {
-            this.clearSearch.classList.remove('visible');
+        const q = this.searchInput?.value.trim() || '';
+        if (this.clearSearch) {
+            this.clearSearch.classList.toggle('visible', q.length > 0);
         }
         this.displayCount = 15;
         this.filterAndRender();
     }
 
     clearSearchInput() {
-        this.searchInput.value = '';
-        this.clearSearch.classList.remove('visible');
+        if (this.searchInput) {
+            this.searchInput.value = '';
+        }
+        if (this.clearSearch) {
+            this.clearSearch.classList.remove('visible');
+        }
         this.displayCount = 15;
         this.filterAndRender();
-        this.searchInput.focus();
+        this.searchInput?.focus();
     }
 
     filterAndRender() {
         let games = [...this.allGames];
-        
-        // Filter by search
-        const query = this.searchInput.value.trim().toLowerCase();
-        if (query) {
-            games = games.filter(game => 
-                game.title.toLowerCase().includes(query) ||
-                game.category.toLowerCase().includes(query)
+        const q = this.searchInput?.value.trim().toLowerCase() || '';
+
+        if (q) {
+            games = games.filter(g =>
+                g.title.toLowerCase().includes(q) ||
+                g.category.toLowerCase().includes(q)
             );
         }
-        
-        // Filter by category
+
         if (this.currentCategory !== 'all') {
-            games = games.filter(game => game.category === this.currentCategory);
+            games = games.filter(g => g.category === this.currentCategory);
         }
-        
-        // Sort
+
         switch (this.currentSort) {
             case 'popular':
                 games.sort((a, b) => b.plays - a.plays);
@@ -182,148 +207,195 @@ class GameHub {
                 games.sort((a, b) => b.rating - a.rating);
                 break;
         }
-        
+
         this.filteredGames = games;
         this.renderGames();
     }
 
     renderGames() {
-        const gamesToShow = this.filteredGames.slice(0, this.displayCount);
-        const remaining = this.filteredGames.length - this.displayCount;
-        
-        // Clear grid
+        if (!this.gamesGrid) {
+            console.error('gamesGrid element not found!');
+            return;
+        }
+
+        const games = this.filteredGames.slice(0, this.displayCount);
+        const rem = this.filteredGames.length - this.displayCount;
+
         this.gamesGrid.innerHTML = '';
-        
-        if (gamesToShow.length === 0) {
-            this.noResults.classList.remove('hidden');
-            this.loadMoreContainer.classList.add('hidden');
+
+        if (games.length === 0) {
+            if (this.noResults) this.noResults.classList.remove('hidden');
+            if (this.loadMoreContainer) this.loadMoreContainer.classList.add('hidden');
         } else {
-            this.noResults.classList.add('hidden');
-            
-            gamesToShow.forEach((game, index) => {
-                const card = this.createGameCard(game, index);
+            if (this.noResults) this.noResults.classList.add('hidden');
+
+            games.forEach((g, i) => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.style.animationDelay = (i * 0.05) + 's';
+                card.setAttribute('data-game-id', g.id);
+
+                const badgeHTML = g.badge
+                    ? `<span class="game-card-badge">${g.badge === 'new' ? 'NEW' : 'POPULAR'}</span>`
+                    : '';
+
+                card.innerHTML = `
+                    <div class="game-card-image">
+                        ${badgeHTML}
+                        <span class="game-icon-display">${g.icon}</span>
+                    </div>
+                    <div class="game-card-info">
+                        <h3 class="game-card-title">${g.title}</h3>
+                        <span class="game-card-category">${langManager.translate('category_' + g.category)}</span>
+                        <div class="game-card-rating">
+                            <span>⭐</span>
+                            <span>${g.rating}</span>
+                        </div>
+                    </div>
+                `;
+
+                // HLAVNÁ OPRAVA - priamy event listener
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Kliknutá hra:', g.title, g.id);
+                    this.openGame(g);
+                });
+
+                // Touch event pre mobil
+                card.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Touch hra:', g.title, g.id);
+                    this.openGame(g);
+                });
+
                 this.gamesGrid.appendChild(card);
             });
-            
-            if (remaining > 0) {
-                this.loadMoreContainer.classList.remove('hidden');
-                this.remainingCount.textContent = remaining;
+
+            if (rem > 0) {
+                if (this.loadMoreContainer) this.loadMoreContainer.classList.remove('hidden');
+                if (this.remainingCount) this.remainingCount.textContent = rem;
             } else {
-                this.loadMoreContainer.classList.add('hidden');
+                if (this.loadMoreContainer) this.loadMoreContainer.classList.add('hidden');
             }
         }
     }
 
-    createGameCard(game, index) {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        card.style.animationDelay = (index * 0.05) + 's';
-        card.dataset.gameId = game.id;
-        
-        card.innerHTML = `
-            <div class="game-card-image">
-                ${game.badge ? `<span class="game-card-badge" data-translate="${game.badge === 'new' ? 'new_game' : 'popular_game'}">${game.badge === 'new' ? 'NEW' : 'POPULAR'}</span>` : ''}
-                <span class="game-icon-display">${game.icon}</span>
-            </div>
-            <div class="game-card-info">
-                <h3 class="game-card-title">${game.title}</h3>
-                <span class="game-card-category">${langManager.translate('category_' + game.category)}</span>
-                <div class="game-card-rating">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                    <span>${game.rating}</span>
-                </div>
-            </div>
-        `;
-        
-        card.addEventListener('click', () => this.openGame(game));
-        
-        return card;
-    }
-
     openGame(game) {
-        const gameUrl = getGameUrl(game);
-        const lang = langManager.currentLang;
+        console.log('openGame called for:', game.title, game.id);
         
-        // Build the full URL with language parameter
-        const url = `${gameUrl}?lang=${lang}`;
-        
-        // Show modal with iframe
+        if (!this.gameModal || !this.modalContent) {
+            console.error('Modal elements not found!');
+            // Fallback: otvor hru v novom okne
+            const url = `${getGameUrl(game)}?lang=${langManager.currentLang}`;
+            window.open(url, '_blank');
+            return;
+        }
+
+        const url = `${getGameUrl(game)}?lang=${langManager.currentLang}`;
+
         this.modalContent.innerHTML = `
             <div class="modal-game-container">
                 <div class="modal-game-header">
                     <h3>${game.title}</h3>
                     <span class="modal-game-category">${langManager.translate('category_' + game.category)}</span>
                 </div>
-                <iframe 
-                    src="${url}" 
-                    class="game-iframe" 
-                    data-game-frame="true"
-                    allowfullscreen
-                    scrolling="no"
-                ></iframe>
+                <div class="modal-game-iframe-wrapper">
+                    <iframe 
+                        src="${url}" 
+                        class="game-iframe" 
+                        data-game-frame="true" 
+                        allowfullscreen 
+                        scrolling="no"
+                        style="width:100%;height:65vh;border:none;background:#0a0a2a;"
+                    ></iframe>
+                </div>
+                <div class="modal-game-footer">
+                    <span>🎮 ${game.title}</span>
+                    <span>⭐ ${game.rating}</span>
+                </div>
             </div>
         `;
-        
+
+        // Pridaj štýly ak neexistujú
+        if (!document.getElementById('modal-game-styles')) {
+            const style = document.createElement('style');
+            style.id = 'modal-game-styles';
+            style.textContent = `
+                .modal-game-container {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                }
+                .modal-game-header {
+                    padding: 16px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 1px solid var(--border-color);
+                    color: var(--text-primary);
+                }
+                .modal-game-header h3 {
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                }
+                .modal-game-category {
+                    font-size: 0.75rem;
+                    color: var(--text-tertiary);
+                    text-transform: uppercase;
+                }
+                .modal-game-iframe-wrapper {
+                    flex: 1;
+                    min-height: 60vh;
+                }
+                .game-iframe {
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                    background: #0a0a2a;
+                }
+                .modal-game-footer {
+                    padding: 10px 16px;
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 0.8rem;
+                    color: var(--text-tertiary);
+                    border-top: 1px solid var(--border-color);
+                }
+                @media (max-width: 480px) {
+                    .game-iframe {
+                        height: 55vh;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Zobraz modál
         this.gameModal.classList.add('show');
         document.body.style.overflow = 'hidden';
         
-        // Add modal game styles dynamically
-        const style = document.createElement('style');
-        style.id = 'modal-game-styles';
-        style.textContent = `
-            .modal-game-container {
-                width: 100%;
-                min-height: 70vh;
-                display: flex;
-                flex-direction: column;
-            }
-            .modal-game-header {
-                padding: 16px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 1px solid var(--border-color);
-            }
-            .modal-game-header h3 {
-                font-size: 1.1rem;
-                font-weight: 600;
-            }
-            .modal-game-category {
-                font-size: 0.75rem;
-                color: var(--text-tertiary);
-                text-transform: uppercase;
-            }
-            .game-iframe {
-                width: 100%;
-                height: 65vh;
-                border: none;
-                border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
-                background: var(--bg-primary);
-            }
-            @media (max-width: 480px) {
-                .game-iframe {
-                    height: 55vh;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+        console.log('Modal should be visible now');
     }
 
     closeModal() {
-        this.gameModal.classList.remove('show');
+        if (this.gameModal) {
+            this.gameModal.classList.remove('show');
+        }
         document.body.style.overflow = '';
         
-        // Clean up
+        // Vyčisti obsah po zatvorení
         setTimeout(() => {
-            this.modalContent.innerHTML = '';
-            const style = document.getElementById('modal-game-styles');
-            if (style) style.remove();
+            if (this.modalContent) {
+                this.modalContent.innerHTML = '';
+            }
         }, 300);
     }
 
     toggleLangDropdown() {
+        if (!this.langDropdown || !this.langToggle) return;
+        
         const isOpen = this.langDropdown.classList.contains('show');
         if (isOpen) {
             this.langDropdown.classList.remove('show');
@@ -332,22 +404,11 @@ class GameHub {
             this.langDropdown.classList.add('show');
             this.langToggle.classList.add('active');
             if (this.langSearch) this.langSearch.value = '';
-            this.filterLanguages('');
+            // Zobraz všetky možnosti
+            this.langDropdown.querySelectorAll('.lang-option').forEach(o => {
+                o.style.display = 'flex';
+            });
         }
-    }
-
-    filterLanguages(query) {
-        const options = this.langDropdown.querySelectorAll('.lang-option');
-        const q = query.toLowerCase().trim();
-        
-        options.forEach(option => {
-            const text = option.textContent.toLowerCase();
-            if (q === '' || text.includes(q)) {
-                option.style.display = 'flex';
-            } else {
-                option.style.display = 'none';
-            }
-        });
     }
 
     toggleTheme() {
@@ -355,36 +416,28 @@ class GameHub {
         const current = html.getAttribute('data-theme');
         const next = current === 'light' ? 'dark' : 'light';
         html.setAttribute('data-theme', next);
-        
         try {
             localStorage.setItem('gamehub_theme', next);
-        } catch(e) {}
+        } catch (e) {}
     }
 }
 
-// ==================== INITIALIZATION ====================
+// ==================== INICIALIZÁCIA ====================
 document.addEventListener('DOMContentLoaded', () => {
-    // Restore theme
+    // Obnov tému
     try {
         const savedTheme = localStorage.getItem('gamehub_theme');
         if (savedTheme) {
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
-    } catch(e) {}
-    
-    // Initialize app
+    } catch (e) {}
+
+    // Spusti aplikáciu
     const app = new GameHub();
     
-    // Handle back button for modal
-    window.addEventListener('popstate', (e) => {
-        if (e.state && e.state.modalOpen) {
-            app.closeModal();
-        }
-    });
+    // Debug - vypíš stav
+    console.log('GameHub initialized');
+    console.log('Modal element:', document.getElementById('gameModal'));
+    console.log('Games grid:', document.getElementById('gamesGrid'));
+    console.log('Total games:', gamesData.length);
 });
-
-// Service Worker Registration for PWA (optional)
-if ('serviceWorker' in navigator) {
-    // Uncomment to enable PWA
-    // navigator.serviceWorker.register('/sw.js');
-}

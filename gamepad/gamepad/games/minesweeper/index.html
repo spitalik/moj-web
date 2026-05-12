@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minesweeper · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#4dc9ff;--cdim:rgba(77,201,255,0.15);}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;}
+body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;right:-100px;background:radial-gradient(circle,rgba(77,201,255,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px 30px;gap:14px;}
+.top-bar{display:flex;align-items:center;gap:10px;width:100%;max-width:340px;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex:1;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;}
+.new-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.new-btn:hover{border-color:var(--border-h);color:var(--text);}
+#grid-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:10px;display:inline-block;}
+#grid{display:grid;gap:3px;}
+.cell{width:32px;height:32px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;transition:background .12s;font-family:'Syne',sans-serif;}
+.cell:hover:not(.revealed){background:rgba(255,255,255,0.1);}
+.cell.revealed{background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.03);cursor:default;}
+.cell.flagged{background:rgba(255,100,100,0.12);border-color:rgba(255,100,100,0.25);}
+.cell.mine-hit{background:rgba(255,80,80,0.3);}
+.n1{color:#54a0ff;}.n2{color:#4dff91;}.n3{color:#ff6b6b;}.n4{color:#a78bfa;}.n5{color:#ff9f43;}.n6{color:#00d4ff;}.n7{color:#ffd166;}.n8{color:var(--muted);}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.88);backdrop-filter:blur(10px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;}
+.score-big{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--c);letter-spacing:-2px;}
+.hint{font-size:12px;color:var(--muted);}
+.play-btn{margin-top:6px;background:var(--cdim);border:1px solid rgba(77,201,255,.3);color:var(--c);padding:11px 32px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .18s;}
+.play-btn:hover{background:rgba(77,201,255,.25);}
+.diff-row{display:flex;gap:8px;}
+.diff-btn{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.diff-btn:hover,.diff-btn.active{border-color:var(--border-h);color:var(--text);background:rgba(255,255,255,0.08);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div id="overlay">
+  <div style="font-size:44px">💣</div>
+  <h2 id="ov-h">Minesweeper</h2>
+  <div class="hint" id="ov-hint"></div>
+  <div class="diff-row">
+    <button class="diff-btn active" onclick="setDiff(0,this)" id="d0"></button>
+    <button class="diff-btn" onclick="setDiff(1,this)" id="d1"></button>
+    <button class="diff-btn" onclick="setDiff(2,this)" id="d2"></button>
+  </div>
+  <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
+</div>
+<div class="page">
+  <div class="top-bar">
+    <div class="game-title" id="lbl-title"></div>
+    <div class="stat-pill">💣 <span id="mines-left">0</span></div>
+    <div class="stat-pill">⏱ <span id="timer">0</span></div>
+    <button class="new-btn" id="lbl-new" onclick="showMenu()"></button>
+  </div>
+  <div id="grid-wrap"><div id="grid"></div></div>
+</div>
+<script>
+document.getElementById('lbl-back').textContent=t('back');
+document.getElementById('lbl-title').textContent=t('mineTitle');
+document.getElementById('lbl-new').textContent=t('mineNew');
+document.getElementById('ov-hint').textContent=t('mineHint');
+document.getElementById('ov-btn').textContent=t('minePlay');
+document.getElementById('d0').textContent=t('mineEasy');
+document.getElementById('d1').textContent=t('mineMed');
+document.getElementById('d2').textContent=t('mineHard');
+
+const DIFFS=[{rows:8,cols:8,mines:10},{rows:10,cols:10,mines:20},{rows:12,cols:12,mines:30}];
+let diff=0,board,rows,cols,mines,revealed,flagged,gameOver,firstClick,timerInt,elapsed;
+
+function setDiff(d,el){
+  diff=d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function showMenu(){
+  clearInterval(timerInt);
+  document.getElementById('ov-h').textContent=t('mineTitle');
+  document.getElementById('ov-hint').textContent=t('mineHint');
+  document.getElementById('ov-btn').textContent=t('minePlay');
+  const sc=document.getElementById('ov-score');if(sc)sc.remove();
+  document.getElementById('overlay').style.display='flex';
+}
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  const d=DIFFS[diff];rows=d.rows;cols=d.cols;mines=d.mines;
+  board=Array.from({length:rows},()=>Array(cols).fill(0));
+  revealed=Array.from({length:rows},()=>Array(cols).fill(false));
+  flagged=Array.from({length:rows},()=>Array(cols).fill(false));
+  gameOver=false;firstClick=true;elapsed=0;
+  clearInterval(timerInt);
+  document.getElementById('timer').textContent='0';
+  document.getElementById('mines-left').textContent=mines;
+  renderGrid();
+}
+
+function placeMines(sr,sc){
+  let placed=0;
+  while(placed<mines){
+    const r=Math.floor(Math.random()*rows),c=Math.floor(Math.random()*cols);
+    if(board[r][c]===-1||(Math.abs(r-sr)<=1&&Math.abs(c-sc)<=1))continue;
+    board[r][c]=-1;placed++;
+  }
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    if(board[r][c]===-1)continue;
+    let n=0;
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&board[nr][nc]===-1)n++;
+    }
+    board[r][c]=n;
+  }
+  timerInt=setInterval(()=>{elapsed++;document.getElementById('timer').textContent=elapsed;},1000);
+}
+
+function reveal(r,c){
+  if(r<0||r>=rows||c<0||c>=cols||revealed[r][c]||flagged[r][c])return;
+  revealed[r][c]=true;
+  if(board[r][c]===0){
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)reveal(r+dr,c+dc);
+  }
+}
+
+function renderGrid(){
+  const grid=document.getElementById('grid');
+  grid.style.gridTemplateColumns=`repeat(${cols},32px)`;
+  grid.innerHTML='';
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const cell=document.createElement('div');
+    cell.className='cell';
+    const v=board[r][c];
+    if(revealed[r][c]){
+      cell.classList.add('revealed');
+      if(v===-1){cell.textContent='💥';cell.classList.add('mine-hit');}
+      else if(v>0){cell.textContent=v;cell.classList.add(`n${v}`);}
+    }else if(flagged[r][c]){cell.classList.add('flagged');cell.textContent='🚩';}
+    cell.addEventListener('click',()=>handleClick(r,c));
+    cell.addEventListener('contextmenu',e=>{e.preventDefault();handleFlag(r,c);});
+    cell.addEventListener('touchstart',()=>{cell._lt=Date.now();},{passive:true});
+    cell.addEventListener('touchend',()=>{if(Date.now()-cell._lt>400)handleFlag(r,c);},{passive:true});
+    grid.appendChild(cell);
+  }
+}
+
+function handleClick(r,c){
+  if(gameOver||revealed[r][c]||flagged[r][c])return;
+  if(firstClick){firstClick=false;placeMines(r,c);}
+  if(board[r][c]===-1){
+    // reveal all mines
+    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++)if(board[i][j]===-1)revealed[i][j]=true;
+    gameOver=true;clearInterval(timerInt);renderGrid();
+    setTimeout(()=>endScreen('lose'),400);return;
+  }
+  reveal(r,c);
+  renderGrid();
+  checkWin();
+}
+
+function handleFlag(r,c){
+  if(gameOver||revealed[r][c])return;
+  flagged[r][c]=!flagged[r][c];
+  const f=DIFFS[diff].mines-flagged.flat().filter(Boolean).length;
+  document.getElementById('mines-left').textContent=Math.max(0,f);
+  renderGrid();
+}
+
+function checkWin(){
+  const total=rows*cols,rev=revealed.flat().filter(Boolean).length;
+  if(rev===total-mines){gameOver=true;clearInterval(timerInt);setTimeout(()=>endScreen('win'),300);}
+}
+
+function endScreen(type){
+  const ov=document.getElementById('overlay');
+  ov.innerHTML=`<div style="font-size:44px">${type==='win'?'🏆':'💣'}</div>
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px">${type==='win'?t('mineWin'):t('mineOver')}</h2>
+    <div style="font-size:13px;color:var(--muted)">⏱ ${elapsed}s</div>
+    <button class="play-btn" onclick="startGame()" style="margin-top:8px">${t('mineAgain')}</button>`;
+  ov.style.display='flex';
+}
+
+showMenu();
+</script>
+</body>
+</html>

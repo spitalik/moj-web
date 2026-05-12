@@ -6,275 +6,897 @@
     <meta name="description" content="100 free mobile games - no license restrictions">
     <meta name="theme-color" content="#0f172a">
     <title>🎮 GameHub | 100 Free Games</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --bg-card-hover: rgba(51, 65, 85, 0.8);
+            --bg-input: rgba(15, 23, 42, 0.8);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-tertiary: #64748b;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --accent-gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #d946ef);
+            --border-color: rgba(148, 163, 184, 0.1);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-2xl: 24px;
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-card-hover: rgba(255, 255, 255, 1);
+            --bg-input: rgba(241, 245, 249, 0.9);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+            -webkit-font-smoothing: antialiased;
+        }
+        .particles {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .particle {
+            position: absolute; border-radius: 50%; background: var(--accent);
+            opacity: 0.15; animation: float-up linear infinite;
+        }
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+        .app-container {
+            position: relative; z-index: 1; max-width: 600px;
+            margin: 0 auto; padding: 16px; min-height: 100vh;
+        }
+        .header-top {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 24px; gap: 8px;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { font-size: 2rem; animation: bounce 2s ease-in-out infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .logo-text {
+            font-size: 1.5rem; font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+        .theme-toggle {
+            width: 38px; height: 38px; border-radius: 50%;
+            border: 1px solid var(--border-color); background: var(--bg-card);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: var(--text-primary); transition: all 0.15s; backdrop-filter: blur(10px);
+        }
+        .theme-toggle:hover { background: var(--bg-card-hover); }
+        [data-theme="dark"] .sun-icon { display: block; }
+        [data-theme="dark"] .moon-icon { display: none; }
+        [data-theme="light"] .sun-icon { display: none; }
+        [data-theme="light"] .moon-icon { display: block; }
+        .language-selector { position: relative; }
+        .lang-btn {
+            display: flex; align-items: center; gap: 4px;
+            padding: 8px 12px; border-radius: 20px;
+            border: 1px solid var(--border-color); background: var(--bg-card);
+            cursor: pointer; color: var(--text-primary); font-size: 0.85rem;
+            font-weight: 500; backdrop-filter: blur(10px); white-space: nowrap;
+            font-family: var(--font-family);
+        }
+        .lang-btn:hover { background: var(--bg-card-hover); }
+        .current-flag { font-size: 1.1rem; }
+        .chevron { transition: transform 0.15s; }
+        .lang-btn.active .chevron { transform: rotate(180deg); }
+        .language-dropdown {
+            position: absolute; top: calc(100% + 8px); right: 0;
+            width: 260px; background: var(--bg-secondary);
+            border: 1px solid var(--border-color); border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg); backdrop-filter: blur(20px);
+            z-index: 1000; opacity: 0; visibility: hidden;
+            transform: translateY(-10px); transition: all 0.15s; overflow: hidden;
+        }
+        .language-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .lang-search { padding: 10px; border-bottom: 1px solid var(--border-color); }
+        .lang-search input {
+            width: 100%; padding: 8px 12px; border-radius: var(--radius-md);
+            border: 1px solid var(--border-color); background: var(--bg-input);
+            color: var(--text-primary); font-size: 0.85rem; outline: none;
+            font-family: var(--font-family);
+        }
+        .lang-list { max-height: 280px; overflow-y: auto; padding: 6px; }
+        .lang-option {
+            display: flex; align-items: center; gap: 10px;
+            width: 100%; padding: 10px 12px; border: none;
+            background: transparent; color: var(--text-primary);
+            cursor: pointer; border-radius: var(--radius-md);
+            font-size: 0.9rem; transition: all 0.15s; font-family: var(--font-family);
+        }
+        .lang-option:hover { background: var(--bg-card); }
+        .lang-option.active {
+            background: rgba(99, 102, 241, 0.2); color: var(--accent); font-weight: 600;
+        }
+        .lang-option .flag { font-size: 1.2rem; }
+        .lang-option .native { margin-left: auto; font-size: 0.8rem; color: var(--text-tertiary); }
+        .hero { text-align: center; padding: 15px 0; }
+        .hero-title { font-size: 2.2rem; font-weight: 900; margin-bottom: 6px; }
+        .gradient-text {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-subtitle { font-size: 1rem; color: var(--text-secondary); margin-bottom: 20px; }
+        .hero-stats { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .stat {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 10px 18px; background: var(--bg-card);
+            border-radius: var(--radius-lg); border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px); min-width: 70px;
+        }
+        .stat-number {
+            font-size: 1.2rem; font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; }
+        .search-container { position: relative; margin-bottom: 10px; }
+        .search-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--text-tertiary); pointer-events: none; z-index: 1;
+        }
+        .search-input {
+            width: 100%; padding: 13px 40px 13px 44px; border-radius: 25px;
+            border: 2px solid var(--border-color); background: var(--bg-card);
+            color: var(--text-primary); font-size: 1rem; font-family: var(--font-family);
+            backdrop-filter: blur(10px); transition: all 0.15s; outline: none;
+        }
+        .search-input:focus { border-color: var(--accent); box-shadow: var(--shadow-glow); }
+        .clear-search {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            width: 30px; height: 30px; border-radius: 50%; border: none;
+            background: var(--bg-input); cursor: pointer; display: flex;
+            align-items: center; justify-content: center; color: var(--text-tertiary);
+            opacity: 0; transition: all 0.15s; pointer-events: none;
+        }
+        .clear-search.visible { opacity: 1; pointer-events: auto; }
+        .categories-scroll {
+            overflow-x: auto; scrollbar-width: none;
+            -ms-overflow-style: none; -webkit-overflow-scrolling: touch;
+            margin-bottom: 10px;
+        }
+        .categories-scroll::-webkit-scrollbar { display: none; }
+        .categories { display: flex; gap: 6px; padding: 4px 0; }
+        .category-pill {
+            display: flex; align-items: center; gap: 5px;
+            padding: 7px 14px; border-radius: 20px;
+            border: 1px solid var(--border-color); background: var(--bg-card);
+            color: var(--text-secondary); cursor: pointer; font-size: 0.8rem;
+            font-weight: 500; white-space: nowrap; font-family: var(--font-family);
+            backdrop-filter: blur(10px);
+        }
+        .category-pill:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .category-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .sort-section { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+        .sort-label { font-size: 0.8rem; color: var(--text-tertiary); }
+        .sort-btn {
+            padding: 5px 12px; border-radius: 16px; border: 1px solid var(--border-color);
+            background: var(--bg-card); color: var(--text-secondary);
+            cursor: pointer; font-size: 0.78rem; font-family: var(--font-family);
+        }
+        .sort-btn:hover { background: var(--bg-card-hover); }
+        .sort-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .games-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 480px) {
+            .games-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .game-card {
+            background: var(--bg-card); border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color); cursor: pointer;
+            overflow: hidden; backdrop-filter: blur(10px);
+            animation: cardIn 0.4s ease-out backwards;
+            -webkit-tap-highlight-color: transparent;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .game-card:active { transform: scale(0.96); }
+        .game-card-image {
+            width: 100%; aspect-ratio: 1/0.8; background: var(--bg-input);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.8rem; position: relative;
+        }
+        .game-card-badge {
+            position: absolute; top: 8px; right: 8px;
+            padding: 3px 8px; border-radius: 10px;
+            background: var(--accent); color: #fff;
+            font-size: 0.6rem; font-weight: 600; z-index: 1;
+        }
+        .game-card-info { padding: 10px 12px; }
+        .game-card-title {
+            font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
+            margin-bottom: 3px; line-height: 1.3;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .game-card-category {
+            font-size: 0.68rem; color: var(--text-tertiary); text-transform: uppercase;
+        }
+        .game-card-rating {
+            display: flex; align-items: center; gap: 3px;
+            margin-top: 5px; font-size: 0.7rem; color: #f59e0b;
+        }
+        .load-more-container { text-align: center; margin-bottom: 24px; }
+        .load-more-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 22px; border-radius: 25px;
+            border: 2px solid var(--accent); background: transparent;
+            color: var(--accent); cursor: pointer; font-size: 0.85rem;
+            font-weight: 600; font-family: var(--font-family);
+        }
+        .load-more-btn:active { background: var(--accent); color: #fff; }
+        .no-results { text-align: center; padding: 40px 20px; display: none; }
+        .no-results.show { display: block; }
+        .no-results-icon { font-size: 3rem; margin-bottom: 12px; }
+        .no-results h3 { font-size: 1.1rem; margin-bottom: 6px; }
+        .no-results p { color: var(--text-secondary); font-size: 0.9rem; }
+        .footer {
+            text-align: center; padding: 20px 0; border-top: 1px solid var(--border-color);
+            font-size: 0.75rem; color: var(--text-tertiary);
+        }
+        .footer-links { display: flex; justify-content: center; gap: 14px; margin-top: 8px; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; }
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px; opacity: 0; visibility: hidden;
+            transition: opacity 0.25s, visibility 0.25s;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal {
+            background: var(--bg-secondary); border-radius: var(--radius-2xl);
+            border: 1px solid var(--border-color); width: 100%;
+            max-width: 500px; max-height: 85vh; overflow: hidden;
+            position: relative; box-shadow: var(--shadow-lg);
+            display: flex; flex-direction: column;
+        }
+        .modal-close-btn {
+            position: absolute; top: 10px; right: 10px; z-index: 10;
+            width: 34px; height: 34px; border-radius: 50%;
+            border: none; background: rgba(0,0,0,0.5); color: #fff;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; font-size: 1.1rem;
+        }
+        .modal-close-btn:hover { background: rgba(0,0,0,0.7); }
+        .modal-header {
+            padding: 14px 16px; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .modal-header h3 { font-size: 1rem; font-weight: 600; }
+        .modal-body {
+            flex: 1; min-height: 55vh; position: relative;
+        }
+        .modal-body iframe {
+            width: 100%; height: 100%; border: none; background: #0a0a2a;
+        }
+        @media (max-width: 480px) {
+            .hero-title { font-size: 1.8rem; }
+            .hero-stats { gap: 8px; }
+            .stat { padding: 8px 12px; min-width: 55px; }
+            .stat-number { font-size: 1rem; }
+            .games-grid { gap: 8px; }
+            .game-card-image { font-size: 2.2rem; }
+            .game-card-info { padding: 8px 10px; }
+            .game-card-title { font-size: 0.78rem; }
+            .modal { max-height: 90vh; }
+        }
+    </style>
 </head>
 <body>
-    <!-- Particle Background -->
+
+    <!-- Particles -->
     <div class="particles" id="particles"></div>
-    
-    <!-- Main Container -->
+
+    <!-- App -->
     <div class="app-container">
         <!-- Header -->
-        <header class="header">
-            <div class="header-top">
-                <div class="logo">
-                    <span class="logo-icon">🎮</span>
-                    <h1 class="logo-text" data-translate="app_title">GameHub</h1>
-                </div>
-                <div class="header-actions">
-                    <!-- Language Selector -->
-                    <div class="language-selector">
-                        <button class="lang-btn" id="langToggle" aria-label="Select language">
-                            <span class="current-flag">🇺🇸</span>
-                            <span class="current-lang">EN</span>
-                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </button>
-                        <div class="language-dropdown" id="langDropdown">
-                            <div class="lang-search">
-                                <input type="text" id="langSearch" placeholder="Search language...">
-                            </div>
-                            <div class="lang-list">
-                                <button class="lang-option active" data-lang="en">
-                                    <span class="flag">🇺🇸</span>
-                                    <span class="name">English</span>
-                                    <span class="native">English</span>
-                                </button>
-                                <button class="lang-option" data-lang="es">
-                                    <span class="flag">🇪🇸</span>
-                                    <span class="name">Spanish</span>
-                                    <span class="native">Español</span>
-                                </button>
-                                <button class="lang-option" data-lang="pt">
-                                    <span class="flag">🇧🇷</span>
-                                    <span class="name">Portuguese</span>
-                                    <span class="native">Português</span>
-                                </button>
-                                <button class="lang-option" data-lang="de">
-                                    <span class="flag">🇩🇪</span>
-                                    <span class="name">German</span>
-                                    <span class="native">Deutsch</span>
-                                </button>
-                                <button class="lang-option" data-lang="fr">
-                                    <span class="flag">🇫🇷</span>
-                                    <span class="name">French</span>
-                                    <span class="native">Français</span>
-                                </button>
-                                <button class="lang-option" data-lang="it">
-                                    <span class="flag">🇮🇹</span>
-                                    <span class="name">Italian</span>
-                                    <span class="native">Italiano</span>
-                                </button>
-                                <button class="lang-option" data-lang="ru">
-                                    <span class="flag">🇷🇺</span>
-                                    <span class="name">Russian</span>
-                                    <span class="native">Русский</span>
-                                </button>
-                                <button class="lang-option" data-lang="tr">
-                                    <span class="flag">🇹🇷</span>
-                                    <span class="name">Turkish</span>
-                                    <span class="native">Türkçe</span>
-                                </button>
-                                <button class="lang-option" data-lang="ja">
-                                    <span class="flag">🇯🇵</span>
-                                    <span class="name">Japanese</span>
-                                    <span class="native">日本語</span>
-                                </button>
-                                <button class="lang-option" data-lang="ko">
-                                    <span class="flag">🇰🇷</span>
-                                    <span class="name">Korean</span>
-                                    <span class="native">한국어</span>
-                                </button>
-                                <button class="lang-option" data-lang="zh">
-                                    <span class="flag">🇨🇳</span>
-                                    <span class="name">Chinese</span>
-                                    <span class="native">中文</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Theme Toggle -->
-                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-                        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="5"></circle>
-                            <line x1="12" y1="1" x2="12" y2="3"></line>
-                            <line x1="12" y1="21" x2="12" y2="23"></line>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                            <line x1="1" y1="12" x2="3" y2="12"></line>
-                            <line x1="21" y1="12" x2="23" y2="12"></line>
-                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                        </svg>
-                        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        <div class="header-top">
+            <div class="logo">
+                <span class="logo-icon">🎮</span>
+                <span class="logo-text" data-translate="app_title">GameHub</span>
+            </div>
+            <div class="header-actions">
+                <div class="language-selector">
+                    <button class="lang-btn" id="langToggle">
+                        <span class="current-flag">🇺🇸</span>
+                        <span class="current-lang">EN</span>
+                        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </button>
-                </div>
-            </div>
-            
-            <!-- Hero Section -->
-            <div class="hero">
-                <h2 class="hero-title">
-                    <span class="gradient-text" data-translate="hero_title">100 Free Games</span>
-                </h2>
-                <p class="hero-subtitle" data-translate="hero_subtitle">No ads. No licenses. Just pure fun.</p>
-                <div class="hero-stats">
-                    <div class="stat">
-                        <span class="stat-number">100+</span>
-                        <span class="stat-label" data-translate="stat_games">Games</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number">11</span>
-                        <span class="stat-label" data-translate="stat_languages">Languages</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number">∞</span>
-                        <span class="stat-label" data-translate="stat_free">Free</span>
+                    <div class="language-dropdown" id="langDropdown">
+                        <div class="lang-search">
+                            <input type="text" id="langSearch" placeholder="Search language...">
+                        </div>
+                        <div class="lang-list" id="langList"></div>
                     </div>
                 </div>
-            </div>
-        </header>
-
-        <!-- Search and Filters -->
-        <div class="search-section">
-            <div class="search-container">
-                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    class="search-input" 
-                    data-translate="search_placeholder"
-                    placeholder="Search games..."
-                    autocomplete="off"
-                >
-                <button class="clear-search" id="clearSearch" aria-label="Clear search">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                <button class="theme-toggle" id="themeToggle">
+                    <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
                 </button>
             </div>
-            
-            <!-- Category Pills -->
-            <div class="categories-scroll">
-                <div class="categories" id="categories">
-                    <button class="category-pill active" data-category="all">
-                        <span class="cat-icon">🌈</span>
-                        <span data-translate="category_all">All Games</span>
-                    </button>
-                    <button class="category-pill" data-category="action">
-                        <span class="cat-icon">⚡</span>
-                        <span data-translate="category_action">Action</span>
-                    </button>
-                    <button class="category-pill" data-category="puzzle">
-                        <span class="cat-icon">🧩</span>
-                        <span data-translate="category_puzzle">Puzzle</span>
-                    </button>
-                    <button class="category-pill" data-category="arcade">
-                        <span class="cat-icon">🕹️</span>
-                        <span data-translate="category_arcade">Arcade</span>
-                    </button>
-                    <button class="category-pill" data-category="strategy">
-                        <span class="cat-icon">♟️</span>
-                        <span data-translate="category_strategy">Strategy</span>
-                    </button>
-                    <button class="category-pill" data-category="word">
-                        <span class="cat-icon">📝</span>
-                        <span data-translate="category_word">Word</span>
-                    </button>
-                    <button class="category-pill" data-category="card">
-                        <span class="cat-icon">🃏</span>
-                        <span data-translate="category_card">Card</span>
-                    </button>
-                    <button class="category-pill" data-category="reflex">
-                        <span class="cat-icon">🎯</span>
-                        <span data-translate="category_reflex">Reflex</span>
-                    </button>
-                </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="hero">
+            <h2 class="hero-title"><span class="gradient-text" data-translate="hero_title">100 Free Games</span></h2>
+            <p class="hero-subtitle" data-translate="hero_subtitle">No ads. No licenses. Just pure fun.</p>
+            <div class="hero-stats">
+                <div class="stat"><span class="stat-number">100</span><span class="stat-label" data-translate="stat_games">Games</span></div>
+                <div class="stat"><span class="stat-number">11</span><span class="stat-label" data-translate="stat_languages">Languages</span></div>
+                <div class="stat"><span class="stat-number">∞</span><span class="stat-label" data-translate="stat_free">Free</span></div>
             </div>
         </div>
 
-        <!-- Sort Options -->
+        <!-- Search -->
+        <div class="search-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="searchInput" class="search-input" data-translate="search_placeholder" placeholder="Search games..." autocomplete="off">
+            <button class="clear-search" id="clearSearch">✕</button>
+        </div>
+
+        <!-- Categories -->
+        <div class="categories-scroll">
+            <div class="categories" id="categories">
+                <button class="category-pill active" data-category="all">🌈 <span data-translate="category_all">All</span></button>
+                <button class="category-pill" data-category="action">⚡ <span data-translate="category_action">Action</span></button>
+                <button class="category-pill" data-category="puzzle">🧩 <span data-translate="category_puzzle">Puzzle</span></button>
+                <button class="category-pill" data-category="arcade">🕹️ <span data-translate="category_arcade">Arcade</span></button>
+                <button class="category-pill" data-category="strategy">♟️ <span data-translate="category_strategy">Strategy</span></button>
+                <button class="category-pill" data-category="word">📝 <span data-translate="category_word">Word</span></button>
+                <button class="category-pill" data-category="card">🃏 <span data-translate="category_card">Card</span></button>
+                <button class="category-pill" data-category="reflex">🎯 <span data-translate="category_reflex">Reflex</span></button>
+            </div>
+        </div>
+
+        <!-- Sort -->
         <div class="sort-section">
-            <span class="sort-label" data-translate="sort_by">Sort by:</span>
-            <button class="sort-btn active" data-sort="popular">
-                <span data-translate="sort_popular">Popular</span>
-            </button>
-            <button class="sort-btn" data-sort="newest">
-                <span data-translate="sort_newest">Newest</span>
-            </button>
-            <button class="sort-btn" data-sort="name">
-                <span data-translate="sort_name">Name</span>
-            </button>
-            <button class="sort-btn" data-sort="rating">
-                <span data-translate="sort_rating">Rating</span>
-            </button>
+            <span class="sort-label" data-translate="sort_by">Sort:</span>
+            <button class="sort-btn active" data-sort="popular" data-translate="sort_popular">Popular</button>
+            <button class="sort-btn" data-sort="newest" data-translate="sort_newest">Newest</button>
+            <button class="sort-btn" data-sort="name" data-translate="sort_name">Name</button>
+            <button class="sort-btn" data-sort="rating" data-translate="sort_rating">Rating</button>
         </div>
 
         <!-- Games Grid -->
-        <div class="games-container">
-            <div class="games-grid" id="gamesGrid">
-                <!-- Games will be loaded dynamically -->
-                <div class="loading-skeleton" style="--delay: 0s"></div>
-                <div class="loading-skeleton" style="--delay: 0.1s"></div>
-                <div class="loading-skeleton" style="--delay: 0.2s"></div>
-                <div class="loading-skeleton" style="--delay: 0.3s"></div>
-                <div class="loading-skeleton" style="--delay: 0.4s"></div>
-                <div class="loading-skeleton" style="--delay: 0.5s"></div>
-            </div>
-        </div>
+        <div class="games-grid" id="gamesGrid"></div>
 
         <!-- Load More -->
-        <div class="load-more-container" id="loadMoreContainer">
+        <div class="load-more-container" id="loadMoreContainer" style="display:none;">
             <button class="load-more-btn" id="loadMoreBtn">
-                <span data-translate="load_more">Load More Games</span>
-                <span class="remaining-count" id="remainingCount">85</span>
+                <span data-translate="load_more">Load More</span>
+                <span id="remainingCount">0</span>
             </button>
         </div>
 
         <!-- No Results -->
-        <div class="no-results hidden" id="noResults">
+        <div class="no-results" id="noResults">
             <div class="no-results-icon">🔍</div>
             <h3 data-translate="no_games_found">No games found</h3>
-            <p data-translate="try_different_search">Try different keywords or category</p>
+            <p data-translate="try_different_search">Try different keywords</p>
         </div>
 
         <!-- Footer -->
-        <footer class="footer">
-            <p data-translate="footer_text">All games are open source and free to play. No license restrictions.</p>
+        <div class="footer">
+            <p data-translate="footer_text">All games are open source and free. No license restrictions.</p>
             <div class="footer-links">
                 <a href="#" data-translate="about">About</a>
                 <a href="#" data-translate="privacy">Privacy</a>
-                <a href="#" data-translate="terms">Terms</a>
-                <a href="#" data-translate="contact">Contact</a>
             </div>
-        </footer>
-    </div>
-
-    <!-- Game Preview Modal -->
-    <div class="modal-overlay hidden" id="gameModal">
-        <div class="modal">
-            <button class="modal-close" id="modalClose">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
-            <div class="modal-content" id="modalContent"></div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/translations.js"></script>
-    <script src="js/games.js"></script>
-    <script src="js/main.js"></script>
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal">
+            <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+            <div class="modal-header">
+                <h3 id="modalGameTitle">Game</h3>
+                <span id="modalGameCategory" style="font-size:0.75rem;color:var(--text-tertiary)"></span>
+            </div>
+            <div class="modal-body">
+                <iframe id="modalIframe" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== TRANSLATIONS ====================
+        const translations = {
+            en: { app_title:"GameHub", hero_title:"100 Free Games", hero_subtitle:"No ads. No licenses. Just pure fun.", stat_games:"Games", stat_languages:"Languages", stat_free:"Free", search_placeholder:"Search games...", category_all:"All", category_action:"Action", category_puzzle:"Puzzle", category_arcade:"Arcade", category_strategy:"Strategy", category_word:"Word", category_card:"Card", category_reflex:"Reflex", sort_by:"Sort:", sort_popular:"Popular", sort_newest:"Newest", sort_name:"Name", sort_rating:"Rating", load_more:"Load More", no_games_found:"No games found", try_different_search:"Try different keywords", footer_text:"All games are open source and free. No license restrictions.", about:"About", privacy:"Privacy" },
+            es: { app_title:"GameHub", hero_title:"100 Juegos Gratis", hero_subtitle:"Sin anuncios. Sin licencias. Solo diversión.", stat_games:"Juegos", stat_languages:"Idiomas", stat_free:"Gratis", search_placeholder:"Buscar juegos...", category_all:"Todos", category_action:"Acción", category_puzzle:"Puzzle", category_arcade:"Arcade", category_strategy:"Estrategia", category_word:"Palabras", category_card:"Cartas", category_reflex:"Reflejos", sort_by:"Ordenar:", sort_popular:"Popular", sort_newest:"Nuevo", sort_name:"Nombre", sort_rating:"Valoración", load_more:"Cargar Más", no_games_found:"No encontrado", try_different_search:"Prueba otras palabras", footer_text:"Todos los juegos son open source y gratis.", about:"Acerca de", privacy:"Privacidad" },
+            pt: { app_title:"GameHub", hero_title:"100 Jogos Grátis", hero_subtitle:"Sem anúncios. Sem licenças. Apenas diversão.", stat_games:"Jogos", stat_languages:"Idiomas", stat_free:"Grátis", search_placeholder:"Buscar jogos...", category_all:"Todos", category_action:"Ação", category_puzzle:"Puzzle", category_arcade:"Arcade", category_strategy:"Estratégia", category_word:"Palavras", category_card:"Cartas", category_reflex:"Reflexo", sort_by:"Ordenar:", sort_popular:"Popular", sort_newest:"Novo", sort_name:"Nome", sort_rating:"Avaliação", load_more:"Carregar Mais", no_games_found:"Nada encontrado", try_different_search:"Tente outras palavras", footer_text:"Todos os jogos são open source.", about:"Sobre", privacy:"Privacidade" },
+            de: { app_title:"GameHub", hero_title:"100 Kostenlose Spiele", hero_subtitle:"Keine Werbung. Keine Lizenzen. Nur Spaß.", stat_games:"Spiele", stat_languages:"Sprachen", stat_free:"Kostenlos", search_placeholder:"Spiele suchen...", category_all:"Alle", category_action:"Action", category_puzzle:"Puzzle", category_arcade:"Arcade", category_strategy:"Strategie", category_word:"Wort", category_card:"Karten", category_reflex:"Reaktion", sort_by:"Sortieren:", sort_popular:"Beliebt", sort_newest:"Neu", sort_name:"Name", sort_rating:"Bewertung", load_more:"Mehr laden", no_games_found:"Keine Spiele", try_different_search:"Andere Suchbegriffe", footer_text:"Alle Spiele sind Open Source.", about:"Über uns", privacy:"Datenschutz" },
+            fr: { app_title:"GameHub", hero_title:"100 Jeux Gratuits", hero_subtitle:"Pas de pubs. Pas de licences. Du plaisir.", stat_games:"Jeux", stat_languages:"Langues", stat_free:"Gratuit", search_placeholder:"Rechercher...", category_all:"Tous", category_action:"Action", category_puzzle:"Puzzle", category_arcade:"Arcade", category_strategy:"Stratégie", category_word:"Mots", category_card:"Cartes", category_reflex:"Réflexe", sort_by:"Trier:", sort_popular:"Populaire", sort_newest:"Récent", sort_name:"Nom", sort_rating:"Note", load_more:"Charger Plus", no_games_found:"Aucun jeu", try_different_search:"Essayez d'autres mots", footer_text:"Tous les jeux sont open source.", about:"À propos", privacy:"Confidentialité" },
+            it: { app_title:"GameHub", hero_title:"100 Giochi Gratis", hero_subtitle:"Nessuna pubblicità. Solo divertimento.", stat_games:"Giochi", stat_languages:"Lingue", stat_free:"Gratis", search_placeholder:"Cerca giochi...", category_all:"Tutti", category_action:"Azione", category_puzzle:"Puzzle", category_arcade:"Arcade", category_strategy:"Strategia", category_word:"Parole", category_card:"Carte", category_reflex:"Riflessi", sort_by:"Ordina:", sort_popular:"Popolare", sort_newest:"Recente", sort_name:"Nome", sort_rating:"Valutazione", load_more:"Carica Altri", no_games_found:"Nessun gioco", try_different_search:"Prova altre parole", footer_text:"Tutti i giochi sono open source.", about:"Info", privacy:"Privacy" },
+            ru: { app_title:"GameHub", hero_title:"100 Бесплатных Игр", hero_subtitle:"Без рекламы. Без лицензий.", stat_games:"Игр", stat_languages:"Языков", stat_free:"Бесплатно", search_placeholder:"Поиск игр...", category_all:"Все", category_action:"Экшн", category_puzzle:"Пазлы", category_arcade:"Аркады", category_strategy:"Стратегии", category_word:"Слова", category_card:"Карты", category_reflex:"Реакция", sort_by:"Сорт:", sort_popular:"Популярные", sort_newest:"Новые", sort_name:"Имя", sort_rating:"Рейтинг", load_more:"Загрузить", no_games_found:"Не найдено", try_different_search:"Другие слова", footer_text:"Все игры с открытым кодом.", about:"О нас", privacy:"Приватность" },
+            tr: { app_title:"GameHub", hero_title:"100 Ücretsiz Oyun", hero_subtitle:"Reklamsız. Lisanssız. Saf eğlence.", stat_games:"Oyun", stat_languages:"Dil", stat_free:"Ücretsiz", search_placeholder:"Oyun ara...", category_all:"Tümü", category_action:"Aksiyon", category_puzzle:"Bulmaca", category_arcade:"Arcade", category_strategy:"Strateji", category_word:"Kelime", category_card:"Kart", category_reflex:"Refleks", sort_by:"Sırala:", sort_popular:"Popüler", sort_newest:"Yeni", sort_name:"İsim", sort_rating:"Puan", load_more:"Daha Fazla", no_games_found:"Oyun yok", try_different_search:"Farklı kelimeler dene", footer_text:"Tüm oyunlar açık kaynaklıdır.", about:"Hakkında", privacy:"Gizlilik" },
+            ja: { app_title:"GameHub", hero_title:"100の無料ゲーム", hero_subtitle:"広告なし。ライセンスなし。", stat_games:"ゲーム", stat_languages:"言語", stat_free:"無料", search_placeholder:"ゲームを検索...", category_all:"すべて", category_action:"アクション", category_puzzle:"パズル", category_arcade:"アーケード", category_strategy:"ストラテジー", category_word:"ワード", category_card:"カード", category_reflex:"反射", sort_by:"並替:", sort_popular:"人気", sort_newest:"新着", sort_name:"名前", sort_rating:"評価", load_more:"もっと", no_games_found:"見つかりません", try_different_search:"他の言葉で", footer_text:"全ゲームがオープンソースです。", about:"概要", privacy:"プライバシー" },
+            ko: { app_title:"GameHub", hero_title:"100 무료 게임", hero_subtitle:"광고 없음. 라이선스 없음.", stat_games:"게임", stat_languages:"언어", stat_free:"무료", search_placeholder:"게임 검색...", category_all:"전체", category_action:"액션", category_puzzle:"퍼즐", category_arcade:"아케이드", category_strategy:"전략", category_word:"단어", category_card:"카드", category_reflex:"반사", sort_by:"정렬:", sort_popular:"인기", sort_newest:"최신", sort_name:"이름", sort_rating:"평점", load_more:"더 보기", no_games_found:"게임 없음", try_different_search:"다른 검색어", footer_text:"모든 게임은 오픈소스입니다.", about:"정보", privacy:"개인정보" },
+            zh: { app_title:"GameHub", hero_title:"100款免费游戏", hero_subtitle:"无广告。无许可。纯乐趣。", stat_games:"游戏", stat_languages:"语言", stat_free:"免费", search_placeholder:"搜索游戏...", category_all:"全部", category_action:"动作", category_puzzle:"益智", category_arcade:"街机", category_strategy:"策略", category_word:"文字", category_card:"卡牌", category_reflex:"反应", sort_by:"排序:", sort_popular:"热门", sort_newest:"最新", sort_name:"名称", sort_rating:"评分", load_more:"加载更多", no_games_found:"未找到游戏", try_different_search:"尝试其他关键词", footer_text:"所有游戏均为开源免费。", about:"关于", privacy:"隐私" }
+        };
+
+        const LANGUAGES = [
+            { code:'en', flag:'🇺🇸', name:'English', native:'English' },
+            { code:'es', flag:'🇪🇸', name:'Spanish', native:'Español' },
+            { code:'pt', flag:'🇧🇷', name:'Portuguese', native:'Português' },
+            { code:'de', flag:'🇩🇪', name:'German', native:'Deutsch' },
+            { code:'fr', flag:'🇫🇷', name:'French', native:'Français' },
+            { code:'it', flag:'🇮🇹', name:'Italian', native:'Italiano' },
+            { code:'ru', flag:'🇷🇺', name:'Russian', native:'Русский' },
+            { code:'tr', flag:'🇹🇷', name:'Turkish', native:'Türkçe' },
+            { code:'ja', flag:'🇯🇵', name:'Japanese', native:'日本語' },
+            { code:'ko', flag:'🇰🇷', name:'Korean', native:'한국어' },
+            { code:'zh', flag:'🇨🇳', name:'Chinese', native:'中文' }
+        ];
+
+        let currentLang = (() => {
+            try { const s = localStorage.getItem('gamehub_lang'); if (s && translations[s]) return s; } catch(e) {}
+            return 'en';
+        })();
+
+        function t(key) {
+            return translations[currentLang]?.[key] || translations['en'][key] || key;
+        }
+
+        function setLanguage(lang) {
+            if (!translations[lang]) return;
+            currentLang = lang;
+            try { localStorage.setItem('gamehub_lang', lang); } catch(e) {}
+            document.documentElement.lang = lang;
+            
+            // Update all translatable elements
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const k = el.getAttribute('data-translate');
+                if (el.placeholder !== undefined && el.tagName === 'INPUT') {
+                    el.placeholder = t(k);
+                } else {
+                    el.textContent = t(k);
+                }
+            });
+
+            // Update lang button
+            const lb = document.querySelector('#langToggle .current-lang');
+            if (lb) lb.textContent = lang.toUpperCase();
+            const lf = document.querySelector('#langToggle .current-flag');
+            const langData = LANGUAGES.find(l => l.code === lang);
+            if (lf && langData) lf.textContent = langData.flag;
+
+            // Update dropdown
+            document.querySelectorAll('.lang-option').forEach(o => {
+                o.classList.toggle('active', o.getAttribute('data-lang') === lang);
+            });
+
+            // Notify iframe
+            const iframe = document.getElementById('modalIframe');
+            if (iframe && iframe.contentWindow) {
+                try { iframe.contentWindow.postMessage({ type:'languageChange', lang:lang }, '*'); } catch(e) {}
+            }
+        }
+
+        // ==================== GAMES DATA ====================
+        const gamesData = [
+            { id:1, title:"Space Shooter", cat:"action", icon:"🚀", rating:4.8, plays:15234, badge:"popular", path:"game1" },
+            { id:2, title:"Ninja Slice", cat:"action", icon:"🥷", rating:4.6, plays:12450, badge:null, path:"game2" },
+            { id:3, title:"Zombie Survival", cat:"action", icon:"🧟", rating:4.7, plays:18900, badge:"new", path:"game3" },
+            { id:4, title:"Robot Battle", cat:"action", icon:"🤖", rating:4.5, plays:9870, badge:null, path:"game4" },
+            { id:5, title:"Dragon Fighter", cat:"action", icon:"🐉", rating:4.9, plays:22100, badge:"popular", path:"game5" },
+            { id:6, title:"Memory Match", cat:"puzzle", icon:"🧠", rating:4.8, plays:25600, badge:"popular", path:"game6" },
+            { id:7, title:"2048 Challenge", cat:"puzzle", icon:"🔢", rating:4.7, plays:31200, badge:"popular", path:"game7" },
+            { id:8, title:"Sudoku Master", cat:"puzzle", icon:"📝", rating:4.6, plays:18900, badge:null, path:"game8" },
+            { id:9, title:"Block Puzzle", cat:"puzzle", icon:"🧱", rating:4.5, plays:14500, badge:null, path:"game9" },
+            { id:10, title:"Color Sort", cat:"puzzle", icon:"🎨", rating:4.4, plays:12300, badge:"new", path:"game10" },
+            { id:11, title:"Snake Classic", cat:"arcade", icon:"🐍", rating:4.9, plays:45000, badge:"popular", path:"game11" },
+            { id:12, title:"Tetris Block", cat:"arcade", icon:"🧊", rating:4.8, plays:38900, badge:"popular", path:"game12" },
+            { id:13, title:"Flappy Bird", cat:"arcade", icon:"🐤", rating:4.7, plays:34000, badge:null, path:"game13" },
+            { id:14, title:"Brick Breaker", cat:"arcade", icon:"🧱", rating:4.6, plays:27800, badge:null, path:"game14" },
+            { id:15, title:"Pac-Man", cat:"arcade", icon:"👻", rating:4.9, plays:52000, badge:"popular", path:"game15" },
+            { id:16, title:"Chess Master", cat:"strategy", icon:"♟️", rating:4.8, plays:28900, badge:"popular", path:"game16" },
+            { id:17, title:"Checkers", cat:"strategy", icon:"⭕", rating:4.5, plays:16700, badge:null, path:"game17" },
+            { id:18, title:"Tower Defense", cat:"strategy", icon:"🏰", rating:4.7, plays:23400, badge:"new", path:"game18" },
+            { id:19, title:"Tic Tac Toe", cat:"strategy", icon:"❌", rating:4.2, plays:34500, badge:null, path:"game19" },
+            { id:20, title:"Connect Four", cat:"strategy", icon:"🟡", rating:4.4, plays:19800, badge:null, path:"game20" },
+            { id:21, title:"Word Search", cat:"word", icon:"🔤", rating:4.6, plays:23400, badge:null, path:"game21" },
+            { id:22, title:"Crossword", cat:"word", icon:"✏️", rating:4.5, plays:18900, badge:null, path:"game22" },
+            { id:23, title:"Scrabble", cat:"word", icon:"📚", rating:4.7, plays:26700, badge:"popular", path:"game23" },
+            { id:24, title:"Wordle", cat:"word", icon:"🟩", rating:4.9, plays:45000, badge:"popular", path:"game24" },
+            { id:25, title:"Hangman", cat:"word", icon:"💀", rating:4.3, plays:31200, badge:null, path:"game25" },
+            { id:26, title:"Solitaire", cat:"card", icon:"🃏", rating:4.8, plays:38900, badge:"popular", path:"game26" },
+            { id:27, title:"Blackjack", cat:"card", icon:"🂡", rating:4.6, plays:25600, badge:null, path:"game27" },
+            { id:28, title:"Poker", cat:"card", icon:"♦️", rating:4.5, plays:31200, badge:null, path:"game28" },
+            { id:29, title:"Hearts", cat:"card", icon:"♥️", rating:4.3, plays:18900, badge:null, path:"game29" },
+            { id:30, title:"Spades", cat:"card", icon:"♠️", rating:4.4, plays:16700, badge:null, path:"game30" },
+            { id:31, title:"Reaction Test", cat:"reflex", icon:"⚡", rating:4.5, plays:23400, badge:null, path:"game31" },
+            { id:32, title:"Color Tap", cat:"reflex", icon:"🎯", rating:4.4, plays:18900, badge:null, path:"game32" },
+            { id:33, title:"Quick Math", cat:"reflex", icon:"🧮", rating:4.3, plays:16700, badge:"new", path:"game33" },
+            { id:34, title:"Speed Clicker", cat:"reflex", icon:"🖱️", rating:4.2, plays:14500, badge:null, path:"game34" },
+            { id:35, title:"Dodge Master", cat:"reflex", icon:"💨", rating:4.6, plays:21200, badge:null, path:"game35" }
+        ];
+
+        // Vygeneruj ďalšie hry do 100
+        for (let i = 36; i <= 100; i++) {
+            const base = gamesData[(i - 1) % gamesData.length];
+            gamesData.push({
+                id: i,
+                title: base.title + ' ' + (Math.floor(i / 35) + 1),
+                cat: base.cat,
+                icon: base.icon,
+                rating: Math.round((3.5 + Math.random() * 1.5) * 10) / 10,
+                plays: Math.floor(5000 + Math.random() * 30000),
+                badge: i <= 40 ? 'new' : null,
+                path: 'game' + i
+            });
+        }
+
+        function getGameUrl(game) {
+            return `games/${game.path}/index.html?lang=${currentLang}`;
+        }
+
+        // ==================== PARTICLES ====================
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            const colors = ['#6366f1', '#8b5cf6', '#d946ef', '#06b6d4', '#10b981'];
+            for (let i = 0; i < 25; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                const s = Math.random() * 5 + 2;
+                p.style.width = s + 'px';
+                p.style.height = s + 'px';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                p.style.animationDuration = (Math.random() * 12 + 8) + 's';
+                p.style.animationDelay = Math.random() * 8 + 's';
+                container.appendChild(p);
+            }
+        }
+
+        // ==================== APP ====================
+        let currentCategory = 'all';
+        let currentSort = 'popular';
+        let displayCount = 15;
+        let filteredGames = [...gamesData];
+
+        function filterAndRender() {
+            let games = [...gamesData];
+            const q = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
+
+            if (q) {
+                games = games.filter(g => g.title.toLowerCase().includes(q) || g.cat.toLowerCase().includes(q));
+            }
+            if (currentCategory !== 'all') {
+                games = games.filter(g => g.cat === currentCategory);
+            }
+
+            switch (currentSort) {
+                case 'popular': games.sort((a, b) => b.plays - a.plays); break;
+                case 'newest': games.sort((a, b) => b.id - a.id); break;
+                case 'name': games.sort((a, b) => a.title.localeCompare(b.title)); break;
+                case 'rating': games.sort((a, b) => b.rating - a.rating); break;
+            }
+
+            filteredGames = games;
+            renderGames();
+        }
+
+        function renderGames() {
+            const grid = document.getElementById('gamesGrid');
+            const noResults = document.getElementById('noResults');
+            const loadMore = document.getElementById('loadMoreContainer');
+
+            if (!grid) return;
+
+            const games = filteredGames.slice(0, displayCount);
+            const rem = filteredGames.length - displayCount;
+
+            grid.innerHTML = '';
+
+            if (games.length === 0) {
+                if (noResults) noResults.classList.add('show');
+                if (loadMore) loadMore.style.display = 'none';
+            } else {
+                if (noResults) noResults.classList.remove('show');
+
+                games.forEach((g, i) => {
+                    const card = document.createElement('div');
+                    card.className = 'game-card';
+                    card.style.animationDelay = (i * 0.04) + 's';
+                    card.setAttribute('data-game-id', g.id);
+                    card.setAttribute('data-game-path', g.path);
+
+                    const badgeHTML = g.badge ? `<span class="game-card-badge">${g.badge.toUpperCase()}</span>` : '';
+
+                    card.innerHTML = `
+                        <div class="game-card-image">
+                            ${badgeHTML}
+                            <span style="font-size:2.5rem;">${g.icon}</span>
+                        </div>
+                        <div class="game-card-info">
+                            <div class="game-card-title">${g.title}</div>
+                            <div class="game-card-category">${t('category_' + g.cat) || g.cat}</div>
+                            <div class="game-card-rating">⭐ ${g.rating}</div>
+                        </div>
+                    `;
+
+                    // Click event - OTVORENIE MODALU
+                    card.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openGameModal(g);
+                    });
+
+                    // Touch event pre mobil
+                    card.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openGameModal(g);
+                    });
+
+                    grid.appendChild(card);
+                });
+
+                if (rem > 0) {
+                    if (loadMore) loadMore.style.display = 'block';
+                    const rc = document.getElementById('remainingCount');
+                    if (rc) rc.textContent = rem;
+                } else {
+                    if (loadMore) loadMore.style.display = 'none';
+                }
+            }
+        }
+
+        function openGameModal(game) {
+            console.log('🎮 Opening game:', game.title, 'ID:', game.id);
+            
+            const modal = document.getElementById('gameModal');
+            const titleEl = document.getElementById('modalGameTitle');
+            const catEl = document.getElementById('modalGameCategory');
+            const iframe = document.getElementById('modalIframe');
+            
+            if (!modal) {
+                console.error('❌ Modal not found in DOM!');
+                alert('Opening: ' + game.title);
+                return;
+            }
+
+            // Set game info
+            if (titleEl) titleEl.textContent = game.title;
+            if (catEl) catEl.textContent = t('category_' + game.cat) || game.cat;
+            
+            // Set iframe source
+            const url = getGameUrl(game);
+            console.log('📺 Loading URL:', url);
+            
+            if (iframe) {
+                iframe.src = url;
+            } else {
+                console.error('❌ Iframe not found!');
+            }
+            
+            // Show modal
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            
+            console.log('✅ Modal shown');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('gameModal');
+            const iframe = document.getElementById('modalIframe');
+            
+            if (modal) {
+                modal.classList.remove('show');
+            }
+            document.body.style.overflow = '';
+            
+            // Clear iframe
+            if (iframe) {
+                setTimeout(() => { iframe.src = ''; }, 300);
+            }
+        }
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 GameHub initializing...');
+
+            // Theme
+            try {
+                const saved = localStorage.getItem('gamehub_theme');
+                if (saved) document.documentElement.setAttribute('data-theme', saved);
+            } catch(e) {}
+
+            // Particles
+            createParticles();
+
+            // Language dropdown
+            const langList = document.getElementById('langList');
+            if (langList) {
+                langList.innerHTML = LANGUAGES.map(l => 
+                    `<button class="lang-option${l.code === currentLang ? ' active' : ''}" data-lang="${l.code}">
+                        <span class="flag">${l.flag}</span>
+                        <span class="name">${l.name}</span>
+                        <span class="native">${l.native}</span>
+                    </button>`
+                ).join('');
+            }
+
+            // Set initial language
+            setLanguage(currentLang);
+
+            // Render games
+            renderGames();
+
+            // ===== EVENT LISTENERS =====
+            
+            // Search
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const val = this.value.trim();
+                    if (clearSearch) clearSearch.classList.toggle('visible', val.length > 0);
+                    displayCount = 15;
+                    filterAndRender();
+                });
+            }
+            if (clearSearch) {
+                clearSearch.addEventListener('click', function() {
+                    if (searchInput) searchInput.value = '';
+                    this.classList.remove('visible');
+                    displayCount = 15;
+                    filterAndRender();
+                });
+            }
+
+            // Categories
+            document.getElementById('categories')?.addEventListener('click', function(e) {
+                const pill = e.target.closest('.category-pill');
+                if (!pill) return;
+                document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                currentCategory = pill.dataset.category;
+                displayCount = 15;
+                filterAndRender();
+            });
+
+            // Sort
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSort = this.dataset.sort;
+                    filterAndRender();
+                });
+            });
+
+            // Load more
+            document.getElementById('loadMoreBtn')?.addEventListener('click', function() {
+                displayCount += 15;
+                renderGames();
+            });
+
+            // Theme toggle
+            document.getElementById('themeToggle')?.addEventListener('click', function() {
+                const html = document.documentElement;
+                const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                html.setAttribute('data-theme', next);
+                try { localStorage.setItem('gamehub_theme', next); } catch(e) {}
+            });
+
+            // Language toggle
+            const langToggle = document.getElementById('langToggle');
+            const langDropdown = document.getElementById('langDropdown');
+            if (langToggle && langDropdown) {
+                langToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    langDropdown.classList.toggle('show');
+                    this.classList.toggle('active');
+                });
+            }
+
+            // Language selection (delegated)
+            if (langDropdown) {
+                langDropdown.addEventListener('click', function(e) {
+                    const opt = e.target.closest('.lang-option');
+                    if (opt) {
+                        setLanguage(opt.dataset.lang);
+                        langDropdown.classList.remove('show');
+                        if (langToggle) langToggle.classList.remove('active');
+                        filterAndRender();
+                    }
+                });
+            }
+
+            // Language search
+            document.getElementById('langSearch')?.addEventListener('input', function() {
+                const q = this.value.toLowerCase();
+                document.querySelectorAll('.lang-option').forEach(o => {
+                    o.style.display = o.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
+                });
+            });
+
+            // Close dropdown on outside click
+            document.addEventListener('click', function(e) {
+                if (langDropdown && !e.target.closest('#langToggle') && !e.target.closest('#langDropdown')) {
+                    langDropdown.classList.remove('show');
+                    if (langToggle) langToggle.classList.remove('active');
+                }
+            });
+
+            // Modal close
+            document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal);
+            
+            const gameModal = document.getElementById('gameModal');
+            if (gameModal) {
+                gameModal.addEventListener('click', function(e) {
+                    if (e.target === gameModal) closeModal();
+                });
+            }
+
+            // Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
+            });
+
+            console.log('✅ GameHub ready!');
+            console.log('📦 Games loaded:', gamesData.length);
+            console.log('🔍 Modal element:', !!document.getElementById('gameModal'));
+        });
+    </script>
 </body>
 </html>

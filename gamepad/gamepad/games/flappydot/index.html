@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlappyDot · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#4dff91;--cdim:rgba(77,255,145,0.15);}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.88);backdrop-filter:blur(8px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;}
+.score-big{font-family:'Syne',sans-serif;font-size:64px;font-weight:800;color:var(--c);letter-spacing:-3px;line-height:1;}
+.hint{font-size:13px;color:var(--muted);text-align:center;}
+.play-btn{margin-top:6px;background:var(--cdim);border:1px solid rgba(77,255,145,.3);color:var(--c);padding:12px 36px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background .18s;}
+.play-btn:hover{background:rgba(77,255,145,.25);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<canvas id="c"></canvas>
+<div id="overlay">
+  <div style="font-size:48px">🟢</div>
+  <h2 id="ov-title"></h2>
+  <div class="hint" id="ov-hint"></div>
+  <div class="diff-row" id="diff-row" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:2px;"></div>
+      <button class="play-btn" id="ov-play" onclick="startGame()"></button>
+</div>
+<script>
+document.getElementById('lbl-back').textContent=t('back');
+document.getElementById('ov-title').textContent=t('flappyTitle');
+document.getElementById('ov-hint').textContent=t('flappyHint');
+document.getElementById('ov-play').textContent=t('flappyPlay');
+
+const DIFFS=[
+  {label:'diffEasy', gap:220, pipeSpeed:2.2, grav:0.3, jump:-7.5},
+  {label:'diffMedium', gap:180, pipeSpeed:2.8, grav:0.38, jump:-8.0},
+  {label:'diffHard', gap:130, pipeSpeed:3.8, grav:0.48, jump:-8.5},
+];
+let diffIdx=1;
+function buildDiffRow(id){
+  const dr=document.getElementById(id);if(!dr)return;dr.innerHTML='';
+  DIFFS.forEach((d,i)=>{
+    const btn=document.createElement('button');
+    btn.style.cssText='background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:rgba(240,238,255,0.38);padding:6px 14px;border-radius:100px;font-family:inherit;font-size:12px;cursor:pointer;transition:all .18s;white-space:nowrap;';
+    if(i===diffIdx)Object.assign(btn.style,{borderColor:'rgba(77,255,145,0.4)',color:'#4dff91',background:'rgba(77,255,145,0.12)'});
+    btn.textContent=t(d.label);btn.onclick=()=>{diffIdx=i;buildDiffRow(id);};dr.appendChild(btn);
+  });
+}
+buildDiffRow('diff-row');
+
+
+const C=document.getElementById('c'),ctx=C.getContext('2d');
+let W,H;
+function resize(){W=C.width=window.innerWidth;H=C.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+
+let GAP=180,PIPE_W=52,SPEED=2.8,GRAVITY=0.38,JUMP=-8;const BIRD_R=16;
+let bird,pipes,score,best=0,running,animId,bgX=0;
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  const dd=DIFFS[diffIdx];GAP=dd.gap;SPEED=dd.speed;GRAVITY=dd.gravity;JUMP=dd.jump;
+  bird={x:W*0.25,y:H/2,vy:0,angle:0};
+  pipes=[];score=0;running=true;
+  cancelAnimationFrame(animId);loop();
+}
+
+function flap(){if(!running)return;bird.vy=JUMP;}
+
+function loop(){
+  if(!running)return;
+  update();draw();animId=requestAnimationFrame(loop);
+}
+
+function update(){
+  bgX-=0.5;
+  bird.vy+=GRAVITY;bird.y+=bird.vy;
+  bird.angle=Math.max(-0.5,Math.min(1.2,bird.vy*0.06));
+
+  // spawn pipes
+  if(!pipes.length||pipes[pipes.length-1].x<W-220){
+    const top=80+Math.random()*(H-GAP-160);
+    pipes.push({x:W,top,scored:false});
+  }
+  pipes=pipes.filter(p=>p.x>-PIPE_W-10);
+  pipes.forEach(p=>{
+    p.x-=SPEED;
+    if(!p.scored&&p.x+PIPE_W<bird.x){p.scored=true;score++;}
+    // collision
+    const bx=bird.x,by=bird.y,br=BIRD_R-2;
+    if(bx+br>p.x&&bx-br<p.x+PIPE_W){
+      if(by-br<p.top||by+br>p.top+GAP){die();return;}
+    }
+  });
+  if(bird.y-BIRD_R<0||bird.y+BIRD_R>H)die();
+}
+
+function die(){
+  running=false;cancelAnimationFrame(animId);
+  if(score>best)best=score;
+  const ov=document.getElementById('overlay');
+  ov.innerHTML=`<div style="font-size:48px">💥</div>
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px">${t('flappyOver')}</h2>
+    <div class="score-big">${score}</div>
+    ${score>=best&&score>0?`<div style="font-size:13px;color:#ffd166">🏆 ${t('flappyBest')}: ${best}</div>`:`<div style="font-size:13px;color:var(--muted)">${t('flappyBest')}: ${best}</div>`}
+    <button class="play-btn" onclick="startGame()" style="margin-top:8px">${t('flappyAgain')}</button>`;
+  ov.style.display='flex';
+}
+
+function draw(){
+  // bg
+  ctx.fillStyle='#070712';ctx.fillRect(0,0,W,H);
+  // scrolling dots
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  for(let i=0;i<40;i++){
+    const x=((i*137+(bgX*0.3|0))%W+W)%W;
+    const y=(i*83+70)%H;
+    ctx.fillRect(x,y,1.5,1.5);
+  }
+  // pipes
+  pipes.forEach(p=>{
+    // top pipe
+    ctx.fillStyle='rgba(77,255,145,0.12)';ctx.fillRect(p.x,0,PIPE_W,p.top);
+    ctx.fillStyle='#1a3d28';
+    ctx.beginPath();ctx.roundRect(p.x,0,PIPE_W,p.top-6,4);ctx.fill();
+    ctx.fillStyle='rgba(77,255,145,0.6)';
+    ctx.beginPath();ctx.roundRect(p.x-4,p.top-18,PIPE_W+8,18,4);ctx.fill();
+    // bottom pipe
+    const bt=p.top+GAP;
+    ctx.fillStyle='rgba(77,255,145,0.12)';ctx.fillRect(p.x,bt,PIPE_W,H-bt);
+    ctx.fillStyle='#1a3d28';
+    ctx.beginPath();ctx.roundRect(p.x,bt+24,PIPE_W,H-bt-24,4);ctx.fill();
+    ctx.fillStyle='rgba(77,255,145,0.6)';
+    ctx.beginPath();ctx.roundRect(p.x-4,bt,PIPE_W+8,18,4);ctx.fill();
+    // gap glow
+    ctx.strokeStyle='rgba(77,255,145,0.15)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(p.x+PIPE_W/2,p.top);ctx.lineTo(p.x+PIPE_W/2,p.top+GAP);ctx.stroke();
+  });
+  // bird
+  ctx.save();ctx.translate(bird.x,bird.y);ctx.rotate(bird.angle);
+  ctx.fillStyle='#4dff91';ctx.shadowColor='rgba(77,255,145,0.6)';ctx.shadowBlur=16;
+  ctx.beginPath();ctx.arc(0,0,BIRD_R,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.beginPath();ctx.arc(-4,-4,5,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;ctx.restore();
+  // score
+  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 36px Syne,sans-serif';ctx.textAlign='center';
+  ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=8;
+  ctx.fillText(score,W/2,60);ctx.shadowBlur=0;
+}
+
+document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();flap();}});
+document.addEventListener('touchstart',e=>{e.preventDefault();flap();},{passive:false});
+C.addEventListener('click',flap);
+draw();
+</script>
+</body>
+</html>
