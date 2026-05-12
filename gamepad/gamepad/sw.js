@@ -1,12 +1,21 @@
-const CACHE = 'gamepad-v2';
+const CACHE = 'gamepad-v3';
 const ASSETS = [
   './',
   './index.html',
+  './i18n.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './games/snake.html',
-  './games/tetris.html',
+  './games/snake/index.html',
+  './games/breakout/index.html',
+  './games/2048/index.html',
+  './games/minesweeper/index.html',
+  './games/asteroids/index.html',
+  './games/flappydot/index.html',
+  './games/pong/index.html',
+  './games/simon/index.html',
+  './games/tower-defense/index.html',
+  './games/platformer/index.html',
 ];
 
 self.addEventListener('install', e => {
