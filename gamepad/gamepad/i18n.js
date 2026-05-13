@@ -3,6 +3,8 @@
 // To add new game strings: add the key to ALL language blocks.
 
 const TRANSLATIONS = {
+    pexesoTitle: 'Pexeso',
+    pexesoDesc: 'Flip two cards to find a match!',
   en: {
     lang: 'en',
     flag: '🇺🇸',
@@ -133,6 +135,8 @@ const TRANSLATIONS = {
     platHint: 'Arrow keys / WASD · double jump supported',
   },
 
+    pexesoTitle: 'Pexeso',
+    pexesoDesc: '¡Voltea dos cartas y encuentra la pareja!',
   es: {
     lang: 'es',
     flag: '🇪🇸',
@@ -263,6 +267,8 @@ const TRANSLATIONS = {
     platHint: 'Flechas / WASD · doble salto disponible',
   },
 
+    pexesoTitle: 'Pexeso',
+    pexesoDesc: 'Vire duas cartas e encontre o par!',
   pt: {
     lang: 'pt',
     flag: '🇧🇷',
@@ -393,6 +399,8 @@ const TRANSLATIONS = {
     platHint: 'Setas / WASD · duplo salto disponível',
   },
 
+    pexesoTitle: 'Pexeso',
+    pexesoDesc: 'Drehe zwei Karten um und finde das Paar!',
   de: {
     lang: 'de',
     flag: '🇩🇪',
@@ -523,6 +531,8 @@ const TRANSLATIONS = {
     platHint: 'Pfeiltasten / WASD · Doppelsprung möglich',
   },
 
+    pexesoTitle: 'Pexeso',
+    pexesoDesc: 'Retourne deux cartes et trouve la paire !',
   fr: {
     lang: 'fr',
     flag: '🇫🇷',
@@ -653,6 +663,8 @@ const TRANSLATIONS = {
     platHint: 'Flèches / WASD · double saut disponible',
   },
 
+    pexesoTitle: 'Pexeso',
+    pexesoDesc: 'Gira due carte e trova la coppia!',
   it: {
     lang: 'it',
     flag: '🇮🇹',
@@ -783,6 +795,8 @@ const TRANSLATIONS = {
     platHint: 'Frecce / WASD · doppio salto disponibile',
   },
 
+    pexesoTitle: 'Пэксесо',
+    pexesoDesc: 'Переверни две карточки и найди пару!',
   ru: {
     lang: 'ru',
     flag: '🇷🇺',
@@ -913,6 +927,8 @@ const TRANSLATIONS = {
     platHint: 'Стрелки / WASD · двойной прыжок доступен',
   },
 
+    pexesoTitle: 'Pexeso',
+    pexesoDesc: 'İki kart çevir ve eşini bul!',
   tr: {
     lang: 'tr',
     flag: '🇹🇷',
@@ -1043,6 +1059,8 @@ const TRANSLATIONS = {
     platHint: 'Ok tuşları / WASD · çift zıplama mevcut',
   },
 
+    pexesoTitle: 'ペクセソ',
+    pexesoDesc: '2枚のカードをめくってペアを見つけよう！',
   ja: {
     lang: 'ja',
     flag: '🇯🇵',
@@ -1173,6 +1191,8 @@ const TRANSLATIONS = {
     platHint: '矢印 / WASD · 二段ジャンプあり',
   },
 
+    pexesoTitle: '페세소',
+    pexesoDesc: '두 장의 카드를 뒤집어 짝을 찾으세요!',
   ko: {
     lang: 'ko',
     flag: '🇰🇷',
@@ -1303,6 +1323,8 @@ const TRANSLATIONS = {
     platHint: '방향키 / WASD · 이단 점프 가능',
   },
 
+    pexesoTitle: '翻牌配对',
+    pexesoDesc: '翻开两张卡片，找到匹配的一对！',
   zh: {
     lang: 'zh',
     flag: '🇨🇳',
@@ -1433,6 +1455,8 @@ const TRANSLATIONS = {
     platHint: '方向键 / WASD · 支持二段跳',
   },
 
+    pexesoTitle: 'Pexeso',
+    pexesoDesc: 'Otočte dve kartičky a nájdite zhodu!',
   sk: {
     lang: 'sk',
     flag: '🇸🇰',

@@ -175,6 +175,7 @@ const GAMES = [
   {id:'simon',     titleKey:'simonTitle',   descKey:'simonDesc',   emoji:'🧠', tags:['memory'],   heroColor:'#0e0b1f', file:'games/simon/index.html',          isNew:false},
   {id:'tower-defense',titleKey:'tdTitle',   descKey:'tdDesc',      emoji:'🏰', tags:['strategy'], heroColor:'#001a10', file:'games/tower-defense/index.html',  isNew:false},
   {id:'platformer',titleKey:'platTitle',    descKey:'platDesc',    emoji:'🏃', tags:['action'],   heroColor:'#1a1400', file:'games/platformer/index.html',     isNew:false},
+  {id:'pexeso', titleKey:null, title:'Pexeso', iconImg:'games/pexeso/icon-192.png', descKey:'pexesoDesc', emoji:'🃏', tags:['memory'], heroColor:'#0f0a00', file:'games/pexeso/index.html', isNew:true},
   // ── Šablóna pre ďalšiu hru:
   // {id:'meno',titleKey:'menoTitle',descKey:'menoDesc',emoji:'🎮',tags:['arcade'],heroColor:'#0f0a00',file:'games/meno/index.html',isNew:true},
 ];
@@ -241,7 +242,7 @@ function renderGames(){
   const q=searchQuery.toLowerCase().trim();
   const filtered=GAMES.filter(g=>{
     const tagOk=activeTag==='all'||g.tags.includes(activeTag);
-    const title=t(g.titleKey).toLowerCase(), desc=t(g.descKey).toLowerCase();
+    const title=(g.title||t(g.titleKey)).toLowerCase(), desc=t(g.descKey).toLowerCase();
     return tagOk&&(!q||title.includes(q)||desc.includes(q));
   });
   const n=GAMES.length,f=filtered.length;
@@ -254,10 +255,12 @@ function renderGames(){
     <a class="game-card" href="${g.file}" style="animation-delay:${i*.05}s">
       ${g.isNew?`<div class="badge-new">${t('badgeNew')}</div>`:''}
       <div class="card-hero" style="background:${g.heroColor}">
-        <span class="card-emoji">${g.emoji}</span>
+        ${g.iconImg
+          ? '<img src="'+g.iconImg+'" style="width:72px;height:72px;object-fit:contain;position:relative;z-index:2;border-radius:14px;" alt="">'
+          : '<span class="card-emoji">'+g.emoji+'</span>'}
       </div>
       <div class="card-body">
-        <div class="card-title">${t(g.titleKey)}</div>
+        <div class="card-title">${g.title || t(g.titleKey)}</div>
         <div class="card-desc">${t(g.descKey)}</div>
         <div class="card-footer">
           <div class="card-tags">

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Pexeso">
+<title>Pexeso</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="../../i18n.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface2: #1e1e1e;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.16);
+  --text: #f0ede8;
+  --text-muted: rgba(240,237,232,0.45);
+  --text-dim: rgba(240,237,232,0.22);
+  --accent: #e8d5a3;
+  --accent-dim: rgba(232,213,163,0.15);
+  --green-dim: rgba(74,222,128,0.12);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+
+.screen { display: none; width: 100%; max-width: 520px; padding: 2rem 1.25rem; flex-direction: column; min-height: auto; justify-content: center; }
+.screen.active { display: flex; }
+
+
+/* ── MENU ── */
+#screen-menu { align-items: center; justify-content: center; gap: 0; position: relative; z-index: 1; padding-top: 56px; }
+
+.logo { font-family: 'DM Serif Display', serif; font-size: 56px; letter-spacing: -1px; color: var(--text); line-height: 1; margin-bottom: 6px; }
+.logo-sub { font-size: 12px; color: var(--text-muted); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2.8rem; }
+
+.sets-label { font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; align-self: flex-start; margin-bottom: 10px; }
+
+.sets-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 2rem; }
+
+.set-btn {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 4px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.18s, background 0.18s;
+  font-family: inherit;
+}
+.set-btn:hover { border-color: var(--border-hover); background: var(--surface2); }
+.set-btn.selected { border-color: var(--accent); background: var(--accent-dim); }
+.set-btn .set-icon { font-size: 26px; line-height: 1; }
+.set-btn .set-name { font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.set-btn.selected .set-name { color: var(--accent); }
+
+.btn-start {
+  width: 100%;
+  background: var(--accent);
+  color: #0a0a0a;
+  border: none;
+  border-radius: var(--radius);
+  padding: 15px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: opacity 0.15s, transform 0.12s;
+}
+.btn-start:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-start:active { transform: translateY(0); }
+
+/* ── GAME ── */
+#screen-game { gap: 0; position: relative; z-index: 1; align-items: stretch; justify-content: center; }
+
+.game-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-top: 0.25rem; }
+
+.game-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+
+.set-badge { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 400; margin-top: 2px; }
+
+.stats-row { display: flex; gap: 6px; }
+
+.stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+.stat-pill strong { color: var(--text); font-weight: 500; }
+
+#grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-content: start; }
+
+/* ── CARDS ── */
+.card { aspect-ratio: 1; cursor: pointer; perspective: 800px; }
+.card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(.4,0,.2,1); border-radius: var(--radius); }
+.card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
+.card-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
+.card-front { background: var(--surface); transition: border-color 0.2s, background 0.2s; }
+.card:hover:not(.flipped):not(.matched) .card-front { border-color: var(--border-hover); background: var(--surface2); }
+.card-front::after { content: '?'; font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text-dim); }
+.card-back { background: var(--surface2); transform: rotateY(180deg); font-size: min(9vw, 2.8rem); }
+.card.matched .card-face.card-back { background: var(--green-dim); border-color: rgba(74,222,128,0.25); }
+
+#message { text-align: center; margin-top: 1rem; font-size: 13px; color: var(--text-muted); min-height: 18px; letter-spacing: 0.02em; }
+
+/* ── WIN ── */
+#win-banner { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+.win-emoji { font-size: 60px; margin-bottom: 1.25rem; }
+.win-title { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--text); margin-bottom: 4px; }
+.win-subtitle { font-size: 14px; color: var(--text-muted); }
+.win-stats { display: flex; gap: 12px; justify-content: center; margin: 1.5rem 0 2rem; }
+.win-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 24px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.win-stat .num { font-size: 28px; font-weight: 300; color: var(--accent); line-height: 1; }
+.win-stat .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+.btn-row { display: flex; gap: 10px; width: 100%; }
+.btn-secondary { flex: 1; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; font-size: 14px; font-family: inherit; cursor: pointer; transition: border-color 0.15s; }
+.btn-secondary:hover { border-color: var(--border-hover); }
+.btn-primary { flex: 2; background: var(--accent); color: #0a0a0a; border: none; border-radius: var(--radius); padding: 13px; font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer; transition: opacity 0.15s; }
+.btn-primary:hover { opacity: 0.88; }
+
+.btn-back { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13px; font-family: inherit; padding: 5px 12px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.btn-back:hover { border-color: var(--border-hover); color: var(--text); }
+
+/* ── INSTALL BANNER ── */
+#install-banner { display: none; position: fixed; bottom: calc(1rem + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: calc(100% - 2.5rem); max-width: 460px; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: var(--radius); padding: 12px 14px; align-items: center; gap: 10px; z-index: 100; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+#install-banner span { font-size: 13px; color: var(--text-muted); flex: 1; }
+.btn-install { background: var(--accent); color: #0a0a0a; border: none; border-radius: var(--radius-sm); padding: 7px 14px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; white-space: nowrap; }
+.btn-x { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 18px; padding: 2px 4px; line-height: 1; }
+
+/* ── PARTICLES ── */
+#particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.particle { position: absolute; opacity: 0; animation: float linear infinite; user-select: none; }
+@keyframes float { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.18; } 90% { opacity: 0.12; } 100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; } }
+</style>
+</head>
+<body>
+
+
+<a id="gamepad-back" href="../../index.html" style="position:fixed;top:16px;left:16px;z-index:999;display:flex;align-items:center;gap:7px;background:rgba(20,20,20,0.85);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.12);color:rgba(240,237,232,0.7);padding:6px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .18s;" onmouseover="this.style.color='#f0ede8';this.style.borderColor='rgba(255,255,255,0.25)'" onmouseout="this.style.color='rgba(240,237,232,0.7)';this.style.borderColor='rgba(255,255,255,0.12)'">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  GamePad
+</a>
+<div id="particles"></div>
+<div id="install-banner">
+  <span id="t-install-text"></span>
+  <button class="btn-install" id="btn-install"></button>
+  <button class="btn-x" id="install-close">✕</button>
+</div>
+
+<!-- MENU -->
+<div id="screen-menu" class="screen active">
+  <div class="logo">Pexeso</div>
+  <div class="logo-sub" id="t-tagline"></div>
+  <div class="sets-label" id="t-choose-set"></div>
+  <div class="sets-grid" id="sets-grid"></div>
+  <button class="btn-start" id="btn-start"></button>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div class="game-header">
+    <div class="game-title">
+      <span id="game-set-icon"></span>
+      <span class="set-badge" id="game-set-name"></span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="stats-row">
+        <div class="stat-pill">⟳ <strong id="moves">0</strong></div>
+        <div class="stat-pill">⏱ <strong id="timer">0s</strong></div>
+      </div>
+      <button class="btn-back" id="t-menu-btn" onclick="goMenu()"></button>
+    </div>
+  </div>
+  <div id="grid"></div>
+  <div id="message"></div>
+  <div id="win-banner">
+    <div class="win-emoji" id="win-emoji"></div>
+    <div class="win-title" id="t-win-title"></div>
+    <div class="win-subtitle" id="t-win-subtitle"></div>
+    <div class="win-stats">
+      <div class="win-stat"><div class="num" id="win-moves">0</div><div class="lbl" id="t-lbl-moves"></div></div>
+      <div class="win-stat"><div class="num" id="win-time">0s</div><div class="lbl" id="t-lbl-time"></div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="t-change-set" onclick="goMenu()"></button>
+      <button class="btn-primary" id="t-play-again" onclick="startGame()"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TRANSLATIONS ──
+const I18N = {
+  en: {
+    tagline:       'Memory Game',
+    chooseSet:     'Choose a card set',
+    startBtn:      'Start Game',
+    menuBtn:       'Menu',
+    msgFlip:       'Flip two cards to find a match!',
+    msgMatch:      '✓ Match! Keep going…',
+    msgNoMatch:    'No match…',
+    winTitle:      'Well done!',
+    winSubtitle:   'All pairs found',
+    lblMoves:      'Moves',
+    lblTime:       'Time',
+    changeSet:     'Change set',
+    playAgain:     'Play again',
+    installText:   '📲 Install Pexeso',
+    installBtn:    'Install',
+    sets: {
+      animals:   'Animals',
+      trees:     'Trees',
+      flowers:   'Flowers',
+      space:     'Space',
+      buildings: 'Buildings',
+    }
+  },
+  sk: {
+    tagline:       'Hra pamäte',
+    chooseSet:     'Vyber sadu kartičiek',
+    startBtn:      'Začať hru',
+    menuBtn:       'Menu',
+    msgFlip:       'Otočte dve kartičky a nájdite zhodu!',
+    msgMatch:      '✓ Zhoda! Pokračujte…',
+    msgNoMatch:    'Žiadna zhoda…',
+    winTitle:      'Výborne!',
+    winSubtitle:   'Všetky páry nájdené',
+    lblMoves:      'Ťahy',
+    lblTime:       'Čas',
+    changeSet:     'Zmeniť sadu',
+    playAgain:     'Hrať znova',
+    installText:   '📲 Nainštalovať Pexeso',
+    installBtn:    'Inštalovať',
+    sets: {
+      animals:   'Zvieratká',
+      trees:     'Stromy',
+      flowers:   'Kvety',
+      space:     'Vesmír',
+      buildings: 'Budovy',
+    }
+  }
+};
+
+// lang is managed by GamePad i18n.js
+let lang = getLang(); // reads from localStorage via i18n.js
+
+function t(key) { return I18N[lang][key] || key; }
+function tSet(id) { return I18N[lang].sets[id] || id; }
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.getElementById('t-tagline').textContent       = t('tagline');
+  document.getElementById('t-choose-set').textContent    = t('chooseSet');
+  document.getElementById('btn-start').textContent       = t('startBtn');
+  document.getElementById('t-menu-btn').textContent      = t('menuBtn');
+  document.getElementById('t-win-title').textContent     = t('winTitle');
+  document.getElementById('t-win-subtitle').textContent  = t('winSubtitle');
+  document.getElementById('t-lbl-moves').textContent     = t('lblMoves');
+  document.getElementById('t-lbl-time').textContent      = t('lblTime');
+  document.getElementById('t-change-set').textContent    = t('changeSet');
+  document.getElementById('t-play-again').textContent    = t('playAgain');
+  document.getElementById('t-install-text').textContent  = t('installText');
+  document.getElementById('btn-install').textContent     = t('installBtn');
+
+  // update active message if game is running
+  const msg = document.getElementById('message');
+  if (msg.style.display !== 'none' && matched === 0 && moves === 0) {
+    msg.textContent = t('msgFlip');
+  }
+
+  // re-render set names
+  document.querySelectorAll('.set-btn').forEach(btn => {
+    const nameEl = btn.querySelector('.set-name');
+    if (nameEl) nameEl.textContent = tSet(btn.dataset.setId);
+  });
+
+  // update game set badge
+  if (currentSet) {
+    document.getElementById('game-set-name').textContent = tSet(currentSet.id);
+  }
+}
+
+// ── SETS ──
+const SETS = [
+  { id:'animals',   icon:'🐾', emojis:['🐶','🐱','🦊','🐻','🐼','🦁','🐯','🐨'] },
+  { id:'trees',     icon:'🌲', emojis:['🌲','🌴','🌳','🌵','🎋','🎍','🍀','🌿'] },
+  { id:'flowers',   icon:'🌸', emojis:['🌸','🌺','🌻','🌹','🌷','💐','🪷','🌼'] },
+  { id:'space',     icon:'🚀', emojis:['🚀','🪐','⭐','🌙','☄️','🌍','🔭','👾'] },
+  { id:'buildings', icon:'🏛️', emojis:['🏛️','🗼','🏰','⛩️','🕌','🗽','🏯','🕍'] },
+];
+
+let selectedSetId = 'animals';
+let currentSet = SETS[0];
+let flipped = [], matched = 0, moves = 0, lock = false;
+let timerInterval, seconds = 0, started = false;
+let particleInterval = null;
+
+
+// ── MENU ──
+function renderMenu() {
+  const grid = document.getElementById('sets-grid');
+  grid.innerHTML = '';
+  SETS.forEach(set => {
+    const btn = document.createElement('button');
+    btn.className = 'set-btn' + (set.id === selectedSetId ? ' selected' : '');
+    btn.dataset.setId = set.id;
+    btn.innerHTML = `<span class="set-icon">${set.icon}</span><span class="set-name">${tSet(set.id)}</span>`;
+    btn.onclick = () => {
+      selectedSetId = set.id;
+      document.querySelectorAll('.set-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      spawnParticles(set.emojis);
+    };
+    grid.appendChild(btn);
+  });
+}
+
+document.getElementById('btn-start').onclick = () => {
+  currentSet = SETS.find(s => s.id === selectedSetId);
+  showScreen('game');
+  startGame();
+};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function goMenu() {
+  clearInterval(timerInterval);
+  showScreen('menu');
+  spawnParticles(currentSet.emojis);
+}
+
+// ── PARTICLES ──
+function spawnParticles(emojis) {
+  const container = document.getElementById('particles');
+  container.innerHTML = '';
+  if (particleInterval) clearInterval(particleInterval);
+  function spawn() {
+    const el = document.createElement('span');
+    el.className = 'particle';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.fontSize = (14 + Math.random() * 18) + 'px';
+    const dur = 7 + Math.random() * 8;
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay = (Math.random() * -dur) + 's';
+    container.appendChild(el);
+    if (container.children.length > 24) container.removeChild(container.firstChild);
+  }
+  for (let i = 0; i < 16; i++) spawn();
+  particleInterval = setInterval(spawn, 1000);
+}
+
+// ── GAME ──
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  clearInterval(timerInterval);
+  flipped = []; matched = 0; moves = 0; lock = false; seconds = 0; started = false;
+  document.getElementById('moves').textContent = 0;
+  document.getElementById('timer').textContent = '0s';
+  document.getElementById('message').textContent = t('msgFlip');
+  document.getElementById('message').style.display = 'block';
+  document.getElementById('win-banner').style.display = 'none';
+  document.getElementById('grid').style.display = 'grid';
+  document.getElementById('game-set-icon').textContent = currentSet.icon;
+  document.getElementById('game-set-name').textContent = tSet(currentSet.id);
+  document.getElementById('win-emoji').textContent = currentSet.icon;
+
+  const deck = shuffle([...currentSet.emojis, ...currentSet.emojis]);
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  deck.forEach(emoji => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.emoji = emoji;
+    card.innerHTML = `<div class="card-inner"><div class="card-face card-front"></div><div class="card-face card-back">${emoji}</div></div>`;
+    card.addEventListener('click', () => flipCard(card));
+    grid.appendChild(card);
+  });
+}
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    seconds++;
+    document.getElementById('timer').textContent = seconds + 's';
+  }, 1000);
+}
+
+function flipCard(card) {
+  if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  if (!started) { started = true; startTimer(); }
+  card.classList.add('flipped');
+  flipped.push(card);
+  if (flipped.length === 2) {
+    moves++;
+    document.getElementById('moves').textContent = moves;
+    lock = true;
+    const [a, b] = flipped;
+    if (a.dataset.emoji === b.dataset.emoji) {
+      a.classList.add('matched'); b.classList.add('matched');
+      matched++;
+      flipped = []; lock = false;
+      document.getElementById('message').textContent = matched < 8 ? t('msgMatch') : '';
+      if (matched === 8) endGame();
+    } else {
+      document.getElementById('message').textContent = t('msgNoMatch');
+      setTimeout(() => {
+        a.classList.remove('flipped'); b.classList.remove('flipped');
+        flipped = []; lock = false;
+        document.getElementById('message').textContent = t('msgFlip');
+      }, 950);
+    }
+  }
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  document.getElementById('grid').style.display = 'none';
+  document.getElementById('message').style.display = 'none';
+  document.getElementById('win-moves').textContent = moves;
+  document.getElementById('win-time').textContent = seconds + 's';
+  document.getElementById('win-banner').style.display = 'flex';
+}
+
+// ── PWA ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+document.getElementById('btn-install').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').style.display = 'none';
+};
+document.getElementById('install-close').onclick = () => {
+  document.getElementById('install-banner').style.display = 'none';
+};
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(console.error);
+}
+
+// ── INIT ──
+applyLang();
+renderMenu();
+spawnParticles(SETS[0].emojis);
+</script>
+</body>
+</html>
