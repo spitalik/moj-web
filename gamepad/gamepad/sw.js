@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v4';
+const CACHE = 'gamepad-v5';
 const ASSETS = [
   './',
   './index.html',

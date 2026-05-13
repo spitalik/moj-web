@@ -159,14 +159,24 @@ body {
 #particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
 .particle { position: absolute; opacity: 0; animation: float linear infinite; user-select: none; }
 @keyframes float { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.18; } 90% { opacity: 0.12; } 100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; } }
+
+#back-btn {
+  position: fixed; top: 20px; left: 20px; z-index: 999;
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(15,15,15,0.85); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.10); color: rgba(240,238,255,0.55);
+  padding: 7px 14px; border-radius: 100px; text-decoration: none;
+  font-size: 12px; font-weight: 500; transition: border-color .18s, color .18s;
+}
+#back-btn:hover { border-color: rgba(255,255,255,0.22); color: rgba(240,238,255,0.9); }
 </style>
 </head>
 <body>
 
 
-<a id="gamepad-back" href="../../index.html" style="position:fixed;top:16px;left:16px;z-index:999;display:flex;align-items:center;gap:7px;background:rgba(20,20,20,0.85);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.12);color:rgba(240,237,232,0.7);padding:6px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .18s;" onmouseover="this.style.color='#f0ede8';this.style.borderColor='rgba(255,255,255,0.25)'" onmouseout="this.style.color='rgba(240,237,232,0.7)';this.style.borderColor='rgba(255,255,255,0.12)'">
+<a id="back-btn" href="../../index.html">
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-  GamePad
+  <span id="lbl-back"></span>
 </a>
 <div id="particles"></div>
 <div id="install-banner">
@@ -220,6 +230,7 @@ body {
 // ── TRANSLATIONS ──
 const I18N = {
   en: {
+    back:          '← Back',
     tagline:       'Memory Game',
     chooseSet:     'Choose a card set',
     startBtn:      'Start Game',
@@ -244,6 +255,7 @@ const I18N = {
     }
   },
   sk: {
+    back:          '← Späť',
     tagline:       'Hra pamäte',
     chooseSet:     'Vyber sadu kartičiek',
     startBtn:      'Začať hru',
@@ -266,16 +278,208 @@ const I18N = {
       space:     'Vesmír',
       buildings: 'Budovy',
     }
-  }
+  },
+  es: {
+    back:          '← Volver',
+    tagline:       'Juego de memoria',
+    chooseSet:     'Elige un mazo de cartas',
+    startBtn:      'Iniciar juego',
+    menuBtn:       'Menú',
+    msgFlip:       '¡Voltea dos cartas para encontrar la pareja!',
+    msgMatch:      '✓ ¡Pareja! Sigue…',
+    msgNoMatch:    'Sin pareja…',
+    winTitle:      '¡Bien hecho!',
+    winSubtitle:   'Todos los pares encontrados',
+    lblMoves:      'Movimientos',
+    lblTime:       'Tiempo',
+    changeSet:     'Cambiar mazo',
+    playAgain:     'Jugar de nuevo',
+    installText:   '📲 Instalar Pexeso',
+    installBtn:    'Instalar',
+    sets: { animals:'Animales', trees:'Árboles', flowers:'Flores', space:'Espacio', buildings:'Edificios' }
+  },
+  pt: {
+    back:          '← Voltar',
+    tagline:       'Jogo de memória',
+    chooseSet:     'Escolha um baralho',
+    startBtn:      'Iniciar jogo',
+    menuBtn:       'Menu',
+    msgFlip:       'Vire duas cartas para encontrar o par!',
+    msgMatch:      '✓ Par! Continue…',
+    msgNoMatch:    'Sem par…',
+    winTitle:      'Muito bem!',
+    winSubtitle:   'Todos os pares encontrados',
+    lblMoves:      'Jogadas',
+    lblTime:       'Tempo',
+    changeSet:     'Mudar baralho',
+    playAgain:     'Jogar novamente',
+    installText:   '📲 Instalar Pexeso',
+    installBtn:    'Instalar',
+    sets: { animals:'Animais', trees:'Árvores', flowers:'Flores', space:'Espaço', buildings:'Edifícios' }
+  },
+  de: {
+    back:          '← Zurück',
+    tagline:       'Gedächtnisspiel',
+    chooseSet:     'Kartensatz wählen',
+    startBtn:      'Spiel starten',
+    menuBtn:       'Menü',
+    msgFlip:       'Drehe zwei Karten um, um ein Paar zu finden!',
+    msgMatch:      '✓ Paar! Weiter so…',
+    msgNoMatch:    'Kein Paar…',
+    winTitle:      'Gut gemacht!',
+    winSubtitle:   'Alle Paare gefunden',
+    lblMoves:      'Züge',
+    lblTime:       'Zeit',
+    changeSet:     'Set wechseln',
+    playAgain:     'Nochmal spielen',
+    installText:   '📲 Pexeso installieren',
+    installBtn:    'Installieren',
+    sets: { animals:'Tiere', trees:'Bäume', flowers:'Blumen', space:'Weltraum', buildings:'Gebäude' }
+  },
+  fr: {
+    back:          '← Retour',
+    tagline:       'Jeu de mémoire',
+    chooseSet:     'Choisir un jeu de cartes',
+    startBtn:      'Démarrer',
+    menuBtn:       'Menu',
+    msgFlip:       'Retourne deux cartes pour trouver une paire !',
+    msgMatch:      '✓ Paire ! Continue…',
+    msgNoMatch:    'Pas de paire…',
+    winTitle:      'Bravo !',
+    winSubtitle:   'Toutes les paires trouvées',
+    lblMoves:      'Coups',
+    lblTime:       'Temps',
+    changeSet:     'Changer de jeu',
+    playAgain:     'Rejouer',
+    installText:   '📲 Installer Pexeso',
+    installBtn:    'Installer',
+    sets: { animals:'Animaux', trees:'Arbres', flowers:'Fleurs', space:'Espace', buildings:'Bâtiments' }
+  },
+  it: {
+    back:          '← Indietro',
+    tagline:       'Gioco di memoria',
+    chooseSet:     'Scegli un mazzo di carte',
+    startBtn:      'Inizia gioco',
+    menuBtn:       'Menu',
+    msgFlip:       'Gira due carte per trovare la coppia!',
+    msgMatch:      '✓ Coppia! Continua…',
+    msgNoMatch:    'Nessuna coppia…',
+    winTitle:      'Bravo!',
+    winSubtitle:   'Tutte le coppie trovate',
+    lblMoves:      'Mosse',
+    lblTime:       'Tempo',
+    changeSet:     'Cambia mazzo',
+    playAgain:     'Gioca ancora',
+    installText:   '📲 Installa Pexeso',
+    installBtn:    'Installa',
+    sets: { animals:'Animali', trees:'Alberi', flowers:'Fiori', space:'Spazio', buildings:'Edifici' }
+  },
+  ru: {
+    back:          '← Назад',
+    tagline:       'Игра на память',
+    chooseSet:     'Выберите набор карточек',
+    startBtn:      'Начать игру',
+    menuBtn:       'Меню',
+    msgFlip:       'Переверните две карточки, чтобы найти пару!',
+    msgMatch:      '✓ Пара! Продолжай…',
+    msgNoMatch:    'Не совпало…',
+    winTitle:      'Отлично!',
+    winSubtitle:   'Все пары найдены',
+    lblMoves:      'Ходы',
+    lblTime:       'Время',
+    changeSet:     'Сменить набор',
+    playAgain:     'Играть снова',
+    installText:   '📲 Установить Pexeso',
+    installBtn:    'Установить',
+    sets: { animals:'Животные', trees:'Деревья', flowers:'Цветы', space:'Космос', buildings:'Здания' }
+  },
+  tr: {
+    back:          '← Geri',
+    tagline:       'Hafıza oyunu',
+    chooseSet:     'Bir kart seti seç',
+    startBtn:      'Oyunu başlat',
+    menuBtn:       'Menü',
+    msgFlip:       'Eşleşme bulmak için iki kart çevir!',
+    msgMatch:      '✓ Eşleşme! Devam et…',
+    msgNoMatch:    'Eşleşme yok…',
+    winTitle:      'Aferin!',
+    winSubtitle:   'Tüm çiftler bulundu',
+    lblMoves:      'Hamle',
+    lblTime:       'Süre',
+    changeSet:     'Set değiştir',
+    playAgain:     'Tekrar oyna',
+    installText:   '📲 Pexeso\u2019yu yükle',
+    installBtn:    'Yükle',
+    sets: { animals:'Hayvanlar', trees:'Ağaçlar', flowers:'Çiçekler', space:'Uzay', buildings:'Binalar' }
+  },
+  ja: {
+    back:          '← 戻る',
+    tagline:       '神経衰弱',
+    chooseSet:     'カードセットを選んで',
+    startBtn:      'ゲームスタート',
+    menuBtn:       'メニュー',
+    msgFlip:       '2枚のカードをめくってペアを見つけよう！',
+    msgMatch:      '✓ ペア！続けて…',
+    msgNoMatch:    '不一致…',
+    winTitle:      'よくできました！',
+    winSubtitle:   'すべてのペアを発見',
+    lblMoves:      '手数',
+    lblTime:       '時間',
+    changeSet:     'セットを変更',
+    playAgain:     'もう一度',
+    installText:   '📲 Pexesoをインストール',
+    installBtn:    'インストール',
+    sets: { animals:'動物', trees:'木', flowers:'花', space:'宇宙', buildings:'建物' }
+  },
+  ko: {
+    back:          '← 뒤로',
+    tagline:       '기억력 게임',
+    chooseSet:     '카드 세트를 선택하세요',
+    startBtn:      '게임 시작',
+    menuBtn:       '메뉴',
+    msgFlip:       '두 장의 카드를 뒤집어 짝을 찾으세요!',
+    msgMatch:      '✓ 짝! 계속하세요…',
+    msgNoMatch:    '짝 없음…',
+    winTitle:      '잘했어요!',
+    winSubtitle:   '모든 짝을 찾았습니다',
+    lblMoves:      '이동',
+    lblTime:       '시간',
+    changeSet:     '세트 변경',
+    playAgain:     '다시 플레이',
+    installText:   '📲 Pexeso 설치',
+    installBtn:    '설치',
+    sets: { animals:'동물', trees:'나무', flowers:'꽃', space:'우주', buildings:'건물' }
+  },
+  zh: {
+    back:          '← 返回',
+    tagline:       '记忆游戏',
+    chooseSet:     '选择一套卡片',
+    startBtn:      '开始游戏',
+    menuBtn:       '菜单',
+    msgFlip:       '翻开两张卡片找到匹配的一对！',
+    msgMatch:      '✓ 匹配！继续…',
+    msgNoMatch:    '不匹配…',
+    winTitle:      '干得好！',
+    winSubtitle:   '所有对子已找到',
+    lblMoves:      '步数',
+    lblTime:       '时间',
+    changeSet:     '更换套装',
+    playAgain:     '再来一局',
+    installText:   '📲 安装 Pexeso',
+    installBtn:    '安装',
+    sets: { animals:'动物', trees:'树木', flowers:'花卉', space:'太空', buildings:'建筑' }
+  },
 };
 
-// lang is managed by GamePad i18n.js
-let lang = getLang(); // reads from localStorage via i18n.js
+// lang is managed by GamePad i18n.js — fallback to 'en' if not supported
+let lang = I18N[getLang()] ? getLang() : 'en';
 
-function t(key) { return I18N[lang][key] || key; }
-function tSet(id) { return I18N[lang].sets[id] || id; }
+function t(key) { return (I18N[lang] || I18N['en'])[key] || key; }
+function tSet(id) { return (I18N[lang] || I18N['en']).sets[id] || id; }
 
 function applyLang() {
+  const backEl = document.getElementById('lbl-back');
+  if (backEl) backEl.textContent = t('back') || '← Back';
   document.documentElement.lang = lang;
   document.getElementById('t-tagline').textContent       = t('tagline');
   document.getElementById('t-choose-set').textContent    = t('chooseSet');
