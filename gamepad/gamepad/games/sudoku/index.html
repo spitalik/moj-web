@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;
+  --text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);
+  --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
+  --c:#ffd166;--cdim:rgba(255,209,102,0.14);
+}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(255,209,102,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:60px 16px 40px;gap:14px;}
+
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* difficulty */
+.diff-row{display:flex;gap:6px;}
+.diff-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:6px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;}
+.diff-btn:hover{border-color:var(--border-h);color:var(--text);}
+.diff-btn.active{background:var(--cdim);border-color:rgba(255,209,102,0.4);color:var(--c);}
+
+/* grid */
+#board-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:10px;display:inline-block;}
+#sudoku{display:grid;grid-template-columns:repeat(9,1fr);gap:0;}
+
+.cell{
+  width:clamp(34px,9vw,46px);height:clamp(34px,9vw,46px);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:clamp(14px,3.5vw,18px);font-weight:700;
+  border:1px solid rgba(255,255,255,0.06);
+  cursor:pointer;position:relative;transition:background .12s;
+  color:var(--c);
+}
+.cell.fixed{color:var(--text);cursor:default;}
+.cell.selected{background:rgba(255,209,102,0.1);}
+.cell.same-num{background:rgba(255,209,102,0.06);}
+.cell.wrong{color:#ff6b6b !important;background:rgba(255,107,107,0.08);}
+.cell.correct{color:#4dff91 !important;}
+.cell.hint-flash{animation:hflash .4s ease;}
+@keyframes hflash{0%,100%{background:transparent;}50%{background:rgba(255,209,102,0.2);}}
+
+/* thick 3x3 borders */
+.cell.border-r{border-right:2px solid rgba(255,255,255,0.2);}
+.cell.border-b{border-bottom:2px solid rgba(255,255,255,0.2);}
+
+/* numpad */
+.numpad{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;max-width:clamp(306px,81vw,414px);width:100%;}
+.np-btn{
+  height:clamp(34px,9vw,44px);
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  font-family:'Syne',sans-serif;font-size:clamp(14px,3.5vw,17px);font-weight:700;
+  color:var(--muted);cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.np-btn:hover{border-color:var(--border-h);color:var(--text);}
+.np-btn:active{background:var(--cdim);color:var(--c);}
+
+/* status + controls */
+#status{font-size:12px;color:var(--muted);letter-spacing:1px;min-height:18px;text-align:center;}
+.ctrl-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.ctrl-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;}
+.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
+.ctrl-btn.primary{border-color:rgba(255,209,102,0.35);color:var(--c);background:var(--cdim);}
+.ctrl-btn.primary:hover{background:rgba(255,209,102,0.22);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<div class="page">
+  <div class="game-title" id="lbl-title"></div>
+
+  <div class="diff-row" id="diff-row"></div>
+
+  <div id="board-wrap"><div id="sudoku"></div></div>
+
+  <div class="numpad" id="numpad"></div>
+
+  <div id="status"></div>
+
+  <div class="ctrl-row">
+    <button class="ctrl-btn primary" onclick="checkSudoku()" id="btn-check"></button>
+    <button class="ctrl-btn" onclick="hint()" id="btn-hint"></button>
+    <button class="ctrl-btn" onclick="newGame()" id="btn-new"></button>
+  </div>
+</div>
+
+<script>
+// ── i18n ──────────────────────────────────────────────────────────────────
+document.getElementById('lbl-back').textContent  = t('back');
+document.getElementById('lbl-title').textContent = t('sudokuTitle');
+document.getElementById('btn-check').textContent = t('sudokuCheck');
+document.getElementById('btn-hint').textContent  = t('sudokuHint');
+document.getElementById('btn-new').textContent   = t('sudokuNew');
+
+// ── DIFFICULTY ────────────────────────────────────────────────────────────
+const DIFFS = [
+  { key:'easy',   remove:36, label:'diffEasy' },
+  { key:'medium', remove:46, label:'diffMedium' },
+  { key:'hard',   remove:52, label:'diffHard' },
+];
+let diffIdx = 0;
+const diffRow = document.getElementById('diff-row');
+DIFFS.forEach((d, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'diff-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = t(d.label);
+  btn.onclick = () => { diffIdx = i; diffRow.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i)); newGame(); };
+  diffRow.appendChild(btn);
+});
+
+// ── NUMPAD ────────────────────────────────────────────────────────────────
+const numpad = document.getElementById('numpad');
+for (let n = 1; n <= 9; n++) {
+  const btn = document.createElement('button');
+  btn.className = 'np-btn';
+  btn.textContent = n;
+  btn.onclick = () => inputNum(n);
+  numpad.appendChild(btn);
+}
+
+// ── GAME STATE ────────────────────────────────────────────────────────────
+const BASE = [
+  [1,2,3,4,5,6,7,8,9],[4,5,6,7,8,9,1,2,3],[7,8,9,1,2,3,4,5,6],
+  [2,3,4,5,6,7,8,9,1],[5,6,7,8,9,1,2,3,4],[8,9,1,2,3,4,5,6,7],
+  [3,4,5,6,7,8,9,1,2],[6,7,8,9,1,2,3,4,5],[9,1,2,3,4,5,6,7,8]
+];
+
+let puzzle, solution, selected = -1, hints = 3;
+
+function generateSolution() {
+  const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+  const map = {};
+  nums.forEach((n, i) => map[i+1] = n);
+  return BASE.map(row => row.map(n => map[n]));
+}
+
+function generatePuzzle(sol, remove) {
+  const p = sol.map(r => [...r]);
+  let left = remove;
+  while (left > 0) {
+    const r = Math.floor(Math.random() * 9), c = Math.floor(Math.random() * 9);
+    if (p[r][c] !== 0) { p[r][c] = 0; left--; }
+  }
+  return p;
+}
+
+function newGame() {
+  solution = generateSolution();
+  puzzle   = generatePuzzle(solution, DIFFS[diffIdx].remove);
+  selected = -1;
+  hints = 3;
+  document.getElementById('btn-hint').textContent = t('sudokuHint') + ' (' + hints + ')';
+  renderBoard();
+  setStatus('');
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderBoard() {
+  const grid = document.getElementById('sudoku');
+  grid.innerHTML = '';
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const idx = r * 9 + c;
+      const div = document.createElement('div');
+      div.className = 'cell';
+      if (puzzle[r][c] !== 0) {
+        div.classList.add('fixed');
+        div.textContent = puzzle[r][c];
+      } else {
+        div.dataset.r = r; div.dataset.c = c;
+        div.onclick = () => selectCell(idx);
+      }
+      if (c === 2 || c === 5) div.classList.add('border-r');
+      if (r === 2 || r === 5) div.classList.add('border-b');
+      if (idx === selected) div.classList.add('selected');
+      grid.appendChild(div);
+    }
+  }
+  highlightSame();
+}
+
+function selectCell(idx) {
+  if (idx === selected) return;
+  selected = idx;
+  renderBoard();
+}
+
+function inputNum(n) {
+  if (selected < 0) return;
+  const r = Math.floor(selected / 9), c = selected % 9;
+  if (puzzle[r][c] !== 0 && document.querySelectorAll('.cell')[selected].classList.contains('fixed')) return;
+  puzzle[r][c] = n;
+  renderBoard();
+  setStatus('');
+  checkAutoWin();
+}
+
+function highlightSame() {
+  if (selected < 0) return;
+  const r = Math.floor(selected / 9), c = selected % 9;
+  const val = puzzle[r][c];
+  if (!val) return;
+  document.querySelectorAll('.cell').forEach((cell, idx) => {
+    const cr = Math.floor(idx / 9), cc = idx % 9;
+    if (puzzle[cr][cc] === val && idx !== selected) cell.classList.add('same-num');
+  });
+}
+
+function checkSudoku() {
+  let allCorrect = true, anyFilled = false;
+  document.querySelectorAll('.cell').forEach((cell, idx) => {
+    cell.classList.remove('wrong', 'correct');
+    if (cell.classList.contains('fixed')) return;
+    const r = Math.floor(idx / 9), c = idx % 9;
+    if (!puzzle[r][c]) return;
+    anyFilled = true;
+    if (puzzle[r][c] === solution[r][c]) cell.classList.add('correct');
+    else { cell.classList.add('wrong'); allCorrect = false; }
+  });
+  // check all filled
+  const allFilled = puzzle.every(row => row.every(v => v !== 0));
+  if (allFilled && allCorrect) setStatus('🎉 ' + t('sudokuSolved'));
+  else if (!allCorrect) setStatus('❌ ' + t('sudokuWrong'));
+  else setStatus('✓ ' + t('sudokuSoFar'));
+}
+
+function checkAutoWin() {
+  if (!puzzle.every(row => row.every(v => v !== 0))) return;
+  if (puzzle.every((row, r) => row.every((v, c) => v === solution[r][c]))) {
+    setStatus('🎉 ' + t('sudokuSolved'));
+    document.querySelectorAll('.cell:not(.fixed)').forEach(c => { c.classList.remove('wrong'); c.classList.add('correct'); });
+  }
+}
+
+function hint() {
+  if (hints <= 0) { setStatus(t('sudokuNoHints')); return; }
+  // Find a random empty/wrong cell and fill it correctly
+  const empties = [];
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      if (puzzle[r][c] === 0 || puzzle[r][c] !== solution[r][c]) empties.push([r,c]);
+  if (!empties.length) return;
+  const [r, c] = empties[Math.floor(Math.random() * empties.length)];
+  puzzle[r][c] = solution[r][c];
+  hints--;
+  document.getElementById('btn-hint').textContent = t('sudokuHint') + ' (' + hints + ')';
+  selected = r * 9 + c;
+  renderBoard();
+  // flash
+  const cells = document.querySelectorAll('.cell');
+  cells[r * 9 + c].classList.add('hint-flash');
+  setTimeout(() => cells[r * 9 + c]?.classList.remove('hint-flash'), 500);
+  checkAutoWin();
+}
+
+function setStatus(msg) { document.getElementById('status').textContent = msg; }
+
+// keyboard
+document.addEventListener('keydown', e => {
+  if (selected < 0) return;
+  if (e.key >= '1' && e.key <= '9') { inputNum(parseInt(e.key)); return; }
+  if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
+    const r = Math.floor(selected / 9), c = selected % 9;
+    if (!document.querySelectorAll('.cell')[selected].classList.contains('fixed')) {
+      puzzle[r][c] = 0; renderBoard();
+    }
+    return;
+  }
+  // arrow navigation
+  const r = Math.floor(selected / 9), c = selected % 9;
+  const moves = { ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1] };
+  if (moves[e.key]) {
+    e.preventDefault();
+    const [dr, dc] = moves[e.key];
+    const nr = Math.max(0, Math.min(8, r+dr)), nc = Math.max(0, Math.min(8, c+dc));
+    selected = nr * 9 + nc;
+    renderBoard();
+  }
+});
+
+newGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<script src="../../i18n.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klikacia hra</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --accent: #e8ff3c;
+    --accent-dim: #b5c91a;
+    --text: #f0f0f0;
+    --muted: #555566;
+    --danger: #ff4c4c;
+    --success: #3cff8f;
+    --glow: rgba(232, 255, 60, 0.15);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-align: center;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .stats {
+    display: flex;
+    gap: 2.5rem;
+    margin-bottom: 2.5rem;
+    align-items: flex-end;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    line-height: 1;
+    color: var(--text);
+    transition: color 0.15s;
+  }
+
+  .stat-value.big {
+    font-size: 4rem;
+    color: var(--accent);
+  }
+
+  #timer-value {
+    transition: color 0.2s;
+  }
+
+  #timer-value.urgent { color: var(--danger); }
+
+  .timer-bar-wrap {
+    width: min(420px, 88vw);
+    height: 4px;
+    background: #1e1e2e;
+    border-radius: 2px;
+    margin-bottom: 2.5rem;
+    overflow: hidden;
+  }
+
+  #timer-bar {
+    height: 100%;
+    width: 100%;
+    background: var(--accent);
+    transform-origin: left center;
+    transition: transform 0.1s linear, background 0.3s;
+    border-radius: 2px;
+  }
+
+  #timer-bar.urgent { background: var(--danger); }
+
+  .arena {
+    width: min(420px, 88vw);
+    height: min(420px, 88vw);
+    background: var(--surface);
+    border: 1px solid #22223a;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  .arena::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(232,255,60,0.03) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .target {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 rgba(232, 255, 60, 0.5);
+    cursor: pointer;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: #0a0a0f;
+    letter-spacing: 0.05em;
+  }
+
+  .target.visible {
+    transform: translate(-50%, -50%) scale(1);
+    animation: pulse 0.8s ease-in-out infinite alternate;
+  }
+
+  .target.clicked {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+
+  @keyframes pulse {
+    from { box-shadow: 0 0 0 0 rgba(232, 255, 60, 0.4); }
+    to   { box-shadow: 0 0 0 14px rgba(232, 255, 60, 0); }
+  }
+
+  .miss-ripple {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--danger);
+    transform: translate(-50%, -50%) scale(0);
+    animation: ripple 0.4s ease-out forwards;
+    pointer-events: none;
+  }
+
+  @keyframes ripple {
+    to { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+  }
+
+  .score-pop {
+    position: absolute;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: var(--accent);
+    pointer-events: none;
+    animation: float-up 0.6s ease-out forwards;
+    white-space: nowrap;
+  }
+
+  @keyframes float-up {
+    0%   { opacity: 1; transform: translate(-50%, -50%); }
+    100% { opacity: 0; transform: translate(-50%, -180%); }
+  }
+
+  .idle-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .idle-text p {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+  }
+
+  .idle-text .big-prompt {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+  }
+
+  .controls {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  button {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.4rem;
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  button:hover { background: var(--accent); color: #0a0a0f; }
+  button:active { transform: scale(0.97); }
+
+  button.secondary {
+    border-color: var(--muted);
+    color: var(--muted);
+  }
+  button.secondary:hover { background: var(--muted); color: #0a0a0f; }
+
+  .difficulty-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    justify-content: center;
+  }
+
+  .diff-btn {
+    font-size: 0.6rem;
+    padding: 0.35rem 0.9rem;
+    border-color: var(--muted);
+    color: var(--muted);
+  }
+
+  .diff-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .results-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,15,0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    display: none;
+  }
+
+  .results-overlay.show { display: flex; }
+
+  .results-card {
+    background: var(--surface);
+    border: 1px solid #22223a;
+    border-radius: 24px;
+    padding: 2.5rem 3rem;
+    text-align: center;
+    min-width: 280px;
+    animation: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes pop-in {
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  .results-card h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .result-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .result-item .label {
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .result-item .val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--text);
+  }
+
+  .result-item .val.accent { color: var(--accent); }
+
+  .new-best {
+    font-size: 0.7rem;
+    color: var(--success);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<a href="../../index.html" id="gp-back" style="position:fixed;top:16px;left:16px;z-index:100;display:flex;align-items:center;gap:7px;background:rgba(18,18,26,0.9);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);color:rgba(240,240,240,0.55);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-family:'Space Mono',monospace;transition:all .18s;" onmouseover="this.style.color='#f0f0f0';this.style.borderColor='rgba(255,255,255,0.22)'" onmouseout="this.style.color='rgba(240,240,240,0.55)';this.style.borderColor='rgba(255,255,255,0.1)'">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<h1>Click Rush</h1>
+<p class="subtitle">Klikni čo najviac za čas</p>
+
+<div class="stats">
+  <div class="stat">
+    <span class="stat-label">Skóre</span>
+    <span class="stat-value big" id="score-display">0</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Čas</span>
+    <span class="stat-value" id="timer-value">30</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Rekord</span>
+    <span class="stat-value" id="best-display">0</span>
+  </div>
+</div>
+
+<div class="timer-bar-wrap">
+  <div id="timer-bar"></div>
+</div>
+
+<div class="arena" id="arena">
+  <div class="idle-text" id="idle-text">
+    <p class="big-prompt">Klikni sem pre štart</p>
+    <p>— alebo zvoľ obtiažnosť nižšie —</p>
+  </div>
+  <div class="target" id="target"></div>
+</div>
+
+<div class="controls">
+  <button id="start-btn">Spustiť hru</button>
+  <button class="secondary" id="reset-btn">Reset</button>
+</div>
+
+<div class="difficulty-row">
+  <button class="diff-btn active" data-diff="easy">Ľahká</button>
+  <button class="diff-btn" data-diff="medium">Stredná</button>
+  <button class="diff-btn" data-diff="hard">Ťažká</button>
+  <button class="diff-btn" data-diff="insane">Šialená</button>
+</div>
+
+<div class="results-overlay" id="results-overlay">
+  <div class="results-card">
+    <h2>Výsledok</h2>
+    <div id="new-best-msg" class="new-best" style="display:none">Nový rekord!</div>
+    <div class="result-grid">
+      <div class="result-item">
+        <span class="label">Skóre</span>
+        <span class="val accent" id="res-score">0</span>
+      </div>
+      <div class="result-item">
+        <span class="label">Rekord</span>
+        <span class="val" id="res-best">0</span>
+      </div>
+      <div class="result-item">
+        <span class="label">Klik/s</span>
+        <span class="val" id="res-cps">0.0</span>
+      </div>
+      <div class="result-item">
+        <span class="label">Missy</span>
+        <span class="val" id="res-miss">0</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.8rem;justify-content:center;margin-top:0.5rem;">
+      <button id="play-again-btn">Znova hrať</button>
+      <button class="secondary" id="close-results-btn">Zatvoriť</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("lbl-back").textContent = t("back");
+const DIFFICULTIES = {
+  easy:   { duration: 30, targetSize: 64, moveInterval: 1400 },
+  medium: { duration: 30, targetSize: 52, moveInterval: 900 },
+  hard:   { duration: 20, targetSize: 40, moveInterval: 600 },
+  insane: { duration: 15, targetSize: 28, moveInterval: 350 },
+};
+
+let difficulty = 'easy';
+let score = 0;
+let misses = 0;
+let best = parseInt(localStorage.getItem('clickrush_best') || '0');
+let running = false;
+let timeLeft = 30;
+let totalTime = 30;
+let timerInterval = null;
+let moveInterval = null;
+
+const arena = document.getElementById('arena');
+const target = document.getElementById('target');
+const idleText = document.getElementById('idle-text');
+const scoreDisplay = document.getElementById('score-display');
+const timerValue = document.getElementById('timer-value');
+const timerBar = document.getElementById('timer-bar');
+const bestDisplay = document.getElementById('best-display');
+const startBtn = document.getElementById('start-btn');
+const resetBtn = document.getElementById('reset-btn');
+const overlay = document.getElementById('results-overlay');
+
+bestDisplay.textContent = best;
+
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+function placeTarget() {
+  const cfg = DIFFICULTIES[difficulty];
+  const sz = cfg.targetSize;
+  const rect = arena.getBoundingClientRect();
+  const pad = sz / 2 + 8;
+  const x = rand(pad, rect.width - pad);
+  const y = rand(pad, rect.height - pad);
+  target.style.left = x + 'px';
+  target.style.top = y + 'px';
+  target.style.width = sz + 'px';
+  target.style.height = sz + 'px';
+  target.classList.remove('clicked');
+  target.classList.add('visible');
+}
+
+function startGame() {
+  if (running) return;
+  const cfg = DIFFICULTIES[difficulty];
+  score = 0; misses = 0;
+  timeLeft = cfg.duration;
+  totalTime = cfg.duration;
+  running = true;
+  idleText.style.display = 'none';
+  scoreDisplay.textContent = 0;
+  timerValue.textContent = cfg.duration;
+  timerBar.style.transform = 'scaleX(1)';
+  timerBar.classList.remove('urgent');
+  timerValue.classList.remove('urgent');
+  startBtn.textContent = 'V hre...';
+  startBtn.disabled = true;
+
+  placeTarget();
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerValue.textContent = timeLeft;
+    timerBar.style.transform = `scaleX(${timeLeft / totalTime})`;
+    if (timeLeft <= 5) {
+      timerBar.classList.add('urgent');
+      timerValue.classList.add('urgent');
+    }
+    if (timeLeft <= 0) endGame();
+  }, 1000);
+
+  moveInterval = setInterval(placeTarget, cfg.moveInterval);
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  clearInterval(moveInterval);
+  running = false;
+  target.classList.remove('visible', 'clicked');
+  idleText.style.display = 'flex';
+  startBtn.textContent = 'Spustiť hru';
+  startBtn.disabled = false;
+
+  const isNew = score > best;
+  if (isNew) {
+    best = score;
+    localStorage.setItem('clickrush_best', best);
+    bestDisplay.textContent = best;
+  }
+
+  document.getElementById('res-score').textContent = score;
+  document.getElementById('res-best').textContent = best;
+  document.getElementById('res-cps').textContent = (score / totalTime).toFixed(1);
+  document.getElementById('res-miss').textContent = misses;
+  document.getElementById('new-best-msg').style.display = isNew ? 'block' : 'none';
+  overlay.classList.add('show');
+}
+
+function resetGame() {
+  clearInterval(timerInterval);
+  clearInterval(moveInterval);
+  running = false;
+  score = 0; misses = 0;
+  scoreDisplay.textContent = 0;
+  const cfg = DIFFICULTIES[difficulty];
+  timerValue.textContent = cfg.duration;
+  timerBar.style.transform = 'scaleX(1)';
+  timerBar.classList.remove('urgent');
+  timerValue.classList.remove('urgent');
+  target.classList.remove('visible', 'clicked');
+  idleText.style.display = 'flex';
+  startBtn.textContent = 'Spustiť hru';
+  startBtn.disabled = false;
+}
+
+target.addEventListener('click', (e) => {
+  if (!running) return;
+  e.stopPropagation();
+  score++;
+  scoreDisplay.textContent = score;
+
+  // pop animation
+  target.classList.remove('visible');
+  target.classList.add('clicked');
+
+  // score pop
+  const pop = document.createElement('div');
+  pop.className = 'score-pop';
+  pop.textContent = '+1';
+  pop.style.left = target.style.left;
+  pop.style.top = target.style.top;
+  arena.appendChild(pop);
+  setTimeout(() => pop.remove(), 650);
+
+  clearInterval(moveInterval);
+  setTimeout(() => {
+    placeTarget();
+    moveInterval = setInterval(placeTarget, DIFFICULTIES[difficulty].moveInterval);
+  }, 80);
+});
+
+arena.addEventListener('click', (e) => {
+  if (!running) { startGame(); return; }
+  if (e.target === target) return;
+  misses++;
+  const ripple = document.createElement('div');
+  ripple.className = 'miss-ripple';
+  const rect = arena.getBoundingClientRect();
+  ripple.style.left = (e.clientX - rect.left) + 'px';
+  ripple.style.top = (e.clientY - rect.top) + 'px';
+  arena.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 450);
+});
+
+startBtn.addEventListener('click', startGame);
+resetBtn.addEventListener('click', resetGame);
+
+document.querySelectorAll('.diff-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (running) return;
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    difficulty = btn.dataset.diff;
+    resetGame();
+  });
+});
+
+document.getElementById('play-again-btn').addEventListener('click', () => {
+  overlay.classList.remove('show');
+  setTimeout(startGame, 150);
+});
+
+document.getElementById('close-results-btn').addEventListener('click', () => {
+  overlay.classList.remove('show');
+});
+</script>
+</body>
+</html>
