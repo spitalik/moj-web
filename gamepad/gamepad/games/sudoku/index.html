@@ -178,11 +178,11 @@ function renderBoard() {
       const idx = r * 9 + c;
       const div = document.createElement('div');
       div.className = 'cell';
+      div.dataset.r = r; div.dataset.c = c;
       if (puzzle[r][c] !== 0) {
         div.classList.add('fixed');
         div.textContent = puzzle[r][c];
       } else {
-        div.dataset.r = r; div.dataset.c = c;
         div.onclick = () => selectCell(idx);
       }
       if (c === 2 || c === 5) div.classList.add('border-r');
@@ -222,17 +222,48 @@ function highlightSame() {
 }
 
 function checkSudoku() {
-  let allCorrect = true, anyFilled = false;
-  document.querySelectorAll('.cell').forEach((cell, idx) => {
-    cell.classList.remove('wrong', 'correct');
+  const cells = document.querySelectorAll('.cell');
+  cells.forEach(cell => cell.classList.remove('wrong', 'correct'));
+
+  // Označ všetky políčka kde je problém:
+  // 1. číslo nesedí so solution
+  // 2. duplicita v riadku, stĺpci alebo boxe
+  const wrongSet = new Set();
+
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const val = puzzle[r][c];
+      if (!val) continue;
+
+      // Skontroluj duplicity — porovnaj so všetkými ostatnými políčkami
+      // v rovnakom riadku
+      for (let cc = 0; cc < 9; cc++) {
+        if (cc !== c && puzzle[r][cc] === val) { wrongSet.add(r*9+c); wrongSet.add(r*9+cc); }
+      }
+      // v rovnakom stĺpci
+      for (let rr = 0; rr < 9; rr++) {
+        if (rr !== r && puzzle[rr][c] === val) { wrongSet.add(r*9+c); wrongSet.add(rr*9+c); }
+      }
+      // v rovnakom boxe
+      const br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+      for (let dr = 0; dr < 3; dr++) for (let dc = 0; dc < 3; dc++) {
+        const nr = br+dr, nc = bc+dc;
+        if ((nr !== r || nc !== c) && puzzle[nr][nc] === val) { wrongSet.add(r*9+c); wrongSet.add(nr*9+nc); }
+      }
+      // Nesedí so solution
+      if (val !== solution[r][c]) wrongSet.add(r*9+c);
+    }
+  }
+
+  let allCorrect = wrongSet.size === 0;
+  cells.forEach(cell => {
+    const r = parseInt(cell.dataset.r), c = parseInt(cell.dataset.c);
     if (cell.classList.contains('fixed')) return;
-    const r = Math.floor(idx / 9), c = idx % 9;
     if (!puzzle[r][c]) return;
-    anyFilled = true;
-    if (puzzle[r][c] === solution[r][c]) cell.classList.add('correct');
-    else { cell.classList.add('wrong'); allCorrect = false; }
+    if (wrongSet.has(r*9+c)) cell.classList.add('wrong');
+    else cell.classList.add('correct');
   });
-  // check all filled
+
   const allFilled = puzzle.every(row => row.every(v => v !== 0));
   if (allFilled && allCorrect) setStatus('🎉 ' + t('sudokuSolved'));
   else if (!allCorrect) setStatus('❌ ' + t('sudokuWrong'));
@@ -243,7 +274,9 @@ function checkAutoWin() {
   if (!puzzle.every(row => row.every(v => v !== 0))) return;
   if (puzzle.every((row, r) => row.every((v, c) => v === solution[r][c]))) {
     setStatus('🎉 ' + t('sudokuSolved'));
-    document.querySelectorAll('.cell:not(.fixed)').forEach(c => { c.classList.remove('wrong'); c.classList.add('correct'); });
+    document.querySelectorAll('.cell:not(.fixed)').forEach(cell => {
+      cell.classList.remove('wrong'); cell.classList.add('correct');
+    });
   }
 }
 
