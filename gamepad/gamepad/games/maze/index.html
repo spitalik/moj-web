@@ -326,13 +326,53 @@ document.addEventListener('keydown', e => {
 });
 
 // ── SWIPE ─────────────────────────────────────────────────────────────────
-let tx=0, ty=0;
-C.addEventListener('touchstart', e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
-C.addEventListener('touchend', e=>{
-  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
-  if(Math.abs(dx)>Math.abs(dy)){if(Math.abs(dx)>20)tryMove(dx>0?1:-1,0);}
-  else{if(Math.abs(dy)>20)tryMove(0,dy>0?1:-1);}
-},{passive:true});
+// ── TOUCH: priame ťahanie prstom ─────────────────────────────────────────
+// Hráč sa pohybuje vždy keď prst prejde cez stred susednej bunky
+let touchStartX = 0, touchStartY = 0, lastTouchCell = null;
+
+function clientToCell(clientX, clientY) {
+  const rect = C.getBoundingClientRect();
+  const scaleX = C.width  / rect.width;
+  const scaleY = C.height / rect.height;
+  const cx = (clientX - rect.left)  * scaleX;
+  const cy = (clientY - rect.top)   * scaleY;
+  return {
+    c: Math.floor(cx / cellSize),
+    r: Math.floor(cy / cellSize),
+  };
+}
+
+C.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  lastTouchCell = clientToCell(touch.clientX, touch.clientY);
+}, { passive: false });
+
+C.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!running) return;
+  const touch = e.touches[0];
+  const cell = clientToCell(touch.clientX, touch.clientY);
+  if (!lastTouchCell) { lastTouchCell = cell; return; }
+
+  const dr = cell.r - lastTouchCell.r;
+  const dc = cell.c - lastTouchCell.c;
+
+  // Pohni sa len o 1 krok naraz, a len ak smer je čistý (nie diagonála)
+  if (Math.abs(dr) + Math.abs(dc) === 1) {
+    tryMove(dc, dr);
+    lastTouchCell = { r: player.r, c: player.c };
+  } else if (Math.abs(dr) + Math.abs(dc) > 1) {
+    // Prst preskočil viac buniek — aktualizuj referenciu bez pohybu
+    lastTouchCell = cell;
+  }
+}, { passive: false });
+
+C.addEventListener('touchend', () => {
+  lastTouchCell = null;
+}, { passive: true });
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 level = 1; best = null;
