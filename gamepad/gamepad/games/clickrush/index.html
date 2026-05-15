@@ -356,15 +356,15 @@
 
 <div class="stats">
   <div class="stat">
-    <span class="stat-label">Skóre</span>
+    <span class="stat-label" id="lbl-stat-score"></span>
     <span class="stat-value big" id="score-display">0</span>
   </div>
   <div class="stat">
-    <span class="stat-label">Čas</span>
+    <span class="stat-label" id="lbl-stat-time"></span>
     <span class="stat-value" id="timer-value">30</span>
   </div>
   <div class="stat">
-    <span class="stat-label">Rekord</span>
+    <span class="stat-label" id="lbl-stat-best"></span>
     <span class="stat-value" id="best-display">0</span>
   </div>
 </div>
@@ -375,55 +375,78 @@
 
 <div class="arena" id="arena">
   <div class="idle-text" id="idle-text">
-    <p class="big-prompt">Klikni sem pre štart</p>
-    <p>— alebo zvoľ obtiažnosť nižšie —</p>
+    <p class="big-prompt" id="lbl-idle-prompt"></p>
+    <p id="lbl-idle-sub"></p>
   </div>
   <div class="target" id="target"></div>
 </div>
 
 <div class="controls">
-  <button id="start-btn">Spustiť hru</button>
-  <button class="secondary" id="reset-btn">Reset</button>
+  <button id="start-btn"></button>
+  <button class="secondary" id="reset-btn"></button>
 </div>
 
 <div class="difficulty-row">
-  <button class="diff-btn active" data-diff="easy">Ľahká</button>
-  <button class="diff-btn" data-diff="medium">Stredná</button>
-  <button class="diff-btn" data-diff="hard">Ťažká</button>
-  <button class="diff-btn" data-diff="insane">Šialená</button>
+  <button class="diff-btn active" data-diff="easy" id="diff-easy"></button>
+  <button class="diff-btn" data-diff="medium" id="diff-medium"></button>
+  <button class="diff-btn" data-diff="hard" id="diff-hard"></button>
+  <button class="diff-btn" data-diff="insane" id="diff-insane"></button>
 </div>
 
 <div class="results-overlay" id="results-overlay">
   <div class="results-card">
-    <h2>Výsledok</h2>
-    <div id="new-best-msg" class="new-best" style="display:none">Nový rekord!</div>
+    <h2 id="lbl-res-title"></h2>
+    <div id="new-best-msg" class="new-best" style="display:none"></div>
     <div class="result-grid">
       <div class="result-item">
-        <span class="label">Skóre</span>
+        <span class="label" id="lbl-res-score"></span>
         <span class="val accent" id="res-score">0</span>
       </div>
       <div class="result-item">
-        <span class="label">Rekord</span>
+        <span class="label" id="lbl-res-best"></span>
         <span class="val" id="res-best">0</span>
       </div>
       <div class="result-item">
-        <span class="label">Klik/s</span>
+        <span class="label" id="lbl-res-cps"></span>
         <span class="val" id="res-cps">0.0</span>
       </div>
       <div class="result-item">
-        <span class="label">Missy</span>
+        <span class="label" id="lbl-res-miss"></span>
         <span class="val" id="res-miss">0</span>
       </div>
     </div>
     <div style="display:flex;gap:0.8rem;justify-content:center;margin-top:0.5rem;">
-      <button id="play-again-btn">Znova hrať</button>
-      <button class="secondary" id="close-results-btn">Zatvoriť</button>
+      <button id="play-again-btn"></button>
+      <button class="secondary" id="close-results-btn"></button>
     </div>
   </div>
 </div>
 
 <script>
 document.getElementById("lbl-back").textContent = t("back");
+
+function applyLang() {
+  document.getElementById('lbl-stat-score').textContent  = t('clickScore');
+  document.getElementById('lbl-stat-time').textContent   = t('clickTime');
+  document.getElementById('lbl-stat-best').textContent   = t('clickBest');
+  document.getElementById('lbl-idle-prompt').textContent = t('clickPrompt');
+  document.getElementById('lbl-idle-sub').textContent    = t('clickSub');
+  document.getElementById('start-btn').textContent       = t('clickStart');
+  document.getElementById('reset-btn').textContent       = t('clickReset');
+  document.getElementById('diff-easy').textContent       = t('diffEasy');
+  document.getElementById('diff-medium').textContent     = t('diffMedium');
+  document.getElementById('diff-hard').textContent       = t('diffHard');
+  document.getElementById('diff-insane').textContent     = t('clickInsane');
+  document.getElementById('lbl-res-title').textContent   = t('clickResult');
+  document.getElementById('new-best-msg').textContent    = t('clickNewBest');
+  document.getElementById('lbl-res-score').textContent   = t('clickScore');
+  document.getElementById('lbl-res-best').textContent    = t('clickBest');
+  document.getElementById('lbl-res-cps').textContent     = t('clickCPS');
+  document.getElementById('lbl-res-miss').textContent    = t('clickMisses');
+  document.getElementById('play-again-btn').textContent  = t('clickAgain');
+  document.getElementById('close-results-btn').textContent = t('clickClose');
+}
+applyLang();
 const DIFFICULTIES = {
   easy:   { duration: 30, targetSize: 64, moveInterval: 1400 },
   medium: { duration: 30, targetSize: 52, moveInterval: 900 },
@@ -484,7 +507,7 @@ function startGame() {
   timerBar.style.transform = 'scaleX(1)';
   timerBar.classList.remove('urgent');
   timerValue.classList.remove('urgent');
-  startBtn.textContent = 'V hre...';
+  startBtn.textContent = t('clickInGame');
   startBtn.disabled = true;
 
   placeTarget();
@@ -509,7 +532,7 @@ function endGame() {
   running = false;
   target.classList.remove('visible', 'clicked');
   idleText.style.display = 'flex';
-  startBtn.textContent = 'Spustiť hru';
+  startBtn.textContent = t('clickStart');
   startBtn.disabled = false;
 
   const isNew = score > best;
@@ -540,7 +563,7 @@ function resetGame() {
   timerValue.classList.remove('urgent');
   target.classList.remove('visible', 'clicked');
   idleText.style.display = 'flex';
-  startBtn.textContent = 'Spustiť hru';
+  startBtn.textContent = t('clickStart');
   startBtn.disabled = false;
 }
 
