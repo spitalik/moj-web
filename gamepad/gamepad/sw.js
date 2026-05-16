@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v9';
+const CACHE = 'gamepad-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -21,6 +21,7 @@ const ASSETS = [
   './games/clickrush/index.html',
   './games/sudoku/index.html',
   './games/maze/index.html',
+  './games/solitaire/index.html',
 ];
 
 self.addEventListener('install', e => {

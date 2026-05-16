@@ -326,53 +326,47 @@ document.addEventListener('keydown', e => {
 });
 
 // ── SWIPE ─────────────────────────────────────────────────────────────────
-// ── TOUCH: priame ťahanie prstom ─────────────────────────────────────────
-// Hráč sa pohybuje vždy keď prst prejde cez stred susednej bunky
-let touchStartX = 0, touchStartY = 0, lastTouchCell = null;
-
-function clientToCell(clientX, clientY) {
-  const rect = C.getBoundingClientRect();
-  const scaleX = C.width  / rect.width;
-  const scaleY = C.height / rect.height;
-  const cx = (clientX - rect.left)  * scaleX;
-  const cy = (clientY - rect.top)   * scaleY;
-  return {
-    c: Math.floor(cx / cellSize),
-    r: Math.floor(cy / cellSize),
-  };
-}
+// ── TOUCH: svižné posúvanie prstom ───────────────────────────────────────
+// Pohyb sa spustí hneď keď prst prejde THRESHOLD pixelov od poslednej pozície
+// Nie je viazaný na bunky — reaguje na pixel-vzdialenosť pre rýchlu odozvu
+let lastTouchX = 0, lastTouchY = 0;
+const TOUCH_THRESHOLD = cellSize * 0.35; // 35% veľkosti bunky stačí na pohyb
 
 C.addEventListener('touchstart', e => {
   e.preventDefault();
-  const touch = e.touches[0];
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
-  lastTouchCell = clientToCell(touch.clientX, touch.clientY);
+  lastTouchX = e.touches[0].clientX;
+  lastTouchY = e.touches[0].clientY;
 }, { passive: false });
 
 C.addEventListener('touchmove', e => {
   e.preventDefault();
   if (!running) return;
-  const touch = e.touches[0];
-  const cell = clientToCell(touch.clientX, touch.clientY);
-  if (!lastTouchCell) { lastTouchCell = cell; return; }
+  const tx = e.touches[0].clientX;
+  const ty = e.touches[0].clientY;
+  const dx = tx - lastTouchX;
+  const dy = ty - lastTouchY;
+  const rect = C.getBoundingClientRect();
+  const scale = C.width / rect.width;
+  const sdx = dx * scale;
+  const sdy = dy * scale;
+  const thr = cellSize * 0.35;
 
-  const dr = cell.r - lastTouchCell.r;
-  const dc = cell.c - lastTouchCell.c;
-
-  // Pohni sa len o 1 krok naraz, a len ak smer je čistý (nie diagonála)
-  if (Math.abs(dr) + Math.abs(dc) === 1) {
-    tryMove(dc, dr);
-    lastTouchCell = { r: player.r, c: player.c };
-  } else if (Math.abs(dr) + Math.abs(dc) > 1) {
-    // Prst preskočil viac buniek — aktualizuj referenciu bez pohybu
-    lastTouchCell = cell;
+  if (Math.abs(sdx) >= thr || Math.abs(sdy) >= thr) {
+    // Pohni sa v dominantnom smere
+    if (Math.abs(sdx) >= Math.abs(sdy)) {
+      tryMove(sdx > 0 ? 1 : -1, 0);
+    } else {
+      tryMove(0, sdy > 0 ? 1 : -1);
+    }
+    // Reset referenčného bodu — pohyb začína znovu od aktuálnej pozície
+    lastTouchX = tx;
+    lastTouchY = ty;
   }
 }, { passive: false });
 
-C.addEventListener('touchend', () => {
-  lastTouchCell = null;
-}, { passive: true });
+C.addEventListener('touchend', e => {
+  e.preventDefault();
+}, { passive: false });
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 level = 1; best = null;
