@@ -39,6 +39,7 @@ canvas{display:block;}
   <div class="top-bar">
     <div class="game-title" id="lbl-title"></div>
     <div class="stat-pill" id="lbl-score-pill"><span id="lbl-score-txt"></span> <span id="score">0</span></div>
+    <div class="stat-pill"><span id="lbl-level-txt"></span> <span id="hud-level">1</span></div>
     <div class="stat-pill"><div class="lives" id="lives"></div></div>
   </div>
   <div class="canvas-wrap">
@@ -60,11 +61,12 @@ document.getElementById('lbl-score-txt').textContent=T('breakoutScore');
 document.getElementById('ov-title').textContent=T('breakoutTitle');
 document.getElementById('ov-hint').textContent=T('breakoutHint');
 document.getElementById('ov-play').textContent=T('breakoutPlay');
+if(document.getElementById('lbl-level-txt'))document.getElementById('lbl-level-txt').textContent=T('breakoutLevelLbl');
 
 const C=document.getElementById('c'),ctx=C.getContext('2d');
 const W=400,H=480;let PAD_W=70;const PAD_H=10,BALL_R=7,ROWS=6,COLS=8,BRICK_W=42,BRICK_H=16,BRICK_GAP=4;
 const COLORS=['#ff6b6b','#ff9f43','#ffd166','#4dff91','#54a0ff','#a78bfa'];
-let px,ball,bricks,score,lives,running,animId,mouseX=W/2;
+let px,ball,bricks,score,lives,running,animId,mouseX=W/2,level=1;
 
 function makeBricks(){
   const b=[];
@@ -94,13 +96,26 @@ function buildDiffRow(id){
 buildDiffRow('diff-row');
 function startGame(){
   document.getElementById('overlay').style.display='none';
+  level=1;
+  startLevel();
+}
+
+function startLevel(){
   const d=DIFFS[diffIdx];PAD_W=d.padW;
+  // Každý level: rýchlejšia loptička + užšie pádlo
+  const speedBoost = 1 + (level-1)*0.15;
+  const padShrink  = Math.max(36, PAD_W - (level-1)*6);
+  PAD_W = padShrink;
   px=W/2-PAD_W/2;
-  ball={x:W/2,y:H-80,vx:d.ballSpeed,vy:-d.ballSpeed};
+  const spd = d.ballSpeed * speedBoost;
+  ball={x:W/2,y:H-80,vx:spd*(Math.random()<.5?1:-1),vy:-spd};
   bricks=makeBricks();
-  score=0;lives=3;running=true;
+  if(level===1){ score=0; lives=3; }
+  running=true;
+  document.getElementById('overlay').style.display='none';
   updateLives();
-  document.getElementById('score').textContent=0;
+  document.getElementById('score').textContent=score;
+  document.getElementById('hud-level').textContent=level;
   cancelAnimationFrame(animId);
   loop();
 }
@@ -143,6 +158,7 @@ function update(){
     if(ball.x+BALL_R>b.x&&ball.x-BALL_R<b.x+BRICK_W&&ball.y+BALL_R>b.y&&ball.y-BALL_R<b.y+BRICK_H){
       b.alive=false;score+=10;
       document.getElementById('score').textContent=score;
+  document.getElementById('hud-level').textContent=level;
       const overlapX=Math.min(ball.x+BALL_R-b.x,b.x+BRICK_W-(ball.x-BALL_R));
       const overlapY=Math.min(ball.y+BALL_R-b.y,b.y+BRICK_H-(ball.y-BALL_R));
       if(overlapX<overlapY)ball.vx*=-1;else ball.vy*=-1;
@@ -183,7 +199,17 @@ function showOver(title,sub,btnText){
   ov.style.display='flex';
 }
 function gameOver(){showOver('lose',T('breakoutOver'));}
-function gameWin(){showOver('win',T('breakoutWin'));}
+function gameWin(){
+  cancelAnimationFrame(animId);running=false;
+  level++;
+  const ov=document.getElementById('overlay');
+  ov.innerHTML=`<div style="font-size:44px;margin-bottom:4px">🏆</div>
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px">${T('breakoutWin')}</h2>
+    <div style="font-size:13px;color:var(--muted)">${T('breakoutLevel')} ${level} — ${T('breakoutFaster')}</div>
+    <button class="play-btn" onclick="startLevel()" style="margin-top:10px">${T('breakoutNext')}</button>
+    <button onclick="startGame()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(240,238,255,0.38);padding:7px 18px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;margin-top:2px">${T('breakoutRestart')}</button>`;
+  ov.style.display='flex';
+}
 
 C.addEventListener('mousemove',e=>{const r=C.getBoundingClientRect();mouseX=e.clientX-r.left;});
 C.addEventListener('touchmove',e=>{e.preventDefault();const r=C.getBoundingClientRect();mouseX=e.touches[0].clientX-r.left;},{passive:false});
