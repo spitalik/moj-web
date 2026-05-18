@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Starfall Squadron</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="../../i18n.js"></script>
+</head>
+<body>
+  <a class="gamepad-back" href="../../index.html" data-i18n="back">Back to GamePad</a>
+  <main class="game-shell">
+    <section class="hud">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <div>
+          <p>Starfall</p>
+          <strong>Squadron</strong>
+        </div>
+      </div>
+      <div class="stats">
+        <div><span data-i18n="score">Score</span><strong id="score">0</strong></div>
+        <div><span data-i18n="wave">Wave</span><strong id="wave">1</strong></div>
+        <div><span data-i18n="shield">Shield</span><strong id="shield">100%</strong></div>
+      </div>
+    </section>
+
+    <section class="stage-wrap">
+      <canvas id="gameCanvas" width="960" height="620"></canvas>
+
+      <div class="overlay active" id="startOverlay">
+        <div class="panel">
+          <p class="kicker" data-i18n="kicker">Orbital combat arcade</p>
+          <h1>Starfall Squadron</h1>
+          <p class="lead" data-i18n="intro">Fly through asteroid swarms, destroy drones and collect energy before the debris belt swallows you.</p>
+          <div class="controls">
+            <span data-i18n="controlMove">WASD / arrows</span>
+            <span data-i18n="controlFire">Space / fire</span>
+            <span data-i18n="controlMobile">Mobile: joystick + FIRE</span>
+            <span data-i18n="controlPause">Pause: P</span>
+          </div>
+          <button id="startBtn" type="button" data-i18n="start">Start mission</button>
+        </div>
+      </div>
+
+      <div class="overlay" id="gameOverOverlay">
+        <div class="panel">
+          <p class="kicker" data-i18n="missionOver">Mission complete</p>
+          <h2><span id="finalScoreLabel" data-i18n="finalScore">Final score:</span> <span id="finalScore">0</span></h2>
+          <p class="lead" data-i18n="gameOverLead">Your squadron pulled back to the docks. Repair the shields and try to push deeper into the sector.</p>
+          <button id="restartBtn" type="button" data-i18n="restart">Fly again</button>
+        </div>
+      </div>
+
+      <div class="touch-controls" aria-label="Mobile controls" data-i18n-aria="mobileControls">
+        <div class="joystick" id="joystick" role="presentation">
+          <span id="stick"></span>
+        </div>
+        <button class="fire-pad" id="firePad" type="button" aria-label="Fire" data-i18n-aria="fire">FIRE</button>
+      </div>
+    </section>
+
+    <section class="status-bar">
+      <div class="meter">
+        <span data-i18n="weaponEnergy">Weapon energy</span>
+        <div class="meter-track"><div id="weaponHeat" class="meter-fill"></div></div>
+      </div>
+      <div class="tip" id="tip" data-i18n="tipDefault">Collect blue cores for faster shooting and green cells to repair your shield.</div>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>

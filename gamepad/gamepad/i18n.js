@@ -1,4 +1,4 @@
-// GamePad · Shared Translations — auto-generated
+﻿// GamePad · Shared Translations — auto-generated
 // To add a new language: copy any block, change the key, translate all strings.
 // To add new game strings: add the key to ALL language blocks.
 
@@ -76,6 +76,8 @@ const TRANSLATIONS = {
     mineHard: 'Hard',
     astTitle: 'Asteroids',
     astDesc: "Destroy asteroids, survive as many waves as possible. Don't get hit!",
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'Fast space shooter with drones, asteroids, power-ups and mobile controls.',
     astScore: 'Score',
     astLives: 'Lives',
     astWave: 'Wave',
@@ -275,6 +277,8 @@ const TRANSLATIONS = {
     mineHard: 'Difícil',
     astTitle: 'Asteroides',
     astDesc: 'Destruye asteroides y sobrevive el mayor tiempo posible.',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'Shooter espacial rapido con drones, asteroides, mejoras y controles moviles.',
     astScore: 'Puntos',
     astLives: 'Vidas',
     astWave: 'Oleada',
@@ -474,6 +478,8 @@ const TRANSLATIONS = {
     mineHard: 'Difícil',
     astTitle: 'Asteróides',
     astDesc: 'Destrua asteróides e sobreviva o maior tempo possível.',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'Jogo de tiro espacial rapido com drones, asteroides, power-ups e controles moveis.',
     astScore: 'Pontos',
     astLives: 'Vidas',
     astWave: 'Onda',
@@ -673,6 +679,8 @@ const TRANSLATIONS = {
     mineHard: 'Schwer',
     astTitle: 'Asteroiden',
     astDesc: 'Zerstöre Asteroiden und überlebe so lange wie möglich.',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'Schneller Weltraum-Shooter mit Drohnen, Asteroiden, Power-ups und mobiler Steuerung.',
     astScore: 'Punkte',
     astLives: 'Leben',
     astWave: 'Welle',
@@ -872,6 +880,8 @@ const TRANSLATIONS = {
     mineHard: 'Difficile',
     astTitle: 'Astéroïdes',
     astDesc: 'Détruis les astéroïdes et survie le plus longtemps possible.',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'Shooter spatial rapide avec drones, asteroides, bonus et commandes mobiles.',
     astScore: 'Score',
     astLives: 'Vies',
     astWave: 'Vague',
@@ -1071,6 +1081,8 @@ const TRANSLATIONS = {
     mineHard: 'Difficile',
     astTitle: 'Asteroidi',
     astDesc: 'Distruggi gli asteroidi e sopravvivi il più a lungo possibile.',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'Sparatutto spaziale rapido con droni, asteroidi, potenziamenti e comandi mobili.',
     astScore: 'Punteggio',
     astLives: 'Vite',
     astWave: 'Ondata',
@@ -1270,6 +1282,8 @@ const TRANSLATIONS = {
     mineHard: 'Сложно',
     astTitle: 'Астероиды',
     astDesc: 'Уничтожай астероиды и выживи как можно дольше.',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'Быстрый космический шутер с дронами, астероидами, усилениями и мобильным управлением.',
     astScore: 'Счёт',
     astLives: 'Жизни',
     astWave: 'Волна',
@@ -1469,6 +1483,8 @@ const TRANSLATIONS = {
     mineHard: 'Zor',
     astTitle: 'Asteroitler',
     astDesc: 'Asteroitleri yok et ve olabildiğince uzun süre hayatta kal.',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'Dronlar, asteroitler, guclendirmeler ve mobil kontrollerle hizli uzay nisanci oyunu.',
     astScore: 'Puan',
     astLives: 'Can',
     astWave: 'Dalga',
@@ -1668,6 +1684,8 @@ const TRANSLATIONS = {
     mineHard: 'むずかしい',
     astTitle: 'アステロイド',
     astDesc: '小惑星を破壊して生き延びよう。',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'ドローン、小惑星、パワーアップ、モバイル操作に対応した高速宇宙シューティング。',
     astScore: 'スコア',
     astLives: '残機',
     astWave: 'ウェーブ',
@@ -1867,6 +1885,8 @@ const TRANSLATIONS = {
     mineHard: '어려움',
     astTitle: '소행성',
     astDesc: '소행성을 파괴하고 최대한 오래 생존하세요.',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: '드론, 소행성, 파워업, 모바일 조작이 있는 빠른 우주 슈팅 게임.',
     astScore: '점수',
     astLives: '생명',
     astWave: '웨이브',
@@ -2066,6 +2086,8 @@ const TRANSLATIONS = {
     mineHard: '困难',
     astTitle: '小行星',
     astDesc: '消灭小行星并尽可能长久地生存。',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: '快节奏太空射击游戏，包含无人机、小行星、强化道具和移动端操作。',
     astScore: '得分',
     astLives: '生命',
     astWave: '波次',
@@ -2270,6 +2292,8 @@ const TRANSLATIONS = {
     // Asteroids
     astTitle: 'Asteroidy',
     astDesc: 'Ničuj asteroidy a prežij čo najdlhšie. Nedaj sa zasiahtnuť!',
+    starfallTitle: 'Starfall Squadron',
+    starfallDesc: 'Rychla vesmirna strielacka s dronmi, asteroidmi, power-upmi a mobilnym ovladanim.',
     astScore: 'Skóre',
     astLives: 'Životy',
     astWave: 'Vlna',
@@ -2415,3 +2439,5 @@ function t(key,vars){
 }
 function currentT(){return TRANSLATIONS[getLang()]||TRANSLATIONS.en;}
 const LANGUAGES=["en","sk","es","pt","de","fr","it","ru","tr","ja","ko","zh"];
+
+

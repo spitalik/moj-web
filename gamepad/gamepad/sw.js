@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v11';
+﻿const CACHE = 'gamepad-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -23,6 +23,9 @@ const ASSETS = [
   './games/maze/index.html',
   './games/solitaire/index.html',
   './games/pipes/index.html',
+  './games/starfall-squadron/index.html',
+  './games/starfall-squadron/styles.css',
+  './games/starfall-squadron/game.js',
 ];
 
 self.addEventListener('install', e => {
@@ -48,3 +51,4 @@ self.addEventListener('fetch', e => {
     }).catch(() => caches.match('./index.html')))
   );
 });
+
