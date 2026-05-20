@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endless Runner · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#ff9f43;}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+.hud{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:8px;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.stat-pill span{color:var(--c);}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.9);backdrop-filter:blur(10px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
+.score-big{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--c);letter-spacing:-2px;}
+.hint{font-size:12px;color:var(--muted);text-align:center;padding:0 20px;}
+.play-btn{background:rgba(255,159,67,0.14);border:1px solid rgba(255,159,67,.3);color:var(--c);padding:10px 30px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+.diff-row{display:flex;gap:6px;}
+.diff-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.diff-btn:hover,.diff-btn.active{border-color:rgba(255,159,67,.4);color:var(--c);background:rgba(255,159,67,0.1);}
+#jump-btn{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);width:100px;height:100px;background:rgba(255,159,67,0.1);border:2px solid rgba(255,159,67,0.3);border-radius:50%;color:var(--c);font-size:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;-webkit-tap-highlight-color:transparent;}
+#jump-btn:active{background:rgba(255,159,67,0.25);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div class="hud">
+  <div class="stat-pill"><span id="lbl-score-txt"></span>&nbsp;<span id="hud-score">0</span></div>
+  <div class="stat-pill"><span id="lbl-best-txt"></span>&nbsp;<span id="hud-best">0</span></div>
+</div>
+<canvas id="c"></canvas>
+<button id="jump-btn" onpointerdown="jump()">▲</button>
+<div id="overlay">
+  <div style="font-size:44px">🏃</div>
+  <h2 id="ov-title"></h2>
+  <div class="diff-row" id="diff-row"></div>
+  <div class="hint" id="ov-hint"></div>
+  <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
+</div>
+<script>
+document.getElementById('lbl-back').textContent      = t('back');
+document.getElementById('lbl-score-txt').textContent = t('runScore');
+document.getElementById('lbl-best-txt').textContent  = t('runBest');
+document.getElementById('ov-title').textContent      = t('runTitle');
+document.getElementById('ov-hint').textContent       = t('runHint');
+document.getElementById('ov-btn').textContent        = t('runPlay');
+
+const DIFFS=[{key:'easy',speed:4,gravity:0.5,obstacleRate:90},{key:'medium',speed:6,gravity:0.65,obstacleRate:70},{key:'hard',speed:9,gravity:0.8,obstacleRate:50}];
+let diffIdx=1;
+const dr=document.getElementById('diff-row');
+DIFFS.forEach((d,i)=>{
+  const btn=document.createElement('button');
+  btn.className='diff-btn'+(i===diffIdx?' active':'');
+  btn.textContent=t('diff'+d.key[0].toUpperCase()+d.key.slice(1));
+  btn.onclick=()=>{diffIdx=i;dr.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};
+  dr.appendChild(btn);
+});
+
+const C=document.getElementById('c'),ctx=C.getContext('2d');
+let W,H,GROUND,player,obstacles,coins,score,best=0,speed,frameCount,animId,running,bgX=0;
+
+function resize(){W=C.width=window.innerWidth;H=C.height=window.innerHeight;GROUND=H*0.75;}
+resize();window.addEventListener('resize',resize);
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  const d=DIFFS[diffIdx];
+  player={x:W*0.15,y:GROUND,vy:0,w:36,h:42,jumps:0,dead:false};
+  obstacles=[];coins=[];
+  score=0;frameCount=0;speed=d.speed;running=true;bgX=0;
+  document.getElementById('hud-score').textContent='0';
+  cancelAnimationFrame(animId);loop();
+}
+
+function jump(){
+  if(!running){startGame();return;}
+  if(player.jumps<2){player.vy=-(DIFFS[diffIdx].gravity*28);player.jumps++;}
+}
+
+function loop(){if(!running)return;update();draw();animId=requestAnimationFrame(loop);}
+
+function update(){
+  const d=DIFFS[diffIdx];
+  frameCount++;
+  speed=d.speed+(frameCount/500);
+  bgX-=speed*0.3;
+
+  // Player physics
+  player.vy+=d.gravity;
+  player.y+=player.vy;
+  if(player.y>=GROUND){player.y=GROUND;player.vy=0;player.jumps=0;}
+
+  // Spawn obstacles
+  if(frameCount%d.obstacleRate===0){
+    const h=30+Math.random()*40;
+    obstacles.push({x:W,y:GROUND-h+player.h,w:24,h});
+    // Sometimes double
+    if(Math.random()<0.3)obstacles.push({x:W+50,y:GROUND-h*0.7+player.h,w:20,h:h*0.7});
+  }
+  // Spawn coins
+  if(frameCount%45===0&&Math.random()<0.6){
+    coins.push({x:W,y:GROUND-(50+Math.random()*80),r:8,alive:true});
+  }
+
+  obstacles=obstacles.filter(o=>o.x>-50);
+  obstacles.forEach(o=>o.x-=speed);
+  coins=coins.filter(c=>c.x>-20);
+  coins.forEach(c=>c.x-=speed);
+
+  // Collision
+  const px=player.x+4,py=player.y-player.h+4,pw=player.w-8,ph=player.h-8;
+  for(const o of obstacles){
+    if(px+pw>o.x&&px<o.x+o.w&&py+ph>o.y&&py<o.y+o.h){die();return;}
+  }
+  coins.forEach(c=>{
+    if(!c.alive)return;
+    if(Math.hypot(c.x-(player.x+player.w/2),c.y-(player.y-player.h/2))<c.r+player.w/2*0.6){
+      c.alive=false;score+=10;
+    }
+  });
+
+  score=Math.max(score,Math.floor(frameCount/5));
+  document.getElementById('hud-score').textContent=score;
+}
+
+function die(){
+  running=false;cancelAnimationFrame(animId);
+  if(score>best){best=score;document.getElementById('hud-best').textContent=best;}
+  const ov=document.getElementById('overlay');
+  ov.innerHTML=`<div style="font-size:44px">💥</div>
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px">${t('runOver')}</h2>
+    <div class="score-big">${score}</div>
+    ${score>=best&&score>0?`<div style="font-size:13px;color:#ffd166">🏆 ${t('runNewBest')}</div>`:`<div style="font-size:12px;color:var(--muted)">${t('runBest')}: ${best}</div>`}
+    <div class="diff-row" id="dr2" style="margin-top:4px"></div>
+    <button class="play-btn" onclick="startGame()" style="margin-top:4px">${t('runAgain')}</button>`;
+  ov.style.display='flex';
+  const dr2=document.getElementById('dr2');
+  DIFFS.forEach((d,i)=>{const btn=document.createElement('button');btn.className='diff-btn'+(i===diffIdx?' active':'');btn.textContent=t('diff'+d.key[0].toUpperCase()+d.key.slice(1));btn.onclick=()=>{diffIdx=i;dr2.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};dr2.appendChild(btn);});
+}
+
+function draw(){
+  ctx.fillStyle='#060810';ctx.fillRect(0,0,W,H);
+  // BG stars
+  ctx.fillStyle='rgba(255,255,255,0.15)';
+  for(let i=0;i<40;i++){const sx=((i*137+(bgX|0))%W+W)%W;ctx.fillRect(sx,(i*83)%GROUND,1.5,1.5);}
+  // Ground
+  ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fillRect(0,GROUND+player.h,W,H-GROUND-player.h);
+  ctx.strokeStyle='rgba(255,159,67,0.3)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,GROUND+player.h);ctx.lineTo(W,GROUND+player.h);ctx.stroke();
+  // Obstacles
+  obstacles.forEach(o=>{
+    ctx.fillStyle='rgba(255,107,107,0.1)';ctx.fillRect(o.x,o.y,o.w,o.h);
+    ctx.fillStyle='#ff6b6b';ctx.beginPath();ctx.roundRect(o.x,o.y,o.w,o.h,4);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillRect(o.x+2,o.y+2,o.w-4,3);
+  });
+  // Coins
+  coins.forEach(c=>{
+    if(!c.alive)return;
+    ctx.fillStyle='#ffd166';ctx.shadowColor='#ffd166';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  });
+  // Player (character)
+  const px=player.x,py=player.y-player.h;
+  ctx.fillStyle='rgba(255,159,67,0.1)';ctx.fillRect(px-2,py-2,player.w+4,player.h+4);
+  ctx.fillStyle='#ff9f43';ctx.shadowColor='rgba(255,159,67,0.5)';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.roundRect(px,py,player.w,player.h,6);ctx.fill();ctx.shadowBlur=0;
+  // Eyes
+  ctx.fillStyle='#050507';
+  ctx.beginPath();ctx.arc(px+player.w-10,py+10,4,0,Math.PI*2);ctx.fill();
+  // Legs animation
+  const legOff=Math.sin(frameCount*0.3)*4;
+  ctx.strokeStyle='#ff9f43';ctx.lineWidth=4;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(px+8,py+player.h);ctx.lineTo(px+8,py+player.h+legOff+8);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(px+player.w-8,py+player.h);ctx.lineTo(px+player.w-8,py+player.h-legOff+8);ctx.stroke();
+  // Score
+  ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font=`bold 28px 'Syne',sans-serif`;ctx.textAlign='center';
+  ctx.fillText(score,W/2,50);
+}
+
+document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump();}});
+C.addEventListener('click',jump);
+</script>
+</body>
+</html>

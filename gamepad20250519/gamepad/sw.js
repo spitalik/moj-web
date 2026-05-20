@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v12';
+﻿const CACHE = 'gamepad-v16';
 const ASSETS = [
   './',
   './index.html',
@@ -23,15 +23,11 @@ const ASSETS = [
   './games/maze/index.html',
   './games/solitaire/index.html',
   './games/pipes/index.html',
-  './games/nonogram/index.html',
-  './games/blackjack/index.html',
-  './games/frogger/index.html',
-  './games/endless-runner/index.html',
-  './games/space-invaders/index.html',
-  './games/sliding-puzzle/index.html',
-  './games/chess/index.html',
-  './games/rhythm/index.html',
-  './games/sand/index.html',
+  './games/starfall-squadron/index.html',
+  './games/box-shift/index.html',
+  './games/color-rails/index.html',
+  './games/starfall-squadron/styles.css',
+  './games/starfall-squadron/game.js',
 ];
 
 self.addEventListener('install', e => {
@@ -57,3 +53,4 @@ self.addEventListener('fetch', e => {
     }).catch(() => caches.match('./index.html')))
   );
 });
+

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -183,15 +183,9 @@ const GAMES = [
   {id:'maze', titleKey:'mazeTitle', descKey:'mazeDesc', emoji:'🌀', tags:['action'], heroColor:'#05100a', file:'games/maze/index.html', isNew:true},
   {id:'solitaire',titleKey:'solTitle',descKey:'solDesc',emoji:'🃏',tags:['puzzle'],heroColor:'#0a0812',file:'games/solitaire/index.html',isNew:true},
   {id:'pipes',titleKey:'pipesTitle',descKey:'pipesDesc',emoji:'🔧',tags:['puzzle'],heroColor:'#001418',file:'games/pipes/index.html',isNew:true},
-  {id:'nonogram',      titleKey:'nonogramTitle', descKey:'nonogramDesc', emoji:'🖼️', tags:['puzzle'],   heroColor:'#071a0b', file:'games/nonogram/index.html',      isNew:true},
-  {id:'blackjack',     titleKey:'bjTitle',       descKey:'bjDesc',       emoji:'🃏', tags:['arcade'],   heroColor:'#1a1200', file:'games/blackjack/index.html',     isNew:true},
-  {id:'frogger',       titleKey:'frogTitle',     descKey:'frogDesc',     emoji:'🐸', tags:['arcade'],   heroColor:'#071a07', file:'games/frogger/index.html',       isNew:true},
-  {id:'endless-runner',titleKey:'runTitle',      descKey:'runDesc',      emoji:'🏃', tags:['action'],   heroColor:'#1a0a00', file:'games/endless-runner/index.html',isNew:true},
-  {id:'space-invaders',titleKey:'siTitle',       descKey:'siDesc',       emoji:'👾', tags:['action'],   heroColor:'#0e0b1f', file:'games/space-invaders/index.html',isNew:true},
-  {id:'sliding-puzzle',titleKey:'slidTitle',     descKey:'slidDesc',     emoji:'🧩', tags:['puzzle'],   heroColor:'#001020', file:'games/sliding-puzzle/index.html',isNew:true},
-  {id:'chess',         titleKey:'chessTitle',    descKey:'chessDesc',    emoji:'♟️', tags:['strategy'], heroColor:'#14100a', file:'games/chess/index.html',         isNew:true},
-  {id:'rhythm',        titleKey:'rhythmTitle',   descKey:'rhythmDesc',   emoji:'🎵', tags:['action'],   heroColor:'#100b1f', file:'games/rhythm/index.html',        isNew:true},
-  {id:'sand',          titleKey:'sandTitle',     descKey:'sandDesc',     emoji:'⏳', tags:['arcade'],   heroColor:'#1a1000', file:'games/sand/index.html',          isNew:true},
+  {id:'starfall-squadron',titleKey:'starfallTitle',descKey:'starfallDesc',emoji:'✨',tags:['action'],heroColor:'#04100f',file:'games/starfall-squadron/index.html',isNew:true},
+  {id:'box-shift',titleKey:'boxShiftTitle',descKey:'boxShiftDesc',emoji:'📦',tags:['puzzle'],heroColor:'#141006',file:'games/box-shift/index.html',isNew:true},
+  {id:'color-rails',titleKey:'colorRailsTitle',descKey:'colorRailsDesc',emoji:'🚦',tags:['puzzle','action'],heroColor:'#071218',file:'games/color-rails/index.html',isNew:true},
   // ── Šablóna pre ďalšiu hru:
   // {id:'meno',titleKey:'menoTitle',descKey:'menoDesc',emoji:'🎮',tags:['arcade'],heroColor:'#0f0a00',file:'games/meno/index.html',isNew:true},
 ];
@@ -201,6 +195,10 @@ const TAG_FILTER = {all:'filterAll',arcade:'filterArcade',puzzle:'filterPuzzle',
 const TAG_LABEL  = {arcade:'tagArcade',puzzle:'tagPuzzle',action:'tagAction',strategy:'tagStrategy',memory:'tagMemory'};
 
 let activeTag='all', searchQuery='';
+
+function gameHref(file){
+  return `${file}?lang=${encodeURIComponent(getLang())}`;
+}
 
 // ── Lang ──────────────────────────────────────────────────────────────────
 function applyLang(){
@@ -268,7 +266,7 @@ function renderGames(){
     grid.innerHTML=`<div class="empty"><p>${t('noResults')}</p></div>`;return;
   }
   grid.innerHTML=filtered.map((g,i)=>`
-    <a class="game-card" href="${g.file}" style="animation-delay:${i*.05}s">
+    <a class="game-card" href="${gameHref(g.file)}" style="animation-delay:${i*.05}s">
       ${g.isNew?`<div class="badge-new">${t('badgeNew')}</div>`:''}
       <div class="card-hero" style="background:${g.heroColor}">
         ${g.iconImg
@@ -315,3 +313,4 @@ applyLang();
 </script>
 </body>
 </html>
+

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Color Rails · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;
+  --text:#f0eeff;--muted:rgba(240,238,255,.42);--border:rgba(255,255,255,.08);--border-h:rgba(255,255,255,.16);
+  --cyan:#65d6ff;--green:#55f0a0;--red:#ff6b6b;--yellow:#ffd166;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none}
+body::before{content:"";position:fixed;right:-170px;top:-210px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(101,214,255,.08),transparent 66%);pointer-events:none}
+body::after{content:"";position:fixed;left:-190px;bottom:-240px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(85,240,160,.07),transparent 66%);pointer-events:none}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s}
+#back-btn:hover{border-color:var(--border-h);color:var(--text)}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:64px 14px 18px}
+.game-title{font-family:'Syne',sans-serif;font-size:clamp(25px,7vw,38px);font-weight:800;letter-spacing:0;background:linear-gradient(135deg,#fff 25%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hud{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;max-width:650px}
+.pill,.ctrl-btn{height:32px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500}
+.pill{display:flex;align-items:center;gap:6px;color:var(--muted);padding:0 12px;white-space:nowrap}
+.pill span{color:var(--cyan);font-variant-numeric:tabular-nums}
+.ctrl-btn{color:var(--muted);padding:0 13px;cursor:pointer;transition:all .18s}
+.ctrl-btn:hover,.ctrl-btn:focus-visible{border-color:var(--border-h);color:var(--text);outline:none}
+#game-wrap{position:relative;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--bg2),var(--bg1));padding:8px;box-shadow:0 22px 80px rgba(0,0,0,.35)}
+canvas{display:block;width:min(92vw,620px);height:auto;border-radius:11px;background:#090a0d}
+#overlay{position:absolute;z-index:20;inset:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;background:rgba(5,5,7,.91);backdrop-filter:blur(14px);border-radius:12px;text-align:center;padding:18px}
+#overlay.hidden{display:none}
+.ov-icon{font-size:42px;line-height:1}
+#overlay h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:0}
+.hint{max-width:330px;color:var(--muted);font-size:12px;line-height:1.5}
+.play-btn{min-width:118px;height:40px;border-radius:100px;border:1px solid rgba(101,214,255,.42);background:rgba(101,214,255,.14);color:var(--cyan);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:0 28px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.34)}
+@media (max-height:680px){.page{gap:9px}.game-title{font-size:24px}.pill,.ctrl-btn{height:29px}}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<main class="page">
+  <h1 class="game-title" id="lbl-title"></h1>
+  <div class="hud">
+    <div class="pill"><span id="lbl-score"></span>&nbsp;<span id="hud-score">0</span></div>
+    <div class="pill"><span id="lbl-lives"></span>&nbsp;<span id="hud-lives">5</span></div>
+    <div class="pill"><span id="lbl-wave"></span>&nbsp;<span id="hud-wave">1</span></div>
+    <button class="ctrl-btn" id="btn-pause"></button>
+    <button class="ctrl-btn" id="btn-reset"></button>
+  </div>
+  <div id="game-wrap">
+    <canvas id="c" width="620" height="390"></canvas>
+    <div id="overlay">
+      <div class="ov-icon">🚦</div>
+      <h2 id="ov-title"></h2>
+      <p class="hint" id="ov-hint"></p>
+      <button class="play-btn" id="ov-btn"></button>
+    </div>
+  </div>
+</main>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ov-title');
+const ovHint = document.getElementById('ov-hint');
+const ovBtn = document.getElementById('ov-btn');
+const btnPause = document.getElementById('btn-pause');
+const btnReset = document.getElementById('btn-reset');
+const hudScore = document.getElementById('hud-score');
+const hudLives = document.getElementById('hud-lives');
+const hudWave = document.getElementById('hud-wave');
+
+const W = canvas.width;
+const H = canvas.height;
+const lanes = [95, 195, 295];
+const switchXs = [165, 310, 455];
+const colors = [
+  {name:'red', lane:0, fill:'#ff6b6b'},
+  {name:'yellow', lane:1, fill:'#ffd166'},
+  {name:'blue', lane:2, fill:'#65d6ff'}
+];
+const states = [-1, 0, 1];
+let switches = [0, 0, 0];
+let pods = [];
+let score = 0;
+let lives = 5;
+let wave = 1;
+let running = false;
+let paused = false;
+let lastTime = 0;
+let spawnTimer = 0;
+let message = '';
+let messageColor = '#65d6ff';
+let messageTimer = 0;
+let frameId = 0;
+
+function applyLabels(){
+  document.getElementById('lbl-back').textContent = t('back');
+  document.getElementById('lbl-title').textContent = t('colorRailsTitle');
+  document.getElementById('lbl-score').textContent = t('colorRailsScore');
+  document.getElementById('lbl-lives').textContent = t('colorRailsLives');
+  document.getElementById('lbl-wave').textContent = t('colorRailsWave');
+  btnPause.textContent = t('colorRailsPause');
+  btnReset.textContent = t('colorRailsReset');
+  ovTitle.textContent = t('colorRailsTitle');
+  ovHint.textContent = t('colorRailsHint');
+  ovBtn.textContent = t('colorRailsStart');
+}
+
+function resetGame(){
+  cancelAnimationFrame(frameId);
+  switches = [0, 0, 0];
+  pods = [];
+  score = 0;
+  lives = 5;
+  wave = 1;
+  spawnTimer = 0;
+  message = '';
+  messageTimer = 0;
+  paused = false;
+  running = true;
+  lastTime = performance.now();
+  btnPause.textContent = t('colorRailsPause');
+  overlay.classList.add('hidden');
+  updateHud();
+  requestAnimationFrame(loop);
+}
+
+function updateHud(){
+  hudScore.textContent = score;
+  hudLives.textContent = lives;
+  hudWave.textContent = wave;
+}
+
+function spawnPod(){
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  const lane = Math.floor(Math.random() * lanes.length);
+  pods.push({
+    x: 34,
+    lane,
+    y: lanes[lane],
+    color,
+    speed: 78 + wave * 9,
+    used: new Set()
+  });
+}
+
+function loop(now){
+  if(!running) return;
+  const dt = Math.min(0.033, (now - lastTime) / 1000 || 0);
+  lastTime = now;
+  if(!paused){
+    update(dt);
+  }
+  draw();
+  if(running) frameId = requestAnimationFrame(loop);
+}
+
+function update(dt){
+  spawnTimer -= dt;
+  if(spawnTimer <= 0){
+    spawnPod();
+    spawnTimer = Math.max(0.78, 2.15 - wave * 0.13);
+  }
+  messageTimer = Math.max(0, messageTimer - dt);
+  for(const pod of pods){
+    pod.x += pod.speed * dt;
+    for(let i = 0; i < switchXs.length; i++){
+      if(pod.used.has(i) || pod.x < switchXs[i]) continue;
+      pod.used.add(i);
+      const nextLane = pod.lane + switches[i];
+      if(nextLane >= 0 && nextLane < lanes.length) pod.lane = nextLane;
+    }
+    const targetY = lanes[pod.lane];
+    pod.y += (targetY - pod.y) * Math.min(1, dt * 8);
+  }
+  for(let i = pods.length - 1; i >= 0; i--){
+    if(pods[i].x < W - 58) continue;
+    dockPod(pods[i]);
+    pods.splice(i, 1);
+  }
+  wave = 1 + Math.floor(score / 8);
+  updateHud();
+}
+
+function dockPod(pod){
+  if(pod.lane === pod.color.lane){
+    score++;
+    flash(t('colorRailsCorrect'), pod.color.fill);
+  } else {
+    lives--;
+    flash(t('colorRailsWrong'), '#ff6b6b');
+    if(lives <= 0) gameOver();
+  }
+}
+
+function flash(text, color){
+  message = text;
+  messageColor = color;
+  messageTimer = 0.9;
+}
+
+function gameOver(){
+  running = false;
+  ovTitle.textContent = t('colorRailsOver');
+  ovHint.textContent = `${t('colorRailsScore')}: ${score}`;
+  ovBtn.textContent = t('colorRailsStart');
+  overlay.classList.remove('hidden');
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d1016');
+  bg.addColorStop(1,'#07080b');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+  drawRails();
+  drawStations();
+  drawSwitches();
+  drawPods();
+  drawMessage();
+}
+
+function drawRails(){
+  ctx.lineCap = 'round';
+  for(const y of lanes){
+    ctx.strokeStyle = 'rgba(255,255,255,.12)';
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.moveTo(24,y);
+    ctx.lineTo(W-56,y);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(101,214,255,.12)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(24,y);
+    ctx.lineTo(W-56,y);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.06)';
+  ctx.lineWidth = 2;
+  for(const sx of switchXs){
+    ctx.beginPath();
+    ctx.moveTo(sx, lanes[0]);
+    ctx.lineTo(sx, lanes[2]);
+    ctx.stroke();
+  }
+}
+
+function drawStations(){
+  colors.forEach(c => {
+    const y = lanes[c.lane];
+    ctx.fillStyle = c.fill;
+    ctx.shadowColor = c.fill;
+    ctx.shadowBlur = 14;
+    roundRect(W-48, y-24, 26, 48, 9, true, false);
+    ctx.shadowBlur = 0;
+  });
+}
+
+function drawSwitches(){
+  switchXs.forEach((sx,i) => {
+    const y = lanes[1];
+    const state = switches[i];
+    ctx.save();
+    ctx.translate(sx,y);
+    ctx.fillStyle = '#151923';
+    ctx.strokeStyle = 'rgba(255,255,255,.2)';
+    ctx.lineWidth = 2;
+    roundRect(-23,-23,46,46,12,true,true);
+    ctx.strokeStyle = state === 0 ? '#65d6ff' : '#ffd166';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-13,0);
+    ctx.lineTo(13,state * 14);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.8)';
+    ctx.font = '700 13px DM Sans';
+    ctx.textAlign = 'center';
+    ctx.fillText(state === -1 ? '↑' : state === 1 ? '↓' : '→', 0, 5);
+    ctx.restore();
+  });
+}
+
+function drawPods(){
+  for(const pod of pods){
+    ctx.fillStyle = pod.color.fill;
+    ctx.shadowColor = pod.color.fill;
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.arc(pod.x, pod.y, 14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(0,0,0,.28)';
+    ctx.beginPath();
+    ctx.arc(pod.x-4, pod.y-4, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawMessage(){
+  if(messageTimer <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, messageTimer * 2);
+  ctx.fillStyle = messageColor || '#65d6ff';
+  ctx.font = '800 24px Syne';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,.65)';
+  ctx.shadowBlur = 12;
+  ctx.fillText(message, W/2, 48);
+  ctx.restore();
+}
+
+function roundRect(x,y,w,h,r,fill,stroke){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  if(fill) ctx.fill();
+  if(stroke) ctx.stroke();
+}
+
+function switchAt(clientX, clientY){
+  const rect = canvas.getBoundingClientRect();
+  const x = (clientX - rect.left) * (W / rect.width);
+  const y = (clientY - rect.top) * (H / rect.height);
+  for(let i=0;i<switchXs.length;i++){
+    if(Math.abs(x - switchXs[i]) <= 34 && Math.abs(y - lanes[1]) <= 42) return i;
+  }
+  return -1;
+}
+
+function toggleSwitch(i){
+  const idx = states.indexOf(switches[i]);
+  switches[i] = states[(idx + 1) % states.length];
+  draw();
+}
+
+canvas.addEventListener('pointerdown', e => {
+  const i = switchAt(e.clientX, e.clientY);
+  if(i >= 0) toggleSwitch(i);
+});
+btnReset.addEventListener('click', resetGame);
+btnPause.addEventListener('click', () => {
+  if(!running) return;
+  paused = !paused;
+  btnPause.textContent = paused ? t('colorRailsResume') : t('colorRailsPause');
+  draw();
+});
+ovBtn.addEventListener('click', resetGame);
+window.addEventListener('keydown', e => {
+  if(e.code === 'Space'){
+    e.preventDefault();
+    btnPause.click();
+  }
+  if(e.code === 'Digit1') toggleSwitch(0);
+  if(e.code === 'Digit2') toggleSwitch(1);
+  if(e.code === 'Digit3') toggleSwitch(2);
+});
+
+applyLabels();
+draw();
+</script>
+</body>
+</html>

@@ -47,7 +47,6 @@ body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;left:
 .cell.same-num{background:rgba(255,209,102,0.06);}
 .cell.wrong{color:#ff6b6b !important;background:rgba(255,107,107,0.08);}
 .cell.correct{color:#4dff91 !important;}
-.cell.user{color:var(--c);}
 .cell.hint-flash{animation:hflash .4s ease;}
 @keyframes hflash{0%,100%{background:transparent;}50%{background:rgba(255,209,102,0.2);}}
 
@@ -141,7 +140,7 @@ const BASE = [
   [3,4,5,6,7,8,9,1,2],[6,7,8,9,1,2,3,4,5],[9,1,2,3,4,5,6,7,8]
 ];
 
-let puzzle, solution, fixed, selected = -1, hints = 3;
+let puzzle, solution, selected = -1, hints = 3;
 
 function generateSolution() {
   const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
@@ -163,7 +162,6 @@ function generatePuzzle(sol, remove) {
 function newGame() {
   solution = generateSolution();
   puzzle   = generatePuzzle(solution, DIFFS[diffIdx].remove);
-  fixed    = puzzle.map(row => row.map(v => v !== 0));
   selected = -1;
   hints = 3;
   document.getElementById('btn-hint').textContent = t('sudokuHint') + ' (' + hints + ')';
@@ -181,11 +179,10 @@ function renderBoard() {
       const div = document.createElement('div');
       div.className = 'cell';
       div.dataset.r = r; div.dataset.c = c;
-      if (fixed[r][c]) {
+      if (puzzle[r][c] !== 0) {
         div.classList.add('fixed');
         div.textContent = puzzle[r][c];
       } else {
-        if (puzzle[r][c] !== 0) { div.textContent = puzzle[r][c]; div.classList.add('user'); }
         div.onclick = () => selectCell(idx);
       }
       if (c === 2 || c === 5) div.classList.add('border-r');
@@ -206,7 +203,7 @@ function selectCell(idx) {
 function inputNum(n) {
   if (selected < 0) return;
   const r = Math.floor(selected / 9), c = selected % 9;
-  if (fixed[r][c]) return;
+  if (puzzle[r][c] !== 0 && document.querySelectorAll('.cell')[selected].classList.contains('fixed')) return;
   puzzle[r][c] = n;
   renderBoard();
   setStatus('');
@@ -261,7 +258,7 @@ function checkSudoku() {
   let allCorrect = wrongSet.size === 0;
   cells.forEach(cell => {
     const r = parseInt(cell.dataset.r), c = parseInt(cell.dataset.c);
-    if (fixed[r][c]) return;
+    if (cell.classList.contains('fixed')) return;
     if (!puzzle[r][c]) return;
     if (wrongSet.has(r*9+c)) cell.classList.add('wrong');
     else cell.classList.add('correct');
@@ -277,9 +274,7 @@ function checkAutoWin() {
   if (!puzzle.every(row => row.every(v => v !== 0))) return;
   if (puzzle.every((row, r) => row.every((v, c) => v === solution[r][c]))) {
     setStatus('🎉 ' + t('sudokuSolved'));
-    document.querySelectorAll('.cell').forEach(cell => {
-      const fr2=parseInt(cell.dataset.r),fc2=parseInt(cell.dataset.c);
-      if(fixed[fr2][fc2])return;
+    document.querySelectorAll('.cell:not(.fixed)').forEach(cell => {
       cell.classList.remove('wrong'); cell.classList.add('correct');
     });
   }
@@ -314,7 +309,9 @@ document.addEventListener('keydown', e => {
   if (e.key >= '1' && e.key <= '9') { inputNum(parseInt(e.key)); return; }
   if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
     const r = Math.floor(selected / 9), c = selected % 9;
-    if (!fixed[r][c]) { puzzle[r][c] = 0; renderBoard(); }
+    if (!document.querySelectorAll('.cell')[selected].classList.contains('fixed')) {
+      puzzle[r][c] = 0; renderBoard();
+    }
     return;
   }
   // arrow navigation
