@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tiny Alchemist · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,.42);
+  --border:rgba(255,255,255,.08);--border-h:rgba(255,255,255,.16);--gold:#ffd166;--green:#55f0a0;--violet:#a78bfa;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none}
+body::before{content:"";position:fixed;right:-180px;top:-220px;width:540px;height:540px;border-radius:50%;background:radial-gradient(circle,rgba(255,209,102,.09),transparent 66%);pointer-events:none}
+body::after{content:"";position:fixed;left:-200px;bottom:-250px;width:580px;height:580px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.07),transparent 66%);pointer-events:none}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s}
+#back-btn:hover{border-color:var(--border-h);color:var(--text)}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:64px 14px 18px}
+.game-title{font-family:'Syne',sans-serif;font-size:clamp(25px,7vw,38px);font-weight:800;letter-spacing:0;background:linear-gradient(135deg,#fff 25%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hud{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;max-width:760px}
+.pill,.ctrl-btn{height:32px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500}
+.pill{display:flex;align-items:center;gap:6px;color:var(--muted);padding:0 12px;white-space:nowrap}
+.pill span{color:var(--gold);font-variant-numeric:tabular-nums}
+.ctrl-btn{color:var(--muted);padding:0 13px;cursor:pointer;transition:all .18s}
+.ctrl-btn:hover,.ctrl-btn:focus-visible{border-color:var(--border-h);color:var(--text);outline:none}
+#lab-wrap{position:relative;width:min(92vw,660px);border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--bg2),var(--bg1));padding:12px;box-shadow:0 22px 80px rgba(0,0,0,.35)}
+.target{display:flex;align-items:center;justify-content:center;gap:10px;min-height:42px;margin-bottom:10px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.035);font-size:13px;color:var(--muted)}
+.target strong{color:var(--text);font-family:'Syne',sans-serif;font-size:17px}
+#essences{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
+.essence{position:relative;min-height:78px;border-radius:12px;border:1px solid var(--border);background:linear-gradient(135deg,#17130d,#0e0c09);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:transform .12s,border-color .16s,background .16s}
+.essence:active{transform:scale(.98)}
+.essence.selected{border-color:var(--gold);background:radial-gradient(circle,rgba(255,209,102,.18),#151006 65%);box-shadow:0 0 20px rgba(255,209,102,.2)}
+.sigil{font-size:25px;line-height:1}
+.name{font-size:12px;font-weight:500;text-align:center}
+.new{animation:pop .28s ease both}
+@keyframes pop{from{transform:scale(.92);opacity:.4}to{transform:scale(1);opacity:1}}
+.book{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.book-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:7px}
+#recipes{display:flex;gap:6px;flex-wrap:wrap;max-height:70px;overflow:auto}
+.recipe{font-size:11px;color:var(--muted);border:1px solid rgba(255,255,255,.07);border-radius:100px;padding:4px 9px;background:rgba(255,255,255,.03)}
+#overlay{position:absolute;z-index:20;inset:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;background:rgba(5,5,7,.91);backdrop-filter:blur(14px);border-radius:12px;text-align:center;padding:18px}
+#overlay.hidden{display:none}
+.ov-icon{font-size:42px;line-height:1}
+#overlay h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:0}
+.hint{max-width:360px;color:var(--muted);font-size:12px;line-height:1.5}
+.play-btn{min-width:118px;height:40px;border-radius:100px;border:1px solid rgba(255,209,102,.46);background:rgba(255,209,102,.15);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:0 28px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.34)}
+@media (max-height:710px){.page{gap:9px}.game-title{font-size:24px}.pill,.ctrl-btn{height:29px}.essence{min-height:64px}.book{display:none}}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<main class="page">
+  <h1 class="game-title" id="lbl-title"></h1>
+  <div class="hud">
+    <div class="pill"><span id="lbl-level"></span>&nbsp;<span id="hud-level">1</span></div>
+    <div class="pill"><span id="lbl-mixes"></span>&nbsp;<span id="hud-mixes">0</span></div>
+    <div class="pill"><span id="lbl-discovered"></span>&nbsp;<span id="hud-discovered">0</span></div>
+    <button class="ctrl-btn" id="btn-reset"></button>
+    <button class="ctrl-btn" id="btn-next"></button>
+  </div>
+  <div id="lab-wrap">
+    <div class="target"><span id="lbl-target"></span><strong id="target-name"></strong></div>
+    <div id="essences"></div>
+    <div class="book">
+      <div class="book-title" id="book-title"></div>
+      <div id="recipes"></div>
+    </div>
+    <div id="overlay">
+      <div class="ov-icon">⚗️</div>
+      <h2 id="ov-title"></h2>
+      <p class="hint" id="ov-hint"></p>
+      <button class="play-btn" id="ov-btn"></button>
+    </div>
+  </div>
+</main>
+
+<script>
+const ELEMENTS = {
+  fire:['🔥','Fire'], water:['💧','Water'], earth:['🪨','Earth'], air:['💨','Air'],
+  steam:['♨️','Steam'], clay:['🧱','Clay'], dust:['🌫️','Dust'], spark:['✨','Spark'],
+  mud:['🟤','Mud'], glass:['🔷','Glass'], moss:['🌱','Moss'], crystal:['💎','Crystal'],
+  storm:['⛈️','Storm'], ember:['🟠','Ember'], glow:['🟢','Glow Moss'], prism:['🔮','Prism'],
+  bloom:['🌸','Bloom'], lantern:['🏮','Lantern'], alloy:['⚙️','Alloy'], aurora:['🌌','Aurora']
+};
+const RECIPES = {
+  'air+fire':'spark','air+water':'steam','fire+water':'steam','earth+water':'mud','air+earth':'dust',
+  'earth+fire':'ember','fire+sand':'glass','dust+fire':'glass','earth+mud':'clay',
+  'earth+spark':'crystal','moss+spark':'glow','mud+water':'moss','air+spark':'storm',
+  'crystal+glass':'prism','glow+water':'bloom','ember+glass':'lantern','crystal+fire':'alloy',
+  'prism+storm':'aurora','bloom+spark':'aurora'
+};
+const LEVELS = [
+  {target:'steam', mixes:3, start:['fire','water','earth','air']},
+  {target:'clay', mixes:4, start:['earth','water','air','fire']},
+  {target:'glass', mixes:4, start:['dust','fire','water','earth']},
+  {target:'moss', mixes:5, start:['earth','water','mud','air']},
+  {target:'crystal', mixes:5, start:['earth','spark','fire','water']},
+  {target:'storm', mixes:5, start:['air','spark','water','earth']},
+  {target:'glow', mixes:6, start:['mud','water','moss','spark','fire']},
+  {target:'prism', mixes:6, start:['earth','spark','crystal','glass','air']},
+  {target:'lantern', mixes:6, start:['earth','fire','ember','dust','water']},
+  {target:'aurora', mixes:7, start:['crystal','glass','prism','air','spark','water']}
+];
+const STORAGE = 'tiny_alchemist_discovered';
+let levelIndex = 0;
+let items = [];
+let selected = [];
+let mixesLeft = 0;
+let discovered = new Set();
+let won = false;
+
+const essences = document.getElementById('essences');
+const recipesEl = document.getElementById('recipes');
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ov-title');
+const ovHint = document.getElementById('ov-hint');
+const ovBtn = document.getElementById('ov-btn');
+const btnReset = document.getElementById('btn-reset');
+const btnNext = document.getElementById('btn-next');
+
+function applyLabels(){
+  document.getElementById('lbl-back').textContent = t('back');
+  document.getElementById('lbl-title').textContent = t('tinyAlchTitle');
+  document.getElementById('lbl-level').textContent = t('tinyAlchLevel');
+  document.getElementById('lbl-mixes').textContent = t('tinyAlchMixes');
+  document.getElementById('lbl-discovered').textContent = t('tinyAlchDiscovered');
+  document.getElementById('lbl-target').textContent = t('tinyAlchTarget') + ':';
+  document.getElementById('book-title').textContent = t('tinyAlchKnown');
+  btnReset.textContent = t('tinyAlchReset');
+  btnNext.textContent = t('tinyAlchNext');
+  ovTitle.textContent = t('tinyAlchTitle');
+  ovHint.textContent = t('tinyAlchHint');
+  ovBtn.textContent = t('tinyAlchStart');
+}
+
+function loadDiscovered(){
+  try{discovered = new Set(JSON.parse(localStorage.getItem(STORAGE) || '[]'))}
+  catch{discovered = new Set()}
+}
+function saveDiscovered(){localStorage.setItem(STORAGE, JSON.stringify([...discovered]))}
+function recipeKey(a,b){return [a,b].sort().join('+')}
+function label(id){return ELEMENTS[id] ? ELEMENTS[id][1] : id}
+function icon(id){return ELEMENTS[id] ? ELEMENTS[id][0] : '•'}
+
+function loadLevel(index){
+  const level = LEVELS[index];
+  items = [...level.start];
+  selected = [];
+  mixesLeft = level.mixes;
+  won = false;
+  document.getElementById('target-name').textContent = `${icon(level.target)} ${label(level.target)}`;
+  overlay.classList.add('hidden');
+  render();
+}
+
+function render(){
+  document.getElementById('hud-level').textContent = `${levelIndex + 1}/${LEVELS.length}`;
+  document.getElementById('hud-mixes').textContent = mixesLeft;
+  document.getElementById('hud-discovered').textContent = discovered.size;
+  essences.innerHTML = '';
+  items.forEach((id, index) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'essence' + (selected.includes(index) ? ' selected' : '');
+    btn.dataset.index = index;
+    btn.innerHTML = `<span class="sigil">${icon(id)}</span><span class="name">${label(id)}</span>`;
+    essences.appendChild(btn);
+  });
+  recipesEl.innerHTML = [...discovered].sort().map(key => {
+    const result = RECIPES[key];
+    const parts = key.split('+').map(label).join(' + ');
+    return `<span class="recipe">${parts} → ${label(result)}</span>`;
+  }).join('');
+}
+
+function pick(index){
+  if(won || mixesLeft <= 0) return;
+  if(selected.includes(index)){
+    selected = selected.filter(i => i !== index);
+    render();
+    return;
+  }
+  selected.push(index);
+  if(selected.length === 2) mixSelected();
+  else render();
+}
+
+function mixSelected(){
+  const [aIndex,bIndex] = selected;
+  const a = items[aIndex], b = items[bIndex];
+  const key = recipeKey(a,b);
+  const result = RECIPES[key];
+  mixesLeft--;
+  selected = [];
+  if(result && !items.includes(result)){
+    items.push(result);
+    discovered.add(key);
+    saveDiscovered();
+  }
+  render();
+  if(result) markNew(result);
+  checkState();
+}
+
+function markNew(id){
+  const nodes = [...essences.querySelectorAll('.essence')];
+  const node = nodes.find(n => n.textContent.includes(label(id)));
+  if(node) node.classList.add('new');
+}
+
+function checkState(){
+  const target = LEVELS[levelIndex].target;
+  if(items.includes(target)){
+    won = true;
+    ovTitle.textContent = t('tinyAlchWin');
+    ovHint.textContent = `${t('tinyAlchTarget')}: ${icon(target)} ${label(target)}`;
+    ovBtn.textContent = levelIndex < LEVELS.length - 1 ? t('tinyAlchNext') : t('tinyAlchAgain');
+    setTimeout(() => overlay.classList.remove('hidden'), 260);
+    return;
+  }
+  if(mixesLeft <= 0){
+    ovTitle.textContent = t('tinyAlchOver');
+    ovHint.textContent = t('tinyAlchHint');
+    ovBtn.textContent = t('tinyAlchAgain');
+    setTimeout(() => overlay.classList.remove('hidden'), 260);
+  }
+}
+
+function nextLevel(){
+  levelIndex = (levelIndex + 1) % LEVELS.length;
+  loadLevel(levelIndex);
+}
+
+essences.addEventListener('click', e => {
+  const btn = e.target.closest('.essence');
+  if(!btn) return;
+  pick(Number(btn.dataset.index));
+});
+btnReset.addEventListener('click', () => loadLevel(levelIndex));
+btnNext.addEventListener('click', nextLevel);
+ovBtn.addEventListener('click', () => won ? nextLevel() : loadLevel(levelIndex));
+
+applyLabels();
+loadDiscovered();
+loadLevel(0);
+overlay.classList.remove('hidden');
+</script>
+</body>
+</html>

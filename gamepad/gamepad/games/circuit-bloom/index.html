@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Circuit Bloom · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,.42);
+  --border:rgba(255,255,255,.08);--border-h:rgba(255,255,255,.16);--green:#55f0a0;--gold:#ffd166;--cyan:#65d6ff;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none;touch-action:none}
+body::before{content:"";position:fixed;right:-180px;top:-220px;width:540px;height:540px;border-radius:50%;background:radial-gradient(circle,rgba(85,240,160,.08),transparent 66%);pointer-events:none}
+body::after{content:"";position:fixed;left:-200px;bottom:-250px;width:580px;height:580px;border-radius:50%;background:radial-gradient(circle,rgba(255,209,102,.06),transparent 66%);pointer-events:none}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s}
+#back-btn:hover{border-color:var(--border-h);color:var(--text)}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:64px 14px 18px}
+.game-title{font-family:'Syne',sans-serif;font-size:clamp(25px,7vw,38px);font-weight:800;letter-spacing:0;background:linear-gradient(135deg,#fff 25%,var(--green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hud{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;max-width:660px}
+.pill,.ctrl-btn{height:32px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500}
+.pill{display:flex;align-items:center;gap:6px;color:var(--muted);padding:0 12px;white-space:nowrap}
+.pill span{color:var(--green);font-variant-numeric:tabular-nums}
+.ctrl-btn{color:var(--muted);padding:0 13px;cursor:pointer;transition:all .18s}
+.ctrl-btn:hover,.ctrl-btn:focus-visible{border-color:var(--border-h);color:var(--text);outline:none}
+#board-wrap{position:relative;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--bg2),var(--bg1));padding:8px;box-shadow:0 22px 80px rgba(0,0,0,.35)}
+#board{display:grid;gap:4px}
+.cell{position:relative;width:var(--cell);height:var(--cell);border-radius:8px;background:linear-gradient(135deg,#151a17,#0d100f);overflow:hidden;border:1px solid rgba(255,255,255,.035)}
+.cell.empty{background:rgba(255,255,255,.025)}
+.cell.lit{background:linear-gradient(135deg,rgba(85,240,160,.13),rgba(101,214,255,.06))}
+.line{position:absolute;background:rgba(255,255,255,.22);border-radius:99px;transition:background .16s,box-shadow .16s}
+.lit .line{background:var(--green);box-shadow:0 0 13px rgba(85,240,160,.38)}
+.line.n,.line.s{width:16%;height:50%;left:42%}
+.line.n{top:0}.line.s{bottom:0}
+.line.e,.line.w{width:50%;height:16%;top:42%}
+.line.e{right:0}.line.w{left:0}
+.hub{position:absolute;inset:35%;border-radius:50%;background:rgba(255,255,255,.25);box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.lit .hub{background:var(--green);box-shadow:0 0 16px rgba(85,240,160,.5)}
+.source .hub{inset:25%;background:var(--gold);box-shadow:0 0 18px rgba(255,209,102,.55)}
+.bloom .hub{inset:27%;background:rgba(255,255,255,.2)}
+.bloom.lit .hub{background:#ff86d1;box-shadow:0 0 18px rgba(255,134,209,.5)}
+.bloom .hub::before{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid rgba(255,134,209,.34)}
+.block{background:linear-gradient(135deg,#282837,#15151d)}
+#overlay{position:absolute;z-index:20;inset:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;background:rgba(5,5,7,.91);backdrop-filter:blur(14px);border-radius:12px;text-align:center;padding:18px}
+#overlay.hidden{display:none}
+.ov-icon{font-size:42px;line-height:1}
+#overlay h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:0}
+.hint{max-width:340px;color:var(--muted);font-size:12px;line-height:1.5}
+.play-btn{min-width:118px;height:40px;border-radius:100px;border:1px solid rgba(85,240,160,.42);background:rgba(85,240,160,.14);color:var(--green);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:0 28px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.34)}
+@media (max-height:680px){.page{gap:9px}.game-title{font-size:24px}.pill,.ctrl-btn{height:29px}}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<main class="page">
+  <h1 class="game-title" id="lbl-title"></h1>
+  <div class="hud">
+    <div class="pill"><span id="lbl-level"></span>&nbsp;<span id="hud-level">1</span></div>
+    <div class="pill"><span id="lbl-moves"></span>&nbsp;<span id="hud-moves">0</span></div>
+    <div class="pill"><span id="lbl-best"></span>&nbsp;<span id="hud-best">-</span></div>
+    <button class="ctrl-btn" id="btn-reset"></button>
+    <button class="ctrl-btn" id="btn-next"></button>
+  </div>
+  <div id="board-wrap">
+    <div id="board"></div>
+    <div id="overlay">
+      <div class="ov-icon">🌿</div>
+      <h2 id="ov-title"></h2>
+      <p class="hint" id="ov-hint"></p>
+      <button class="play-btn" id="ov-btn"></button>
+    </div>
+  </div>
+</main>
+
+<script>
+const DIRS = {N:1,E:2,S:4,W:8};
+const OPP = {1:4,2:8,4:1,8:2};
+const DR = {1:-1,2:0,4:1,8:0};
+const DC = {1:0,2:1,4:0,8:-1};
+const ALL = [1,2,4,8];
+const LEVELS = [
+  {s:5,blooms:2},{s:5,blooms:3},{s:6,blooms:3},{s:6,blooms:4},
+  {s:7,blooms:4},{s:7,blooms:5},{s:7,blooms:5},{s:8,blooms:5},
+  {s:8,blooms:6},{s:8,blooms:6},{s:9,blooms:6},{s:9,blooms:7},
+  {s:9,blooms:7},{s:9,blooms:8},{s:10,blooms:8},{s:10,blooms:9},
+  {s:10,blooms:9},{s:10,blooms:10}
+];
+const SHAPES = {'|':DIRS.N|DIRS.S,'-':DIRS.E|DIRS.W,'L':DIRS.N|DIRS.E,'J':DIRS.N|DIRS.W,'7':DIRS.S|DIRS.W,'F':DIRS.S|DIRS.E,'+':DIRS.N|DIRS.E|DIRS.S|DIRS.W,'S':DIRS.N|DIRS.E|DIRS.S|DIRS.W,'B':DIRS.N|DIRS.E|DIRS.S|DIRS.W};
+const STORAGE = 'circuit_bloom_best_';
+let levelIndex = 0;
+let grid = [];
+let lit = new Set();
+let moves = 0;
+let won = false;
+
+const board = document.getElementById('board');
+const overlay = document.getElementById('overlay');
+const btnReset = document.getElementById('btn-reset');
+const btnNext = document.getElementById('btn-next');
+const ovBtn = document.getElementById('ov-btn');
+
+function k(r,c){return r + ',' + c}
+function rot(mask){
+  let n = 0;
+  if(mask & DIRS.N) n |= DIRS.E;
+  if(mask & DIRS.E) n |= DIRS.S;
+  if(mask & DIRS.S) n |= DIRS.W;
+  if(mask & DIRS.W) n |= DIRS.N;
+  return n;
+}
+function seededRot(index,r,c,base,type){
+  if(type === 'S' || type === 'B' || type === '.') return base;
+  const turns = (index * 7 + r * 3 + c * 5) % 4;
+  let m = base;
+  for(let i=0;i<turns;i++) m = rot(m);
+  return m;
+}
+
+function buildSolvedLevel(index){
+  const cfg = LEVELS[index];
+  const size = cfg.s;
+  const cells = Array.from({length:size}, () => Array.from({length:size}, () => ({type:'.', mask:0, base:0})));
+  const source = {r:Math.floor(size / 2), c:1};
+  cells[source.r][source.c].type = 'S';
+  const spots = [
+    {r:1,c:size-2},{r:size-2,c:size-2},{r:1,c:1},{r:size-2,c:1},
+    {r:Math.floor(size/2),c:size-2},{r:size-2,c:Math.floor(size/2)},
+    {r:1,c:Math.floor(size/2)},{r:Math.floor(size/2),c:Math.floor(size/2)+1},
+    {r:size-3,c:size-3},{r:2,c:size-3}
+  ];
+  const blooms = spots.slice(0, cfg.blooms);
+  for(const bloom of blooms) cells[bloom.r][bloom.c].type = 'B';
+
+  function connect(a,b){
+    let r = a.r, c = a.c;
+    const horizontalFirst = (index + b.r + b.c) % 2 === 0;
+    const walkC = () => {
+      while(c !== b.c){
+        const dc = c < b.c ? 1 : -1;
+        link(r,c,r,c+dc);
+        c += dc;
+      }
+    };
+    const walkR = () => {
+      while(r !== b.r){
+        const dr = r < b.r ? 1 : -1;
+        link(r,c,r+dr,c);
+        r += dr;
+      }
+    };
+    if(horizontalFirst){walkC(); walkR();} else {walkR(); walkC();}
+  }
+
+  function link(r1,c1,r2,c2){
+    const d = r2 < r1 ? DIRS.N : r2 > r1 ? DIRS.S : c2 > c1 ? DIRS.E : DIRS.W;
+    cells[r1][c1].mask |= d;
+    cells[r2][c2].mask |= OPP[d];
+    if(cells[r1][c1].type === '.') cells[r1][c1].type = 'wire';
+    if(cells[r2][c2].type === '.') cells[r2][c2].type = 'wire';
+  }
+
+  blooms.forEach((bloom,i) => {
+    const via = {r:source.r + ((i % 3) - 1), c:Math.min(size - 2, 2 + (i % Math.max(2, size - 4)))};
+    connect(source, via);
+    connect(via, bloom);
+  });
+  return cells;
+}
+
+function applyLabels(){
+  document.getElementById('lbl-back').textContent = t('back');
+  document.getElementById('lbl-title').textContent = t('circuitBloomTitle');
+  document.getElementById('lbl-level').textContent = t('circuitBloomLevel');
+  document.getElementById('lbl-moves').textContent = t('circuitBloomMoves');
+  document.getElementById('lbl-best').textContent = t('circuitBloomBest');
+  btnReset.textContent = t('circuitBloomReset');
+  btnNext.textContent = t('circuitBloomNext');
+  document.getElementById('ov-title').textContent = t('circuitBloomTitle');
+  document.getElementById('ov-hint').textContent = t('circuitBloomHint');
+  ovBtn.textContent = t('circuitBloomStart');
+}
+
+function loadLevel(index){
+  const solved = buildSolvedLevel(index);
+  grid = solved.map((row,r) => row.map((cell,c) => ({...cell, mask:seededRot(index,r,c,cell.mask,cell.type)})));
+  moves = 0;
+  won = false;
+  overlay.classList.add('hidden');
+  sizeBoard();
+  computeLit();
+  render();
+}
+
+function sizeBoard(){
+  const size = LEVELS[levelIndex].s;
+  const maxW = Math.min(window.innerWidth - 44, 560);
+  const maxH = Math.max(250, window.innerHeight - 250);
+  const cell = Math.floor(Math.min(maxW / size, maxH / size));
+  document.documentElement.style.setProperty('--cell', Math.max(30, cell) + 'px');
+  board.style.gridTemplateColumns = `repeat(${size}, var(--cell))`;
+}
+
+function computeLit(){
+  lit = new Set();
+  const size = grid.length;
+  const stack = [];
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++) if(grid[r][c].type === 'S'){
+    lit.add(k(r,c));
+    stack.push([r,c]);
+  }
+  while(stack.length){
+    const [r,c] = stack.pop();
+    const cell = grid[r][c];
+    for(const d of ALL){
+      if(!(cell.mask & d)) continue;
+      const nr = r + DR[d], nc = c + DC[d];
+      if(nr<0 || nc<0 || nr>=size || nc>=size) continue;
+      const next = grid[nr][nc];
+      if(!(next.mask & OPP[d])) continue;
+      const id = k(nr,nc);
+      if(lit.has(id)) continue;
+      lit.add(id);
+      stack.push([nr,nc]);
+    }
+  }
+}
+
+function allBloomsLit(){
+  for(let r=0;r<grid.length;r++){
+    for(let c=0;c<grid.length;c++){
+      if(grid[r][c].type === 'B' && !lit.has(k(r,c))) return false;
+    }
+  }
+  return true;
+}
+
+function best(){return localStorage.getItem(STORAGE + levelIndex)}
+function saveBest(){
+  const old = Number(best() || 0);
+  if(!old || moves < old) localStorage.setItem(STORAGE + levelIndex, String(moves));
+}
+
+function render(){
+  document.getElementById('hud-level').textContent = `${levelIndex + 1}/${LEVELS.length}`;
+  document.getElementById('hud-moves').textContent = moves;
+  document.getElementById('hud-best').textContent = best() || '-';
+  board.innerHTML = '';
+  for(let r=0;r<grid.length;r++){
+    for(let c=0;c<grid.length;c++){
+      const cell = grid[r][c];
+      const el = document.createElement('button');
+      el.className = 'cell';
+      if(cell.type === '.') el.classList.add('empty');
+      if(cell.type === 'S') el.classList.add('source');
+      if(cell.type === 'B') el.classList.add('bloom');
+      if(lit.has(k(r,c))) el.classList.add('lit');
+      el.type = 'button';
+      el.dataset.r = r;
+      el.dataset.c = c;
+      for(const d of ALL){
+        if(cell.mask & d){
+          const line = document.createElement('span');
+          line.className = 'line ' + ({1:'n',2:'e',4:'s',8:'w'}[d]);
+          el.appendChild(line);
+        }
+      }
+      if(cell.mask || cell.type === 'S' || cell.type === 'B'){
+        const hub = document.createElement('span');
+        hub.className = 'hub';
+        el.appendChild(hub);
+      }
+      board.appendChild(el);
+    }
+  }
+}
+
+function rotateCell(r,c){
+  if(won) return;
+  const cell = grid[r][c];
+  if(!cell.mask || cell.type === 'S' || cell.type === 'B') return;
+  cell.mask = rot(cell.mask);
+  moves++;
+  computeLit();
+  render();
+  if(allBloomsLit()) setTimeout(winLevel, 140);
+}
+
+function winLevel(){
+  if(won) return;
+  won = true;
+  saveBest();
+  document.getElementById('ov-title').textContent = t('circuitBloomWin');
+  document.getElementById('ov-hint').textContent = `${t('circuitBloomMoves')}: ${moves} · ${t('circuitBloomBest')}: ${best()}`;
+  ovBtn.textContent = levelIndex < LEVELS.length - 1 ? t('circuitBloomNext') : t('circuitBloomStart');
+  overlay.classList.remove('hidden');
+  render();
+}
+
+function nextLevel(){
+  levelIndex = (levelIndex + 1) % LEVELS.length;
+  loadLevel(levelIndex);
+}
+
+board.addEventListener('click', e => {
+  const cell = e.target.closest('.cell');
+  if(!cell) return;
+  rotateCell(Number(cell.dataset.r), Number(cell.dataset.c));
+});
+btnReset.addEventListener('click', () => loadLevel(levelIndex));
+btnNext.addEventListener('click', nextLevel);
+ovBtn.addEventListener('click', () => won ? nextLevel() : loadLevel(levelIndex));
+window.addEventListener('resize', () => {sizeBoard(); render();});
+
+applyLabels();
+loadLevel(0);
+overlay.classList.remove('hidden');
+</script>
+</body>
+</html>
