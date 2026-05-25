@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Orbital Courier · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,.42);
+  --border:rgba(255,255,255,.08);--border-h:rgba(255,255,255,.16);--cyan:#65d6ff;--gold:#ffd166;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none;touch-action:none}
+body::before{content:"";position:fixed;right:-180px;top:-220px;width:540px;height:540px;border-radius:50%;background:radial-gradient(circle,rgba(101,214,255,.08),transparent 66%);pointer-events:none}
+body::after{content:"";position:fixed;left:-190px;bottom:-240px;width:570px;height:570px;border-radius:50%;background:radial-gradient(circle,rgba(255,209,102,.06),transparent 66%);pointer-events:none}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s}
+#back-btn:hover{border-color:var(--border-h);color:var(--text)}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:64px 14px 18px}
+.game-title{font-family:'Syne',sans-serif;font-size:clamp(25px,7vw,38px);font-weight:800;letter-spacing:0;background:linear-gradient(135deg,#fff 25%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hud{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;max-width:660px}
+.pill,.ctrl-btn{height:32px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500}
+.pill{display:flex;align-items:center;gap:6px;color:var(--muted);padding:0 12px;white-space:nowrap}
+.pill span{color:var(--cyan);font-variant-numeric:tabular-nums}
+.ctrl-btn{color:var(--muted);padding:0 13px;cursor:pointer;transition:all .18s}
+.ctrl-btn:hover,.ctrl-btn:focus-visible{border-color:var(--border-h);color:var(--text);outline:none}
+#game-wrap{position:relative;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--bg2),var(--bg1));padding:8px;box-shadow:0 22px 80px rgba(0,0,0,.35)}
+canvas{display:block;width:min(92vw,620px);height:auto;border-radius:11px;background:#07090d}
+#overlay{position:absolute;z-index:20;inset:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;background:rgba(5,5,7,.91);backdrop-filter:blur(14px);border-radius:12px;text-align:center;padding:18px}
+#overlay.hidden{display:none}
+.ov-icon{font-size:42px;line-height:1}
+#overlay h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:0}
+.hint{max-width:340px;color:var(--muted);font-size:12px;line-height:1.5}
+.play-btn{min-width:118px;height:40px;border-radius:100px;border:1px solid rgba(101,214,255,.42);background:rgba(101,214,255,.14);color:var(--cyan);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:0 28px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.34)}
+@media (max-height:680px){.page{gap:9px}.game-title{font-size:24px}.pill,.ctrl-btn{height:29px}}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<main class="page">
+  <h1 class="game-title" id="lbl-title"></h1>
+  <div class="hud">
+    <div class="pill"><span id="lbl-score"></span>&nbsp;<span id="hud-score">0</span></div>
+    <div class="pill"><span id="lbl-lives"></span>&nbsp;<span id="hud-lives">3</span></div>
+    <div class="pill"><span id="lbl-wave"></span>&nbsp;<span id="hud-wave">1</span></div>
+    <div class="pill"><span id="lbl-cargo"></span>&nbsp;<span id="hud-cargo">-</span></div>
+    <button class="ctrl-btn" id="btn-pause"></button>
+    <button class="ctrl-btn" id="btn-reset"></button>
+  </div>
+  <div id="game-wrap">
+    <canvas id="c" width="620" height="420"></canvas>
+    <div id="overlay">
+      <div class="ov-icon">🛰️</div>
+      <h2 id="ov-title"></h2>
+      <p class="hint" id="ov-hint"></p>
+      <button class="play-btn" id="ov-btn"></button>
+    </div>
+  </div>
+</main>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+const cx = W / 2;
+const cy = H / 2;
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ov-title');
+const ovHint = document.getElementById('ov-hint');
+const ovBtn = document.getElementById('ov-btn');
+const btnPause = document.getElementById('btn-pause');
+const btnReset = document.getElementById('btn-reset');
+const hudScore = document.getElementById('hud-score');
+const hudLives = document.getElementById('hud-lives');
+const hudWave = document.getElementById('hud-wave');
+const hudCargo = document.getElementById('hud-cargo');
+const palette = [
+  {id:'red', fill:'#ff6b6b'},
+  {id:'gold', fill:'#ffd166'},
+  {id:'blue', fill:'#65d6ff'},
+  {id:'green', fill:'#55f0a0'}
+];
+
+let ship = {angle:-Math.PI/2, radius:122, radialVel:0, angularVel:1.28};
+let cargo = null;
+let score = 0;
+let lives = 3;
+let wave = 1;
+let running = false;
+let paused = false;
+let lastTime = 0;
+let frameId = 0;
+let pickups = [];
+let stations = [];
+let debris = [];
+let message = '';
+let messageColor = '#65d6ff';
+let messageTimer = 0;
+
+function applyLabels(){
+  document.getElementById('lbl-back').textContent = t('back');
+  document.getElementById('lbl-title').textContent = t('orbCourierTitle');
+  document.getElementById('lbl-score').textContent = t('orbCourierScore');
+  document.getElementById('lbl-lives').textContent = t('orbCourierLives');
+  document.getElementById('lbl-wave').textContent = t('orbCourierWave');
+  document.getElementById('lbl-cargo').textContent = t('orbCourierCargo');
+  btnPause.textContent = t('orbCourierPause');
+  btnReset.textContent = t('orbCourierReset');
+  ovTitle.textContent = t('orbCourierTitle');
+  ovHint.textContent = t('orbCourierHint');
+  ovBtn.textContent = t('orbCourierStart');
+}
+
+function resetGame(){
+  cancelAnimationFrame(frameId);
+  score = 0;
+  lives = 3;
+  wave = 1;
+  cargo = null;
+  paused = false;
+  running = true;
+  message = '';
+  messageTimer = 0;
+  ship = {angle:-Math.PI/2, radius:122, radialVel:0, angularVel:1.28};
+  buildWave();
+  updateHud();
+  btnPause.textContent = t('orbCourierPause');
+  overlay.classList.add('hidden');
+  lastTime = performance.now();
+  frameId = requestAnimationFrame(loop);
+}
+
+function buildWave(){
+  pickups = [];
+  stations = [];
+  debris = [];
+  const count = Math.min(4, 2 + Math.floor(wave / 2));
+  for(let i=0;i<count;i++){
+    const color = palette[i % palette.length];
+    pickups.push({
+      angle: -Math.PI * .9 + i * (Math.PI * 1.8 / count) + wave * .21,
+      radius: 78 + (i % 2) * 44,
+      color,
+      taken:false
+    });
+    stations.push({
+      angle: Math.PI * .85 - i * (Math.PI * 1.7 / count) - wave * .17,
+      radius: 178,
+      color
+    });
+  }
+  const debrisCount = Math.min(7, 2 + wave);
+  for(let i=0;i<debrisCount;i++){
+    debris.push({
+      angle: i * (Math.PI * 2 / debrisCount) + wave * .31,
+      radius: 103 + (i % 3) * 33,
+      spin: (i % 2 ? -1 : 1) * (.24 + wave * .025),
+      size: 9 + (i % 3) * 2
+    });
+  }
+}
+
+function loop(now){
+  if(!running) return;
+  const dt = Math.min(.033, (now - lastTime) / 1000 || 0);
+  lastTime = now;
+  if(!paused) update(dt);
+  draw();
+  if(running) frameId = requestAnimationFrame(loop);
+}
+
+function update(dt){
+  ship.angularVel = 1.22 + wave * .055;
+  ship.angle = wrapAngle(ship.angle + ship.angularVel * dt);
+  ship.radialVel -= 62 * dt;
+  ship.radius += ship.radialVel * dt;
+  if(ship.radius < 66){ship.radius = 66; ship.radialVel = Math.max(0, ship.radialVel * -.2)}
+  if(ship.radius > 190){ship.radius = 190; ship.radialVel = Math.min(0, ship.radialVel * -.35)}
+  for(const rock of debris) rock.angle = wrapAngle(rock.angle + rock.spin * dt);
+  messageTimer = Math.max(0, messageTimer - dt);
+  checkPickups();
+  checkStations();
+  checkDebris();
+  updateHud();
+}
+
+function thrust(){
+  if(!running){
+    resetGame();
+    return;
+  }
+  if(paused) return;
+  ship.radialVel = Math.min(142, ship.radialVel + 116);
+}
+
+function checkPickups(){
+  if(cargo) return;
+  for(const item of pickups){
+    if(item.taken) continue;
+    if(distanceTo(item) < 23){
+      item.taken = true;
+      cargo = item.color;
+      flash(t('orbCourierCargo'), item.color.fill);
+      return;
+    }
+  }
+}
+
+function checkStations(){
+  if(!cargo) return;
+  for(const station of stations){
+    if(distanceTo(station) > 26) continue;
+    if(station.color.id === cargo.id){
+      score++;
+      flash(t('orbCourierDelivered'), cargo.fill);
+      cargo = null;
+      if(score > 0 && score % 4 === 0){
+        wave++;
+        buildWave();
+      }
+    } else {
+      loseLife(t('orbCourierMissed'));
+      cargo = null;
+    }
+    return;
+  }
+}
+
+function checkDebris(){
+  for(const rock of debris){
+    if(distanceTo(rock) < rock.size + 12){
+      loseLife(t('orbCourierMissed'));
+      ship.angle = wrapAngle(ship.angle + .42);
+      ship.radius = 118;
+      ship.radialVel = 0;
+      return;
+    }
+  }
+}
+
+function loseLife(text){
+  lives--;
+  flash(text, '#ff6b6b');
+  if(lives <= 0) gameOver();
+}
+
+function gameOver(){
+  running = false;
+  cancelAnimationFrame(frameId);
+  ovTitle.textContent = t('orbCourierOver');
+  ovHint.textContent = `${t('orbCourierScore')}: ${score}`;
+  ovBtn.textContent = t('orbCourierStart');
+  overlay.classList.remove('hidden');
+}
+
+function flash(text, color){
+  message = text;
+  messageColor = color;
+  messageTimer = .9;
+}
+
+function updateHud(){
+  hudScore.textContent = score;
+  hudLives.textContent = lives;
+  hudWave.textContent = wave;
+  hudCargo.textContent = cargo ? '●' : '-';
+  hudCargo.style.color = cargo ? cargo.fill : '#65d6ff';
+}
+
+function distanceTo(obj){
+  const p = polar(obj.angle, obj.radius);
+  const s = polar(ship.angle, ship.radius);
+  return Math.hypot(p.x - s.x, p.y - s.y);
+}
+
+function polar(angle, radius){
+  return {x:cx + Math.cos(angle) * radius, y:cy + Math.sin(angle) * radius};
+}
+
+function wrapAngle(a){
+  const two = Math.PI * 2;
+  return ((a % two) + two) % two;
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0b1018');
+  bg.addColorStop(1,'#050609');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+  drawStars();
+  drawOrbits();
+  drawStations();
+  drawPickups();
+  drawDebris();
+  drawShip();
+  drawMessage();
+}
+
+function drawStars(){
+  ctx.fillStyle = 'rgba(255,255,255,.28)';
+  for(let i=0;i<42;i++){
+    const x = (i * 97) % W;
+    const y = (i * 53) % H;
+    ctx.fillRect(x,y,1,1);
+  }
+}
+
+function drawOrbits(){
+  ctx.strokeStyle = 'rgba(255,255,255,.08)';
+  ctx.lineWidth = 1;
+  for(const r of [66,110,154,190]){
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.stroke();
+  }
+  const g = ctx.createRadialGradient(cx,cy,8,cx,cy,52);
+  g.addColorStop(0,'#ffe7a3');
+  g.addColorStop(.4,'#b86b28');
+  g.addColorStop(1,'rgba(184,107,40,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(cx,cy,52,0,Math.PI*2);
+  ctx.fill();
+}
+
+function drawStations(){
+  for(const station of stations){
+    const p = polar(station.angle, station.radius);
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.rotate(station.angle + Math.PI / 2);
+    ctx.strokeStyle = station.color.fill;
+    ctx.fillStyle = 'rgba(255,255,255,.08)';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = station.color.fill;
+    ctx.shadowBlur = 13;
+    roundRect(-17,-12,34,24,8,true,true);
+    ctx.restore();
+  }
+}
+
+function drawPickups(){
+  for(const item of pickups){
+    if(item.taken) continue;
+    const p = polar(item.angle, item.radius);
+    ctx.fillStyle = item.color.fill;
+    ctx.shadowColor = item.color.fill;
+    ctx.shadowBlur = 13;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,9,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+function drawDebris(){
+  ctx.fillStyle = '#7f8796';
+  ctx.strokeStyle = 'rgba(255,255,255,.16)';
+  for(const rock of debris){
+    const p = polar(rock.angle, rock.radius);
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,rock.size,0,Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+  }
+}
+
+function drawShip(){
+  const p = polar(ship.angle, ship.radius);
+  ctx.save();
+  ctx.translate(p.x,p.y);
+  ctx.rotate(ship.angle + Math.PI / 2);
+  ctx.fillStyle = cargo ? cargo.fill : '#f0eeff';
+  ctx.shadowColor = cargo ? cargo.fill : '#65d6ff';
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.moveTo(0,-15);
+  ctx.lineTo(11,12);
+  ctx.lineTo(0,6);
+  ctx.lineTo(-11,12);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawMessage(){
+  if(messageTimer <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, messageTimer * 2);
+  ctx.fillStyle = messageColor;
+  ctx.font = '800 24px Syne';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,.7)';
+  ctx.shadowBlur = 12;
+  ctx.fillText(message, W / 2, 48);
+  ctx.restore();
+}
+
+function roundRect(x,y,w,h,r,fill,stroke){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  if(fill) ctx.fill();
+  if(stroke) ctx.stroke();
+}
+
+canvas.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  thrust();
+});
+btnReset.addEventListener('click', resetGame);
+btnPause.addEventListener('click', () => {
+  if(!running) return;
+  paused = !paused;
+  btnPause.textContent = paused ? t('orbCourierResume') : t('orbCourierPause');
+  draw();
+});
+ovBtn.addEventListener('click', resetGame);
+window.addEventListener('keydown', e => {
+  if(e.code === 'Space'){
+    e.preventDefault();
+    thrust();
+  }
+});
+
+applyLabels();
+draw();
+</script>
+</body>
+</html>
