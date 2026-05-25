@@ -220,16 +220,21 @@ function checkStations(){
       score++;
       flash(t('orbCourierDelivered'), cargo.fill);
       cargo = null;
-      if(score > 0 && score % 4 === 0){
-        wave++;
-        buildWave();
-      }
+      maybeAdvanceWave();
     } else {
       loseLife(t('orbCourierMissed'));
       cargo = null;
+      maybeAdvanceWave();
     }
     return;
   }
+}
+
+function maybeAdvanceWave(){
+  if(cargo) return;
+  if(pickups.some(item => !item.taken)) return;
+  wave++;
+  buildWave();
 }
 
 function checkDebris(){
