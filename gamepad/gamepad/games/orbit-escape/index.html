@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbit Escape · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#00d4ff;}
+html,body{background:var(--bg);width:100%;height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;color:var(--text);user-select:none;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+.hud{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.stat-pill span{color:var(--c);}
+canvas{display:block;position:fixed;top:0;left:0;z-index:1;}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.92);backdrop-filter:blur(10px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
+.score-big{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--c);letter-spacing:-2px;}
+.hint{font-size:12px;color:var(--muted);text-align:center;padding:0 20px;line-height:1.7;}
+.play-btn{background:rgba(0,212,255,0.14);border:1px solid rgba(0,212,255,.3);color:var(--c);padding:11px 32px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+.diff-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.diff-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.diff-btn:hover,.diff-btn.active{border-color:rgba(0,212,255,.4);color:var(--c);background:rgba(0,212,255,0.1);}
+#ctrl-area{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:30;}
+.ctrl-btn{width:64px;height:64px;background:var(--bg2);border:1px solid var(--border);border-radius:50%;color:var(--muted);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s;}
+.ctrl-btn:active{background:rgba(0,212,255,0.14);border-color:rgba(0,212,255,.35);color:var(--c);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div class="hud">
+  <div class="stat-pill"><span id="lbl-score-txt"></span>&nbsp;<span id="hud-score">0</span></div>
+  <div class="stat-pill"><span id="lbl-level-txt"></span>&nbsp;<span id="hud-level">1</span></div>
+  <div class="stat-pill">⛽&nbsp;<span id="hud-fuel">100</span>%</div>
+  <div class="stat-pill">❤️&nbsp;<span id="hud-lives">3</span></div>
+</div>
+<canvas id="gameCanvas"></canvas>
+<div id="ctrl-area">
+  <button class="ctrl-btn" id="btn-left"   onpointerdown="keys.left=true"   onpointerup="keys.left=false"   onpointerleave="keys.left=false">◄</button>
+  <button class="ctrl-btn" id="btn-thrust" onpointerdown="keys.thrust=true" onpointerup="keys.thrust=false" onpointerleave="keys.thrust=false">🚀</button>
+  <button class="ctrl-btn" id="btn-right"  onpointerdown="keys.right=true"  onpointerup="keys.right=false"  onpointerleave="keys.right=false">►</button>
+</div>
+<div id="overlay">
+  <div style="font-size:46px">🛸</div>
+  <h2 id="ov-title"></h2>
+  <div class="diff-row" id="diff-row"></div>
+  <div class="hint" id="ov-hint"></div>
+  <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
+</div>
+
+<script>
+document.getElementById('lbl-back').textContent      = t('back');
+document.getElementById('lbl-score-txt').textContent = t('orbitScore');
+document.getElementById('lbl-level-txt').textContent = t('orbitLevel');
+document.getElementById('ov-title').textContent      = t('orbitTitle');
+document.getElementById('ov-hint').textContent       = t('orbitHint');
+document.getElementById('ov-btn').textContent        = t('orbitPlay');
+
+const DIFFS = [
+  {key:'easy',   debrisN:4,  gravStr:80,  fuelDrain:0.04, rotSpd:2.8},
+  {key:'medium', debrisN:7,  gravStr:120, fuelDrain:0.07, rotSpd:3.2},
+  {key:'hard',   debrisN:12, gravStr:160, fuelDrain:0.12, rotSpd:3.8},
+];
+let diffIdx = 1;
+
+const diffRow = document.getElementById('diff-row');
+DIFFS.forEach(function(d,i) {
+  const btn = document.createElement('button');
+  btn.className = 'diff-btn' + (i===diffIdx?' active':'');
+  btn.textContent = t('diff'+d.key[0].toUpperCase()+d.key.slice(1));
+  btn.onclick = function() {
+    diffIdx=i;
+    diffRow.querySelectorAll('.diff-btn').forEach(function(b,j){ b.classList.toggle('active',j===i); });
+  };
+  diffRow.appendChild(btn);
+});
+
+const canvas = document.getElementById('gameCanvas');
+const cx = canvas.getContext('2d');
+
+function setCanvasSize() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+setCanvasSize();
+window.addEventListener('resize', setCanvasSize);
+
+function gW() { return canvas.width; }
+function gH() { return canvas.height; }
+
+const keys = {left:false, right:false, thrust:false};
+
+let ship, planets, rocks, parts, portal;
+let score, lives, level, fuel, animId, running, invTimer, frameN;
+
+function startGame() {
+  document.getElementById('overlay').style.display = 'none';
+  setCanvasSize();
+  score=0; lives=3; level=1; running=false;
+  initLevel();
+  running=true;
+  cancelAnimationFrame(animId);
+  gameLoop();
+}
+
+function initLevel() {
+  fuel=100; invTimer=0; frameN=0;
+  ship = { x:gW()/2, y:gH()/2, vx:1.2, vy:-0.8, angle:-Math.PI/2, r:10 };
+  parts = [];
+
+  // Planets
+  planets = [];
+  const pCount = 1 + Math.floor(level/2);
+  for (let i=0; i<pCount; i++) {
+    let px, py, n=0;
+    do { px=100+Math.random()*(gW()-200); py=100+Math.random()*(gH()-200); n++; }
+    while (n<60 && Math.hypot(px-gW()/2, py-gH()/2)<180);
+    planets.push({
+      x:px, y:py, r:22+Math.random()*16,
+      mass: DIFFS[diffIdx].gravStr*(0.7+Math.random()*0.6),
+      hue: Math.random()*360|0, ring:Math.random()<0.4, rot:0
+    });
+  }
+
+  // Rocks
+  rocks = [];
+  const rCount = DIFFS[diffIdx].debrisN + level*2;
+  for (let i=0; i<rCount; i++) {
+    let rx, ry, n=0;
+    do { rx=40+Math.random()*(gW()-80); ry=40+Math.random()*(gH()-80); n++; }
+    while (n<60 && Math.hypot(rx-gW()/2, ry-gH()/2)<130);
+    const spd=0.5+Math.random()*1.2+level*0.08;
+    const ang=Math.random()*Math.PI*2;
+    const nPts=5+Math.floor(Math.random()*4);
+    const verts=[];
+    for (let k=0;k<nPts;k++) {
+      const a=k/nPts*Math.PI*2, r=8+Math.random()*10;
+      verts.push([Math.cos(a)*r, Math.sin(a)*r]);
+    }
+    rocks.push({ x:rx, y:ry, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd,
+      r:12, verts:verts, rot:0, spin:(Math.random()-.5)*0.05, hue:20+Math.random()*30|0 });
+  }
+
+  // Portal
+  let px, py, n=0;
+  do {
+    px=80+Math.random()*(gW()-160);
+    py=80+Math.random()*(gH()-160);
+    n++;
+  } while (n<100 && (
+    Math.hypot(px-gW()/2, py-gH()/2)<180 ||
+    planets.some(function(p){ return Math.hypot(px-p.x,py-p.y)<p.r+70; })
+  ));
+  portal = { x:px, y:py, r:22, pulse:0 };
+
+  updateHUD();
+}
+
+function updateHUD() {
+  document.getElementById('hud-score').textContent = score;
+  document.getElementById('hud-level').textContent = level;
+  document.getElementById('hud-fuel').textContent  = Math.max(0,Math.ceil(fuel));
+  document.getElementById('hud-lives').textContent = lives;
+}
+
+function gameLoop() {
+  if (!running) return;
+  update();
+  render();
+  animId = requestAnimationFrame(gameLoop);
+}
+
+function update() {
+  const d = DIFFS[diffIdx];
+  frameN++;
+  if (invTimer>0) invTimer--;
+
+  if (keys.left)  ship.angle -= d.rotSpd*0.035;
+  if (keys.right) ship.angle += d.rotSpd*0.035;
+
+  if (keys.thrust && fuel>0) {
+    ship.vx += Math.cos(ship.angle)*0.18;
+    ship.vy += Math.sin(ship.angle)*0.18;
+    fuel = Math.max(0, fuel-d.fuelDrain);
+    for (let i=0;i<2;i++) {
+      parts.push({
+        x:ship.x-Math.cos(ship.angle)*14, y:ship.y-Math.sin(ship.angle)*14,
+        vx:(Math.random()-.5)*1.5-Math.cos(ship.angle)*2,
+        vy:(Math.random()-.5)*1.5-Math.sin(ship.angle)*2,
+        life:18, max:18, warm:Math.random()<.5
+      });
+    }
+  }
+
+  planets.forEach(function(p) {
+    const dx=p.x-ship.x, dy=p.y-ship.y, dist=Math.hypot(dx,dy)||1;
+    const f=p.mass/(dist*dist);
+    ship.vx+=dx/dist*f; ship.vy+=dy/dist*f;
+  });
+
+  const spd=Math.hypot(ship.vx,ship.vy);
+  const MAX=6+level*0.3;
+  if (spd>MAX) { ship.vx=ship.vx/spd*MAX; ship.vy=ship.vy/spd*MAX; }
+
+  ship.x=(ship.x+ship.vx+gW())%gW();
+  ship.y=(ship.y+ship.vy+gH())%gH();
+  fuel=Math.min(100,fuel+0.012);
+
+  rocks.forEach(function(r) {
+    r.x=(r.x+r.vx+gW())%gW(); r.y=(r.y+r.vy+gH())%gH(); r.rot+=r.spin;
+  });
+
+  parts=parts.filter(function(p){return p.life>0;});
+  parts.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.life--;});
+  planets.forEach(function(p){p.rot+=0.005;});
+  portal.pulse=(portal.pulse+0.06)%(Math.PI*2);
+
+  if (frameN%30===0) { score++; updateHUD(); }
+
+  if (invTimer===0) {
+    for (let i=0;i<planets.length;i++) {
+      if (Math.hypot(ship.x-planets[i].x, ship.y-planets[i].y)<planets[i].r+ship.r-2) { hitShip(); return; }
+    }
+    for (let i=0;i<rocks.length;i++) {
+      if (Math.hypot(ship.x-rocks[i].x, ship.y-rocks[i].y)<rocks[i].r+ship.r-4) { hitShip(); return; }
+    }
+  }
+
+  if (Math.hypot(ship.x-portal.x, ship.y-portal.y)<portal.r+ship.r) {
+    for (let i=0;i<30;i++) {
+      const a=Math.random()*Math.PI*2, s=1+Math.random()*4;
+      parts.push({x:ship.x,y:ship.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:40,max:40,warm:false});
+    }
+    score+=200+level*50; level++;
+    updateHUD(); initLevel();
+  }
+}
+
+function hitShip() {
+  lives--; invTimer=120;
+  for (let i=0;i<20;i++) {
+    const a=Math.random()*Math.PI*2, s=1+Math.random()*3;
+    parts.push({x:ship.x,y:ship.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:35,max:35,warm:true});
+  }
+  ship.vx*=-0.5; ship.vy*=-0.5;
+  updateHUD();
+  if (lives<=0) endGame();
+}
+
+function endGame() {
+  running=false; cancelAnimationFrame(animId);
+  const ov=document.getElementById('overlay');
+  ov.innerHTML='<div style="font-size:44px">💥</div>' +
+    '<h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:26px">'+t('orbitOver')+'</h2>' +
+    '<div class="score-big">'+score+'</div>' +
+    '<div style="font-size:12px;color:var(--muted)">'+t('orbitLevel')+' '+level+'</div>' +
+    '<div class="diff-row" id="dr2" style="margin-top:4px"></div>' +
+    '<button class="play-btn" onclick="startGame()" style="margin-top:6px">'+t('orbitAgain')+'</button>';
+  ov.style.display='flex';
+  const dr2=document.getElementById('dr2');
+  DIFFS.forEach(function(d,i){
+    const btn=document.createElement('button');
+    btn.className='diff-btn'+(i===diffIdx?' active':'');
+    btn.textContent=t('diff'+d.key[0].toUpperCase()+d.key.slice(1));
+    btn.onclick=function(){diffIdx=i;dr2.querySelectorAll('.diff-btn').forEach(function(b,j){b.classList.toggle('active',j===i);});};
+    dr2.appendChild(btn);
+  });
+}
+
+function render() {
+  const W=gW(), H=gH();
+  cx.fillStyle='#050507'; cx.fillRect(0,0,W,H);
+
+  // Stars
+  cx.fillStyle='rgba(255,255,255,0.22)';
+  for(let i=0;i<80;i++) cx.fillRect((i*137+7)%W,(i*97+13)%H,i%7===0?1.5:1,i%7===0?1.5:1);
+
+  // Planets
+  planets.forEach(function(p) {
+    const col='hsl('+p.hue+',55%,45%)';
+    const gr=Math.sqrt(p.mass)*18;
+    const grd=cx.createRadialGradient(p.x,p.y,p.r,p.x,p.y,gr);
+    grd.addColorStop(0,'hsla('+p.hue+',55%,45%,0.16)'); grd.addColorStop(1,'transparent');
+    cx.fillStyle=grd; cx.beginPath(); cx.arc(p.x,p.y,gr,0,Math.PI*2); cx.fill();
+    if(p.ring){
+      cx.save(); cx.translate(p.x,p.y); cx.rotate(p.rot);
+      cx.strokeStyle='hsla('+p.hue+',55%,65%,0.5)'; cx.lineWidth=3;
+      cx.beginPath(); cx.ellipse(0,0,p.r*1.8,p.r*0.5,0.4,0,Math.PI*2); cx.stroke();
+      cx.restore();
+    }
+    const g2=cx.createRadialGradient(p.x-p.r*.3,p.y-p.r*.3,0,p.x,p.y,p.r);
+    g2.addColorStop(0,'rgba(255,255,255,0.35)'); g2.addColorStop(0.4,col); g2.addColorStop(1,'rgba(0,0,0,0.5)');
+    cx.fillStyle=g2; cx.shadowColor=col; cx.shadowBlur=14;
+    cx.beginPath(); cx.arc(p.x,p.y,p.r,0,Math.PI*2); cx.fill(); cx.shadowBlur=0;
+  });
+
+  // Portal
+  const pgrd=cx.createRadialGradient(portal.x,portal.y,0,portal.x,portal.y,portal.r*2.5);
+  pgrd.addColorStop(0,'rgba(0,212,255,0.28)'); pgrd.addColorStop(1,'transparent');
+  cx.fillStyle=pgrd; cx.beginPath(); cx.arc(portal.x,portal.y,portal.r*2.5,0,Math.PI*2); cx.fill();
+  for(let i=0;i<3;i++){
+    cx.save(); cx.translate(portal.x,portal.y); cx.rotate(portal.pulse*2+i*Math.PI*2/3);
+    cx.strokeStyle='rgba(0,212,255,'+(0.3+Math.sin(portal.pulse+i)*0.25)+')';
+    cx.lineWidth=2; cx.beginPath();
+    cx.ellipse(0,0,portal.r*(1+i*0.4),portal.r*(0.45+i*0.2),0,0,Math.PI*2); cx.stroke();
+    cx.restore();
+  }
+  cx.fillStyle='rgba(0,212,255,0.9)'; cx.shadowColor='#00d4ff'; cx.shadowBlur=18;
+  cx.beginPath(); cx.arc(portal.x,portal.y,portal.r*0.38,0,Math.PI*2); cx.fill(); cx.shadowBlur=0;
+  cx.fillStyle='rgba(0,212,255,0.7)'; cx.font="bold 10px 'DM Sans',sans-serif";
+  cx.textAlign='center'; cx.textBaseline='top';
+  cx.fillText('EXIT',portal.x,portal.y+portal.r+5);
+
+  // Rocks
+  rocks.forEach(function(r) {
+    cx.save(); cx.translate(r.x,r.y); cx.rotate(r.rot);
+    cx.fillStyle='hsl('+r.hue+',45%,48%)';
+    cx.beginPath(); cx.moveTo(r.verts[0][0],r.verts[0][1]);
+    r.verts.forEach(function(v){cx.lineTo(v[0],v[1]);});
+    cx.closePath(); cx.fill();
+    cx.strokeStyle='rgba(255,255,255,0.18)'; cx.lineWidth=1; cx.stroke();
+    cx.restore();
+  });
+
+  // Particles
+  parts.forEach(function(p) {
+    cx.globalAlpha=p.life/p.max;
+    cx.fillStyle=p.warm?'#ff9f43':'#00d4ff';
+    cx.beginPath(); cx.arc(p.x,p.y,2.5,0,Math.PI*2); cx.fill();
+  }); cx.globalAlpha=1;
+
+  // Ship
+  if (!(invTimer>0 && Math.floor(invTimer/6)%2===1)) {
+    cx.save(); cx.translate(ship.x,ship.y); cx.rotate(ship.angle);
+    cx.shadowColor='#00d4ff'; cx.shadowBlur=keys.thrust?18:8;
+    cx.fillStyle='#00d4ff';
+    cx.beginPath(); cx.moveTo(14,0); cx.lineTo(-9,7); cx.lineTo(-5,0); cx.lineTo(-9,-7); cx.closePath(); cx.fill();
+    cx.fillStyle='rgba(255,255,255,0.45)';
+    cx.beginPath(); cx.ellipse(4,0,5,3.5,0,0,Math.PI*2); cx.fill();
+    cx.fillStyle='rgba(0,212,255,0.55)';
+    cx.beginPath(); cx.moveTo(-2,0); cx.lineTo(-9,12); cx.lineTo(-11,7); cx.closePath(); cx.fill();
+    cx.beginPath(); cx.moveTo(-2,0); cx.lineTo(-9,-12); cx.lineTo(-11,-7); cx.closePath(); cx.fill();
+    cx.shadowBlur=0; cx.restore();
+  }
+
+  // Fuel bar
+  cx.fillStyle='rgba(255,255,255,0.06)'; cx.fillRect(W-74,H-32,54,6);
+  cx.fillStyle=fuel<30?'#ff6b6b':fuel<60?'#ffd166':'#00d4ff';
+  cx.fillRect(W-74,H-32,54*(fuel/100),6);
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.code==='ArrowLeft'||e.code==='KeyA'){keys.left=true;}
+  if(e.code==='ArrowRight'||e.code==='KeyD'){keys.right=true;}
+  if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space'){e.preventDefault();keys.thrust=true;}
+  if((e.code==='Space'||e.code==='Enter')&&!running){e.preventDefault();startGame();}
+});
+document.addEventListener('keyup',function(e){
+  if(e.code==='ArrowLeft'||e.code==='KeyA'){keys.left=false;}
+  if(e.code==='ArrowRight'||e.code==='KeyD'){keys.right=false;}
+  if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space'){keys.thrust=false;}
+});
+</script>
+</body>
+</html>

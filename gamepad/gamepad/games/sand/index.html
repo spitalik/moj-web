@@ -37,202 +37,165 @@ html,body{background:var(--bg);height:100vh;overflow:hidden;font-family:'DM Sans
   <button class="brush-btn" onclick="setBrush(9)" id="bs-9">L</button>
   <button id="clear-btn" onclick="clearAll()"></button>
 </div>
-
 <script>
 document.getElementById('lbl-back').textContent  = t('back');
 document.getElementById('lbl-brush').textContent = t('sandBrush');
 document.getElementById('clear-btn').textContent = t('sandClear');
 
 const MATS = [
-  {id:1, nameKey:'sandSand',  colors:['#c8a96e','#d4b478','#b89558','#dab96e'], falls:true,  liquid:false, flammable:true},
-  {id:2, nameKey:'sandWater', colors:['#2980b9','#3498db','#1f6f9e','#4aa3d4'], falls:true,  liquid:true,  flammable:false},
-  {id:3, nameKey:'sandWall',  colors:['#555','#666','#4a4a4a','#5e5e5e'],        falls:false, liquid:false, flammable:false},
-  {id:4, nameKey:'sandFire',  colors:['#ff6b35','#ff4500','#ff8c00','#ffa500'],  falls:false, liquid:false, flammable:false, rising:true},
-  {id:5, nameKey:'sandSmoke', colors:['#777','#888','#666','#999'],               falls:false, liquid:false, flammable:false, rising:true},
-  {id:6, nameKey:'sandOil',   colors:['#8B4513','#7a3b0e','#9b5523','#6b3510'],  falls:true,  liquid:true,  flammable:true},
-  {id:7, nameKey:'sandLava',  colors:['#ff4500','#cc3700','#ff6633','#dd4400'],   falls:true,  liquid:true,  flammable:false},
-  {id:8, nameKey:'sandEraser',colors:null, falls:false, liquid:false},
+  {id:1,nameKey:'sandSand', colors:['#c8a96e','#d4b478','#b89558','#dab96e'],falls:true, liquid:false,flammable:true},
+  {id:2,nameKey:'sandWater',colors:['#2980b9','#3498db','#1f6f9e','#4aa3d4'],falls:true, liquid:true, flammable:false},
+  {id:3,nameKey:'sandWall', colors:['#555','#666','#4a4a4a','#5e5e5e'],       falls:false,liquid:false,flammable:false},
+  {id:4,nameKey:'sandFire', colors:['#ff6b35','#ff4500','#ff8c00','#ffa500'], falls:false,liquid:false,flammable:false},
+  {id:5,nameKey:'sandSmoke',colors:['#777','#888','#666','#999'],              falls:false,liquid:false,flammable:false},
+  {id:6,nameKey:'sandOil',  colors:['#8B4513','#7a3b0e','#9b5523','#6b3510'], falls:true, liquid:true, flammable:true},
+  {id:7,nameKey:'sandLava', colors:['#ff4500','#cc3700','#ff6633','#dd4400'],  falls:true, liquid:true, flammable:false},
+  {id:8,nameKey:'sandEraser',colors:null,falls:false,liquid:false},
 ];
 
-const CELL = 4;
-const TOP_H = 44;   // toolbar height
-const BOT_H = 38;   // brushbar height
+const CELL=4, TOP_H=44, BOT_H=38;
+const C=document.getElementById('c'), ctx=C.getContext('2d');
+let COLS,ROWS,grid,colorGrid,drawing=false,material=1,brushSize=2,animId;
 
-const C = document.getElementById('c');
-const ctx = C.getContext('2d');
-let COLS, ROWS, grid, colorGrid;
-let drawing = false, material = 1, brushSize = 2, animId;
-
-function resize() {
-  const W = window.innerWidth;
-  const H = window.innerHeight - TOP_H - BOT_H;
-  C.width  = W;
-  C.height = H;
-  C.style.top    = TOP_H + 'px';
-  C.style.bottom = BOT_H + 'px';
-  COLS = Math.floor(W / CELL);
-  ROWS = Math.floor(H / CELL);
-  grid      = new Uint8Array(COLS * ROWS);
-  colorGrid = new Uint8Array(COLS * ROWS);
+function resize(){
+  const W=window.innerWidth, H=window.innerHeight-TOP_H-BOT_H;
+  C.style.top=TOP_H+'px'; C.style.height=H+'px';
+  C.width=W; C.height=H;
+  COLS=Math.floor(W/CELL); ROWS=Math.floor(H/CELL);
+  grid=new Uint8Array(COLS*ROWS); colorGrid=new Uint8Array(COLS*ROWS);
 }
 
-function clearAll() {
-  grid.fill(0); colorGrid.fill(0);
-}
+function clearAll(){grid.fill(0);colorGrid.fill(0);}
+function idx(c,r){return r*COLS+c;}
+function get(c,r){if(c<0||c>=COLS||r<0||r>=ROWS)return -1;return grid[idx(c,r)];}
+function set(c,r,m,col){if(c<0||c>=COLS||r<0||r>=ROWS)return;grid[idx(c,r)]=m;if(col!==undefined)colorGrid[idx(c,r)]=col;}
 
-function idx(c, r) { return r * COLS + c; }
-function get(c, r) {
-  if (c < 0 || c >= COLS || r < 0 || r >= ROWS) return -1;
-  return grid[idx(c, r)];
-}
-function set(c, r, m, col) {
-  if (c < 0 || c >= COLS || r < 0 || r >= ROWS) return;
-  grid[idx(c, r)] = m;
-  if (col !== undefined) colorGrid[idx(c, r)] = col;
-}
-
-function place(px, py) {
-  const c = Math.floor(px / CELL);
-  const r = Math.floor(py / CELL);
-  for (let dr = -brushSize; dr <= brushSize; dr++) {
-    for (let dc = -brushSize; dc <= brushSize; dc++) {
-      if (dc*dc + dr*dr > brushSize*brushSize) continue;
-      if (material === 8) { set(c+dc, r+dr, 0, 0); continue; }
-      if (get(c+dc, r+dr) === 0) {
-        const mat = MATS[material - 1];
-        set(c+dc, r+dr, material, Math.floor(Math.random() * mat.colors.length));
+function place(px,py){
+  const c=Math.floor(px/CELL), r=Math.floor(py/CELL);
+  for(let dr=-brushSize;dr<=brushSize;dr++){
+    for(let dc=-brushSize;dc<=brushSize;dc++){
+      if(dc*dc+dr*dr>brushSize*brushSize)continue;
+      if(material===8){set(c+dc,r+dr,0,0);continue;}
+      if(get(c+dc,r+dr)===0){
+        const mat=MATS[material-1];
+        set(c+dc,r+dr,material,Math.floor(Math.random()*mat.colors.length));
       }
     }
   }
 }
 
-function update() {
-  for (let r = ROWS - 1; r >= 0; r--) {
-    const leftToRight = Math.random() < 0.5;
-    for (let ci = 0; ci < COLS; ci++) {
-      const c = leftToRight ? ci : COLS - 1 - ci;
-      const m = get(c, r); if (!m) continue;
-      const mat = MATS[m - 1];
-
-      // Fire
-      if (m === 4) {
-        if (r > 0 && !get(c, r-1) && Math.random() < 0.12) set(c, r-1, 5, Math.floor(Math.random()*4));
-        for (const [dc,dr] of [[-1,0],[1,0],[0,-1],[0,1]]) {
-          const n = get(c+dc, r+dr);
-          if (n && n !== 4 && n !== 5 && MATS[n-1]?.flammable && Math.random() < 0.03) set(c+dc, r+dr, 4, Math.floor(Math.random()*4));
+function update(){
+  for(let r=ROWS-1;r>=0;r--){
+    const ltr=Math.random()<0.5;
+    for(let ci=0;ci<COLS;ci++){
+      const c=ltr?ci:COLS-1-ci;
+      const m=get(c,r);if(!m)continue;
+      const mat=MATS[m-1];
+      if(m===4){
+        if(r>0&&!get(c,r-1)&&Math.random()<0.12)set(c,r-1,5,Math.floor(Math.random()*4));
+        for(const[dc,dr]of[[-1,0],[1,0],[0,-1],[0,1]]){
+          const n=get(c+dc,r+dr);
+          if(n&&n!==4&&n!==5&&MATS[n-1]?.flammable&&Math.random()<0.03)set(c+dc,r+dr,4,Math.floor(Math.random()*4));
         }
-        if (Math.random() < 0.008) set(c, r, 0, 0);
+        if(Math.random()<0.008)set(c,r,0,0);
         continue;
       }
-
-      // Smoke
-      if (m === 5) {
-        if (r > 0 && !get(c, r-1)) { set(c, r-1, 5, colorGrid[idx(c,r)]); set(c, r, 0, 0); }
-        else if (Math.random() < 0.004) set(c, r, 0, 0);
+      if(m===5){
+        if(r>0&&!get(c,r-1)){set(c,r-1,5,colorGrid[idx(c,r)]);set(c,r,0,0);}
+        else if(Math.random()<0.004)set(c,r,0,0);
         continue;
       }
-
-      if (!mat.falls && !mat.liquid) continue;
-
-      if (r < ROWS - 1) {
-        const below = get(c, r+1);
-        if (below === 0) { set(c, r+1, m, colorGrid[idx(c,r)]); set(c, r, 0, 0); continue; }
-        const dir = Math.random() < 0.5 ? 1 : -1;
-        if (mat.liquid) {
-          if (!get(c+dir, r)) { set(c+dir, r, m, colorGrid[idx(c,r)]); set(c, r, 0, 0); continue; }
-          if (!get(c-dir, r)) { set(c-dir, r, m, colorGrid[idx(c,r)]); set(c, r, 0, 0); continue; }
-        } else {
-          if (!get(c+dir, r+1)) { set(c+dir, r+1, m, colorGrid[idx(c,r)]); set(c, r, 0, 0); continue; }
-          if (!get(c-dir, r+1)) { set(c-dir, r+1, m, colorGrid[idx(c,r)]); set(c, r, 0, 0); continue; }
+      if(!mat.falls&&!mat.liquid)continue;
+      if(r<ROWS-1){
+        const below=get(c,r+1);
+        if(below===0){set(c,r+1,m,colorGrid[idx(c,r)]);set(c,r,0,0);continue;}
+        const dir=Math.random()<0.5?1:-1;
+        if(mat.liquid){
+          if(!get(c+dir,r)){set(c+dir,r,m,colorGrid[idx(c,r)]);set(c,r,0,0);continue;}
+          if(!get(c-dir,r)){set(c-dir,r,m,colorGrid[idx(c,r)]);set(c,r,0,0);continue;}
+        }else{
+          if(!get(c+dir,r+1)){set(c+dir,r+1,m,colorGrid[idx(c,r)]);set(c,r,0,0);continue;}
+          if(!get(c-dir,r+1)){set(c-dir,r+1,m,colorGrid[idx(c,r)]);set(c,r,0,0);continue;}
         }
       }
-
-      // Lava + water → wall
-      if (m === 7) {
-        for (const [dc,dr] of [[-1,0],[1,0],[0,-1],[0,1]]) {
-          if (get(c+dc, r+dr) === 2) { set(c, r, 3, 0); set(c+dc, r+dr, 5, 0); break; }
+      if(m===7){
+        for(const[dc,dr]of[[-1,0],[1,0],[0,-1],[0,1]]){
+          if(get(c+dc,r+dr)===2){set(c,r,3,0);set(c+dc,r+dr,5,0);break;}
         }
       }
     }
   }
 }
 
-const hexCache = {};
-function hexRGB(hex) {
-  if (hexCache[hex]) return hexCache[hex];
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-  return hexCache[hex] = [r, g, b];
+const hexCache={};
+function hexRGB(hex){
+  if(hexCache[hex])return hexCache[hex];
+  return hexCache[hex]=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];
 }
 
-function draw() {
-  const W = C.width, H = C.height;
-  const img = ctx.createImageData(W, H);
-  const data = img.data;
-  // Background
-  for (let i = 0; i < data.length; i += 4) { data[i]=6; data[i+1]=6; data[i+2]=14; data[i+3]=255; }
-
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const m = get(c, r); if (!m) continue;
-      const mat = MATS[m-1]; if (!mat.colors) continue;
-      const col = mat.colors[colorGrid[idx(c,r)] % mat.colors.length];
-      const [R, G, B] = hexRGB(col);
-      for (let dy = 0; dy < CELL; dy++) {
-        for (let dx = 0; dx < CELL; dx++) {
-          const p = ((r*CELL+dy)*W + (c*CELL+dx)) * 4;
-          if (p < 0 || p >= data.length - 3) continue;
-          data[p]=R; data[p+1]=G; data[p+2]=B; data[p+3]=255;
+function draw(){
+  const W=C.width,H=C.height;
+  const img=ctx.createImageData(W,H);
+  const d=img.data;
+  for(let i=0;i<d.length;i+=4){d[i]=6;d[i+1]=6;d[i+2]=14;d[i+3]=255;}
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const m=get(c,r);if(!m)continue;
+      const mat=MATS[m-1];if(!mat.colors)continue;
+      const [R,G,B]=hexRGB(mat.colors[colorGrid[idx(c,r)]%mat.colors.length]);
+      for(let dy=0;dy<CELL;dy++){
+        for(let dx=0;dx<CELL;dx++){
+          const p=((r*CELL+dy)*W+(c*CELL+dx))*4;
+          if(p<0||p+3>=d.length)continue;
+          d[p]=R;d[p+1]=G;d[p+2]=B;d[p+3]=255;
         }
       }
     }
   }
-  ctx.putImageData(img, 0, 0);
+  ctx.putImageData(img,0,0);
 }
 
-function loop() { update(); draw(); animId = requestAnimationFrame(loop); }
+function loop(){update();draw();animId=requestAnimationFrame(loop);}
 
-function setBrush(s) {
-  brushSize = s;
-  ['bs-2','bs-5','bs-9'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+function setBrush(s){
+  brushSize=s;
+  ['bs-2','bs-5','bs-9'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
   document.getElementById(`bs-${s}`)?.classList.add('active');
 }
 
-// Toolbar
-const toolbar = document.getElementById('toolbar');
-MATS.forEach(mat => {
-  const btn = document.createElement('button');
-  btn.className = 'mat-btn' + (mat.id === 1 ? ' active' : '');
-  const col = mat.colors ? mat.colors[0] : '#888';
-  btn.style.borderColor = mat.id === 1 ? col : 'rgba(255,255,255,0.08)';
-  btn.innerHTML = mat.colors
-    ? `<span style="width:9px;height:9px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0"></span>${t(mat.nameKey)}`
-    : `✕ ${t(mat.nameKey)}`;
-  btn.onclick = () => {
-    material = mat.id;
-    toolbar.querySelectorAll('.mat-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor='rgba(255,255,255,0.08)'; });
-    btn.classList.add('active');
-    btn.style.borderColor = col;
+const toolbar=document.getElementById('toolbar');
+MATS.forEach(mat=>{
+  const btn=document.createElement('button');
+  btn.className='mat-btn'+(mat.id===1?' active':'');
+  const col=mat.colors?mat.colors[0]:'#888';
+  btn.style.borderColor=mat.id===1?col:'rgba(255,255,255,0.08)';
+  btn.innerHTML=mat.colors
+    ?`<span style="width:9px;height:9px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0"></span>${t(mat.nameKey)}`
+    :`✕ ${t(mat.nameKey)}`;
+  btn.onclick=()=>{
+    material=mat.id;
+    toolbar.querySelectorAll('.mat-btn').forEach(b=>{b.classList.remove('active');b.style.borderColor='rgba(255,255,255,0.08)';});
+    btn.classList.add('active');btn.style.borderColor=col;
   };
   toolbar.appendChild(btn);
 });
 
-// Pointer events — use canvas-relative coords directly
-function getPos(e) {
-  const rect = C.getBoundingClientRect();
-  const touch = e.touches ? e.touches[0] : e.changedTouches ? e.changedTouches[0] : e;
-  return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+function getPos(e){
+  const rect=C.getBoundingClientRect();
+  const src=e.touches?e.touches[0]:e.changedTouches?e.changedTouches[0]:e;
+  return{x:src.clientX-rect.left,y:src.clientY-rect.top};
 }
 
-C.addEventListener('mousedown',  e => { drawing = true;  const p = getPos(e); place(p.x, p.y); });
-C.addEventListener('mousemove',  e => { if (drawing) { const p = getPos(e); place(p.x, p.y); } });
-C.addEventListener('mouseup',    () => drawing = false);
-C.addEventListener('mouseleave', () => drawing = false);
-C.addEventListener('touchstart', e => { e.preventDefault(); drawing = true;  const p = getPos(e); place(p.x, p.y); }, {passive:false});
-C.addEventListener('touchmove',  e => { e.preventDefault(); if (drawing) { const p = getPos(e); place(p.x, p.y); } }, {passive:false});
-C.addEventListener('touchend',   e => { drawing = false; }, {passive:false});
+C.addEventListener('mousedown', e=>{drawing=true;const p=getPos(e);place(p.x,p.y);});
+C.addEventListener('mousemove', e=>{if(drawing){const p=getPos(e);place(p.x,p.y);}});
+C.addEventListener('mouseup',   ()=>drawing=false);
+C.addEventListener('mouseleave',()=>drawing=false);
+C.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=getPos(e);place(p.x,p.y);},{passive:false});
+C.addEventListener('touchmove', e=>{e.preventDefault();if(drawing){const p=getPos(e);place(p.x,p.y);}},{passive:false});
+C.addEventListener('touchend',  ()=>drawing=false,{passive:false});
 
 resize();
-window.addEventListener('resize', () => { cancelAnimationFrame(animId); resize(); loop(); });
+window.addEventListener('resize',()=>{cancelAnimationFrame(animId);resize();loop();});
 loop();
 </script>
 </body>
