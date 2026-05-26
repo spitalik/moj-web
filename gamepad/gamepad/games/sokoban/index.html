@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sokoban · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#ffd166;--cdim:rgba(255,209,102,0.14);}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;}
+body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;right:-100px;background:radial-gradient(circle,rgba(255,209,102,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 12px 100px;gap:10px;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;}
+.ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
+#canvas-wrap{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg1);}
+canvas{display:block;}
+#dpad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,54px);gap:5px;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);}
+.d{background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s;}
+.d:active{background:var(--cdim);border-color:rgba(255,209,102,.3);color:var(--c);}
+#d-up{grid-column:2;grid-row:1;}#d-left{grid-column:1;grid-row:2;}#d-down{grid-column:2;grid-row:2;}#d-right{grid-column:3;grid-row:2;}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,5,7,.92);backdrop-filter:blur(10px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
+.score-big{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--c);letter-spacing:-2px;}
+.hint{font-size:12px;color:var(--muted);text-align:center;padding:0 20px;}
+.play-btn{background:var(--cdim);border:1px solid rgba(255,209,102,.3);color:var(--c);padding:11px 32px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+.lev-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:320px;}
+.lev-btn{width:36px;height:36px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.lev-btn:hover{border-color:var(--border-h);color:var(--text);}
+.lev-btn.done{background:rgba(77,255,145,0.1);border-color:rgba(77,255,145,.3);color:#4dff91;}
+.lev-btn.current{background:var(--cdim);border-color:rgba(255,209,102,.4);color:var(--c);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div id="overlay">
+  <div style="font-size:44px">📦</div>
+  <h2 id="ov-title"></h2>
+  <div class="hint" id="ov-hint"></div>
+  <div class="lev-row" id="lev-row"></div>
+  <button class="play-btn" id="ov-btn" onclick="startLevel(currentLevel)"></button>
+</div>
+<div class="page">
+  <div class="game-title" id="lbl-title"></div>
+  <div class="hud">
+    <div class="stat-pill"><span id="lbl-lev-txt"></span>&nbsp;<span id="hud-lev">1</span></div>
+    <div class="stat-pill"><span id="lbl-moves-txt"></span>&nbsp;<span id="hud-moves">0</span></div>
+    <button class="ctrl-btn" id="btn-undo" onclick="undo()">↩</button>
+    <button class="ctrl-btn" id="btn-restart" onclick="restartLevel()"></button>
+    <button class="ctrl-btn" id="btn-levels" onclick="showMenu()"></button>
+  </div>
+  <div id="canvas-wrap"><canvas id="gameCanvas"></canvas></div>
+</div>
+<div id="dpad">
+  <button class="d" id="d-up"    onpointerdown="move(0,-1)">▲</button>
+  <button class="d" id="d-left"  onpointerdown="move(-1,0)">◄</button>
+  <button class="d" id="d-down"  onpointerdown="move(0,1)">▼</button>
+  <button class="d" id="d-right" onpointerdown="move(1,0)">►</button>
+</div>
+
+<script>
+document.getElementById('lbl-back').textContent      = t('back');
+document.getElementById('lbl-title').textContent     = t('sokoTitle');
+document.getElementById('ov-title').textContent      = t('sokoTitle');
+document.getElementById('ov-hint').textContent       = t('sokoHint');
+document.getElementById('ov-btn').textContent        = t('sokoPlay');
+document.getElementById('lbl-lev-txt').textContent   = t('sokoLevel');
+document.getElementById('lbl-moves-txt').textContent = t('sokoMoves');
+document.getElementById('btn-restart').textContent   = t('sokoRestart');
+document.getElementById('btn-levels').textContent    = t('sokoLevels');
+
+// ── LEVELS ────────────────────────────────────────────────────────────────
+// Format: # = wall, ' ' = floor, @ = player, $ = box, . = goal, * = box on goal, + = player on goal
+const LEVELS = [
+  // 1 - Tutorial
+  ['#####',
+   '#@$.#',
+   '#####'],
+  // 2
+  ['#####',
+   '# @ #',
+   '# $ #',
+   '# . #',
+   '#####'],
+  // 3
+  ['######',
+   '#@ $ #',
+   '#. . #',
+   '# $  #',
+   '#    #',
+   '######'],
+  // 4
+  ['########',
+   '#      #',
+   '# .**. #',
+   '# $  $ #',
+   '#  @@  #',
+   '#      #',
+   '########'],
+  // 5
+  ['  #####',
+   '###   #',
+   '#   $ #',
+   '# #$# #',
+   '# . . #',
+   '###.###',
+   '  # @  ',
+   '  #####'],
+  // 6
+  ['######',
+   '#    #',
+   '# $$ #',
+   '#.  .#',
+   '# @  #',
+   '######'],
+  // 7
+  [' #### ',
+   '##  ##',
+   '#  $ #',
+   '# $. #',
+   '#. @ #',
+   '#    #',
+   '######'],
+  // 8
+  ['########',
+   '#  @   #',
+   '#  $$  #',
+   '## .. ##',
+   ' #    # ',
+   ' ###### '],
+  // 9
+  ['######',
+   '#.   #',
+   '#  $.#',
+   '#.$  #',
+   '#  @ #',
+   '######'],
+  // 10
+  [' #### ',
+   '##  ##',
+   '# $$ #',
+   '#.@@.#',
+   '# $$ #',
+   '##  ##',
+   ' #### '],
+  // 11
+  ['########',
+   '#      #',
+   '# $.$. #',
+   '# .$@$ #',
+   '# .... #',
+   '#      #',
+   '########'],
+  // 12
+  ['  #####',
+   '###   #',
+   '# $ @ #',
+   '#.$. .#',
+   '# $ $ #',
+   '###   #',
+   '  #####'],
+  // 13
+  ['#######',
+   '#     #',
+   '# .$. #',
+   '#.$@$.#',
+   '# .$. #',
+   '#     #',
+   '#######'],
+  // 14
+  ['########',
+   '# @    #',
+   '# $$$  #',
+   '# .$.  #',
+   '# .$.. #',
+   '#      #',
+   '########'],
+  // 15
+  [' ######',
+   '## ..@#',
+   '#  $$##',
+   '#  $  #',
+   '## .. #',
+   ' ######'],
+  // 16
+  ['########',
+   '#  ..  #',
+   '# $$$$ #',
+   '#  ..  #',
+   '#  @   #',
+   '########'],
+  // 17
+  ['  ####  ',
+   '###  ###',
+   '# $  $ #',
+   '#. @@ .#',
+   '# $  $ #',
+   '###  ###',
+   '  ####  '],
+  // 18
+  ['#######',
+   '#.    #',
+   '#.$$$ #',
+   '#.  @ #',
+   '#.$$$ #',
+   '#.    #',
+   '#######'],
+  // 19
+  ['########',
+   '#  @   #',
+   '# .$.. #',
+   '# $.$. #',
+   '# ..$. #',
+   '# ..$$ #',
+   '#      #',
+   '########'],
+  // 20
+  ['  ##### ',
+   '###   # ',
+   '# $ $ ##',
+   '# . . .#',
+   '## $@$  ',
+   ' # . .##',
+   ' #     #',
+   ' #######'],
+];
+
+const CELL = 44;
+let currentLevel = 0;
+let grid, player, moves, history, solved;
+let completed = new Array(LEVELS.length).fill(false);
+
+// Build level picker
+const levRow = document.getElementById('lev-row');
+LEVELS.forEach(function(_, i) {
+  const btn = document.createElement('button');
+  btn.className = 'lev-btn' + (i === 0 ? ' current' : '');
+  btn.id = 'lbtn-' + i;
+  btn.textContent = i + 1;
+  btn.onclick = function() { startLevel(i); };
+  levRow.appendChild(btn);
+});
+
+function showMenu() {
+  // Update level buttons
+  LEVELS.forEach(function(_, i) {
+    const btn = document.getElementById('lbtn-' + i);
+    btn.className = 'lev-btn' + (completed[i] ? ' done' : '') + (i === currentLevel ? ' current' : '');
+  });
+  document.getElementById('overlay').style.display = 'flex';
+}
+
+function parseLevel(levelData) {
+  const rows = levelData;
+  const h = rows.length;
+  const w = Math.max.apply(null, rows.map(function(r) { return r.length; }));
+  const g = [];
+  let px = 0, py = 0;
+  for (let r = 0; r < h; r++) {
+    const row = [];
+    for (let c = 0; c < w; c++) {
+      const ch = (rows[r][c] || ' ');
+      row.push(ch);
+      if (ch === '@' || ch === '+') { px = c; py = r; }
+    }
+    g.push(row);
+  }
+  return { grid: g, px: px, py: py, w: w, h: h };
+}
+
+function startLevel(idx) {
+  document.getElementById('overlay').style.display = 'none';
+  currentLevel = idx;
+  const parsed = parseLevel(LEVELS[idx]);
+  grid = parsed.grid;
+  player = { x: parsed.px, y: parsed.py };
+  moves = 0; history = []; solved = false;
+  document.getElementById('hud-lev').textContent = idx + 1;
+  document.getElementById('hud-moves').textContent = 0;
+  resizeCanvas();
+  render();
+}
+
+function restartLevel() { startLevel(currentLevel); }
+
+function resizeCanvas() {
+  const parsed = parseLevel(LEVELS[currentLevel]);
+  const W = parsed.w * CELL;
+  const H = parsed.h * CELL;
+  const canvas = document.getElementById('gameCanvas');
+  canvas.width = Math.min(W, window.innerWidth - 24);
+  canvas.height = H * (canvas.width / W);
+  render();
+}
+
+function cloneGrid(g) {
+  return g.map(function(r) { return r.slice(); });
+}
+
+function move(dx, dy) {
+  if (solved) return;
+  const nx = player.x + dx, ny = player.y + dy;
+  const cur = grid[player.y][player.x];
+  const target = grid[ny] && grid[ny][nx];
+  if (!target || target === '#') return;
+
+  // Check if pushing a box
+  if (target === '$' || target === '*') {
+    const bx = nx + dx, by = ny + dy;
+    const beyond = grid[by] && grid[by][bx];
+    if (!beyond || beyond === '#' || beyond === '$' || beyond === '*') return;
+    // Save state for undo
+    history.push({ grid: cloneGrid(grid), px: player.x, py: player.y, moves: moves });
+    // Move box
+    grid[by][bx] = beyond === '.' ? '*' : '$';
+    grid[ny][nx] = target === '*' ? '.' : ' ';
+  } else {
+    history.push({ grid: cloneGrid(grid), px: player.x, py: player.y, moves: moves });
+  }
+
+  // Move player
+  grid[player.y][player.x] = cur === '+' ? '.' : ' ';
+  grid[ny][nx] === '.' || grid[ny][nx] === '*' ?
+    (grid[ny][nx] = grid[ny][nx] === '.' ? '+' : '+') :
+    (grid[ny][nx] = target === '.' ? '+' : '@');
+
+  // Fix: set player cell correctly
+  const dest = grid[ny][nx];
+  if (dest !== '+' && dest !== '@') {
+    grid[ny][nx] = (target === '.' || target === '*') ? '+' : '@';
+  }
+
+  player.x = nx; player.y = ny;
+  moves++;
+  document.getElementById('hud-moves').textContent = moves;
+  render();
+  checkWin();
+}
+
+function undo() {
+  if (!history.length) return;
+  const state = history.pop();
+  grid = state.grid;
+  player = { x: state.px, y: state.py };
+  moves = state.moves;
+  document.getElementById('hud-moves').textContent = moves;
+  solved = false;
+  render();
+}
+
+function checkWin() {
+  // Win if no unplaced boxes ($)
+  const hasUnplaced = grid.some(function(row) {
+    return row.some(function(c) { return c === '$'; });
+  });
+  if (!hasUnplaced) {
+    solved = true;
+    completed[currentLevel] = true;
+    setTimeout(function() {
+      const isLast = currentLevel === LEVELS.length - 1;
+      const ov = document.getElementById('overlay');
+      ov.innerHTML =
+        '<div style="font-size:44px">🎉</div>' +
+        '<h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:26px">' + t('sokoWin') + '</h2>' +
+        '<div class="score-big">' + moves + '</div>' +
+        '<div style="font-size:12px;color:var(--muted)">' + t('sokoMoves') + '</div>' +
+        (isLast
+          ? '<button class="play-btn" onclick="showMenu()">' + t('sokoLevels') + '</button>'
+          : '<button class="play-btn" onclick="startLevel(' + (currentLevel+1) + ')">' + t('sokoNext') + '</button>') +
+        '<button onclick="showMenu()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(240,238,255,0.4);padding:7px 18px;border-radius:100px;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer;">' + t('sokoLevels') + '</button>';
+      ov.style.display = 'flex';
+    }, 300);
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function render() {
+  const canvas = document.getElementById('gameCanvas');
+  const cx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const rows = grid.length, cols = grid[0].length;
+  const cw = W / cols, ch = H / rows;
+
+  cx.fillStyle = '#0c0c10'; cx.fillRect(0, 0, W, H);
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const ch2 = grid[r][c];
+      const x = c * cw, y = r * ch;
+
+      if (ch2 === ' ' || ch2 === '@' || ch2 === '.' || ch2 === '+') {
+        // Floor
+        cx.fillStyle = 'rgba(255,255,255,0.02)';
+        cx.fillRect(x+1, y+1, cw-2, ch-2);
+      }
+      if (ch2 === '#') {
+        // Wall
+        cx.fillStyle = '#1a1a2e';
+        cx.fillRect(x, y, cw, ch);
+        cx.fillStyle = 'rgba(167,139,250,0.15)';
+        cx.fillRect(x+1, y+1, cw-2, ch-2);
+        cx.strokeStyle = 'rgba(167,139,250,0.2)';
+        cx.lineWidth = 1;
+        cx.strokeRect(x+0.5, y+0.5, cw-1, ch-1);
+      }
+      if (ch2 === '.' || ch2 === '+' || ch2 === '*') {
+        // Goal marker
+        cx.strokeStyle = 'rgba(255,209,102,0.5)';
+        cx.lineWidth = 2;
+        cx.beginPath();
+        cx.arc(x+cw/2, y+ch/2, cw*0.2, 0, Math.PI*2);
+        cx.stroke();
+        cx.fillStyle = 'rgba(255,209,102,0.1)';
+        cx.fill();
+      }
+      if (ch2 === '$' || ch2 === '*') {
+        // Box
+        const pad = cw * 0.1;
+        const col = ch2 === '*' ? '#4dff91' : '#ffd166';
+        cx.fillStyle = ch2 === '*' ? 'rgba(77,255,145,0.15)' : 'rgba(255,209,102,0.12)';
+        cx.fillRect(x+pad, y+pad, cw-pad*2, ch-pad*2);
+        cx.strokeStyle = col;
+        cx.lineWidth = 2;
+        cx.beginPath();
+        cx.roundRect(x+pad, y+pad, cw-pad*2, ch-pad*2, 5);
+        cx.stroke();
+        cx.shadowColor = col; cx.shadowBlur = ch2==='*'?10:6;
+        cx.fillStyle = col;
+        cx.beginPath();
+        cx.roundRect(x+pad+3, y+pad+3, cw-pad*2-6, ch-pad*2-6, 3);
+        cx.fill(); cx.shadowBlur=0;
+        // X mark on box
+        cx.strokeStyle = ch2==='*'?'rgba(77,255,145,0.6)':'rgba(255,209,102,0.4)';
+        cx.lineWidth=1.5;
+        const m=cw*0.25;
+        cx.beginPath(); cx.moveTo(x+m,y+m); cx.lineTo(x+cw-m,y+ch-m); cx.stroke();
+        cx.beginPath(); cx.moveTo(x+cw-m,y+m); cx.lineTo(x+m,y+ch-m); cx.stroke();
+      }
+    }
+  }
+
+  // Player
+  const px2 = player.x * cw + cw/2;
+  const py2 = player.y * ch + ch/2;
+  const pr = cw * 0.32;
+  cx.fillStyle = '#fff';
+  cx.shadowColor = 'rgba(0,212,255,0.7)'; cx.shadowBlur = 14;
+  cx.beginPath(); cx.arc(px2, py2, pr, 0, Math.PI*2); cx.fill();
+  cx.shadowBlur = 0;
+  cx.fillStyle = '#00d4ff';
+  cx.beginPath(); cx.arc(px2, py2, pr*0.45, 0, Math.PI*2); cx.fill();
+  // Eye
+  cx.fillStyle = '#050507';
+  cx.beginPath(); cx.arc(px2+pr*0.25, py2-pr*0.2, pr*0.18, 0, Math.PI*2); cx.fill();
+}
+
+// ── KEYBOARD ──────────────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  const map = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+                KeyW:[0,-1], KeyS:[0,1], KeyA:[-1,0], KeyD:[1,0] };
+  if (map[e.code]) { e.preventDefault(); move(map[e.code][0], map[e.code][1]); }
+  if (e.code === 'KeyZ' || e.code === 'KeyU') undo();
+  if (e.code === 'KeyR') restartLevel();
+});
+
+// Swipe
+let tx=0, ty=0;
+document.getElementById('gameCanvas').addEventListener('touchstart', function(e) {
+  tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+}, {passive:true});
+document.getElementById('gameCanvas').addEventListener('touchend', function(e) {
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>Math.abs(dy)){if(Math.abs(dx)>20)move(dx>0?1:-1,0);}
+  else{if(Math.abs(dy)>20)move(0,dy>0?1:-1);}
+}, {passive:true});
+
+// Init
+showMenu();
+</script>
+</body>
+</html>

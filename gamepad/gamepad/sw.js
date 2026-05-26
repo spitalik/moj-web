@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v19';
+const CACHE = 'gamepad-v20';
 const ASSETS = [
   './',
   './index.html',
@@ -38,6 +38,8 @@ const ASSETS = [
   './games/echo-vault/index.html',
   './games/tiny-alchemist/index.html',
   './games/signal-garden/index.html',
+  './games/sokoban/index.html',
+  './games/ricochet/index.html',
 ];
 
 self.addEventListener('install', e => {

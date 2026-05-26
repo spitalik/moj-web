@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ricochet · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#ff6b9d;--cdim:rgba(255,107,157,0.14);}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;}
+body::before{content:'';position:fixed;width:500px;height:500px;bottom:-150px;left:-100px;background:radial-gradient(circle,rgba(255,107,157,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 12px 30px;gap:12px;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;}
+.ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
+#canvas-wrap{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg1);cursor:pointer;position:relative;}
+canvas{display:block;}
+#info-bar{font-size:12px;color:var(--muted);text-align:center;min-height:16px;}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.92);backdrop-filter:blur(10px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
+.score-big{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--c);letter-spacing:-2px;}
+.hint{font-size:12px;color:var(--muted);text-align:center;padding:0 20px;line-height:1.7;}
+.play-btn{background:var(--cdim);border:1px solid rgba(255,107,157,.3);color:var(--c);padding:11px 32px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+.lev-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:320px;}
+.lev-btn{width:36px;height:36px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.lev-btn:hover{border-color:var(--border-h);color:var(--text);}
+.lev-btn.done{background:rgba(77,255,145,0.1);border-color:rgba(77,255,145,.3);color:#4dff91;}
+.lev-btn.current{background:var(--cdim);border-color:rgba(255,107,157,.4);color:var(--c);}
+.mirror-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.mir-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.mir-btn.active{background:var(--cdim);border-color:rgba(255,107,157,.4);color:var(--c);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div id="overlay">
+  <div style="font-size:44px">🎯</div>
+  <h2 id="ov-title"></h2>
+  <div class="hint" id="ov-hint"></div>
+  <div class="lev-row" id="lev-row"></div>
+  <button class="play-btn" id="ov-btn" onclick="startLevel(currentLevel)"></button>
+</div>
+<div class="page">
+  <div class="game-title" id="lbl-title"></div>
+  <div class="hud">
+    <div class="stat-pill"><span id="lbl-lev-txt"></span>&nbsp;<span id="hud-lev">1</span></div>
+    <div class="stat-pill"><span id="lbl-shots-txt"></span>&nbsp;<span id="hud-shots">0</span></div>
+    <div class="stat-pill" id="pill-mirrors"></div>
+    <button class="ctrl-btn" id="btn-undo"    onclick="undoMirror()">↩</button>
+    <button class="ctrl-btn" id="btn-restart" onclick="restartLevel()"></button>
+    <button class="ctrl-btn" id="btn-levels"  onclick="showMenu()"></button>
+  </div>
+  <div class="mirror-btns" id="mirror-btns"></div>
+  <div id="canvas-wrap"><canvas id="gameCanvas"></canvas></div>
+  <div id="info-bar"></div>
+</div>
+<script>
+document.getElementById('lbl-back').textContent       = t('back');
+document.getElementById('lbl-title').textContent      = t('ricoTitle');
+document.getElementById('ov-title').textContent       = t('ricoTitle');
+document.getElementById('ov-hint').textContent        = t('ricoHint');
+document.getElementById('ov-btn').textContent         = t('ricoPlay');
+document.getElementById('lbl-lev-txt').textContent    = t('ricoLevel');
+document.getElementById('lbl-shots-txt').textContent  = t('ricoShots');
+document.getElementById('btn-restart').textContent    = t('ricoRestart');
+document.getElementById('btn-levels').textContent     = t('ricoLevels');
+
+// ── LEVELS ─────────────────────────────────────────────────────────────────
+// grid: W×H cells
+// emitters: [{x,y,dir}] dir: 'R','L','U','D'
+// targets: [{x,y,hits}] hits = how many beams need to hit
+// walls: [{x,y}] solid walls
+// mirrors: pre-placed [{x,y,type}] type: '/' or '\'
+// placeable: number of mirrors player can place
+const LEVELS = [
+  // 1 — simple straight shot
+  { W:6,H:6, emitters:[{x:0,y:2,dir:'R'}], targets:[{x:5,y:2,hits:1}], walls:[], fixed:[], placeable:0 },
+  // 2 — one bounce needed
+  { W:6,H:6, emitters:[{x:0,y:0,dir:'R'}], targets:[{x:3,y:5,hits:1}], walls:[],
+    fixed:[], placeable:1 },
+  // 3 — two bounces
+  { W:7,H:7, emitters:[{x:0,y:3,dir:'R'}], targets:[{x:6,y:0,hits:1}], walls:[],
+    fixed:[], placeable:2 },
+  // 4 — wall blocking, must go around
+  { W:8,H:6, emitters:[{x:0,y:2,dir:'R'}], targets:[{x:7,y:2,hits:1}],
+    walls:[{x:4,y:2},{x:4,y:3}], fixed:[], placeable:2 },
+  // 5 — hit two targets
+  { W:7,H:7, emitters:[{x:0,y:3,dir:'R'}], targets:[{x:3,y:0,hits:1},{x:3,y:6,hits:1}],
+    walls:[], fixed:[{x:3,y:3,type:'/'}], placeable:1 },
+  // 6 — two emitters
+  { W:7,H:7, emitters:[{x:0,y:1,dir:'R'},{x:0,y:5,dir:'R'}],
+    targets:[{x:6,y:1,hits:1},{x:6,y:5,hits:1}],
+    walls:[{x:3,y:3}], fixed:[], placeable:2 },
+  // 7 — maze of walls
+  { W:8,H:8, emitters:[{x:0,y:0,dir:'R'}], targets:[{x:7,y:7,hits:1}],
+    walls:[{x:3,y:0},{x:3,y:1},{x:3,y:2},{x:5,y:5},{x:5,y:6},{x:5,y:7}],
+    fixed:[], placeable:3 },
+  // 8 — split beam
+  { W:8,H:8, emitters:[{x:0,y:4,dir:'R'}],
+    targets:[{x:4,y:0,hits:1},{x:4,y:7,hits:1},{x:7,y:4,hits:1}],
+    walls:[], fixed:[{x:4,y:4,type:'X'}], placeable:2 },
+  // 9 — tight corridor
+  { W:9,H:5, emitters:[{x:0,y:2,dir:'R'}], targets:[{x:8,y:0,hits:1},{x:8,y:4,hits:1}],
+    walls:[{x:2,y:1},{x:2,y:3},{x:5,y:1},{x:5,y:3}],
+    fixed:[], placeable:2 },
+  // 10 — all four targets
+  { W:9,H:9, emitters:[{x:0,y:4,dir:'R'},{x:4,y:0,dir:'D'}],
+    targets:[{x:8,y:4,hits:1},{x:4,y:8,hits:1},{x:0,y:0,hits:1},{x:8,y:8,hits:1}],
+    walls:[], fixed:[], placeable:4 },
+  // 11
+  { W:8,H:8, emitters:[{x:0,y:0,dir:'D'}], targets:[{x:7,y:7,hits:1}],
+    walls:[{x:2,y:2},{x:5,y:2},{x:2,y:5},{x:5,y:5}], fixed:[], placeable:3 },
+  // 12 — hit same target twice from different emitters
+  { W:8,H:6, emitters:[{x:0,y:2,dir:'R'},{x:4,y:0,dir:'D'}],
+    targets:[{x:4,y:2,hits:2}], walls:[], fixed:[], placeable:2 },
+  // 13
+  { W:9,H:9, emitters:[{x:0,y:0,dir:'R'}],
+    targets:[{x:8,y:8,hits:1}],
+    walls:[{x:3,y:0},{x:3,y:1},{x:3,y:2},{x:6,y:6},{x:6,y:7},{x:6,y:8}],
+    fixed:[{x:3,y:3,type:'\\'},{x:6,y:3,type:'/'}], placeable:1 },
+  // 14
+  { W:9,H:7, emitters:[{x:0,y:3,dir:'R'},{x:4,y:0,dir:'D'},{x:8,y:3,dir:'L'},{x:4,y:6,dir:'U'}],
+    targets:[{x:4,y:3,hits:4}], walls:[], fixed:[], placeable:0 },
+  // 15
+  { W:10,H:10, emitters:[{x:0,y:5,dir:'R'},{x:5,y:0,dir:'D'}],
+    targets:[{x:9,y:0,hits:1},{x:0,y:9,hits:1},{x:9,y:9,hits:1}],
+    walls:[{x:3,y:3},{x:7,y:3},{x:3,y:7},{x:7,y:7}], fixed:[], placeable:4 },
+];
+
+const CELL = 40;
+let currentLevel = 0;
+let placed, shots, solved, selectedMirror;
+let completed = new Array(LEVELS.length).fill(false);
+let previewBeam = null;
+
+// Level picker
+const levRow = document.getElementById('lev-row');
+LEVELS.forEach(function(_, i) {
+  const btn = document.createElement('button');
+  btn.className = 'lev-btn' + (i===0?' current':'');
+  btn.id = 'lb-'+i; btn.textContent = i+1;
+  btn.onclick = function() { startLevel(i); };
+  levRow.appendChild(btn);
+});
+
+function showMenu() {
+  LEVELS.forEach(function(_,i){
+    const b=document.getElementById('lb-'+i);
+    b.className='lev-btn'+(completed[i]?' done':'')+(i===currentLevel?' current':'');
+  });
+  document.getElementById('overlay').style.display='flex';
+}
+
+function startLevel(idx) {
+  document.getElementById('overlay').style.display='none';
+  currentLevel=idx; shots=0; solved=false;
+  selectedMirror=null; previewBeam=null;
+  const lv=LEVELS[idx];
+  placed=lv.fixed.map(function(m){return {x:m.x,y:m.y,type:m.type,fixed:true};});
+  document.getElementById('hud-lev').textContent=idx+1;
+  document.getElementById('hud-shots').textContent=0;
+  updateMirrorBtns();
+  resizeCanvas();
+  render();
+  setInfo('');
+}
+
+function restartLevel(){startLevel(currentLevel);}
+
+function updateMirrorBtns() {
+  const lv=LEVELS[currentLevel];
+  const used=placed.filter(function(m){return !m.fixed;}).length;
+  const left=lv.placeable-used;
+  document.getElementById('pill-mirrors').innerHTML=
+    '<span id="lbl-mirrors-inner"></span>&nbsp;<span style="color:var(--c)">'+left+'</span>';
+  document.getElementById('lbl-mirrors-inner').textContent=t('ricoMirrors');
+
+  const mb=document.getElementById('mirror-btns');
+  mb.innerHTML='';
+  if(lv.placeable>0){
+    [['/', t('ricoMirrorA')], ['\\', t('ricoMirrorB')], ['X', t('ricoSplitter')]].forEach(function(pair){
+      const btn=document.createElement('button');
+      btn.className='mir-btn'+(selectedMirror===pair[0]?' active':'');
+      btn.textContent=pair[1];
+      btn.onclick=function(){selectedMirror=selectedMirror===pair[0]?null:pair[0];updateMirrorBtns();};
+      mb.appendChild(btn);
+    });
+  }
+}
+
+function resizeCanvas() {
+  const lv=LEVELS[currentLevel];
+  const maxW=Math.min(window.innerWidth-24, 460);
+  const cs=Math.floor(Math.min(maxW/lv.W, (window.innerHeight-280)/lv.H));
+  const canvas=document.getElementById('gameCanvas');
+  canvas.width=cs*lv.W; canvas.height=cs*lv.H;
+  render();
+}
+
+function getCell(e) {
+  const canvas=document.getElementById('gameCanvas');
+  const rect=canvas.getBoundingClientRect();
+  const lv=LEVELS[currentLevel];
+  const cs=canvas.width/lv.W;
+  const src=e.touches?e.touches[0]:e.changedTouches?e.changedTouches[0]:e;
+  const x=Math.floor((src.clientX-rect.left)/cs);
+  const y=Math.floor((src.clientY-rect.top)/cs);
+  return {x,y};
+}
+
+function handleClick(e) {
+  if(solved)return;
+  const {x,y}=getCell(e);
+  const lv=LEVELS[currentLevel];
+  if(x<0||x>=lv.W||y<0||y>=lv.H)return;
+
+  // Check if wall
+  if(lv.walls.some(function(w){return w.x===x&&w.y===y;}))return;
+  // Check if emitter
+  if(lv.emitters.some(function(em){return em.x===x&&em.y===y;}))return;
+  // Check if target
+  if(lv.targets.some(function(tg){return tg.x===x&&tg.y===y;}))return;
+
+  const existingIdx=placed.findIndex(function(m){return m.x===x&&m.y===y;});
+
+  if(existingIdx>=0){
+    const existing=placed[existingIdx];
+    if(existing.fixed)return;
+    // Cycle through mirror types or remove
+    if(existing.type=='/') placed[existingIdx].type='\\';
+    else if(existing.type==='\\') placed[existingIdx].type='X';
+    else placed.splice(existingIdx,1);
+    render(); return;
+  }
+
+  if(selectedMirror){
+    const used=placed.filter(function(m){return !m.fixed;}).length;
+    if(used>=lv.placeable)return;
+    placed.push({x,y,type:selectedMirror,fixed:false});
+    updateMirrorBtns();
+  }
+  render();
+}
+
+document.getElementById('gameCanvas').addEventListener('click',handleClick);
+document.getElementById('gameCanvas').addEventListener('touchend',function(e){e.preventDefault();handleClick(e);},{passive:false});
+
+function undoMirror(){
+  for(let i=placed.length-1;i>=0;i--){
+    if(!placed[i].fixed){placed.splice(i,1);break;}
+  }
+  updateMirrorBtns(); render();
+}
+
+function shoot() {
+  if(solved)return;
+  shots++;
+  document.getElementById('hud-shots').textContent=shots;
+  const beams=traceAllBeams();
+  checkWin(beams);
+  render(beams);
+}
+
+// ── BEAM TRACING ───────────────────────────────────────────────────────────
+function traceBeam(sx,sy,sdir,lv,depth) {
+  if(depth>200)return[];
+  const segs=[];
+  let x=sx,y=sy,dir=sdir;
+  const dx={R:1,L:-1,U:0,D:0};
+  const dy={R:0,L:0,U:-1,D:1};
+  const MAX=100;
+  let steps=0;
+  while(steps++<MAX){
+    const nx=x+dx[dir], ny=y+dy[dir];
+    if(nx<0||nx>=lv.W||ny<0||ny>=lv.H){
+      segs.push({x1:x,y1:y,x2:nx,y2:ny,dir});break;
+    }
+    if(lv.walls.some(function(w){return w.x===nx&&w.y===ny;})){
+      segs.push({x1:x,y1:y,x2:x+dx[dir]*0.5,y2:y+dy[dir]*0.5,dir});break;
+    }
+    segs.push({x1:x,y1:y,x2:nx,y2:ny,dir});
+    x=nx;y=ny;
+    // Check mirror
+    const mirror=placed.find(function(m){return m.x===x&&m.y===y;});
+    if(mirror){
+      if(mirror.type==='X'){
+        // Splitter: continue in original dir AND reflect
+        const reflected=reflect(dir,'/');
+        const extra=traceBeam(x,y,reflected,lv,depth+1);
+        segs.push.apply(segs,extra);
+        // Continue original direction
+        continue;
+      }
+      dir=reflect(dir,mirror.type);
+    }
+  }
+  return segs;
+}
+
+function reflect(dir,mirrorType){
+  if(mirrorType==='/'){
+    return {R:'U',L:'D',U:'R',D:'L'}[dir];
+  } else {
+    return {R:'D',L:'U',U:'L',D:'R'}[dir];
+  }
+}
+
+function traceAllBeams(){
+  const lv=LEVELS[currentLevel];
+  const allSegs=[];
+  lv.emitters.forEach(function(em){
+    const segs=traceBeam(em.x,em.y,em.dir,lv,0);
+    allSegs.push.apply(allSegs,segs);
+  });
+  return allSegs;
+}
+
+function getHitTargets(beams){
+  const lv=LEVELS[currentLevel];
+  const hitCounts={};
+  beams.forEach(function(seg){
+    lv.targets.forEach(function(tg){
+      if(seg.x2===tg.x&&seg.y2===tg.y){
+        const key=tg.x+','+tg.y;
+        hitCounts[key]=(hitCounts[key]||0)+1;
+      }
+    });
+  });
+  return hitCounts;
+}
+
+function checkWin(beams){
+  const lv=LEVELS[currentLevel];
+  const hits=getHitTargets(beams);
+  const allHit=lv.targets.every(function(tg){
+    return (hits[tg.x+','+tg.y]||0)>=tg.hits;
+  });
+  if(allHit){
+    solved=true; completed[currentLevel]=true;
+    setTimeout(function(){
+      const isLast=currentLevel===LEVELS.length-1;
+      const ov=document.getElementById('overlay');
+      ov.innerHTML='<div style="font-size:44px">🎯</div>' +
+        '<h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:26px">'+t('ricoWin')+'</h2>'+
+        '<div class="score-big">'+shots+'</div>'+
+        '<div style="font-size:12px;color:var(--muted)">'+t('ricoShots')+'</div>'+
+        (isLast
+          ?'<button class="play-btn" onclick="showMenu()">'+t('ricoLevels')+'</button>'
+          :'<button class="play-btn" onclick="startLevel('+(currentLevel+1)+')">'+t('ricoNext')+'</button>')+
+        '<button onclick="showMenu()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(240,238,255,0.4);padding:7px 18px;border-radius:100px;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer;">'+t('ricoLevels')+'</button>';
+      ov.style.display='flex';
+    },300);
+  }
+}
+
+function setInfo(msg){document.getElementById('info-bar').textContent=msg;}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function render(beams){
+  if(!beams)beams=traceAllBeams();
+  const canvas=document.getElementById('gameCanvas');
+  const cx=canvas.getContext('2d');
+  const lv=LEVELS[currentLevel];
+  const W=canvas.width,H=canvas.height;
+  const cs=W/lv.W;
+
+  cx.fillStyle='#0c0c10'; cx.fillRect(0,0,W,H);
+
+  // Grid lines
+  cx.strokeStyle='rgba(255,255,255,0.04)'; cx.lineWidth=1;
+  for(let i=0;i<=lv.W;i++){cx.beginPath();cx.moveTo(i*cs,0);cx.lineTo(i*cs,H);cx.stroke();}
+  for(let i=0;i<=lv.H;i++){cx.beginPath();cx.moveTo(0,i*cs);cx.lineTo(W,i*cs);cx.stroke();}
+
+  // Beams
+  const hitCounts=getHitTargets(beams);
+  cx.lineWidth=3; cx.lineCap='round';
+  beams.forEach(function(seg){
+    const x1=(seg.x1+0.5)*cs, y1=(seg.y1+0.5)*cs;
+    const x2=(seg.x2+0.5)*cs, y2=(seg.y2+0.5)*cs;
+    cx.strokeStyle='rgba(255,107,157,0.7)';
+    cx.shadowColor='#ff6b9d'; cx.shadowBlur=8;
+    cx.beginPath(); cx.moveTo(x1,y1); cx.lineTo(x2,y2); cx.stroke();
+    cx.shadowBlur=0;
+  });
+
+  // Walls
+  lv.walls.forEach(function(w){
+    cx.fillStyle='#1a1a2e';
+    cx.fillRect(w.x*cs,w.y*cs,cs,cs);
+    cx.fillStyle='rgba(167,139,250,0.2)';
+    cx.fillRect(w.x*cs+1,w.y*cs+1,cs-2,cs-2);
+  });
+
+  // Placed mirrors
+  placed.forEach(function(m){
+    const mx=m.x*cs+cs/2, my=m.y*cs+cs/2;
+    const r=cs*0.35;
+    cx.strokeStyle=m.fixed?'rgba(255,255,255,0.5)':'rgba(0,212,255,0.8)';
+    cx.lineWidth=m.fixed?3:2.5;
+    cx.shadowColor=m.fixed?'rgba(255,255,255,0.3)':'rgba(0,212,255,0.5)';
+    cx.shadowBlur=8;
+    if(m.type==='/'){
+      cx.beginPath(); cx.moveTo(mx-r,my+r); cx.lineTo(mx+r,my-r); cx.stroke();
+    } else if(m.type==='\\'){
+      cx.beginPath(); cx.moveTo(mx-r,my-r); cx.lineTo(mx+r,my+r); cx.stroke();
+    } else if(m.type==='X'){
+      cx.beginPath(); cx.moveTo(mx-r,my+r); cx.lineTo(mx+r,my-r); cx.stroke();
+      cx.beginPath(); cx.moveTo(mx-r,my-r); cx.lineTo(mx+r,my+r); cx.stroke();
+    }
+    cx.shadowBlur=0;
+    // Label if user-placed
+    if(!m.fixed){
+      cx.fillStyle='rgba(0,212,255,0.5)';
+      cx.font='9px DM Sans';
+      cx.textAlign='center'; cx.textBaseline='top';
+      cx.fillText(m.type==='X'?'×':m.type,mx,my+r+2);
+    }
+  });
+
+  // Emitters
+  lv.emitters.forEach(function(em){
+    const ex=em.x*cs+cs/2, ey=em.y*cs+cs/2;
+    const arrows={R:'→',L:'←',U:'↑',D:'↓'};
+    cx.fillStyle='rgba(255,209,102,0.15)';
+    cx.beginPath(); cx.arc(ex,ey,cs*0.38,0,Math.PI*2); cx.fill();
+    cx.strokeStyle='#ffd166'; cx.lineWidth=2;
+    cx.shadowColor='#ffd166'; cx.shadowBlur=10;
+    cx.beginPath(); cx.arc(ex,ey,cs*0.38,0,Math.PI*2); cx.stroke();
+    cx.shadowBlur=0;
+    cx.fillStyle='#ffd166';
+    cx.font='bold '+Math.floor(cs*0.45)+'px serif';
+    cx.textAlign='center'; cx.textBaseline='middle';
+    cx.fillText(arrows[em.dir],ex,ey+1);
+  });
+
+  // Targets
+  lv.targets.forEach(function(tg){
+    const tx=tg.x*cs+cs/2, ty=tg.y*cs+cs/2;
+    const hitCount=hitCounts[tg.x+','+tg.y]||0;
+    const isHit=hitCount>=tg.hits;
+    cx.fillStyle=isHit?'rgba(77,255,145,0.2)':'rgba(255,107,157,0.15)';
+    cx.beginPath(); cx.arc(tx,ty,cs*0.38,0,Math.PI*2); cx.fill();
+    cx.strokeStyle=isHit?'#4dff91':'#ff6b9d';
+    cx.lineWidth=2;
+    cx.shadowColor=isHit?'#4dff91':'#ff6b9d'; cx.shadowBlur=10;
+    cx.beginPath(); cx.arc(tx,ty,cs*0.38,0,Math.PI*2); cx.stroke();
+    cx.shadowBlur=0;
+    cx.fillStyle=isHit?'#4dff91':'#ff6b9d';
+    cx.font='bold '+Math.floor(cs*0.45)+'px serif';
+    cx.textAlign='center'; cx.textBaseline='middle';
+    cx.fillText('⦿',tx,ty+1);
+    if(tg.hits>1){
+      cx.font='bold 9px DM Sans';
+      cx.fillText(hitCount+'/'+tg.hits,tx,ty+cs*0.32);
+    }
+  });
+
+  // Shoot button area hint
+  if(!solved){
+    const allHit=lv.targets.every(function(tg){return (hitCounts[tg.x+','+tg.y]||0)>=tg.hits;});
+    if(allHit) setInfo('✓ '+t('ricoFire'));
+    else setInfo(t('ricoPlace'));
+  }
+}
+
+// Shoot on button or Space/Enter
+document.addEventListener('keydown',function(e){
+  if(e.code==='Space'||e.code==='Enter'){e.preventDefault();shoot();}
+  if(e.code==='KeyZ'){undoMirror();}
+  if(e.code==='KeyR'){restartLevel();}
+  if(e.code==='Digit1'){selectedMirror='/';updateMirrorBtns();}
+  if(e.code==='Digit2'){selectedMirror='\\';updateMirrorBtns();}
+  if(e.code==='Digit3'){selectedMirror='X';updateMirrorBtns();}
+});
+
+// Fire button
+const fireBtn=document.createElement('button');
+fireBtn.textContent='🔫 '+t('ricoFire');
+fireBtn.style.cssText='position:fixed;bottom:24px;right:20px;z-index:10;background:rgba(255,107,157,0.14);border:1px solid rgba(255,107,157,.3);color:#ff6b9d;padding:10px 20px;border-radius:100px;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer;';
+fireBtn.onclick=shoot;
+document.body.appendChild(fireBtn);
+
+showMenu();
+</script>
+</body>
+</html>
