@@ -1,0 +1,23 @@
+:root{
+  --bg:#05020a;
+  --neon-1:#00f0ff;
+  --neon-2:#ff2dcb;
+  --accent:#7c3cff;
+  --muted:#88a;
+}
+*{box-sizing:border-box;font-family:Inter,Segoe UI,Roboto,Arial,Helvetica,sans-serif}
+html,body{height:100%;margin:0;background:radial-gradient(ellipse at 20% 10%, #0b0520 0%, var(--bg) 40%),linear-gradient(180deg,#02010a, #080316);color:#cfe}
+#game{display:block;width:100vw;height:100vh}
+#ui{position:fixed;left:16px;top:16px;z-index:10}
+#title{font-weight:700;font-size:20px;color:var(--neon-1);text-shadow:0 0 10px rgba(0,240,255,0.25),0 0 30px rgba(124,60,255,0.08)}
+#hud{margin-top:8px;background:linear-gradient(90deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:6px 10px;border-radius:8px;color:#cde;box-shadow:0 6px 30px rgba(0,0,0,0.6)}
+#controls{margin-top:8px;color:var(--muted);font-size:13px}
+
+/* center overlay for messages */
+#overlay{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--neon-2);font-size:28px;text-align:center;padding:18px;border-radius:12px}
+
+/* Neon UI accents */
+.glow{filter:drop-shadow(0 0 8px rgba(0,240,255,0.2));}
+
+/* Make canvas crisp on high-DPI */
+canvas{image-rendering:pixelated}

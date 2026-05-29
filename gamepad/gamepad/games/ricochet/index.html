@@ -75,12 +75,12 @@ document.getElementById('lbl-shots-txt').textContent  = t('ricoShots');
 document.getElementById('btn-restart').textContent    = t('ricoRestart');
 document.getElementById('btn-levels').textContent     = t('ricoLevels');
 
-// ── LEVELS ─────────────────────────────────────────────────────────────────
-// grid: W×H cells
+// -- LEVELS -----------------------------------------------------------------
+// grid: WxH cells
 // emitters: [{x,y,dir}] dir: 'R','L','U','D'
 // targets: [{x,y,hits}] hits = how many beams need to hit
 // walls: [{x,y}] solid walls
-// mirrors: pre-placed [{x,y,type}] type: '/' or '\'
+// mirrors: pre-placed [{x,y,type}] type: '/' or backslash
 // placeable: number of mirrors player can place
 const LEVELS = [
   // 1: 6x5 solution=\ at (4,1)
@@ -96,7 +96,7 @@ const LEVELS = [
   // 6: 8x7 solution=/ at (4,3)
   { W:8,H:7, emitters:[{x:6,y:0,dir:'D'},{x:6,y:6,dir:'U'}], targets:[{x:6,y:1,hits:1},{x:6,y:3,hits:1}], walls:[{x:1,y:2}], fixed:[], placeable:2 },
   // 7: 8x7 fixed=\ at (6,3), solution=/ at (4,2) and \ at (3,5)
-  { W:8,H:7, emitters:[{x:7,y:2,dir:'L'}], targets:[{x:5,y:2,hits:1},{x:4,y:3,hits:1},{x:6,y:2,hits:1}], walls:[{x:3,y:4}], fixed:[{x:6,y:3,type:'\'}], placeable:2 },
+  { W:8,H:7, emitters:[{x:7,y:2,dir:'L'}], targets:[{x:5,y:2,hits:1},{x:4,y:3,hits:1},{x:6,y:2,hits:1}], walls:[{x:3,y:4}], fixed:[{x:6,y:3,type:'B'}], placeable:2 },
   // 8: 9x7 solution=\ at (7,5) and / at (4,5)
   { W:9,H:7, emitters:[{x:0,y:1,dir:'R'},{x:8,y:5,dir:'L'}], targets:[{x:7,y:0,hits:1},{x:5,y:1,hits:1},{x:2,y:1,hits:1}], walls:[{x:5,y:4},{x:2,y:4}], fixed:[], placeable:2 },
   // 9: 9x7 fixed=/ at (3,3), solution=/ at (6,3) and / at (1,3)
@@ -106,7 +106,7 @@ const LEVELS = [
   // 11: 9x8 solution=/ at (2,3) and / at (3,4)
   { W:9,H:8, emitters:[{x:8,y:3,dir:'L'},{x:0,y:2,dir:'R'}], targets:[{x:7,y:2,hits:1},{x:6,y:3,hits:1},{x:2,y:2,hits:1},{x:8,y:2,hits:1}], walls:[{x:6,y:6},{x:1,y:6},{x:3,y:3}], fixed:[], placeable:3 },
   // 12: 10x8 fixed=\ at (2,4) and / at (2,2), solution=/ at (3,4), / at (2,1), / at (7,1)
-  { W:10,H:8, emitters:[{x:0,y:6,dir:'R'},{x:0,y:7,dir:'U'}], targets:[{x:7,y:6,hits:1},{x:0,y:3,hits:1},{x:0,y:4,hits:1},{x:6,y:6,hits:1}], walls:[{x:1,y:1},{x:5,y:4},{x:4,y:2}], fixed:[{x:2,y:4,type:'\'},{x:2,y:2,type:'/'}], placeable:3 },
+  { W:10,H:8, emitters:[{x:0,y:6,dir:'R'},{x:0,y:7,dir:'U'}], targets:[{x:7,y:6,hits:1},{x:0,y:3,hits:1},{x:0,y:4,hits:1},{x:6,y:6,hits:1}], walls:[{x:1,y:1},{x:5,y:4},{x:4,y:2}], fixed:[{x:2,y:4,type:'B'},{x:2,y:2,type:'/'}], placeable:3 },
   // 13: 10x8 solution=\ at (4,5) and \ at (5,3)
   { W:10,H:8, emitters:[{x:0,y:7,dir:'U'},{x:4,y:0,dir:'D'},{x:6,y:0,dir:'D'}], targets:[{x:4,y:1,hits:1},{x:6,y:1,hits:1},{x:0,y:6,hits:1},{x:8,y:5,hits:1}], walls:[{x:2,y:3},{x:7,y:2},{x:2,y:2}], fixed:[], placeable:3 },
   // 14: 10x9 solution=\ at (1,5), / at (6,2), \ at (4,1)
@@ -168,7 +168,7 @@ function updateMirrorBtns() {
   const mb=document.getElementById('mirror-btns');
   mb.innerHTML='';
   if(lv.placeable>0){
-    [['/', t('ricoMirrorA')], ['\\', t('ricoMirrorB')], ['X', t('ricoSplitter')]].forEach(function(pair){
+    [['/', t('ricoMirrorA')], ['B', t('ricoMirrorB')], ['X', t('ricoSplitter')]].forEach(function(pair){
       const btn=document.createElement('button');
       btn.className='mir-btn'+(selectedMirror===pair[0]?' active':'');
       btn.textContent=pair[1];
@@ -217,8 +217,8 @@ function handleClick(e) {
     const existing=placed[existingIdx];
     if(existing.fixed)return;
     // Cycle through mirror types or remove
-    if(existing.type=='/') placed[existingIdx].type='\\';
-    else if(existing.type==='\\') placed[existingIdx].type='X';
+    if(existing.type=='/') placed[existingIdx].type='B';
+    else if(existing.type==='B') placed[existingIdx].type='X';
     else placed.splice(existingIdx,1);
     render(); return;
   }
@@ -251,7 +251,7 @@ function shoot() {
   render(beams);
 }
 
-// ── BEAM TRACING ───────────────────────────────────────────────────────────
+// -- BEAM TRACING -----------------------------------------------------------
 function traceBeam(sx,sy,sdir,lv,depth) {
   if(depth>200)return[];
   const segs=[];
@@ -346,7 +346,7 @@ function checkWin(beams){
 
 function setInfo(msg){document.getElementById('info-bar').textContent=msg;}
 
-// ── RENDER ─────────────────────────────────────────────────────────────────
+// -- RENDER -----------------------------------------------------------------
 function render(beams){
   if(!placed)return;
   if(!beams)beams=traceAllBeams();
@@ -393,7 +393,7 @@ function render(beams){
     cx.shadowBlur=8;
     if(m.type==='/'){
       cx.beginPath(); cx.moveTo(mx-r,my+r); cx.lineTo(mx+r,my-r); cx.stroke();
-    } else if(m.type==='\\'){
+    } else if(m.type==='B'){
       cx.beginPath(); cx.moveTo(mx-r,my-r); cx.lineTo(mx+r,my+r); cx.stroke();
     } else if(m.type==='X'){
       cx.beginPath(); cx.moveTo(mx-r,my+r); cx.lineTo(mx+r,my-r); cx.stroke();
@@ -405,7 +405,7 @@ function render(beams){
       cx.fillStyle='rgba(0,212,255,0.5)';
       cx.font='9px DM Sans';
       cx.textAlign='center'; cx.textBaseline='top';
-      cx.fillText(m.type==='X'?'×':m.type,mx,my+r+2);
+      cx.fillText(m.type==='X'?'x':m.type,mx,my+r+2);
     }
   });
 
@@ -461,7 +461,7 @@ document.addEventListener('keydown',function(e){
   if(e.code==='KeyZ'){undoMirror();}
   if(e.code==='KeyR'){restartLevel();}
   if(e.code==='Digit1'){selectedMirror='/';updateMirrorBtns();}
-  if(e.code==='Digit2'){selectedMirror='\\';updateMirrorBtns();}
+  if(e.code==='Digit2'){selectedMirror='B';updateMirrorBtns();}
   if(e.code==='Digit3'){selectedMirror='X';updateMirrorBtns();}
 });
 
