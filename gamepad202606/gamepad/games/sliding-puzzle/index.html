@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sliding Puzzle · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#54a0ff;--cdim:rgba(84,160,255,0.14);}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;}
+body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;right:-150px;background:radial-gradient(circle,rgba(84,160,255,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 16px 30px;gap:14px;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.stat-pill span{color:var(--c);}
+.ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
+#board{display:grid;gap:6px;background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:10px;}
+.tile{display:flex;align-items:center;justify-content:center;border-radius:10px;font-family:'Syne',sans-serif;font-weight:800;cursor:pointer;transition:transform .08s,background .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;border:1px solid rgba(255,255,255,0.08);}
+.tile:not(.empty):hover{transform:scale(1.04);}
+.tile.empty{background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.03);cursor:default;}
+.tile.correct{background:rgba(84,160,255,0.15);border-color:rgba(84,160,255,0.3);box-shadow:0 0 10px rgba(84,160,255,0.15);}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.9);backdrop-filter:blur(10px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
+.score-big{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--c);letter-spacing:-2px;}
+.hint{font-size:12px;color:var(--muted);text-align:center;}
+.play-btn{background:var(--cdim);border:1px solid rgba(84,160,255,.3);color:var(--c);padding:10px 30px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+.diff-row{display:flex;gap:6px;}
+.diff-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.diff-btn:hover,.diff-btn.active{border-color:rgba(84,160,255,.4);color:var(--c);background:var(--cdim);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div id="overlay">
+  <div style="font-size:42px">🧩</div>
+  <h2 id="ov-title"></h2>
+  <div class="hint" id="ov-hint"></div>
+  <div class="diff-row" id="diff-row"></div>
+  <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
+</div>
+<div class="page">
+  <div class="game-title" id="lbl-title"></div>
+  <div class="hud">
+    <div class="stat-pill"><span id="lbl-moves-txt"></span>&nbsp;<span id="hud-moves">0</span></div>
+    <div class="stat-pill">⏱&nbsp;<span id="hud-time">0</span>s</div>
+    <button class="ctrl-btn" id="btn-new" onclick="showMenu()"></button>
+  </div>
+  <div id="board"></div>
+</div>
+<script>
+document.getElementById('lbl-back').textContent      = t('back');
+document.getElementById('lbl-title').textContent     = t('slidTitle');
+document.getElementById('ov-title').textContent      = t('slidTitle');
+document.getElementById('ov-hint').textContent       = t('slidHint');
+document.getElementById('ov-btn').textContent        = t('slidPlay');
+document.getElementById('lbl-moves-txt').textContent = t('slidMoves');
+document.getElementById('btn-new').textContent       = t('slidNew');
+
+const DIFFS=[{key:'easy',size:3},{key:'medium',size:4},{key:'hard',size:5}];
+let diffIdx=1,SIZE,tiles,emptyIdx,moves,timerVal,timerInt;
+
+const dr=document.getElementById('diff-row');
+DIFFS.forEach((d,i)=>{
+  const btn=document.createElement('button');btn.className='diff-btn'+(i===diffIdx?' active':'');
+  btn.textContent=`${t('diff'+d.key[0].toUpperCase()+d.key.slice(1))} (${d.size}×${d.size})`;
+  btn.onclick=()=>{diffIdx=i;dr.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};
+  dr.appendChild(btn);
+});
+
+function showMenu(){clearInterval(timerInt);document.getElementById('overlay').style.display='flex';}
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  SIZE=DIFFS[diffIdx].size;
+  const n=SIZE*SIZE;
+  tiles=Array.from({length:n},(_,i)=>i);
+  // Shuffle with guaranteed solvability
+  do{tiles.sort(()=>Math.random()-.5);}while(!isSolvable(tiles,SIZE));
+  emptyIdx=tiles.indexOf(0);
+  moves=0;timerVal=0;
+  document.getElementById('hud-moves').textContent='0';
+  document.getElementById('hud-time').textContent='0';
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{timerVal++;document.getElementById('hud-time').textContent=timerVal;},1000);
+  renderBoard();
+}
+
+function isSolvable(arr,sz){
+  let inv=0;
+  const flat=arr.filter(x=>x!==0);
+  for(let i=0;i<flat.length;i++)for(let j=i+1;j<flat.length;j++)if(flat[i]>flat[j])inv++;
+  if(sz%2===1)return inv%2===0;
+  const emptyRow=Math.floor(arr.indexOf(0)/sz);
+  return (inv+emptyRow)%2===1;
+}
+
+const COLORS=['#1e1e2e','#1a2040','#1a2a1a','#2a1a1a','#1a1a30'];
+
+function renderBoard(){
+  const board=document.getElementById('board');
+  const maxSize=Math.min(window.innerWidth-40,window.innerHeight-240,420);
+  const tileSize=Math.floor((maxSize-20-(SIZE-1)*6)/SIZE);
+  board.style.gridTemplateColumns=`repeat(${SIZE},${tileSize}px)`;
+  board.innerHTML='';
+  tiles.forEach((val,idx)=>{
+    const tile=document.createElement('div');
+    tile.className='tile'+(val===0?' empty':'');
+    tile.style.width=tileSize+'px';tile.style.height=tileSize+'px';
+    tile.style.fontSize=Math.floor(tileSize*0.38)+'px';
+    if(val!==0){
+      const isCorrect=idx===val-1+(idx>=val-1?0:0)&&tiles[idx]===idx+1;
+      const colorIdx=(val-1)%COLORS.length;
+      tile.style.background=isCorrect?'rgba(84,160,255,0.15)':COLORS[colorIdx];
+      if(isCorrect)tile.classList.add('correct');
+      tile.textContent=val;
+      tile.onclick=()=>clickTile(idx);
+      // Touch swipe on tile
+      let tsx=0,tsy=0;
+      tile.addEventListener('touchstart',e=>{tsx=e.touches[0].clientX;tsy=e.touches[0].clientY;},{passive:true});
+      tile.addEventListener('touchend',e=>{
+        const dx=e.changedTouches[0].clientX-tsx,dy=e.changedTouches[0].clientY-tsy;
+        if(Math.abs(dx)<10&&Math.abs(dy)<10){clickTile(idx);return;}
+        // Swipe moves empty in direction
+        if(Math.abs(dx)>Math.abs(dy))swipeMove(dx>0?'right':'left');
+        else swipeMove(dy>0?'down':'up');
+      },{passive:true});
+    }
+    board.appendChild(tile);
+  });
+}
+
+function clickTile(idx){
+  const er=Math.floor(emptyIdx/SIZE),ec=emptyIdx%SIZE;
+  const tr=Math.floor(idx/SIZE),tc=idx%SIZE;
+  if(er===tr&&Math.abs(ec-tc)===1){slideRow(idx,ec<tc?1:-1);return;}
+  if(ec===tc&&Math.abs(er-tr)===1){slideCol(idx,er<tr?1:-1);return;}
+  // Click anywhere in same row/col — slide multiple
+  if(er===tr){const dir=tc>ec?1:-1;for(let c=ec+dir;dir>0?c<=tc:c>=tc;c+=dir){swap(er*SIZE+c-dir,er*SIZE+c);}emptyIdx=idx;moves++;document.getElementById('hud-moves').textContent=moves;checkWin();renderBoard();return;}
+  if(ec===tc){const dir=tr>er?1:-1;for(let r=er+dir;dir>0?r<=tr:r>=tr;r+=dir){swap((r-dir)*SIZE+ec,r*SIZE+ec);}emptyIdx=idx;moves++;document.getElementById('hud-moves').textContent=moves;checkWin();renderBoard();}
+}
+
+function slideRow(idx,dir){swap(emptyIdx,idx);emptyIdx=idx;moves++;document.getElementById('hud-moves').textContent=moves;checkWin();renderBoard();}
+function slideCol(idx,dir){swap(emptyIdx,idx);emptyIdx=idx;moves++;document.getElementById('hud-moves').textContent=moves;checkWin();renderBoard();}
+function swap(a,b){[tiles[a],tiles[b]]=[tiles[b],tiles[a]];}
+
+function swipeMove(dir){
+  const er=Math.floor(emptyIdx/SIZE),ec=emptyIdx%SIZE;
+  // Swipe right = move tile from left into empty (empty goes left)
+  let targetIdx=-1;
+  if(dir==='right'&&ec>0)targetIdx=emptyIdx-1;
+  if(dir==='left'&&ec<SIZE-1)targetIdx=emptyIdx+1;
+  if(dir==='down'&&er>0)targetIdx=emptyIdx-SIZE;
+  if(dir==='up'&&er<SIZE-1)targetIdx=emptyIdx+SIZE;
+  if(targetIdx>=0){swap(emptyIdx,targetIdx);emptyIdx=targetIdx;moves++;document.getElementById('hud-moves').textContent=moves;checkWin();renderBoard();}
+}
+
+function checkWin(){
+  if(tiles.every((v,i)=>v===0?i===SIZE*SIZE-1:v===i+1)){
+    clearInterval(timerInt);
+    const ov=document.getElementById('overlay');
+    ov.innerHTML=`<div style="font-size:42px">🎉</div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px">${t('slidWin')}</h2>
+      <div class="score-big">${timerVal}s</div>
+      <div style="font-size:12px;color:var(--muted)">${t('slidMoves')}: ${moves}</div>
+      <div class="diff-row" id="dr2" style="margin-top:4px"></div>
+      <button class="play-btn" onclick="startGame()" style="margin-top:4px">${t('slidAgain')}</button>`;
+    ov.style.display='flex';
+    const dr2=document.getElementById('dr2');
+    DIFFS.forEach((d,i)=>{const btn=document.createElement('button');btn.className='diff-btn'+(i===diffIdx?' active':'');btn.textContent=`${t('diff'+d.key[0].toUpperCase()+d.key.slice(1))} (${d.size}×${d.size})`;btn.onclick=()=>{diffIdx=i;dr2.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};dr2.appendChild(btn);});
+  }
+}
+
+document.addEventListener('keydown',e=>{
+  if(!emptyIdx&&emptyIdx!==0)return;
+  const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+  if(map[e.code]){e.preventDefault();swipeMove(map[e.code]);}
+});
+</script>
+</body>
+</html>

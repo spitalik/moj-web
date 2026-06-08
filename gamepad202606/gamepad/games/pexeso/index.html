@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Pexeso">
+<title>Pexeso</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="../../i18n.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface2: #1e1e1e;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.16);
+  --text: #f0ede8;
+  --text-muted: rgba(240,237,232,0.45);
+  --text-dim: rgba(240,237,232,0.22);
+  --accent: #e8d5a3;
+  --accent-dim: rgba(232,213,163,0.15);
+  --green-dim: rgba(74,222,128,0.12);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+
+.screen { display: none; width: 100%; max-width: 520px; padding: 2rem 1.25rem; flex-direction: column; min-height: auto; justify-content: center; }
+.screen.active { display: flex; }
+
+
+/* ── MENU ── */
+#screen-menu { align-items: center; justify-content: center; gap: 0; position: relative; z-index: 1; padding-top: 56px; }
+
+.logo { font-family: 'DM Serif Display', serif; font-size: 56px; letter-spacing: -1px; color: var(--text); line-height: 1; margin-bottom: 6px; }
+.logo-sub { font-size: 12px; color: var(--text-muted); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2.8rem; }
+
+.sets-label { font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; align-self: flex-start; margin-bottom: 10px; }
+
+.sets-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 2rem; }
+
+.set-btn {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 4px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.18s, background 0.18s;
+  font-family: inherit;
+}
+.set-btn:hover { border-color: var(--border-hover); background: var(--surface2); }
+.set-btn.selected { border-color: var(--accent); background: var(--accent-dim); }
+.set-btn .set-icon { font-size: 26px; line-height: 1; }
+.set-btn .set-name { font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.set-btn.selected .set-name { color: var(--accent); }
+
+.btn-start {
+  width: 100%;
+  background: var(--accent);
+  color: #0a0a0a;
+  border: none;
+  border-radius: var(--radius);
+  padding: 15px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: opacity 0.15s, transform 0.12s;
+}
+.btn-start:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-start:active { transform: translateY(0); }
+
+/* ── GAME ── */
+#screen-game { gap: 0; position: relative; z-index: 1; align-items: stretch; justify-content: center; }
+
+.game-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-top: 0.25rem; }
+
+.game-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+
+.set-badge { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 400; margin-top: 2px; }
+
+.stats-row { display: flex; gap: 6px; }
+
+.stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+.stat-pill strong { color: var(--text); font-weight: 500; }
+
+#grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-content: start; }
+
+/* ── CARDS ── */
+.card { aspect-ratio: 1; cursor: pointer; perspective: 800px; }
+.card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(.4,0,.2,1); border-radius: var(--radius); }
+.card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
+.card-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
+.card-front { background: var(--surface); transition: border-color 0.2s, background 0.2s; }
+.card:hover:not(.flipped):not(.matched) .card-front { border-color: var(--border-hover); background: var(--surface2); }
+.card-front::after { content: '?'; font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text-dim); }
+.card-back { background: var(--surface2); transform: rotateY(180deg); font-size: min(9vw, 2.8rem); }
+.card.matched .card-face.card-back { background: var(--green-dim); border-color: rgba(74,222,128,0.25); }
+
+#message { text-align: center; margin-top: 1rem; font-size: 13px; color: var(--text-muted); min-height: 18px; letter-spacing: 0.02em; }
+
+/* ── WIN ── */
+#win-banner { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+.win-emoji { font-size: 60px; margin-bottom: 1.25rem; }
+.win-title { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--text); margin-bottom: 4px; }
+.win-subtitle { font-size: 14px; color: var(--text-muted); }
+.win-stats { display: flex; gap: 12px; justify-content: center; margin: 1.5rem 0 2rem; }
+.win-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 24px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.win-stat .num { font-size: 28px; font-weight: 300; color: var(--accent); line-height: 1; }
+.win-stat .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+.btn-row { display: flex; gap: 10px; width: 100%; }
+.btn-secondary { flex: 1; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; font-size: 14px; font-family: inherit; cursor: pointer; transition: border-color 0.15s; }
+.btn-secondary:hover { border-color: var(--border-hover); }
+.btn-primary { flex: 2; background: var(--accent); color: #0a0a0a; border: none; border-radius: var(--radius); padding: 13px; font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer; transition: opacity 0.15s; }
+.btn-primary:hover { opacity: 0.88; }
+
+.btn-back { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13px; font-family: inherit; padding: 5px 12px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.btn-back:hover { border-color: var(--border-hover); color: var(--text); }
+
+/* ── INSTALL BANNER ── */
+#install-banner { display: none; position: fixed; bottom: calc(1rem + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: calc(100% - 2.5rem); max-width: 460px; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: var(--radius); padding: 12px 14px; align-items: center; gap: 10px; z-index: 100; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+#install-banner span { font-size: 13px; color: var(--text-muted); flex: 1; }
+.btn-install { background: var(--accent); color: #0a0a0a; border: none; border-radius: var(--radius-sm); padding: 7px 14px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; white-space: nowrap; }
+.btn-x { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 18px; padding: 2px 4px; line-height: 1; }
+
+/* ── PARTICLES ── */
+#particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.particle { position: absolute; opacity: 0; animation: float linear infinite; user-select: none; }
+@keyframes float { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.18; } 90% { opacity: 0.12; } 100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; } }
+
+#back-btn {
+  position: fixed; top: 20px; left: 20px; z-index: 999;
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(15,15,15,0.85); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.10); color: rgba(240,238,255,0.55);
+  padding: 7px 14px; border-radius: 100px; text-decoration: none;
+  font-size: 12px; font-weight: 500; transition: border-color .18s, color .18s;
+}
+#back-btn:hover { border-color: rgba(255,255,255,0.22); color: rgba(240,238,255,0.9); }
+</style>
+</head>
+<body>
+
+
+<a id="back-btn" href="../../index.html">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div id="particles"></div>
+<div id="install-banner">
+  <span id="t-install-text"></span>
+  <button class="btn-install" id="btn-install"></button>
+  <button class="btn-x" id="install-close">✕</button>
+</div>
+
+<!-- MENU -->
+<div id="screen-menu" class="screen active">
+  <div class="logo">Pexeso</div>
+  <div class="logo-sub" id="t-tagline"></div>
+  <div class="sets-label" id="t-choose-set"></div>
+  <div class="sets-grid" id="sets-grid"></div>
+  <button class="btn-start" id="btn-start"></button>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div class="game-header">
+    <div class="game-title">
+      <span id="game-set-icon"></span>
+      <span class="set-badge" id="game-set-name"></span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="stats-row">
+        <div class="stat-pill">⟳ <strong id="moves">0</strong></div>
+        <div class="stat-pill">⏱ <strong id="timer">0s</strong></div>
+      </div>
+      <button class="btn-back" id="t-menu-btn" onclick="goMenu()"></button>
+    </div>
+  </div>
+  <div id="grid"></div>
+  <div id="message"></div>
+  <div id="win-banner">
+    <div class="win-emoji" id="win-emoji"></div>
+    <div class="win-title" id="t-win-title"></div>
+    <div class="win-subtitle" id="t-win-subtitle"></div>
+    <div class="win-stats">
+      <div class="win-stat"><div class="num" id="win-moves">0</div><div class="lbl" id="t-lbl-moves"></div></div>
+      <div class="win-stat"><div class="num" id="win-time">0s</div><div class="lbl" id="t-lbl-time"></div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="t-change-set" onclick="goMenu()"></button>
+      <button class="btn-primary" id="t-play-again" onclick="startGame()"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TRANSLATIONS ──
+const I18N = {
+  en: {
+    back:          '← Back',
+    tagline:       'Memory Game',
+    chooseSet:     'Choose a card set',
+    startBtn:      'Start Game',
+    menuBtn:       'Menu',
+    msgFlip:       'Flip two cards to find a match!',
+    msgMatch:      '✓ Match! Keep going…',
+    msgNoMatch:    'No match…',
+    winTitle:      'Well done!',
+    winSubtitle:   'All pairs found',
+    lblMoves:      'Moves',
+    lblTime:       'Time',
+    changeSet:     'Change set',
+    playAgain:     'Play again',
+    installText:   '📲 Install Pexeso',
+    installBtn:    'Install',
+    sets: {
+      animals:   'Animals',
+      trees:     'Trees',
+      flowers:   'Flowers',
+      space:     'Space',
+      buildings: 'Buildings',
+    }
+  },
+  sk: {
+    back:          '← Späť',
+    tagline:       'Hra pamäte',
+    chooseSet:     'Vyber sadu kartičiek',
+    startBtn:      'Začať hru',
+    menuBtn:       'Menu',
+    msgFlip:       'Otočte dve kartičky a nájdite zhodu!',
+    msgMatch:      '✓ Zhoda! Pokračujte…',
+    msgNoMatch:    'Žiadna zhoda…',
+    winTitle:      'Výborne!',
+    winSubtitle:   'Všetky páry nájdené',
+    lblMoves:      'Ťahy',
+    lblTime:       'Čas',
+    changeSet:     'Zmeniť sadu',
+    playAgain:     'Hrať znova',
+    installText:   '📲 Nainštalovať Pexeso',
+    installBtn:    'Inštalovať',
+    sets: {
+      animals:   'Zvieratká',
+      trees:     'Stromy',
+      flowers:   'Kvety',
+      space:     'Vesmír',
+      buildings: 'Budovy',
+    }
+  },
+  es: {
+    back:          '← Volver',
+    tagline:       'Juego de memoria',
+    chooseSet:     'Elige un mazo de cartas',
+    startBtn:      'Iniciar juego',
+    menuBtn:       'Menú',
+    msgFlip:       '¡Voltea dos cartas para encontrar la pareja!',
+    msgMatch:      '✓ ¡Pareja! Sigue…',
+    msgNoMatch:    'Sin pareja…',
+    winTitle:      '¡Bien hecho!',
+    winSubtitle:   'Todos los pares encontrados',
+    lblMoves:      'Movimientos',
+    lblTime:       'Tiempo',
+    changeSet:     'Cambiar mazo',
+    playAgain:     'Jugar de nuevo',
+    installText:   '📲 Instalar Pexeso',
+    installBtn:    'Instalar',
+    sets: { animals:'Animales', trees:'Árboles', flowers:'Flores', space:'Espacio', buildings:'Edificios' }
+  },
+  pt: {
+    back:          '← Voltar',
+    tagline:       'Jogo de memória',
+    chooseSet:     'Escolha um baralho',
+    startBtn:      'Iniciar jogo',
+    menuBtn:       'Menu',
+    msgFlip:       'Vire duas cartas para encontrar o par!',
+    msgMatch:      '✓ Par! Continue…',
+    msgNoMatch:    'Sem par…',
+    winTitle:      'Muito bem!',
+    winSubtitle:   'Todos os pares encontrados',
+    lblMoves:      'Jogadas',
+    lblTime:       'Tempo',
+    changeSet:     'Mudar baralho',
+    playAgain:     'Jogar novamente',
+    installText:   '📲 Instalar Pexeso',
+    installBtn:    'Instalar',
+    sets: { animals:'Animais', trees:'Árvores', flowers:'Flores', space:'Espaço', buildings:'Edifícios' }
+  },
+  de: {
+    back:          '← Zurück',
+    tagline:       'Gedächtnisspiel',
+    chooseSet:     'Kartensatz wählen',
+    startBtn:      'Spiel starten',
+    menuBtn:       'Menü',
+    msgFlip:       'Drehe zwei Karten um, um ein Paar zu finden!',
+    msgMatch:      '✓ Paar! Weiter so…',
+    msgNoMatch:    'Kein Paar…',
+    winTitle:      'Gut gemacht!',
+    winSubtitle:   'Alle Paare gefunden',
+    lblMoves:      'Züge',
+    lblTime:       'Zeit',
+    changeSet:     'Set wechseln',
+    playAgain:     'Nochmal spielen',
+    installText:   '📲 Pexeso installieren',
+    installBtn:    'Installieren',
+    sets: { animals:'Tiere', trees:'Bäume', flowers:'Blumen', space:'Weltraum', buildings:'Gebäude' }
+  },
+  fr: {
+    back:          '← Retour',
+    tagline:       'Jeu de mémoire',
+    chooseSet:     'Choisir un jeu de cartes',
+    startBtn:      'Démarrer',
+    menuBtn:       'Menu',
+    msgFlip:       'Retourne deux cartes pour trouver une paire !',
+    msgMatch:      '✓ Paire ! Continue…',
+    msgNoMatch:    'Pas de paire…',
+    winTitle:      'Bravo !',
+    winSubtitle:   'Toutes les paires trouvées',
+    lblMoves:      'Coups',
+    lblTime:       'Temps',
+    changeSet:     'Changer de jeu',
+    playAgain:     'Rejouer',
+    installText:   '📲 Installer Pexeso',
+    installBtn:    'Installer',
+    sets: { animals:'Animaux', trees:'Arbres', flowers:'Fleurs', space:'Espace', buildings:'Bâtiments' }
+  },
+  it: {
+    back:          '← Indietro',
+    tagline:       'Gioco di memoria',
+    chooseSet:     'Scegli un mazzo di carte',
+    startBtn:      'Inizia gioco',
+    menuBtn:       'Menu',
+    msgFlip:       'Gira due carte per trovare la coppia!',
+    msgMatch:      '✓ Coppia! Continua…',
+    msgNoMatch:    'Nessuna coppia…',
+    winTitle:      'Bravo!',
+    winSubtitle:   'Tutte le coppie trovate',
+    lblMoves:      'Mosse',
+    lblTime:       'Tempo',
+    changeSet:     'Cambia mazzo',
+    playAgain:     'Gioca ancora',
+    installText:   '📲 Installa Pexeso',
+    installBtn:    'Installa',
+    sets: { animals:'Animali', trees:'Alberi', flowers:'Fiori', space:'Spazio', buildings:'Edifici' }
+  },
+  ru: {
+    back:          '← Назад',
+    tagline:       'Игра на память',
+    chooseSet:     'Выберите набор карточек',
+    startBtn:      'Начать игру',
+    menuBtn:       'Меню',
+    msgFlip:       'Переверните две карточки, чтобы найти пару!',
+    msgMatch:      '✓ Пара! Продолжай…',
+    msgNoMatch:    'Не совпало…',
+    winTitle:      'Отлично!',
+    winSubtitle:   'Все пары найдены',
+    lblMoves:      'Ходы',
+    lblTime:       'Время',
+    changeSet:     'Сменить набор',
+    playAgain:     'Играть снова',
+    installText:   '📲 Установить Pexeso',
+    installBtn:    'Установить',
+    sets: { animals:'Животные', trees:'Деревья', flowers:'Цветы', space:'Космос', buildings:'Здания' }
+  },
+  tr: {
+    back:          '← Geri',
+    tagline:       'Hafıza oyunu',
+    chooseSet:     'Bir kart seti seç',
+    startBtn:      'Oyunu başlat',
+    menuBtn:       'Menü',
+    msgFlip:       'Eşleşme bulmak için iki kart çevir!',
+    msgMatch:      '✓ Eşleşme! Devam et…',
+    msgNoMatch:    'Eşleşme yok…',
+    winTitle:      'Aferin!',
+    winSubtitle:   'Tüm çiftler bulundu',
+    lblMoves:      'Hamle',
+    lblTime:       'Süre',
+    changeSet:     'Set değiştir',
+    playAgain:     'Tekrar oyna',
+    installText:   '📲 Pexeso\u2019yu yükle',
+    installBtn:    'Yükle',
+    sets: { animals:'Hayvanlar', trees:'Ağaçlar', flowers:'Çiçekler', space:'Uzay', buildings:'Binalar' }
+  },
+  ja: {
+    back:          '← 戻る',
+    tagline:       '神経衰弱',
+    chooseSet:     'カードセットを選んで',
+    startBtn:      'ゲームスタート',
+    menuBtn:       'メニュー',
+    msgFlip:       '2枚のカードをめくってペアを見つけよう！',
+    msgMatch:      '✓ ペア！続けて…',
+    msgNoMatch:    '不一致…',
+    winTitle:      'よくできました！',
+    winSubtitle:   'すべてのペアを発見',
+    lblMoves:      '手数',
+    lblTime:       '時間',
+    changeSet:     'セットを変更',
+    playAgain:     'もう一度',
+    installText:   '📲 Pexesoをインストール',
+    installBtn:    'インストール',
+    sets: { animals:'動物', trees:'木', flowers:'花', space:'宇宙', buildings:'建物' }
+  },
+  ko: {
+    back:          '← 뒤로',
+    tagline:       '기억력 게임',
+    chooseSet:     '카드 세트를 선택하세요',
+    startBtn:      '게임 시작',
+    menuBtn:       '메뉴',
+    msgFlip:       '두 장의 카드를 뒤집어 짝을 찾으세요!',
+    msgMatch:      '✓ 짝! 계속하세요…',
+    msgNoMatch:    '짝 없음…',
+    winTitle:      '잘했어요!',
+    winSubtitle:   '모든 짝을 찾았습니다',
+    lblMoves:      '이동',
+    lblTime:       '시간',
+    changeSet:     '세트 변경',
+    playAgain:     '다시 플레이',
+    installText:   '📲 Pexeso 설치',
+    installBtn:    '설치',
+    sets: { animals:'동물', trees:'나무', flowers:'꽃', space:'우주', buildings:'건물' }
+  },
+  zh: {
+    back:          '← 返回',
+    tagline:       '记忆游戏',
+    chooseSet:     '选择一套卡片',
+    startBtn:      '开始游戏',
+    menuBtn:       '菜单',
+    msgFlip:       '翻开两张卡片找到匹配的一对！',
+    msgMatch:      '✓ 匹配！继续…',
+    msgNoMatch:    '不匹配…',
+    winTitle:      '干得好！',
+    winSubtitle:   '所有对子已找到',
+    lblMoves:      '步数',
+    lblTime:       '时间',
+    changeSet:     '更换套装',
+    playAgain:     '再来一局',
+    installText:   '📲 安装 Pexeso',
+    installBtn:    '安装',
+    sets: { animals:'动物', trees:'树木', flowers:'花卉', space:'太空', buildings:'建筑' }
+  },
+};
+
+// lang is managed by GamePad i18n.js — fallback to 'en' if not supported
+let lang = I18N[getLang()] ? getLang() : 'en';
+
+function t(key) { return (I18N[lang] || I18N['en'])[key] || key; }
+function tSet(id) { return (I18N[lang] || I18N['en']).sets[id] || id; }
+
+function applyLang() {
+  const backEl = document.getElementById('lbl-back');
+  if (backEl) backEl.textContent = t('back') || '← Back';
+  document.documentElement.lang = lang;
+  document.getElementById('t-tagline').textContent       = t('tagline');
+  document.getElementById('t-choose-set').textContent    = t('chooseSet');
+  document.getElementById('btn-start').textContent       = t('startBtn');
+  document.getElementById('t-menu-btn').textContent      = t('menuBtn');
+  document.getElementById('t-win-title').textContent     = t('winTitle');
+  document.getElementById('t-win-subtitle').textContent  = t('winSubtitle');
+  document.getElementById('t-lbl-moves').textContent     = t('lblMoves');
+  document.getElementById('t-lbl-time').textContent      = t('lblTime');
+  document.getElementById('t-change-set').textContent    = t('changeSet');
+  document.getElementById('t-play-again').textContent    = t('playAgain');
+  document.getElementById('t-install-text').textContent  = t('installText');
+  document.getElementById('btn-install').textContent     = t('installBtn');
+
+  // update active message if game is running
+  const msg = document.getElementById('message');
+  if (msg.style.display !== 'none' && matched === 0 && moves === 0) {
+    msg.textContent = t('msgFlip');
+  }
+
+  // re-render set names
+  document.querySelectorAll('.set-btn').forEach(btn => {
+    const nameEl = btn.querySelector('.set-name');
+    if (nameEl) nameEl.textContent = tSet(btn.dataset.setId);
+  });
+
+  // update game set badge
+  if (currentSet) {
+    document.getElementById('game-set-name').textContent = tSet(currentSet.id);
+  }
+}
+
+// ── SETS ──
+const SETS = [
+  { id:'animals',   icon:'🐾', emojis:['🐶','🐱','🦊','🐻','🐼','🦁','🐯','🐨'] },
+  { id:'trees',     icon:'🌲', emojis:['🌲','🌴','🌳','🌵','🎋','🎍','🍀','🌿'] },
+  { id:'flowers',   icon:'🌸', emojis:['🌸','🌺','🌻','🌹','🌷','💐','🪷','🌼'] },
+  { id:'space',     icon:'🚀', emojis:['🚀','🪐','⭐','🌙','☄️','🌍','🔭','👾'] },
+  { id:'buildings', icon:'🏛️', emojis:['🏛️','🗼','🏰','⛩️','🕌','🗽','🏯','🕍'] },
+];
+
+let selectedSetId = 'animals';
+let currentSet = SETS[0];
+let flipped = [], matched = 0, moves = 0, lock = false;
+let timerInterval, seconds = 0, started = false;
+let particleInterval = null;
+
+
+// ── MENU ──
+function renderMenu() {
+  const grid = document.getElementById('sets-grid');
+  grid.innerHTML = '';
+  SETS.forEach(set => {
+    const btn = document.createElement('button');
+    btn.className = 'set-btn' + (set.id === selectedSetId ? ' selected' : '');
+    btn.dataset.setId = set.id;
+    btn.innerHTML = `<span class="set-icon">${set.icon}</span><span class="set-name">${tSet(set.id)}</span>`;
+    btn.onclick = () => {
+      selectedSetId = set.id;
+      document.querySelectorAll('.set-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      spawnParticles(set.emojis);
+    };
+    grid.appendChild(btn);
+  });
+}
+
+document.getElementById('btn-start').onclick = () => {
+  currentSet = SETS.find(s => s.id === selectedSetId);
+  showScreen('game');
+  startGame();
+};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function goMenu() {
+  clearInterval(timerInterval);
+  showScreen('menu');
+  spawnParticles(currentSet.emojis);
+}
+
+// ── PARTICLES ──
+function spawnParticles(emojis) {
+  const container = document.getElementById('particles');
+  container.innerHTML = '';
+  if (particleInterval) clearInterval(particleInterval);
+  function spawn() {
+    const el = document.createElement('span');
+    el.className = 'particle';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.fontSize = (14 + Math.random() * 18) + 'px';
+    const dur = 7 + Math.random() * 8;
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay = (Math.random() * -dur) + 's';
+    container.appendChild(el);
+    if (container.children.length > 24) container.removeChild(container.firstChild);
+  }
+  for (let i = 0; i < 16; i++) spawn();
+  particleInterval = setInterval(spawn, 1000);
+}
+
+// ── GAME ──
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  clearInterval(timerInterval);
+  flipped = []; matched = 0; moves = 0; lock = false; seconds = 0; started = false;
+  document.getElementById('moves').textContent = 0;
+  document.getElementById('timer').textContent = '0s';
+  document.getElementById('message').textContent = t('msgFlip');
+  document.getElementById('message').style.display = 'block';
+  document.getElementById('win-banner').style.display = 'none';
+  document.getElementById('grid').style.display = 'grid';
+  document.getElementById('game-set-icon').textContent = currentSet.icon;
+  document.getElementById('game-set-name').textContent = tSet(currentSet.id);
+  document.getElementById('win-emoji').textContent = currentSet.icon;
+
+  const deck = shuffle([...currentSet.emojis, ...currentSet.emojis]);
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  deck.forEach(emoji => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.emoji = emoji;
+    card.innerHTML = `<div class="card-inner"><div class="card-face card-front"></div><div class="card-face card-back">${emoji}</div></div>`;
+    card.addEventListener('click', () => flipCard(card));
+    grid.appendChild(card);
+  });
+}
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    seconds++;
+    document.getElementById('timer').textContent = seconds + 's';
+  }, 1000);
+}
+
+function flipCard(card) {
+  if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  if (!started) { started = true; startTimer(); }
+  card.classList.add('flipped');
+  flipped.push(card);
+  if (flipped.length === 2) {
+    moves++;
+    document.getElementById('moves').textContent = moves;
+    lock = true;
+    const [a, b] = flipped;
+    if (a.dataset.emoji === b.dataset.emoji) {
+      a.classList.add('matched'); b.classList.add('matched');
+      matched++;
+      flipped = []; lock = false;
+      document.getElementById('message').textContent = matched < 8 ? t('msgMatch') : '';
+      if (matched === 8) endGame();
+    } else {
+      document.getElementById('message').textContent = t('msgNoMatch');
+      setTimeout(() => {
+        a.classList.remove('flipped'); b.classList.remove('flipped');
+        flipped = []; lock = false;
+        document.getElementById('message').textContent = t('msgFlip');
+      }, 950);
+    }
+  }
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  document.getElementById('grid').style.display = 'none';
+  document.getElementById('message').style.display = 'none';
+  document.getElementById('win-moves').textContent = moves;
+  document.getElementById('win-time').textContent = seconds + 's';
+  document.getElementById('win-banner').style.display = 'flex';
+}
+
+// ── PWA ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+document.getElementById('btn-install').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').style.display = 'none';
+};
+document.getElementById('install-close').onclick = () => {
+  document.getElementById('install-banner').style.display = 'none';
+};
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(console.error);
+}
+
+// ── INIT ──
+applyLang();
+renderMenu();
+spawnParticles(SETS[0].emojis);
+</script>
+</body>
+</html>

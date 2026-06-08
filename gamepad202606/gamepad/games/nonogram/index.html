@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nonogram · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#4dff91;--cdim:rgba(77,255,145,0.14);}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;}
+body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;left:-100px;background:radial-gradient(circle,rgba(77,255,145,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 12px 30px;gap:12px;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.stat-pill span{color:var(--c);}
+.ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
+.ctrl-btn.active{border-color:var(--c);color:var(--c);background:var(--cdim);}
+#board-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:10px;display:inline-flex;}
+table{border-collapse:collapse;}
+.clue-cell{padding:2px 4px;text-align:center;font-size:clamp(9px,2vw,12px);color:var(--muted);font-weight:500;min-width:20px;}
+.clue-cell.done{color:var(--dim);}
+.grid-cell{width:clamp(22px,6vw,32px);height:clamp(22px,6vw,32px);border:1px solid rgba(255,255,255,0.07);cursor:pointer;transition:background .1s;-webkit-tap-highlight-color:transparent;position:relative;}
+.grid-cell.filled{background:var(--c);box-shadow:0 0 6px rgba(77,255,145,0.4);}
+.grid-cell.marked{background:transparent;}
+.grid-cell.marked::after{content:'×';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,107,107,0.6);font-size:14px;pointer-events:none;}
+.grid-cell.wrong{background:rgba(255,107,107,0.3)!important;}
+.grid-cell.correct{background:rgba(77,255,145,0.15)!important;}
+/* thick borders every 5 */
+.border-r5{border-right:2px solid rgba(255,255,255,0.2)!important;}
+.border-b5{border-bottom:2px solid rgba(255,255,255,0.2)!important;}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.9);backdrop-filter:blur(10px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
+.score-big{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--c);letter-spacing:-2px;}
+.hint-txt{font-size:12px;color:var(--muted);text-align:center;padding:0 20px;}
+.play-btn{margin-top:6px;background:var(--cdim);border:1px solid rgba(77,255,145,.3);color:var(--c);padding:10px 30px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:background .18s;}
+.play-btn:hover{background:rgba(77,255,145,.22);}
+.diff-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.diff-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.diff-btn:hover,.diff-btn.active{border-color:rgba(77,255,145,.4);color:var(--c);background:var(--cdim);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div id="overlay">
+  <div style="font-size:42px">🖼️</div>
+  <h2 id="ov-title"></h2>
+  <div class="hint-txt" id="ov-hint"></div>
+  <div class="diff-row" id="diff-row"></div>
+  <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
+</div>
+<div class="page">
+  <div class="game-title" id="lbl-title"></div>
+  <div class="hud">
+    <div class="stat-pill">⏱ <span id="hud-time">0</span>s</div>
+    <div class="stat-pill"><span id="lbl-err-txt"></span>&nbsp;<span id="hud-errors">0</span></div>
+    <button class="ctrl-btn" id="btn-mode-fill" onclick="setMode('fill')"></button>
+    <button class="ctrl-btn active" id="btn-mode-mark" onclick="setMode('mark')"></button>
+    <button class="ctrl-btn" id="btn-new" onclick="showMenu()"></button>
+  </div>
+  <div id="board-wrap"><table id="grid-table"></table></div>
+  <div style="font-size:12px;color:var(--dim);text-align:center;max-width:340px" id="status-txt"></div>
+</div>
+<script>
+document.getElementById('lbl-back').textContent     = t('back');
+document.getElementById('lbl-title').textContent    = t('nonogramTitle');
+document.getElementById('ov-title').textContent     = t('nonogramTitle');
+document.getElementById('ov-hint').textContent      = t('nonogramHint');
+document.getElementById('ov-btn').textContent       = t('nonogramPlay');
+document.getElementById('lbl-err-txt').textContent  = t('nonogramErrors');
+document.getElementById('btn-mode-fill').textContent= t('nonogramFill');
+document.getElementById('btn-mode-mark').textContent= t('nonogramMark');
+document.getElementById('btn-new').textContent      = t('nonogramNew');
+
+const DIFFS=[{key:'easy',size:5},{key:'medium',size:10},{key:'hard',size:15}];
+let diffIdx=0;
+const dr=document.getElementById('diff-row');
+DIFFS.forEach((d,i)=>{
+  const btn=document.createElement('button');
+  btn.className='diff-btn'+(i===0?' active':'');
+  btn.textContent=`${t('diff'+d.key[0].toUpperCase()+d.key.slice(1))} (${d.size}×${d.size})`;
+  btn.onclick=()=>{diffIdx=i;dr.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};
+  dr.appendChild(btn);
+});
+
+let solution,state,SIZE,mode='fill',errors=0,timerVal=0,timerInt,dragging=false,dragVal=null;
+
+function setMode(m){
+  mode=m;
+  document.getElementById('btn-mode-fill').classList.toggle('active',m==='fill');
+  document.getElementById('btn-mode-mark').classList.toggle('active',m==='mark');
+}
+
+function genSolution(sz){
+  return Array.from({length:sz},()=>Array.from({length:sz},()=>Math.random()<0.55?1:0));
+}
+
+function clues(arr){
+  const groups=[];let cnt=0;
+  for(const v of arr){if(v){cnt++;}else if(cnt){groups.push(cnt);cnt=0;}}
+  if(cnt)groups.push(cnt);
+  return groups.length?groups:[0];
+}
+
+function showMenu(){
+  clearInterval(timerInt);
+  document.getElementById('overlay').style.display='flex';
+}
+
+function startGame(){
+  document.getElementById('overlay').style.display='none';
+  SIZE=DIFFS[diffIdx].size;
+  solution=genSolution(SIZE);
+  state=Array.from({length:SIZE},()=>Array(SIZE).fill(0)); // 0=empty,1=filled,2=marked
+  errors=0;timerVal=0;
+  document.getElementById('hud-errors').textContent='0';
+  document.getElementById('hud-time').textContent='0';
+  document.getElementById('status-txt').textContent='';
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{timerVal++;document.getElementById('hud-time').textContent=timerVal;},1000);
+  renderGrid();
+}
+
+function renderGrid(){
+  const tbl=document.getElementById('grid-table');
+  tbl.innerHTML='';
+  const rowClues=solution.map(row=>clues(row));
+  const colClues=solution[0].map((_,c)=>clues(solution.map(r=>r[c])));
+  const maxRowClue=Math.max(...rowClues.map(c=>c.length));
+  const maxColClue=Math.max(...colClues.map(c=>c.length));
+
+  // Header rows (col clues)
+  for(let hRow=0;hRow<maxColClue;hRow++){
+    const tr=document.createElement('tr');
+    // corner cells
+    for(let i=0;i<maxRowClue;i++){const td=document.createElement('td');tr.appendChild(td);}
+    for(let c=0;c<SIZE;c++){
+      const td=document.createElement('td');
+      td.className='clue-cell';
+      const idx=colClues[c].length-(maxColClue-hRow);
+      td.textContent=idx>=0?colClues[c][idx]:'';
+      tr.appendChild(td);
+    }
+    tbl.appendChild(tr);
+  }
+
+  // Grid rows
+  for(let r=0;r<SIZE;r++){
+    const tr=document.createElement('tr');
+    // row clues
+    for(let i=0;i<maxRowClue;i++){
+      const td=document.createElement('td');
+      td.className='clue-cell';
+      const idx=rowClues[r].length-(maxRowClue-i);
+      td.textContent=idx>=0?rowClues[r][idx]:'';
+      tr.appendChild(td);
+    }
+    // grid cells
+    for(let c=0;c<SIZE;c++){
+      const td=document.createElement('td');
+      td.className='grid-cell';
+      if(state[r][c]===1)td.classList.add('filled');
+      if(state[r][c]===2)td.classList.add('marked');
+      if((c+1)%5===0&&c<SIZE-1)td.classList.add('border-r5');
+      if((r+1)%5===0&&r<SIZE-1)td.classList.add('border-b5');
+      td.dataset.r=r;td.dataset.c=c;
+      td.addEventListener('mousedown',e=>{e.preventDefault();startDrag(r,c);});
+      td.addEventListener('mouseover',()=>{if(dragging)applyDrag(r,c);});
+      td.addEventListener('touchstart',e=>{e.preventDefault();startDrag(r,c);},{passive:false});
+      td.addEventListener('touchmove',e=>{
+        e.preventDefault();
+        const touch=e.touches[0];
+        const el=document.elementFromPoint(touch.clientX,touch.clientY);
+        if(el?.dataset?.r!==undefined)applyDrag(+el.dataset.r,+el.dataset.c);
+      },{passive:false});
+      tr.appendChild(td);
+    }
+    tbl.appendChild(tr);
+  }
+}
+
+function startDrag(r,c){
+  dragging=true;
+  // toggle logic
+  if(mode==='fill') dragVal=state[r][c]===1?0:1;
+  else dragVal=state[r][c]===2?0:2;
+  applyDrag(r,c);
+}
+
+function applyDrag(r,c){
+  if(!dragging)return;
+  state[r][c]=dragVal;
+  const cells=document.querySelectorAll('.grid-cell');
+  cells.forEach(td=>{
+    if(+td.dataset.r===r&&+td.dataset.c===c){
+      td.className='grid-cell';
+      if((c+1)%5===0&&c<SIZE-1)td.classList.add('border-r5');
+      if((r+1)%5===0&&r<SIZE-1)td.classList.add('border-b5');
+      if(state[r][c]===1)td.classList.add('filled');
+      if(state[r][c]===2)td.classList.add('marked');
+    }
+  });
+  checkWin();
+}
+
+document.addEventListener('mouseup',()=>dragging=false);
+document.addEventListener('touchend',()=>dragging=false);
+
+function checkWin(){
+  const solved=solution.every((row,r)=>row.every((v,c)=>(v===1)===(state[r][c]===1)));
+  if(solved){
+    clearInterval(timerInt);
+    const ov=document.getElementById('overlay');
+    ov.innerHTML=`<div style="font-size:42px">🎉</div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px">${t('nonogramWin')}</h2>
+      <div class="score-big">${timerVal}s</div>
+      <div style="font-size:12px;color:var(--muted)">${t('nonogramErrors')}: ${errors}</div>
+      <div class="diff-row" id="diff-row2" style="margin-top:4px"></div>
+      <button class="play-btn" onclick="startGame()" style="margin-top:4px">${t('nonogramAgain')}</button>`;
+    ov.style.display='flex';
+    const dr2=document.getElementById('diff-row2');
+    DIFFS.forEach((d,i)=>{const btn=document.createElement('button');btn.className='diff-btn'+(i===diffIdx?' active':'');btn.textContent=`${t('diff'+d.key[0].toUpperCase()+d.key.slice(1))} (${d.size}×${d.size})`;btn.onclick=()=>{diffIdx=i;dr2.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};dr2.appendChild(btn);});
+  }
+}
+</script>
+</body>
+</html>
