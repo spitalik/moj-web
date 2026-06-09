@@ -38,6 +38,8 @@ const ASSETS = [
   './games/echo-vault/index.html',
   './games/tiny-alchemist/index.html',
   './games/signal-garden/index.html',
+  './games/dead-grid/index.html',
+  './games/neon-lane/index.html',
   './games/sokoban/index.html',
   './games/ricochet/index.html',
 ];

@@ -82,26 +82,26 @@ const COLORS_DIM = COLORS.map(function(c) {
 
 // ── LEVELS ────────────────────────────────────────────────────────────────
 const LEVELS = [
-  { size:5, pairs:[{c:0,r1:0,c1:0,r2:4,c2:0},{c:1,r1:0,c1:1,r2:4,c2:1},{c:2,r1:0,c1:2,r2:4,c2:2},{c:3,r1:0,c1:3,r2:4,c2:3}] },
-  { size:5, pairs:[{c:0,r1:0,c1:0,r2:4,c2:0},{c:1,r1:0,c1:1,r2:4,c2:1},{c:2,r1:0,c1:2,r2:4,c2:2},{c:3,r1:0,c1:3,r2:4,c2:3},{c:4,r1:0,c1:4,r2:4,c2:4}] },
-  { size:6, pairs:[{c:0,r1:0,c1:0,r2:5,c2:0},{c:1,r1:0,c1:1,r2:5,c2:1},{c:2,r1:0,c1:2,r2:5,c2:2},{c:3,r1:0,c1:3,r2:5,c2:3},{c:4,r1:0,c1:4,r2:5,c2:4}] },
-  { size:6, pairs:[{c:0,r1:0,c1:0,r2:5,c2:0},{c:1,r1:0,c1:1,r2:5,c2:1},{c:2,r1:0,c1:2,r2:5,c2:2},{c:3,r1:0,c1:3,r2:5,c2:3},{c:4,r1:0,c1:4,r2:5,c2:4},{c:5,r1:0,c1:5,r2:5,c2:5}] },
-  { size:7, pairs:[{c:0,r1:0,c1:0,r2:6,c2:0},{c:1,r1:0,c1:1,r2:6,c2:1},{c:2,r1:0,c1:2,r2:6,c2:2},{c:3,r1:0,c1:3,r2:6,c2:3},{c:4,r1:0,c1:4,r2:6,c2:4},{c:5,r1:0,c1:5,r2:6,c2:5}] },
-  { size:7, pairs:[{c:0,r1:0,c1:0,r2:6,c2:0},{c:1,r1:0,c1:1,r2:6,c2:1},{c:2,r1:0,c1:2,r2:6,c2:2},{c:3,r1:0,c1:3,r2:6,c2:3},{c:4,r1:0,c1:4,r2:6,c2:4},{c:5,r1:0,c1:5,r2:6,c2:5},{c:6,r1:0,c1:6,r2:6,c2:6}] },
-  { size:8, pairs:[{c:0,r1:0,c1:0,r2:7,c2:0},{c:1,r1:0,c1:1,r2:7,c2:1},{c:2,r1:0,c1:2,r2:7,c2:2},{c:3,r1:0,c1:3,r2:7,c2:3},{c:4,r1:0,c1:4,r2:7,c2:4},{c:5,r1:0,c1:5,r2:7,c2:5},{c:6,r1:0,c1:6,r2:7,c2:6}] },
-  { size:8, pairs:[{c:0,r1:0,c1:0,r2:7,c2:0},{c:1,r1:0,c1:1,r2:7,c2:1},{c:2,r1:0,c1:2,r2:7,c2:2},{c:3,r1:0,c1:3,r2:7,c2:3},{c:4,r1:0,c1:4,r2:7,c2:4},{c:5,r1:0,c1:5,r2:7,c2:5},{c:6,r1:0,c1:6,r2:7,c2:6},{c:7,r1:0,c1:7,r2:7,c2:7}] },
-  { size:9, pairs:[{c:0,r1:0,c1:0,r2:8,c2:0},{c:1,r1:0,c1:1,r2:8,c2:1},{c:2,r1:0,c1:2,r2:8,c2:2},{c:3,r1:0,c1:3,r2:8,c2:3},{c:4,r1:0,c1:4,r2:8,c2:4},{c:5,r1:0,c1:5,r2:8,c2:5},{c:6,r1:0,c1:6,r2:8,c2:6}] },
-  { size:9, pairs:[{c:0,r1:0,c1:0,r2:8,c2:0},{c:1,r1:0,c1:1,r2:8,c2:1},{c:2,r1:0,c1:2,r2:8,c2:2},{c:3,r1:0,c1:3,r2:8,c2:3},{c:4,r1:0,c1:4,r2:8,c2:4},{c:5,r1:0,c1:5,r2:8,c2:5},{c:6,r1:0,c1:6,r2:8,c2:6},{c:7,r1:0,c1:7,r2:8,c2:7}] },
-  { size:9, pairs:[{c:0,r1:0,c1:0,r2:8,c2:0},{c:1,r1:0,c1:1,r2:8,c2:1},{c:2,r1:0,c1:2,r2:8,c2:2},{c:3,r1:0,c1:3,r2:8,c2:3},{c:4,r1:0,c1:4,r2:8,c2:4},{c:5,r1:0,c1:5,r2:8,c2:5},{c:6,r1:0,c1:6,r2:8,c2:6},{c:7,r1:0,c1:7,r2:8,c2:7},{c:8,r1:0,c1:8,r2:8,c2:8}] },
-  { size:10, pairs:[{c:0,r1:0,c1:0,r2:9,c2:0},{c:1,r1:0,c1:1,r2:9,c2:1},{c:2,r1:0,c1:2,r2:9,c2:2},{c:3,r1:0,c1:3,r2:9,c2:3},{c:4,r1:0,c1:4,r2:9,c2:4},{c:5,r1:0,c1:5,r2:9,c2:5},{c:6,r1:0,c1:6,r2:9,c2:6},{c:7,r1:0,c1:7,r2:9,c2:7}] },
-  { size:10, pairs:[{c:0,r1:0,c1:0,r2:9,c2:0},{c:1,r1:0,c1:1,r2:9,c2:1},{c:2,r1:0,c1:2,r2:9,c2:2},{c:3,r1:0,c1:3,r2:9,c2:3},{c:4,r1:0,c1:4,r2:9,c2:4},{c:5,r1:0,c1:5,r2:9,c2:5},{c:6,r1:0,c1:6,r2:9,c2:6},{c:7,r1:0,c1:7,r2:9,c2:7},{c:8,r1:0,c1:8,r2:9,c2:8}] },
-  { size:10, pairs:[{c:0,r1:0,c1:0,r2:9,c2:0},{c:1,r1:0,c1:1,r2:9,c2:1},{c:2,r1:0,c1:2,r2:9,c2:2},{c:3,r1:0,c1:3,r2:9,c2:3},{c:4,r1:0,c1:4,r2:9,c2:4},{c:5,r1:0,c1:5,r2:9,c2:5},{c:6,r1:0,c1:6,r2:9,c2:6},{c:7,r1:0,c1:7,r2:9,c2:7},{c:8,r1:0,c1:8,r2:9,c2:8},{c:9,r1:0,c1:9,r2:9,c2:9}] },
-  { size:11, pairs:[{c:0,r1:0,c1:0,r2:10,c2:0},{c:1,r1:0,c1:1,r2:10,c2:1},{c:2,r1:0,c1:2,r2:10,c2:2},{c:3,r1:0,c1:3,r2:10,c2:3},{c:4,r1:0,c1:4,r2:10,c2:4},{c:5,r1:0,c1:5,r2:10,c2:5},{c:6,r1:0,c1:6,r2:10,c2:6},{c:7,r1:0,c1:7,r2:10,c2:7},{c:8,r1:0,c1:8,r2:10,c2:8}] },
-  { size:11, pairs:[{c:0,r1:0,c1:0,r2:10,c2:0},{c:1,r1:0,c1:1,r2:10,c2:1},{c:2,r1:0,c1:2,r2:10,c2:2},{c:3,r1:0,c1:3,r2:10,c2:3},{c:4,r1:0,c1:4,r2:10,c2:4},{c:5,r1:0,c1:5,r2:10,c2:5},{c:6,r1:0,c1:6,r2:10,c2:6},{c:7,r1:0,c1:7,r2:10,c2:7},{c:8,r1:0,c1:8,r2:10,c2:8},{c:9,r1:0,c1:9,r2:10,c2:9}] },
-  { size:12, pairs:[{c:0,r1:0,c1:0,r2:11,c2:0},{c:1,r1:0,c1:1,r2:11,c2:1},{c:2,r1:0,c1:2,r2:11,c2:2},{c:3,r1:0,c1:3,r2:11,c2:3},{c:4,r1:0,c1:4,r2:11,c2:4},{c:5,r1:0,c1:5,r2:11,c2:5},{c:6,r1:0,c1:6,r2:11,c2:6},{c:7,r1:0,c1:7,r2:11,c2:7},{c:8,r1:0,c1:8,r2:11,c2:8},{c:9,r1:0,c1:9,r2:11,c2:9}] },
-  { size:12, pairs:[{c:0,r1:0,c1:0,r2:11,c2:0},{c:1,r1:0,c1:1,r2:11,c2:1},{c:2,r1:0,c1:2,r2:11,c2:2},{c:3,r1:0,c1:3,r2:11,c2:3},{c:4,r1:0,c1:4,r2:11,c2:4},{c:5,r1:0,c1:5,r2:11,c2:5},{c:6,r1:0,c1:6,r2:11,c2:6},{c:7,r1:0,c1:7,r2:11,c2:7},{c:8,r1:0,c1:8,r2:11,c2:8},{c:9,r1:0,c1:9,r2:11,c2:9},{c:10,r1:0,c1:10,r2:11,c2:10}] },
-  { size:13, pairs:[{c:0,r1:0,c1:0,r2:12,c2:0},{c:1,r1:0,c1:1,r2:12,c2:1},{c:2,r1:0,c1:2,r2:12,c2:2},{c:3,r1:0,c1:3,r2:12,c2:3},{c:4,r1:0,c1:4,r2:12,c2:4},{c:5,r1:0,c1:5,r2:12,c2:5},{c:6,r1:0,c1:6,r2:12,c2:6},{c:7,r1:0,c1:7,r2:12,c2:7},{c:8,r1:0,c1:8,r2:12,c2:8},{c:9,r1:0,c1:9,r2:12,c2:9}] },
-  { size:14, pairs:[{c:0,r1:0,c1:0,r2:13,c2:0},{c:1,r1:0,c1:1,r2:13,c2:1},{c:2,r1:0,c1:2,r2:13,c2:2},{c:3,r1:0,c1:3,r2:13,c2:3},{c:4,r1:0,c1:4,r2:13,c2:4},{c:5,r1:0,c1:5,r2:13,c2:5},{c:6,r1:0,c1:6,r2:13,c2:6},{c:7,r1:0,c1:7,r2:13,c2:7},{c:8,r1:0,c1:8,r2:13,c2:8},{c:9,r1:0,c1:9,r2:13,c2:9},{c:10,r1:0,c1:10,r2:13,c2:10}] },
+  { size:5, pairs:[{c:0,r1:0,c1:0,r2:0,c2:4},{c:1,r1:1,c1:0,r2:2,c2:3},{c:2,r1:2,c1:0,r2:3,c2:4},{c:3,r1:4,c1:0,r2:4,c2:4}] },
+  { size:5, pairs:[{c:0,r1:0,c1:0,r2:4,c2:0},{c:1,r1:0,c1:1,r2:1,c2:4},{c:2,r1:1,c1:1,r2:2,c2:4},{c:3,r1:3,c1:4,r2:4,c2:1},{c:4,r1:3,c1:1,r2:3,c2:3}] },
+  { size:6, pairs:[{c:0,r1:0,c1:0,r2:0,c2:5},{c:1,r1:1,c1:5,r2:1,c2:0},{c:2,r1:2,c1:0,r2:3,c2:4},{c:3,r1:3,c1:3,r2:4,c2:1},{c:4,r1:4,c1:2,r2:5,c2:0}] },
+  { size:6, pairs:[{c:0,r1:0,c1:0,r2:0,c2:5},{c:1,r1:1,c1:5,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:5},{c:3,r1:3,c1:5,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:5},{c:5,r1:5,c1:5,r2:5,c2:0}] },
+  { size:7, pairs:[{c:0,r1:0,c1:0,r2:1,c2:5},{c:1,r1:1,c1:0,r2:2,c2:6},{c:2,r1:2,c1:0,r2:3,c2:6},{c:3,r1:3,c1:0,r2:4,c2:6},{c:4,r1:4,c1:0,r2:5,c2:6},{c:5,r1:5,c1:0,r2:6,c2:6}] },
+  { size:7, pairs:[{c:0,r1:0,c1:0,r2:0,c2:6},{c:1,r1:1,c1:6,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:6},{c:3,r1:3,c1:6,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:6},{c:5,r1:5,c1:6,r2:5,c2:0},{c:6,r1:6,c1:0,r2:6,c2:6}] },
+  { size:8, pairs:[{c:0,r1:0,c1:0,r2:1,c2:6},{c:1,r1:1,c1:5,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:4},{c:3,r1:3,c1:3,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:2},{c:5,r1:5,c1:1,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:0}] },
+  { size:8, pairs:[{c:0,r1:0,c1:0,r2:0,c2:7},{c:1,r1:1,c1:7,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:7},{c:3,r1:3,c1:7,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:7},{c:5,r1:5,c1:7,r2:5,c2:0},{c:6,r1:6,c1:0,r2:6,c2:7},{c:7,r1:7,c1:7,r2:7,c2:0}] },
+  { size:9, pairs:[{c:0,r1:0,c1:0,r2:1,c2:6},{c:1,r1:1,c1:5,r2:2,c2:5},{c:2,r1:2,c1:6,r2:3,c2:0},{c:3,r1:4,c1:0,r2:5,c2:6},{c:4,r1:5,c1:5,r2:6,c2:4},{c:5,r1:6,c1:5,r2:7,c2:2},{c:6,r1:7,c1:1,r2:8,c2:8}] },
+  { size:9, pairs:[{c:0,r1:0,c1:0,r2:1,c2:7},{c:1,r1:1,c1:6,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:5},{c:3,r1:3,c1:4,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:3},{c:5,r1:5,c1:2,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:1},{c:7,r1:7,c1:0,r2:8,c2:8}] },
+  { size:9, pairs:[{c:0,r1:0,c1:0,r2:0,c2:8},{c:1,r1:1,c1:8,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:8},{c:3,r1:3,c1:8,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:8},{c:5,r1:5,c1:8,r2:5,c2:0},{c:6,r1:6,c1:0,r2:6,c2:8},{c:7,r1:7,c1:8,r2:7,c2:0},{c:8,r1:8,c1:0,r2:8,c2:8}] },
+  { size:10, pairs:[{c:0,r1:0,c1:0,r2:1,c2:7},{c:1,r1:1,c1:6,r2:2,c2:5},{c:2,r1:2,c1:6,r2:3,c2:1},{c:3,r1:3,c1:0,r2:5,c2:8},{c:4,r1:5,c1:7,r2:6,c2:3},{c:5,r1:6,c1:4,r2:7,c2:4},{c:6,r1:7,c1:3,r2:8,c2:7},{c:7,r1:8,c1:8,r2:9,c2:0}] },
+  { size:10, pairs:[{c:0,r1:0,c1:0,r2:1,c2:8},{c:1,r1:1,c1:7,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:6},{c:3,r1:3,c1:5,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:4},{c:5,r1:5,c1:3,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:2},{c:7,r1:7,c1:1,r2:8,c2:8},{c:8,r1:8,c1:9,r2:9,c2:0}] },
+  { size:10, pairs:[{c:0,r1:0,c1:0,r2:0,c2:9},{c:1,r1:1,c1:9,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:9},{c:3,r1:3,c1:9,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:9},{c:5,r1:5,c1:9,r2:5,c2:0},{c:6,r1:6,c1:0,r2:6,c2:9},{c:7,r1:7,c1:9,r2:7,c2:0},{c:8,r1:8,c1:0,r2:8,c2:9},{c:9,r1:9,c1:9,r2:9,c2:0}] },
+  { size:11, pairs:[{c:0,r1:0,c1:0,r2:1,c2:8},{c:1,r1:1,c1:7,r2:2,c2:5},{c:2,r1:2,c1:6,r2:3,c2:2},{c:3,r1:3,c1:1,r2:5,c2:10},{c:4,r1:5,c1:9,r2:6,c2:2},{c:5,r1:6,c1:3,r2:7,c2:6},{c:6,r1:7,c1:5,r2:8,c2:6},{c:7,r1:8,c1:7,r2:9,c2:2},{c:8,r1:9,c1:1,r2:10,c2:10}] },
+  { size:11, pairs:[{c:0,r1:0,c1:0,r2:1,c2:9},{c:1,r1:1,c1:8,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:7},{c:3,r1:3,c1:6,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:5},{c:5,r1:5,c1:4,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:3},{c:7,r1:7,c1:2,r2:8,c2:8},{c:8,r1:8,c1:9,r2:9,c2:1},{c:9,r1:9,c1:0,r2:10,c2:10}] },
+  { size:12, pairs:[{c:0,r1:0,c1:0,r2:1,c2:9},{c:1,r1:1,c1:8,r2:2,c2:5},{c:2,r1:2,c1:6,r2:3,c2:3},{c:3,r1:3,c1:2,r2:4,c2:11},{c:4,r1:5,c1:11,r2:6,c2:1},{c:5,r1:6,c1:2,r2:7,c2:8},{c:6,r1:7,c1:7,r2:8,c2:5},{c:7,r1:8,c1:6,r2:9,c2:4},{c:8,r1:9,c1:3,r2:10,c2:9},{c:9,r1:10,c1:10,r2:11,c2:0}] },
+  { size:12, pairs:[{c:0,r1:0,c1:0,r2:1,c2:10},{c:1,r1:1,c1:9,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:8},{c:3,r1:3,c1:7,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:6},{c:5,r1:5,c1:5,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:4},{c:7,r1:7,c1:3,r2:8,c2:8},{c:8,r1:8,c1:9,r2:9,c2:2},{c:9,r1:9,c1:1,r2:10,c2:10},{c:10,r1:10,c1:11,r2:11,c2:0}] },
+  { size:13, pairs:[{c:0,r1:0,c1:0,r2:1,c2:9},{c:1,r1:1,c1:8,r2:2,c2:7},{c:2,r1:2,c1:8,r2:3,c2:1},{c:3,r1:3,c1:0,r2:5,c2:10},{c:4,r1:5,c1:9,r2:6,c2:6},{c:5,r1:6,c1:7,r2:7,c2:2},{c:6,r1:7,c1:1,r2:9,c2:11},{c:7,r1:9,c1:10,r2:10,c2:5},{c:8,r1:10,c1:6,r2:11,c2:3},{c:9,r1:11,c1:2,r2:12,c2:12}] },
+  { size:14, pairs:[{c:0,r1:0,c1:0,r2:1,c2:10},{c:1,r1:1,c1:9,r2:2,c2:7},{c:2,r1:2,c1:8,r2:3,c2:2},{c:3,r1:3,c1:1,r2:5,c2:12},{c:4,r1:5,c1:11,r2:6,c2:5},{c:5,r1:6,c1:6,r2:7,c2:4},{c:6,r1:7,c1:3,r2:8,c2:13},{c:7,r1:9,c1:13,r2:10,c2:3},{c:8,r1:10,c1:4,r2:11,c2:6},{c:9,r1:11,c1:5,r2:12,c2:10},{c:10,r1:12,c1:11,r2:13,c2:0}] },
 ];
 
 // ── STATE ─────────────────────────────────────────────────────────────────
@@ -213,7 +213,8 @@ function filledPercent() {
 function checkWin() {
   var lv=LEVELS[currentLevel];
   var allComplete=lv.pairs.every(function(_,i){return isComplete(i);});
-  if(allComplete) {
+  var filled=filledPercent();
+  if(allComplete && filled===100) {
     completed[currentLevel]=true;
     setTimeout(function(){
       var isLast=currentLevel===LEVELS.length-1;
@@ -379,98 +380,6 @@ function render() {
 }
 
 showMenu();
-
-// -- Developer: Level verifier (run with ?verify in URL) -----------------
-function verifyAllLevels() {
-  console.log('Flow: verifying levels...');
-  var bad = [];
-  for (var li=0; li<LEVELS.length; li++) {
-    var lv = LEVELS[li];
-    var ok = solveLevel(lv);
-    console.log('Level', li+1, 'solvable?', ok);
-    if(!ok) bad.push(li+1);
-  }
-  if(bad.length) console.warn('Unsolvable levels:', bad);
-  else console.log('All levels appear solvable (best-effort).');
-}
-
-function solveLevel(lv) {
-  var R = lv.size, C = lv.size;
-  var pairs = lv.pairs.map(function(p){ return {a:{r:p.r1,c:p.c1}, b:{r:p.r2,c:p.c2}}; });
-
-  // Create occupied grid
-  var occ = Array.from({length:R}, ()=>Array(C).fill(false));
-
-  // Order pairs by Manhattan distance (small first)
-  var order = pairs.map((p,i)=>({i:i,d:Math.abs(p.a.r-p.b.r)+Math.abs(p.a.c-p.b.c)})).sort((x,y)=>x.d-y.d).map(x=>x.i);
-
-  function inBounds(r,c){ return r>=0 && c>=0 && r<R && c<C; }
-  var dirs = [[1,0],[-1,0],[0,1],[0,-1]];
-
-  function neighbors(r,c){ return dirs.map(d=>({r:r+d[0],c:c+d[1]})).filter(p=>inBounds(p.r,p.c)); }
-
-  // Try to connect pairs in order using recursive backtracking with DFS for each path
-  function backtrack(idx) {
-    if(idx===order.length) return true;
-    var pi = order[idx];
-    var s = pairs[pi].a, e = pairs[pi].b;
-
-    // quick BFS to see if any path exists ignoring future pairs
-    var q = [s], dist = Array.from({length:R}, ()=>Array(C).fill(-1)); dist[s.r][s.c]=0;
-    for(var qi=0; qi<q.length; qi++){
-      var cur=q[qi];
-      if(cur.r===e.r && cur.c===e.c) break;
-      neighbors(cur.r,cur.c).forEach(function(n){ if(dist[n.r][n.c]===-1 && !occ[n.r][n.c]){ dist[n.r][n.c]=dist[cur.r][cur.c]+1; q.push(n);} });
-    }
-    if(dist[e.r][e.c]===-1) return false;
-
-    var maxDepth = dist[e.r][e.c] + 6; // small slack
-
-    var visited = Array.from({length:R}, ()=>Array(C).fill(false));
-    var path = [];
-
-    function dfs(r,c,depth) {
-      if(depth>maxDepth) return false;
-      if(r===e.r && c===e.c) return attemptNext();
-      // order neighbors towards end
-      var neigh = neighbors(r,c).sort(function(a,b){
-        var da=Math.abs(a.r-e.r)+Math.abs(a.c-e.c);
-        var db=Math.abs(b.r-e.r)+Math.abs(b.c-e.c);
-        return da-db;
-      });
-      for(var k=0;k<neigh.length;k++){
-        var n=neigh[k];
-        if(visited[n.r][n.c] || occ[n.r][n.c]) continue;
-        visited[n.r][n.c]=true; path.push(n);
-        if(dfs(n.r,n.c,depth+1)) return true;
-        path.pop(); visited[n.r][n.c]=false;
-      }
-      return false;
-    }
-
-    function attemptNext(){
-      // mark path cells as occupied
-      var marks = [];
-      // include start cell
-      marks.push({r:s.r,c:s.c});
-      marks = marks.concat(path);
-      marks.forEach(function(m){ occ[m.r][m.c]=true; });
-      var ok = backtrack(idx+1);
-      if(ok) return true;
-      // unmark
-      marks.forEach(function(m){ occ[m.r][m.c]=false; });
-      return false;
-    }
-
-    // init
-    visited[s.r][s.c]=true; path=[];
-    return dfs(s.r,s.c,0);
-  }
-
-  return backtrack(0);
-}
-
-if(window.location.search.indexOf('verify')>-1) setTimeout(verifyAllLevels,100);
 </script>
 </body>
 </html>

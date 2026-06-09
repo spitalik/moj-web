@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipes Connect · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#4dff91;--cdim:rgba(77,255,145,0.14);}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;}
+body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;left:-100px;background:radial-gradient(circle,rgba(77,255,145,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 12px 30px;gap:12px;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.stat-pill span{color:var(--c);}
+.ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
+#canvas-wrap{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg1);touch-action:none;}
+canvas{display:block;}
+#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,5,7,.92);backdrop-filter:blur(10px);z-index:20;}
+#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
+.score-big{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--c);letter-spacing:-2px;}
+.hint{font-size:12px;color:var(--muted);text-align:center;padding:0 20px;}
+.play-btn{background:var(--cdim);border:1px solid rgba(77,255,145,.3);color:var(--c);padding:11px 32px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+.lev-row{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;max-width:340px;}
+.lev-btn{width:32px;height:32px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.lev-btn:hover{border-color:var(--border-h);color:var(--text);}
+.lev-btn.done{background:rgba(77,255,145,0.1);border-color:rgba(77,255,145,.3);color:#4dff91;}
+.lev-btn.current{background:var(--cdim);border-color:rgba(77,255,145,.4);color:var(--c);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div id="overlay">
+  <div style="font-size:44px">🔗</div>
+  <h2 id="ov-title"></h2>
+  <div class="hint" id="ov-hint"></div>
+  <div class="lev-row" id="lev-row"></div>
+  <button class="play-btn" id="ov-btn" onclick="startLevel(currentLevel)"></button>
+</div>
+<div class="page">
+  <div class="game-title" id="lbl-title"></div>
+  <div class="hud">
+    <div class="stat-pill"><span id="lbl-lev-txt"></span>&nbsp;<span id="hud-lev">1</span></div>
+    <div class="stat-pill"><span id="lbl-moves-txt"></span>&nbsp;<span id="hud-moves">0</span></div>
+    <div class="stat-pill" id="pill-filled"><span id="lbl-filled-txt"></span>&nbsp;<span id="hud-filled">0</span>%</div>
+    <button class="ctrl-btn" id="btn-clear" onclick="clearPaths()"></button>
+    <button class="ctrl-btn" id="btn-levels" onclick="showMenu()"></button>
+  </div>
+  <div id="canvas-wrap"><canvas id="gameCanvas"></canvas></div>
+</div>
+
+<script>
+document.getElementById('lbl-back').textContent      = t('back');
+document.getElementById('lbl-title').textContent     = t('flowTitle');
+document.getElementById('ov-title').textContent      = t('flowTitle');
+document.getElementById('ov-hint').textContent       = t('flowHint');
+document.getElementById('ov-btn').textContent        = t('flowPlay');
+document.getElementById('lbl-lev-txt').textContent   = t('flowLevel');
+document.getElementById('lbl-moves-txt').textContent = t('flowMoves');
+document.getElementById('lbl-filled-txt').textContent= t('flowFilled');
+document.getElementById('btn-clear').textContent     = t('flowClear');
+document.getElementById('btn-levels').textContent    = t('flowLevels');
+
+// ── COLORS ────────────────────────────────────────────────────────────────
+const COLORS = [
+  '#ff6b6b', '#54a0ff', '#4dff91', '#ffd166',
+  '#ff9f43', '#a78bfa', '#00d4ff', '#ff6b9d',
+  '#26de81', '#fd9644', '#a55eea', '#778ca3',
+];
+const COLORS_DIM = COLORS.map(function(c) {
+  return c + '40';
+});
+
+// ── LEVELS ────────────────────────────────────────────────────────────────
+const LEVELS = [
+  { size:5, pairs:[{c:0,r1:0,c1:0,r2:0,c2:4},{c:1,r1:1,c1:0,r2:2,c2:3},{c:2,r1:2,c1:0,r2:3,c2:4},{c:3,r1:4,c1:0,r2:4,c2:4}] },
+  { size:5, pairs:[{c:0,r1:0,c1:0,r2:4,c2:0},{c:1,r1:0,c1:1,r2:1,c2:4},{c:2,r1:1,c1:1,r2:2,c2:4},{c:3,r1:3,c1:4,r2:4,c2:1},{c:4,r1:3,c1:1,r2:3,c2:3}] },
+  { size:6, pairs:[{c:0,r1:0,c1:0,r2:0,c2:5},{c:1,r1:1,c1:5,r2:1,c2:0},{c:2,r1:2,c1:0,r2:3,c2:4},{c:3,r1:3,c1:3,r2:4,c2:1},{c:4,r1:4,c1:2,r2:5,c2:0}] },
+  { size:6, pairs:[{c:0,r1:0,c1:0,r2:0,c2:5},{c:1,r1:1,c1:5,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:5},{c:3,r1:3,c1:5,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:5},{c:5,r1:5,c1:5,r2:5,c2:0}] },
+  { size:7, pairs:[{c:0,r1:0,c1:0,r2:1,c2:5},{c:1,r1:1,c1:0,r2:2,c2:6},{c:2,r1:2,c1:0,r2:3,c2:6},{c:3,r1:3,c1:0,r2:4,c2:6},{c:4,r1:4,c1:0,r2:5,c2:6},{c:5,r1:5,c1:0,r2:6,c2:6}] },
+  { size:7, pairs:[{c:0,r1:0,c1:0,r2:0,c2:6},{c:1,r1:1,c1:6,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:6},{c:3,r1:3,c1:6,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:6},{c:5,r1:5,c1:6,r2:5,c2:0},{c:6,r1:6,c1:0,r2:6,c2:6}] },
+  { size:8, pairs:[{c:0,r1:0,c1:0,r2:1,c2:6},{c:1,r1:1,c1:5,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:4},{c:3,r1:3,c1:3,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:2},{c:5,r1:5,c1:1,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:0}] },
+  { size:8, pairs:[{c:0,r1:0,c1:0,r2:0,c2:7},{c:1,r1:1,c1:7,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:7},{c:3,r1:3,c1:7,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:7},{c:5,r1:5,c1:7,r2:5,c2:0},{c:6,r1:6,c1:0,r2:6,c2:7},{c:7,r1:7,c1:7,r2:7,c2:0}] },
+  { size:9, pairs:[{c:0,r1:0,c1:0,r2:1,c2:6},{c:1,r1:1,c1:5,r2:2,c2:5},{c:2,r1:2,c1:6,r2:3,c2:0},{c:3,r1:4,c1:0,r2:5,c2:6},{c:4,r1:5,c1:5,r2:6,c2:4},{c:5,r1:6,c1:5,r2:7,c2:2},{c:6,r1:7,c1:1,r2:8,c2:8}] },
+  { size:9, pairs:[{c:0,r1:0,c1:0,r2:1,c2:7},{c:1,r1:1,c1:6,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:5},{c:3,r1:3,c1:4,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:3},{c:5,r1:5,c1:2,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:1},{c:7,r1:7,c1:0,r2:8,c2:8}] },
+  { size:9, pairs:[{c:0,r1:0,c1:0,r2:0,c2:8},{c:1,r1:1,c1:8,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:8},{c:3,r1:3,c1:8,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:8},{c:5,r1:5,c1:8,r2:5,c2:0},{c:6,r1:6,c1:0,r2:6,c2:8},{c:7,r1:7,c1:8,r2:7,c2:0},{c:8,r1:8,c1:0,r2:8,c2:8}] },
+  { size:10, pairs:[{c:0,r1:0,c1:0,r2:1,c2:7},{c:1,r1:1,c1:6,r2:2,c2:5},{c:2,r1:2,c1:6,r2:3,c2:1},{c:3,r1:3,c1:0,r2:5,c2:8},{c:4,r1:5,c1:7,r2:6,c2:3},{c:5,r1:6,c1:4,r2:7,c2:4},{c:6,r1:7,c1:3,r2:8,c2:7},{c:7,r1:8,c1:8,r2:9,c2:0}] },
+  { size:10, pairs:[{c:0,r1:0,c1:0,r2:1,c2:8},{c:1,r1:1,c1:7,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:6},{c:3,r1:3,c1:5,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:4},{c:5,r1:5,c1:3,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:2},{c:7,r1:7,c1:1,r2:8,c2:8},{c:8,r1:8,c1:9,r2:9,c2:0}] },
+  { size:10, pairs:[{c:0,r1:0,c1:0,r2:0,c2:9},{c:1,r1:1,c1:9,r2:1,c2:0},{c:2,r1:2,c1:0,r2:2,c2:9},{c:3,r1:3,c1:9,r2:3,c2:0},{c:4,r1:4,c1:0,r2:4,c2:9},{c:5,r1:5,c1:9,r2:5,c2:0},{c:6,r1:6,c1:0,r2:6,c2:9},{c:7,r1:7,c1:9,r2:7,c2:0},{c:8,r1:8,c1:0,r2:8,c2:9},{c:9,r1:9,c1:9,r2:9,c2:0}] },
+  { size:11, pairs:[{c:0,r1:0,c1:0,r2:1,c2:8},{c:1,r1:1,c1:7,r2:2,c2:5},{c:2,r1:2,c1:6,r2:3,c2:2},{c:3,r1:3,c1:1,r2:5,c2:10},{c:4,r1:5,c1:9,r2:6,c2:2},{c:5,r1:6,c1:3,r2:7,c2:6},{c:6,r1:7,c1:5,r2:8,c2:6},{c:7,r1:8,c1:7,r2:9,c2:2},{c:8,r1:9,c1:1,r2:10,c2:10}] },
+  { size:11, pairs:[{c:0,r1:0,c1:0,r2:1,c2:9},{c:1,r1:1,c1:8,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:7},{c:3,r1:3,c1:6,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:5},{c:5,r1:5,c1:4,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:3},{c:7,r1:7,c1:2,r2:8,c2:8},{c:8,r1:8,c1:9,r2:9,c2:1},{c:9,r1:9,c1:0,r2:10,c2:10}] },
+  { size:12, pairs:[{c:0,r1:0,c1:0,r2:1,c2:9},{c:1,r1:1,c1:8,r2:2,c2:5},{c:2,r1:2,c1:6,r2:3,c2:3},{c:3,r1:3,c1:2,r2:4,c2:11},{c:4,r1:5,c1:11,r2:6,c2:1},{c:5,r1:6,c1:2,r2:7,c2:8},{c:6,r1:7,c1:7,r2:8,c2:5},{c:7,r1:8,c1:6,r2:9,c2:4},{c:8,r1:9,c1:3,r2:10,c2:9},{c:9,r1:10,c1:10,r2:11,c2:0}] },
+  { size:12, pairs:[{c:0,r1:0,c1:0,r2:1,c2:10},{c:1,r1:1,c1:9,r2:2,c2:2},{c:2,r1:2,c1:3,r2:3,c2:8},{c:3,r1:3,c1:7,r2:4,c2:4},{c:4,r1:4,c1:5,r2:5,c2:6},{c:5,r1:5,c1:5,r2:6,c2:6},{c:6,r1:6,c1:7,r2:7,c2:4},{c:7,r1:7,c1:3,r2:8,c2:8},{c:8,r1:8,c1:9,r2:9,c2:2},{c:9,r1:9,c1:1,r2:10,c2:10},{c:10,r1:10,c1:11,r2:11,c2:0}] },
+  { size:13, pairs:[{c:0,r1:0,c1:0,r2:1,c2:9},{c:1,r1:1,c1:8,r2:2,c2:7},{c:2,r1:2,c1:8,r2:3,c2:1},{c:3,r1:3,c1:0,r2:5,c2:10},{c:4,r1:5,c1:9,r2:6,c2:6},{c:5,r1:6,c1:7,r2:7,c2:2},{c:6,r1:7,c1:1,r2:9,c2:11},{c:7,r1:9,c1:10,r2:10,c2:5},{c:8,r1:10,c1:6,r2:11,c2:3},{c:9,r1:11,c1:2,r2:12,c2:12}] },
+  { size:14, pairs:[{c:0,r1:0,c1:0,r2:1,c2:10},{c:1,r1:1,c1:9,r2:2,c2:7},{c:2,r1:2,c1:8,r2:3,c2:2},{c:3,r1:3,c1:1,r2:5,c2:12},{c:4,r1:5,c1:11,r2:6,c2:5},{c:5,r1:6,c1:6,r2:7,c2:4},{c:6,r1:7,c1:3,r2:8,c2:13},{c:7,r1:9,c1:13,r2:10,c2:3},{c:8,r1:10,c1:4,r2:11,c2:6},{c:9,r1:11,c1:5,r2:12,c2:10},{c:10,r1:12,c1:11,r2:13,c2:0}] },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+var currentLevel = 0;
+var paths = [];      // paths[colorIdx] = [{r,c}, ...]
+var dragging = -1;   // color index being drawn
+var moves = 0;
+var completed = new Array(LEVELS.length).fill(false);
+
+// ── LEVEL PICKER ──────────────────────────────────────────────────────────
+var levRow = document.getElementById('lev-row');
+LEVELS.forEach(function(_, i) {
+  var btn = document.createElement('button');
+  btn.className = 'lev-btn' + (i===0?' current':'');
+  btn.id = 'lb-'+i; btn.textContent = i+1;
+  btn.onclick = function() { startLevel(i); };
+  levRow.appendChild(btn);
+});
+
+function showMenu() {
+  LEVELS.forEach(function(_,i){
+    var b=document.getElementById('lb-'+i);
+    b.className='lev-btn'+(completed[i]?' done':'')+(i===currentLevel?' current':'');
+  });
+  document.getElementById('overlay').style.display='flex';
+}
+
+function startLevel(idx) {
+  document.getElementById('overlay').style.display='none';
+  currentLevel=idx;
+  moves=0; dragging=-1;
+  var lv=LEVELS[idx];
+  paths=lv.pairs.map(function(){return [];});
+  document.getElementById('hud-lev').textContent=idx+1;
+  document.getElementById('hud-moves').textContent=0;
+  resizeCanvas();
+  render();
+}
+
+function clearPaths() {
+  paths=LEVELS[currentLevel].pairs.map(function(){return [];});
+  moves=0;
+  document.getElementById('hud-moves').textContent=0;
+  render();
+}
+
+function resizeCanvas() {
+  var lv=LEVELS[currentLevel];
+  var maxW=Math.min(window.innerWidth-24, window.innerHeight-220, 460);
+  var cs=Math.floor(maxW/lv.size);
+  var canvas=document.getElementById('gameCanvas');
+  canvas.width=canvas.height=cs*lv.size;
+  render();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function cellSize() {
+  var canvas=document.getElementById('gameCanvas');
+  return canvas.width/LEVELS[currentLevel].size;
+}
+
+function getCell(clientX, clientY) {
+  var canvas=document.getElementById('gameCanvas');
+  var rect=canvas.getBoundingClientRect();
+  var cs=cellSize();
+  var r=Math.floor((clientY-rect.top)/cs);
+  var c=Math.floor((clientX-rect.left)/cs);
+  var lv=LEVELS[currentLevel];
+  if(r<0||r>=lv.size||c<0||c>=lv.size) return null;
+  return {r:r,c:c};
+}
+
+function getEndpoint(r, c) {
+  var lv=LEVELS[currentLevel];
+  for(var i=0;i<lv.pairs.length;i++){
+    var p=lv.pairs[i];
+    if((p.r1===r&&p.c1===c)||(p.r2===r&&p.c2===c)) return i;
+  }
+  return -1;
+}
+
+function getPathColor(r, c) {
+  for(var i=0;i<paths.length;i++){
+    for(var j=0;j<paths[i].length;j++){
+      if(paths[i][j].r===r&&paths[i][j].c===c) return i;
+    }
+  }
+  return -1;
+}
+
+function isComplete(colorIdx) {
+  var lv=LEVELS[currentLevel];
+  var p=lv.pairs[colorIdx];
+  var path=paths[colorIdx];
+  if(path.length<2) return false;
+  var first=path[0], last=path[path.length-1];
+  return ((first.r===p.r1&&first.c===p.c1&&last.r===p.r2&&last.c===p.c2)||
+          (first.r===p.r2&&first.c===p.c2&&last.r===p.r1&&last.c===p.c1));
+}
+
+function filledPercent() {
+  var lv=LEVELS[currentLevel];
+  var total=lv.size*lv.size;
+  var filled=0;
+  paths.forEach(function(p){filled+=p.length;});
+  return Math.round(filled/total*100);
+}
+
+function checkWin() {
+  var lv=LEVELS[currentLevel];
+  var allComplete=lv.pairs.every(function(_,i){return isComplete(i);});
+  var filled=filledPercent();
+  if(allComplete && filled===100) {
+    completed[currentLevel]=true;
+    setTimeout(function(){
+      var isLast=currentLevel===LEVELS.length-1;
+      var ov=document.getElementById('overlay');
+      ov.innerHTML='<div style="font-size:44px">🎉</div>'+
+        '<h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:26px">'+t('flowWin')+'</h2>'+
+        '<div class="score-big">'+moves+'</div>'+
+        '<div style="font-size:12px;color:var(--muted)">'+t('flowMoves')+'</div>'+
+        (isLast
+          ?'<button class="play-btn" onclick="showMenu()">'+t('flowLevels')+'</button>'
+          :'<button class="play-btn" onclick="startLevel('+(currentLevel+1)+')">'+t('flowNext')+'</button>')+
+        '<button onclick="showMenu()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(240,238,255,0.4);padding:7px 18px;border-radius:100px;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer;">'+t('flowLevels')+'</button>';
+      ov.style.display='flex';
+    },300);
+  }
+}
+
+// ── DRAWING LOGIC ─────────────────────────────────────────────────────────
+function startDrag(clientX, clientY) {
+  var cell=getCell(clientX,clientY);
+  if(!cell) return;
+  
+  // Start from endpoint or existing path
+  var ep=getEndpoint(cell.r,cell.c);
+  var pathColor=getPathColor(cell.r,cell.c);
+  
+  if(ep>=0) {
+    // Start fresh from endpoint
+    paths[ep]=[];
+    paths[ep].push({r:cell.r,c:cell.c});
+    dragging=ep;
+    moves++;
+    document.getElementById('hud-moves').textContent=moves;
+  } else if(pathColor>=0) {
+    // Truncate path to clicked cell
+    var path=paths[pathColor];
+    var idx=path.findIndex(function(p){return p.r===cell.r&&p.c===cell.c;});
+    paths[pathColor]=path.slice(0,idx+1);
+    dragging=pathColor;
+    moves++;
+    document.getElementById('hud-moves').textContent=moves;
+  }
+  render();
+}
+
+function continueDrag(clientX, clientY) {
+  if(dragging<0) return;
+  var cell=getCell(clientX,clientY);
+  if(!cell) return;
+  
+  var path=paths[dragging];
+  if(!path.length) return;
+  
+  var last=path[path.length-1];
+  // Must be adjacent
+  var dist=Math.abs(cell.r-last.r)+Math.abs(cell.c-last.c);
+  if(dist!==1) return;
+  
+  // Check if going back
+  if(path.length>=2){
+    var prev=path[path.length-2];
+    if(prev.r===cell.r&&prev.c===cell.c){
+      path.pop();
+      render();
+      return;
+    }
+  }
+  
+  // Check if cell is occupied by another color
+  var existingColor=getPathColor(cell.r,cell.c);
+  if(existingColor>=0&&existingColor!==dragging){
+    // Can only enter if it's an endpoint of dragging color
+    var lv=LEVELS[currentLevel];
+    var p=lv.pairs[dragging];
+    var isOurEndpoint=(cell.r===p.r1&&cell.c===p.c1)||(cell.r===p.r2&&cell.c===p.c2);
+    if(!isOurEndpoint) return;
+    // Clear their path at this point
+    paths[existingColor]=[];
+  }
+  
+  // Check not already in our path (no loops)
+  if(path.some(function(p){return p.r===cell.r&&p.c===cell.c;})) return;
+  
+  // Check if target endpoint — stop after reaching it
+  var ep=getEndpoint(cell.r,cell.c);
+  path.push({r:cell.r,c:cell.c});
+  
+  document.getElementById('hud-filled').textContent=filledPercent();
+  render();
+  
+  if(ep===dragging) { dragging=-1; checkWin(); }
+}
+
+function endDrag() {
+  dragging=-1;
+  render();
+}
+
+// ── EVENTS ────────────────────────────────────────────────────────────────
+var canvas=document.getElementById('gameCanvas');
+canvas.addEventListener('mousedown', function(e){startDrag(e.clientX,e.clientY);});
+canvas.addEventListener('mousemove', function(e){continueDrag(e.clientX,e.clientY);});
+canvas.addEventListener('mouseup',   endDrag);
+canvas.addEventListener('mouseleave',endDrag);
+canvas.addEventListener('touchstart',function(e){e.preventDefault();startDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+canvas.addEventListener('touchmove', function(e){e.preventDefault();continueDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+canvas.addEventListener('touchend',  function(e){e.preventDefault();endDrag();},{passive:false});
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function render() {
+  var canvas=document.getElementById('gameCanvas');
+  var cx=canvas.getContext('2d');
+  var lv=LEVELS[currentLevel];
+  var W=canvas.width, sz=lv.size;
+  var cs=W/sz;
+
+  cx.fillStyle='#0c0c10'; cx.fillRect(0,0,W,W);
+
+  // Grid
+  cx.strokeStyle='rgba(255,255,255,0.06)'; cx.lineWidth=1;
+  for(var i=0;i<=sz;i++){
+    cx.beginPath();cx.moveTo(i*cs,0);cx.lineTo(i*cs,W);cx.stroke();
+    cx.beginPath();cx.moveTo(0,i*cs);cx.lineTo(W,i*cs);cx.stroke();
+  }
+
+  // Paths
+  var pw=Math.max(4,cs*0.35);
+  paths.forEach(function(path,ci){
+    if(path.length<2) return;
+    var col=COLORS[ci%COLORS.length];
+    cx.strokeStyle=col; cx.lineWidth=pw; cx.lineCap='round'; cx.lineJoin='round';
+    cx.shadowColor=col; cx.shadowBlur=6;
+    cx.beginPath();
+    cx.moveTo(path[0].c*cs+cs/2, path[0].r*cs+cs/2);
+    for(var j=1;j<path.length;j++){
+      cx.lineTo(path[j].c*cs+cs/2, path[j].r*cs+cs/2);
+    }
+    cx.stroke(); cx.shadowBlur=0;
+  });
+
+  // Endpoints
+  lv.pairs.forEach(function(p,ci){
+    var col=COLORS[ci%COLORS.length];
+    var er=cs*0.35;
+    [[p.r1,p.c1],[p.r2,p.c2]].forEach(function(ep){
+      var x=ep[1]*cs+cs/2, y=ep[0]*cs+cs/2;
+      cx.fillStyle=col; cx.shadowColor=col; cx.shadowBlur=12;
+      cx.beginPath(); cx.arc(x,y,er,0,Math.PI*2); cx.fill();
+      cx.shadowBlur=0;
+      // Inner dot
+      cx.fillStyle='rgba(0,0,0,0.3)';
+      cx.beginPath(); cx.arc(x,y,er*0.45,0,Math.PI*2); cx.fill();
+      // Complete ring
+      if(isComplete(ci)){
+        cx.strokeStyle='#fff'; cx.lineWidth=2;
+        cx.beginPath(); cx.arc(x,y,er+3,0,Math.PI*2); cx.stroke();
+      }
+    });
+  });
+
+  // Update filled %
+  document.getElementById('hud-filled').textContent=filledPercent();
+}
+
+showMenu();
+</script>
+</body>
+</html>

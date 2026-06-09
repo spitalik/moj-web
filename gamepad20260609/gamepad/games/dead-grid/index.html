@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dead Grid · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,.42);
+  --border:rgba(255,255,255,.08);--border-h:rgba(255,255,255,.16);--red:#ff6b6b;--green:#55f0a0;--gold:#ffd166;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none;touch-action:none}
+body::before{content:"";position:fixed;right:-190px;top:-230px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,107,.08),transparent 66%);pointer-events:none}
+body::after{content:"";position:fixed;left:-210px;bottom:-260px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(85,240,160,.055),transparent 66%);pointer-events:none}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s}
+#back-btn:hover{border-color:var(--border-h);color:var(--text)}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:64px 14px 18px}
+.game-title{font-family:'Syne',sans-serif;font-size:clamp(25px,7vw,38px);font-weight:800;letter-spacing:0;background:linear-gradient(135deg,#fff 25%,var(--red) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hud{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;max-width:760px}
+.pill,.ctrl-btn{height:32px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500}
+.pill{display:flex;align-items:center;gap:6px;color:var(--muted);padding:0 12px;white-space:nowrap}
+.pill span{color:var(--red);font-variant-numeric:tabular-nums}
+.ctrl-btn{color:var(--muted);padding:0 13px;cursor:pointer;transition:all .18s}
+.ctrl-btn:hover,.ctrl-btn:focus-visible{border-color:var(--border-h);color:var(--text);outline:none}
+#game-wrap{position:relative;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--bg2),var(--bg1));padding:8px;box-shadow:0 22px 80px rgba(0,0,0,.35)}
+canvas{display:block;width:min(92vw,680px);height:auto;border-radius:11px;background:#090707}
+#overlay{position:absolute;z-index:20;inset:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;background:rgba(5,5,7,.91);backdrop-filter:blur(14px);border-radius:12px;text-align:center;padding:18px}
+#overlay.hidden{display:none}
+.ov-icon{font-size:42px;line-height:1}
+#overlay h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:0}
+.hint{max-width:390px;color:var(--muted);font-size:12px;line-height:1.5}
+.play-btn{min-width:118px;height:40px;border-radius:100px;border:1px solid rgba(255,107,107,.46);background:rgba(255,107,107,.15);color:var(--red);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:0 28px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.34)}
+@media (max-height:690px){.page{gap:9px}.game-title{font-size:24px}.pill,.ctrl-btn{height:29px}}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<main class="page">
+  <h1 class="game-title" id="lbl-title"></h1>
+  <div class="hud">
+    <div class="pill"><span id="lbl-score"></span>&nbsp;<span id="hud-score">0</span></div>
+    <div class="pill"><span id="lbl-wave"></span>&nbsp;<span id="hud-wave">1</span></div>
+    <div class="pill"><span id="lbl-health"></span>&nbsp;<span id="hud-health">100</span></div>
+    <div class="pill"><span id="lbl-ammo"></span>&nbsp;<span id="hud-ammo">24</span></div>
+    <button class="ctrl-btn" id="btn-pause"></button>
+    <button class="ctrl-btn" id="btn-reset"></button>
+  </div>
+  <div id="game-wrap">
+    <canvas id="c" width="680" height="440"></canvas>
+    <div id="overlay">
+      <div class="ov-icon">🧟</div>
+      <h2 id="ov-title"></h2>
+      <p class="hint" id="ov-hint"></p>
+      <button class="play-btn" id="ov-btn"></button>
+    </div>
+  </div>
+</main>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ov-title');
+const ovHint = document.getElementById('ov-hint');
+const ovBtn = document.getElementById('ov-btn');
+const btnPause = document.getElementById('btn-pause');
+const btnReset = document.getElementById('btn-reset');
+const hudScore = document.getElementById('hud-score');
+const hudWave = document.getElementById('hud-wave');
+const hudHealth = document.getElementById('hud-health');
+const hudAmmo = document.getElementById('hud-ammo');
+const keys = {};
+let player, zombies, bullets, pickups, particles;
+let score = 0, wave = 1, ammo = 24, health = 100;
+let running = false, paused = false, firing = false;
+let lastTime = 0, frameId = 0, cooldown = 0, wavePause = 0;
+let aim = {x: W/2 + 1, y: H/2};
+let facing = {x: 1, y: 0};
+let message = '', messageTimer = 0, messageColor = '#ff6b6b';
+
+function applyLabels(){
+  document.getElementById('lbl-back').textContent = t('back');
+  document.getElementById('lbl-title').textContent = t('deadGridTitle');
+  document.getElementById('lbl-score').textContent = t('deadGridScore');
+  document.getElementById('lbl-wave').textContent = t('deadGridWave');
+  document.getElementById('lbl-health').textContent = t('deadGridHealth');
+  document.getElementById('lbl-ammo').textContent = t('deadGridAmmo');
+  btnPause.textContent = t('deadGridPause');
+  btnReset.textContent = t('deadGridReset');
+  ovTitle.textContent = t('deadGridTitle');
+  ovHint.textContent = t('deadGridHint');
+  ovBtn.textContent = t('deadGridStart');
+}
+
+function resetGame(){
+  cancelAnimationFrame(frameId);
+  player = {x:W/2,y:H/2,r:13,speed:188};
+  zombies = [];
+  bullets = [];
+  pickups = [];
+  particles = [];
+  score = 0; wave = 1; ammo = 24; health = 100;
+  cooldown = 0; wavePause = 0; paused = false; running = true; firing = false;
+  facing = {x: 1, y: 0};
+  aim = {x: player.x + 40, y: player.y};
+  spawnWave();
+  updateHud();
+  btnPause.textContent = t('deadGridPause');
+  overlay.classList.add('hidden');
+  lastTime = performance.now();
+  frameId = requestAnimationFrame(loop);
+}
+
+function spawnWave(){
+  const count = 5 + wave * 3;
+  for(let i=0;i<count;i++) zombies.push(makeZombie(i));
+  spawnPickup();
+  flash(`${t('deadGridWave')} ${wave}`, '#ffd166');
+}
+
+function makeZombie(i){
+  const side = i % 4;
+  const pad = 28;
+  const x = side === 0 ? -pad : side === 1 ? W + pad : Math.random() * W;
+  const y = side === 2 ? -pad : side === 3 ? H + pad : Math.random() * H;
+  return {x,y,r:12 + Math.min(5,wave*.4),hp:1 + Math.floor(wave/3),speed:54 + wave*5 + Math.random()*14,hit:0};
+}
+
+function spawnPickup(){
+  pickups.push({x:70 + Math.random()*(W-140), y:70 + Math.random()*(H-140), r:10, type:'ammo'});
+}
+
+function loop(now){
+  if(!running) return;
+  const dt = Math.min(.033, (now - lastTime) / 1000 || 0);
+  lastTime = now;
+  if(!paused) update(dt);
+  draw();
+  if(running) frameId = requestAnimationFrame(loop);
+}
+
+function update(dt){
+  cooldown = Math.max(0, cooldown - dt);
+  messageTimer = Math.max(0, messageTimer - dt);
+  movePlayer(dt);
+  if(firing || keys.Space) shoot();
+  updateBullets(dt);
+  updateZombies(dt);
+  updatePickups();
+  updateParticles(dt);
+  if(zombies.length === 0 && wavePause <= 0){
+    flash(t('deadGridWaveClear'), '#55f0a0');
+    wavePause = 1.1;
+  }
+  if(wavePause > 0){
+    wavePause -= dt;
+    if(wavePause <= 0){
+      wave++;
+      ammo += 8;
+      spawnWave();
+    }
+  }
+  updateHud();
+}
+
+function movePlayer(dt){
+  let dx = 0, dy = 0;
+  if(keys.KeyW || keys.ArrowUp) dy--;
+  if(keys.KeyS || keys.ArrowDown) dy++;
+  if(keys.KeyA || keys.ArrowLeft) dx--;
+  if(keys.KeyD || keys.ArrowRight) dx++;
+  const len = Math.hypot(dx,dy) || 1;
+  player.x = clamp(player.x + dx/len * player.speed * dt, 18, W-18);
+  player.y = clamp(player.y + dy/len * player.speed * dt, 18, H-18);
+  if(dx || dy){
+    facing = {x: dx / len, y: dy / len};
+    aim = {x: player.x + facing.x * 80, y: player.y + facing.y * 80};
+  }
+}
+
+function shoot(){
+  if(cooldown > 0 || ammo <= 0) return;
+  let tx = aim.x, ty = aim.y;
+  const angle = Math.atan2(ty-player.y, tx-player.x);
+  bullets.push({x:player.x + Math.cos(angle)*15, y:player.y + Math.sin(angle)*15, vx:Math.cos(angle)*430, vy:Math.sin(angle)*430, life:.9});
+  ammo--;
+  cooldown = Math.max(.12, .28 - wave*.006);
+}
+
+function updateBullets(dt){
+  for(const b of bullets){
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    for(const z of zombies){
+      if(z.dead) continue;
+      if(Math.hypot(b.x-z.x,b.y-z.y) < z.r + 5){
+        b.dead = true; z.hp--; z.hit = .16;
+        burst(b.x,b.y,'#ff6b6b',4);
+        if(z.hp <= 0){z.dead = true; score += 10; if(Math.random()<.18) pickups.push({x:z.x,y:z.y,r:9,type:'ammo'});}
+        break;
+      }
+    }
+  }
+  bullets = bullets.filter(b => !b.dead && b.life > 0 && b.x>-20 && b.x<W+20 && b.y>-20 && b.y<H+20);
+  zombies = zombies.filter(z => !z.dead);
+}
+
+function updateZombies(dt){
+  for(const z of zombies){
+    z.hit = Math.max(0,z.hit-dt);
+    const a = Math.atan2(player.y-z.y, player.x-z.x);
+    z.x += Math.cos(a) * z.speed * dt;
+    z.y += Math.sin(a) * z.speed * dt;
+    if(Math.hypot(z.x-player.x,z.y-player.y) < z.r + player.r){
+      health -= 24 * dt;
+      const push = Math.atan2(z.y-player.y,z.x-player.x);
+      z.x += Math.cos(push) * 32 * dt;
+      z.y += Math.sin(push) * 32 * dt;
+      if(health <= 0) gameOver();
+    }
+  }
+}
+
+function updatePickups(){
+  for(const p of pickups){
+    if(Math.hypot(p.x-player.x,p.y-player.y) < p.r + player.r){
+      p.dead = true; ammo += 10; flash('+10 ' + t('deadGridAmmo'), '#ffd166');
+    }
+  }
+  pickups = pickups.filter(p => !p.dead);
+}
+
+function updateParticles(dt){
+  for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;}
+  particles = particles.filter(p => p.life > 0);
+}
+
+function burst(x,y,color,n){
+  for(let i=0;i<n;i++){
+    const a = Math.random()*Math.PI*2, s = 40 + Math.random()*90;
+    particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.25+Math.random()*.25,color});
+  }
+}
+
+function gameOver(){
+  running = false; cancelAnimationFrame(frameId);
+  ovTitle.textContent = t('deadGridOver');
+  ovHint.textContent = `${t('deadGridScore')}: ${score} · ${t('deadGridWave')}: ${wave}`;
+  ovBtn.textContent = t('deadGridStart');
+  overlay.classList.remove('hidden');
+}
+
+function flash(text,color){message=text;messageColor=color;messageTimer=.9}
+function updateHud(){hudScore.textContent=score;hudWave.textContent=wave;hudHealth.textContent=Math.max(0,Math.ceil(health));hudAmmo.textContent=ammo}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#110909');bg.addColorStop(1,'#060707');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawGrid(); drawZone(); drawPickups(); drawBullets(); drawZombies(); drawPlayer(); drawParticles(); drawMessage();
+}
+
+function drawGrid(){
+  ctx.strokeStyle='rgba(255,255,255,.045)';ctx.lineWidth=1;
+  for(let x=40;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=40;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+
+function drawZone(){
+  ctx.strokeStyle='rgba(85,240,160,.22)';ctx.fillStyle='rgba(85,240,160,.035)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(W/2,H/2,64,0,Math.PI*2);ctx.fill();ctx.stroke();
+}
+
+function drawPlayer(){
+  const a=Math.atan2(aim.y-player.y,aim.x-player.x);
+  ctx.save();ctx.translate(player.x,player.y);ctx.rotate(a);
+  ctx.fillStyle='#f0eeff';ctx.strokeStyle='#65d6ff';ctx.lineWidth=2;ctx.shadowColor='#65d6ff';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.arc(0,0,player.r,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#65d6ff';ctx.fillRect(5,-4,17,8);ctx.restore();ctx.shadowBlur=0;
+}
+
+function drawZombies(){
+  for(const z of zombies){
+    ctx.fillStyle=z.hit>0?'#ffd166':'#55f0a0';ctx.strokeStyle='rgba(0,0,0,.45)';ctx.lineWidth=2;ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=z.hit>0?14:6;
+    ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(z.x-5,z.y-3,3,3);ctx.fillRect(z.x+3,z.y-3,3,3);
+  }
+}
+
+function drawBullets(){ctx.fillStyle='#ffd166';ctx.shadowColor='#ffd166';ctx.shadowBlur=9;for(const b of bullets){ctx.beginPath();ctx.arc(b.x,b.y,4,0,Math.PI*2);ctx.fill();}ctx.shadowBlur=0}
+function drawPickups(){for(const p of pickups){ctx.fillStyle='#ffd166';ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(p.x-9,p.y-7,18,14,4);ctx.fill();ctx.stroke();}}
+function drawParticles(){for(const p of particles){ctx.globalAlpha=Math.max(0,p.life*3);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,3,3);}ctx.globalAlpha=1}
+function drawMessage(){if(messageTimer<=0)return;ctx.save();ctx.globalAlpha=Math.min(1,messageTimer*2);ctx.fillStyle=messageColor;ctx.font='800 24px Syne';ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.7)';ctx.shadowBlur=12;ctx.fillText(message,W/2,44);ctx.restore();}
+
+function pointerPos(e){
+  const rect=canvas.getBoundingClientRect();
+  return {x:(e.clientX-rect.left)*(W/rect.width),y:(e.clientY-rect.top)*(H/rect.height)};
+}
+
+canvas.addEventListener('pointermove',e=>{aim=pointerPos(e);setFacingFromAim();});
+canvas.addEventListener('pointerdown',e=>{aim=pointerPos(e);setFacingFromAim();firing=true;if(!running)resetGame();});
+canvas.addEventListener('pointerup',()=>{firing=false});
+canvas.addEventListener('pointerleave',()=>{firing=false});
+window.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space')e.preventDefault();});
+window.addEventListener('keyup',e=>{keys[e.code]=false;});
+btnReset.addEventListener('click',resetGame);
+btnPause.addEventListener('click',()=>{if(!running)return;paused=!paused;btnPause.textContent=paused?t('deadGridResume'):t('deadGridPause');draw();});
+ovBtn.addEventListener('click',resetGame);
+
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.beginPath();this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);return this;}
+}
+function setFacingFromAim(){
+  const dx = aim.x - player.x;
+  const dy = aim.y - player.y;
+  const len = Math.hypot(dx, dy) || 1;
+  facing = {x: dx / len, y: dy / len};
+}
+applyLabels();
+player={x:W/2,y:H/2,r:13,speed:188};zombies=[];bullets=[];pickups=[];particles=[];
+draw();
+</script>
+</body>
+</html>
