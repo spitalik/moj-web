@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zbieranie hviezd - Hra</title>
+    <title>Star Catcher · GamePad</title>
+    <script src="../../i18n.js"></script>
     <style>
         body {
             margin: 0;
@@ -116,35 +117,65 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.2); }
         }
+
+        #back-btn {
+            position: fixed; top: 20px; left: 20px; z-index: 10;
+            display: flex; align-items: center; gap: 7px;
+            background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(240,238,255,0.55); padding: 7px 14px; border-radius: 100px;
+            text-decoration: none; font-size: 12px; font-weight: 500;
+            transition: border-color 0.18s, color 0.18s;
+        }
+        #back-btn:hover { border-color: rgba(255,255,255,0.35); color: #f0eeff; }
     </style>
 </head>
 <body>
+    <a href="../../index.html" id="back-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
     <div id="gameContainer">
-        <div id="score">⭐ Skóre: 0</div>
-        <div id="lives">❤️ Životy: 3</div>
-        <div id="controls">🎮 Ovládanie: šípky ← → alebo A/D | 📱 Mobil: dotykom | 🖱️ Myš: ťahaním</div>
+        <div id="score"></div>
+        <div id="lives"></div>
+        <div id="controls"></div>
         <canvas id="gameCanvas" width="600" height="500"></canvas>
         <div id="gameOver">
-            <div style="font-size: 48px;">😢 Koniec hry!</div>
+            <div style="font-size: 48px;" id="overTitle"></div>
             <div style="font-size: 24px; margin-top: 10px;" id="finalScore"></div>
             <div style="font-size: 18px; margin-top: 10px; color: #ffd700;" id="milestonesReached"></div>
-            <button onclick="restartGame()">🔄 Hrať znova</button>
+            <button onclick="restartGame()" id="restartBtn"></button>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        const gameCanvas = document.getElementById('gameCanvas');
+        const cx = gameCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
         const livesElement = document.getElementById('lives');
         const gameOverElement = document.getElementById('gameOver');
         const finalScoreElement = document.getElementById('finalScore');
         const milestonesReachedElement = document.getElementById('milestonesReached');
-        
-        // Herné premenné
+
+        // i18n
+        function applyLang() {
+            document.getElementById('lbl-back').textContent = t('back');
+            scoreElement.textContent = t('starsScore') + ': ' + score;
+            livesElement.innerHTML = t('starsLives') + ': ' + '❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives));
+            document.getElementById('controls').textContent = t('starsControls');
+            document.getElementById('overTitle').textContent = t('starsOver');
+            document.getElementById('restartBtn').textContent = t('starsRestart');
+            document.title = t('starsTitle') + ' · GamePad';
+        }
+
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'gamepad_lang') applyLang();
+        });
+
+        // Game variables
         let player = {
-            x: canvas.width / 2 - 30,
-            y: canvas.height - 70,
+            x: gameCanvas.width / 2 - 30,
+            y: gameCanvas.height - 70,
             width: 60,
             height: 60,
             speed: 8
@@ -161,15 +192,14 @@
         let starsCollected = 0;
         let invulnerable = false;
         let invulnerableTimer = 0;
-        let milestones = []; // Dosiahnuté míľniky
-        let currentMilestone = 1000; // Aktuálny míľnik
+        let milestones = [];
+        let currentMilestone = 1000;
         
         const MAX_LIVES = 5;
         const STARS_FOR_EXTRA_LIFE = 10;
         const BASE_SPAWN_RATE = 60;
         const SPECIAL_STAR_INTERVAL = 600;
         
-        // Vylepšené ovládanie
         const keys = {
             'ArrowLeft': false,
             'ArrowRight': false,
@@ -177,21 +207,16 @@
             'KeyD': false
         };
         
-        // Event listener pre klávesnicu
         document.addEventListener('keydown', function(e) {
             if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || 
                 e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 e.preventDefault();
             }
-            
             if (e.key === 'ArrowLeft') keys['ArrowLeft'] = true;
             if (e.key === 'ArrowRight') keys['ArrowRight'] = true;
             if (e.key === 'a' || e.key === 'A') keys['KeyA'] = true;
             if (e.key === 'd' || e.key === 'D') keys['KeyD'] = true;
-            
-            if ((e.key === 'r' || e.key === 'R') && !gameRunning) {
-                restartGame();
-            }
+            if ((e.key === 'r' || e.key === 'R') && !gameRunning) restartGame();
         });
         
         document.addEventListener('keyup', function(e) {
@@ -201,65 +226,44 @@
             if (e.key === 'd' || e.key === 'D') keys['KeyD'] = false;
         });
         
-        // Dotykové ovládanie
-        canvas.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            handleTouch(e);
-        });
-        
-        canvas.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-            handleTouch(e);
-        });
+        gameCanvas.addEventListener('touchstart', function(e) { e.preventDefault(); handleTouch(e); });
+        gameCanvas.addEventListener('touchmove', function(e) { e.preventDefault(); handleTouch(e); });
         
         function handleTouch(e) {
             if (!gameRunning) return;
             const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
+            const rect = gameCanvas.getBoundingClientRect();
+            const scaleX = gameCanvas.width / rect.width;
             const touchX = (touch.clientX - rect.left) * scaleX;
-            
             player.x = touchX - player.width / 2;
-            player.x = Math.max(0, Math.min(player.x, canvas.width - player.width));
+            player.x = Math.max(0, Math.min(player.x, gameCanvas.width - player.width));
         }
         
-        // Ovládanie myšou
-        canvas.addEventListener('mousemove', function(e) {
+        gameCanvas.addEventListener('mousemove', function(e) {
             if (e.buttons === 1 && gameRunning) {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
+                const rect = gameCanvas.getBoundingClientRect();
+                const scaleX = gameCanvas.width / rect.width;
                 const mouseX = (e.clientX - rect.left) * scaleX;
-                
                 player.x = mouseX - player.width / 2;
-                player.x = Math.max(0, Math.min(player.x, canvas.width - player.width));
+                player.x = Math.max(0, Math.min(player.x, gameCanvas.width - player.width));
             }
         });
         
-        // Funkcia na vytvorenie hviezdy
         function createStar() {
             const minDistance = 80;
             let x, tooClose;
             let attempts = 0;
-            
             do {
                 tooClose = false;
-                x = Math.random() * (canvas.width - 30);
-                
+                x = Math.random() * (gameCanvas.width - 30);
                 for (let star of stars) {
-                    if (Math.abs(star.x - x) < minDistance && star.y < 50) {
-                        tooClose = true;
-                        break;
-                    }
+                    if (Math.abs(star.x - x) < minDistance && star.y < 50) { tooClose = true; break; }
                 }
-                if (specialStar && Math.abs(specialStar.x - x) < minDistance && specialStar.y < 50) {
-                    tooClose = true;
-                }
+                if (specialStar && Math.abs(specialStar.x - x) < minDistance && specialStar.y < 50) tooClose = true;
                 attempts++;
             } while (tooClose && attempts < 10);
-            
             return {
-                x: x,
-                y: -30,
+                x, y: -30,
                 size: 25 + Math.random() * 10,
                 speed: 1.5 + Math.random() * 1.5 + difficulty * 0.3,
                 color: `hsl(${40 + Math.random() * 20}, 100%, ${60 + Math.random() * 20}%)`,
@@ -269,215 +273,132 @@
             };
         }
         
-        // Funkcia na vytvorenie špeciálnej červenej hviezdy
         function createSpecialStar() {
             return {
-                x: Math.random() * (canvas.width - 60),
-                y: -40,
-                size: 45,
-                speed: 1.2,
+                x: Math.random() * (gameCanvas.width - 60),
+                y: -40, size: 45, speed: 1.2,
                 color: '#ff1744',
                 rotation: Math.random() * Math.PI * 2,
-                rotationSpeed: 0.1,
-                isSpecial: true,
-                glowIntensity: 0,
-                glowDirection: 1
+                rotationSpeed: 0.1, isSpecial: true,
+                glowIntensity: 0, glowDirection: 1
             };
         }
         
-        // Kreslenie špeciálnej hviezdy
         function drawSpecialStar(star) {
-            ctx.save();
-            ctx.translate(star.x + star.size/2, star.y + star.size/2);
-            ctx.rotate(star.rotation);
-            
+            cx.save();
+            cx.translate(star.x + star.size/2, star.y + star.size/2);
+            cx.rotate(star.rotation);
             star.glowIntensity += 0.05 * star.glowDirection;
             if (star.glowIntensity >= 1) star.glowDirection = -1;
             if (star.glowIntensity <= 0) star.glowDirection = 1;
-            
             const glowSize = star.size * (1.5 + star.glowIntensity * 0.5);
-            const outerGlow = ctx.createRadialGradient(0, 0, star.size/2, 0, 0, glowSize);
+            const outerGlow = cx.createRadialGradient(0, 0, star.size/2, 0, 0, glowSize);
             outerGlow.addColorStop(0, 'rgba(255, 23, 68, 0.8)');
             outerGlow.addColorStop(0.5, 'rgba(255, 23, 68, 0.3)');
             outerGlow.addColorStop(1, 'rgba(255, 23, 68, 0)');
-            ctx.fillStyle = outerGlow;
-            ctx.fillRect(-glowSize, -glowSize, glowSize * 2, glowSize * 2);
-            
-            ctx.beginPath();
-            const spikes = 5;
-            const outerRadius = star.size/2;
-            const innerRadius = star.size/3;
-            
+            cx.fillStyle = outerGlow;
+            cx.fillRect(-glowSize, -glowSize, glowSize * 2, glowSize * 2);
+            cx.beginPath();
+            const spikes = 5, outerRadius = star.size/2, innerRadius = star.size/3;
             for (let i = 0; i < spikes * 2; i++) {
                 const radius = i % 2 === 0 ? outerRadius : innerRadius;
                 const angle = (i * Math.PI) / spikes - Math.PI/2;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
+                i === 0 ? cx.moveTo(Math.cos(angle)*radius, Math.sin(angle)*radius)
+                        : cx.lineTo(Math.cos(angle)*radius, Math.sin(angle)*radius);
             }
-            
-            ctx.closePath();
-            
-            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
-            gradient.addColorStop(0, '#FFFFFF');
-            gradient.addColorStop(0.3, '#FF5252');
-            gradient.addColorStop(0.7, '#D50000');
-            gradient.addColorStop(1, '#8B0000');
-            
-            ctx.fillStyle = gradient;
-            ctx.fill();
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-            
-            ctx.fillStyle = '#FFD700';
-            ctx.font = 'bold 20px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('❤️', 0, 0);
-            
-            ctx.restore();
+            cx.closePath();
+            const gradient = cx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
+            gradient.addColorStop(0, '#FFFFFF'); gradient.addColorStop(0.3, '#FF5252');
+            gradient.addColorStop(0.7, '#D50000'); gradient.addColorStop(1, '#8B0000');
+            cx.fillStyle = gradient; cx.fill();
+            cx.strokeStyle = '#FFD700'; cx.lineWidth = 3; cx.stroke();
+            cx.fillStyle = '#FFD700'; cx.font = 'bold 20px Arial';
+            cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('❤️', 0, 0);
+            cx.restore();
         }
         
-        // Kreslenie obyčajnej hviezdy
         function drawStar(star) {
-            ctx.save();
-            ctx.translate(star.x + star.size/2, star.y + star.size/2);
-            ctx.rotate(star.rotation);
-            
-            const glowGradient = ctx.createRadialGradient(0, 0, star.size/2, 0, 0, star.size);
+            cx.save();
+            cx.translate(star.x + star.size/2, star.y + star.size/2);
+            cx.rotate(star.rotation);
+            const glowGradient = cx.createRadialGradient(0, 0, star.size/2, 0, 0, star.size);
             glowGradient.addColorStop(0, 'rgba(255, 255, 200, 0.3)');
             glowGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
-            ctx.fillStyle = glowGradient;
-            ctx.fillRect(-star.size, -star.size, star.size * 2, star.size * 2);
-            
-            ctx.beginPath();
-            const spikes = 5;
-            const outerRadius = star.size/2;
-            const innerRadius = star.size/4;
-            
+            cx.fillStyle = glowGradient;
+            cx.fillRect(-star.size, -star.size, star.size * 2, star.size * 2);
+            cx.beginPath();
+            const spikes = 5, outerRadius = star.size/2, innerRadius = star.size/4;
             for (let i = 0; i < spikes * 2; i++) {
                 const radius = i % 2 === 0 ? outerRadius : innerRadius;
                 const angle = (i * Math.PI) / spikes - Math.PI/2;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
+                i === 0 ? cx.moveTo(Math.cos(angle)*radius, Math.sin(angle)*radius)
+                        : cx.lineTo(Math.cos(angle)*radius, Math.sin(angle)*radius);
             }
-            
-            ctx.closePath();
-            
-            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
-            gradient.addColorStop(0, '#FFFFFF');
-            gradient.addColorStop(0.4, star.color);
+            cx.closePath();
+            const gradient = cx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
+            gradient.addColorStop(0, '#FFFFFF'); gradient.addColorStop(0.4, star.color);
             gradient.addColorStop(1, '#FFA500');
-            
-            ctx.fillStyle = gradient;
-            ctx.fill();
-            ctx.strokeStyle = '#FFF';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            ctx.restore();
+            cx.fillStyle = gradient; cx.fill();
+            cx.strokeStyle = '#FFF'; cx.lineWidth = 2; cx.stroke();
+            cx.restore();
         }
         
-        // Kreslenie hráča
         function drawPlayer() {
-            ctx.save();
-            
-            if (invulnerable && Math.floor(Date.now() / 100) % 2 === 0) {
-                ctx.globalAlpha = 0.5;
-            }
-            
-            const gradient = ctx.createLinearGradient(player.x, player.y, player.x + player.width, player.y);
-            gradient.addColorStop(0, '#8B4513');
-            gradient.addColorStop(0.5, '#A0522D');
-            gradient.addColorStop(1, '#6B3410');
-            
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.moveTo(player.x + 5, player.y + 20);
-            ctx.lineTo(player.x + 15, player.y + player.height);
-            ctx.lineTo(player.x + player.width - 15, player.y + player.height);
-            ctx.lineTo(player.x + player.width - 5, player.y + 20);
-            ctx.closePath();
-            ctx.fill();
-            
-            ctx.strokeStyle = '#4A2500';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            ctx.strokeStyle = '#D2691E';
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.arc(player.x + player.width/2, player.y + 20, 20, Math.PI, 0);
-            ctx.stroke();
-            
-            ctx.fillStyle = '#654321';
-            ctx.fillRect(player.x + 15, player.y + 35, player.width - 30, 3);
-            ctx.fillRect(player.x + 15, player.y + 45, player.width - 30, 3);
-            
-            ctx.restore();
+            cx.save();
+            if (invulnerable && Math.floor(Date.now() / 100) % 2 === 0) cx.globalAlpha = 0.5;
+            const gradient = cx.createLinearGradient(player.x, player.y, player.x + player.width, player.y);
+            gradient.addColorStop(0, '#8B4513'); gradient.addColorStop(0.5, '#A0522D'); gradient.addColorStop(1, '#6B3410');
+            cx.fillStyle = gradient;
+            cx.beginPath();
+            cx.moveTo(player.x + 5, player.y + 20);
+            cx.lineTo(player.x + 15, player.y + player.height);
+            cx.lineTo(player.x + player.width - 15, player.y + player.height);
+            cx.lineTo(player.x + player.width - 5, player.y + 20);
+            cx.closePath(); cx.fill();
+            cx.strokeStyle = '#4A2500'; cx.lineWidth = 2; cx.stroke();
+            cx.strokeStyle = '#D2691E'; cx.lineWidth = 5;
+            cx.beginPath(); cx.arc(player.x + player.width/2, player.y + 20, 20, Math.PI, 0); cx.stroke();
+            cx.fillStyle = '#654321';
+            cx.fillRect(player.x + 15, player.y + 35, player.width - 30, 3);
+            cx.fillRect(player.x + 15, player.y + 45, player.width - 30, 3);
+            cx.restore();
         }
         
-        // Detekcia kolízie
         function checkCollision(player, star) {
             const playerCenterX = player.x + player.width / 2;
             const playerCenterY = player.y + 30;
             const starCenterX = star.x + star.size / 2;
             const starCenterY = star.y + star.size / 2;
-            
             const distance = Math.sqrt(
                 Math.pow(playerCenterX - starCenterX, 2) + 
                 Math.pow(playerCenterY - starCenterY, 2)
             );
-            
             const collisionDistance = star.isSpecial ? 
                 (player.width/2 + star.size/2) * 0.7 : 
                 (player.width/2 + star.size/2) * 0.65;
-            
             return distance < collisionDistance;
         }
         
-        // Zobrazenie míľnika
         function showMilestone(milestone) {
             const milestoneDiv = document.createElement('div');
             milestoneDiv.id = 'milestone';
-            milestoneDiv.textContent = `🎉 ${milestone} BODOV! 🎉`;
+            milestoneDiv.textContent = t('starsMilestoneMsg', {n: milestone});
             document.getElementById('gameContainer').appendChild(milestoneDiv);
-            
-            setTimeout(() => {
-                if (milestoneDiv.parentNode) {
-                    milestoneDiv.parentNode.removeChild(milestoneDiv);
-                }
-            }, 2000);
-            
-            // Extra odmena za míľnik
-            if (milestone % 2000 === 0) {
-                // Extra špeciálna hviezda pri veľkých míľnikoch
-                if (!specialStar) {
-                    specialStar = createSpecialStar();
-                    showFloatingText(canvas.width/2, 50, '🌟 BONUSOVÁ HVIEZDA! 🌟', '#ff1744');
-                }
+            setTimeout(() => { if (milestoneDiv.parentNode) milestoneDiv.parentNode.removeChild(milestoneDiv); }, 2000);
+            if (milestone % 2000 === 0 && !specialStar) {
+                specialStar = createSpecialStar();
+                showFloatingText(gameCanvas.width/2, 50, t('starsSpecialBonus'), '#ff1744');
             }
         }
         
-        // Strata života
+        function updateLivesDisplay() {
+            livesElement.innerHTML = t('starsLives') + ': ' + '❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives));
+        }
+
         function loseLife() {
             if (invulnerable) return;
-            
             lives--;
-            livesElement.innerHTML = '❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives));
-            
+            updateLivesDisplay();
             if (lives <= 0) {
                 gameOver();
             } else {
@@ -487,11 +408,10 @@
             }
         }
         
-        // Pridanie života
         function addLife() {
             if (lives < MAX_LIVES) {
                 lives++;
-                livesElement.innerHTML = '❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives));
+                updateLivesDisplay();
                 createExplosion(player.x + player.width/2, player.y, '#00ff00');
                 showFloatingText(player.x + player.width/2, player.y, '+1 ❤️', '#00ff00');
             } else {
@@ -499,55 +419,33 @@
             }
         }
         
-        // Doplnenie všetkých životov
         function refillAllLives() {
-            const livesToAdd = MAX_LIVES - lives;
             lives = MAX_LIVES;
-            livesElement.innerHTML = '❤️'.repeat(lives);
-            
+            updateLivesDisplay();
             createExplosion(player.x + player.width/2, player.y, '#ffd700');
-            showFloatingText(player.x + player.width/2, player.y, 'PLNÉ ŽIVOTY! ❤️❤️❤️❤️❤️', '#ffd700');
-            
+            showFloatingText(player.x + player.width/2, player.y, t('starsFullLives'), '#ffd700');
             for (let i = 0; i < 30; i++) {
                 particles.push({
-                    x: player.x + player.width/2,
-                    y: player.y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 1,
-                    size: Math.random() * 8 + 3,
+                    x: player.x + player.width/2, y: player.y,
+                    vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+                    life: 1, size: Math.random() * 8 + 3,
                     color: Math.random() > 0.5 ? '#ffd700' : '#ff1744'
                 });
             }
         }
         
-        // Plávajúci text
         let floatingTexts = [];
-        
         function showFloatingText(x, y, text, color) {
-            floatingTexts.push({
-                x: x,
-                y: y,
-                text: text,
-                color: color,
-                life: 90,
-                vy: -2
-            });
+            floatingTexts.push({ x, y, text, color, life: 90, vy: -2 });
         }
         
-        // Systém častíc
         let particles = [];
-        
         function createExplosion(x, y, color) {
             for (let i = 0; i < 15; i++) {
                 particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 6,
-                    vy: (Math.random() - 0.5) * 6,
-                    life: 1,
-                    size: Math.random() * 5 + 2,
-                    color: color
+                    x, y,
+                    vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
+                    life: 1, size: Math.random() * 5 + 2, color
                 });
             }
         }
@@ -555,139 +453,93 @@
         function createParticles(x, y) {
             for (let i = 0; i < 5; i++) {
                 particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 3,
-                    vy: (Math.random() - 0.5) * 3,
-                    life: 1,
-                    size: Math.random() * 3 + 1,
-                    color: '#ffd700'
+                    x, y,
+                    vx: (Math.random() - 0.5) * 3, vy: (Math.random() - 0.5) * 3,
+                    life: 1, size: Math.random() * 3 + 1, color: '#ffd700'
                 });
             }
         }
         
-        // Game Over
         function gameOver() {
             gameRunning = false;
             gameOverElement.style.display = 'block';
-            finalScoreElement.textContent = `⭐ Konečné skóre: ${score}`;
-            
-            // Zobrazenie dosiahnutých míľnikov
+            finalScoreElement.textContent = t('starsFinal') + ': ' + score;
             if (milestones.length > 0) {
-                milestonesReachedElement.textContent = `🏆 Dosiahnuté míľniky: ${milestones.join(', ')}`;
+                milestonesReachedElement.textContent = t('starsMilestones') + ': ' + milestones.join(', ');
             } else {
                 milestonesReachedElement.textContent = '';
             }
         }
         
-        // Kontrola míľnikov
         function checkMilestones() {
             if (score >= currentMilestone) {
                 milestones.push(currentMilestone);
                 showMilestone(currentMilestone);
-                currentMilestone += 1000; // Ďalší míľnik o 1000 bodov
+                currentMilestone += 1000;
             }
         }
         
-        // Aktualizácia hry
         function update() {
             if (!gameRunning) return;
-            
-            // Aktualizácia nesmrteľnosti
             if (invulnerable) {
                 invulnerableTimer--;
-                if (invulnerableTimer <= 0) {
-                    invulnerable = false;
-                }
+                if (invulnerableTimer <= 0) invulnerable = false;
             }
+            if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
+            if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
+            player.x = Math.max(0, Math.min(player.x, gameCanvas.width - player.width));
             
-            // Pohyb hráča
-            if (keys['ArrowLeft'] || keys['KeyA']) {
-                player.x -= player.speed;
-            }
-            if (keys['ArrowRight'] || keys['KeyD']) {
-                player.x += player.speed;
-            }
-            
-            player.x = Math.max(0, Math.min(player.x, canvas.width - player.width));
-            
-            // Vytváranie špeciálnej hviezdy
             specialStarTimer++;
             if (!specialStar && specialStarTimer >= SPECIAL_STAR_INTERVAL) {
                 specialStar = createSpecialStar();
                 specialStarTimer = 0;
-                showFloatingText(canvas.width/2, 50, '🌟 ŠPECIÁLNA HVIEZDA! 🌟', '#ff1744');
+                showFloatingText(gameCanvas.width/2, 50, t('starsSpecialAppear'), '#ff1744');
             }
             
-            // Vytváranie obyčajných hviezd
             spawnTimer++;
             const spawnRate = Math.max(BASE_SPAWN_RATE - difficulty * 5, 20);
-            
             if (spawnTimer > spawnRate) {
-                if (stars.length < 3 + Math.floor(difficulty)) {
-                    stars.push(createStar());
-                }
+                if (stars.length < 3 + Math.floor(difficulty)) stars.push(createStar());
                 spawnTimer = 0;
             }
             
-            // Aktualizácia špeciálnej hviezdy
             if (specialStar) {
                 specialStar.y += specialStar.speed;
                 specialStar.rotation += specialStar.rotationSpeed;
-                
                 if (checkCollision(player, specialStar)) {
                     score += 50;
                     refillAllLives();
-                    scoreElement.textContent = `⭐ Skóre: ${score}`;
-                    
+                    scoreElement.textContent = t('starsScore') + ': ' + score;
                     createParticles(specialStar.x + specialStar.size/2, specialStar.y + specialStar.size/2);
                     specialStar = null;
-                    
                     checkMilestones();
-                } else if (specialStar.y > canvas.height + 50) {
+                } else if (specialStar.y > gameCanvas.height + 50) {
                     specialStar = null;
-                    showFloatingText(canvas.width/2, canvas.height/2, 'Ušla ti špeciálna hviezda! 😢', '#ff1744');
+                    showFloatingText(gameCanvas.width/2, gameCanvas.height/2, t('starsMissed'), '#ff1744');
                 }
             }
             
-            // Aktualizácia obyčajných hviezd
             for (let i = stars.length - 1; i >= 0; i--) {
                 stars[i].y += stars[i].speed;
                 stars[i].rotation += stars[i].rotationSpeed;
-                
                 if (checkCollision(player, stars[i])) {
                     score += 10;
                     starsCollected++;
-                    scoreElement.textContent = `⭐ Skóre: ${score}`;
-                    
+                    scoreElement.textContent = t('starsScore') + ': ' + score;
                     createParticles(stars[i].x + stars[i].size/2, stars[i].y + stars[i].size/2);
                     showFloatingText(stars[i].x + stars[i].size/2, stars[i].y, '+10', '#ffd700');
-                    
-                    if (starsCollected >= STARS_FOR_EXTRA_LIFE) {
-                        addLife();
-                        starsCollected = 0;
-                    }
-                    
+                    if (starsCollected >= STARS_FOR_EXTRA_LIFE) { addLife(); starsCollected = 0; }
                     stars.splice(i, 1);
-                    
-                    // Zvýšenie obtiažnosti
                     if (score % 200 === 0 && score > 0 && score % 1000 !== 0) {
                         difficulty = Math.min(difficulty + 0.5, 10);
-                        showFloatingText(canvas.width/2, canvas.height/2, 
-                                       `Úroveň ${Math.floor(difficulty)}!`, '#ffd700');
+                        showFloatingText(gameCanvas.width/2, gameCanvas.height/2, t('starsLevelUp', {n: Math.floor(difficulty)}), '#ffd700');
                     }
-                    
                     checkMilestones();
                     continue;
                 }
-                
-                if (stars[i].y > canvas.height + 50) {
-                    stars.splice(i, 1);
-                    loseLife();
-                }
+                if (stars[i].y > gameCanvas.height + 50) { stars.splice(i, 1); loseLife(); }
             }
             
-            // Aktualizácia častíc a textov
             updateParticles();
             updateFloatingTexts();
         }
@@ -697,10 +549,7 @@
                 particles[i].x += particles[i].vx;
                 particles[i].y += particles[i].vy;
                 particles[i].life -= 0.03;
-                
-                if (particles[i].life <= 0) {
-                    particles.splice(i, 1);
-                }
+                if (particles[i].life <= 0) particles.splice(i, 1);
             }
         }
         
@@ -708,38 +557,23 @@
             for (let i = floatingTexts.length - 1; i >= 0; i--) {
                 floatingTexts[i].y += floatingTexts[i].vy;
                 floatingTexts[i].life--;
-                
-                if (floatingTexts[i].life <= 0) {
-                    floatingTexts.splice(i, 1);
-                }
+                if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
             }
         }
         
-        // Vykreslenie
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Nočná obloha
+            cx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
             for (let i = 0; i < 80; i++) {
-                const x = (i * 89) % canvas.width;
-                const y = (i * 37) % canvas.height;
+                const x = (i * 89) % gameCanvas.width;
+                const y = (i * 37) % gameCanvas.height;
                 const brightness = 0.2 + Math.sin(Date.now() * 0.0005 + i) * 0.15;
-                ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
-                ctx.fillRect(x, y, 2, 2);
+                cx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+                cx.fillRect(x, y, 2, 2);
             }
-            
-            // Kreslenie obyčajných hviezd
             stars.forEach(star => drawStar(star));
-            
-            // Kreslenie špeciálnej hviezdy
-            if (specialStar) {
-                drawSpecialStar(specialStar);
-            }
-            
-            // Kreslenie hráča
+            if (specialStar) drawSpecialStar(specialStar);
             drawPlayer();
             
-            // Kreslenie častíc
             particles.forEach(particle => {
                 let color;
                 switch(particle.color) {
@@ -749,13 +583,10 @@
                     case '#ff1744': color = '255, 23, 68'; break;
                     default: color = '255, 255, 255';
                 }
-                ctx.fillStyle = `rgba(${color}, ${particle.life})`;
-                ctx.beginPath();
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                ctx.fill();
+                cx.fillStyle = `rgba(${color}, ${particle.life})`;
+                cx.beginPath(); cx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2); cx.fill();
             });
             
-            // Kreslenie plávajúcich textov
             floatingTexts.forEach(text => {
                 let color;
                 switch(text.color) {
@@ -764,79 +595,53 @@
                     case '#ff1744': color = '255, 23, 68'; break;
                     default: color = '255, 255, 255';
                 }
-                ctx.fillStyle = `rgba(${color}, ${text.life / 90})`;
-                ctx.font = 'bold 18px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(text.text, text.x, text.y);
+                cx.fillStyle = `rgba(${color}, ${text.life / 90})`;
+                cx.font = 'bold 18px Arial'; cx.textAlign = 'center';
+                cx.fillText(text.text, text.x, text.y);
             });
             
-            // UI prvky
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.font = '12px Arial';
-            ctx.textAlign = 'left';
-            ctx.fillText(`Úroveň: ${Math.floor(difficulty)}`, 10, 20);
-            ctx.fillText(`Ďalší míľnik: ${currentMilestone} bodov`, 10, 40);
-            ctx.fillText(`Ďalší život za: ${STARS_FOR_EXTRA_LIFE - starsCollected} ⭐`, 10, 60);
+            cx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            cx.font = '12px Arial'; cx.textAlign = 'left';
+            cx.fillText(t('starsLevel') + ': ' + Math.floor(difficulty), 10, 20);
+            cx.fillText(t('starsNextMilestone') + ': ' + currentMilestone, 10, 40);
+            cx.fillText(t('starsNextLife') + ': ' + (STARS_FOR_EXTRA_LIFE - starsCollected) + ' ⭐', 10, 60);
             
             if (invulnerable) {
-                ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
-                ctx.fillText(`🛡️ Nezraniteľný: ${Math.ceil(invulnerableTimer / 60)}s`, 10, 80);
+                cx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+                cx.fillText(t('starsInvulnerable') + ': ' + Math.ceil(invulnerableTimer / 60) + 's', 10, 80);
             }
             
-            // Indikátor špeciálnej hviezdy
             if (!specialStar) {
                 const timeUntilSpecial = Math.ceil((SPECIAL_STAR_INTERVAL - specialStarTimer) / 60);
-                ctx.fillStyle = 'rgba(255, 23, 68, 0.7)';
-                ctx.fillText(`🌟 Špeciálna hviezda za: ${timeUntilSpecial}s`, 10, 100);
+                cx.fillStyle = 'rgba(255, 23, 68, 0.7)';
+                cx.fillText(t('starsSpecialIn') + ': ' + timeUntilSpecial + 's', 10, 100);
             } else {
-                ctx.fillStyle = 'rgba(255, 23, 68, 0.9)';
-                ctx.fillText('🌟 ŠPECIÁLNA HVIEZDA NA OBRAZOVKE!', 10, 100);
+                cx.fillStyle = 'rgba(255, 23, 68, 0.9)';
+                cx.fillText(t('starsSpecialOn'), 10, 100);
             }
             
-            // Zobrazenie dosiahnutých míľnikov
             if (milestones.length > 0) {
-                ctx.fillStyle = 'rgba(255, 215, 0, 0.7)';
-                ctx.fillText(`🏆 Míľniky: ${milestones.length}x`, 10, 120);
+                cx.fillStyle = 'rgba(255, 215, 0, 0.7)';
+                cx.fillText(t('starsMilestonesCount') + ': ' + milestones.length + 'x', 10, 120);
             }
         }
         
-        // Herná slučka
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
+        function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
         
-        // Reštart hry
         function restartGame() {
-            stars = [];
-            specialStar = null;
-            particles = [];
-            floatingTexts = [];
-            score = 0;
-            lives = 3;
-            starsCollected = 0;
-            gameRunning = true;
-            difficulty = 1;
-            spawnTimer = 0;
-            specialStarTimer = 0;
-            invulnerable = false;
-            invulnerableTimer = 0;
-            milestones = [];
-            currentMilestone = 1000;
-            player.x = canvas.width / 2 - player.width/2;
-            
-            scoreElement.textContent = '⭐ Skóre: 0';
-            livesElement.innerHTML = '❤️❤️❤️';
+            stars = []; specialStar = null; particles = []; floatingTexts = [];
+            score = 0; lives = 3; starsCollected = 0; gameRunning = true;
+            difficulty = 1; spawnTimer = 0; specialStarTimer = 0;
+            invulnerable = false; invulnerableTimer = 0;
+            milestones = []; currentMilestone = 1000;
+            player.x = gameCanvas.width / 2 - player.width/2;
             gameOverElement.style.display = 'none';
+            applyLang();
         }
         
-        // Spustenie hry
+        // Init
+        applyLang();
         gameLoop();
-        
-        console.log('🎮 Hra spustená!');
-        console.log('🏆 Hra pokračuje aj po 1000 bodoch!');
-        console.log('🎯 Míľniky každých 1000 bodov s extra odmenami!');
     </script>
 </body>
 </html>
