@@ -338,7 +338,7 @@ function showEnd(win){
     <div style="font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--c);letter-spacing:-2px">${score}</div>
     <div style="font-size:12px;color:var(--muted)">${t('tdWave')} ${wave}</div>
     <div class="diff-row" id="diff-row2"></div>
-    <button class="play-btn" onclick="document.getElementById('overlay').style.display='flex';location.reload?buildDiffRow():null;startGame()" style="margin-top:4px">${t('tdAgain')}</button>`;
+    <button class="play-btn" onclick="restartGame()" style="margin-top:4px">${t('tdAgain')}</button>`;
   ov.style.display='flex';
   // rebuild diff selector
   const dr2=document.getElementById('diff-row2');
@@ -349,6 +349,10 @@ function showEnd(win){
     btn.onclick=()=>{diffIdx=i;dr2.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};
     dr2.appendChild(btn);
   });
+}
+function restartGame(){
+  document.getElementById('overlay').style.display='none';
+  startGame();
 }
 draw();
 </script>
