@@ -17,7 +17,7 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%;}
 #overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;}
 .score-big{font-family:'Syne',sans-serif;font-size:64px;font-weight:800;color:var(--c);letter-spacing:-3px;line-height:1;}
 .hint{font-size:13px;color:var(--muted);text-align:center;}
-.play-btn{margin-top:6px;background:var(--cdim);border:1px solid rgba(77,255,145,.3);color:var(--c);padding:12px 36px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background .18s;}
+.play-btn{margin-top:6px;background:var(--cdim);border:1px solid rgba(77,255,145,.3);color:var(--c);padding:12px 36px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background .18s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .play-btn:hover{background:rgba(77,255,145,.25);}
 </style>
 </head>
@@ -50,7 +50,7 @@ function buildDiffRow(id){
   const dr=document.getElementById(id);if(!dr)return;dr.innerHTML='';
   DIFFS.forEach((d,i)=>{
     const btn=document.createElement('button');
-    btn.style.cssText='background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:rgba(240,238,255,0.38);padding:6px 14px;border-radius:100px;font-family:inherit;font-size:12px;cursor:pointer;transition:all .18s;white-space:nowrap;';
+    btn.style.cssText='background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:rgba(240,238,255,0.38);padding:6px 14px;border-radius:100px;font-family:inherit;font-size:12px;cursor:pointer;transition:all .18s;white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent;';
     if(i===diffIdx)Object.assign(btn.style,{borderColor:'rgba(77,255,145,0.4)',color:'#4dff91',background:'rgba(77,255,145,0.12)'});
     btn.textContent=t(d.label);btn.onclick=()=>{diffIdx=i;buildDiffRow(id);};dr.appendChild(btn);
   });
@@ -112,7 +112,7 @@ function die(){
     <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px">${t('flappyOver')}</h2>
     <div class="score-big">${score}</div>
     ${score>=best&&score>0?`<div style="font-size:13px;color:#ffd166">🏆 ${t('flappyBest')}: ${best}</div>`:`<div style="font-size:13px;color:var(--muted)">${t('flappyBest')}: ${best}</div>`}
-    <button class="play-btn" onclick="startGame()" style="margin-top:8px">${t('flappyAgain')}</button>`;
+    <button class="play-btn" onclick="startGame()" style="margin-top:8px;touch-action:manipulation">${t('flappyAgain')}</button>`;
   ov.style.display='flex';
 }
 
@@ -158,8 +158,8 @@ function draw(){
 }
 
 document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();flap();}});
-document.addEventListener('touchstart',e=>{e.preventDefault();flap();},{passive:false});
-C.addEventListener('click',flap);
+C.addEventListener('touchstart',e=>{e.preventDefault();if(running)flap();},{passive:false});
+C.addEventListener('click',e=>{if(running)flap();});
 draw();
 </script>
 </body>

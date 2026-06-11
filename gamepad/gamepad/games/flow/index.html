@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pipes Connect · GamePad</title>
+<title>Flow Connect · GamePad</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
@@ -18,6 +18,9 @@ body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;left:
 .hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
 .stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;}
 .stat-pill span{color:var(--c);}
+.stat-pill.highlight{border-color:rgba(77,255,145,.3);}
+.stat-pill.record-pill{border-color:rgba(255,215,0,.35);}
+.stat-pill.record-pill span{color:#ffd700;}
 .ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
 .ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
 #canvas-wrap{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg1);touch-action:none;}
@@ -25,6 +28,7 @@ canvas{display:block;}
 #overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,5,7,.92);backdrop-filter:blur(10px);z-index:20;}
 #overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
 .score-big{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--c);letter-spacing:-2px;}
+.time-big{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:#ffd700;letter-spacing:-1px;}
 .hint{font-size:12px;color:var(--muted);text-align:center;padding:0 20px;}
 .play-btn{background:var(--cdim);border:1px solid rgba(77,255,145,.3);color:var(--c);padding:11px 32px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
 .lev-row{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;max-width:340px;}
@@ -43,8 +47,9 @@ canvas{display:block;}
   <div style="font-size:44px">🔗</div>
   <h2 id="ov-title"></h2>
   <div class="hint" id="ov-hint"></div>
+  <div id="ov-record-wrap" style="display:none;font-size:12px;color:#ffd700;"></div>
   <div class="lev-row" id="lev-row"></div>
-  <button class="play-btn" id="ov-btn" onclick="startLevel(currentLevel)"></button>
+  <button class="play-btn" id="ov-btn" onclick="startFromMenu()"></button>
 </div>
 <div class="page">
   <div class="game-title" id="lbl-title"></div>
@@ -52,6 +57,7 @@ canvas{display:block;}
     <div class="stat-pill"><span id="lbl-lev-txt"></span>&nbsp;<span id="hud-lev">1</span></div>
     <div class="stat-pill"><span id="lbl-moves-txt"></span>&nbsp;<span id="hud-moves">0</span></div>
     <div class="stat-pill" id="pill-filled"><span id="lbl-filled-txt"></span>&nbsp;<span id="hud-filled">0</span>%</div>
+    <div class="stat-pill highlight" id="pill-time"><span id="lbl-time-txt"></span>&nbsp;<span id="hud-time">0:00</span></div>
     <button class="ctrl-btn" id="btn-clear" onclick="clearPaths()"></button>
     <button class="ctrl-btn" id="btn-levels" onclick="showMenu()"></button>
   </div>
@@ -59,29 +65,34 @@ canvas{display:block;}
 </div>
 
 <script>
-document.getElementById('lbl-back').textContent      = t('back');
-document.getElementById('lbl-title').textContent     = t('flowTitle');
-document.getElementById('ov-title').textContent      = t('flowTitle');
-document.getElementById('ov-hint').textContent       = t('flowHint');
-document.getElementById('ov-btn').textContent        = t('flowPlay');
-document.getElementById('lbl-lev-txt').textContent   = t('flowLevel');
-document.getElementById('lbl-moves-txt').textContent = t('flowMoves');
-document.getElementById('lbl-filled-txt').textContent= t('flowFilled');
-document.getElementById('btn-clear').textContent     = t('flowClear');
-document.getElementById('btn-levels').textContent    = t('flowLevels');
-
-// ── COLORS ────────────────────────────────────────────────────────────────
-const COLORS = [
-  '#ff6b6b', '#54a0ff', '#4dff91', '#ffd166',
-  '#ff9f43', '#a78bfa', '#00d4ff', '#ff6b9d',
-  '#26de81', '#fd9644', '#a55eea', '#778ca3',
-];
-const COLORS_DIM = COLORS.map(function(c) {
-  return c + '40';
+// ── i18n ──────────────────────────────────────────────────────────────────
+function applyLang() {
+  document.getElementById('lbl-back').textContent       = t('back');
+  document.getElementById('lbl-title').textContent      = t('flowTitle');
+  document.getElementById('ov-title').textContent       = t('flowTitle');
+  document.getElementById('ov-hint').textContent        = t('flowHint');
+  document.getElementById('ov-btn').textContent         = t('flowPlay');
+  document.getElementById('lbl-lev-txt').textContent    = t('flowLevel');
+  document.getElementById('lbl-moves-txt').textContent  = t('flowMoves');
+  document.getElementById('lbl-filled-txt').textContent = t('flowFilled');
+  document.getElementById('lbl-time-txt').textContent   = t('flowTime');
+  document.getElementById('btn-clear').textContent      = t('flowClear');
+  document.getElementById('btn-levels').textContent     = t('flowLevels');
+  updateRecordDisplay();
+}
+window.addEventListener('storage', function(e) {
+  if (e.key === 'gamepad_lang') applyLang();
 });
 
+// ── COLORS ────────────────────────────────────────────────────────────────
+var COLORS = [
+  '#ff6b6b','#54a0ff','#4dff91','#ffd166',
+  '#ff9f43','#a78bfa','#00d4ff','#ff6b9d',
+  '#26de81','#fd9644','#a55eea','#778ca3',
+];
+
 // ── LEVELS ────────────────────────────────────────────────────────────────
-const LEVELS = [
+var LEVELS = [
   { size:5, pairs:[{c:0,r1:0,c1:0,r2:0,c2:4},{c:1,r1:1,c1:0,r2:2,c2:3},{c:2,r1:2,c1:0,r2:3,c2:4},{c:3,r1:4,c1:0,r2:4,c2:4}] },
   { size:5, pairs:[{c:0,r1:0,c1:0,r2:4,c2:0},{c:1,r1:0,c1:1,r2:1,c2:4},{c:2,r1:1,c1:1,r2:2,c2:4},{c:3,r1:3,c1:4,r2:4,c2:1},{c:4,r1:3,c1:1,r2:3,c2:3}] },
   { size:6, pairs:[{c:0,r1:0,c1:0,r2:0,c2:5},{c:1,r1:1,c1:5,r2:1,c2:0},{c:2,r1:2,c1:0,r2:3,c2:4},{c:3,r1:3,c1:3,r2:4,c2:1},{c:4,r1:4,c1:2,r2:5,c2:0}] },
@@ -104,281 +115,366 @@ const LEVELS = [
   { size:14, pairs:[{c:0,r1:0,c1:0,r2:1,c2:10},{c:1,r1:1,c1:9,r2:2,c2:7},{c:2,r1:2,c1:8,r2:3,c2:2},{c:3,r1:3,c1:1,r2:5,c2:12},{c:4,r1:5,c1:11,r2:6,c2:5},{c:5,r1:6,c1:6,r2:7,c2:4},{c:6,r1:7,c1:3,r2:8,c2:13},{c:7,r1:9,c1:13,r2:10,c2:3},{c:8,r1:10,c1:4,r2:11,c2:6},{c:9,r1:11,c1:5,r2:12,c2:10},{c:10,r1:12,c1:11,r2:13,c2:0}] },
 ];
 
+// ── TIMER STATE ───────────────────────────────────────────────────────────
+var BEST_KEY = 'flow_best_ms';
+var timerStart = null;      // Date.now() when run started (level 0)
+var timerElapsed = 0;       // ms accumulated before a pause/menu visit
+var timerRunning = false;
+var timerRAF = null;
+
+function timerTick() {
+  if (!timerRunning) return;
+  var elapsed = timerElapsed + (Date.now() - timerStart);
+  document.getElementById('hud-time').textContent = formatTime(elapsed);
+  timerRAF = requestAnimationFrame(timerTick);
+}
+
+function startTimer() {
+  timerStart = Date.now();
+  timerRunning = true;
+  timerTick();
+}
+
+function pauseTimer() {
+  if (!timerRunning) return;
+  timerElapsed += Date.now() - timerStart;
+  timerRunning = false;
+  if (timerRAF) { cancelAnimationFrame(timerRAF); timerRAF = null; }
+}
+
+function resetTimer() {
+  pauseTimer();
+  timerElapsed = 0;
+  document.getElementById('hud-time').textContent = '0:00';
+}
+
+function getElapsed() {
+  return timerElapsed + (timerRunning ? Date.now() - timerStart : 0);
+}
+
+function formatTime(ms) {
+  var s = Math.floor(ms / 1000);
+  var m = Math.floor(s / 60);
+  s = s % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function getBestTime() {
+  var v = localStorage.getItem(BEST_KEY);
+  return v ? parseInt(v, 10) : null;
+}
+
+function updateRecordDisplay() {
+  var best = getBestTime();
+  var wrap = document.getElementById('ov-record-wrap');
+  if (best !== null) {
+    wrap.style.display = 'block';
+    wrap.textContent = t('flowBestTime') + ': ' + formatTime(best);
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
 // ── STATE ─────────────────────────────────────────────────────────────────
 var currentLevel = 0;
-var paths = [];      // paths[colorIdx] = [{r,c}, ...]
-var dragging = -1;   // color index being drawn
+var paths = [];
+var dragging = -1;
 var moves = 0;
 var completed = new Array(LEVELS.length).fill(false);
+var runStarted = false;   // true once player has started level 0
 
 // ── LEVEL PICKER ──────────────────────────────────────────────────────────
 var levRow = document.getElementById('lev-row');
 LEVELS.forEach(function(_, i) {
   var btn = document.createElement('button');
-  btn.className = 'lev-btn' + (i===0?' current':'');
+  btn.className = 'lev-btn' + (i===0 ? ' current' : '');
   btn.id = 'lb-'+i; btn.textContent = i+1;
   btn.onclick = function() { startLevel(i); };
   levRow.appendChild(btn);
 });
 
 function showMenu() {
+  pauseTimer();
   LEVELS.forEach(function(_,i){
-    var b=document.getElementById('lb-'+i);
-    b.className='lev-btn'+(completed[i]?' done':'')+(i===currentLevel?' current':'');
+    var b = document.getElementById('lb-'+i);
+    b.className = 'lev-btn' + (completed[i]?' done':'') + (i===currentLevel?' current':'');
   });
-  document.getElementById('overlay').style.display='flex';
+  updateRecordDisplay();
+  document.getElementById('overlay').style.display = 'flex';
+}
+
+// Called when player clicks Play/Next from the main menu button
+function startFromMenu() {
+  // If we're starting a fresh run (level 0 and nothing done yet), reset timer
+  if (currentLevel === 0 && !runStarted) {
+    resetTimer();
+  }
+  startLevel(currentLevel);
 }
 
 function startLevel(idx) {
-  document.getElementById('overlay').style.display='none';
-  currentLevel=idx;
-  moves=0; dragging=-1;
-  var lv=LEVELS[idx];
-  paths=lv.pairs.map(function(){return [];});
-  document.getElementById('hud-lev').textContent=idx+1;
-  document.getElementById('hud-moves').textContent=0;
+  document.getElementById('overlay').style.display = 'none';
+  currentLevel = idx;
+  moves = 0; dragging = -1;
+  var lv = LEVELS[idx];
+  paths = lv.pairs.map(function(){ return []; });
+  document.getElementById('hud-lev').textContent = idx+1;
+  document.getElementById('hud-moves').textContent = 0;
+
+  // Timer logic: start/resume only when beginning level 0
+  if (idx === 0) {
+    resetTimer();
+    runStarted = true;
+    startTimer();
+  } else if (runStarted) {
+    // Resume if paused (e.g. player visited menu mid-run)
+    if (!timerRunning) startTimer();
+  }
+
   resizeCanvas();
   render();
 }
 
 function clearPaths() {
-  paths=LEVELS[currentLevel].pairs.map(function(){return [];});
-  moves=0;
-  document.getElementById('hud-moves').textContent=0;
+  paths = LEVELS[currentLevel].pairs.map(function(){ return []; });
+  moves = 0;
+  document.getElementById('hud-moves').textContent = 0;
   render();
 }
 
 function resizeCanvas() {
-  var lv=LEVELS[currentLevel];
-  var maxW=Math.min(window.innerWidth-24, window.innerHeight-220, 460);
-  var cs=Math.floor(maxW/lv.size);
-  var canvas=document.getElementById('gameCanvas');
-  canvas.width=canvas.height=cs*lv.size;
+  var lv = LEVELS[currentLevel];
+  var maxW = Math.min(window.innerWidth-24, window.innerHeight-220, 460);
+  var cs = Math.floor(maxW/lv.size);
+  var canvas = document.getElementById('gameCanvas');
+  canvas.width = canvas.height = cs*lv.size;
   render();
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
 function cellSize() {
-  var canvas=document.getElementById('gameCanvas');
-  return canvas.width/LEVELS[currentLevel].size;
+  return document.getElementById('gameCanvas').width / LEVELS[currentLevel].size;
 }
 
 function getCell(clientX, clientY) {
-  var canvas=document.getElementById('gameCanvas');
-  var rect=canvas.getBoundingClientRect();
-  var cs=cellSize();
-  var r=Math.floor((clientY-rect.top)/cs);
-  var c=Math.floor((clientX-rect.left)/cs);
-  var lv=LEVELS[currentLevel];
-  if(r<0||r>=lv.size||c<0||c>=lv.size) return null;
-  return {r:r,c:c};
+  var canvas = document.getElementById('gameCanvas');
+  var rect = canvas.getBoundingClientRect();
+  var cs = cellSize();
+  var r = Math.floor((clientY-rect.top)/cs);
+  var c = Math.floor((clientX-rect.left)/cs);
+  var lv = LEVELS[currentLevel];
+  if (r<0||r>=lv.size||c<0||c>=lv.size) return null;
+  return {r:r, c:c};
 }
 
 function getEndpoint(r, c) {
-  var lv=LEVELS[currentLevel];
-  for(var i=0;i<lv.pairs.length;i++){
-    var p=lv.pairs[i];
-    if((p.r1===r&&p.c1===c)||(p.r2===r&&p.c2===c)) return i;
+  var lv = LEVELS[currentLevel];
+  for (var i=0; i<lv.pairs.length; i++) {
+    var p = lv.pairs[i];
+    if ((p.r1===r&&p.c1===c)||(p.r2===r&&p.c2===c)) return i;
   }
   return -1;
 }
 
 function getPathColor(r, c) {
-  for(var i=0;i<paths.length;i++){
-    for(var j=0;j<paths[i].length;j++){
-      if(paths[i][j].r===r&&paths[i][j].c===c) return i;
-    }
-  }
+  for (var i=0; i<paths.length; i++)
+    for (var j=0; j<paths[i].length; j++)
+      if (paths[i][j].r===r&&paths[i][j].c===c) return i;
   return -1;
 }
 
 function isComplete(colorIdx) {
-  var lv=LEVELS[currentLevel];
-  var p=lv.pairs[colorIdx];
-  var path=paths[colorIdx];
-  if(path.length<2) return false;
-  var first=path[0], last=path[path.length-1];
+  var lv = LEVELS[currentLevel];
+  var p = lv.pairs[colorIdx];
+  var path = paths[colorIdx];
+  if (path.length < 2) return false;
+  var first = path[0], last = path[path.length-1];
   return ((first.r===p.r1&&first.c===p.c1&&last.r===p.r2&&last.c===p.c2)||
           (first.r===p.r2&&first.c===p.c2&&last.r===p.r1&&last.c===p.c1));
 }
 
 function filledPercent() {
-  var lv=LEVELS[currentLevel];
-  var total=lv.size*lv.size;
-  var filled=0;
-  paths.forEach(function(p){filled+=p.length;});
+  var lv = LEVELS[currentLevel];
+  var total = lv.size*lv.size;
+  var filled = 0;
+  paths.forEach(function(p){ filled += p.length; });
   return Math.round(filled/total*100);
 }
 
 function checkWin() {
-  var lv=LEVELS[currentLevel];
-  var allComplete=lv.pairs.every(function(_,i){return isComplete(i);});
-  var filled=filledPercent();
-  if(allComplete && filled===100) {
-    completed[currentLevel]=true;
+  var lv = LEVELS[currentLevel];
+  var allComplete = lv.pairs.every(function(_,i){ return isComplete(i); });
+  if (!allComplete || filledPercent() !== 100) return;
+
+  completed[currentLevel] = true;
+  var isLast = currentLevel === LEVELS.length-1;
+
+  if (isLast) {
+    // All levels done — stop timer and check record
+    pauseTimer();
+    var elapsed = getElapsed();
+    var best = getBestTime();
+    var isNewRecord = best === null || elapsed < best;
+    if (isNewRecord) localStorage.setItem(BEST_KEY, elapsed);
+    var finalBest = isNewRecord ? elapsed : best;
+
     setTimeout(function(){
-      var isLast=currentLevel===LEVELS.length-1;
-      var ov=document.getElementById('overlay');
-      ov.innerHTML='<div style="font-size:44px">🎉</div>'+
+      var ov = document.getElementById('overlay');
+      ov.innerHTML =
+        '<div style="font-size:44px">🏆</div>'+
+        '<h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:26px">'+t('flowAllDone')+'</h2>'+
+        '<div class="time-big">'+formatTime(elapsed)+'</div>'+
+        '<div style="font-size:12px;color:var(--muted)">'+t('flowTotalTime')+'</div>'+
+        (isNewRecord
+          ? '<div style="font-size:13px;color:#ffd700;font-weight:600">'+t('flowNewRecord')+'</div>'
+          : '<div style="font-size:12px;color:var(--muted)">'+t('flowBestTime')+': '+formatTime(finalBest)+'</div>'
+        )+
+        '<button class="play-btn" onclick="restartRun()">'+t('flowPlay')+'</button>'+
+        '<button onclick="showMenu()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(240,238,255,0.4);padding:7px 18px;border-radius:100px;font-family:\'DM Sans\',sans-serif;font-size:12px;cursor:pointer;">'+t('flowLevels')+'</button>';
+      ov.style.display = 'flex';
+      updateRecordDisplay();
+    }, 300);
+  } else {
+    // Intermediate level win
+    setTimeout(function(){
+      var ov = document.getElementById('overlay');
+      ov.innerHTML =
+        '<div style="font-size:44px">🎉</div>'+
         '<h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:26px">'+t('flowWin')+'</h2>'+
         '<div class="score-big">'+moves+'</div>'+
         '<div style="font-size:12px;color:var(--muted)">'+t('flowMoves')+'</div>'+
-        (isLast
-          ?'<button class="play-btn" onclick="showMenu()">'+t('flowLevels')+'</button>'
-          :'<button class="play-btn" onclick="startLevel('+(currentLevel+1)+')">'+t('flowNext')+'</button>')+
-        '<button onclick="showMenu()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(240,238,255,0.4);padding:7px 18px;border-radius:100px;font-family:DM Sans,sans-serif;font-size:12px;cursor:pointer;">'+t('flowLevels')+'</button>';
-      ov.style.display='flex';
-    },300);
+        '<button class="play-btn" onclick="startLevel('+(currentLevel+1)+')">'+t('flowNext')+'</button>'+
+        '<button onclick="showMenu()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(240,238,255,0.4);padding:7px 18px;border-radius:100px;font-family:\'DM Sans\',sans-serif;font-size:12px;cursor:pointer;">'+t('flowLevels')+'</button>';
+      ov.style.display = 'flex';
+    }, 300);
   }
+}
+
+function restartRun() {
+  completed = new Array(LEVELS.length).fill(false);
+  runStarted = false;
+  currentLevel = 0;
+  resetTimer();
+  // Reset level picker buttons
+  LEVELS.forEach(function(_,i){
+    var b = document.getElementById('lb-'+i);
+    if(b) b.className = 'lev-btn' + (i===0?' current':'');
+  });
+  startLevel(0);
 }
 
 // ── DRAWING LOGIC ─────────────────────────────────────────────────────────
 function startDrag(clientX, clientY) {
-  var cell=getCell(clientX,clientY);
-  if(!cell) return;
-  
-  // Start from endpoint or existing path
-  var ep=getEndpoint(cell.r,cell.c);
-  var pathColor=getPathColor(cell.r,cell.c);
-  
-  if(ep>=0) {
-    // Start fresh from endpoint
-    paths[ep]=[];
-    paths[ep].push({r:cell.r,c:cell.c});
-    dragging=ep;
+  var cell = getCell(clientX, clientY);
+  if (!cell) return;
+  var ep = getEndpoint(cell.r, cell.c);
+  var pathColor = getPathColor(cell.r, cell.c);
+  if (ep >= 0) {
+    paths[ep] = [];
+    paths[ep].push({r:cell.r, c:cell.c});
+    dragging = ep;
     moves++;
-    document.getElementById('hud-moves').textContent=moves;
-  } else if(pathColor>=0) {
-    // Truncate path to clicked cell
-    var path=paths[pathColor];
-    var idx=path.findIndex(function(p){return p.r===cell.r&&p.c===cell.c;});
-    paths[pathColor]=path.slice(0,idx+1);
-    dragging=pathColor;
+    document.getElementById('hud-moves').textContent = moves;
+  } else if (pathColor >= 0) {
+    var path = paths[pathColor];
+    var idx = path.findIndex(function(p){ return p.r===cell.r&&p.c===cell.c; });
+    paths[pathColor] = path.slice(0, idx+1);
+    dragging = pathColor;
     moves++;
-    document.getElementById('hud-moves').textContent=moves;
+    document.getElementById('hud-moves').textContent = moves;
   }
   render();
 }
 
 function continueDrag(clientX, clientY) {
-  if(dragging<0) return;
-  var cell=getCell(clientX,clientY);
-  if(!cell) return;
-  
-  var path=paths[dragging];
-  if(!path.length) return;
-  
-  var last=path[path.length-1];
-  // Must be adjacent
-  var dist=Math.abs(cell.r-last.r)+Math.abs(cell.c-last.c);
-  if(dist!==1) return;
-  
-  // Check if going back
-  if(path.length>=2){
-    var prev=path[path.length-2];
-    if(prev.r===cell.r&&prev.c===cell.c){
-      path.pop();
-      render();
-      return;
-    }
+  if (dragging < 0) return;
+  var cell = getCell(clientX, clientY);
+  if (!cell) return;
+  var path = paths[dragging];
+  if (!path.length) return;
+  var last = path[path.length-1];
+  var dist = Math.abs(cell.r-last.r)+Math.abs(cell.c-last.c);
+  if (dist !== 1) return;
+  if (path.length >= 2) {
+    var prev = path[path.length-2];
+    if (prev.r===cell.r&&prev.c===cell.c) { path.pop(); render(); return; }
   }
-  
-  // Check if cell is occupied by another color
-  var existingColor=getPathColor(cell.r,cell.c);
-  if(existingColor>=0&&existingColor!==dragging){
-    // Can only enter if it's an endpoint of dragging color
-    var lv=LEVELS[currentLevel];
-    var p=lv.pairs[dragging];
-    var isOurEndpoint=(cell.r===p.r1&&cell.c===p.c1)||(cell.r===p.r2&&cell.c===p.c2);
-    if(!isOurEndpoint) return;
-    // Clear their path at this point
-    paths[existingColor]=[];
+  var existingColor = getPathColor(cell.r, cell.c);
+  if (existingColor >= 0 && existingColor !== dragging) {
+    var lv = LEVELS[currentLevel];
+    var p = lv.pairs[dragging];
+    var isOurEndpoint = (cell.r===p.r1&&cell.c===p.c1)||(cell.r===p.r2&&cell.c===p.c2);
+    if (!isOurEndpoint) return;
+    paths[existingColor] = [];
   }
-  
-  // Check not already in our path (no loops)
-  if(path.some(function(p){return p.r===cell.r&&p.c===cell.c;})) return;
-  
-  // Check if target endpoint — stop after reaching it
-  var ep=getEndpoint(cell.r,cell.c);
-  path.push({r:cell.r,c:cell.c});
-  
-  document.getElementById('hud-filled').textContent=filledPercent();
+  if (path.some(function(p){ return p.r===cell.r&&p.c===cell.c; })) return;
+  var ep = getEndpoint(cell.r, cell.c);
+  path.push({r:cell.r, c:cell.c});
+  document.getElementById('hud-filled').textContent = filledPercent();
   render();
-  
-  if(ep===dragging) { dragging=-1; checkWin(); }
+  if (ep === dragging) { dragging = -1; checkWin(); }
 }
 
-function endDrag() {
-  dragging=-1;
-  render();
-}
+function endDrag() { dragging = -1; render(); }
 
 // ── EVENTS ────────────────────────────────────────────────────────────────
-var canvas=document.getElementById('gameCanvas');
-canvas.addEventListener('mousedown', function(e){startDrag(e.clientX,e.clientY);});
-canvas.addEventListener('mousemove', function(e){continueDrag(e.clientX,e.clientY);});
-canvas.addEventListener('mouseup',   endDrag);
-canvas.addEventListener('mouseleave',endDrag);
-canvas.addEventListener('touchstart',function(e){e.preventDefault();startDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-canvas.addEventListener('touchmove', function(e){e.preventDefault();continueDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-canvas.addEventListener('touchend',  function(e){e.preventDefault();endDrag();},{passive:false});
+var canvas = document.getElementById('gameCanvas');
+canvas.addEventListener('mousedown',  function(e){ startDrag(e.clientX,e.clientY); });
+canvas.addEventListener('mousemove',  function(e){ continueDrag(e.clientX,e.clientY); });
+canvas.addEventListener('mouseup',    endDrag);
+canvas.addEventListener('mouseleave', endDrag);
+canvas.addEventListener('touchstart', function(e){ e.preventDefault(); startDrag(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+canvas.addEventListener('touchmove',  function(e){ e.preventDefault(); continueDrag(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+canvas.addEventListener('touchend',   function(e){ e.preventDefault(); endDrag(); },{passive:false});
 
 // ── RENDER ────────────────────────────────────────────────────────────────
 function render() {
-  var canvas=document.getElementById('gameCanvas');
-  var cx=canvas.getContext('2d');
-  var lv=LEVELS[currentLevel];
-  var W=canvas.width, sz=lv.size;
-  var cs=W/sz;
+  var canvas = document.getElementById('gameCanvas');
+  var cx = canvas.getContext('2d');
+  var lv = LEVELS[currentLevel];
+  var W = canvas.width, sz = lv.size, cs = W/sz;
 
-  cx.fillStyle='#0c0c10'; cx.fillRect(0,0,W,W);
-
-  // Grid
-  cx.strokeStyle='rgba(255,255,255,0.06)'; cx.lineWidth=1;
-  for(var i=0;i<=sz;i++){
-    cx.beginPath();cx.moveTo(i*cs,0);cx.lineTo(i*cs,W);cx.stroke();
-    cx.beginPath();cx.moveTo(0,i*cs);cx.lineTo(W,i*cs);cx.stroke();
+  cx.fillStyle = '#0c0c10'; cx.fillRect(0,0,W,W);
+  cx.strokeStyle = 'rgba(255,255,255,0.06)'; cx.lineWidth = 1;
+  for (var i=0; i<=sz; i++) {
+    cx.beginPath(); cx.moveTo(i*cs,0); cx.lineTo(i*cs,W); cx.stroke();
+    cx.beginPath(); cx.moveTo(0,i*cs); cx.lineTo(W,i*cs); cx.stroke();
   }
 
-  // Paths
-  var pw=Math.max(4,cs*0.35);
-  paths.forEach(function(path,ci){
-    if(path.length<2) return;
-    var col=COLORS[ci%COLORS.length];
-    cx.strokeStyle=col; cx.lineWidth=pw; cx.lineCap='round'; cx.lineJoin='round';
-    cx.shadowColor=col; cx.shadowBlur=6;
+  var pw = Math.max(4, cs*0.35);
+  paths.forEach(function(path, ci){
+    if (path.length < 2) return;
+    var col = COLORS[ci%COLORS.length];
+    cx.strokeStyle = col; cx.lineWidth = pw; cx.lineCap = 'round'; cx.lineJoin = 'round';
+    cx.shadowColor = col; cx.shadowBlur = 6;
     cx.beginPath();
     cx.moveTo(path[0].c*cs+cs/2, path[0].r*cs+cs/2);
-    for(var j=1;j<path.length;j++){
-      cx.lineTo(path[j].c*cs+cs/2, path[j].r*cs+cs/2);
-    }
-    cx.stroke(); cx.shadowBlur=0;
+    for (var j=1; j<path.length; j++) cx.lineTo(path[j].c*cs+cs/2, path[j].r*cs+cs/2);
+    cx.stroke(); cx.shadowBlur = 0;
   });
 
-  // Endpoints
-  lv.pairs.forEach(function(p,ci){
-    var col=COLORS[ci%COLORS.length];
-    var er=cs*0.35;
+  lv.pairs.forEach(function(p, ci){
+    var col = COLORS[ci%COLORS.length];
+    var er = cs*0.35;
     [[p.r1,p.c1],[p.r2,p.c2]].forEach(function(ep){
-      var x=ep[1]*cs+cs/2, y=ep[0]*cs+cs/2;
-      cx.fillStyle=col; cx.shadowColor=col; cx.shadowBlur=12;
+      var x = ep[1]*cs+cs/2, y = ep[0]*cs+cs/2;
+      cx.fillStyle = col; cx.shadowColor = col; cx.shadowBlur = 12;
       cx.beginPath(); cx.arc(x,y,er,0,Math.PI*2); cx.fill();
-      cx.shadowBlur=0;
-      // Inner dot
-      cx.fillStyle='rgba(0,0,0,0.3)';
+      cx.shadowBlur = 0;
+      cx.fillStyle = 'rgba(0,0,0,0.3)';
       cx.beginPath(); cx.arc(x,y,er*0.45,0,Math.PI*2); cx.fill();
-      // Complete ring
-      if(isComplete(ci)){
-        cx.strokeStyle='#fff'; cx.lineWidth=2;
+      if (isComplete(ci)) {
+        cx.strokeStyle = '#fff'; cx.lineWidth = 2;
         cx.beginPath(); cx.arc(x,y,er+3,0,Math.PI*2); cx.stroke();
       }
     });
   });
 
-  // Update filled %
-  document.getElementById('hud-filled').textContent=filledPercent();
+  document.getElementById('hud-filled').textContent = filledPercent();
 }
 
+// ── INIT ──────────────────────────────────────────────────────────────────
+applyLang();
 showMenu();
 </script>
 </body>
