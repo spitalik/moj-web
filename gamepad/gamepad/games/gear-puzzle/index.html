@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gear Puzzle · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#050507;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);
+  --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
+  --c:#f59e0b;--cdim:rgba(245,158,11,0.14);
+}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;}
+body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;right:-150px;background:radial-gradient(circle,rgba(245,158,11,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
+#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 16px 20px;gap:12px;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;}
+.ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
+.diff-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.diff-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
+.diff-btn.active{border-color:var(--c);color:var(--c);background:var(--cdim);}
+canvas{border-radius:14px;border:1px solid var(--border);cursor:pointer;display:block;touch-action:none;}
+.overlay{position:fixed;inset:0;background:rgba(5,5,7,0.88);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:20;}
+.ov-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px 28px;display:flex;flex-direction:column;align-items:center;gap:16px;max-width:300px;width:90%;text-align:center;}
+.ov-emoji{font-size:44px;}
+.ov-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
+.ov-sub{font-size:13px;color:var(--muted);line-height:1.5;}
+.ov-btn{background:var(--c);color:#000;border:none;border-radius:100px;padding:12px 30px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.ov-btn:hover{opacity:.85;}
+.ov-stat{font-size:20px;font-weight:700;color:var(--c);}
+</style>
+</head>
+<body>
+<a id="back-btn" href="../../index.html">← <span id="lbl-back"></span></a>
+<div class="page">
+  <div class="game-title" id="lbl-title"></div>
+  <div class="hud">
+    <div class="stat-pill" id="pill-level"></div>
+    <div class="stat-pill" id="pill-moves"></div>
+    <button class="ctrl-btn" id="btn-new"></button>
+  </div>
+  <div class="diff-row" id="diff-row"></div>
+  <canvas id="c"></canvas>
+</div>
+<div class="overlay" id="overlay-intro">
+  <div class="ov-card">
+    <div class="ov-emoji">⚙️</div>
+    <div class="ov-title" id="ov-title"></div>
+    <div class="ov-sub" id="ov-hint"></div>
+    <button class="ov-btn" id="ov-btn"></button>
+  </div>
+</div>
+<div class="overlay" id="overlay-win" style="display:none">
+  <div class="ov-card">
+    <div class="ov-emoji">🏆</div>
+    <div class="ov-title" id="win-title"></div>
+    <div class="ov-stat" id="win-moves"></div>
+    <div class="ov-sub" id="win-sub"></div>
+    <button class="ov-btn" id="win-btn"></button>
+  </div>
+</div>
+<script>
+document.getElementById('lbl-back').textContent  = t('back');
+document.getElementById('lbl-title').textContent = t('gearTitle');
+document.getElementById('btn-new').textContent   = t('gearNew');
+document.getElementById('ov-title').textContent  = t('gearTitle');
+document.getElementById('ov-hint').textContent   = t('gearHint');
+document.getElementById('ov-btn').textContent    = t('gearPlay');
+document.getElementById('win-title').textContent = t('gearWin');
+document.getElementById('win-sub').textContent   = t('gearWinSub');
+document.getElementById('win-btn').textContent   = t('gearNext');
+
+// ── DIFFICULTY ─────────────────────────────────────────────────────────────
+// nClick: number of player-controlled gears (each is a separate "zone driver")
+// nTarget: number of ★ gears that must spin to win
+// Each click-gear drives its own zone; zones meet at shared passive gears
+// where direction conflicts create blocking → that's the puzzle!
+const DIFFS = [
+  { key:'easy',   nClick:2, nTarget:1, chainLen:[1,3] },
+  { key:'medium', nClick:3, nTarget:2, chainLen:[1,4] },
+  { key:'hard',   nClick:4, nTarget:3, chainLen:[2,5] },
+];
+let diffIdx=1;
+const diffRow=document.getElementById('diff-row');
+DIFFS.forEach((d,i)=>{
+  const btn=document.createElement('button');
+  btn.className='diff-btn'+(i===diffIdx?' active':'');
+  btn.textContent=t('diff'+d.key[0].toUpperCase()+d.key.slice(1));
+  btn.onclick=()=>{ diffIdx=i; diffRow.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i)); newGame(); };
+  diffRow.appendChild(btn);
+});
+
+const C=document.getElementById('c');
+const cx=C.getContext('2d');
+const SZ=Math.min(window.innerWidth-32,window.innerHeight-240,460);
+C.width=C.height=SZ;
+
+const TOOTH=0.18, TOL=0.085, SPD=2.4;
+let gears=[], moves=0, level=1, animId=null, lastTs=0, winTs=null;
+
+function updateHUD(){
+  document.getElementById('pill-level').innerHTML=t('gearLevel')+' <span>'+level+'</span>';
+  document.getElementById('pill-moves').innerHTML=t('gearMoves')+' <span>'+moves+'</span>';
+}
+
+// ── MESH TEST ──────────────────────────────────────────────────────────────
+function meshed(a,b){
+  const d=Math.hypot(a.x-b.x,a.y-b.y),s=a.r+b.r;
+  return d>=s*(1-TOL)&&d<=s*(1+TOL);
+}
+
+// ── PROPAGATION ────────────────────────────────────────────────────────────
+// Click-gears act as BARRIERS: propagation stops at another click-gear boundary.
+// Each click-gear seeds BFS with its own assignedDir.
+// If two zones reach the same gear with conflicting directions → both gears blocked.
+function propagate(){
+  const n=gears.length;
+  const dir=new Array(n).fill(0);
+  const blk=new Array(n).fill(false);
+
+  // Seed click gears
+  const queue=[];
+  for(let i=0;i<n;i++){
+    if(gears[i].kind==='click'&&gears[i].assignedDir!==0){
+      dir[i]=gears[i].assignedDir;
+      queue.push(i);
+    }
+  }
+
+  let h=0;
+  while(h<queue.length){
+    const i=queue[h++];
+    if(blk[i]) continue;
+    for(let j=0;j<n;j++){
+      if(i===j||!meshed(gears[i],gears[j])) continue;
+      // Propagation stops at other click-gears (they set their own dir)
+      if(gears[j].kind==='click') continue;
+      const need=-dir[i];
+      if(dir[j]===0){ dir[j]=need; queue.push(j); }
+      else if(dir[j]!==need){ blk[i]=true; blk[j]=true; }
+    }
+  }
+
+  // Also check click↔click conflicts directly
+  for(let i=0;i<n;i++){
+    if(gears[i].kind!=='click'||gears[i].assignedDir===0) continue;
+    for(let j=0;j<n;j++){
+      if(i===j||gears[j].kind!=='click'||gears[j].assignedDir===0) continue;
+      if(!meshed(gears[i],gears[j])) continue;
+      // Two adjacent click gears: they must be opposite
+      if(gears[i].assignedDir===gears[j].assignedDir){ blk[i]=true; blk[j]=true; }
+    }
+  }
+
+  for(let i=0;i<n;i++){
+    gears[i].blocked=blk[i];
+    gears[i].dir=(!blk[i]&&dir[i]!==0)?dir[i]:0;
+    // Click gears always spin at their assigned dir unless blocked
+    if(gears[i].kind==='click'&&gears[i].assignedDir!==0&&!blk[i])
+      gears[i].dir=gears[i].assignedDir;
+  }
+}
+
+// ── GENERATOR ──────────────────────────────────────────────────────────────
+// Build a puzzle by constructing explicit "zones":
+// Each zone = one click-gear + a chain of passive gears.
+// Zones are connected through shared junction gears (passive).
+// Target gears are placed at junctions or at zone ends.
+//
+// This guarantees:
+//  - Each click-gear independently drives its zone
+//  - Getting the wrong direction combo blocks the junction gear
+//  - There exists exactly one correct combo
+
+function makeGear(x,y,r){
+  const teeth=Math.round(6+(r/(SZ*0.12))*6);
+  return {x,y,r,teeth,angle:Math.random()*360,kind:'passive',assignedDir:0,dir:0,blocked:false};
+}
+
+function tryPlaceNear(existing,baseGear,minR,maxR,attempts){
+  // Place a gear meshing with baseGear, not overlapping others
+  for(let t=0;t<attempts;t++){
+    const r=minR+Math.random()*(maxR-minR);
+    const angle=Math.random()*Math.PI*2;
+    const dist=(baseGear.r+r)*( 1+TOL*0.5*(Math.random()*0.5+0.75) );
+    const x=baseGear.x+Math.cos(angle)*dist;
+    const y=baseGear.y+Math.sin(angle)*dist;
+    const pad=maxR+4;
+    if(x<pad||x>SZ-pad||y<pad||y>SZ-pad) continue;
+    let ok=true;
+    for(const g of existing){
+      const d=Math.hypot(x-g.x,y-g.y),s=r+g.r;
+      if(d<s*(1-TOL*2)){ok=false;break;}
+    }
+    if(ok) return makeGear(x,y,r);
+  }
+  return null;
+}
+
+function generateLevel(){
+  const diff=DIFFS[diffIdx];
+  const nC=diff.nClick, nT=diff.nTarget;
+  const maxR=SZ*0.11, minR=SZ*0.055;
+  const [minChain,maxChain]=diff.chainLen;
+
+  // Try many times
+  for(let attempt=0;attempt<300;attempt++){
+    const all=[];
+
+    // 1. Place nC click-gears spread across the canvas
+    const clickGears=[];
+    const sectors=nC;
+    let placed=true;
+    for(let s=0;s<sectors;s++){
+      const angle=(s/sectors)*Math.PI*2+Math.random()*0.5;
+      const dist=SZ*0.22+Math.random()*SZ*0.12;
+      const cx2=SZ/2+Math.cos(angle)*dist;
+      const cy2=SZ/2+Math.sin(angle)*dist;
+      const r=minR+Math.random()*(maxR-minR);
+      const pad=maxR+6;
+      if(cx2<pad||cx2>SZ-pad||cy2<pad||cy2>SZ-pad){placed=false;break;}
+      let ok=true;
+      for(const g of all){
+        const d=Math.hypot(cx2-g.x,cy2-g.y),sr=r+g.r;
+        if(d<sr*(1-TOL*2)){ok=false;break;}
+      }
+      if(!ok){placed=false;break;}
+      const cg=makeGear(cx2,cy2,r);
+      cg.kind='click';
+      clickGears.push(cg);
+      all.push(cg);
+    }
+    if(!placed) continue;
+
+    // 2. For each click-gear, grow a chain of passive gears
+    const chains=[]; // chains[i] = array of passive gears in zone i
+    let chainOk=true;
+    for(let s=0;s<nC;s++){
+      const chain=[];
+      const chainLen=minChain+Math.floor(Math.random()*(maxChain-minChain+1));
+      let base=clickGears[s];
+      for(let k=0;k<chainLen;k++){
+        const g=tryPlaceNear(all,base,minR,maxR,80);
+        if(!g){chainOk=false;break;}
+        chain.push(g);
+        all.push(g);
+        base=g;
+      }
+      if(!chainOk) break;
+      chains.push(chain);
+    }
+    if(!chainOk) continue;
+
+    // 3. Create junction gears that bridge two chains
+    // Each junction connects end of chain[i] to some gear in chain[j]
+    // This is where blocking can happen
+    const junctions=[];
+    // Attempt to connect pairs of chains
+    for(let i=0;i<nC-1;i++){
+      const endI=chains[i][chains[i].length-1];
+      // Try to place a junction gear near endI that also meshes near chain[(i+1)%nC]
+      const endJ=chains[(i+1)%nC][chains[(i+1)%nC].length-1];
+      // Place midpoint junction
+      const mx2=(endI.x+endJ.x)/2+(Math.random()-.5)*SZ*0.08;
+      const my2=(endI.y+endJ.y)/2+(Math.random()-.5)*SZ*0.08;
+      const r=minR+Math.random()*(maxR-minR);
+      const pad=maxR+4;
+      if(mx2<pad||mx2>SZ-pad||my2<pad||my2>SZ-pad) continue;
+      // Adjust position to actually mesh with endI
+      const dI=Math.hypot(mx2-endI.x,my2-endI.y);
+      const targetD=endI.r+r;
+      const jx=endI.x+(mx2-endI.x)/dI*targetD*(1+TOL*0.4);
+      const jy=endI.y+(my2-endI.y)/dI*targetD*(1+TOL*0.4);
+      if(jx<pad||jx>SZ-pad||jy<pad||jy>SZ-pad) continue;
+      let ok=true;
+      for(const g of all){
+        const d=Math.hypot(jx-g.x,jy-g.y),s=r+g.r;
+        if(d<s*(1-TOL*2)){ok=false;break;}
+      }
+      if(!ok) continue;
+      const jg=makeGear(jx,jy,r);
+      junctions.push(jg);
+      all.push(jg);
+    }
+
+    // 4. Place target gears — at the ends of chains or at junctions
+    // Targets should be reachable from multiple zones so they actually depend on correct combo
+    const targetCandidates=[];
+    // Junction gears are best targets
+    for(const j of junctions) targetCandidates.push(j);
+    // Chain ends as fallback
+    for(const ch of chains) if(ch.length>0) targetCandidates.push(ch[ch.length-1]);
+
+    if(targetCandidates.length<nT) continue;
+
+    // Pick nT targets
+    shuffle(targetCandidates);
+    for(let k=0;k<nT;k++) targetCandidates[k].kind='target';
+
+    // 5. Validate: brute-force all 2^nC direction combos,
+    //    check that at least one combo makes all targets spin,
+    //    AND at least one combo does NOT (otherwise trivial).
+    let goodCombos=0, badCombos=0;
+    const targets=all.filter(g=>g.kind==='target');
+
+    for(let mask=0;mask<(1<<nC);mask++){
+      clickGears.forEach((cg,b)=>cg.assignedDir=(mask>>b)&1?1:-1);
+      // Simulate
+      const n=all.length;
+      const dir=new Array(n).fill(0);
+      const blk=new Array(n).fill(false);
+      const q=[];
+      for(let i=0;i<n;i++){
+        if(all[i].kind==='click'){dir[i]=all[i].assignedDir;q.push(i);}
+      }
+      let h=0;
+      while(h<q.length){
+        const i=q[h++];
+        if(blk[i]) continue;
+        for(let j=0;j<n;j++){
+          if(i===j||!meshed(all[i],all[j])) continue;
+          if(all[j].kind==='click') continue;
+          const need=-dir[i];
+          if(dir[j]===0){dir[j]=need;q.push(j);}
+          else if(dir[j]!==need){blk[i]=true;blk[j]=true;}
+        }
+      }
+      // click↔click direct conflict
+      for(let i=0;i<n;i++){
+        if(all[i].kind!=='click') continue;
+        for(let j=i+1;j<n;j++){
+          if(all[j].kind!=='click'||!meshed(all[i],all[j])) continue;
+          if(all[i].assignedDir===all[j].assignedDir){blk[i]=true;blk[j]=true;}
+        }
+      }
+      const allTargetsSpin=targets.every(g=>{ const i=all.indexOf(g); return !blk[i]&&dir[i]!==0; });
+      if(allTargetsSpin) goodCombos++;
+      else badCombos++;
+    }
+
+    // Must have at least one solution and at least one non-solution
+    if(goodCombos===0||badCombos===0) continue;
+
+    // Reset and return
+    all.forEach(g=>{g.assignedDir=0;g.dir=0;g.blocked=false;});
+    return all;
+  }
+  return null;
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+
+// ── NEW GAME ───────────────────────────────────────────────────────────────
+function newGame(){
+  if(animId){cancelAnimationFrame(animId);animId=null;}
+  document.getElementById('overlay-win').style.display='none';
+  let g=null; while(!g) g=generateLevel();
+  gears=g; moves=0; winTs=null;
+  propagate(); updateHUD();
+  lastTs=performance.now();
+  animId=requestAnimationFrame(loop);
+}
+
+// ── INPUT ──────────────────────────────────────────────────────────────────
+C.addEventListener('pointerdown',e=>{
+  const rect=C.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(SZ/rect.width);
+  const my=(e.clientY-rect.top)*(SZ/rect.height);
+  for(const g of gears){
+    if(g.kind!=='click') continue;
+    if(Math.hypot(mx-g.x,my-g.y)>g.r*1.25) continue;
+    g.assignedDir=g.assignedDir===0?1:g.assignedDir===1?-1:0;
+    moves++; updateHUD(); propagate(); return;
+  }
+});
+
+// ── LOOP ───────────────────────────────────────────────────────────────────
+function loop(ts){
+  const dt=Math.min(ts-lastTs,50); lastTs=ts;
+  for(const g of gears){
+    if(g.dir!==0) g.angle+=g.dir*SPD*(dt/16.67)*(8/g.teeth);
+  }
+  draw(ts);
+  if(checkWin()){
+    if(!winTs) winTs=ts;
+    if(ts-winTs>=3000){cancelAnimationFrame(animId);animId=null;showWin();return;}
+  } else winTs=null;
+  animId=requestAnimationFrame(loop);
+}
+
+function checkWin(){
+  return gears.filter(g=>g.kind==='target').every(g=>g.dir!==0&&!g.blocked);
+}
+
+// ── DRAW ───────────────────────────────────────────────────────────────────
+function drawGear(g,ts){
+  const ir=g.r*(1-TOOTH), rad=g.angle*Math.PI/180;
+  cx.save();
+  cx.translate(g.x,g.y);
+  cx.rotate(rad);
+
+  if(g.blocked){cx.shadowColor='rgba(239,68,68,0.85)';cx.shadowBlur=16;}
+  else if(g.dir!==0){
+    cx.shadowColor=g.kind==='target'?'rgba(34,197,94,0.7)':'rgba(245,158,11,0.5)';
+    cx.shadowBlur=12;
+  }
+
+  // Teeth
+  cx.beginPath();
+  const step=(2*Math.PI)/g.teeth;
+  for(let i=0;i<g.teeth;i++){
+    const a0=i*step,a1=a0+step*.35,a3=a0+step*.65,a4=a0+step;
+    cx.arc(0,0,ir,a0,a1);
+    cx.lineTo(Math.cos(a1)*g.r,Math.sin(a1)*g.r);
+    cx.arc(0,0,g.r,a1,a3);
+    cx.lineTo(Math.cos(a3)*ir,Math.sin(a3)*ir);
+    cx.arc(0,0,ir,a3,a4);
+  }
+  cx.closePath();
+
+  let fill;
+  if(g.blocked){const grd=cx.createRadialGradient(0,0,0,0,0,g.r);grd.addColorStop(0,'#3f0808');grd.addColorStop(1,'#1a0303');fill=grd;}
+  else if(g.kind==='target'&&g.dir!==0){const grd=cx.createRadialGradient(0,0,0,0,0,g.r);grd.addColorStop(0,'#14532d');grd.addColorStop(1,'#052e16');fill=grd;}
+  else if(g.kind==='target'){fill='#1c0b00';}
+  else if(g.kind==='click'&&g.assignedDir!==0){const grd=cx.createRadialGradient(0,0,0,0,0,g.r);grd.addColorStop(0,'#292418');grd.addColorStop(1,'#1a1508');fill=grd;}
+  else if(g.kind==='click'){fill='#1e1e2a';}
+  else{fill='#0f0f13';}
+  cx.fillStyle=fill; cx.fill();
+
+  cx.strokeStyle=g.blocked?'rgba(239,68,68,0.9)':
+    g.kind==='target'&&g.dir!==0?'#22c55e':
+    g.kind==='target'?'rgba(245,158,11,0.45)':
+    g.kind==='click'&&g.assignedDir!==0?'rgba(245,158,11,0.8)':
+    g.kind==='click'?'rgba(255,255,255,0.28)':'rgba(255,255,255,0.07)';
+  cx.lineWidth=(g.kind==='target'||g.blocked)?1.5:1;
+  cx.stroke(); cx.shadowBlur=0;
+
+  cx.beginPath();cx.arc(0,0,ir*.25,0,Math.PI*2);
+  cx.fillStyle=g.blocked?'rgba(239,68,68,0.3)':
+    g.kind==='target'&&g.dir!==0?'rgba(34,197,94,0.35)':
+    g.kind==='click'?'rgba(245,158,11,0.15)':'rgba(255,255,255,0.05)';
+  cx.fill();
+
+  cx.rotate(-rad);
+  if(g.blocked){
+    cx.font='bold '+Math.max(9,ir*.5)+'px DM Sans';cx.textAlign='center';cx.textBaseline='middle';
+    cx.fillStyle='#ef4444';cx.fillText('✕',0,0);
+  } else if(g.kind==='target'){
+    cx.font='bold '+Math.max(9,ir*.52)+'px DM Sans';cx.textAlign='center';cx.textBaseline='middle';
+    cx.fillStyle=g.dir!==0?'#22c55e':'rgba(245,158,11,0.55)';cx.fillText('★',0,0);
+  } else if(g.kind==='click'){
+    cx.font='bold '+Math.max(9,ir*.45)+'px DM Sans';cx.textAlign='center';cx.textBaseline='middle';
+    if(g.assignedDir===1){cx.fillStyle='rgba(245,158,11,0.95)';cx.fillText('↻',0,0);}
+    else if(g.assignedDir===-1){cx.fillStyle='rgba(245,158,11,0.95)';cx.fillText('↺',0,0);}
+    else{cx.fillStyle='rgba(255,255,255,0.22)';cx.fillText('?',0,0);}
+  }
+  cx.restore();
+}
+
+function draw(ts){
+  cx.clearRect(0,0,SZ,SZ);
+  for(let i=0;i<gears.length;i++)
+    for(let j=i+1;j<gears.length;j++){
+      if(!meshed(gears[i],gears[j])) continue;
+      const ab=gears[i].blocked||gears[j].blocked;
+      const ok=gears[i].dir!==0&&gears[j].dir!==0&&!ab;
+      cx.save();
+      cx.setLineDash([3,5]);
+      cx.strokeStyle=ab?'rgba(239,68,68,0.15)':ok?'rgba(34,197,94,0.1)':'rgba(255,255,255,0.04)';
+      cx.lineWidth=1;
+      cx.beginPath();cx.moveTo(gears[i].x,gears[i].y);cx.lineTo(gears[j].x,gears[j].y);cx.stroke();
+      cx.restore();
+    }
+  for(const g of gears) drawGear(g,ts);
+
+  const anySet=gears.some(g=>g.kind==='click'&&g.assignedDir!==0);
+  if(!anySet&&ts<5000){
+    const pulse=0.3+0.3*Math.sin(ts*.005);
+    for(const g of gears){
+      if(g.kind!=='click') continue;
+      cx.save();cx.beginPath();cx.arc(g.x,g.y,g.r*1.38,0,Math.PI*2);
+      cx.strokeStyle='rgba(245,158,11,'+pulse+')';cx.lineWidth=2;cx.stroke();cx.restore();
+    }
+  }
+}
+
+function showWin(){
+  document.getElementById('win-moves').textContent=moves+' '+t('gearMoves').toLowerCase();
+  document.getElementById('overlay-win').style.display='flex';
+}
+
+document.getElementById('win-btn').onclick=()=>{level++;newGame();};
+document.getElementById('btn-new').onclick=newGame;
+document.getElementById('ov-btn').onclick=()=>{document.getElementById('overlay-intro').style.display='none';newGame();};
+
+updateHUD(); draw(0);
+</script>
+</body>
+</html>
