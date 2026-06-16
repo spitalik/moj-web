@@ -32,7 +32,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;}
 .lb-time{color:var(--muted);font-variant-numeric:tabular-nums;margin-left:auto;}
 /* Mobile controls */
 #ctrl{position:fixed;bottom:20px;left:0;right:0;z-index:20;display:none;
-  justify-content:space-between;padding:0 16px;align-items:flex-end;}
+  justify-content:space-between;padding:0 16px;align-items:flex-end;gap:8px;}
 .cBtn{width:68px;height:68px;border-radius:50%;background:rgba(17,17,22,0.78);
   border:2px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;
   font-size:26px;backdrop-filter:blur(6px);-webkit-tap-highlight-color:transparent;cursor:pointer;}
@@ -71,12 +71,14 @@ canvas{position:fixed;inset:0;width:100%;height:100%;}
 <div id="lb"></div>
 <canvas id="c"></canvas>
 <div id="ctrl">
-  <div class="cBtn" id="cb-left">◀</div>
-  <div id="ctrl-mid">
-    <div class="cBtn" id="cb-up">▲</div>
-    <div class="cBtn" id="cb-down">▼</div>
+  <div style="display:flex;gap:8px;">
+    <div class="cBtn" id="cb-left">◀</div>
+    <div class="cBtn" id="cb-right">▶</div>
   </div>
-  <div class="cBtn" id="cb-right">▶</div>
+  <div style="display:flex;gap:8px;">
+    <div class="cBtn" id="cb-down">⬛ brz</div>
+    <div class="cBtn" id="cb-up" style="font-size:30px;">▲</div>
+  </div>
 </div>
 <div id="ov">
   <div class="ovc">
@@ -336,19 +338,19 @@ const AI_DIFF=[0.82, 0.90, 0.96]; // per AI
 function updateCar(car, steer, throttle, brake, dt){
   if(car.finished) return;
 
-  // Steering
-  const turnAmt = TURN_SPEED * steer * (car.speed/MAX_SPEED) * dt;
+  // Steering — works even at low speed (min factor 0.25)
+  const speedFactor = Math.max(0.25, car.speed/MAX_SPEED);
+  const turnAmt = TURN_SPEED * steer * speedFactor * dt;
   car.angle += turnAmt;
 
   // Thrust / brake
   if(throttle) car.speed += ACCEL*dt;
   if(brake)    car.speed -= BRAKE_A*dt;
+  if(!throttle && !brake) car.speed -= FRICTION*car.speed*dt;
 
   // Off-track slowdown
-  if(car.offTrack) car.speed *= Math.pow(0.35, dt);
+  if(car.offTrack) car.speed *= Math.pow(0.3, dt);
 
-  // Friction
-  car.speed -= FRICTION*car.speed*dt;
   car.speed = Math.max(0, Math.min(MAX_SPEED, car.speed));
 
   // Move

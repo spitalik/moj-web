@@ -34,6 +34,10 @@ canvas{display:block;width:min(92vw,680px);height:auto;border-radius:11px;backgr
 .hint{max-width:390px;color:var(--muted);font-size:12px;line-height:1.5}
 .play-btn{min-width:118px;height:40px;border-radius:100px;border:1px solid rgba(255,107,107,.46);background:rgba(255,107,107,.15);color:var(--red);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:0 28px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.34)}
 @media (max-height:690px){.page{gap:9px}.game-title{font-size:24px}.pill,.ctrl-btn{height:29px}}
+#joystick-zone{position:fixed;left:0;bottom:0;width:50vw;height:46vw;max-height:200px;z-index:50;display:none;touch-action:none}
+#joystick-base{position:absolute;left:24px;bottom:24px;width:96px;height:96px;border-radius:50%;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
+#joystick-stick{position:absolute;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.28);border:2px solid rgba(255,255,255,.55);top:50%;left:50%;transform:translate(-50%,-50%);transition:transform .05s}
+@media (pointer:coarse){#joystick-zone{display:block}}
 </style>
 </head>
 <body>
@@ -42,6 +46,11 @@ canvas{display:block;width:min(92vw,680px);height:auto;border-radius:11px;backgr
   <span id="lbl-back"></span>
 </a>
 
+<div id="joystick-zone">
+  <div id="joystick-base">
+    <div id="joystick-stick"></div>
+  </div>
+</div>
 <main class="page">
   <h1 class="game-title" id="lbl-title"></h1>
   <div class="hud">
@@ -310,6 +319,66 @@ canvas.addEventListener('pointerup',()=>{firing=false});
 canvas.addEventListener('pointerleave',()=>{firing=false});
 window.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Space')e.preventDefault();});
 window.addEventListener('keyup',e=>{keys[e.code]=false;});
+
+// Virtual joystick for mobile
+(function(){
+  const zone = document.getElementById('joystick-zone');
+  const base = document.getElementById('joystick-base');
+  const stick = document.getElementById('joystick-stick');
+  const baseR = 48; // radius of base
+  const stickR = 20; // max stick travel
+  let joyId = null, joyOrigin = null;
+
+  function joyMove(cx, cy){
+    const bRect = base.getBoundingClientRect();
+    const ox = bRect.left + baseR;
+    const oy = bRect.top + baseR;
+    let dx = cx - ox;
+    let dy = cy - oy;
+    const dist = Math.hypot(dx, dy);
+    const capped = Math.min(dist, stickR);
+    const angle = Math.atan2(dy, dx);
+    const sx = Math.cos(angle) * capped;
+    const sy = Math.sin(angle) * capped;
+    stick.style.transform = `translate(calc(-50% + ${sx}px), calc(-50% + ${sy}px))`;
+    // Map to keys
+    const threshold = 0.35;
+    const nx = dist > 8 ? dx / dist : 0;
+    const ny = dist > 8 ? dy / dist : 0;
+    keys['KeyA'] = nx < -threshold;
+    keys['KeyD'] = nx > threshold;
+    keys['KeyW'] = ny < -threshold;
+    keys['KeyS'] = ny > threshold;
+  }
+
+  function joyReset(){
+    joyId = null; joyOrigin = null;
+    stick.style.transform = 'translate(-50%, -50%)';
+    keys['KeyA']=keys['KeyD']=keys['KeyW']=keys['KeyS']=false;
+  }
+
+  zone.addEventListener('touchstart', e=>{
+    if(joyId !== null) return;
+    const t = e.changedTouches[0];
+    joyId = t.identifier;
+    joyMove(t.clientX, t.clientY);
+    e.preventDefault();
+  }, {passive:false});
+
+  zone.addEventListener('touchmove', e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier === joyId){ joyMove(t.clientX, t.clientY); }
+    }
+    e.preventDefault();
+  }, {passive:false});
+
+  zone.addEventListener('touchend', e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier === joyId){ joyReset(); }
+    }
+  });
+  zone.addEventListener('touchcancel', joyReset);
+})();
 btnReset.addEventListener('click',resetGame);
 btnPause.addEventListener('click',()=>{if(!running)return;paused=!paused;btnPause.textContent=paused?t('deadGridResume'):t('deadGridPause');draw();});
 ovBtn.addEventListener('click',resetGame);
