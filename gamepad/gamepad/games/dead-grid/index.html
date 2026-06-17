@@ -75,7 +75,16 @@ canvas{display:block;width:min(92vw,680px);height:auto;border-radius:11px;backgr
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
+const W = 680, H = 440;
+
+function resizeCanvas(){
+  const maxW = Math.min(window.innerWidth * 0.92, 680);
+  canvas.style.width = maxW + 'px';
+  canvas.style.height = (maxW * H / W) + 'px';
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', ()=>{ setTimeout(resizeCanvas, 200); });
 const overlay = document.getElementById('overlay');
 const ovTitle = document.getElementById('ov-title');
 const ovHint = document.getElementById('ov-hint');
