@@ -51,6 +51,13 @@ canvas{display:block;}
 #d-left{grid-column:1;grid-row:2;}
 #d-down{grid-column:2;grid-row:2;}
 #d-right{grid-column:3;grid-row:2;}
+@media (orientation: landscape) and (max-height: 560px) {
+  .page { padding: 48px 12px 10px; gap: 6px; }
+  #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
+  .game-title { font-size: 17px; }
+  .stat-pill { padding: 4px 10px; font-size: 11px; }
+  #dpad { grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 4px; margin-top: 2px; }
+}
 </style>
 </head>
 <body>
@@ -119,7 +126,9 @@ DIFFS.forEach((d, i) => {
 // ── CANVAS SETUP ──────────────────────────────────────────────────────────
 const C = document.getElementById('c');
 const ctx = C.getContext('2d');
-const MAX_SIZE = Math.min(window.innerWidth - 32, window.innerHeight - 280, 420);
+function getMaxSize() {
+  return Math.min(window.innerWidth - 32, window.innerHeight - 280, 420);
+}
 
 // ── GAME STATE ────────────────────────────────────────────────────────────
 let maze, player, exit, level, timerVal, timerInt, running, best, cellSize;
@@ -163,7 +172,7 @@ function startLevel() {
   const d = DIFFS[diffIdx];
   const cols = d.cols + (level - 1) * 2;
   const rows = d.rows + (level - 1) * 2;
-  cellSize = Math.floor(MAX_SIZE / Math.max(cols, rows));
+  cellSize = Math.floor(getMaxSize() / Math.max(cols, rows));
   C.width  = cols * cellSize;
   C.height = rows * cellSize;
 
@@ -372,9 +381,23 @@ C.addEventListener('touchend', e => {
 level = 1; best = null;
 // Set initial canvas size for overlay
 const d0 = DIFFS[diffIdx];
-cellSize = Math.floor(MAX_SIZE / Math.max(d0.cols, d0.rows));
+cellSize = Math.floor(getMaxSize() / Math.max(d0.cols, d0.rows));
 C.width = d0.cols * cellSize; C.height = d0.rows * cellSize;
 ctx.fillStyle = '#0c0c10'; ctx.fillRect(0,0,C.width,C.height);
+
+// ── RESIZE: rescale canvas to fit new viewport (e.g. after rotation) ──────
+function resizeCanvas() {
+  const dCur = DIFFS[diffIdx];
+  const cols = maze ? maze[0].length : dCur.cols;
+  const rows = maze ? maze.length : dCur.rows;
+  cellSize = Math.floor(getMaxSize() / Math.max(cols, rows));
+  C.width = cols * cellSize; C.height = rows * cellSize;
+  if (maze) draw();
+  else { ctx.fillStyle = '#0c0c10'; ctx.fillRect(0,0,C.width,C.height); }
+}
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 250));
+
 </script>
 </body>
 </html>

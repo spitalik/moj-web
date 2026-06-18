@@ -42,6 +42,13 @@ body::after{content:"";position:fixed;left:-200px;bottom:-250px;width:580px;heig
 .hint{max-width:340px;color:var(--muted);font-size:12px;line-height:1.5}
 .play-btn{min-width:118px;height:40px;border-radius:100px;border:1px solid rgba(167,139,250,.46);background:rgba(167,139,250,.15);color:var(--violet);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:0 28px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.34)}
 @media (max-height:680px){.page{gap:9px}.game-title{font-size:24px}.pill,.ctrl-btn{height:29px}#vault{gap:5px}}
+@media (orientation: landscape) and (max-height: 560px) {
+  .page { padding: 46px 10px 8px; gap: 6px; }
+  #back-btn { top: 8px; left: 8px; padding: 5px 12px; font-size: 11px; }
+  .game-title { font-size: 18px; }
+  .pill,.ctrl-btn { height: 24px; font-size: 10px; }
+  #vault-wrap { padding: 6px; }
+}
 </style>
 </head>
 <body>
@@ -106,10 +113,22 @@ function applyLabels(){
 }
 
 function sizeVault(){
+  const page = document.querySelector('.page');
+  const title = document.querySelector('.game-title');
+  const hud = document.querySelector('.hud');
+  const wrap = document.getElementById('vault-wrap');
+  const pageCs = getComputedStyle(page);
+  const gap = parseFloat(pageCs.rowGap || pageCs.gap) || 13;
+  const padTop = parseFloat(pageCs.paddingTop) || 0;
+  const padBottom = parseFloat(pageCs.paddingBottom) || 0;
+  const wrapCs = getComputedStyle(wrap);
+  const wrapExtra = (parseFloat(wrapCs.paddingTop)||0) + (parseFloat(wrapCs.paddingBottom)||0)
+                   + (parseFloat(wrapCs.borderTopWidth)||0) + (parseFloat(wrapCs.borderBottomWidth)||0);
+  const reservedH = title.offsetHeight + hud.offsetHeight + padTop + padBottom + gap*2 + wrapExtra;
   const maxW = Math.min(window.innerWidth - 44, 540);
-  const maxH = Math.max(260, window.innerHeight - 250);
+  const maxH = Math.max(140, window.innerHeight - reservedH);
   const tile = Math.floor(Math.min(maxW / 4, maxH / 4));
-  document.documentElement.style.setProperty('--tile', Math.max(48, tile) + 'px');
+  document.documentElement.style.setProperty('--tile', Math.max(34, tile) + 'px');
 }
 
 function buildVault(){
@@ -244,6 +263,7 @@ vault.addEventListener('click', e => {
 btnReset.addEventListener('click', resetGame);
 ovBtn.addEventListener('click', resetGame);
 window.addEventListener('resize', sizeVault);
+window.addEventListener('orientationchange', () => setTimeout(sizeVault, 250));
 
 applyLabels();
 sizeVault();

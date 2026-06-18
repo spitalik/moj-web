@@ -169,6 +169,25 @@ body {
   font-size: 12px; font-weight: 500; transition: border-color .18s, color .18s;
 }
 #back-btn:hover { border-color: rgba(255,255,255,0.22); color: rgba(240,238,255,0.9); }
+
+@media (orientation: landscape) and (max-height: 560px) {
+  #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
+  .screen { padding: 0.6rem 1rem; max-width: 640px; }
+  #screen-menu { padding-top: 40px; }
+  .logo { font-size: 32px; margin-bottom: 2px; }
+  .logo-sub { margin-bottom: 1rem; }
+  .sets-label { margin-bottom: 6px; }
+  .sets-grid { margin-bottom: 0.8rem; }
+  .set-btn { padding: 8px 4px 6px; }
+  .set-btn .set-icon { font-size: 18px; }
+  .btn-start { padding: 10px; }
+  .game-header { margin-bottom: 0.6rem; }
+  .game-title { font-size: 16px; }
+  #grid { grid-template-columns: repeat(8, 1fr); gap: 6px; }
+  .card-front::after { font-size: 18px; }
+  .card-back { font-size: min(5vw, 1.6rem); }
+  #message { margin-top: 0.4rem; font-size: 11px; min-height: 14px; }
+}
 </style>
 </head>
 <body>

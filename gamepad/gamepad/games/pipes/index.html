@@ -42,6 +42,12 @@ canvas{display:block;}
 .diff-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
 .diff-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
 .diff-btn:hover,.diff-btn.active{border-color:rgba(0,212,255,.4);color:var(--c);background:var(--cdim);}
+@media (orientation: landscape) and (max-height: 560px) {
+  .page { padding: 46px 12px 10px; gap: 6px; }
+  #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
+  .game-title { font-size: 17px; }
+  .stat-pill, .ctrl-btn { padding: 4px 10px; font-size: 11px; }
+}
 </style>
 </head>
 <body>
@@ -101,7 +107,9 @@ DIFFS.forEach((d, i) => {
 // ── CANVAS ────────────────────────────────────────────────────────────────
 const C  = document.getElementById('c');
 const cx = C.getContext('2d');
-const MAX = Math.min(window.innerWidth - 40, window.innerHeight - 220, 440);
+function getMax() {
+  return Math.min(window.innerWidth - 40, window.innerHeight - 220, 440);
+}
 
 // ── PIPE DIRECTIONS (bitmask) ─────────────────────────────────────────────
 // N=1, E=2, S=4, W=8
@@ -172,7 +180,7 @@ function newGame() {
 function startGame() {
   document.getElementById('overlay').style.display = 'none';
   size = DIFFS[diffIdx].size;
-  cs   = Math.floor(MAX / size);
+  cs   = Math.floor(getMax() / size);
   C.width = C.height = size * cs;
   document.getElementById('canvas-wrap').style.width  = C.width  + 'px';
   document.getElementById('canvas-wrap').style.height = C.height + 'px';
@@ -339,9 +347,23 @@ function winGame() {
 // ── INIT ──────────────────────────────────────────────────────────────────
 // Draw empty canvas behind overlay
 size = DIFFS[diffIdx].size;
-cs   = Math.floor(MAX / size);
+cs   = Math.floor(getMax() / size);
 C.width = C.height = size * cs;
 cx.fillStyle = '#0c0c10'; cx.fillRect(0,0,C.width,C.height);
+
+// ── RESIZE: rescale canvas to fit new viewport (e.g. after rotation) ──────
+function resizeCanvas() {
+  const sz = grid ? size : DIFFS[diffIdx].size;
+  cs = Math.floor(getMax() / sz);
+  C.width = C.height = sz * cs;
+  document.getElementById('canvas-wrap').style.width  = C.width  + 'px';
+  document.getElementById('canvas-wrap').style.height = C.height + 'px';
+  if (grid) render();
+  else { cx.fillStyle = '#0c0c10'; cx.fillRect(0,0,C.width,C.height); }
+}
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 250));
+
 </script>
 </body>
 </html>

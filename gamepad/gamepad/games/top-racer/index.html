@@ -100,6 +100,7 @@ const C=document.getElementById('c'), cx=C.getContext('2d');
 let W,H;
 function resize(){W=C.width=window.innerWidth;H=C.height=window.innerHeight;}
 resize(); window.addEventListener('resize',()=>{resize();if(gameState==='playing')buildCamera();});
+window.addEventListener('orientationchange', () => setTimeout(()=>{resize();if(gameState==='playing')buildCamera();}, 250));
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────
 const TOTAL_LAPS = 3;

@@ -36,6 +36,13 @@ canvas{border-radius:14px;border:1px solid var(--border);cursor:pointer;display:
 .ov-btn{background:var(--c);color:#000;border:none;border-radius:100px;padding:12px 30px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;}
 .ov-btn:hover{opacity:.85;}
 .ov-stat{font-size:20px;font-weight:700;color:var(--c);}
+@media (orientation: landscape) and (max-height: 560px) {
+  .page { padding: 46px 10px 8px; gap: 6px; }
+  #back-btn { top: 8px; left: 8px; padding: 5px 12px; font-size: 11px; }
+  .game-title { font-size: 17px; }
+  .stat-pill, .ctrl-btn { padding: 4px 10px; font-size: 11px; }
+  .diff-btn { padding: 3px 9px; font-size: 10px; }
+}
 </style>
 </head>
 <body>
@@ -102,6 +109,28 @@ const C=document.getElementById('c');
 const cx=C.getContext('2d');
 const SZ=Math.min(window.innerWidth-32,window.innerHeight-240,460);
 C.width=C.height=SZ;
+
+// Display-only scaling: keeps internal SZ-based gear coordinates intact,
+// just shrinks the rendered CSS size to fit the viewport (incl. landscape).
+function fitDisplaySize(){
+  const page = document.querySelector('.page');
+  const title = document.querySelector('.game-title');
+  const hud = document.querySelector('.hud');
+  const diffRow = document.getElementById('diff-row');
+  const pageCs = getComputedStyle(page);
+  const gap = parseFloat(pageCs.rowGap || pageCs.gap) || 12;
+  const padTop = parseFloat(pageCs.paddingTop) || 0;
+  const padBottom = parseFloat(pageCs.paddingBottom) || 0;
+  const reservedH = title.offsetHeight + hud.offsetHeight + diffRow.offsetHeight + padTop + padBottom + gap*3;
+  const availH = window.innerHeight - reservedH;
+  const availW = window.innerWidth - 32;
+  const size = Math.max(140, Math.floor(Math.min(availW, availH, SZ)));
+  C.style.width = size + 'px';
+  C.style.height = size + 'px';
+}
+window.addEventListener('resize', fitDisplaySize);
+window.addEventListener('orientationchange', () => setTimeout(fitDisplaySize, 250));
+fitDisplaySize();
 
 const TOOTH=0.18, TOL=0.085, SPD=2.4;
 let gears=[], moves=0, level=1, animId=null, lastTs=0, winTs=null;

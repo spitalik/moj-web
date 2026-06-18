@@ -90,6 +90,13 @@ canvas { display: block; }
 #d-left  { grid-column:1; grid-row:2; }
 #d-down  { grid-column:2; grid-row:2; }
 #d-right { grid-column:3; grid-row:2; }
+@media (orientation: landscape) and (max-height: 560px) {
+  .page { padding: 48px 12px 12px; gap: 8px; }
+  #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
+  .game-title { font-size: 17px; }
+  .stat-pill { padding: 4px 10px; font-size: 11px; }
+  .dpad { grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 4px; }
+}
 </style>
 </head>
 <body>
@@ -162,6 +169,25 @@ const C = document.getElementById('c');
 const ctx = C.getContext('2d');
 const GRID = 20, COLS = 20, ROWS = 20;
 let snake, dir, nextDir, food, score, best = 0, interval, running = false;
+
+function fitLayout() {
+  const page = document.querySelector('.page');
+  const topBar = document.querySelector('.top-bar');
+  const dpad = document.querySelector('.dpad');
+  const cs = getComputedStyle(page);
+  const gap = parseFloat(cs.rowGap || cs.gap) || 16;
+  const padTop = parseFloat(cs.paddingTop) || 0;
+  const padBottom = parseFloat(cs.paddingBottom) || 0;
+  const reservedH = topBar.offsetHeight + dpad.offsetHeight + padTop + padBottom + gap * 2;
+  const availH = window.innerHeight - reservedH;
+  const availW = Math.min(window.innerWidth - 40, 400);
+  const size = Math.max(120, Math.floor(Math.min(availW, availH, 400)));
+  C.style.width = size + 'px';
+  C.style.height = size + 'px';
+}
+window.addEventListener('resize', fitLayout);
+window.addEventListener('orientationchange', () => setTimeout(fitLayout, 250));
+fitLayout();
 
 function startGame() {
   document.getElementById('overlay').style.display = 'none';

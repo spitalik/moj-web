@@ -71,6 +71,7 @@ const C=document.getElementById('c'), cx=C.getContext('2d');
 let W,H;
 function resize(){W=C.width=window.innerWidth;H=C.height=window.innerHeight;}
 resize(); window.addEventListener('resize',resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 250));
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────
 const GRAVITY=1900, GAS=3400, BRAKE_F=2600, AIR_DRAG=0.016, ROLL_FRIC=3.5;

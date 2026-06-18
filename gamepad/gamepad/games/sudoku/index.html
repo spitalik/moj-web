@@ -74,6 +74,21 @@ body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;left:
 .ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
 .ctrl-btn.primary{border-color:rgba(255,209,102,0.35);color:var(--c);background:var(--cdim);}
 .ctrl-btn.primary:hover{background:rgba(255,209,102,0.22);}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .page { padding: 42px 10px 6px; gap: 5px; }
+  #back-btn { top: 8px; left: 8px; padding: 5px 12px; font-size: 11px; }
+  .game-title { font-size: 15px; }
+  .diff-row { gap: 4px; }
+  .diff-btn { padding: 3px 9px; font-size: 10px; }
+  #board-wrap { padding: 5px; }
+  .cell { width: clamp(18px, 6.2vh, 40px); height: clamp(18px, 6.2vh, 40px); font-size: clamp(10px, 2.4vh, 16px); }
+  .numpad { gap: 3px; }
+  .np-btn { height: clamp(18px, 6.2vh, 36px); font-size: clamp(10px, 2.4vh, 15px); }
+  #status { font-size: 10px; min-height: 12px; }
+  .ctrl-row { gap: 5px; }
+  .ctrl-btn { padding: 4px 12px; font-size: 10px; }
+}
 </style>
 </head>
 <body>

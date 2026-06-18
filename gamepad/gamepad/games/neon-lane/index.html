@@ -37,6 +37,14 @@ canvas{display:block;width:min(92vw,560px);height:auto;border-radius:11px;backgr
 .touch-controls button{width:58px;height:38px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);font-size:16px}
 .touch-controls button:active{border-color:var(--border-h);color:var(--text)}
 @media (max-height:700px){.page{gap:9px}.game-title{font-size:24px}.pill,.ctrl-btn{height:29px}.touch-controls button{height:34px}}
+@media (orientation: landscape) and (max-height: 560px) {
+  .page { padding: 46px 10px 8px; gap: 6px; }
+  #back-btn { top: 8px; left: 8px; padding: 5px 12px; font-size: 11px; }
+  .game-title { font-size: 18px; }
+  .pill,.ctrl-btn { height: 24px; font-size: 10px; }
+  .touch-controls { gap: 5px; margin-top: 0; }
+  .touch-controls button { width: 44px; height: 28px; font-size: 13px; }
+}
 </style>
 </head>
 <body>
@@ -75,6 +83,31 @@ canvas{display:block;width:min(92vw,560px);height:auto;border-radius:11px;backgr
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
+
+function fitCanvas(){
+  const page = document.querySelector('.page');
+  const title = document.querySelector('.game-title');
+  const hud = document.querySelector('.hud');
+  const wrap = document.getElementById('game-wrap');
+  const touch = document.querySelector('.touch-controls');
+  const pageCs = getComputedStyle(page);
+  const gap = parseFloat(pageCs.rowGap || pageCs.gap) || 13;
+  const padTop = parseFloat(pageCs.paddingTop) || 0;
+  const padBottom = parseFloat(pageCs.paddingBottom) || 0;
+  const wrapCs = getComputedStyle(wrap);
+  const wrapExtra = (parseFloat(wrapCs.paddingTop)||0) + (parseFloat(wrapCs.paddingBottom)||0)
+                   + (parseFloat(wrapCs.borderTopWidth)||0) + (parseFloat(wrapCs.borderBottomWidth)||0);
+  const touchH = (touch && touch.offsetParent !== null) ? touch.offsetHeight : 0;
+  const reservedH = title.offsetHeight + hud.offsetHeight + touchH + padTop + padBottom + gap*3 + wrapExtra;
+  const availH = window.innerHeight - reservedH;
+  const availW = Math.min(window.innerWidth * 0.92, 560);
+  const ratio = W / H;
+  const targetW = Math.max(140, Math.min(availW, availH * ratio));
+  canvas.style.width = Math.floor(targetW) + 'px';
+}
+window.addEventListener('resize', fitCanvas);
+window.addEventListener('orientationchange', () => setTimeout(fitCanvas, 250));
+fitCanvas();
 const overlay = document.getElementById('overlay');
 const ovTitle = document.getElementById('ov-title');
 const ovHint = document.getElementById('ov-hint');

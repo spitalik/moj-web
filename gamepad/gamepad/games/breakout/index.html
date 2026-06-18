@@ -28,6 +28,12 @@ canvas{display:block;}
 .play-btn:hover{background:rgba(255,159,67,.25);}
 .lives{display:flex;gap:6px;align-items:center;}
 .heart{font-size:14px;}
+@media (orientation: landscape) and (max-height: 560px) {
+  .page { padding: 46px 12px 10px; gap: 8px; }
+  #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
+  .game-title { font-size: 17px; }
+  .stat-pill { padding: 4px 10px; font-size: 11px; }
+}
 </style>
 </head>
 <body>
@@ -67,6 +73,24 @@ const C=document.getElementById('c'),ctx=C.getContext('2d');
 const W=400,H=480;let PAD_W=70;const PAD_H=10,BALL_R=7,ROWS=6,COLS=8,BRICK_W=42,BRICK_H=16,BRICK_GAP=4;
 const COLORS=['#ff6b6b','#ff9f43','#ffd166','#4dff91','#54a0ff','#a78bfa'];
 let px,ball,bricks,score,lives,running,animId,mouseX=W/2,level=1;
+
+function fitLayout(){
+  const page=document.querySelector('.page');
+  const topBar=document.querySelector('.top-bar');
+  const cs=getComputedStyle(page);
+  const gap=parseFloat(cs.rowGap||cs.gap)||14;
+  const padTop=parseFloat(cs.paddingTop)||0;
+  const padBottom=parseFloat(cs.paddingBottom)||0;
+  const reservedH=topBar.offsetHeight+padTop+padBottom+gap;
+  const availH=window.innerHeight-reservedH;
+  const availW=Math.min(window.innerWidth-40, W);
+  const scale=Math.min(availW/W, availH/H, 1);
+  C.style.width=Math.floor(W*scale)+'px';
+  C.style.height=Math.floor(H*scale)+'px';
+}
+window.addEventListener('resize', fitLayout);
+window.addEventListener('orientationchange', ()=>setTimeout(fitLayout,250));
+fitLayout();
 
 function makeBricks(){
   const b=[];
@@ -211,8 +235,8 @@ function gameWin(){
   ov.style.display='flex';
 }
 
-C.addEventListener('mousemove',e=>{const r=C.getBoundingClientRect();mouseX=e.clientX-r.left;});
-C.addEventListener('touchmove',e=>{e.preventDefault();const r=C.getBoundingClientRect();mouseX=e.touches[0].clientX-r.left;},{passive:false});
+C.addEventListener('mousemove',e=>{const r=C.getBoundingClientRect();mouseX=(e.clientX-r.left)*(W/r.width);});
+C.addEventListener('touchmove',e=>{e.preventDefault();const r=C.getBoundingClientRect();mouseX=(e.touches[0].clientX-r.left)*(W/r.width);},{passive:false});
 document.addEventListener('keydown',e=>{
   if(!running){if(e.code==='Space'||e.code==='Enter')startGame();return;}
   if(e.code==='ArrowLeft')mouseX-=20;
