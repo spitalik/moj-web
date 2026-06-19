@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v49';
+const CACHE = 'gamepad-v50';
 
 const ASSETS = [
   './',
@@ -43,6 +43,13 @@ const ASSETS = [
   './games/neon-lane/index.html',
   './games/sokoban/index.html',
   './games/ricochet/index.html',
+  './games/flow/index.html',
+  './games/stars/index.html',
+  './games/gear-puzzle/index.html',
+  './games/hill-racer/index.html',
+  './games/top-racer/index.html',
+  './games/nebula-strike/index.html',
+  './games/gravity-shift/index.html',
 ];
 
 self.addEventListener('install', e => {

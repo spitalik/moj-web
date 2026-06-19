@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Barevné cesty · logická hra</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: linear-gradient(145deg, #1e2b3c 0%, #0f1722 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            touch-action: manipulation;
+            padding: 12px;
+        }
+        .game-container {
+            background: #223544;
+            border-radius: 48px 48px 32px 32px;
+            padding: 24px 20px 30px;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 0 1px #3d5a73 inset;
+            transition: all 0.2s;
+        }
+        h1 {
+            text-align: center;
+            margin: 0 0 6px 0;
+            font-weight: 400;
+            font-size: 1.8rem;
+            letter-spacing: 3px;
+            color: #d4e9d6;
+            text-shadow: 0 2px 0 #0b1a1f;
+            word-break: keep-all;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        h1 small {
+            font-size: 0.9rem;
+            background: #2f4a4f;
+            padding: 4px 16px;
+            border-radius: 40px;
+            color: #bcd9c0;
+            letter-spacing: 0.5px;
+            box-shadow: inset 0 1px 3px #0b1a1f;
+        }
+        .board-wrapper {
+            background: #1f2f3a;
+            border-radius: 36px;
+            padding: 16px;
+            margin: 12px 0 18px;
+            box-shadow: inset 0 6px 10px rgba(0,0,0,0.6), 0 0 0 1px #3a5a5f;
+        }
+        #gameBoard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            margin: 0 auto;
+            touch-action: manipulation;
+        }
+        .cell {
+            background: #263b44;
+            border-radius: 18px;
+            box-shadow: 0 6px 0 #0f1a20, 0 8px 12px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 2px 4px black;
+            transition: 0.08s ease-in;
+            cursor: pointer;
+            touch-action: manipulation;
+            aspect-ratio: 1 / 1;
+            will-change: transform;
+            border: 1px solid #3c5b64;
+        }
+        .cell:active {
+            transform: scale(0.94);
+            box-shadow: 0 2px 0 #0f1a20;
+        }
+        /* farby podľa hodnôt */
+        .cell-0 { background: #2d4a57; }  /* prázdna / východzia */
+        .cell-1 { background: #e15554; }  /* červená */
+        .cell-2 { background: #4c9f70; }  /* zelená */
+        .cell-3 { background: #3b8cbf; }  /* modrá */
+        .cell-4 { background: #e9b35f; }  /* žltá */
+        .cell-5 { background: #b47eb3; }  /* fialová */
+        .cell-6 { background: #e58a6b; }  /* oranžová */
+        .cell-7 { background: #6fa8a0; }  /* tyrkysová */
+
+        .status-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .message-box {
+            background: #13212b;
+            padding: 10px 18px;
+            border-radius: 60px;
+            color: #c4e0c7;
+            font-weight: 500;
+            font-size: 1.1rem;
+            box-shadow: inset 0 2px 5px #0b151c;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            letter-spacing: 0.3px;
+            border: 1px solid #2f535a;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #2e4b52;
+            border: none;
+            color: #ecf7ed;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 10px 22px;
+            border-radius: 60px;
+            box-shadow: 0 6px 0 #14222a, 0 4px 8px rgba(0,0,0,0.5);
+            transition: 0.08s linear;
+            cursor: pointer;
+            touch-action: manipulation;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: 1px solid #4e737c;
+            letter-spacing: 0.7px;
+            flex: 1 1 auto;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #14222a;
+        }
+        .btn-primary {
+            background: #4c7a7a;
+            border-color: #70a0a0;
+            box-shadow: 0 6px 0 #1e3a3a;
+        }
+        .btn-primary:active {
+            box-shadow: 0 2px 0 #1e3a3a;
+        }
+        .btn-secondary {
+            background: #5f4f6b;
+            border-color: #8a7a96;
+            box-shadow: 0 6px 0 #342b3d;
+        }
+        .btn-secondary:active {
+            box-shadow: 0 2px 0 #342b3d;
+        }
+        .move-counter {
+            background: #1f313a;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #b8d6bc;
+            border: 1px solid #2b4b50;
+            white-space: nowrap;
+        }
+        .footer-note {
+            text-align: center;
+            color: #6e8f8f;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+            opacity: 0.8;
+        }
+        @media (max-width: 480px) {
+            .game-container { padding: 16px 12px 20px; }
+            .cell { font-size: 1.8rem; border-radius: 14px; }
+            .btn { font-size: 1rem; padding: 8px 14px; }
+            .message-box { font-size: 1rem; padding: 8px 12px; }
+        }
+        @media (max-width: 400px) {
+            #gameBoard { gap: 6px; }
+            .cell { font-size: 1.4rem; border-radius: 12px; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1>
+        🎲 Cesty
+        <small>logická</small>
+    </h1>
+    <div class="board-wrapper">
+        <div id="gameBoard"></div>
+    </div>
+
+    <div class="status-area">
+        <div class="message-box" id="statusMessage">▶ ťahaj</div>
+        <div class="move-counter" id="moveCounter">🔄 0</div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn btn-primary" id="newGameBtn">✨ Nová hra</button>
+        <button class="btn btn-secondary" id="resetBtn">↺ Reset</button>
+    </div>
+    <div class="footer-note">klikni / ťukni na políčko · presuň farbu do prázdneho</div>
+</div>
+
+<script>
+    (function() {
+        // ----- HERNÝ STAV -----
+        const BOARD_SIZE = 4;
+        const CELL_COUNT = BOARD_SIZE * BOARD_SIZE; // 16
+
+        // indexy: 0..15, prázdne miesto má hodnotu 0
+        let board = new Array(CELL_COUNT).fill(0);
+        let emptyIndex = 0;      // vždy ukazuje na index s hodnotou 0
+        let moves = 0;
+        let gameOver = false;
+
+        // DOM elementy
+        const boardEl = document.getElementById('gameBoard');
+        const statusEl = document.getElementById('statusMessage');
+        const moveEl = document.getElementById('moveCounter');
+
+        // ----- POMOCNÉ FUNKCIE -----
+        function isAdjacent(indexA, indexB) {
+            const rowA = Math.floor(indexA / BOARD_SIZE);
+            const colA = indexA % BOARD_SIZE;
+            const rowB = Math.floor(indexB / BOARD_SIZE);
+            const colB = indexB % BOARD_SIZE;
+            const rowDiff = Math.abs(rowA - rowB);
+            const colDiff = Math.abs(colA - colB);
+            return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+        }
+
+        // ----- VYTVORENIE ZAMIEŠANÉHO STAVU (riešiteľný) -----
+        function generateSolvableBoard() {
+            // Začneme cieľovým stavom: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0 (0 = prázdne)
+            const target = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
+            let arr = [...target];
+            let emptyPos = 15;
+
+            // Urobíme 200–300 náhodných ťahov (dostatočné zamiešanie)
+            const totalMoves = 180 + Math.floor(Math.random() * 120);
+            let lastMoveFrom = -1;
+            for (let i = 0; i < totalMoves; i++) {
+                const neighbors = [];
+                const row = Math.floor(emptyPos / BOARD_SIZE);
+                const col = emptyPos % BOARD_SIZE;
+
+                if (row > 0) neighbors.push(emptyPos - BOARD_SIZE);
+                if (row < BOARD_SIZE - 1) neighbors.push(emptyPos + BOARD_SIZE);
+                if (col > 0) neighbors.push(emptyPos - 1);
+                if (col < BOARD_SIZE - 1) neighbors.push(emptyPos + 1);
+
+                // Vyberieme náhodného suseda, ale nesmieme hneď vrátiť späť (aby to nebolo nudné)
+                let available = neighbors.filter(idx => idx !== lastMoveFrom);
+                if (available.length === 0) available = neighbors; // ak nie je iná možnosť
+
+                const randomIdx = available[Math.floor(Math.random() * available.length)];
+                // Prehodíme prázdne miesto s náhodným susedom
+                arr[emptyPos] = arr[randomIdx];
+                arr[randomIdx] = 0;
+                lastMoveFrom = emptyPos;
+                emptyPos = randomIdx;
+            }
+
+            // overíme, že prázdny je naozaj 0
+            const zeroIndex = arr.indexOf(0);
+            if (zeroIndex === -1) {
+                // bezpečnostná poistka
+                arr[15] = 0;
+                emptyPos = 15;
+            } else {
+                emptyPos = zeroIndex;
+            }
+
+            return { board: arr, emptyIndex: emptyPos };
+        }
+
+        // ----- INICIALIZÁCIA / RESET HRY -----
+        function initGame(keepMoves = false) {
+            const generated = generateSolvableBoard();
+            board = [...generated.board];
+            emptyIndex = generated.emptyIndex;
+            if (!keepMoves) {
+                moves = 0;
+            } else {
+                // ak reset, vynulujeme aj moves (ale pre "nová hra" to robíme samostatne)
+                moves = 0;
+            }
+            gameOver = false;
+            renderBoard();
+            updateStatus();
+            updateMoveCounter();
+        }
+
+        // ----- RESET (rovnaká hra) -----
+        function resetGame() {
+            // uložíme si aktuálny board ako "počiatočný" ? 
+            // Pre reset potrebujeme mať uložený pôvodný zamiešaný stav.
+            // Jednoduchšie: vygenerujeme nový, ale zachováme počet ťahov = 0.
+            initGame(false);
+        }
+
+        // ----- NOVÁ HRA -----
+        function newGame() {
+            initGame(false);
+        }
+
+        // ----- RENDER -----
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            for (let i = 0; i < board.length; i++) {
+                const val = board[i];
+                const cell = document.createElement('div');
+                cell.className = `cell cell-${val}`;
+                // zobrazenie: 0 = prázdne, inak číslo
+                cell.textContent = val === 0 ? '' : val;
+                // ak je prázdne, pridáme indikátor
+                if (val === 0) {
+                    cell.style.background = '#1c2f38';
+                    cell.style.boxShadow = 'inset 0 0 0 1px #3b6069, 0 4px 0 #0f1a20';
+                    cell.style.color = '#4f7a7a';
+                }
+                cell.dataset.index = i;
+                cell.addEventListener('click', cellClickHandler);
+                cell.addEventListener('touchend', (e) => {
+                    // aby sme predišli dvojitému spusteniu na mobile
+                    e.preventDefault();
+                    cellClickHandler.call(cell, e);
+                });
+                boardEl.appendChild(cell);
+            }
+        }
+
+        // ----- OBSLUHA KLIKU -----
+        function cellClickHandler(e) {
+            if (gameOver) {
+                statusEl.textContent = '🏁 Hra skončila! · Nová hra';
+                return;
+            }
+
+            const cell = e.currentTarget;
+            const index = parseInt(cell.dataset.index, 10);
+            // ak je to prázdne (0), nič nerobíme
+            if (board[index] === 0) {
+                statusEl.textContent = '⏳ prázdne políčko';
+                return;
+            }
+
+            // skontrolujeme susedstvo s prázdnym
+            if (!isAdjacent(index, emptyIndex)) {
+                statusEl.textContent = '❌ musíš ťahať vedľa prázdneho';
+                return;
+            }
+
+            // VYKONANIE ŤAHU: presun čísla do prázdneho
+            board[emptyIndex] = board[index];
+            board[index] = 0;
+            emptyIndex = index;
+            moves++;
+
+            renderBoard();
+            updateMoveCounter();
+            statusEl.textContent = '✔️ ťah hotový';
+
+            // Skontrolujeme víťazstvo: board musí byť [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0]
+            const isWin = board.every((val, idx) => {
+                if (idx === 15) return val === 0;
+                return val === idx + 1;
+            });
+
+            if (isWin) {
+                gameOver = true;
+                statusEl.textContent = '🎉 VYHRAL SI! 🎉';
+                // vizuálna odmena
+                boardEl.style.filter = 'drop-shadow(0 0 12px #b3d9b3)';
+            } else {
+                boardEl.style.filter = 'none';
+            }
+        }
+
+        // ----- UPDATE STATUS / ŤAHY -----
+        function updateStatus() {
+            if (gameOver) {
+                statusEl.textContent = '🎉 VYHRAL SI!';
+            } else {
+                statusEl.textContent = '▶ ťahaj';
+            }
+        }
+
+        function updateMoveCounter() {
+            moveEl.textContent = `🔄 ${moves}`;
+        }
+
+        // ----- EVENTY TLAČIDIEL -----
+        document.getElementById('newGameBtn').addEventListener('click', () => {
+            newGame();
+            boardEl.style.filter = 'none';
+            statusEl.textContent = '🔄 nová hra';
+            setTimeout(() => { if (!gameOver) statusEl.textContent = '▶ ťahaj'; }, 400);
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            resetGame();
+            boardEl.style.filter = 'none';
+            statusEl.textContent = '↺ reset';
+            setTimeout(() => { if (!gameOver) statusEl.textContent = '▶ ťahaj'; }, 300);
+        });
+
+        // ----- SPUSTENIE -----
+        initGame(false);
+    })();
+</script>
+</body>
+</html>
