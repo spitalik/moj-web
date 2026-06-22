@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v53';
+const CACHE = 'gamepad-v54';
 
 const ASSETS = [
   './',
@@ -53,6 +53,8 @@ const ASSETS = [
   './games/cesty/index.html',
   './games/cosmic-voyager/index.html',
   './games/number-flash/index.html',
+  './games/fluxgall/index.html',
+  './games/threadcatch/index.html',
 ];
 
 self.addEventListener('install', e => {

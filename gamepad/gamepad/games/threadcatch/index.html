@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Threadcatch · GamePad</title>
+  <script src="../../i18n.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #eff8ff;
+      --muted: #9aafc0;
+      --panel: rgba(7, 12, 19, 0.8);
+      --line: rgba(210, 238, 255, 0.18);
+      --cyan: #51d7ff;
+      --rose: #ff5d87;
+      --amber: #ffd166;
+      --mint: #56eba9;
+      --violet: #a78bfa;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #05070d;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      touch-action: none;
+    }
+
+    #game {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(81, 215, 255, 0.14), transparent 30%),
+        radial-gradient(circle at 78% 70%, rgba(255, 209, 102, 0.09), transparent 34%),
+        linear-gradient(145deg, #05070d 0%, #08101a 54%, #060811 100%);
+    }
+
+    .hud {
+      position: fixed;
+      inset: max(56px, calc(env(safe-area-inset-top) + 56px)) max(12px, env(safe-area-inset-right)) auto max(12px, env(safe-area-inset-left));
+      display: grid;
+      grid-template-columns: minmax(240px, 430px) auto;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: start;
+      pointer-events: none;
+    }
+
+    .panel,
+    .overlay,
+    .controls {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.33);
+      backdrop-filter: blur(16px);
+    }
+
+    .panel {
+      padding: 10px 12px;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 5px;
+      font-size: 19px;
+      line-height: 1;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .mark {
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      background:
+        linear-gradient(90deg, transparent 0 38%, #fff 39% 61%, transparent 62% 100%),
+        linear-gradient(0deg, transparent 0 38%, var(--cyan) 39% 61%, transparent 62% 100%),
+        radial-gradient(circle, var(--rose) 0 28%, transparent 30% 100%);
+      box-shadow: 0 0 22px rgba(81, 215, 255, 0.75);
+      flex: 0 0 auto;
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .stats {
+      min-width: 142px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .row strong {
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .bar {
+      width: 100%;
+      height: 6px;
+      margin-top: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .bar > i {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform-origin: left center;
+      background: linear-gradient(90deg, var(--mint), var(--cyan), var(--rose));
+    }
+
+    .controls {
+      position: fixed;
+      right: max(12px, env(safe-area-inset-right));
+      bottom: max(12px, env(safe-area-inset-bottom));
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    #back-btn {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: max(12px, env(safe-area-inset-left));
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      padding: 7px 14px;
+      border-radius: 100px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      backdrop-filter: blur(16px);
+      transition: all .18s;
+    }
+    #back-btn:hover, #back-btn:active {
+      color: var(--ink);
+      border-color: var(--cyan);
+    }
+    @media (max-width: 700px) {
+      #back-btn { font-size: 11px; padding: 6px 12px; }
+    }
+
+    button {
+      appearance: none;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(230, 246, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--ink);
+      font: 850 18px/1 ui-sans-serif, system-ui, sans-serif;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .wide {
+      width: auto;
+      min-width: 132px;
+      padding: 0 16px;
+      font-size: 14px;
+    }
+
+    .overlay {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: min(430px, calc(100vw - 28px));
+      transform: translate(-50%, -50%);
+      padding: 18px;
+      text-align: center;
+    }
+
+    .overlay[hidden] {
+      display: none;
+    }
+
+    .overlay h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .overlay p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 700px) {
+      .hud {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        width: min(240px, calc(100vw - 24px));
+        text-align: left;
+      }
+
+      .hint {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="Threadcatch game board"></canvas>
+
+  <a href="../../index.html" id="back-btn">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    <span id="lbl-back"></span>
+  </a>
+
+  <section class="hud" aria-live="polite">
+    <div class="panel">
+      <h1 class="title"><span class="mark"></span>Threadcatch</h1>
+      <p class="hint" id="lbl-hint"></p>
+    </div>
+    <div class="panel stats">
+      <div class="row"><span id="lbl-level"></span><strong id="levelText">1</strong></div>
+      <div class="row"><span id="lbl-delivered"></span><strong id="deliveredText">0/0</strong></div>
+      <div class="row"><span id="lbl-links"></span><strong id="linkText">0</strong></div>
+      <div class="bar"><i id="stabilityBar"></i></div>
+    </div>
+  </section>
+
+  <nav class="controls" aria-label="Herné ovládanie" id="lbl-controls-nav">
+    <button id="undoBtn" title="Odstrániť posledné spojenie" aria-label="Odstrániť posledné spojenie">↶</button>
+    <button id="pauseBtn" title="Pauza alebo pokračovať" aria-label="Pauza alebo pokračovať">Ⅱ</button>
+    <button id="restartBtn" title="Reštart levelu" aria-label="Reštart levelu">↻</button>
+  </nav>
+
+  <div id="overlay" class="overlay">
+    <h1 id="overlayTitle">Threadcatch</h1>
+    <p id="overlayText">Prepájaj uzly tak, aby impulzy dorazili do portov svojej farby. Nesprávny port poškodí stabilitu siete.</p>
+    <button id="startBtn" class="wide">Štart</button>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const levelText = document.getElementById("levelText");
+      const deliveredText = document.getElementById("deliveredText");
+      const linkText = document.getElementById("linkText");
+      const stabilityBar = document.getElementById("stabilityBar");
+      const overlay = document.getElementById("overlay");
+      const overlayTitle = document.getElementById("overlayTitle");
+      const overlayText = document.getElementById("overlayText");
+      const startBtn = document.getElementById("startBtn");
+      const undoBtn = document.getElementById("undoBtn");
+      const pauseBtn = document.getElementById("pauseBtn");
+      const restartBtn = document.getElementById("restartBtn");
+
+      document.getElementById('lbl-back').textContent = t('back');
+      document.getElementById('lbl-hint').textContent = t('threadHint');
+      document.getElementById('lbl-level').textContent = t('threadLevel');
+      document.getElementById('lbl-delivered').textContent = t('threadDelivered');
+      document.getElementById('lbl-links').textContent = t('threadLinks');
+      document.getElementById('lbl-controls-nav').setAttribute('aria-label', t('threadControlsAria'));
+      undoBtn.title = t('threadUndoTitle');
+      undoBtn.setAttribute('aria-label', t('threadUndoTitle'));
+      pauseBtn.title = t('threadPauseTitle');
+      pauseBtn.setAttribute('aria-label', t('threadPauseTitle'));
+      restartBtn.title = t('threadRestartTitle');
+      restartBtn.setAttribute('aria-label', t('threadRestartTitle'));
+
+      const colors = {
+        cyan: "#51d7ff",
+        rose: "#ff5d87",
+        amber: "#ffd166",
+        mint: "#56eba9",
+        violet: "#a78bfa"
+      };
+
+      const levels = [
+        {
+          need: 8,
+          stability: 100,
+          spawnEvery: 1.9,
+          nodes: [
+            ["A", 0.13, 0.50, "source", "cyan"],
+            ["B", 0.36, 0.28, "node"],
+            ["C", 0.36, 0.72, "node"],
+            ["D", 0.63, 0.50, "node"],
+            ["E", 0.87, 0.27, "port", "cyan"],
+            ["F", 0.87, 0.73, "port", "rose"]
+          ],
+          allowed: [["A", "B"], ["A", "C"], ["B", "D"], ["C", "D"], ["D", "E"], ["D", "F"], ["B", "E"], ["C", "F"]],
+          colors: ["cyan", "rose"]
+        },
+        {
+          need: 12,
+          stability: 100,
+          spawnEvery: 1.55,
+          nodes: [
+            ["A", 0.12, 0.22, "source", "amber"],
+            ["B", 0.12, 0.78, "source", "mint"],
+            ["C", 0.34, 0.50, "node"],
+            ["D", 0.53, 0.25, "node"],
+            ["E", 0.53, 0.75, "node"],
+            ["F", 0.75, 0.50, "node"],
+            ["G", 0.89, 0.22, "port", "mint"],
+            ["H", 0.89, 0.78, "port", "amber"]
+          ],
+          allowed: [["A", "C"], ["B", "C"], ["C", "D"], ["C", "E"], ["D", "F"], ["E", "F"], ["F", "G"], ["F", "H"], ["D", "G"], ["E", "H"]],
+          colors: ["amber", "mint"]
+        },
+        {
+          need: 16,
+          stability: 110,
+          spawnEvery: 1.28,
+          nodes: [
+            ["A", 0.10, 0.50, "source", "violet"],
+            ["B", 0.27, 0.21, "node"],
+            ["C", 0.27, 0.79, "node"],
+            ["D", 0.48, 0.36, "switch"],
+            ["E", 0.48, 0.64, "switch"],
+            ["F", 0.69, 0.21, "node"],
+            ["G", 0.69, 0.79, "node"],
+            ["H", 0.90, 0.22, "port", "cyan"],
+            ["I", 0.90, 0.50, "port", "violet"],
+            ["J", 0.90, 0.78, "port", "rose"]
+          ],
+          allowed: [["A", "B"], ["A", "C"], ["B", "D"], ["C", "E"], ["D", "E"], ["D", "F"], ["E", "G"], ["F", "H"], ["F", "I"], ["G", "I"], ["G", "J"], ["B", "F"], ["C", "G"]],
+          colors: ["violet", "cyan", "rose"]
+        }
+      ];
+
+      let dpr = 1;
+      let board = { x: 0, y: 0, w: 1, h: 1, s: 1 };
+      let levelIndex = 0;
+      let nodes = [];
+      let allowed = [];
+      let links = [];
+      let pulses = [];
+      let sparks = [];
+      let selected = null;
+      let hover = null;
+      let state = "intro";
+      let delivered = 0;
+      let missed = 0;
+      let stability = 100;
+      let spawnTimer = 0;
+      let last = performance.now();
+      let time = 0;
+
+      function resize() {
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(innerWidth * dpr);
+        canvas.height = Math.floor(innerHeight * dpr);
+        canvas.style.width = innerWidth + "px";
+        canvas.style.height = innerHeight + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const side = Math.max(16, Math.min(innerWidth, innerHeight) * 0.035);
+        const top = innerWidth < 700 ? 200 : 130;
+        const bottom = 78;
+        const usableW = innerWidth - side * 2;
+        const usableH = innerHeight - top - bottom;
+        const size = Math.max(250, Math.min(usableW, usableH));
+        board = {
+          x: Math.round((innerWidth - size) / 2),
+          y: Math.round(top + Math.max(0, usableH - size) / 2),
+          w: size,
+          h: size,
+          s: size
+        };
+        loadLevel(levelIndex, true);
+      }
+
+      function loadLevel(index, keepIntro = false) {
+        levelIndex = (index + levels.length) % levels.length;
+        const level = levels[levelIndex];
+        nodes = level.nodes.map((n) => ({
+          id: n[0],
+          x: board.x + n[1] * board.w,
+          y: board.y + n[2] * board.h,
+          type: n[3],
+          color: n[4] || null,
+          r: Math.max(16, board.s * 0.037),
+          charge: 0,
+          spin: Math.random() * Math.PI * 2
+        }));
+        allowed = level.allowed.map(([a, b]) => [a, b].sort().join("-"));
+        links = [];
+        pulses = [];
+        sparks = [];
+        selected = null;
+        hover = null;
+        delivered = 0;
+        missed = 0;
+        stability = level.stability;
+        spawnTimer = 0.7;
+        time = 0;
+        updateHud();
+        if (!keepIntro || state !== "intro") {
+          state = "playing";
+          overlay.hidden = true;
+        }
+      }
+
+      function byId(id) {
+        return nodes.find((n) => n.id === id);
+      }
+
+      function keyFor(a, b) {
+        return [a.id || a, b.id || b].sort().join("-");
+      }
+
+      function hasLink(a, b) {
+        const key = keyFor(a, b);
+        return links.some((l) => l.key === key);
+      }
+
+      function canLink(a, b) {
+        return a && b && a !== b && allowed.includes(keyFor(a, b));
+      }
+
+      function updateHud() {
+        const level = levels[levelIndex];
+        levelText.textContent = String(levelIndex + 1);
+        deliveredText.textContent = `${delivered}/${level.need}`;
+        linkText.textContent = String(links.length);
+        stabilityBar.style.transform = `scaleX(${Math.max(0, stability / level.stability)})`;
+      }
+
+      function message(title, text, button) {
+        overlayTitle.textContent = title;
+        overlayText.textContent = text;
+        startBtn.textContent = button;
+        overlay.hidden = false;
+      }
+
+      function startOrContinue() {
+        if (state === "intro") loadLevel(levelIndex);
+        else if (state === "won") loadLevel(levelIndex + 1);
+        else if (state === "lost") loadLevel(levelIndex);
+        else if (state === "paused") {
+          state = "playing";
+          overlay.hidden = true;
+        }
+      }
+
+      function restart() {
+        loadLevel(levelIndex);
+      }
+
+      function togglePause() {
+        if (state === "playing") {
+          state = "paused";
+          message(t('threadPauseOverlayTitle'), t('threadPauseOverlayText'), t('threadResume'));
+        } else if (state === "paused") {
+          state = "playing";
+          overlay.hidden = true;
+        }
+      }
+
+      function undo() {
+        if (state !== "playing" || !links.length) return;
+        const link = links.pop();
+        sparks.push({ x: (link.a.x + link.b.x) / 2, y: (link.a.y + link.b.y) / 2, color: "#eff8ff", life: 0.35 });
+        updateHud();
+      }
+
+      function nodeAt(x, y) {
+        let best = null;
+        let bestDist = Infinity;
+        for (const n of nodes) {
+          const d = Math.hypot(x - n.x, y - n.y);
+          if (d < n.r * 1.35 && d < bestDist) {
+            best = n;
+            bestDist = d;
+          }
+        }
+        return best;
+      }
+
+      function toggleLink(a, b) {
+        if (!canLink(a, b)) {
+          selected = b;
+          sparks.push({ x: b.x, y: b.y, color: "#ff5d87", life: 0.3 });
+          return;
+        }
+        const key = keyFor(a, b);
+        const index = links.findIndex((l) => l.key === key);
+        if (index >= 0) {
+          links.splice(index, 1);
+        } else {
+          links.push({ key, a, b, load: 0 });
+        }
+        selected = null;
+        sparks.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, color: "#51d7ff", life: 0.42 });
+        updateHud();
+      }
+
+      function pointerDown(e) {
+        e.preventDefault();
+        if (state === "intro" || state === "won" || state === "lost") {
+          startOrContinue();
+          return;
+        }
+        if (e.target.closest("button")) return;
+        if (state !== "playing") return;
+        const n = nodeAt(e.clientX, e.clientY);
+        if (!n) {
+          selected = null;
+          return;
+        }
+        if (!selected) selected = n;
+        else toggleLink(selected, n);
+      }
+
+      function pointerMove(e) {
+        hover = nodeAt(e.clientX, e.clientY);
+      }
+
+      function chooseSource() {
+        const sources = nodes.filter((n) => n.type === "source");
+        return sources[Math.floor(Math.random() * sources.length)];
+      }
+
+      function spawnPulse() {
+        const level = levels[levelIndex];
+        const source = chooseSource();
+        const color = level.colors[Math.floor(Math.random() * level.colors.length)];
+        pulses.push({
+          node: source,
+          next: null,
+          from: null,
+          t: 0,
+          color,
+          life: 12,
+          speed: 0.47 + Math.min(0.35, delivered * 0.012)
+        });
+        source.charge = 1;
+      }
+
+      function outgoingLinks(node, from) {
+        return links.filter((l) => (l.a === node || l.b === node) && l.a !== from && l.b !== from);
+      }
+
+      function routePulse(p) {
+        const node = p.node;
+        if (node.type === "port") {
+          if (node.color === p.color) {
+            delivered += 1;
+            stability = Math.min(levels[levelIndex].stability, stability + 2);
+            sparks.push({ x: node.x, y: node.y, color: colors[p.color], life: 0.75 });
+          } else {
+            missed += 1;
+            stability -= 14;
+            sparks.push({ x: node.x, y: node.y, color: "#ff5d87", life: 0.75 });
+          }
+          p.done = true;
+          updateHud();
+          return;
+        }
+
+        const options = outgoingLinks(node, p.from);
+        if (!options.length) {
+          p.wait = (p.wait || 0) + 1;
+          if (p.wait > 1) {
+            stability -= 8;
+            sparks.push({ x: node.x, y: node.y, color: "#ff5d87", life: 0.5 });
+            p.done = true;
+            updateHud();
+          }
+          return;
+        }
+
+        let link = options[0];
+        if (node.type === "switch" && options.length > 1) {
+          node.spin += 1;
+          link = options[Math.floor(node.spin) % options.length];
+        } else if (options.length > 1) {
+          link = options.reduce((best, item) => item.load < best.load ? item : best, options[0]);
+        }
+        p.from = node;
+        p.next = link.a === node ? link.b : link.a;
+        p.link = link;
+        p.t = 0;
+        p.wait = 0;
+        link.load += 0.18;
+      }
+
+      function update(dt) {
+        time += dt;
+        for (const n of nodes) {
+          n.charge = Math.max(0, n.charge - dt * 2.6);
+          n.spin += dt * 0.7;
+        }
+        for (const l of links) l.load = Math.max(0, l.load - dt * 0.25);
+        for (const s of sparks) s.life -= dt;
+        sparks = sparks.filter((s) => s.life > 0);
+
+        if (state !== "playing") return;
+
+        spawnTimer -= dt;
+        if (spawnTimer <= 0) {
+          spawnPulse();
+          spawnTimer += Math.max(0.68, levels[levelIndex].spawnEvery - delivered * 0.025);
+        }
+
+        for (const p of pulses) {
+          p.life -= dt;
+          if (p.life <= 0) {
+            p.done = true;
+            stability -= 7;
+            updateHud();
+            continue;
+          }
+          if (!p.next) {
+            routePulse(p);
+            continue;
+          }
+          p.t += dt * p.speed;
+          if (p.t >= 1) {
+            p.node = p.next;
+            p.next = null;
+            p.node.charge = 1;
+          }
+        }
+        pulses = pulses.filter((p) => !p.done);
+
+        if (delivered >= levels[levelIndex].need) {
+          state = "won";
+          const stars = stability > 78 ? "★★★" : stability > 46 ? "★★☆" : "★☆☆";
+          message(t('threadWonTitle'), t('threadWonText', { stars, delivered, links: links.length }), levelIndex === levels.length - 1 ? t('threadAgain') : t('threadNext'));
+        } else if (stability <= 0) {
+          state = "lost";
+          message(t('threadLostTitle'), t('threadLostText'), t('threadRestart'));
+        }
+      }
+
+      function drawBoard() {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        ctx.save();
+        roundedRect(board.x, board.y, board.w, board.h, 12);
+        ctx.fillStyle = "rgba(4, 8, 14, 0.78)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(210, 238, 255, 0.22)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.clip();
+        const step = board.s / 12;
+        ctx.strokeStyle = "rgba(190, 230, 255, 0.055)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 12; i += 1) {
+          ctx.beginPath();
+          ctx.moveTo(board.x + i * step, board.y);
+          ctx.lineTo(board.x + i * step, board.y + board.h);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(board.x, board.y + i * step);
+          ctx.lineTo(board.x + board.w, board.y + i * step);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawAllowed() {
+        ctx.save();
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 8]);
+        for (const key of allowed) {
+          const [aId, bId] = key.split("-");
+          const a = byId(aId);
+          const b = byId(bId);
+          const active = hasLink(a, b);
+          if (active) continue;
+          ctx.strokeStyle = "rgba(190, 230, 255, 0.10)";
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawLinks() {
+        for (const l of links) {
+          const glow = 0.35 + Math.min(0.45, l.load);
+          ctx.save();
+          ctx.lineCap = "round";
+          ctx.shadowColor = "#51d7ff";
+          ctx.shadowBlur = 18 * glow;
+          ctx.strokeStyle = `rgba(81, 215, 255, ${0.42 + glow})`;
+          ctx.lineWidth = Math.max(4, board.s * 0.009);
+          ctx.beginPath();
+          ctx.moveTo(l.a.x, l.a.y);
+          ctx.lineTo(l.b.x, l.b.y);
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      function drawNodes() {
+        for (const n of nodes) {
+          const c = colors[n.color] || "#d8f2ff";
+          ctx.save();
+          ctx.translate(n.x, n.y);
+          ctx.shadowColor = c;
+          ctx.shadowBlur = n.type === "node" ? 10 + n.charge * 16 : 18 + n.charge * 20;
+          ctx.fillStyle = "rgba(7, 14, 22, 0.96)";
+          ctx.beginPath();
+          ctx.arc(0, 0, n.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.lineWidth = selected === n || hover === n ? 4 : 2;
+          ctx.strokeStyle = selected === n ? "#ffffff" : c;
+          ctx.stroke();
+
+          if (n.type === "source") {
+            ctx.fillStyle = c;
+            ctx.beginPath();
+            ctx.moveTo(-n.r * 0.26, -n.r * 0.46);
+            ctx.lineTo(n.r * 0.48, 0);
+            ctx.lineTo(-n.r * 0.26, n.r * 0.46);
+            ctx.closePath();
+            ctx.fill();
+          } else if (n.type === "port") {
+            ctx.strokeStyle = c;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, n.r * 0.56 + Math.sin(time * 3 + n.x) * 1.2, 0, Math.PI * 2);
+            ctx.stroke();
+          } else if (n.type === "switch") {
+            ctx.rotate(n.spin);
+            ctx.strokeStyle = "#a78bfa";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-n.r * 0.55, 0);
+            ctx.lineTo(n.r * 0.55, 0);
+            ctx.moveTo(0, -n.r * 0.55);
+            ctx.lineTo(0, n.r * 0.55);
+            ctx.stroke();
+          } else {
+            ctx.fillStyle = "rgba(239, 248, 255, 0.72)";
+            ctx.beginPath();
+            ctx.arc(0, 0, n.r * 0.18, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+      }
+
+      function drawPulses() {
+        for (const p of pulses) {
+          let x = p.node.x;
+          let y = p.node.y;
+          if (p.next) {
+            x += (p.next.x - p.node.x) * p.t;
+            y += (p.next.y - p.node.y) * p.t;
+          }
+          const c = colors[p.color];
+          ctx.save();
+          ctx.shadowColor = c;
+          ctx.shadowBlur = 20;
+          ctx.fillStyle = c;
+          ctx.beginPath();
+          ctx.arc(x, y, Math.max(6, board.s * 0.014), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+          ctx.beginPath();
+          ctx.arc(x - 2, y - 2, Math.max(2, board.s * 0.004), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function drawSelection() {
+        if (!selected) return;
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 7]);
+        ctx.beginPath();
+        ctx.arc(selected.x, selected.y, selected.r * 1.55, 0, Math.PI * 2);
+        ctx.stroke();
+        if (hover && hover !== selected) {
+          ctx.strokeStyle = canLink(selected, hover) ? "rgba(86, 235, 169, 0.65)" : "rgba(255, 93, 135, 0.55)";
+          ctx.beginPath();
+          ctx.moveTo(selected.x, selected.y);
+          ctx.lineTo(hover.x, hover.y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawSparks() {
+        for (const s of sparks) {
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, s.life);
+          ctx.shadowColor = s.color;
+          ctx.shadowBlur = 18;
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, (1 - s.life) * board.s * 0.06 + 8, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      function roundedRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+      }
+
+      function draw() {
+        drawBoard();
+        ctx.save();
+        roundedRect(board.x, board.y, board.w, board.h, 12);
+        ctx.clip();
+        drawAllowed();
+        drawLinks();
+        drawPulses();
+        drawNodes();
+        drawSelection();
+        drawSparks();
+        ctx.restore();
+      }
+
+      function loop(now) {
+        const dt = Math.min(0.033, (now - last) / 1000 || 0);
+        last = now;
+        update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+          const radius = Math.min(r, w / 2, h / 2);
+          this.beginPath();
+          this.moveTo(x + radius, y);
+          this.arcTo(x + w, y, x + w, y + h, radius);
+          this.arcTo(x + w, y + h, x, y + h, radius);
+          this.arcTo(x, y + h, x, y, radius);
+          this.arcTo(x, y, x + w, y, radius);
+          this.closePath();
+        };
+      }
+
+      addEventListener("resize", resize);
+      canvas.addEventListener("pointerdown", pointerDown, { passive: false });
+      canvas.addEventListener("pointermove", pointerMove, { passive: false });
+      startBtn.addEventListener("click", startOrContinue);
+      undoBtn.addEventListener("click", undo);
+      pauseBtn.addEventListener("click", togglePause);
+      restartBtn.addEventListener("click", restart);
+      addEventListener("keydown", (e) => {
+        const k = e.key.toLowerCase();
+        if (k === " " || k === "enter") {
+          e.preventDefault();
+          startOrContinue();
+        }
+        if (k === "z") undo();
+        if (k === "p") togglePause();
+        if (k === "r") restart();
+      });
+
+      resize();
+      message(t('threadTitle'), t('threadIntroText'), t('threadStart'));
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
