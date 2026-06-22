@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Number Flash · GamePad</title>
+<script src="../../i18n.js"></script>
+<style>
+  :root{
+    --bg0:#0b0f14;
+    --bg1:#10161d;
+    --panel:#151c25;
+    --panel2:#1b2430;
+    --border:#2a3744;
+    --text:#eaf2f6;
+    --muted:#7e93a3;
+    --c:#ffb454;
+    --cdim:rgba(255,180,84,0.18);
+    --good:#5ee6a0;
+    --bad:#ff6b6b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+  html,body{
+    margin:0;height:100%;
+    background:radial-gradient(circle at 50% -10%, #1d1409 0%, var(--bg0) 55%, var(--bg1) 100%);
+    color:var(--text);
+    font-family:'DM Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    overflow:hidden;
+    touch-action:manipulation;
+  }
+  #wrap{
+    position:relative;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:14px 14px max(14px, env(safe-area-inset-bottom));
+  }
+  #back-btn{
+    position:absolute;
+    top:14px; left:14px;
+    display:flex; align-items:center; gap:6px;
+    background:rgba(0,0,0,0.35);
+    border:1px solid var(--border);
+    color:var(--muted);
+    padding:6px 14px;
+    border-radius:20px;
+    text-decoration:none;
+    font-size:12px; font-weight:500;
+    backdrop-filter:blur(4px);
+    z-index:30;
+    transition:all .18s;
+  }
+  #back-btn:hover{ color:var(--text); border-color:var(--c); }
+
+  #hud{
+    display:flex; gap:10px;
+    margin-top:48px;
+    margin-bottom:10px;
+    z-index:5;
+  }
+  .pill{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:7px 16px;
+    text-align:center;
+    min-width:74px;
+  }
+  .pill .v{ font-size:1.15rem; font-weight:700; color:var(--c); line-height:1.1; }
+  .pill .k{ font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); }
+
+  h1{
+    font-family:'Syne',system-ui,sans-serif;
+    font-size:1.3rem;
+    margin:0 0 2px;
+    letter-spacing:0.02em;
+    text-align:center;
+  }
+  #status{
+    font-size:0.95rem;
+    color:var(--muted);
+    height:1.3em;
+    margin-bottom:12px;
+    text-align:center;
+    font-weight:500;
+  }
+  #status.live{ color:var(--c); }
+
+  #board-wrap{
+    flex:1;
+    width:100%;
+    max-width:460px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:0;
+  }
+  #board{
+    display:grid;
+    gap:8px;
+    width:min(92vw, 420px);
+    aspect-ratio:1/1;
+  }
+  .cell{
+    background:var(--panel2);
+    border:1px solid var(--border);
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:var(--text);
+    cursor:pointer;
+    transition:transform .08s, background .15s, border-color .15s;
+    user-select:none;
+  }
+  .cell:active{ transform:scale(0.93); }
+  .cell.shown{ background:var(--cdim); border-color:var(--c); color:var(--c); }
+  .cell.hidden-num{ background:var(--panel2); color:transparent; }
+  .cell.correct{ background:rgba(94,230,160,0.18); border-color:var(--good); color:var(--good); }
+  .cell.wrong{ background:rgba(255,107,107,0.22); border-color:var(--bad); color:var(--bad); animation:shake .3s; }
+  .cell.reveal{ color:var(--muted); }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-5px);}
+    75%{transform:translateX(5px);}
+  }
+
+  #overlay{
+    position:fixed; inset:0;
+    background:rgba(5,7,10,0.86);
+    display:flex; align-items:center; justify-content:center;
+    z-index:40;
+    backdrop-filter:blur(3px);
+  }
+  #overlay.hidden{ display:none; }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:22px;
+    padding:30px 28px;
+    max-width:340px;
+    width:88vw;
+    text-align:center;
+    box-shadow:0 30px 60px rgba(0,0,0,0.5);
+  }
+  .panel .big{
+    font-family:'Syne',sans-serif;
+    font-size:1.4rem;
+    margin-bottom:10px;
+  }
+  .panel .lead{
+    color:var(--muted);
+    font-size:0.92rem;
+    line-height:1.5;
+    margin-bottom:20px;
+  }
+  .stat-row{
+    display:flex; justify-content:center; gap:22px;
+    margin-bottom:20px;
+  }
+  .stat-row div{ text-align:center; }
+  .stat-row .v{ font-size:1.5rem; font-weight:700; color:var(--c); }
+  .stat-row .k{ font-size:0.65rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); }
+  button.action{
+    background:var(--c);
+    color:#1a1305;
+    border:none;
+    font-weight:700;
+    font-size:1rem;
+    padding:12px 30px;
+    border-radius:100px;
+    cursor:pointer;
+    letter-spacing:0.03em;
+    transition:transform .08s, filter .15s;
+  }
+  button.action:active{ transform:scale(0.96); filter:brightness(0.95); }
+
+  @media (max-width:380px){
+    .panel{ padding:24px 20px; }
+    .panel .big{ font-size:1.2rem; }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <a href="../../index.html" id="back-btn">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    <span id="lbl-back"></span>
+  </a>
+
+  <div id="hud">
+    <div class="pill"><div class="v" id="levelVal">4</div><div class="k" id="lbl-level"></div></div>
+    <div class="pill"><div class="v" id="bestVal">0</div><div class="k" id="lbl-best"></div></div>
+  </div>
+
+  <h1 id="lbl-title"></h1>
+  <div id="status"></div>
+
+  <div id="board-wrap">
+    <div id="board"></div>
+  </div>
+</div>
+
+<div id="overlay">
+  <div class="panel">
+    <div class="big" id="ov-title"></div>
+    <div class="lead" id="ov-lead"></div>
+    <div class="stat-row" id="ov-stats" style="display:none;">
+      <div><div class="v" id="ov-level">0</div><div class="k" id="lbl-final-level"></div></div>
+      <div><div class="v" id="ov-best">0</div><div class="k" id="lbl-best2"></div></div>
+    </div>
+    <button class="action" id="ov-btn"></button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'gamepad_numberflash_best';
+
+  document.getElementById('lbl-back').textContent  = t('back');
+  document.getElementById('lbl-level').textContent = t('nflashLevel');
+  document.getElementById('lbl-best').textContent   = t('nflashBest');
+  document.getElementById('lbl-best2').textContent  = t('nflashBest');
+  document.getElementById('lbl-final-level').textContent = t('nflashFinalLevel');
+  document.getElementById('lbl-title').textContent  = t('nflashTitle');
+
+  const board       = document.getElementById('board');
+  const statusEl    = document.getElementById('status');
+  const levelValEl  = document.getElementById('levelVal');
+  const bestValEl   = document.getElementById('bestVal');
+  const overlay     = document.getElementById('overlay');
+  const ovTitle      = document.getElementById('ov-title');
+  const ovLead       = document.getElementById('ov-lead');
+  const ovStats      = document.getElementById('ov-stats');
+  const ovLevel      = document.getElementById('ov-level');
+  const ovBest       = document.getElementById('ov-best');
+  const ovBtn        = document.getElementById('ov-btn');
+
+  let best = parseInt(localStorage.getItem(STORAGE_KEY), 10) || 0;
+  bestValEl.textContent = best;
+
+  let level = 4;
+  let expected = 1;
+  let locked = true;
+  let cells = [];
+  let timer = null;
+
+  function showStart(){
+    overlay.classList.remove('hidden');
+    ovTitle.textContent = t('nflashTitle');
+    ovLead.textContent  = t('nflashHint');
+    ovStats.style.display = 'none';
+    ovBtn.textContent = t('nflashPlay');
+    ovBtn.onclick = beginRun;
+  }
+
+  function beginRun(){
+    overlay.classList.add('hidden');
+    level = 4;
+    levelValEl.textContent = level;
+    playRound();
+  }
+
+  function buildBoard(n){
+    board.innerHTML = '';
+    cells = [];
+    const cols = Math.ceil(Math.sqrt(n));
+    const rows = Math.ceil(n / cols);
+    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    const fontSize = Math.max(0.85, 1.9 - cols * 0.12);
+
+    const numbers = Array.from({length:n}, (_, i) => i + 1);
+    for (let i = numbers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+
+    for (let i = 0; i < n; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell shown';
+      cell.style.fontSize = fontSize + 'rem';
+      cell.textContent = numbers[i];
+      cell.dataset.value = numbers[i];
+      cell.addEventListener('click', () => onCellClick(cell));
+      board.appendChild(cell);
+      cells.push(cell);
+    }
+  }
+
+  function playRound(){
+    expected = 1;
+    locked = true;
+    statusEl.classList.add('live');
+    statusEl.textContent = t('nflashMemorize');
+    buildBoard(level);
+
+    const memTime = Math.max(900, 3200 - level * 130);
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      cells.forEach(c => {
+        c.classList.remove('shown');
+        c.classList.add('hidden-num');
+      });
+      locked = false;
+      statusEl.classList.remove('live');
+      statusEl.textContent = t('nflashGo');
+    }, memTime);
+  }
+
+  function onCellClick(cell){
+    if (locked || cell.classList.contains('correct')) return;
+    const value = parseInt(cell.dataset.value, 10);
+
+    if (value === expected) {
+      cell.classList.remove('hidden-num');
+      cell.classList.add('correct');
+      cell.textContent = value;
+      expected++;
+      if (expected > level) {
+        locked = true;
+        if (level > best) {
+          best = level;
+          bestValEl.textContent = best;
+          localStorage.setItem(STORAGE_KEY, String(best));
+        }
+        level++;
+        levelValEl.textContent = level;
+        setTimeout(playRound, 550);
+      }
+    } else {
+      locked = true;
+      cell.classList.remove('hidden-num');
+      cell.classList.add('wrong');
+      cell.textContent = value;
+      cells.forEach(c => {
+        if (!c.classList.contains('correct') && !c.classList.contains('wrong')) {
+          c.classList.remove('hidden-num');
+          c.classList.add('reveal');
+          c.textContent = c.dataset.value;
+        }
+      });
+      const reachedLevel = level;
+      if (level - 1 > best) {
+        best = level - 1;
+        bestValEl.textContent = best;
+        localStorage.setItem(STORAGE_KEY, String(best));
+      }
+      setTimeout(() => showGameOver(reachedLevel), 900);
+    }
+  }
+
+  function showGameOver(reachedLevel){
+    overlay.classList.remove('hidden');
+    ovTitle.textContent = t('nflashOverTitle');
+    ovLead.textContent  = '';
+    ovStats.style.display = 'flex';
+    ovLevel.textContent = reachedLevel;
+    ovBest.textContent  = best;
+    ovBtn.textContent = t('nflashRestart');
+    ovBtn.onclick = beginRun;
+  }
+
+  showStart();
+})();
+</script>
+</body>
+</html>

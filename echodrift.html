@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>EchoDrift</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #ecf8ff;
+      --muted: #94aabd;
+      --panel: rgba(5, 12, 18, 0.78);
+      --line: rgba(183, 232, 255, 0.18);
+      --cyan: #46e2ff;
+      --mint: #5cf2b4;
+      --amber: #ffc857;
+      --red: #ff5570;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #02060a;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      touch-action: none;
+    }
+
+    #game {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      background:
+        radial-gradient(circle at 16% 14%, rgba(70, 226, 255, 0.11), transparent 30%),
+        radial-gradient(circle at 82% 74%, rgba(92, 242, 180, 0.09), transparent 34%),
+        linear-gradient(150deg, #02060a 0%, #07101a 54%, #03080e 100%);
+    }
+
+    .hud {
+      position: fixed;
+      inset: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) auto max(12px, env(safe-area-inset-left));
+      display: grid;
+      grid-template-columns: minmax(220px, 420px) auto;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: start;
+      pointer-events: none;
+    }
+
+    .card,
+    .overlay,
+    .controls,
+    .stick {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(16px);
+    }
+
+    .card {
+      padding: 10px 12px;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 5px;
+      font-size: 19px;
+      line-height: 1;
+      letter-spacing: 0;
+      font-weight: 850;
+    }
+
+    .mark {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff 0 15%, var(--cyan) 17% 42%, transparent 44% 100%);
+      box-shadow: 0 0 20px rgba(70, 226, 255, 0.8);
+      flex: 0 0 auto;
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .stats {
+      min-width: 132px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .row strong {
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .bar {
+      width: 100%;
+      height: 6px;
+      margin-top: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.11);
+    }
+
+    .bar > i {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform-origin: left center;
+      background: linear-gradient(90deg, var(--mint), var(--cyan), var(--amber));
+    }
+
+    .controls {
+      position: fixed;
+      right: max(12px, env(safe-area-inset-right));
+      bottom: max(12px, env(safe-area-inset-bottom));
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .stick {
+      position: fixed;
+      left: max(12px, env(safe-area-inset-left));
+      bottom: max(12px, env(safe-area-inset-bottom));
+      width: 112px;
+      height: 112px;
+      display: grid;
+      place-items: center;
+      opacity: 0.84;
+      pointer-events: none;
+    }
+
+    .stick::before,
+    .stick::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(183, 232, 255, 0.22);
+    }
+
+    .stick::before {
+      inset: 20px;
+    }
+
+    .stick::after {
+      width: 18px;
+      height: 18px;
+      background: rgba(70, 226, 255, 0.55);
+      box-shadow: 0 0 20px rgba(70, 226, 255, 0.8);
+      transform: translate(var(--knob-x, 0), var(--knob-y, 0));
+    }
+
+    button {
+      appearance: none;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(224, 244, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--ink);
+      font: 850 18px/1 ui-sans-serif, system-ui, sans-serif;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .pulse {
+      width: 72px;
+      padding: 0 12px;
+      font-size: 13px;
+    }
+
+    .overlay {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: min(430px, calc(100vw - 28px));
+      transform: translate(-50%, -50%);
+      padding: 18px;
+      text-align: center;
+    }
+
+    .overlay[hidden] {
+      display: none;
+    }
+
+    .overlay h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .overlay p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .overlay .wide {
+      width: auto;
+      min-width: 132px;
+      padding: 0 16px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 700px) {
+      .hud {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        width: min(230px, calc(100vw - 24px));
+        text-align: left;
+      }
+
+      .hint {
+        font-size: 11px;
+      }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .stick {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="EchoDrift game board"></canvas>
+
+  <section class="hud" aria-live="polite">
+    <div class="card">
+      <h1 class="title"><span class="mark"></span>EchoDrift</h1>
+      <p class="hint">Ťahaj sondu, ťukni na pulz a odhaľ bludisko. Každý pulz prebúdza šum.</p>
+    </div>
+    <div class="card stats">
+      <div class="row"><span>Level</span><strong id="levelText">1</strong></div>
+      <div class="row"><span>Čas</span><strong id="timeText">0.0</strong></div>
+      <div class="row"><span>Pulzy</span><strong id="pulseText">0</strong></div>
+      <div class="bar"><i id="energyBar"></i></div>
+    </div>
+  </section>
+
+  <div class="stick" id="stick" aria-hidden="true"></div>
+
+  <nav class="controls" aria-label="Herné ovládanie">
+    <button id="pulseBtn" class="pulse" title="Sonarový pulz" aria-label="Sonarový pulz">PING</button>
+    <button id="pauseBtn" title="Pauza alebo pokračovať" aria-label="Pauza alebo pokračovať">Ⅱ</button>
+    <button id="restartBtn" title="Reštart levelu" aria-label="Reštart levelu">↻</button>
+  </nav>
+
+  <div id="overlay" class="overlay">
+    <h1 id="overlayTitle">EchoDrift</h1>
+    <p id="overlayText">V tme vidíš len blízke okolie. Sonar odhalí cestu, energiu aj hrozby, ale privolá viac šumu.</p>
+    <button id="startBtn" class="wide">Štart</button>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const levelText = document.getElementById("levelText");
+      const timeText = document.getElementById("timeText");
+      const pulseText = document.getElementById("pulseText");
+      const energyBar = document.getElementById("energyBar");
+      const overlay = document.getElementById("overlay");
+      const overlayTitle = document.getElementById("overlayTitle");
+      const overlayText = document.getElementById("overlayText");
+      const startBtn = document.getElementById("startBtn");
+      const pauseBtn = document.getElementById("pauseBtn");
+      const restartBtn = document.getElementById("restartBtn");
+      const pulseBtn = document.getElementById("pulseBtn");
+      const stick = document.getElementById("stick");
+
+      const levels = [
+        {
+          start: [0.12, 0.80],
+          exit: [0.86, 0.18],
+          energy: 62,
+          gems: [[0.22, 0.22], [0.50, 0.72], [0.78, 0.50]],
+          noise: [[0.70, 0.25, 0.05], [0.36, 0.50, 0.04]],
+          walls: [[0.10, 0.34, 0.58, 0.37], [0.42, 0.58, 0.90, 0.61], [0.58, 0.16, 0.61, 0.52]]
+        },
+        {
+          start: [0.12, 0.16],
+          exit: [0.88, 0.82],
+          energy: 70,
+          gems: [[0.22, 0.78], [0.48, 0.24], [0.54, 0.72], [0.80, 0.34]],
+          noise: [[0.36, 0.42, 0.045], [0.70, 0.62, 0.05], [0.80, 0.18, 0.035]],
+          walls: [[0.25, 0.08, 0.28, 0.56], [0.44, 0.44, 0.47, 0.92], [0.63, 0.08, 0.66, 0.56]]
+        },
+        {
+          start: [0.50, 0.88],
+          exit: [0.50, 0.12],
+          energy: 76,
+          gems: [[0.18, 0.22], [0.82, 0.22], [0.20, 0.74], [0.80, 0.74], [0.50, 0.50]],
+          noise: [[0.32, 0.34, 0.045], [0.68, 0.34, 0.045], [0.50, 0.66, 0.05]],
+          walls: [[0.08, 0.36, 0.39, 0.39], [0.61, 0.36, 0.92, 0.39], [0.08, 0.60, 0.39, 0.63], [0.61, 0.60, 0.92, 0.63]]
+        }
+      ];
+
+      let dpr = 1;
+      let board = { x: 0, y: 0, w: 1, h: 1, s: 1 };
+      let levelIndex = 0;
+      let level;
+      let player;
+      let exit;
+      let walls = [];
+      let gems = [];
+      let hazards = [];
+      let echoes = [];
+      let particles = [];
+      let state = "intro";
+      let energyMax = 1;
+      let energy = 1;
+      let pulses = 0;
+      let elapsed = 0;
+      let last = performance.now();
+      let input = { x: 0, y: 0, active: false, pointer: null };
+      let pulseCooldown = 0;
+      let shimmer = 0;
+
+      function resize() {
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(innerWidth * dpr);
+        canvas.height = Math.floor(innerHeight * dpr);
+        canvas.style.width = innerWidth + "px";
+        canvas.style.height = innerHeight + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const sidePad = Math.max(16, Math.min(innerWidth, innerHeight) * 0.035);
+        const topPad = innerWidth < 700 ? 156 : 84;
+        const bottomPad = innerWidth < 700 ? 138 : 72;
+        const usableW = innerWidth - sidePad * 2;
+        const usableH = innerHeight - topPad - bottomPad;
+        const size = Math.max(240, Math.min(usableW, usableH));
+        board = {
+          x: Math.round((innerWidth - size) / 2),
+          y: Math.round(topPad + Math.max(0, usableH - size) / 2),
+          w: size,
+          h: size,
+          s: size
+        };
+        loadLevel(levelIndex, true);
+      }
+
+      function pt(p) {
+        return { x: board.x + p[0] * board.w, y: board.y + p[1] * board.h };
+      }
+
+      function rect(r) {
+        return {
+          x: board.x + r[0] * board.w,
+          y: board.y + r[1] * board.h,
+          w: (r[2] - r[0]) * board.w,
+          h: (r[3] - r[1]) * board.h
+        };
+      }
+
+      function loadLevel(index, preserveIntro = false) {
+        levelIndex = (index + levels.length) % levels.length;
+        level = levels[levelIndex];
+        const start = pt(level.start);
+        player = { x: start.x, y: start.y, vx: 0, vy: 0, r: Math.max(9, board.s * 0.022) };
+        exit = { ...pt(level.exit), r: Math.max(18, board.s * 0.045), revealed: 1 };
+        walls = level.walls.map(rect);
+        gems = level.gems.map((g, i) => ({ ...pt(g), r: Math.max(7, board.s * 0.016), id: i, taken: false, revealed: 0 }));
+        hazards = level.noise.map((h, i) => ({ ...pt(h), r: Math.max(15, board.s * h[2]), id: i, angle: i * 1.9, speed: 0.45 + i * 0.08, revealed: 0 }));
+        echoes = [{ x: player.x, y: player.y, r: 0, life: 1, max: board.s * 0.34, power: 0.38 }];
+        particles = [];
+        energyMax = level.energy;
+        energy = level.energy;
+        pulses = 0;
+        elapsed = 0;
+        pulseCooldown = 0;
+        updateHud();
+        if (!preserveIntro || state !== "intro") {
+          state = "playing";
+          overlay.hidden = true;
+        }
+      }
+
+      function updateHud() {
+        levelText.textContent = String(levelIndex + 1);
+        timeText.textContent = elapsed.toFixed(1);
+        pulseText.textContent = String(pulses);
+        energyBar.style.transform = `scaleX(${Math.max(0, energy / energyMax)})`;
+      }
+
+      function message(title, text, button) {
+        overlayTitle.textContent = title;
+        overlayText.textContent = text;
+        startBtn.textContent = button;
+        overlay.hidden = false;
+      }
+
+      function startOrContinue() {
+        if (state === "intro") {
+          loadLevel(levelIndex);
+        } else if (state === "won") {
+          loadLevel(levelIndex + 1);
+        } else if (state === "lost") {
+          loadLevel(levelIndex);
+        } else if (state === "paused") {
+          state = "playing";
+          overlay.hidden = true;
+        }
+      }
+
+      function restart() {
+        loadLevel(levelIndex);
+      }
+
+      function togglePause() {
+        if (state === "playing") {
+          state = "paused";
+          message("Pauza", "Sonda ticho driftuje v tme. Pokračuj, keď chceš.", "Pokračovať");
+        } else if (state === "paused") {
+          state = "playing";
+          overlay.hidden = true;
+        }
+      }
+
+      function ping() {
+        if (state !== "playing" || pulseCooldown > 0 || energy < 4) return;
+        pulses += 1;
+        energy -= 4;
+        pulseCooldown = 0.55;
+        echoes.push({ x: player.x, y: player.y, r: 0, life: 1, max: board.s * 0.82, power: 1 });
+        for (let i = 0; i < 18; i += 1) {
+          const a = (Math.PI * 2 * i) / 18;
+          particles.push({
+            x: player.x,
+            y: player.y,
+            vx: Math.cos(a) * board.s * (0.12 + Math.random() * 0.16),
+            vy: Math.sin(a) * board.s * (0.12 + Math.random() * 0.16),
+            life: 0.5
+          });
+        }
+      }
+
+      function beginPointer(e) {
+        e.preventDefault();
+        if (state === "intro" || state === "won" || state === "lost") {
+          startOrContinue();
+          return;
+        }
+        if (e.target.closest("button")) return;
+        input.active = true;
+        input.pointer = e.pointerId;
+        canvas.setPointerCapture(e.pointerId);
+        movePointer(e);
+      }
+
+      function movePointer(e) {
+        if (!input.active || input.pointer !== e.pointerId) return;
+        e.preventDefault();
+        const cx = innerWidth < 700 ? 68 : player.x;
+        const cy = innerWidth < 700 ? innerHeight - 68 : player.y;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+        const len = Math.hypot(dx, dy);
+        const cap = innerWidth < 700 ? 42 : board.s * 0.14;
+        input.x = len ? Math.max(-1, Math.min(1, dx / cap)) : 0;
+        input.y = len ? Math.max(-1, Math.min(1, dy / cap)) : 0;
+        const knobX = Math.max(-34, Math.min(34, input.x * 34));
+        const knobY = Math.max(-34, Math.min(34, input.y * 34));
+        stick.style.setProperty("--knob-x", knobX + "px");
+        stick.style.setProperty("--knob-y", knobY + "px");
+      }
+
+      function endPointer(e) {
+        if (input.pointer !== e.pointerId) return;
+        input.active = false;
+        input.pointer = null;
+        input.x = 0;
+        input.y = 0;
+        stick.style.setProperty("--knob-x", "0px");
+        stick.style.setProperty("--knob-y", "0px");
+      }
+
+      function collideCircleRect(c, r) {
+        const nx = Math.max(r.x, Math.min(c.x, r.x + r.w));
+        const ny = Math.max(r.y, Math.min(c.y, r.y + r.h));
+        const dx = c.x - nx;
+        const dy = c.y - ny;
+        if (dx * dx + dy * dy > c.r * c.r) return false;
+        const left = Math.abs(c.x - r.x);
+        const right = Math.abs(c.x - (r.x + r.w));
+        const top = Math.abs(c.y - r.y);
+        const bottom = Math.abs(c.y - (r.y + r.h));
+        const min = Math.min(left, right, top, bottom);
+        if (min === left) {
+          c.x = r.x - c.r;
+          c.vx = -Math.abs(c.vx) * 0.35;
+        } else if (min === right) {
+          c.x = r.x + r.w + c.r;
+          c.vx = Math.abs(c.vx) * 0.35;
+        } else if (min === top) {
+          c.y = r.y - c.r;
+          c.vy = -Math.abs(c.vy) * 0.35;
+        } else {
+          c.y = r.y + r.h + c.r;
+          c.vy = Math.abs(c.vy) * 0.35;
+        }
+        return true;
+      }
+
+      function revealByEcho(obj, base = 0.06) {
+        let reveal = base;
+        const near = Math.max(0, 1 - Math.hypot(obj.x - player.x, obj.y - player.y) / (board.s * 0.18));
+        reveal = Math.max(reveal, near * 0.52);
+        for (const e of echoes) {
+          const d = Math.hypot(obj.x - e.x, obj.y - e.y);
+          const band = Math.max(0, 1 - Math.abs(d - e.r) / (board.s * 0.06));
+          const inside = d < e.r ? 0.18 * e.life : 0;
+          reveal = Math.max(reveal, (band * 0.9 + inside) * e.power);
+        }
+        obj.revealed = Math.max(obj.revealed * 0.94, reveal);
+      }
+
+      function update(dt) {
+        shimmer += dt;
+        if (state !== "playing") {
+          for (const e of echoes) {
+            e.r += board.s * dt * 0.5;
+            e.life -= dt * 0.55;
+          }
+          echoes = echoes.filter(e => e.life > 0);
+          return;
+        }
+
+        elapsed += dt;
+        energy -= dt * (0.72 + pulses * 0.025);
+        pulseCooldown = Math.max(0, pulseCooldown - dt);
+
+        const accel = board.s * 1.28;
+        player.vx += input.x * accel * dt;
+        player.vy += input.y * accel * dt;
+        player.vx *= Math.pow(0.88, dt * 60);
+        player.vy *= Math.pow(0.88, dt * 60);
+        const max = board.s * 0.38;
+        const speed = Math.hypot(player.vx, player.vy);
+        if (speed > max) {
+          player.vx = (player.vx / speed) * max;
+          player.vy = (player.vy / speed) * max;
+        }
+        player.x += player.vx * dt;
+        player.y += player.vy * dt;
+
+        if (player.x < board.x + player.r) player.x = board.x + player.r;
+        if (player.x > board.x + board.w - player.r) player.x = board.x + board.w - player.r;
+        if (player.y < board.y + player.r) player.y = board.y + player.r;
+        if (player.y > board.y + board.h - player.r) player.y = board.y + board.h - player.r;
+
+        for (const wall of walls) collideCircleRect(player, wall);
+
+        for (const h of hazards) {
+          h.angle += dt * h.speed * (1 + pulses * 0.05);
+          const wobbleX = Math.cos(h.angle * 1.7 + h.id) * board.s * 0.012;
+          const wobbleY = Math.sin(h.angle * 1.3 + h.id) * board.s * 0.012;
+          h.drawX = h.x + wobbleX;
+          h.drawY = h.y + wobbleY;
+          revealByEcho(h, 0.02);
+          const d = Math.hypot(player.x - h.drawX, player.y - h.drawY);
+          if (d < player.r + h.r) {
+            energy -= 15 * dt;
+            const dx = (player.x - h.drawX) / Math.max(1, d);
+            const dy = (player.y - h.drawY) / Math.max(1, d);
+            player.vx += dx * board.s * 0.8 * dt;
+            player.vy += dy * board.s * 0.8 * dt;
+          }
+        }
+
+        for (const g of gems) {
+          revealByEcho(g, 0.03);
+          if (!g.taken && Math.hypot(player.x - g.x, player.y - g.y) < player.r + g.r + 4) {
+            g.taken = true;
+            energy = Math.min(energyMax, energy + 14);
+            for (let i = 0; i < 10; i += 1) {
+              particles.push({
+                x: g.x,
+                y: g.y,
+                vx: (Math.random() - 0.5) * board.s * 0.22,
+                vy: (Math.random() - 0.5) * board.s * 0.22,
+                life: 0.7
+              });
+            }
+          }
+        }
+
+        revealByEcho(exit, 0.05);
+        if (Math.hypot(player.x - exit.x, player.y - exit.y) < exit.r * 0.75) {
+          state = "won";
+          const score = energy / energyMax > 0.55 ? "★★★" : energy / energyMax > 0.28 ? "★★☆" : "★☆☆";
+          message("Únik nájdený", `${score} Čas ${elapsed.toFixed(1)} s, sonarové pulzy ${pulses}.`, levelIndex === levels.length - 1 ? "Znova" : "Ďalší");
+        }
+
+        if (energy <= 0) {
+          state = "lost";
+          message("Signál zhasol", "Použi menej sonarov alebo nazbieraj viac žltých energetických jadier.", "Reštart");
+        }
+
+        for (const e of echoes) {
+          e.r += board.s * dt * (0.7 + e.power * 0.45);
+          e.life -= dt * (0.52 + e.power * 0.08);
+        }
+        echoes = echoes.filter(e => e.life > 0 && e.r < e.max);
+
+        for (const p of particles) {
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.life -= dt;
+        }
+        particles = particles.filter(p => p.life > 0);
+        updateHud();
+      }
+
+      function roundedRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+      }
+
+      function drawBackdrop() {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        roundedRect(board.x, board.y, board.w, board.h, 12);
+        ctx.fillStyle = "rgba(2, 7, 11, 0.86)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(183, 232, 255, 0.2)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.save();
+        ctx.clip();
+        const step = board.s / 12;
+        ctx.strokeStyle = "rgba(120, 205, 235, 0.055)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 12; i += 1) {
+          ctx.beginPath();
+          ctx.moveTo(board.x + i * step, board.y);
+          ctx.lineTo(board.x + i * step, board.y + board.h);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(board.x, board.y + i * step);
+          ctx.lineTo(board.x + board.w, board.y + i * step);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function alphaFor(x, y, base) {
+        let a = base;
+        const near = Math.max(0, 1 - Math.hypot(x - player.x, y - player.y) / (board.s * 0.20));
+        a = Math.max(a, near * 0.82);
+        for (const e of echoes) {
+          const d = Math.hypot(x - e.x, y - e.y);
+          const band = Math.max(0, 1 - Math.abs(d - e.r) / (board.s * 0.055));
+          const wake = d < e.r ? 0.16 * e.life : 0;
+          a = Math.max(a, (band * 0.95 + wake) * e.power);
+        }
+        return Math.max(0, Math.min(1, a));
+      }
+
+      function drawWalls() {
+        for (const w of walls) {
+          const a = alphaFor(w.x + w.w / 2, w.y + w.h / 2, 0.025);
+          if (a < 0.03) continue;
+          ctx.save();
+          ctx.globalAlpha = a;
+          ctx.shadowColor = "rgba(70, 226, 255, 0.4)";
+          ctx.shadowBlur = 10;
+          roundedRect(w.x, w.y, w.w, w.h, Math.min(8, w.w, w.h));
+          ctx.fillStyle = "rgba(150, 225, 255, 0.28)";
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function drawExit() {
+        const a = alphaFor(exit.x, exit.y, 0.09);
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(exit.x, exit.y);
+        ctx.rotate(shimmer * 0.8);
+        ctx.shadowColor = "#5cf2b4";
+        ctx.shadowBlur = 22;
+        ctx.strokeStyle = "#5cf2b4";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, exit.r * (0.82 + Math.sin(shimmer * 3) * 0.05), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, exit.r * 0.48, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawGems() {
+        for (const g of gems) {
+          if (g.taken) continue;
+          const a = alphaFor(g.x, g.y, 0.025);
+          if (a < 0.03) continue;
+          ctx.save();
+          ctx.globalAlpha = a;
+          ctx.translate(g.x, g.y);
+          ctx.rotate(shimmer * 1.6 + g.id);
+          ctx.shadowColor = "#ffc857";
+          ctx.shadowBlur = 18;
+          ctx.fillStyle = "#ffc857";
+          ctx.beginPath();
+          ctx.moveTo(0, -g.r * 1.2);
+          ctx.lineTo(g.r, 0);
+          ctx.lineTo(0, g.r * 1.2);
+          ctx.lineTo(-g.r, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function drawHazards() {
+        for (const h of hazards) {
+          const x = h.drawX || h.x;
+          const y = h.drawY || h.y;
+          const a = alphaFor(x, y, 0.01);
+          if (a < 0.035) continue;
+          ctx.save();
+          ctx.globalAlpha = a;
+          ctx.translate(x, y);
+          ctx.shadowColor = "#ff5570";
+          ctx.shadowBlur = 18;
+          ctx.strokeStyle = "#ff5570";
+          ctx.lineWidth = 2;
+          for (let i = 0; i < 3; i += 1) {
+            ctx.beginPath();
+            ctx.arc(0, 0, h.r * (0.55 + i * 0.32 + Math.sin(shimmer * 4 + i) * 0.03), 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
+      function drawEchoes() {
+        ctx.save();
+        ctx.clip();
+        for (const e of echoes) {
+          ctx.globalAlpha = Math.max(0, e.life) * 0.85;
+          ctx.strokeStyle = "rgba(70, 226, 255, 0.88)";
+          ctx.lineWidth = 2;
+          ctx.shadowColor = "#46e2ff";
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = Math.max(0, e.life) * 0.16;
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, Math.max(1, e.r - board.s * 0.06), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawParticles() {
+        for (const p of particles) {
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.life);
+          ctx.fillStyle = "#46e2ff";
+          ctx.shadowColor = "#46e2ff";
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function drawPlayer() {
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        const grad = ctx.createRadialGradient(-player.r * 0.35, -player.r * 0.35, 1, 0, 0, player.r * 1.35);
+        grad.addColorStop(0, "#ffffff");
+        grad.addColorStop(0.38, "#9df3ff");
+        grad.addColorStop(1, "#1d7fa0");
+        ctx.shadowColor = "#46e2ff";
+        ctx.shadowBlur = 22;
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, player.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawDarkness() {
+        ctx.save();
+        roundedRect(board.x, board.y, board.w, board.h, 12);
+        ctx.clip();
+        ctx.fillStyle = "rgba(0, 3, 7, 0.72)";
+        ctx.fillRect(board.x, board.y, board.w, board.h);
+        ctx.globalCompositeOperation = "destination-out";
+        const lights = [{ x: player.x, y: player.y, r: board.s * 0.20, a: 0.88 }];
+        for (const e of echoes) lights.push({ x: e.x, y: e.y, r: e.r, a: 0.22 * e.life });
+        for (const l of lights) {
+          const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.r);
+          g.addColorStop(0, `rgba(255,255,255,${l.a})`);
+          g.addColorStop(0.58, `rgba(255,255,255,${l.a * 0.36})`);
+          g.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(l.x, l.y, l.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function draw() {
+        drawBackdrop();
+        ctx.save();
+        roundedRect(board.x, board.y, board.w, board.h, 12);
+        ctx.clip();
+        drawEchoes();
+        drawWalls();
+        drawExit();
+        drawGems();
+        drawHazards();
+        drawParticles();
+        drawPlayer();
+        drawDarkness();
+        ctx.restore();
+      }
+
+      function loop(now) {
+        const dt = Math.min(0.033, (now - last) / 1000 || 0);
+        last = now;
+        update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+          const radius = Math.min(r, w / 2, h / 2);
+          this.beginPath();
+          this.moveTo(x + radius, y);
+          this.arcTo(x + w, y, x + w, y + h, radius);
+          this.arcTo(x + w, y + h, x, y + h, radius);
+          this.arcTo(x, y + h, x, y, radius);
+          this.arcTo(x, y, x + w, y, radius);
+          this.closePath();
+        };
+      }
+
+      addEventListener("resize", resize);
+      canvas.addEventListener("pointerdown", beginPointer, { passive: false });
+      canvas.addEventListener("pointermove", movePointer, { passive: false });
+      canvas.addEventListener("pointerup", endPointer, { passive: false });
+      canvas.addEventListener("pointercancel", endPointer, { passive: false });
+      startBtn.addEventListener("click", startOrContinue);
+      pauseBtn.addEventListener("click", togglePause);
+      restartBtn.addEventListener("click", restart);
+      pulseBtn.addEventListener("click", ping);
+
+      addEventListener("keydown", (e) => {
+        const k = e.key.toLowerCase();
+        if (k === " " || k === "enter") {
+          e.preventDefault();
+          if (state === "playing") ping();
+          else startOrContinue();
+        }
+        if (k === "p") togglePause();
+        if (k === "r") restart();
+        if (k === "arrowleft" || k === "a") input.x = -1;
+        if (k === "arrowright" || k === "d") input.x = 1;
+        if (k === "arrowup" || k === "w") input.y = -1;
+        if (k === "arrowdown" || k === "s") input.y = 1;
+      });
+
+      addEventListener("keyup", (e) => {
+        const k = e.key.toLowerCase();
+        if ((k === "arrowleft" || k === "a") && input.x < 0) input.x = 0;
+        if ((k === "arrowright" || k === "d") && input.x > 0) input.x = 0;
+        if ((k === "arrowup" || k === "w") && input.y < 0) input.y = 0;
+        if ((k === "arrowdown" || k === "s") && input.y > 0) input.y = 0;
+      });
+
+      resize();
+      message("EchoDrift", "V tme vidíš len blízke okolie. Sonar odhalí cestu, energiu aj hrozby, ale privolá viac šumu.", "Štart");
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
