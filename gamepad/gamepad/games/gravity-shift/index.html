@@ -48,6 +48,103 @@
             text-align: center;
         }
 
+        /* ===== UI OVERLAYS (start, gameover) ===== */
+        .ui-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 20, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            color: #fff;
+            padding: 30px;
+            text-align: center;
+            z-index: 60;
+            pointer-events: none;
+        }
+        .ui-overlay.active {
+            display: flex;
+            pointer-events: auto;
+        }
+        .ui-overlay h1 {
+            font-size: clamp(32px, 8vw, 56px);
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #00d4ff, #7b2ffc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 60px rgba(0, 180, 255, 0.3);
+            margin-bottom: 14px;
+        }
+        .ui-overlay .sub {
+            font-size: clamp(14px, 3vw, 20px);
+            color: #88bbff;
+            font-weight: 300;
+            margin-bottom: 30px;
+        }
+        .ui-overlay .score-display {
+            font-size: clamp(16px, 3.5vw, 26px);
+            color: #cce4ff;
+            margin-bottom: 6px;
+        }
+        .ui-overlay .score-display span {
+            color: #ffd866;
+            font-weight: 700;
+        }
+        .ui-overlay .high-score {
+            font-size: clamp(13px, 2.5vw, 18px);
+            color: #88aaff;
+            margin-bottom: 30px;
+        }
+        .ui-overlay .high-score span {
+            color: #ffb347;
+            font-weight: 700;
+        }
+        .game-over-title {
+            font-size: clamp(36px, 9vw, 60px);
+            font-weight: 900;
+            color: #ff4466;
+            text-shadow: 0 0 60px rgba(255, 40, 80, 0.4);
+            margin-bottom: 14px;
+        }
+        .btn {
+            padding: 16px 48px;
+            font-size: clamp(16px, 3vw, 22px);
+            font-weight: 700;
+            border: none;
+            border-radius: 60px;
+            background: linear-gradient(135deg, #00b4ff, #6a2be0);
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 8px 32px rgba(0, 100, 255, 0.35);
+            letter-spacing: 1px;
+            touch-action: manipulation;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 12px 48px rgba(0, 100, 255, 0.5);
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
         #back-btn {
             position: fixed; top: 20px; left: 20px; z-index: 150;
             display: flex; align-items: center; gap: 7px;
@@ -70,11 +167,32 @@
     </a>
     <canvas id="gameCanvas"></canvas>
     <div id="orientation-hint"></div>
+
+    <!-- Start screen -->
+    <div class="ui-overlay active" id="startOverlay">
+        <h1>🌌 GRAVITY SHIFT</h1>
+        <div class="sub" id="lbl-start-sub"></div>
+        <button class="btn" id="startBtnHtml"></button>
+    </div>
+
+    <!-- Game over -->
+    <div class="ui-overlay" id="gameOverOverlay">
+        <div class="game-over-title" id="lbl-over-title"></div>
+        <div class="score-display"><span id="lbl-final-score"></span>: <span id="finalScoreHtml">0</span></div>
+        <div class="high-score"><span id="lbl-final-level"></span>: <span id="finalLevelHtml">1</span></div>
+        <button class="btn" id="restartBtnHtml"></button>
+    </div>
     <script>
         (function() {
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
             const hint = document.getElementById('orientation-hint');
+            const startOverlay = document.getElementById('startOverlay');
+            const gameOverOverlay = document.getElementById('gameOverOverlay');
+            const startBtnHtml = document.getElementById('startBtnHtml');
+            const restartBtnHtml = document.getElementById('restartBtnHtml');
+            const finalScoreHtml = document.getElementById('finalScoreHtml');
+            const finalLevelHtml = document.getElementById('finalLevelHtml');
 
             // ==================== AUDIO ====================
             let audioCtx = null;
@@ -225,6 +343,7 @@
 
             // ==================== RESET ====================
             function restartGame() {
+                gameOverOverlay.classList.remove('active');
                 score = 0;
                 gameOver = false;
                 gameStarted = true;
@@ -469,6 +588,9 @@
                             spawnParticles(px, py, 30, '#ff8800', 5, 35);
                             sfxGameOver();
                             hint.style.opacity = '1';
+                            finalScoreHtml.textContent = score;
+                            finalLevelHtml.textContent = difficultyLevel;
+                            gameOverOverlay.classList.add('active');
                             break;
                         }
                     }
@@ -789,94 +911,6 @@
                 ctx.fillText(`${t('gravityMode')}: ${orientText}`, 20, H - 35);
             }
 
-            function drawStartScreen() {
-                // Polopriehľadné pozadie
-                ctx.fillStyle = 'rgba(0,0,20,0.6)';
-                ctx.fillRect(0, 0, W, H);
-
-                // Názov
-                ctx.fillStyle = '#fff';
-                ctx.font = `bold ${Math.min(W,H)*0.07}px "Segoe UI", system-ui, sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.fillText('🌌 GRAVITY SHIFT', W / 2, H / 2 - 40);
-
-                // Podnadpis
-                ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                ctx.font = `${Math.min(W,H)*0.035}px "Segoe UI", system-ui, sans-serif`;
-                ctx.fillText(t('gravityStartSub'), W / 2, H / 2 + 10);
-
-                // Tlačidlo
-                const startLabel = '▶  ' + t('gravityStartBtn');
-                ctx.font = `bold ${Math.min(W,H)*0.035}px "Segoe UI", system-ui, sans-serif`;
-                const startLabelW = ctx.measureText(startLabel).width;
-                const btnW = Math.min(Math.max(220, startLabelW + 70), W * 0.85);
-                const btnH = 55;
-                const btnX = W / 2 - btnW / 2;
-                const btnY = H / 2 + 40;
-                const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX, btnY + btnH);
-                btnGrad.addColorStop(0, '#4466cc');
-                btnGrad.addColorStop(1, '#2233aa');
-                ctx.fillStyle = btnGrad;
-                ctx.beginPath();
-                ctx.roundRect(btnX, btnY, btnW, btnH, 28);
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.fillStyle = '#fff';
-                ctx.font = `bold ${Math.min(W,H)*0.035}px "Segoe UI", system-ui, sans-serif`;
-                ctx.fillText(startLabel, W / 2, btnY + btnH / 2 + 6);
-
-                // Uloženie tlačidla pre detekciu kliku
-                player._startBtn = { x: btnX, y: btnY, w: btnW, h: btnH };
-            }
-
-            function drawGameOverScreen() {
-                // Tmavý overlay
-                ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                ctx.fillRect(0, 0, W, H);
-
-                // Game Over text
-                ctx.fillStyle = '#ff4444';
-                ctx.font = `bold ${Math.min(W,H)*0.08}px "Segoe UI", system-ui, sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.fillText(t('gravityOverTitle'), W / 2, H / 2 - 50);
-
-                // Skóre
-                ctx.fillStyle = '#fff';
-                ctx.font = `${Math.min(W,H)*0.04}px "Segoe UI", system-ui, sans-serif`;
-                ctx.fillText(`${t('gravityFinalScore')}: ⭐ ${score}`, W / 2, H / 2);
-
-                ctx.fillText(`${t('gravityLevel')}: ${difficultyLevel}`, W / 2, H / 2 + 35);
-
-                // Tlačidlo reštart
-                const restartLabel = '🔄 ' + t('gravityRestartBtn');
-                ctx.font = `bold ${Math.min(W,H)*0.035}px "Segoe UI", system-ui, sans-serif`;
-                const restartLabelW = ctx.measureText(restartLabel).width;
-                const btnW = Math.min(Math.max(240, restartLabelW + 70), W * 0.9);
-                const btnH = 55;
-                const btnX = W / 2 - btnW / 2;
-                const btnY = H / 2 + 60;
-                const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX, btnY + btnH);
-                btnGrad.addColorStop(0, '#cc4444');
-                btnGrad.addColorStop(1, '#aa2222');
-                ctx.fillStyle = btnGrad;
-                ctx.beginPath();
-                ctx.roundRect(btnX, btnY, btnW, btnH, 28);
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.fillStyle = '#fff';
-                ctx.font = `bold ${Math.min(W,H)*0.035}px "Segoe UI", system-ui, sans-serif`;
-                ctx.fillText(restartLabel, W / 2, btnY + btnH / 2 + 6);
-
-                // Uloženie tlačidla
-                player._restartBtn = { x: btnX, y: btnY, w: btnW, h: btnH };
-            }
-
             function render() {
                 // Vyčistenie
                 ctx.clearRect(0, 0, W, H);
@@ -921,16 +955,6 @@
                 if (gameStarted && !gameOver) {
                     drawUI();
                 }
-
-                // Štartovacia obrazovka
-                if (!gameStarted && !gameOver) {
-                    drawStartScreen();
-                }
-
-                // Game over
-                if (gameOver) {
-                    drawGameOverScreen();
-                }
             }
 
             // ==================== GAME LOOP ====================
@@ -941,11 +965,17 @@
             }
 
             // ==================== INPUT ====================
+            function doStart() {
+                if (gameStarted) return;
+                gameStarted = true;
+                startOverlay.classList.remove('active');
+                hint.style.opacity = '0';
+            }
+
             function handlePointer(x, y) {
                 if (gameOver) return;
                 if (!gameStarted) {
-                    gameStarted = true;
-                    hint.style.opacity = '0';
+                    doStart();
                 }
                 if (isLandscape) {
                     player.targetY = y;
@@ -957,26 +987,8 @@
             canvas.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 initAudio();
-                const mx = e.clientX;
-                const my = e.clientY;
-
-                if (gameOver && player._restartBtn) {
-                    const b = player._restartBtn;
-                    if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
-                        restartGame();
-                        return;
-                    }
-                }
-                if (!gameStarted && player._startBtn) {
-                    const b = player._startBtn;
-                    if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
-                        gameStarted = true;
-                        hint.style.opacity = '0';
-                        return;
-                    }
-                }
                 if (!gameOver) {
-                    handlePointer(mx, my);
+                    handlePointer(e.clientX, e.clientY);
                 }
             });
 
@@ -989,26 +1001,8 @@
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 initAudio();
-                const tx = e.touches[0].clientX;
-                const ty = e.touches[0].clientY;
-
-                if (gameOver && player._restartBtn) {
-                    const b = player._restartBtn;
-                    if (tx >= b.x && tx <= b.x + b.w && ty >= b.y && ty <= b.y + b.h) {
-                        restartGame();
-                        return;
-                    }
-                }
-                if (!gameStarted && player._startBtn) {
-                    const b = player._startBtn;
-                    if (tx >= b.x && tx <= b.x + b.w && ty >= b.y && ty <= b.y + b.h) {
-                        gameStarted = true;
-                        hint.style.opacity = '0';
-                        return;
-                    }
-                }
                 if (!gameOver) {
-                    handlePointer(tx, ty);
+                    handlePointer(e.touches[0].clientX, e.touches[0].clientY);
                 }
             }, { passive: false });
 
@@ -1033,8 +1027,7 @@
                 }
                 if (!gameStarted) {
                     if (e.key === ' ' || e.key === 'Enter') {
-                        gameStarted = true;
-                        hint.style.opacity = '0';
+                        doStart();
                         return;
                     }
                 }
@@ -1065,11 +1058,26 @@
             // ==================== INIT ====================
             document.getElementById('lbl-back').textContent = t('back');
             hint.textContent = '🔄 ' + t('gravityOrientHint');
+            document.getElementById('lbl-start-sub').textContent = t('gravityStartSub');
+            startBtnHtml.textContent = '▶  ' + t('gravityStartBtn');
+            document.getElementById('lbl-over-title').textContent = t('gravityOverTitle');
+            document.getElementById('lbl-final-score').textContent = t('gravityFinalScore');
+            document.getElementById('lbl-final-level').textContent = t('gravityLevel');
+            restartBtnHtml.textContent = '🔄  ' + t('gravityRestartBtn');
+
+            startBtnHtml.addEventListener('click', () => {
+                if (gameStarted) return;
+                gameStarted = true;
+                startOverlay.classList.remove('active');
+                hint.style.opacity = '0';
+            });
+            restartBtnHtml.addEventListener('click', () => {
+                restartGame();
+            });
+
             resize();
             initPlayerPosition();
             generateBgStars();
-            player._startBtn = null;
-            player._restartBtn = null;
             gameLoop();
 
             // Skrytie hintu po niekoľkých sekundách ak hráč začne

@@ -51,55 +51,6 @@
         }
 
         /* ===== ORIENTATION OVERLAY ===== */
-        #rotatePrompt {
-            position: absolute;
-            inset: 0;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(10, 10, 30, 0.92);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            color: #aac8ff;
-            padding: 40px;
-            text-align: center;
-            z-index: 100;
-            border-radius: inherit;
-            pointer-events: none;
-        }
-        #rotatePrompt.show {
-            display: flex;
-            pointer-events: auto;
-        }
-        #rotatePrompt .icon {
-            font-size: 72px;
-            margin-bottom: 20px;
-            animation: rotatePhone 2s ease-in-out infinite;
-        }
-        #rotatePrompt h2 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 12px;
-            letter-spacing: 1px;
-        }
-        #rotatePrompt p {
-            font-size: 18px;
-            opacity: 0.8;
-            max-width: 320px;
-            line-height: 1.5;
-        }
-        @keyframes rotatePhone {
-            0%,
-            100% {
-                transform: rotate(0deg);
-            }
-            50% {
-                transform: rotate(90deg);
-            }
-        }
-
         /* ===== UI OVERLAYS (menu, gameover) ===== */
         .ui-overlay {
             position: absolute;
@@ -230,6 +181,7 @@
         }
         .hud-left {
             align-items: flex-start;
+            margin-top: 34px;
         }
         .hud-right {
             align-items: flex-end;
@@ -347,12 +299,6 @@
                 padding: 14px 36px;
                 font-size: 18px;
             }
-            #rotatePrompt h2 {
-                font-size: 22px;
-            }
-            #rotatePrompt p {
-                font-size: 16px;
-            }
         }
         @media (orientation: landscape) and (max-height: 500px) {
             #hud {
@@ -414,13 +360,6 @@
 
         <!-- Canvas -->
         <canvas id="gameCanvas"></canvas>
-
-        <!-- Orientation prompt -->
-        <div id="rotatePrompt" class="show">
-            <div class="icon">📱</div>
-            <h2 id="lbl-rotate-title"></h2>
-            <p id="lbl-rotate-text"></p>
-        </div>
 
         <!-- HUD -->
         <div id="hud">
@@ -491,13 +430,10 @@
 
             const startBtn = document.getElementById('startBtn');
             const restartBtn = document.getElementById('restartBtn');
-            const rotatePrompt = document.getElementById('rotatePrompt');
 
             // ---- i18n ----
             function applyLabels() {
                 document.getElementById('lbl-back').textContent = t('back');
-                document.getElementById('lbl-rotate-title').textContent = t('nebulaRotateTitle');
-                document.getElementById('lbl-rotate-text').textContent = t('nebulaRotateText');
                 document.getElementById('lbl-wave').textContent = t('nebulaWave');
                 document.getElementById('lbl-menu-high').textContent = t('nebulaHighScore');
                 document.getElementById('lbl-controls').textContent = t('nebulaControlsHint');
@@ -525,9 +461,6 @@
                 W = canvas.width;
                 H = canvas.height;
                 scale = Math.min(W / BASE_W, H / BASE_H);
-                // Update orientation prompt
-                const isLandscape = window.innerWidth > window.innerHeight;
-                rotatePrompt.classList.toggle('show', !isLandscape && window.innerWidth < 800);
                 // game objects will be repositioned in update
                 if (game) {
                     game.resize();
