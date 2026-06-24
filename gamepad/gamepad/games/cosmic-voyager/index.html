@@ -585,7 +585,8 @@
             let W, H;
             let gameState = 'menu'; // 'menu' | 'playing' | 'gameover'
             let score = 0;
-            let highScore = parseInt(localStorage.getItem('cosmicVoyagerHigh')) || 0;
+            let highScore = 0;
+            try { highScore = parseInt(localStorage.getItem('cosmicVoyagerHigh')) || 0; } catch(e) {}
             let frameCount = 0;
             let difficulty = 1;
             let spawnTimer = 0;
@@ -839,7 +840,7 @@
                 gameState = 'gameover';
                 if (score > highScore) {
                     highScore = score;
-                    localStorage.setItem('cosmicVoyagerHigh', String(highScore));
+                    try { localStorage.setItem('cosmicVoyagerHigh', String(highScore)); } catch(e) {}
                 }
                 finalScore.textContent = score;
                 finalHigh.textContent = highScore;

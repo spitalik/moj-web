@@ -218,6 +218,9 @@
 <script>
 (function(){
   const STORAGE_KEY = 'gamepad_numberflash_best';
+  function saveBest(value){
+    try { localStorage.setItem(STORAGE_KEY, String(value)); } catch(e) {}
+  }
 
   document.getElementById('lbl-back').textContent  = t('back');
   document.getElementById('lbl-level').textContent = t('nflashLevel');
@@ -238,7 +241,8 @@
   const ovBest       = document.getElementById('ov-best');
   const ovBtn        = document.getElementById('ov-btn');
 
-  let best = parseInt(localStorage.getItem(STORAGE_KEY), 10) || 0;
+  let best = 0;
+  try { best = parseInt(localStorage.getItem(STORAGE_KEY), 10) || 0; } catch(e) {}
   bestValEl.textContent = best;
 
   let level = 4;
@@ -324,7 +328,7 @@
         if (level > best) {
           best = level;
           bestValEl.textContent = best;
-          localStorage.setItem(STORAGE_KEY, String(best));
+          saveBest(best);
         }
         level++;
         levelValEl.textContent = level;
@@ -346,7 +350,7 @@
       if (level - 1 > best) {
         best = level - 1;
         bestValEl.textContent = best;
-        localStorage.setItem(STORAGE_KEY, String(best));
+        saveBest(best);
       }
       setTimeout(() => showGameOver(reachedLevel), 900);
     }

@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="sk">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <title>EchoDrift</title>
+  <title>EchoDrift · GamePad</title>
+  <script src="../../i18n.js"></script>
   <style>
     :root {
       color-scheme: dark;
@@ -48,7 +49,7 @@
 
     .hud {
       position: fixed;
-      inset: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) auto max(12px, env(safe-area-inset-left));
+      inset: max(56px, calc(env(safe-area-inset-top) + 56px)) max(12px, env(safe-area-inset-right)) auto max(12px, env(safe-area-inset-left));
       display: grid;
       grid-template-columns: minmax(220px, 420px) auto;
       gap: 10px;
@@ -143,6 +144,33 @@
       display: flex;
       gap: 8px;
       padding: 8px;
+    }
+
+    #back-btn {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: max(12px, env(safe-area-inset-left));
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      padding: 7px 14px;
+      border-radius: 100px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      backdrop-filter: blur(16px);
+      transition: all .18s;
+    }
+    #back-btn:hover, #back-btn:active {
+      color: var(--ink);
+      border-color: var(--cyan);
+    }
+    @media (max-width: 700px) {
+      #back-btn { font-size: 11px; padding: 6px 12px; }
     }
 
     .stick {
@@ -260,22 +288,27 @@
 <body>
   <canvas id="game" aria-label="EchoDrift game board"></canvas>
 
+  <a href="../../index.html" id="back-btn">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    <span id="lbl-back"></span>
+  </a>
+
   <section class="hud" aria-live="polite">
     <div class="card">
       <h1 class="title"><span class="mark"></span>EchoDrift</h1>
-      <p class="hint">Ťahaj sondu, ťukni na pulz a odhaľ bludisko. Každý pulz prebúdza šum.</p>
+      <p class="hint" id="lbl-hint"></p>
     </div>
     <div class="card stats">
-      <div class="row"><span>Level</span><strong id="levelText">1</strong></div>
-      <div class="row"><span>Čas</span><strong id="timeText">0.0</strong></div>
-      <div class="row"><span>Pulzy</span><strong id="pulseText">0</strong></div>
+      <div class="row"><span id="lbl-level"></span><strong id="levelText">1</strong></div>
+      <div class="row"><span id="lbl-time"></span><strong id="timeText">0.0</strong></div>
+      <div class="row"><span id="lbl-pulses"></span><strong id="pulseText">0</strong></div>
       <div class="bar"><i id="energyBar"></i></div>
     </div>
   </section>
 
   <div class="stick" id="stick" aria-hidden="true"></div>
 
-  <nav class="controls" aria-label="Herné ovládanie">
+  <nav class="controls" aria-label="Herné ovládanie" id="lbl-controls-nav">
     <button id="pulseBtn" class="pulse" title="Sonarový pulz" aria-label="Sonarový pulz">PING</button>
     <button id="pauseBtn" title="Pauza alebo pokračovať" aria-label="Pauza alebo pokračovať">Ⅱ</button>
     <button id="restartBtn" title="Reštart levelu" aria-label="Reštart levelu">↻</button>
@@ -305,6 +338,19 @@
       const restartBtn = document.getElementById("restartBtn");
       const pulseBtn = document.getElementById("pulseBtn");
       const stick = document.getElementById("stick");
+
+      document.getElementById('lbl-back').textContent = t('back');
+      document.getElementById('lbl-hint').textContent = t('driftHint');
+      document.getElementById('lbl-level').textContent = t('driftLevel');
+      document.getElementById('lbl-time').textContent = t('driftTime');
+      document.getElementById('lbl-pulses').textContent = t('driftPulses');
+      document.getElementById('lbl-controls-nav').setAttribute('aria-label', t('driftControlsAria'));
+      pulseBtn.title = t('driftPulseTitle');
+      pulseBtn.setAttribute('aria-label', t('driftPulseTitle'));
+      pauseBtn.title = t('driftPauseTitle');
+      pauseBtn.setAttribute('aria-label', t('driftPauseTitle'));
+      restartBtn.title = t('driftRestartTitle');
+      restartBtn.setAttribute('aria-label', t('driftRestartTitle'));
 
       const levels = [
         {
@@ -363,7 +409,7 @@
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         const sidePad = Math.max(16, Math.min(innerWidth, innerHeight) * 0.035);
-        const topPad = innerWidth < 700 ? 156 : 84;
+        const topPad = innerWidth < 700 ? 200 : 130;
         const bottomPad = innerWidth < 700 ? 138 : 72;
         const usableW = innerWidth - sidePad * 2;
         const usableH = innerHeight - topPad - bottomPad;
@@ -448,7 +494,7 @@
       function togglePause() {
         if (state === "playing") {
           state = "paused";
-          message("Pauza", "Sonda ticho driftuje v tme. Pokračuj, keď chceš.", "Pokračovať");
+          message(t('driftPauseOverlayTitle'), t('driftPauseOverlayText'), t('driftResume'));
         } else if (state === "paused") {
           state = "playing";
           overlay.hidden = true;
@@ -627,12 +673,12 @@
         if (Math.hypot(player.x - exit.x, player.y - exit.y) < exit.r * 0.75) {
           state = "won";
           const score = energy / energyMax > 0.55 ? "★★★" : energy / energyMax > 0.28 ? "★★☆" : "★☆☆";
-          message("Únik nájdený", `${score} Čas ${elapsed.toFixed(1)} s, sonarové pulzy ${pulses}.`, levelIndex === levels.length - 1 ? "Znova" : "Ďalší");
+          message(t('driftWonTitle'), t('driftWonText', { score, time: elapsed.toFixed(1), pulses }), levelIndex === levels.length - 1 ? t('driftAgain') : t('driftNext'));
         }
 
         if (energy <= 0) {
           state = "lost";
-          message("Signál zhasol", "Použi menej sonarov alebo nazbieraj viac žltých energetických jadier.", "Reštart");
+          message(t('driftLostTitle'), t('driftLostText'), t('driftRestart'));
         }
 
         for (const e of echoes) {
@@ -919,7 +965,7 @@
       });
 
       resize();
-      message("EchoDrift", "V tme vidíš len blízke okolie. Sonar odhalí cestu, energiu aj hrozby, ale privolá viac šumu.", "Štart");
+      message(t('driftTitle'), t('driftIntroText'), t('driftStart'));
       requestAnimationFrame(loop);
     })();
   </script>

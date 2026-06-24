@@ -216,6 +216,8 @@ const GAMES = [
   {id:'number-flash',titleKey:'nflashTitle',descKey:'nflashDesc',emoji:'⚡',tags:['memory'],heroColor:'#120e05',file:'games/number-flash/index.html',isNew:true},
   {id:'fluxgall',titleKey:'fluxTitle',descKey:'fluxDesc',emoji:'🧲',tags:['puzzle','arcade'],heroColor:'#06090f',file:'games/fluxgall/index.html',isNew:true},
   {id:'threadcatch',titleKey:'threadTitle',descKey:'threadDesc',emoji:'🧵',tags:['puzzle'],heroColor:'#05070d',file:'games/threadcatch/index.html',isNew:true},
+  {id:'echodrift',titleKey:'driftTitle',descKey:'driftDesc',emoji:'📡',tags:['arcade','puzzle'],heroColor:'#02060a',file:'games/echodrift/index.html',isNew:true},
+  {id:'ninja-runner',titleKey:'ninjaTitle',descKey:'ninjaDesc',emoji:'🥷',tags:['arcade'],heroColor:'#0a0f1e',file:'games/ninja-runner/index.html',isNew:true},
 ];
 
 const TAG_CLASS  = {arcade:'tag-arcade',puzzle:'tag-puzzle',action:'tag-action',strategy:'tag-strategy',memory:'tag-memory'};
@@ -330,7 +332,38 @@ document.getElementById('btn-install').addEventListener('click',()=>{
   deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-banner').style.display='none';});
 });
 document.getElementById('btn-dismiss').addEventListener('click',()=>{document.getElementById('install-banner').style.display='none';});
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').then(reg=>{
+      // Force a fresh check against the network right away, and again
+      // whenever the tab regains focus — sw.js itself can otherwise sit
+      // in the browser's HTTP cache for a while, delaying update checks.
+      reg.update();
+      document.addEventListener('visibilitychange',()=>{
+        if(document.visibilityState==='visible')reg.update();
+      });
+      if(reg.waiting)reg.waiting.postMessage('skipWaiting');
+      reg.addEventListener('updatefound',()=>{
+        const sw=reg.installing;
+        if(!sw)return;
+        sw.addEventListener('statechange',()=>{
+          if(sw.state==='installed'&&navigator.serviceWorker.controller){
+            sw.postMessage('skipWaiting');
+          }
+        });
+      });
+    });
+  });
+  // A new service worker has taken control — the page's in-memory GAMES
+  // list / i18n strings may be stale, so reload once to pick up the
+  // update. The flag below guards against a reload loop.
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(refreshing)return;
+    refreshing=true;
+    window.location.reload();
+  });
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────
 applyLang();
