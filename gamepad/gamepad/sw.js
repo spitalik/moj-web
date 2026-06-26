@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v61';
+const CACHE = 'gamepad-v62';
 
 const ASSETS = [
   './',
@@ -59,6 +59,7 @@ const ASSETS = [
   './games/ninja-runner/index.html',
   './games/survival-arena/index.html',
   './games/one-bullet-dungeon/index.html',
+  './games/binary-grid/index.html',
 ];
 
 self.addEventListener('install', e => {

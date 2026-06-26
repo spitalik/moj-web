@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=2.0, viewport-fit=cover">
+    <title>🌍 Kde to som? – Hádaj štát</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 20%, #1b4a6b, #082032);
+            font-family: 'Segoe UI', 'Cabin', 'Trebuchet MS', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            margin: 0;
+        }
+
+        .game-container {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(252, 246, 227, 0.92);
+            backdrop-filter: blur(20px);
+            border-radius: 56px;
+            padding: 22px 18px 28px;
+            box-shadow: 0 35px 55px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(255, 235, 160, 0.7);
+            border: 2px solid rgba(220, 180, 100, 0.8);
+            transition: all 0.2s;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: clamp(2rem, 7vw, 2.9rem);
+            font-weight: 900;
+            color: #ffefc0;
+            text-shadow: 4px 4px 0 #0d3b4f, 6px 6px 0 rgba(0,0,0,0.25);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            word-break: break-word;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #ffe3a3;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .info-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            background: #f7e5c2;
+            border-radius: 80px;
+            padding: 10px 24px;
+            margin: 8px 0 18px;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.15), 0 12px 18px rgba(0,0,0,0.4);
+            border: 2px solid #dba959;
+            gap: 10px;
+        }
+
+        .state-name {
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: #ffffff;
+            padding: 8px 28px;
+            border-radius: 50px;
+            letter-spacing: 1px;
+            color: #003d4d;
+            box-shadow: 0 5px 0 #b6894b;
+            text-transform: uppercase;
+            text-align: center;
+            min-width: 180px;
+            background: linear-gradient(0deg, #fefaf2, #ffffff);
+            animation: subtleBounce 0.6s ease;
+        }
+
+        @keyframes subtleBounce {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        .badges {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .score-badge {
+            background: #f7c548;
+            border-radius: 50px;
+            padding: 10px 24px;
+            font-weight: 800;
+            font-size: 1.8rem;
+            color: #2d2818;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 7px 0 #b47b2c, 0 10px 15px rgba(0,0,0,0.35);
+            border: 2px solid #f5b53d;
+        }
+
+        .miss-badge {
+            background: #e07b5a;
+            border-radius: 50px;
+            padding: 10px 24px;
+            font-weight: 800;
+            font-size: 1.8rem;
+            color: #2d1818;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 7px 0 #9b422a, 0 10px 15px rgba(0,0,0,0.35);
+            border: 2px solid #f09b7a;
+        }
+
+        .score-badge span:first-child,
+        .miss-badge span:first-child {
+            font-size: 2.2rem;
+        }
+
+        .map-wrapper {
+            background: #b8d8e3;
+            border-radius: 50px;
+            padding: 12px;
+            box-shadow: inset 0 0 25px #2e5f73, 0 18px 30px rgba(0, 0, 0, 0.65);
+            margin: 10px 0 18px;
+            border: 3px solid #ebc47f;
+            position: relative;
+        }
+
+        svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 60vh;
+            background: #a7cdde;
+            border-radius: 30px;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+            touch-action: manipulation;
+            cursor: crosshair;
+        }
+
+        /* Všetky štáty sú klikateľné */
+        .state-path {
+            cursor: pointer;
+            transition: filter 0.2s ease, opacity 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            stroke: rgba(0,0,0,0.3);
+            stroke-width: 1.5;
+        }
+
+        .state-path:hover {
+            filter: brightness(1.3) drop-shadow(0 0 8px #f9e076);
+            stroke: #fff9e6;
+            stroke-width: 2.5;
+        }
+
+        .state-path:active {
+            filter: brightness(1.4) drop-shadow(0 0 14px #ffb703);
+        }
+
+        /* Kontinenty stále reagujú, ale menej výrazne */
+        .continent-group {
+            cursor: default;
+        }
+
+        /* Zvýraznenie správneho štátu */
+        .highlight-correct {
+            fill: #4caf50 !important;
+            stroke: #ffffff;
+            stroke-width: 3.5px;
+            filter: drop-shadow(0 0 20px #2ecc40) drop-shadow(0 0 35px #a0ffa0);
+            animation: correctPulse 1s infinite;
+        }
+
+        @keyframes correctPulse {
+            0% { filter: drop-shadow(0 0 15px #2ecc40) brightness(1.1); }
+            50% { filter: drop-shadow(0 0 30px #7fff7f) brightness(1.4); }
+            100% { filter: drop-shadow(0 0 15px #2ecc40) brightness(1.1); }
+        }
+
+        /* Zvýraznenie nesprávneho štátu */
+        .highlight-wrong {
+            fill: #ff1744 !important;
+            stroke: #ffffff;
+            stroke-width: 3px;
+            filter: drop-shadow(0 0 18px #ff1744);
+            animation: wrongFlash 0.6s ease-out;
+        }
+
+        @keyframes wrongFlash {
+            0% { fill: #ff5252; filter: drop-shadow(0 0 25px #ff1744); }
+            100% { fill: #d32f2f; filter: drop-shadow(0 0 8px #ff1744); }
+        }
+
+        .continents-grid {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 15px 0 5px;
+        }
+
+        .continent-btn {
+            background: linear-gradient(180deg, #fff2d8 0%, #f7ca6e 100%);
+            border: none;
+            padding: 14px 18px;
+            border-radius: 100px;
+            font-weight: 800;
+            font-size: 1.15rem;
+            letter-spacing: 0.8px;
+            color: #2b4b5e;
+            box-shadow: 0 7px 0 #b4813e, 0 8px 14px rgba(0,0,0,0.4);
+            border: 2px solid #ffe3a3;
+            cursor: pointer;
+            transition: all 0.08s ease;
+            text-transform: uppercase;
+            flex: 1 1 auto;
+            min-width: 105px;
+            touch-action: manipulation;
+        }
+
+        .continent-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #7a562f, 0 5px 10px black;
+            background: #f1b846;
+        }
+
+        .reset-btn {
+            background: linear-gradient(180deg, #4f3e2c 0%, #221a0e 100%);
+            color: #ffeecd;
+            border-color: #dbaa5c;
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 14px 32px;
+            margin-top: 8px;
+            box-shadow: 0 6px 0 #2f200b, 0 8px 16px black;
+        }
+
+        .feedback-message {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin: 12px auto 5px;
+            min-height: 2.8rem;
+            background: rgba(255, 254, 245, 0.9);
+            border-radius: 40px;
+            padding: 8px 22px;
+            display: inline-block;
+            width: fit-content;
+            color: #1e3b44;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 650px) {
+            .continent-btn {
+                font-size: 0.95rem;
+                padding: 10px 12px;
+                min-width: 80px;
+            }
+            .state-name {
+                font-size: 1.6rem;
+                padding: 6px 18px;
+            }
+            .score-badge, .miss-badge {
+                font-size: 1.5rem;
+                padding: 8px 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1>🌍 KDE JE TEN ŠTÁT?</h1>
+    <div class="subtitle">🎯 Klikni priamo na štát na mape</div>
+
+    <div class="info-panel">
+        <div class="state-name" id="currentStateDisplay">-----</div>
+        <div class="badges">
+            <div class="score-badge">
+                <span>✅</span> <span id="scoreValue">0</span>
+            </div>
+            <div class="miss-badge">
+                <span>❌</span> <span id="missValue">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="map-wrapper">
+        <svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" id="worldMap">
+            <!-- AFRIKA -->
+            <g id="continent-africa" class="continent-group" data-continent="Afrika">
+                <path id="state-ZA" data-state="Južná Afrika" class="state-path" d="M568,422 L582,416 L596,428 L600,447 L592,468 L574,478 L555,472 L544,458 L548,437 Z" fill="#7BA05B" stroke="#3b5527" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-NG" data-state="Nigéria" class="state-path" d="M503,366 L520,358 L531,368 L528,386 L516,401 L498,396 L490,382 Z" fill="#7BA05B" stroke="#3b5527" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-EG" data-state="Egypt" class="state-path" d="M543,320 L564,312 L577,328 L573,348 L554,356 L538,345 L534,329 Z" fill="#7BA05B" stroke="#3b5527" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-KE" data-state="Keňa" class="state-path" d="M575,383 L591,376 L600,393 L593,412 L574,416 L566,400 Z" fill="#7BA05B" stroke="#3b5527" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-ET" data-state="Etiópia" class="state-path" d="M576,347 L593,340 L601,356 L595,375 L578,377 L569,362 Z" fill="#7BA05B" stroke="#3b5527" stroke-width="1.9" stroke-linejoin="round"/>
+            </g>
+            <!-- ÁZIA -->
+            <g id="continent-asia" class="continent-group" data-continent="Ázia">
+                <path id="state-CN" data-state="Čína" class="state-path" d="M718,198 L756,188 L782,208 L790,238 L772,266 L738,273 L710,258 L702,232 L705,212 Z" fill="#D98C5F" stroke="#7b4a2e" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-IN" data-state="India" class="state-path" d="M668,281 L696,272 L716,287 L710,316 L685,328 L662,318 L654,298 Z" fill="#D98C5F" stroke="#7b4a2e" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-JP" data-state="Japonsko" class="state-path" d="M804,190 L820,183 L826,204 L808,214 L800,200 Z" fill="#D98C5F" stroke="#7b4a2e" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-RU" data-state="Rusko" class="state-path" d="M702,108 L768,92 L814,118 L826,148 L794,172 L742,165 L698,145 L684,124 Z" fill="#D98C5F" stroke="#7b4a2e" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-SA" data-state="Saudská Arábia" class="state-path" d="M622,302 L648,293 L662,312 L647,336 L620,333 L610,315 Z" fill="#D98C5F" stroke="#7b4a2e" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-TR" data-state="Turecko" class="state-path" d="M573,258 L596,250 L608,268 L597,286 L574,283 L565,270 Z" fill="#D98C5F" stroke="#7b4a2e" stroke-width="1.9" stroke-linejoin="round"/>
+            </g>
+            <!-- EURÓPA -->
+            <g id="continent-europe" class="continent-group" data-continent="Európa">
+                <path id="state-DE" data-state="Nemecko" class="state-path" d="M498,172 L526,164 L540,180 L531,200 L507,202 L492,192 L487,180 Z" fill="#7E9DB9" stroke="#364f63" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-FR" data-state="Francúzsko" class="state-path" d="M464,188 L486,178 L498,192 L487,213 L466,213 L456,200 Z" fill="#7E9DB9" stroke="#364f63" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-ES" data-state="Španielsko" class="state-path" d="M438,212 L458,200 L470,216 L456,237 L434,234 L425,220 Z" fill="#7E9DB9" stroke="#364f63" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-IT" data-state="Taliansko" class="state-path" d="M508,208 L524,200 L534,218 L520,240 L504,237 L497,221 Z" fill="#7E9DB9" stroke="#364f63" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-GB" data-state="Spojené kráľovstvo" class="state-path" d="M452,154 L476,144 L486,160 L470,174 L450,170 L442,159 Z" fill="#7E9DB9" stroke="#364f63" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-PL" data-state="Poľsko" class="state-path" d="M530,155 L550,150 L558,165 L545,178 L528,175 L522,162 Z" fill="#7E9DB9" stroke="#364f63" stroke-width="1.9" stroke-linejoin="round"/>
+            </g>
+            <!-- SEVERNÁ AMERIKA -->
+            <g id="continent-northamerica" class="continent-group" data-continent="Severná Amerika">
+                <path id="state-US" data-state="USA" class="state-path" d="M178,152 L242,134 L274,156 L285,186 L262,222 L212,232 L172,214 L153,186 L157,166 Z" fill="#C28B5E" stroke="#634f35" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-CA" data-state="Kanada" class="state-path" d="M166,88 L234,72 L276,99 L288,128 L252,145 L188,138 L148,116 L143,97 Z" fill="#C28B5E" stroke="#634f35" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-MX" data-state="Mexiko" class="state-path" d="M186,242 L226,230 L244,250 L225,278 L186,278 L169,258 Z" fill="#C28B5E" stroke="#634f35" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-CU" data-state="Kuba" class="state-path" d="M218,268 L240,264 L248,276 L232,284 L215,278 Z" fill="#C28B5E" stroke="#634f35" stroke-width="1.9" stroke-linejoin="round"/>
+            </g>
+            <!-- JUŽNÁ AMERIKA -->
+            <g id="continent-southamerica" class="continent-group" data-continent="Južná Amerika">
+                <path id="state-BR" data-state="Brazília" class="state-path" d="M280,362 L326,346 L354,372 L362,402 L336,428 L292,434 L264,412 L260,385 Z" fill="#56814A" stroke="#2a4020" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-AR" data-state="Argentína" class="state-path" d="M272,438 L316,422 L334,448 L322,478 L288,492 L258,484 L244,462 Z" fill="#56814A" stroke="#2a4020" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-CO" data-state="Kolumbia" class="state-path" d="M260,342 L284,332 L296,348 L284,368 L257,368 L248,350 Z" fill="#56814A" stroke="#2a4020" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-PE" data-state="Peru" class="state-path" d="M262,374 L284,366 L296,382 L284,402 L262,408 L252,392 Z" fill="#56814A" stroke="#2a4020" stroke-width="1.9" stroke-linejoin="round"/>
+            </g>
+            <!-- AUSTRÁLIA A OCEÁNIA -->
+            <g id="continent-australia" class="continent-group" data-continent="Austrália a Oceánia">
+                <path id="state-AU" data-state="Austrália" class="state-path" d="M778,418 L822,404 L848,426 L840,462 L796,478 L764,462 L758,438 Z" fill="#B58B4F" stroke="#5e432a" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-NZ" data-state="Nový Zéland" class="state-path" d="M860,472 L876,464 L884,484 L866,494 L854,484 Z" fill="#B58B4F" stroke="#5e432a" stroke-width="1.9" stroke-linejoin="round"/>
+                <path id="state-PG" data-state="Papua-Nová Guinea" class="state-path" d="M792,394 L810,388 L818,406 L800,412 Z" fill="#B58B4F" stroke="#5e432a" stroke-width="1.9" stroke-linejoin="round"/>
+            </g>
+            <path d="M100,540 L900,540 L885,585 L115,585 Z" fill="#D4D4D4" stroke="#9a9a9a" stroke-width="1.5" opacity="0.8" style="pointer-events: none;"/>
+        </svg>
+    </div>
+
+    <div class="continents-grid" id="continentButtonsContainer"></div>
+
+    <div class="feedback-message" id="feedback">🎯 Klikni priamo na štát na mape!</div>
+    <button class="continent-btn reset-btn" id="resetGameButton">🔄 Nová hra</button>
+</div>
+
+<script>
+    (function() {
+        const continentsMap = {
+            "Afrika": ["Južná Afrika", "Nigéria", "Egypt", "Keňa", "Etiópia"],
+            "Ázia": ["Čína", "India", "Japonsko", "Rusko", "Saudská Arábia", "Turecko"],
+            "Európa": ["Nemecko", "Francúzsko", "Španielsko", "Taliansko", "Spojené kráľovstvo", "Poľsko"],
+            "Severná Amerika": ["USA", "Kanada", "Mexiko", "Kuba"],
+            "Južná Amerika": ["Brazília", "Argentína", "Kolumbia", "Peru"],
+            "Austrália a Oceánia": ["Austrália", "Nový Zéland", "Papua-Nová Guinea"]
+        };
+
+        const stateToId = {
+            "Južná Afrika": "state-ZA", "Nigéria": "state-NG", "Egypt": "state-EG",
+            "Keňa": "state-KE", "Etiópia": "state-ET", "Čína": "state-CN",
+            "India": "state-IN", "Japonsko": "state-JP", "Rusko": "state-RU",
+            "Saudská Arábia": "state-SA", "Turecko": "state-TR", "Nemecko": "state-DE",
+            "Francúzsko": "state-FR", "Španielsko": "state-ES", "Taliansko": "state-IT",
+            "Spojené kráľovstvo": "state-GB", "Poľsko": "state-PL", "USA": "state-US",
+            "Kanada": "state-CA", "Mexiko": "state-MX", "Kuba": "state-CU",
+            "Brazília": "state-BR", "Argentína": "state-AR", "Kolumbia": "state-CO",
+            "Peru": "state-PE", "Austrália": "state-AU", "Nový Zéland": "state-NZ",
+            "Papua-Nová Guinea": "state-PG"
+        };
+
+        const idToState = {};
+        for (let [state, id] of Object.entries(stateToId)) {
+            idToState[id] = state;
+        }
+
+        let currentState = null;
+        let currentContinent = null;
+        let score = 0;
+        let misses = 0;
+        let roundActive = true;
+        let highlightedElement = null;
+
+        const stateDisplay = document.getElementById('currentStateDisplay');
+        const scoreSpan = document.getElementById('scoreValue');
+        const missSpan = document.getElementById('missValue');
+        const feedback = document.getElementById('feedback');
+        const buttonsContainer = document.getElementById('continentButtonsContainer');
+        const resetBtn = document.getElementById('resetGameButton');
+
+        function getContinentByState(state) {
+            for (let [cont, states] of Object.entries(continentsMap)) {
+                if (states.includes(state)) return cont;
+            }
+            return null;
+        }
+
+        function randomState() {
+            const all = Object.values(continentsMap).flat();
+            return all[Math.floor(Math.random() * all.length)];
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.state-path').forEach(el => {
+                el.classList.remove('highlight-correct', 'highlight-wrong');
+            });
+            highlightedElement = null;
+        }
+
+        function highlightCorrect(stateName) {
+            clearHighlights();
+            const id = stateToId[stateName];
+            if (!id) return;
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('highlight-correct');
+                highlightedElement = el;
+            }
+        }
+
+        function flashWrong(stateName) {
+            const id = stateToId[stateName];
+            if (!id) return;
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('highlight-wrong');
+                setTimeout(() => {
+                    el.classList.remove('highlight-wrong');
+                }, 600);
+            }
+        }
+
+        function updateUI() {
+            stateDisplay.textContent = currentState || '-----';
+            scoreSpan.textContent = score;
+            missSpan.textContent = misses;
+        }
+
+        function enableUI(enable) {
+            document.querySelectorAll('.continent-btn:not(.reset-btn)').forEach(b => {
+                b.disabled = !enable;
+                b.style.opacity = enable ? '1' : '0.7';
+                b.style.pointerEvents = enable ? 'auto' : 'none';
+            });
+            document.querySelectorAll('.state-path').forEach(p => {
+                p.style.pointerEvents = enable ? 'auto' : 'none';
+            });
+        }
+
+        function newRound() {
+            clearHighlights();
+            roundActive = true;
+            currentState = randomState();
+            currentContinent = getContinentByState(currentState);
+            updateUI();
+            feedback.textContent = '🎯 Klikni priamo na štát na mape!';
+            feedback.style.color = '#1e3b44';
+            enableUI(true);
+        }
+
+        function correctGuess(clickedState) {
+            if (!roundActive) return;
+            roundActive = false;
+            enableUI(false);
+            highlightCorrect(currentState);
+            score += 2; // 2 body za presné kliknutie
+            updateUI();
+            feedback.textContent = `✅ Správne! ${currentState} je zvýraznený. +2 body!`;
+            feedback.style.color = '#1f5c2e';
+            setTimeout(newRound, 2500);
+        }
+
+        function wrongGuess(clickedState) {
+            if (!roundActive) return;
+            roundActive = false;
+            enableUI(false);
+            misses++;
+            updateUI();
+            flashWrong(clickedState);
+            const clickedContinent = getContinentByState(clickedState) || 'neznámy';
+            feedback.textContent = `❌ ${clickedState} (${clickedContinent}) nie je správny štát. +1 chyba`;
+            feedback.style.color = '#b33a3a';
+            setTimeout(() => {
+                if (currentState && !roundActive) {
+                    roundActive = true;
+                    enableUI(true);
+                    feedback.textContent = '🎯 Skús iný štát...';
+                    feedback.style.color = '#1e3b44';
+                }
+            }, 1000);
+        }
+
+        function onStateClick(stateName) {
+            if (!roundActive || !currentState) return;
+            if (stateName === currentState) {
+                correctGuess(stateName);
+            } else {
+                wrongGuess(stateName);
+            }
+        }
+
+        function onContinentClick(continent) {
+            if (!roundActive) return;
+            feedback.textContent = `💡 ${continent} – ale skús kliknúť priamo na štát!`;
+            feedback.style.color = '#8b6914';
+        }
+
+        function buildButtons() {
+            buttonsContainer.innerHTML = '';
+            Object.keys(continentsMap).forEach(cont => {
+                const btn = document.createElement('button');
+                btn.className = 'continent-btn';
+                btn.textContent = cont;
+                btn.style.opacity = '0.8';
+                btn.addEventListener('click', (e) => { e.stopPropagation(); onContinentClick(cont); });
+                btn.addEventListener('touchend', (e) => { e.preventDefault(); onContinentClick(cont); });
+                buttonsContainer.appendChild(btn);
+            });
+        }
+
+        function attachListeners() {
+            document.querySelectorAll('.state-path').forEach(path => {
+                const stateName = path.getAttribute('data-state');
+                if (!stateName) return;
+                path.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    onStateClick(stateName);
+                });
+                path.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    onStateClick(stateName);
+                });
+            });
+        }
+
+        function resetGame() {
+            clearHighlights();
+            score = 0;
+            misses = 0;
+            currentState = randomState();
+            currentContinent = getContinentByState(currentState);
+            roundActive = true;
+            updateUI();
+            enableUI(true);
+            feedback.textContent = '🔄 Nová hra! Klikni na správny štát.';
+            feedback.style.color = '#1e3b44';
+        }
+
+        resetBtn.addEventListener('click', resetGame);
+        resetBtn.addEventListener('touchend', (e) => { e.preventDefault(); resetGame(); });
+
+        buildButtons();
+        attachListeners();
+        newRound();
+    })();
+</script>
+</body>
+</html>
