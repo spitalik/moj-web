@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v62';
+const CACHE = 'gamepad-v65';
 
 const ASSETS = [
   './',
@@ -60,6 +60,7 @@ const ASSETS = [
   './games/survival-arena/index.html',
   './games/one-bullet-dungeon/index.html',
   './games/binary-grid/index.html',
+  './games/geoklik/index.html',
 ];
 
 self.addEventListener('install', e => {
