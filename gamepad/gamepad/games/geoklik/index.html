@@ -471,6 +471,85 @@
     font-size:11px;
     margin-top:2px;
   }
+
+  /* ---------- Landscape mobile (rotated phone) ---------- */
+  /* Stacking everything in one column (default layout) is taller than a
+     rotated phone's viewport, forcing users to scroll past the map to reach
+     the mode switch / zoom controls — it then looks "broken". Below this
+     breakpoint we switch to a two-column layout (map left, compact info
+     column right) sized to fit a single screen with no scrolling. */
+  @media (orientation:landscape) and (max-height:560px){
+    body{ min-height:100dvh; }
+    .wrap{
+      width:100%;
+      max-width:100%;
+      height:100dvh;
+      height:100svh;
+      min-height:0;
+      margin-top:0;
+      padding:8px 10px 8px 8px;
+      gap:8px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) min(36vw,230px);
+      grid-template-rows:auto auto auto minmax(0,1fr);
+      grid-template-areas:
+        "map topbar"
+        "map mode"
+        "map prompt"
+        "map legend";
+      overflow:hidden;
+    }
+    #back-btn{
+      top:8px; left:8px; padding:5px 10px; font-size:11px;
+    }
+    .topbar{ grid-area:topbar; justify-content:flex-end; }
+    .brand{ display:none; }
+    .stat-group{ gap:10px; }
+    .mode-switch{ grid-area:mode; }
+    .mode-btn{ font-size:11px; padding:7px 4px; }
+    .prompt-card{ grid-area:prompt; padding:8px 10px; overflow-y:auto; }
+    .prompt-label{ font-size:10px; margin-bottom:2px; }
+    .prompt-name{ font-size:clamp(15px,3.4vw,20px); }
+    .feedback-msg{ font-size:11px; min-height:14px; margin-top:3px; }
+    .map-shell{
+      grid-area:map;
+      height:100%;
+      min-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:4px;
+    }
+    svg#map{
+      width:auto;
+      height:100%;
+      max-width:100%;
+      max-height:100%;
+    }
+    .legend{
+      grid-area:legend;
+      justify-content:flex-start;
+      gap:5px 10px;
+      overflow-y:auto;
+      max-height:100%;
+      padding:0;
+    }
+    .legend-item{ font-size:10.5px; }
+    .footnote{ display:none; }
+    .overlay{ padding:10px; }
+    .modal{
+      padding:16px 18px 14px;
+      max-height:94dvh;
+      max-height:94vh;
+      overflow-y:auto;
+    }
+    .modal h2{ font-size:17px; }
+    .modal .sub{ margin-bottom:8px; }
+    .modal .big-score{ font-size:32px; margin-bottom:2px; }
+    .modal .acc{ margin-bottom:4px; }
+    #finalBest{ margin-bottom:10px; }
+    .btn{ padding:10px 18px; font-size:14px; }
+  }
 </style>
 </head>
 <body>
