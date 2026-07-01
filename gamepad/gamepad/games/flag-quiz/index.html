@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flag Quiz · GamePad</title>
+<script src="../../i18n.js"></script>
+<style>
+  :root{
+    --bg:#080c16;
+    --bg-2:#0d1322;
+    --panel:#121a2c;
+    --line:#22304a;
+    --text:#eef1f8;
+    --muted:#8893ad;
+    --accent:#ffb454;
+    --good:#3fcf7f;
+    --bad:#f15f6f;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+  html,body{
+    margin:0;min-height:100%;
+    background:radial-gradient(circle at 50% -10%, #1a1408 0%, var(--bg) 55%, var(--bg-2) 100%);
+    color:var(--text);
+    font-family:'DM Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  body{ display:flex; flex-direction:column; align-items:center; min-height:100vh; }
+
+  #back-btn{
+    position:fixed; top:14px; left:14px; z-index:60;
+    display:flex; align-items:center; gap:7px;
+    background:rgba(8,12,22,0.85); border:1px solid var(--line); color:var(--muted);
+    padding:7px 14px; border-radius:100px; text-decoration:none;
+    font-size:12px; font-weight:600; backdrop-filter:blur(4px); transition:all .18s;
+  }
+  #back-btn:hover, #back-btn:active{ border-color:var(--accent); color:var(--text); }
+
+  .wrap{
+    width:100%; max-width:560px;
+    padding:14px 14px 28px; padding-top:52px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  @media (min-width:481px){ .wrap{ padding-top:14px; margin-top:40px; } }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .brand{ display:flex; align-items:center; gap:8px; font-weight:800; letter-spacing:.04em; font-size:14px; }
+  .brand .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent); }
+  .stat-group{ display:flex; align-items:center; gap:14px; }
+  .hearts{ display:flex; gap:4px; font-size:18px; letter-spacing:1px; }
+  .heart{ transition:transform .25s ease, opacity .25s ease; }
+  .heart.lost{ opacity:.25; transform:scale(.8); filter:grayscale(1); }
+  .score-box{ display:flex; flex-direction:column; align-items:flex-end; line-height:1.05; }
+  .score-label{ font-size:10px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; }
+  .score-value{ font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .best-box .score-value{ font-size:16px; color:var(--muted); }
+
+  .mode-switch{
+    display:flex; gap:6px; background:var(--panel); border:1px solid var(--line);
+    border-radius:14px; padding:4px;
+  }
+  .mode-btn{
+    flex:1; appearance:none; border:none; background:transparent; color:var(--muted);
+    padding:9px 6px; border-radius:10px; font-size:12.5px; font-weight:700; cursor:pointer;
+    transition:all .15s;
+  }
+  .mode-btn.active{ background:linear-gradient(180deg,var(--accent),#e08f2a); color:#1a1305; }
+
+  .prompt-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px; text-align:center;
+  }
+  .prompt-label{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .flag-display{
+    width:min(72%, 260px); margin:0 auto; aspect-ratio:3/2; border-radius:10px; overflow:hidden;
+    border:1px solid var(--line); box-shadow:0 10px 24px rgba(0,0,0,0.4);
+  }
+  .flag-display svg{ width:100%; height:100%; display:block; }
+  .prompt-name{ font-size:clamp(20px,5vw,28px); font-weight:800; margin:6px 0 2px; }
+  .feedback-msg{ font-size:13px; min-height:18px; margin-top:8px; font-weight:600; }
+  .feedback-msg.good{ color:var(--good); }
+  .feedback-msg.bad{ color:var(--bad); }
+
+  .answer-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .answer-btn{
+    appearance:none; border:1px solid var(--line); background:var(--panel); color:var(--text);
+    border-radius:14px; padding:14px 10px; font-size:14px; font-weight:700; cursor:pointer;
+    transition:all .15s; text-align:center;
+  }
+  .answer-btn:active{ transform:scale(.97); }
+  .answer-btn.correct{ background:rgba(63,207,127,0.18); border-color:var(--good); color:var(--good); }
+  .answer-btn.wrong{ background:rgba(241,95,111,0.18); border-color:var(--bad); color:var(--bad); }
+  .answer-btn.flag-opt{ padding:8px; }
+  .answer-btn.flag-opt .flag-thumb{
+    width:100%; aspect-ratio:3/2; border-radius:8px; overflow:hidden; border:1px solid var(--line);
+  }
+  .answer-btn.flag-opt .flag-thumb svg{ width:100%; height:100%; display:block; }
+
+  .footnote{ text-align:center; color:var(--muted); font-size:11px; margin-top:2px; }
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(5,8,15,0.72); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; z-index:50;
+    opacity:0; pointer-events:none; transition:opacity .25s ease; padding:18px;
+  }
+  .overlay.active{ opacity:1; pointer-events:auto; }
+  .modal{
+    background:linear-gradient(180deg,#1f1810,#150f08); border:1px solid var(--line); border-radius:20px;
+    padding:28px 26px 24px; width:100%; max-width:340px; text-align:center;
+    transform:translateY(10px) scale(.96); transition:transform .25s ease;
+  }
+  .overlay.active .modal{ transform:translateY(0) scale(1); }
+  .modal h2{ margin:0 0 4px; font-size:22px; font-weight:800; }
+  .modal .sub{ color:var(--muted); font-size:13px; margin-bottom:18px; }
+  .modal .big-score{ font-size:46px; font-weight:800; line-height:1; margin-bottom:4px; font-variant-numeric:tabular-nums; }
+  .modal .acc{ color:var(--muted); font-size:13px; margin-bottom:20px; }
+  .btn{
+    appearance:none; border:none; border-radius:12px; padding:13px 22px; font-size:15px; font-weight:800;
+    cursor:pointer; width:100%; background:linear-gradient(180deg,var(--accent),#e08f2a); color:#1a1305;
+    box-shadow:0 6px 18px -4px rgba(255,180,84,.5); transition:transform .12s ease;
+  }
+  .btn:active{ transform:scale(.97); }
+
+  @media (orientation:landscape) and (max-height:560px){
+    body{ min-height:100dvh; }
+    .wrap{
+      width:100%; max-width:100%; height:100dvh; height:100svh; min-height:0;
+      margin-top:0; padding:8px 10px; gap:8px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) min(40vw,260px);
+      grid-template-rows:auto auto minmax(0,1fr);
+      grid-template-areas:"prompt topbar" "prompt mode" "prompt answers";
+      overflow:hidden;
+    }
+    #back-btn{ top:8px; left:8px; padding:5px 10px; font-size:11px; }
+    .topbar{ grid-area:topbar; }
+    .brand{ display:none; }
+    .mode-switch{ grid-area:mode; }
+    .mode-btn{ font-size:11px; padding:7px 4px; }
+    .prompt-card{ grid-area:prompt; display:flex; flex-direction:column; justify-content:center; padding:10px; overflow-y:auto; }
+    .flag-display{ width:min(80%, 220px); }
+    .answer-grid{ grid-area:answers; align-content:center; overflow-y:auto; }
+    .footnote{ display:none; }
+  }
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>FLAG QUIZ</div>
+    <div class="stat-group">
+      <div class="hearts" id="hearts"></div>
+      <div class="score-box best-box">
+        <div class="score-label" id="lbl-best"></div>
+        <div class="score-value" id="bestValue">0</div>
+      </div>
+      <div class="score-box">
+        <div class="score-label" id="lbl-score"></div>
+        <div class="score-value" id="scoreValue">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mode-switch" id="modeSwitch">
+    <button class="mode-btn active" data-mode="f2n" type="button" id="modeBtnF2N"></button>
+    <button class="mode-btn" data-mode="n2f" type="button" id="modeBtnN2F"></button>
+  </div>
+
+  <div class="prompt-card" id="promptCard">
+    <div class="prompt-label" id="promptLabel"></div>
+    <div class="flag-display" id="flagDisplay" style="display:none;"><svg viewBox="0 0 300 200"></svg></div>
+    <div class="prompt-name" id="promptName" style="display:none;"></div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+  </div>
+
+  <div class="answer-grid" id="answerGrid"></div>
+
+  <div class="footnote" id="footnote"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="lbl-gameover-title"></h2>
+    <div class="sub" id="lbl-gameover-sub"></div>
+    <div class="big-score" id="finalScore">0</div>
+    <div class="acc" id="finalBest" style="opacity:.7;"></div>
+    <div class="acc" id="finalAcc">0</div>
+    <button class="btn" id="restartBtn"></button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= Flag rendering (procedural SVG, no image assets) ================= */
+  let _flagIdSeq = 0;
+
+  function rectFull(fill){ return '<rect x="0" y="0" width="300" height="200" fill="'+fill+'"/>'; }
+
+  function starPoints(cx,cy,outerR,innerR,points,rotateDeg){
+    rotateDeg = rotateDeg===undefined ? -90 : rotateDeg;
+    let pts=[];
+    for(let i=0;i<points*2;i++){
+      const r = i%2===0 ? outerR : innerR;
+      const angle = (Math.PI/points)*i + (rotateDeg*Math.PI/180);
+      pts.push((cx+r*Math.cos(angle)).toFixed(2)+','+(cy+r*Math.sin(angle)).toFixed(2));
+    }
+    return pts.join(' ');
+  }
+  function starShape(cx,cy,outerR,fill,points,innerRatio,rotateDeg){
+    points = points||5;
+    innerRatio = innerRatio===undefined ? 0.38 : innerRatio;
+    return '<polygon points="'+starPoints(cx,cy,outerR,outerR*innerRatio,points,rotateDeg)+'" fill="'+fill+'"/>';
+  }
+  function crescentShape(cx,cy,r,fill,id){
+    const mid = cx + r*0.42;
+    return '<defs><mask id="cm'+id+'"><rect x="0" y="0" width="300" height="200" fill="white"/>'+
+      '<circle cx="'+mid+'" cy="'+cy+'" r="'+(r*0.82)+'" fill="black"/></mask></defs>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+fill+'" mask="url(#cm'+id+')"/>';
+  }
+
+  function flagSVG(spec){
+    _flagIdSeq++;
+    const id = _flagIdSeq;
+    switch(spec.type){
+      case 'stripesH': {
+        const n = spec.colors.length, h = 200/n;
+        let s='';
+        spec.colors.forEach((c,i)=>{ s+='<rect x="0" y="'+(i*h)+'" width="300" height="'+h+'" fill="'+c+'"/>'; });
+        return s;
+      }
+      case 'stripesV': {
+        const n = spec.colors.length, w = 300/n;
+        let s='';
+        spec.colors.forEach((c,i)=>{ s+='<rect x="'+(i*w)+'" y="0" width="'+w+'" height="200" fill="'+c+'"/>'; });
+        return s;
+      }
+      case 'nordicCross': {
+        let s = rectFull(spec.bg);
+        if(spec.border){
+          s += '<rect x="0" y="72" width="300" height="56" fill="'+spec.border+'"/>';
+          s += '<rect x="78" y="0" width="46" height="200" fill="'+spec.border+'"/>';
+        }
+        s += '<rect x="0" y="84" width="300" height="32" fill="'+spec.cross+'"/>';
+        s += '<rect x="90" y="0" width="28" height="200" fill="'+spec.cross+'"/>';
+        return s;
+      }
+      case 'centeredCross': {
+        let s = rectFull(spec.bg);
+        s += '<rect x="125" y="55" width="50" height="90" fill="'+spec.cross+'"/>';
+        s += '<rect x="95" y="85" width="110" height="30" fill="'+spec.cross+'"/>';
+        return s;
+      }
+      case 'circle': {
+        let s = rectFull(spec.bg);
+        s += '<circle cx="'+(spec.cx*300)+'" cy="'+(spec.cy*200)+'" r="'+(spec.r*200)+'" fill="'+spec.color+'"/>';
+        return s;
+      }
+      case 'circleYinYang': {
+        const cx=150, cy=100, r=55;
+        let s = rectFull('#ffffff');
+        s += '<defs><clipPath id="cc'+id+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"/></clipPath></defs>';
+        s += '<g clip-path="url(#cc'+id+')">';
+        s += '<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+(r*2)+'" height="'+r+'" fill="'+spec.top+'"/>';
+        s += '<rect x="'+(cx-r)+'" y="'+cy+'" width="'+(r*2)+'" height="'+r+'" fill="'+spec.bottom+'"/>';
+        s += '<circle cx="'+cx+'" cy="'+(cy-r/2)+'" r="'+(r/2)+'" fill="'+spec.bottom+'"/>';
+        s += '<circle cx="'+cx+'" cy="'+(cy+r/2)+'" r="'+(r/2)+'" fill="'+spec.top+'"/>';
+        s += '</g>';
+        return s;
+      }
+      case 'star1': {
+        let s = rectFull(spec.bg);
+        s += starShape(spec.cx*300, spec.cy*200, spec.r*200, spec.color, 5, 0.38, -90);
+        return s;
+      }
+      case 'crescentStar': {
+        let s = rectFull(spec.bg);
+        s += crescentShape(150,100,42,spec.color,id);
+        s += starShape(205,100,17,spec.color,5,0.4,-90);
+        return s;
+      }
+      case 'stripesCrossCanton': {
+        const colors = spec.stripeColors, n=9, h=200/n;
+        let s='';
+        for(let i=0;i<n;i++) s+='<rect x="0" y="'+(i*h)+'" width="300" height="'+h+'" fill="'+colors[i%2]+'"/>';
+        s += '<rect x="0" y="0" width="120" height="111" fill="'+spec.cantonColor+'"/>';
+        s += '<rect x="0" y="44" width="120" height="22" fill="'+spec.crossColor+'"/>';
+        s += '<rect x="49" y="0" width="22" height="111" fill="'+spec.crossColor+'"/>';
+        return s;
+      }
+      case 'stripesH-wheel': {
+        const n=spec.colors.length, h=200/n;
+        let s='';
+        spec.colors.forEach((c,i)=>{ s+='<rect x="0" y="'+(i*h)+'" width="300" height="'+h+'" fill="'+c+'"/>'; });
+        const cx=150,cy=100,r=26;
+        s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+spec.wheelColor+'" stroke-width="4"/>';
+        for(let i=0;i<16;i++){
+          const a = (Math.PI*2/16)*i;
+          s += '<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+r*Math.cos(a)).toFixed(2)+'" y2="'+(cy+r*Math.sin(a)).toFixed(2)+'" stroke="'+spec.wheelColor+'" stroke-width="2.5"/>';
+        }
+        s += '<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="'+spec.wheelColor+'"/>';
+        return s;
+      }
+      case 'cantonStripeCrescent': {
+        let s = rectFull(spec.fieldColor);
+        s += '<rect x="0" y="0" width="70" height="200" fill="'+spec.barColor+'"/>';
+        s += crescentShape(190,100,38,spec.symColor,id);
+        s += starShape(238,100,15,spec.symColor,5,0.4,-90);
+        return s;
+      }
+      case 'israel': {
+        // Two blue stripes + Star of David (2 overlapping equilateral triangles, outline only)
+        let s = rectFull('#ffffff');
+        s += '<rect x="0" y="30" width="300" height="20" fill="'+spec.blue+'"/>';
+        s += '<rect x="0" y="150" width="300" height="20" fill="'+spec.blue+'"/>';
+        const cx=150, cy=100, R=34;
+        const tri1=[0,1,2].map(i=>{ const a=Math.PI/2+(Math.PI*2/3)*i; return (cx+R*Math.cos(a)).toFixed(2)+','+(cy-R*Math.sin(a)).toFixed(2); }).join(' ');
+        const tri2=[0,1,2].map(i=>{ const a=-Math.PI/2+(Math.PI*2/3)*i; return (cx+R*Math.cos(a)).toFixed(2)+','+(cy-R*Math.sin(a)).toFixed(2); }).join(' ');
+        s += '<polygon points="'+tri1+'" fill="none" stroke="'+spec.blue+'" stroke-width="5"/>';
+        s += '<polygon points="'+tri2+'" fill="none" stroke="'+spec.blue+'" stroke-width="5"/>';
+        return s;
+      }
+      case 'cantonStripesUSA': {
+        const stripeColors = spec.stripeColors, n=7, h=200/n;
+        let s='';
+        for(let i=0;i<n;i++) s+='<rect x="0" y="'+(i*h)+'" width="300" height="'+h+'" fill="'+stripeColors[i%2]+'"/>';
+        const cw=130, ch=h*4;
+        s += '<rect x="0" y="0" width="'+cw+'" height="'+ch+'" fill="'+spec.cantonColor+'"/>';
+        const rows=4, cols=5;
+        for(let r=0;r<rows;r++){
+          for(let c=0;c<cols;c++){
+            const x = 14 + c*(cw-28)/(cols-1);
+            const y = 12 + r*(ch-24)/(rows-1);
+            s += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.2" fill="#ffffff"/>';
+          }
+        }
+        return s;
+      }
+      case 'mapleLeaf': {
+        // Red vertical thirds + 11-point maple leaf
+        let s = rectFull('#ffffff');
+        s += '<rect x="0" y="0" width="75" height="200" fill="#d52b1e"/>';
+        s += '<rect x="225" y="0" width="75" height="200" fill="#d52b1e"/>';
+        s += '<path transform="translate(150,97) scale(1.18)" d="M0,-37 C1,-30 8,-27 6,-22 C14,-21 20,-23 17,-17 C23,-13 26,-6 20,-4 C26,-1 28,6 22,7 C24,14 21,18 14,15 C14,20 10,22 7,19 C7,24 4,24 0,24 C-4,24 -7,24 -7,19 C-10,22 -14,20 -14,15 C-21,18 -24,14 -22,7 C-28,6 -26,-1 -20,-4 C-26,-6 -23,-13 -17,-17 C-20,-23 -14,-21 -6,-22 C-8,-27 -1,-30 0,-37 Z" fill="#d52b1e"/>';
+        s += '<rect x="147" y="120" width="6" height="18" fill="#d52b1e"/>';
+        return s;
+      }
+      case 'diamondCircle': {
+        let s = rectFull(spec.bg);
+        s += '<polygon points="150,28 268,100 150,172 32,100" fill="'+spec.diamond+'"/>';
+        s += '<circle cx="150" cy="100" r="38" fill="'+spec.circle+'"/>';
+        return s;
+      }
+      case 'sunStripes': {
+        const colors = spec.colors, n=colors.length, h=200/n;
+        let s='';
+        colors.forEach((c,i)=>{ s+='<rect x="0" y="'+(i*h)+'" width="300" height="'+h+'" fill="'+c+'"/>'; });
+        s += '<circle cx="150" cy="100" r="22" fill="'+spec.sun+'"/>';
+        for(let i=0;i<16;i++){
+          const a=(Math.PI*2/16)*i;
+          const x1=150+26*Math.cos(a), y1=100+26*Math.sin(a);
+          const x2=150+34*Math.cos(a), y2=100+34*Math.sin(a);
+          s += '<line x1="'+x1.toFixed(2)+'" y1="'+y1.toFixed(2)+'" x2="'+x2.toFixed(2)+'" y2="'+y2.toFixed(2)+'" stroke="'+spec.sun+'" stroke-width="3"/>';
+        }
+        return s;
+      }
+      case 'chile': {
+        let s = '';
+        s += '<rect x="0" y="0" width="300" height="100" fill="#ffffff"/>';
+        s += '<rect x="0" y="100" width="300" height="100" fill="#d52b1e"/>';
+        s += '<rect x="0" y="0" width="100" height="100" fill="#0039a6"/>';
+        s += starShape(50,50,24,'#ffffff',5,0.4,-90);
+        return s;
+      }
+      case 'triangleHoistStar': {
+        const stripes = spec.stripeColors, n=stripes.length, h=200/n;
+        let s='';
+        stripes.forEach((c,i)=>{ s+='<rect x="0" y="'+(i*h)+'" width="300" height="'+h+'" fill="'+c+'"/>'; });
+        s += '<polygon points="0,0 130,100 0,200" fill="'+spec.triColor+'"/>';
+        if(spec.starColor) s += starShape(40,100,16,spec.starColor,5,0.4,-90);
+        return s;
+      }
+      case 'unionJackBase': {
+        let s = rectFull('#012169');
+        s += '<polygon points="0,0 30,0 300,180 300,200 270,200 0,20" fill="#ffffff"/>';
+        s += '<polygon points="300,0 270,0 0,180 0,200 30,200 300,20" fill="#ffffff"/>';
+        s += '<polygon points="0,0 14,0 300,188 300,200 286,200 0,12" fill="#c8102e"/>';
+        s += '<polygon points="300,0 286,0 0,188 0,200 14,200 300,12" fill="#c8102e"/>';
+        s += '<rect x="120" y="0" width="60" height="200" fill="#ffffff"/>';
+        s += '<rect x="0" y="76" width="300" height="48" fill="#ffffff"/>';
+        s += '<rect x="134" y="0" width="32" height="200" fill="#c8102e"/>';
+        s += '<rect x="0" y="88" width="300" height="24" fill="#c8102e"/>';
+        return s;
+      }
+      case 'unionJackCantonStars': {
+        let s = rectFull(spec.bg);
+        s += '<g transform="translate(2,2) scale(0.52)">'+flagSVG({type:'unionJackBase'})+'</g>';
+        (spec.stars||[]).forEach(function(st){
+          s += starShape(st.x,st.y,st.r,spec.starColor,5,0.4,-90);
+        });
+        return s;
+      }
+      case 'saltire': {
+        let s = '';
+        s += '<polygon points="150,0 300,0 150,100 0,0" fill="'+spec.topBottom+'"/>';
+        s += '<polygon points="150,200 300,200 150,100 0,200" fill="'+spec.topBottom+'"/>';
+        s += '<polygon points="0,0 0,200 150,100" fill="'+spec.leftRight+'"/>';
+        s += '<polygon points="300,0 300,200 150,100" fill="'+spec.leftRight+'"/>';
+        s += '<line x1="0" y1="0" x2="300" y2="200" stroke="'+spec.lineColor+'" stroke-width="14"/>';
+        s += '<line x1="300" y1="0" x2="0" y2="200" stroke="'+spec.lineColor+'" stroke-width="14"/>';
+        return s;
+      }
+      case 'morocco': {
+        // Red field + Solomon star (pentagram, green outline only)
+        let s = rectFull(spec.bg);
+        const cx=150, cy=100, R=spec.r*200;
+        const verts=[];
+        for(let i=0;i<5;i++){ const a=-Math.PI/2+(Math.PI*2/5)*i; verts.push([cx+R*Math.cos(a), cy+R*Math.sin(a)]); }
+        const order=[0,2,4,1,3,0];
+        const pts=order.map(i=>verts[i][0].toFixed(2)+','+verts[i][1].toFixed(2)).join(' ');
+        s += '<polyline points="'+pts+'" fill="none" stroke="'+spec.color+'" stroke-width="5.5" stroke-linejoin="miter"/>';
+        return s;
+      }
+      case 'india': {
+        // Saffron / white / green tricolour + 24-spoke Ashoka Chakra (navy)
+        const colors=spec.colors, n=colors.length, h=200/n;
+        let s='';
+        colors.forEach((c,i)=>{ s+='<rect x="0" y="'+(i*h)+'" width="300" height="'+h+'" fill="'+c+'"/>'; });
+        const cx=150, cy=100, outerR=spec.wheelR||28, innerR=outerR*0.74;
+        s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+outerR+'" fill="none" stroke="'+spec.wheelColor+'" stroke-width="3.5"/>';
+        s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+innerR+'" fill="none" stroke="'+spec.wheelColor+'" stroke-width="1.5"/>';
+        s += '<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="'+spec.wheelColor+'"/>';
+        for(let i=0;i<24;i++){
+          const a=(Math.PI*2/24)*i;
+          const x1=(cx+innerR*Math.cos(a)).toFixed(2), y1=(cy+innerR*Math.sin(a)).toFixed(2);
+          const x2=(cx+outerR*Math.cos(a)).toFixed(2), y2=(cy+outerR*Math.sin(a)).toFixed(2);
+          s += '<line x1="'+cx+'" y1="'+cy+'" x2="'+x1+'" y2="'+y1+'" stroke="'+spec.wheelColor+'" stroke-width="1"/>';
+          s += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+spec.wheelColor+'" stroke-width="2.2"/>';
+        }
+        return s;
+      }
+      default:
+        return rectFull('#444444');
+    }
+  }
+
+  /* ================= Country data ================= */
+  const DATA = [
+    {id:'de', n:'Germany', s:'Nemecko', flag:{type:'stripesH', colors:['#000000','#dd0000','#ffce00']}},
+    {id:'fr', n:'France', s:'Francúzsko', flag:{type:'stripesV', colors:['#0055a4','#ffffff','#ef4135']}},
+    {id:'it', n:'Italy', s:'Taliansko', flag:{type:'stripesV', colors:['#009246','#ffffff','#ce2b37']}},
+    {id:'ru', n:'Russia', s:'Rusko', flag:{type:'stripesH', colors:['#ffffff','#0039a6','#d52b1e']}},
+    {id:'pl', n:'Poland', s:'Poľsko', flag:{type:'stripesH', colors:['#ffffff','#dc143c']}},
+    {id:'ua', n:'Ukraine', s:'Ukrajina', flag:{type:'stripesH', colors:['#0057b7','#ffd700']}},
+    {id:'nl', n:'Netherlands', s:'Holandsko', flag:{type:'stripesH', colors:['#ae1c28','#ffffff','#21468b']}},
+    {id:'be', n:'Belgium', s:'Belgicko', flag:{type:'stripesV', colors:['#000000','#fae042','#ed2939']}},
+    {id:'at', n:'Austria', s:'Rakúsko', flag:{type:'stripesH', colors:['#ed2939','#ffffff','#ed2939']}},
+    {id:'hu', n:'Hungary', s:'Maďarsko', flag:{type:'stripesH', colors:['#ce2939','#ffffff','#477050']}},
+    {id:'ro', n:'Romania', s:'Rumunsko', flag:{type:'stripesV', colors:['#002b7f','#fcd116','#ce1126']}},
+    {id:'bg', n:'Bulgaria', s:'Bulharsko', flag:{type:'stripesH', colors:['#ffffff','#00966e','#d62612']}},
+    {id:'lt', n:'Lithuania', s:'Litva', flag:{type:'stripesH', colors:['#fdb913','#006a44','#c1272d']}},
+    {id:'ee', n:'Estonia', s:'Estónsko', flag:{type:'stripesH', colors:['#0072ce','#000000','#ffffff']}},
+    {id:'ie', n:'Ireland', s:'Írsko', flag:{type:'stripesV', colors:['#169b62','#ffffff','#ff883e']}},
+    {id:'no', n:'Norway', s:'Nórsko', flag:{type:'nordicCross', bg:'#ef2b2d', cross:'#002868', border:'#ffffff'}},
+    {id:'se', n:'Sweden', s:'Švédsko', flag:{type:'nordicCross', bg:'#005293', cross:'#fecc02'}},
+    {id:'dk', n:'Denmark', s:'Dánsko', flag:{type:'nordicCross', bg:'#c60c30', cross:'#ffffff'}},
+    {id:'fi', n:'Finland', s:'Fínsko', flag:{type:'nordicCross', bg:'#ffffff', cross:'#002f6c'}},
+    {id:'is', n:'Iceland', s:'Island', flag:{type:'nordicCross', bg:'#02529c', cross:'#dc1e35', border:'#ffffff'}},
+    {id:'ch', n:'Switzerland', s:'Švajčiarsko', flag:{type:'centeredCross', bg:'#d52b1e', cross:'#ffffff'}},
+    {id:'gr', n:'Greece', s:'Grécko', flag:{type:'stripesCrossCanton', stripeColors:['#0d5eaf','#ffffff'], cantonColor:'#0d5eaf', crossColor:'#ffffff'}},
+    {id:'tr', n:'Turkey', s:'Turecko', flag:{type:'crescentStar', bg:'#e30a17', color:'#ffffff'}},
+    {id:'jp', n:'Japan', s:'Japonsko', flag:{type:'circle', bg:'#ffffff', color:'#bc002d', cx:0.5, cy:0.5, r:0.16}},
+    {id:'kr', n:'South Korea', s:'Južná Kórea', flag:{type:'circleYinYang', top:'#cd2e3a', bottom:'#0047a0'}},
+    {id:'cn', n:'China', s:'Čína', flag:{type:'star1', bg:'#de2910', color:'#ffde00', cx:0.18, cy:0.22, r:0.12}},
+    {id:'vn', n:'Vietnam', s:'Vietnam', flag:{type:'star1', bg:'#da251d', color:'#ffff00', cx:0.5, cy:0.5, r:0.16}},
+    {id:'in', n:'India', s:'India', flag:{type:'india', colors:['#ff9933','#ffffff','#138808'], wheelColor:'#000080', wheelR:28}},
+    {id:'pk', n:'Pakistan', s:'Pakistan', flag:{type:'cantonStripeCrescent', fieldColor:'#01411c', barColor:'#ffffff', symColor:'#ffffff'}},
+    {id:'il', n:'Israel', s:'Izrael', flag:{type:'israel', blue:'#0038b8'}},
+    {id:'ma', n:'Morocco', s:'Maroko', flag:{type:'morocco', bg:'#c1272d', color:'#006233', r:0.15}},
+    {id:'eg', n:'Egypt', s:'Egypt', flag:{type:'stripesH', colors:['#ce1126','#ffffff','#000000']}},
+    {id:'ng', n:'Nigeria', s:'Nigéria', flag:{type:'stripesV', colors:['#008751','#ffffff','#008751']}},
+    {id:'ci', n:'Ivory Coast', s:'Pobrežie Slonoviny', flag:{type:'stripesV', colors:['#f77f00','#ffffff','#009e60']}},
+    {id:'ml', n:'Mali', s:'Mali', flag:{type:'stripesV', colors:['#14b53a','#fcd116','#ce1126']}},
+    {id:'us', n:'United States', s:'USA', flag:{type:'cantonStripesUSA', stripeColors:['#B22234','#FFFFFF'], cantonColor:'#3C3B6E'}},
+    {id:'ca', n:'Canada', s:'Kanada', flag:{type:'mapleLeaf'}},
+    {id:'mx', n:'Mexico', s:'Mexiko', flag:{type:'stripesV', colors:['#006847','#ffffff','#ce1126']}},
+    {id:'br', n:'Brazil', s:'Brazília', flag:{type:'diamondCircle', bg:'#009639', diamond:'#fedf00', circle:'#002776'}},
+    {id:'ar', n:'Argentina', s:'Argentína', flag:{type:'sunStripes', colors:['#74acdf','#ffffff','#74acdf'], sun:'#f6b40e'}},
+    {id:'cl', n:'Chile', s:'Čile', flag:{type:'chile'}},
+    {id:'cu', n:'Cuba', s:'Kuba', flag:{type:'triangleHoistStar', stripeColors:['#002a8f','#ffffff','#002a8f','#ffffff','#002a8f'], triColor:'#cc0000', starColor:'#ffffff'}},
+    {id:'jm', n:'Jamaica', s:'Jamajka', flag:{type:'saltire', topBottom:'#009b3a', leftRight:'#000000', lineColor:'#fed100'}},
+    {id:'au', n:'Australia', s:'Austrália', flag:{type:'unionJackCantonStars', bg:'#012169', starColor:'#ffffff', stars:[{x:225,y:140,r:11},{x:255,y:70,r:8},{x:200,y:90,r:7},{x:235,y:175,r:7},{x:270,y:120,r:6}]}},
+    {id:'nz', n:'New Zealand', s:'Nový Zéland', flag:{type:'unionJackCantonStars', bg:'#012169', starColor:'#cc142b', stars:[{x:230,y:60,r:9},{x:262,y:95,r:11},{x:225,y:150,r:9},{x:258,y:165,r:7}]}},
+  ];
+
+  function countryName(c){
+    return getLang() === 'sk' ? c.s : c.n;
+  }
+
+  /* ================= i18n wiring ================= */
+  document.getElementById('lbl-back').textContent = t('back');
+  document.getElementById('lbl-best').textContent = t('flagBestLabel');
+  document.getElementById('lbl-score').textContent = t('flagScoreLabel');
+  document.getElementById('modeBtnF2N').textContent = t('flagModeFlagToName');
+  document.getElementById('modeBtnN2F').textContent = t('flagModeNameToFlag');
+  document.getElementById('lbl-gameover-sub').textContent = t('flagGameOverSub');
+  document.getElementById('restartBtn').textContent = t('flagPlayAgain');
+
+  /* ================= DOM refs ================= */
+  const heartsEl = document.getElementById('hearts');
+  const scoreValueEl = document.getElementById('scoreValue');
+  const bestValueEl = document.getElementById('bestValue');
+  const modeSwitch = document.getElementById('modeSwitch');
+  const promptLabel = document.getElementById('promptLabel');
+  const flagDisplay = document.getElementById('flagDisplay');
+  const flagDisplaySvg = flagDisplay.querySelector('svg');
+  const promptName = document.getElementById('promptName');
+  const feedbackMsg = document.getElementById('feedbackMsg');
+  const answerGrid = document.getElementById('answerGrid');
+  const footnote = document.getElementById('footnote');
+  const overlay = document.getElementById('overlay');
+  const finalScoreEl = document.getElementById('finalScore');
+  const finalAccEl = document.getElementById('finalAcc');
+  const restartBtn = document.getElementById('restartBtn');
+
+  const BEST_KEY = 'gamepad_flagquiz_best';
+  let bestScore = 0;
+  try { bestScore = parseInt(localStorage.getItem(BEST_KEY), 10) || 0; } catch(e) {}
+  bestValueEl.textContent = bestScore;
+  function saveBest(v){ try { localStorage.setItem(BEST_KEY, String(v)); } catch(e) {} }
+
+  /* ================= Game state ================= */
+  let mode = 'f2n';
+  let lives = 3, score = 0, totalAnswered = 0, totalCorrect = 0;
+  let current = null, prevId = null, locked = false;
+
+  function renderHearts(){
+    heartsEl.innerHTML = '';
+    for(let i=0;i<3;i++){
+      const span = document.createElement('span');
+      span.className = 'heart' + (i < (3-lives) ? ' lost' : '');
+      span.textContent = '♥';
+      heartsEl.appendChild(span);
+    }
+  }
+
+  function renderScore(){
+    scoreValueEl.textContent = score;
+    if(score > bestScore){
+      bestScore = score;
+      bestValueEl.textContent = bestScore;
+      saveBest(bestScore);
+    }
+  }
+
+  function updateModeTexts(){
+    document.querySelectorAll('.mode-btn').forEach(function(b){
+      b.classList.toggle('active', b.dataset.mode === mode);
+    });
+    if(mode === 'f2n'){
+      promptLabel.textContent = t('flagPromptFlag');
+      footnote.textContent = t('flagFootnoteFlagMode');
+    } else {
+      promptLabel.textContent = t('flagPromptName');
+      footnote.textContent = t('flagFootnoteNameMode');
+    }
+  }
+
+  function pickDistractors(correctId, n){
+    const pool = DATA.filter(function(c){ return c.id !== correctId; });
+    for(let i=pool.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      const tmp = pool[i]; pool[i]=pool[j]; pool[j]=tmp;
+    }
+    return pool.slice(0, n);
+  }
+
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      const tmp = arr[i]; arr[i]=arr[j]; arr[j]=tmp;
+    }
+    return arr;
+  }
+
+  function nextRound(){
+    if(lives <= 0) return;
+    locked = false;
+    feedbackMsg.textContent = '';
+    feedbackMsg.className = 'feedback-msg';
+
+    let pick;
+    do { pick = DATA[Math.floor(Math.random()*DATA.length)]; } while(pick.id === prevId && DATA.length > 1);
+    current = pick;
+    prevId = current.id;
+
+    const options = shuffle([current].concat(pickDistractors(current.id, 3)));
+
+    answerGrid.innerHTML = '';
+
+    if(mode === 'f2n'){
+      flagDisplay.style.display = '';
+      promptName.style.display = 'none';
+      flagDisplaySvg.innerHTML = flagSVG(current.flag);
+
+      options.forEach(function(opt){
+        const btn = document.createElement('button');
+        btn.className = 'answer-btn';
+        btn.type = 'button';
+        btn.dataset.id = opt.id;
+        btn.textContent = countryName(opt);
+        btn.addEventListener('click', function(){ selectAnswer(opt.id, btn); });
+        answerGrid.appendChild(btn);
+      });
+    } else {
+      flagDisplay.style.display = 'none';
+      promptName.style.display = '';
+      promptName.textContent = countryName(current);
+
+      options.forEach(function(opt){
+        const btn = document.createElement('button');
+        btn.className = 'answer-btn flag-opt';
+        btn.type = 'button';
+        btn.dataset.id = opt.id;
+        btn.setAttribute('aria-label', countryName(opt));
+        const thumb = document.createElement('div');
+        thumb.className = 'flag-thumb';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+        svg.setAttribute('viewBox','0 0 300 200');
+        svg.innerHTML = flagSVG(opt.flag);
+        thumb.appendChild(svg);
+        btn.appendChild(thumb);
+        btn.addEventListener('click', function(){ selectAnswer(opt.id, btn); });
+        answerGrid.appendChild(btn);
+      });
+    }
+  }
+
+  function selectAnswer(optId, btnEl){
+    if(locked || lives <= 0) return;
+    locked = true;
+    totalAnswered++;
+
+    const correct = optId === current.id;
+
+    if(correct){
+      score++; totalCorrect++;
+      btnEl.classList.add('correct');
+      feedbackMsg.textContent = t('flagCorrect', { country: countryName(current) });
+      feedbackMsg.className = 'feedback-msg good';
+    } else {
+      lives--;
+      btnEl.classList.add('wrong');
+      Array.prototype.forEach.call(answerGrid.children, function(b){
+        if(b.dataset.id === current.id) b.classList.add('correct');
+      });
+      feedbackMsg.textContent = t('flagIncorrect', { country: countryName(current) });
+      feedbackMsg.className = 'feedback-msg bad';
+      renderHearts();
+    }
+    renderScore();
+
+    if(lives <= 0){
+      setTimeout(showGameOver, 1100);
+    } else {
+      setTimeout(nextRound, correct ? 1300 : 1900);
+    }
+  }
+
+  function showGameOver(){
+    finalScoreEl.textContent = score;
+    document.getElementById('finalBest').textContent = '🏆 ' + t('flagBestLabel') + ': ' + bestScore;
+    finalAccEl.textContent = t('flagFinalAccuracy', { correct: totalCorrect, total: totalAnswered });
+    overlay.classList.add('active');
+  }
+
+  function startNewGame(){
+    lives = 3; score = 0; totalAnswered = 0; totalCorrect = 0; prevId = null;
+    renderHearts();
+    renderScore();
+    overlay.classList.remove('active');
+    nextRound();
+  }
+
+  document.getElementById('lbl-gameover-title').textContent = t('flagGameOverTitle');
+
+  modeSwitch.addEventListener('click', function(e){
+    const btn = e.target.closest('.mode-btn');
+    if(!btn || locked) return;
+    const newMode = btn.dataset.mode;
+    if(newMode === mode) return;
+    mode = newMode;
+    updateModeTexts();
+    nextRound();
+  });
+
+  restartBtn.addEventListener('click', startNewGame);
+
+  updateModeTexts();
+  startNewGame();
+})();
+</script>
+</body>
+</html>
