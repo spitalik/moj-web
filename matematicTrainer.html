@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matematický tréner</title>
+    <style>
+        :root {
+            --bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: linear-gradient(135deg, #e0e7ff 0%, #f0f4f8 30%, #fce7f3 60%, #e0e7ff 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Header card */
+        .header-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+            white-space: nowrap;
+        }
+        .stat-icon {
+            font-size: 1.3rem;
+            line-height: 1;
+        }
+        .stat-value {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+        .lives-container {
+            display: flex;
+            gap: 3px;
+        }
+        .heart {
+            font-size: 1.4rem;
+            transition: var(--transition);
+            line-height: 1;
+        }
+        .heart.lost {
+            opacity: 0.25;
+            transform: scale(0.8);
+            filter: grayscale(1);
+        }
+        .heart.pulse {
+            animation: heartPulse 0.5s ease-in-out;
+        }
+        @keyframes heartPulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            30% {
+                transform: scale(1.4);
+            }
+            60% {
+                transform: scale(0.85);
+            }
+        }
+
+        /* Progress bar */
+        .progress-wrap {
+            background: var(--card-bg);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .progress-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-light);
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .progress-bar-outer {
+            flex: 1;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+            border-radius: 10px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .progress-bar-inner::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 20px;
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 10px;
+        }
+        .progress-count {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        /* Main card */
+        .main-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            min-height: 180px;
+            justify-content: center;
+        }
+        .main-card.correct-flash {
+            box-shadow: 0 0 0 4px var(--success), 0 8px 32px rgba(16, 185, 129, 0.3);
+            background: #f0fdf6;
+        }
+        .main-card.wrong-flash {
+            animation: shake 0.5s ease-in-out;
+            box-shadow: 0 0 0 4px var(--danger), 0 8px 32px rgba(239, 68, 68, 0.3);
+            background: #fef2f2;
+        }
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            15% {
+                transform: translateX(-8px);
+            }
+            30% {
+                transform: translateX(8px);
+            }
+            45% {
+                transform: translateX(-6px);
+            }
+            60% {
+                transform: translateX(5px);
+            }
+            75% {
+                transform: translateX(-3px);
+            }
+            90% {
+                transform: translateX(2px);
+            }
+        }
+
+        .operation-badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #fff;
+            background: var(--primary);
+        }
+        .operation-badge.add {
+            background: #3b82f6;
+        }
+        .operation-badge.sub {
+            background: #f59e0b;
+        }
+        .operation-badge.mul {
+            background: #8b5cf6;
+        }
+        .operation-badge.div {
+            background: #06b6d4;
+        }
+        .operation-badge.frac {
+            background: #ec4899;
+        }
+        .operation-badge.perc {
+            background: #f97316;
+        }
+
+        .question-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            text-align: center;
+            letter-spacing: 1px;
+            line-height: 1.3;
+            word-break: break-word;
+            transition: var(--transition);
+        }
+        @media (min-width: 480px) {
+            .question-text {
+                font-size: 2.4rem;
+            }
+        }
+
+        .question-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Input area */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+        }
+        .answer-input {
+            flex: 1;
+            padding: 14px 18px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border: 2.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            outline: none;
+            transition: var(--transition);
+            background: #f8fafc;
+            color: var(--text);
+            font-family: var(--font);
+            letter-spacing: 1px;
+            min-width: 0;
+            caret-color: var(--primary);
+        }
+        .answer-input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            background: #fff;
+        }
+        .answer-input.input-correct {
+            border-color: var(--success) !important;
+            background: #f0fdf6 !important;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12) !important;
+        }
+        .answer-input.input-wrong {
+            border-color: var(--danger) !important;
+            background: #fef2f2 !important;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12) !important;
+        }
+
+        .submit-btn {
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            min-width: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .submit-btn:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
+        }
+        .submit-btn:active {
+            transform: scale(0.95);
+            transition: 0.1s;
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Numpad */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+        .numpad-btn {
+            padding: 14px 6px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #f8fafc;
+            color: var(--text);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            font-family: var(--font);
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .numpad-btn:hover {
+            background: #eef2ff;
+            border-color: var(--primary-light);
+            transform: translateY(-1px);
+        }
+        .numpad-btn:active {
+            background: #ddd6fe;
+            transform: scale(0.93);
+            transition: 0.08s;
+            border-color: var(--primary);
+        }
+        .numpad-btn.btn-backspace {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #dc2626;
+            font-size: 1.3rem;
+        }
+        .numpad-btn.btn-backspace:active {
+            background: #fee2e2;
+        }
+        .numpad-btn.btn-clear {
+            background: #fff7ed;
+            border-color: #fed7aa;
+            color: #ea580c;
+            font-weight: 700;
+        }
+        .numpad-btn.btn-clear:active {
+            background: #ffedd5;
+        }
+        .numpad-btn.btn-submit {
+            background: var(--success);
+            border-color: var(--success);
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .numpad-btn.btn-submit:active {
+            background: #059669;
+            border-color: #059669;
+        }
+        .numpad-btn.btn-special {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #475569;
+            font-weight: 700;
+        }
+
+        @media (max-width: 380px) {
+            .numpad {
+                gap: 5px;
+            }
+            .numpad-btn {
+                padding: 11px 4px;
+                font-size: 1rem;
+                min-height: 40px;
+                border-radius: 10px;
+            }
+            .question-text {
+                font-size: 1.6rem;
+            }
+            .header-card {
+                padding: 12px 14px;
+                gap: 6px;
+            }
+            .stat-item {
+                font-size: 0.8rem;
+            }
+            .main-card {
+                padding: 16px 14px;
+                gap: 12px;
+                min-height: 140px;
+            }
+            .answer-input {
+                padding: 12px 14px;
+                font-size: 1.1rem;
+            }
+            .submit-btn {
+                padding: 12px 14px;
+                font-size: 1rem;
+            }
+        }
+        @media (min-width: 600px) {
+            .numpad-btn {
+                padding: 16px 8px;
+                font-size: 1.25rem;
+                min-height: 54px;
+            }
+            .numpad {
+                gap: 10px;
+            }
+        }
+
+        /* Feedback toast */
+        .feedback-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            z-index: 100;
+            pointer-events: none;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            letter-spacing: 0.5px;
+            text-align: center;
+            max-width: 90vw;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        }
+        .feedback-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        .feedback-toast.success {
+            background: #059669;
+        }
+        .feedback-toast.error {
+            background: #dc2626;
+        }
+        .feedback-toast.levelup {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            font-size: 1.1rem;
+            padding: 14px 28px;
+            animation: glowPulse 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes glowPulse {
+            from {
+                box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+            }
+            to {
+                box-shadow: 0 0 40px rgba(249, 115, 22, 0.8);
+            }
+        }
+
+        /* Confetti */
+        .confetti-piece {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            pointer-events: none;
+            z-index: 200;
+            animation: confettiFall 1.2s ease-out forwards;
+        }
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(105vh) rotate(720deg) scale(0.3);
+                opacity: 0;
+            }
+        }
+
+        /* Game over overlay */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .overlay-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 30px 24px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes popIn {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .overlay-emoji {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+        .overlay-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+        .overlay-stats {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        .overlay-stats strong {
+            color: var(--text);
+        }
+        .restart-btn {
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.5px;
+        }
+        .restart-btn:hover {
+            background: #4338ca;
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+            transform: translateY(-2px);
+        }
+        .restart-btn:active {
+            transform: scale(0.94);
+        }
+
+        /* Streak indicator */
+        .streak-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fffbeb;
+            border: 2px solid #fcd34d;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #b45309;
+            animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+            }
+            60% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 520px;
+            }
+            body {
+                padding: 24px;
+            }
+        }
+        @media (max-height: 700px) {
+            .container {
+                gap: 8px;
+            }
+            .main-card {
+                padding: 14px 16px;
+                gap: 10px;
+                min-height: 130px;
+            }
+            .numpad-btn {
+                padding: 10px 4px;
+                min-height: 38px;
+                font-size: 1rem;
+            }
+            .numpad {
+                gap: 5px;
+            }
+            .question-text {
+                font-size: 1.5rem;
+            }
+            .header-card {
+                padding: 10px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="gameContainer">
+        <!-- Header stats -->
+        <div class="header-card">
+            <div class="stat-item">
+                <span class="stat-icon">⭐</span>
+                <span>Level</span>
+                <span class="stat-value" id="levelDisplay">1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🏆</span>
+                <span>Skóre</span>
+                <span class="stat-value" id="scoreDisplay">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🔥</span>
+                <span>Séria</span>
+                <span class="stat-value" id="streakDisplay">0</span>
+            </div>
+            <div class="lives-container" id="livesContainer">
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+            </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-wrap">
+            <span class="progress-label">Do ďalšieho levelu</span>
+            <div class="progress-bar-outer">
+                <div class="progress-bar-inner" id="progressBar" style="width: 0%;"></div>
+            </div>
+            <span class="progress-count" id="progressCount">0/5</span>
+        </div>
+
+        <!-- Main question card -->
+        <div class="main-card" id="mainCard">
+            <span class="operation-badge" id="operationBadge">SČÍTANIE</span>
+            <div class="question-text" id="questionText">5 + 3 = ?</div>
+            <div class="question-subtitle" id="questionSubtitle"></div>
+        </div>
+
+        <!-- Input area -->
+        <div class="input-area">
+            <input
+            type="text"
+            class="answer-input"
+            id="answerInput"
+            placeholder="Odpoveď..."
+            inputmode="decimal"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
+            >
+            <button class="submit-btn" id="submitBtn" title="Potvrdiť odpoveď">✓</button>
+        </div>
+
+        <!-- Numpad -->
+        <div class="numpad" id="numpad">
+            <button class="numpad-btn" data-key="7">7</button>
+            <button class="numpad-btn" data-key="8">8</button>
+            <button class="numpad-btn" data-key="9">9</button>
+            <button class="numpad-btn btn-backspace" data-key="backspace" title="Vymazať znak">⌫</button>
+
+            <button class="numpad-btn" data-key="4">4</button>
+            <button class="numpad-btn" data-key="5">5</button>
+            <button class="numpad-btn" data-key="6">6</button>
+            <button class="numpad-btn btn-special" data-key="/" title="Zlomková čiara">/</button>
+
+            <button class="numpad-btn" data-key="1">1</button>
+            <button class="numpad-btn" data-key="2">2</button>
+            <button class="numpad-btn" data-key="3">3</button>
+            <button class="numpad-btn btn-special" data-key="-" title="Mínus">−</button>
+
+            <button class="numpad-btn btn-special" data-key="." title="Desatinná bodka">.</button>
+            <button class="numpad-btn" data-key="0">0</button>
+            <button class="numpad-btn btn-clear" data-key="clear" title="Vymazať všetko">C</button>
+            <button class="numpad-btn btn-submit" data-key="submit" title="Potvrdiť">✓</button>
+        </div>
+
+        <!-- Feedback toast -->
+        <div class="feedback-toast" id="feedbackToast"></div>
+    </div>
+
+    <!-- Confetti container -->
+    <div id="confettiContainer" style="position:fixed;inset:0;pointer-events:none;z-index:200;"></div>
+
+    <!-- Game over overlay (hidden by default) -->
+    <div class="overlay" id="gameOverOverlay" style="display:none;">
+        <div class="overlay-card">
+            <div class="overlay-emoji">😢</div>
+            <div class="overlay-title">Koniec hry!</div>
+            <div class="overlay-stats" id="gameOverStats">
+                Dosiahol si <strong>Level 5</strong><br>
+                so skóre <strong>320</strong> bodov!
+            </div>
+            <button class="restart-btn" id="restartBtn">🔄 Hrať znova</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ──────────────────────────────────────
+            // DOM references
+            // ──────────────────────────────────────
+            const levelDisplay = document.getElementById('levelDisplay');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const streakDisplay = document.getElementById('streakDisplay');
+            const livesContainer = document.getElementById('livesContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressCount = document.getElementById('progressCount');
+            const mainCard = document.getElementById('mainCard');
+            const operationBadge = document.getElementById('operationBadge');
+            const questionText = document.getElementById('questionText');
+            const questionSubtitle = document.getElementById('questionSubtitle');
+            const answerInput = document.getElementById('answerInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const numpad = document.getElementById('numpad');
+            const feedbackToast = document.getElementById('feedbackToast');
+            const confettiContainer = document.getElementById('confettiContainer');
+            const gameOverOverlay = document.getElementById('gameOverOverlay');
+            const gameOverStats = document.getElementById('gameOverStats');
+            const restartBtn = document.getElementById('restartBtn');
+
+            // ──────────────────────────────────────
+            // Game state
+            // ──────────────────────────────────────
+            const CORRECT_PER_LEVEL = 5; // correct answers needed to level up
+            const MAX_LIVES = 3;
+
+            let level = 1;
+            let score = 0;
+            let streak = 0;
+            let lives = MAX_LIVES;
+            let correctInLevel = 0;
+            let currentQuestion = null; // { operation, a, b, answerDecimal, answerDisplay, questionStr }
+            let isAcceptingInput = true;
+            let toastTimeout = null;
+            let gameOver = false;
+
+            // ──────────────────────────────────────
+            // Helper: random integer [min, max]
+            // ──────────────────────────────────────
+            function randInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            // ──────────────────────────────────────
+            // Helper: greatest common divisor
+            // ──────────────────────────────────────
+            function gcd(a, b) {
+                a = Math.abs(a);
+                b = Math.abs(b);
+                while (b) {
+                    [a, b] = [b, a % b];
+                }
+                return a;
+            }
+
+            // ──────────────────────────────────────
+            // Helper: simplify fraction string "num/den"
+            // ──────────────────────────────────────
+            function simplifyFraction(num, den) {
+                if (den === 0) return '0';
+                if (num === 0) return '0';
+                const g = gcd(num, den);
+                let n = num / g;
+                let d = den / g;
+                if (d < 0) { n = -n;
+                    d = -d; }
+                if (d === 1) return String(n);
+                return n + '/' + d;
+            }
+
+            // ──────────────────────────────────────
+            // Determine available operations by level
+            // ──────────────────────────────────────
+            function getAvailableOperations() {
+                const ops = [];
+                if (level <= 4) {
+                    ops.push('add');
+                }
+                if (level >= 3 && level <= 8) {
+                    ops.push('add', 'sub');
+                }
+                if (level >= 5 && level <= 12) {
+                    ops.push('add', 'sub', 'mul');
+                }
+                if (level >= 7 && level <= 16) {
+                    ops.push('add', 'sub', 'mul', 'div');
+                }
+                if (level >= 10 && level <= 22) {
+                    ops.push('add', 'sub', 'mul', 'div', 'frac');
+                }
+                if (level >= 14) {
+                    ops.push('add', 'sub', 'mul', 'div', 'frac', 'perc');
+                }
+                // Deduplicate
+                return [...new Set(ops)];
+            }
+
+            // ──────────────────────────────────────
+            // Get number range based on level
+            // ──────────────────────────────────────
+            function getNumberRange() {
+                if (level <= 3) return { min: 1, max: 12 };
+                if (level <= 6) return { min: 1, max: 30 };
+                if (level <= 9) return { min: 1, max: 50 };
+                if (level <= 13) return { min: 1, max: 100 };
+                if (level <= 18) return { min: 1, max: 200 };
+                return { min: 1, max: 500 };
+            }
+
+            function getMulRange() {
+                if (level <= 7) return { min: 1, max: 10 };
+                if (level <= 10) return { min: 2, max: 12 };
+                if (level <= 15) return { min: 2, max: 15 };
+                return { min: 3, max: 20 };
+            }
+
+            // ──────────────────────────────────────
+            // Generate a question
+            // ──────────────────────────────────────
+            function generateQuestion() {
+                const ops = getAvailableOperations();
+                const operation = ops[randInt(0, ops.length - 1)];
+                const range = getNumberRange();
+                let a, b, answerDecimal, answerDisplay, questionStr, subtitle = '';
+
+                switch (operation) {
+                    case 'add':
+                        a = randInt(range.min, range.max);
+                        b = randInt(range.min, range.max);
+                        answerDecimal = a + b;
+                        answerDisplay = String(answerDecimal);
+                        questionStr = `${a} + ${b} = ?`;
+                        break;
+
+                    case 'sub':
+                        a = randInt(range.min, range.max);
+                        b = randInt(range.min, a); // ensure non-negative
+                        answerDecimal = a - b;
+                        answerDisplay = String(answerDecimal);
+                        questionStr = `${a} − ${b} = ?`;
+                        break;
+
+                    case 'mul':
+                        const mulRange = getMulRange();
+                        a = randInt(mulRange.min, mulRange.max);
+                        b = randInt(mulRange.min, mulRange.max);
+                        answerDecimal = a * b;
+                        answerDisplay = String(answerDecimal);
+                        questionStr = `${a} × ${b} = ?`;
+                        break;
+
+                    case 'div':
+                        // Generate clean division
+                        b = randInt(2, level <= 10 ? 10 : 20);
+                        const quotient = randInt(1, level <= 10 ? 12 : 25);
+                        a = b * quotient;
+                        answerDecimal = quotient;
+                        answerDisplay = String(answerDecimal);
+                        questionStr = `${a} ÷ ${b} = ?`;
+                        break;
+
+                    case 'frac':
+                        // Generate fraction addition/subtraction
+                        const denom1 = randInt(2, level <= 14 ? 6 : 10);
+                        const denom2 = randInt(2, level <= 14 ? 6 : 10);
+                        const num1 = randInt(1, denom1 * 2);
+                        const num2 = randInt(1, denom2 * 2);
+                        const isFracAdd = Math.random() > 0.35;
+                        if (isFracAdd) {
+                            // num1/denom1 + num2/denom2
+                            const resNum = num1 * denom2 + num2 * denom1;
+                            const resDen = denom1 * denom2;
+                            answerDecimal = resNum / resDen;
+                            answerDisplay = simplifyFraction(resNum, resDen);
+                            questionStr = `${num1}/${denom1} + ${num2}/${denom2} = ?`;
+                        } else {
+                            // num1/denom1 - num2/denom2 (ensure non-negative)
+                            const val1 = num1 / denom1;
+                            const val2 = num2 / denom2;
+                            if (val1 >= val2) {
+                                const resNum = num1 * denom2 - num2 * denom1;
+                                const resDen = denom1 * denom2;
+                                answerDecimal = resNum / resDen;
+                                answerDisplay = simplifyFraction(resNum, resDen);
+                                questionStr = `${num1}/${denom1} − ${num2}/${denom2} = ?`;
+                            } else {
+                                const resNum = num2 * denom1 - num1 * denom2;
+                                const resDen = denom1 * denom2;
+                                answerDecimal = resNum / resDen;
+                                answerDisplay = simplifyFraction(resNum, resDen);
+                                questionStr = `${num2}/${denom2} − ${num1}/${denom1} = ?`;
+                            }
+                        }
+                        subtitle = 'Zadaj ako zlomok (napr. 3/4) alebo desatinné číslo';
+                        break;
+
+                    case 'perc':
+                        // Percentage questions
+                        const percType = randInt(0, 2);
+                        if (percType === 0) {
+                            // X% of Y = ?
+                            const pct = randInt(5, level <= 16 ? 50 : 100);
+                            const base = randInt(10, level <= 16 ? 100 : 500);
+                            answerDecimal = (pct / 100) * base;
+                            answerDisplay = Number.isInteger(answerDecimal) ? String(answerDecimal) : parseFloat(
+                                answerDecimal.toFixed(4)).toString();
+                            questionStr = `${pct}% z ${base} = ?`;
+                        } else if (percType === 1) {
+                            // What percent is X of Y?
+                            const part = randInt(1, 20);
+                            const whole = part * randInt(2, 10);
+                            answerDecimal = (part / whole) * 100;
+                            answerDisplay = Number.isInteger(answerDecimal) ? String(answerDecimal) + '%' : parseFloat(
+                                answerDecimal.toFixed(2)).toString() + '%';
+                            questionStr = `Koľko % je ${part} z ${whole}?`;
+                            subtitle = 'Zadaj číslo (napr. 25) — % sa doplní automaticky';
+                        } else {
+                            // Increase/decrease by percentage
+                            const base2 = randInt(20, level <= 16 ? 100 : 300);
+                            const pct2 = randInt(5, 40);
+                            const increase = Math.random() > 0.5;
+                            if (increase) {
+                                answerDecimal = base2 + (pct2 / 100) * base2;
+                                questionStr = `${base2} zvýšené o ${pct2}% = ?`;
+                            } else {
+                                answerDecimal = base2 - (pct2 / 100) * base2;
+                                questionStr = `${base2} znížené o ${pct2}% = ?`;
+                            }
+                            answerDisplay = Number.isInteger(answerDecimal) ? String(answerDecimal) : parseFloat(
+                                answerDecimal.toFixed(4)).toString();
+                        }
+                        break;
+
+                    default:
+                        a = randInt(range.min, range.max);
+                        b = randInt(range.min, range.max);
+                        answerDecimal = a + b;
+                        answerDisplay = String(answerDecimal);
+                        questionStr = `${a} + ${b} = ?`;
+                }
+
+                return {
+                    operation,
+                    answerDecimal,
+                    answerDisplay,
+                    questionStr,
+                    subtitle,
+                };
+            }
+
+            // ──────────────────────────────────────
+            // Update UI
+            // ──────────────────────────────────────
+            function updateStatsUI() {
+                levelDisplay.textContent = level;
+                scoreDisplay.textContent = score;
+                streakDisplay.textContent = streak;
+                progressCount.textContent = `${correctInLevel}/${CORRECT_PER_LEVEL}`;
+                const pct = Math.min(100, Math.round((correctInLevel / CORRECT_PER_LEVEL) * 100));
+                progressBar.style.width = pct + '%';
+
+                // Lives
+                const hearts = livesContainer.querySelectorAll('.heart');
+                hearts.forEach((h, i) => {
+                    if (i >= lives) {
+                        h.classList.add('lost');
+                    } else {
+                        h.classList.remove('lost');
+                    }
+                });
+            }
+
+            function updateOperationBadge(op) {
+                const labels = {
+                    add: 'SČÍTANIE',
+                    sub: 'ODČÍTANIE',
+                    mul: 'NÁSOBENIE',
+                    div: 'DELENIE',
+                    frac: 'ZLOMKY',
+                    perc: 'PERCENTÁ',
+                };
+                const classes = {
+                    add: 'add',
+                    sub: 'sub',
+                    mul: 'mul',
+                    div: 'div',
+                    frac: 'frac',
+                    perc: 'perc',
+                };
+                operationBadge.textContent = labels[op] || 'SČÍTANIE';
+                operationBadge.className = 'operation-badge ' + (classes[op] || 'add');
+            }
+
+            function displayQuestion(q) {
+                updateOperationBadge(q.operation);
+                questionText.textContent = q.questionStr;
+                questionSubtitle.textContent = q.subtitle || '';
+                answerInput.value = '';
+                answerInput.className = 'answer-input';
+                answerInput.focus();
+                mainCard.classList.remove('correct-flash', 'wrong-flash');
+            }
+
+            // ──────────────────────────────────────
+            // Show toast
+            // ──────────────────────────────────────
+            function showToast(message, type = '') {
+                if (toastTimeout) clearTimeout(toastTimeout);
+                feedbackToast.textContent = message;
+                feedbackToast.className = 'feedback-toast ' + type + ' show';
+                toastTimeout = setTimeout(() => {
+                    feedbackToast.classList.remove('show');
+                    feedbackToast.className = 'feedback-toast';
+                }, 1800);
+            }
+
+            // ──────────────────────────────────────
+            // Confetti
+            // ──────────────────────────────────────
+            function spawnConfetti(count = 50) {
+                const colors = ['#f59e0b', '#f97316', '#ef4444', '#8b5cf6', '#10b981',
+                    '#3b82f6', '#ec4899', '#06b6d4', '#fbbf24', '#6366f1'
+                ];
+                const fragment = document.createDocumentFragment();
+                for (let i = 0; i < count; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = 'confetti-piece';
+                    piece.style.left = Math.random() * 100 + '%';
+                    piece.style.top = -(Math.random() * 80 + 10) + 'px';
+                    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.width = (Math.random() * 10 + 6) + 'px';
+                    piece.style.height = (Math.random() * 10 + 6) + 'px';
+                    piece.style.animationDuration = (Math.random() * 1.5 + 1) + 's';
+                    piece.style.animationDelay = Math.random() * 0.5 + 's';
+                    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '3px';
+                    fragment.appendChild(piece);
+                }
+                confettiContainer.appendChild(fragment);
+                setTimeout(() => {
+                    confettiContainer.innerHTML = '';
+                }, 2500);
+            }
+
+            // ──────────────────────────────────────
+            // Heart pulse animation
+            // ──────────────────────────────────────
+            function pulseHeart(index) {
+                const hearts = livesContainer.querySelectorAll('.heart');
+                if (hearts[index]) {
+                    hearts[index].classList.add('pulse');
+                    setTimeout(() => hearts[index].classList.remove('pulse'), 500);
+                }
+            }
+
+            // ──────────────────────────────────────
+            // Parse user answer to decimal
+            // ──────────────────────────────────────
+            function parseAnswer(raw) {
+                const trimmed = raw.trim().replace(/\s+/g, '');
+                if (!trimmed) return NaN;
+
+                // Check if it's a fraction like "3/4" or "-2/5"
+                const fracMatch = trimmed.match(/^(-?\d+)\s*\/\s*(\d+)$/);
+                if (fracMatch) {
+                    const num = parseInt(fracMatch[1], 10);
+                    const den = parseInt(fracMatch[2], 10);
+                    if (den === 0) return NaN;
+                    return num / den;
+                }
+
+                // Check if it ends with % (for percentage answers)
+                const pctMatch = trimmed.match(/^(-?[\d.]+)\s*%$/);
+                if (pctMatch) {
+                    return parseFloat(pctMatch[1]);
+                }
+
+                // Plain number
+                return parseFloat(trimmed);
+            }
+
+            // ──────────────────────────────────────
+            // Check if user answer matches expected
+            // ──────────────────────────────────────
+            function isAnswerCorrect(userDecimal, expectedDecimal) {
+                if (isNaN(userDecimal)) return false;
+                const tolerance = 0.0001;
+                return Math.abs(userDecimal - expectedDecimal) < tolerance;
+            }
+
+            // ──────────────────────────────────────
+            // Handle correct answer
+            // ──────────────────────────────────────
+            function handleCorrect() {
+                isAcceptingInput = false;
+                streak++;
+                correctInLevel++;
+                const streakBonus = Math.min(streak - 1, 10) * 5;
+                const levelMultiplier = 1 + Math.floor((level - 1) / 5) * 0.5;
+                const pointsEarned = Math.round((10 + streakBonus) * levelMultiplier);
+                score += pointsEarned;
+
+                // UI feedback
+                mainCard.classList.add('correct-flash');
+                answerInput.classList.add('input-correct');
+                updateStatsUI();
+
+                let toastMsg = `✅ Správne! +${pointsEarned} bodov`;
+                if (streak >= 5) toastMsg += ` | 🔥 Séria ${streak}!`;
+                showToast(toastMsg, 'success');
+
+                // Check level up
+                if (correctInLevel >= CORRECT_PER_LEVEL) {
+                    levelUp();
+                } else {
+                    // Next question after delay
+                    setTimeout(nextRound, 900);
+                }
+            }
+
+            // ──────────────────────────────────────
+            // Handle wrong answer
+            // ──────────────────────────────────────
+            function handleWrong() {
+                isAcceptingInput = false;
+                streak = 0;
+                lives--;
+                updateStatsUI();
+                if (lives >= 0 && lives < MAX_LIVES) {
+                    pulseHeart(lives);
+                }
+
+                mainCard.classList.add('wrong-flash');
+                answerInput.classList.add('input-wrong');
+                const correctAns = currentQuestion.answerDisplay;
+                showToast(`❌ Nesprávne! Správne: ${correctAns}`, 'error');
+
+                if (lives <= 0) {
+                    // Game over
+                    setTimeout(endGame, 1000);
+                } else {
+                    setTimeout(nextRound, 1100);
+                }
+            }
+
+            // ──────────────────────────────────────
+            // Level up
+            // ──────────────────────────────────────
+            function levelUp() {
+                level++;
+                correctInLevel = 0;
+                if (lives < MAX_LIVES) {
+                    lives++;
+                }
+                updateStatsUI();
+                spawnConfetti(60);
+                showToast(`🎉 Postupuješ na Level ${level}!`, 'levelup');
+
+                // Next question after celebration
+                setTimeout(nextRound, 1600);
+            }
+
+            // ──────────────────────────────────────
+            // Next round
+            // ──────────────────────────────────────
+            function nextRound() {
+                if (gameOver) return;
+                isAcceptingInput = true;
+                mainCard.classList.remove('correct-flash', 'wrong-flash');
+                answerInput.classList.remove('input-correct', 'input-wrong');
+                currentQuestion = generateQuestion();
+                displayQuestion(currentQuestion);
+                updateStatsUI();
+                answerInput.focus();
+            }
+
+            // ──────────────────────────────────────
+            // Submit answer
+            // ──────────────────────────────────────
+            function submitAnswer() {
+                if (!isAcceptingInput || gameOver || !currentQuestion) return;
+                const raw = answerInput.value;
+                if (!raw.trim()) {
+                    // Shake input briefly
+                    answerInput.classList.add('input-wrong');
+                    setTimeout(() => answerInput.classList.remove('input-wrong'), 400);
+                    return;
+                }
+                const userDecimal = parseAnswer(raw);
+                if (isAnswerCorrect(userDecimal, currentQuestion.answerDecimal)) {
+                    handleCorrect();
+                } else {
+                    handleWrong();
+                }
+            }
+
+            // ──────────────────────────────────────
+            // Game over
+            // ──────────────────────────────────────
+            function endGame() {
+                gameOver = true;
+                isAcceptingInput = false;
+                gameOverStats.innerHTML = `
+              Dosiahol si <strong>Level ${level}</strong><br>
+              so skóre <strong>${score}</strong> bodov!<br>
+              🔥 Najdlhšia séria: <strong>${streak}</strong>
+            `;
+                gameOverOverlay.style.display = 'flex';
+                mainCard.classList.add('wrong-flash');
+            }
+
+            function restartGame() {
+                gameOver = false;
+                isAcceptingInput = true;
+                level = 1;
+                score = 0;
+                streak = 0;
+                lives = MAX_LIVES;
+                correctInLevel = 0;
+                gameOverOverlay.style.display = 'none';
+                mainCard.classList.remove('correct-flash', 'wrong-flash');
+                answerInput.classList.remove('input-correct', 'input-wrong');
+                answerInput.value = '';
+                updateStatsUI();
+                currentQuestion = generateQuestion();
+                displayQuestion(currentQuestion);
+                confettiContainer.innerHTML = '';
+                if (toastTimeout) clearTimeout(toastTimeout);
+                feedbackToast.className = 'feedback-toast';
+                answerInput.focus();
+            }
+
+            // ──────────────────────────────────────
+            // Event listeners
+            // ──────────────────────────────────────
+
+            // Submit button
+            submitBtn.addEventListener('click', submitAnswer);
+
+            // Numpad
+            numpad.addEventListener('click', (e) => {
+                if (!isAcceptingInput || gameOver) return;
+                const btn = e.target.closest('.numpad-btn');
+                if (!btn) return;
+                const key = btn.dataset.key;
+                if (!key) return;
+
+                if (key === 'submit') {
+                    submitAnswer();
+                } else if (key === 'backspace') {
+                    answerInput.value = answerInput.value.slice(0, -1);
+                    answerInput.focus();
+                } else if (key === 'clear') {
+                    answerInput.value = '';
+                    answerInput.focus();
+                } else if (key === '/') {
+                    answerInput.value += '/';
+                    answerInput.focus();
+                } else if (key === '-') {
+                    answerInput.value += '-';
+                    answerInput.focus();
+                } else if (key === '.') {
+                    answerInput.value += '.';
+                    answerInput.focus();
+                } else {
+                    answerInput.value += key;
+                    answerInput.focus();
+                }
+            });
+
+            // Keyboard input
+            answerInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitAnswer();
+                }
+                // Allow only valid characters
+                const allowedKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                    '/', '-', '.', ',', 'Backspace', 'Delete', 'ArrowLeft',
+                    'ArrowRight', 'Tab', 'Home', 'End'
+                ];
+                if (!allowedKeys.includes(e.key) && !e.ctrlKey && !e.metaKey && e.key.length === 1) {
+                    e.preventDefault();
+                }
+            });
+
+            // Convert comma to dot for decimal
+            answerInput.addEventListener('input', () => {
+                answerInput.value = answerInput.value.replace(/,/g, '.');
+            });
+
+            // Restart button
+            restartBtn.addEventListener('click', restartGame);
+
+            // Prevent zoom on double tap on numpad (mobile)
+            numpad.addEventListener('touchstart', function(e) {
+                if (e.target.closest('.numpad-btn')) {
+                    e.preventDefault();
+                    e.target.click();
+                }
+            }, { passive: false });
+
+            // Prevent double-tap zoom on the whole game container
+            document.getElementById('gameContainer').addEventListener('touchstart', function(e) {
+                if (e.target.closest('button') || e.target.closest('.numpad-btn')) {
+                    // let the numpad handler deal with it
+                }
+            }, { passive: true });
+
+            // ──────────────────────────────────────
+            // Initialize game
+            // ──────────────────────────────────────
+            function initGame() {
+                gameOver = false;
+                isAcceptingInput = true;
+                level = 1;
+                score = 0;
+                streak = 0;
+                lives = MAX_LIVES;
+                correctInLevel = 0;
+                updateStatsUI();
+                currentQuestion = generateQuestion();
+                displayQuestion(currentQuestion);
+                answerInput.focus();
+            }
+
+            initGame();
+
+            // Log game info
+            console.log('🧮 Matematický tréner pripravený!');
+            console.log('   Operácie: sčítanie, odčítanie, násobenie, delenie, zlomky, percentá');
+            console.log('   Levely sa odomykajú s postupom — zvyšuje sa obtiažnosť aj rozsah čísel.');
+            console.log('   💡 Tip: Na mobile použi číselnú klávesnicu pod otázkou.');
+            console.log('   ⌨️ Na desktope môžeš písať priamo do poľa a stlačiť Enter.');
+        })();
+    </script>
+</body>
+</html>

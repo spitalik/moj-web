@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v69';
+const CACHE = 'gamepad-v71';
 
 const ASSETS = [
   './',
@@ -62,6 +62,7 @@ const ASSETS = [
   './games/binary-grid/index.html',
   './games/geoklik/index.html',
   './games/flag-quiz/index.html',
+  './games/capital-quiz/index.html',
 ];
 
 self.addEventListener('install', e => {
