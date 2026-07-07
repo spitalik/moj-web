@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Block Cascade</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #0b0e14;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 12px;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            background: #141a24;
+            border-radius: 28px;
+            padding: 20px 24px 24px;
+            max-width: 720px;
+            width: 100%;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+            border: 1px solid #2a3340;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        #header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #a7c0ff, #6d8cff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(109, 140, 255, 0.2);
+            text-align: center;
+            margin: 0;
+        }
+
+        #main {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #canvas-wrapper {
+            flex: 0 0 auto;
+            background: #0f131c;
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: inset 0 0 0 1px #28303d;
+            touch-action: none;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0b0f16;
+            border-radius: 10px;
+            touch-action: none;
+        }
+
+        #info-panel {
+            flex: 1 1 160px;
+            min-width: 140px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 6px 0;
+        }
+
+        .info-card {
+            background: #111822;
+            border-radius: 14px;
+            padding: 10px 14px;
+            border: 1px solid #27303e;
+            box-shadow: inset 0 0 0 1px #1e2633;
+        }
+
+        .info-card h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #6b7d98;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .info-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #e8edf5;
+            line-height: 1.2;
+            display: block;
+        }
+
+        #next-block {
+            text-align: center;
+        }
+
+        .next-preview {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .next-preview canvas {
+            display: block;
+            background: #0b0f16;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 100px;
+            aspect-ratio: 1 / 1;
+            touch-action: none;
+        }
+
+        #controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 4px;
+            touch-action: none;
+        }
+
+        #controls button {
+            background: #1f293a;
+            border: none;
+            border-radius: 16px;
+            color: #c8d6e8;
+            font-size: 28px;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 0 #0b0f16, 0 6px 12px rgba(0, 0, 0, 0.4);
+            transition: all 0.06s ease;
+            touch-action: manipulation;
+            cursor: pointer;
+            font-weight: 300;
+            border: 1px solid #31415a;
+        }
+
+        #controls button:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #0b0f16;
+        }
+
+        #controls button#rotateBtn {
+            font-size: 32px;
+        }
+
+        #controls button#dropBtn {
+            font-size: 30px;
+        }
+
+        #game-over-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(8, 12, 20, 0.85);
+            backdrop-filter: blur(6px);
+            border-radius: 28px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 30px;
+            z-index: 10;
+            color: #eef3fc;
+        }
+
+        #game-over-overlay.visible {
+            display: flex;
+        }
+
+        #game-over-overlay h2 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff8a8a, #ff4d4d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #game-over-overlay p {
+            font-size: 20px;
+            color: #b0c4e0;
+        }
+
+        #game-over-overlay p span {
+            font-weight: 700;
+            font-size: 28px;
+            color: #fff;
+        }
+
+        #restartBtn {
+            background: #3b5b9b;
+            border: none;
+            border-radius: 40px;
+            padding: 14px 40px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+            box-shadow: 0 6px 0 #1d2e4a;
+            cursor: pointer;
+            transition: 0.08s linear;
+            margin-top: 10px;
+            border: 1px solid #5a7fcb;
+        }
+
+        #restartBtn:active {
+            transform: translateY(6px);
+            box-shadow: 0 1px 0 #1d2e4a;
+        }
+
+        #game-container {
+            position: relative;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 580px) {
+            #game-container {
+                padding: 12px 12px 16px;
+            }
+
+            #header h1 {
+                font-size: 22px;
+            }
+
+            #controls button {
+                width: 54px;
+                height: 54px;
+                font-size: 24px;
+            }
+
+            #controls button#rotateBtn {
+                font-size: 28px;
+            }
+
+            #info-panel {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+                flex: 1 1 100%;
+                justify-content: center;
+            }
+
+            .info-card {
+                flex: 1 0 auto;
+                min-width: 70px;
+                padding: 6px 12px;
+                text-align: center;
+            }
+
+            .info-card .value {
+                font-size: 22px;
+            }
+
+            #next-block {
+                flex: 0 0 auto;
+            }
+
+            .next-preview canvas {
+                max-width: 70px;
+            }
+
+            #main {
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            #controls button {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+            #controls {
+                gap: 6px;
+            }
+            .next-preview canvas {
+                max-width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>⬡ BLOCK CASCADE</h1>
+        </div>
+
+        <div id="main">
+            <div id="canvas-wrapper">
+                <canvas id="gameCanvas" width="300" height="600"></canvas>
+            </div>
+
+            <div id="info-panel">
+                <div class="info-card" id="next-block">
+                    <h3>Ďalšie</h3>
+                    <div class="next-preview">
+                        <canvas id="nextCanvas" width="120" height="120"></canvas>
+                        <canvas id="nextCanvas2" width="120" height="120"></canvas>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <h3>Skóre</h3>
+                    <span class="value" id="scoreValue">0</span>
+                </div>
+                <div class="info-card">
+                    <h3>Riadky</h3>
+                    <span class="value" id="linesValue">0</span>
+                </div>
+                <div class="info-card">
+                    <h3>Úroveň</h3>
+                    <span class="value" id="levelValue">1</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="leftBtn" aria-label="Doľava">◀</button>
+            <button id="rotateBtn" aria-label="Otočiť">↻</button>
+            <button id="rightBtn" aria-label="Doprava">▶</button>
+            <button id="dropBtn" aria-label="Spustiť">▼</button>
+        </div>
+
+        <div id="game-over-overlay">
+            <h2>Koniec hry</h2>
+            <p>Skóre: <span id="finalScore">0</span></p>
+            <button id="restartBtn">Hrať znova</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ----- KONŠTANTY A NASTAVENIA -----
+            const COLS = 10;
+            const ROWS = 20;
+            const PREVIEW_COUNT = 2; // počet zobrazených nasledujúcich blokov
+
+            // Farba pozadia bunky
+            const EMPTY_COLOR = '#0b0f16';
+            const GRID_LINE_COLOR = '#18202b';
+
+            // ----- TVARY (vlastné geometrické bloky) -----
+            const SHAPES = [{
+                color: '#00e5ff',
+                blocks: [
+                    [0, 0],
+                    [1, 0],
+                    [2, 0],
+                    [3, 0]
+                ] // I
+            }, {
+                color: '#ffea00',
+                blocks: [
+                    [0, 0],
+                    [1, 0],
+                    [0, 1],
+                    [1, 1]
+                ] // O
+            }, {
+                color: '#d500f9',
+                blocks: [
+                    [0, 0],
+                    [1, 0],
+                    [2, 0],
+                    [1, 1]
+                ] // T
+            }, {
+                color: '#76ff03',
+                blocks: [
+                    [1, 0],
+                    [2, 0],
+                    [0, 1],
+                    [1, 1]
+                ] // S
+            }, {
+                color: '#ff1744',
+                blocks: [
+                    [0, 0],
+                    [1, 0],
+                    [1, 1],
+                    [2, 1]
+                ] // Z
+            }, {
+                color: '#ff9100',
+                blocks: [
+                    [0, 0],
+                    [1, 0],
+                    [2, 0],
+                    [2, 1]
+                ] // L
+            }, {
+                color: '#2979ff',
+                blocks: [
+                    [0, 0],
+                    [1, 0],
+                    [2, 0],
+                    [0, 1]
+                ] // J
+            }];
+
+            // ----- ZVUKY (Web Audio API) -----
+            let audioCtx = null;
+
+            function getAudioContext() {
+                if (!audioCtx) {
+                    audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                }
+                return audioCtx;
+            }
+
+            function playTone(freq, duration, type = 'sine', volume = 0.25) {
+                try {
+                    const ctx = getAudioContext();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(volume, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + duration);
+                } catch (_) { /* ticho */ }
+            }
+
+            function soundRotate() {
+                playTone(720, 0.08, 'sine', 0.18);
+            }
+
+            function soundMove() {
+                playTone(440, 0.05, 'sine', 0.12);
+            }
+
+            function soundDrop() {
+                playTone(180, 0.25, 'sawtooth', 0.20);
+            }
+
+            function soundLineClear() {
+                const notes = [523, 659, 784, 988];
+                notes.forEach((f, i) => {
+                    setTimeout(() => playTone(f, 0.10, 'sine', 0.15), i * 80);
+                });
+            }
+
+            function soundGameOver() {
+                playTone(300, 0.6, 'sawtooth', 0.25);
+                setTimeout(() => playTone(200, 0.5, 'sawtooth', 0.20), 300);
+            }
+
+            // ----- HERNÝ STAV -----
+            let grid = [];
+            let currentPiece = null;
+            let nextPieces = []; // pole blokov (dĺžka PREVIEW_COUNT)
+            let score = 0;
+            let linesCleared = 0;
+            let level = 1;
+            let gameOver = false;
+
+            let dropCounter = 0;
+            let dropInterval = 1000; // ms
+            let lastTime = 0;
+
+            // ----- DOM REFERENCIE -----
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const nextCanvas = document.getElementById('nextCanvas');
+            const nextCtx = nextCanvas.getContext('2d');
+            const nextCanvas2 = document.getElementById('nextCanvas2');
+            const nextCtx2 = nextCanvas2.getContext('2d');
+
+            const scoreSpan = document.getElementById('scoreValue');
+            const linesSpan = document.getElementById('linesValue');
+            const levelSpan = document.getElementById('levelValue');
+            const finalScoreSpan = document.getElementById('finalScore');
+            const gameOverOverlay = document.getElementById('game-over-overlay');
+            const restartBtn = document.getElementById('restartBtn');
+
+            // ----- POMOCOVNÉ FUNKCIE -----
+            function createGrid() {
+                return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+            }
+
+            // Náhodný tvar (vráti kópiu)
+            function getRandomPiece() {
+                const idx = Math.floor(Math.random() * SHAPES.length);
+                const shape = SHAPES[idx];
+                return {
+                    blocks: shape.blocks.map(b => [...b]),
+                    color: shape.color
+                };
+            }
+
+            // Rotácia tvaru o 90° v smere hodinových ručičiek okolo stredu
+            function rotateBlocks(blocks) {
+                if (blocks.length === 0) return [];
+                let sumX = 0,
+                    sumY = 0;
+                for (const [x, y] of blocks) {
+                    sumX += x;
+                    sumY += y;
+                }
+                const cx = sumX / blocks.length;
+                const cy = sumY / blocks.length;
+
+                const rotated = blocks.map(([x, y]) => {
+                    const dx = x - cx;
+                    const dy = y - cy;
+                    const newX = Math.round(cx - dy);
+                    const newY = Math.round(cy + dx);
+                    return [newX, newY];
+                });
+
+                let minX = Infinity,
+                    minY = Infinity;
+                for (const [x, y] of rotated) {
+                    if (x < minX) minX = x;
+                    if (y < minY) minY = y;
+                }
+                const offsetX = -minX;
+                const offsetY = -minY;
+                return rotated.map(([x, y]) => [x + offsetX, y + offsetY]);
+            }
+
+            // Skontroluje, či je tvar na pozícii (x, y) platný
+            function isValid(blocks, posX, posY) {
+                for (const [bx, by] of blocks) {
+                    const col = posX + bx;
+                    const row = posY + by;
+                    if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return false;
+                    if (grid[row][col] !== null) return false;
+                }
+                return true;
+            }
+
+            // Uloží aktuálny blok do mriežky
+            function lockPiece() {
+                if (!currentPiece) return;
+                const { blocks, color, x, y } = currentPiece;
+                for (const [bx, by] of blocks) {
+                    const col = x + bx;
+                    const row = y + by;
+                    if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
+                        grid[row][col] = color;
+                    }
+                }
+                soundDrop();
+
+                clearLines();
+                spawnPiece();
+            }
+
+            // Odstránenie plných riadkov a aktualizácia skóre
+            function clearLines() {
+                let cleared = 0;
+                for (let row = ROWS - 1; row >= 0; ) {
+                    if (grid[row].every(cell => cell !== null)) {
+                        grid.splice(row, 1);
+                        grid.unshift(Array(COLS).fill(null));
+                        cleared++;
+                    } else {
+                        row--;
+                    }
+                }
+
+                if (cleared > 0) {
+                    soundLineClear();
+                    const points = [0, 100, 300, 500, 800];
+                    const addScore = points[Math.min(cleared, 4)] || 800;
+                    score += addScore;
+                    linesCleared += cleared;
+                    level = Math.floor(linesCleared / 10) + 1;
+                    dropInterval = Math.max(100, 1000 - (level - 1) * 80);
+                    updateInfo();
+                }
+            }
+
+            // Vytvorí nový blok z prvého v rade a doplní zásobník
+            function spawnPiece() {
+                // Ak je zásobník prázdny, naplníme ho
+                while (nextPieces.length < PREVIEW_COUNT) {
+                    nextPieces.push(getRandomPiece());
+                }
+
+                const newPiece = nextPieces[0];
+                currentPiece = {
+                    blocks: newPiece.blocks.map(b => [...b]),
+                    color: newPiece.color,
+                    x: Math.floor((COLS - Math.max(...newPiece.blocks.map(b => b[0])) - Math.min(...newPiece.blocks.map(b =>
+                        b[0]))) / 2),
+                    y: 0
+                };
+                let minY = Infinity;
+                for (const [, by] of newPiece.blocks) {
+                    if (by < minY) minY = by;
+                }
+                currentPiece.y = -minY;
+
+                // Odstrániť prvý a pridať nový na koniec
+                nextPieces.shift();
+                nextPieces.push(getRandomPiece());
+
+                // Kontrola Game Over
+                if (!isValid(currentPiece.blocks, currentPiece.x, currentPiece.y)) {
+                    gameOver = true;
+                    soundGameOver();
+                    showGameOver();
+                }
+
+                drawNext();
+                updateInfo();
+            }
+
+            // ----- POHYB A ROTÁCIA -----
+            function moveLeft() {
+                if (!currentPiece || gameOver) return;
+                if (isValid(currentPiece.blocks, currentPiece.x - 1, currentPiece.y)) {
+                    currentPiece.x--;
+                    soundMove();
+                }
+            }
+
+            function moveRight() {
+                if (!currentPiece || gameOver) return;
+                if (isValid(currentPiece.blocks, currentPiece.x + 1, currentPiece.y)) {
+                    currentPiece.x++;
+                    soundMove();
+                }
+            }
+
+            function rotatePiece() {
+                if (!currentPiece || gameOver) return;
+                const rotated = rotateBlocks(currentPiece.blocks);
+                if (isValid(rotated, currentPiece.x, currentPiece.y)) {
+                    currentPiece.blocks = rotated;
+                    soundRotate();
+                } else {
+                    if (isValid(rotated, currentPiece.x - 1, currentPiece.y)) {
+                        currentPiece.blocks = rotated;
+                        currentPiece.x--;
+                        soundRotate();
+                    } else if (isValid(rotated, currentPiece.x + 1, currentPiece.y)) {
+                        currentPiece.blocks = rotated;
+                        currentPiece.x++;
+                        soundRotate();
+                    }
+                }
+            }
+
+            function hardDrop() {
+                if (!currentPiece || gameOver) return;
+                while (isValid(currentPiece.blocks, currentPiece.x, currentPiece.y + 1)) {
+                    currentPiece.y++;
+                }
+                lockPiece();
+            }
+
+            function moveDown() {
+                if (!currentPiece || gameOver) return;
+                if (isValid(currentPiece.blocks, currentPiece.x, currentPiece.y + 1)) {
+                    currentPiece.y++;
+                } else {
+                    lockPiece();
+                }
+            }
+
+            // ----- VYKRESLOVANIE -----
+            function getBlockSize() {
+                return canvas.width / COLS;
+            }
+
+            function drawBlock(context, x, y, color, size, alpha = 1.0) {
+                const margin = 1;
+                const radius = 3;
+                const bx = x * size + margin;
+                const by = y * size + margin;
+                const bw = size - margin * 2;
+                const bh = size - margin * 2;
+
+                context.globalAlpha = alpha;
+                context.shadowColor = 'rgba(0,0,0,0.5)';
+                context.shadowBlur = 6;
+                context.shadowOffsetX = 2;
+                context.shadowOffsetY = 2;
+
+                context.beginPath();
+                context.moveTo(bx + radius, by);
+                context.lineTo(bx + bw - radius, by);
+                context.quadraticCurveTo(bx + bw, by, bx + bw, by + radius);
+                context.lineTo(bx + bw, by + bh - radius);
+                context.quadraticCurveTo(bx + bw, by + bh, bx + bw - radius, by + bh);
+                context.lineTo(bx + radius, by + bh);
+                context.quadraticCurveTo(bx, by + bh, bx, by + bh - radius);
+                context.lineTo(bx, by + radius);
+                context.quadraticCurveTo(bx, by, bx + radius, by);
+                context.closePath();
+
+                const grad = context.createLinearGradient(bx, by, bx + bw, by + bh);
+                grad.addColorStop(0, color);
+                grad.addColorStop(0.7, color);
+                grad.addColorStop(1, '#00000044');
+                context.fillStyle = grad;
+                context.fill();
+
+                context.shadowBlur = 0;
+                context.globalAlpha = 0.25;
+                context.fillStyle = '#ffffff';
+                context.beginPath();
+                context.rect(bx + 3, by + 2, bw - 6, bh * 0.3);
+                context.fill();
+
+                context.globalAlpha = 1.0;
+                context.shadowBlur = 0;
+                context.shadowOffsetX = 0;
+                context.shadowOffsetY = 0;
+            }
+
+            function drawGrid() {
+                const size = getBlockSize();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = EMPTY_COLOR;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        const color = grid[row][col];
+                        if (color) {
+                            drawBlock(ctx, col, row, color, size);
+                        } else {
+                            ctx.strokeStyle = GRID_LINE_COLOR;
+                            ctx.lineWidth = 0.5;
+                            ctx.strokeRect(col * size, row * size, size, size);
+                        }
+                    }
+                }
+
+                if (currentPiece && !gameOver) {
+                    const { blocks, color, x, y } = currentPiece;
+                    for (const [bx, by] of blocks) {
+                        const col = x + bx;
+                        const row = y + by;
+                        if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
+                            drawBlock(ctx, col, row, color, size, 0.95);
+                        }
+                    }
+                }
+            }
+
+            // Vykreslí jeden náhľadový blok na daný canvas
+            function drawNextPiece(ctx, canvas, piece) {
+                const size = canvas.width / 4; // 4x4 mriežka
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#0b0f16';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                if (!piece) return;
+                const blocks = piece.blocks;
+                let minX = Infinity,
+                    maxX = -Infinity,
+                    minY = Infinity,
+                    maxY = -Infinity;
+                for (const [x, y] of blocks) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+                const w = maxX - minX + 1;
+                const h = maxY - minY + 1;
+                const offsetX = (4 - w) / 2 - minX;
+                const offsetY = (4 - h) / 2 - minY;
+
+                for (const [bx, by] of blocks) {
+                    const x = bx + offsetX;
+                    const y = by + offsetY;
+                    const margin = 2;
+                    const radius = 2;
+                    const bx2 = x * size + margin;
+                    const by2 = y * size + margin;
+                    const bw = size - margin * 2;
+                    const bh = size - margin * 2;
+
+                    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+
+                    ctx.beginPath();
+                    ctx.moveTo(bx2 + radius, by2);
+                    ctx.lineTo(bx2 + bw - radius, by2);
+                    ctx.quadraticCurveTo(bx2 + bw, by2, bx2 + bw, by2 + radius);
+                    ctx.lineTo(bx2 + bw, by2 + bh - radius);
+                    ctx.quadraticCurveTo(bx2 + bw, by2 + bh, bx2 + bw - radius, by2 + bh);
+                    ctx.lineTo(bx2 + radius, by2 + bh);
+                    ctx.quadraticCurveTo(bx2, by2 + bh, bx2, by2 + bh - radius);
+                    ctx.lineTo(bx2, by2 + radius);
+                    ctx.quadraticCurveTo(bx2, by2, bx2 + radius, by2);
+                    ctx.closePath();
+
+                    ctx.fillStyle = piece.color;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            function drawNext() {
+                drawNextPiece(nextCtx, nextCanvas, nextPieces[0] || null);
+                drawNextPiece(nextCtx2, nextCanvas2, nextPieces[1] || null);
+            }
+
+            function updateInfo() {
+                scoreSpan.textContent = score;
+                linesSpan.textContent = linesCleared;
+                levelSpan.textContent = level;
+            }
+
+            function showGameOver() {
+                finalScoreSpan.textContent = score;
+                gameOverOverlay.classList.add('visible');
+            }
+
+            function hideGameOver() {
+                gameOverOverlay.classList.remove('visible');
+            }
+
+            // ----- RESIZE -----
+            function resizeCanvas() {
+                const wrapper = document.getElementById('canvas-wrapper');
+                const wrapperWidth = wrapper.clientWidth - 16;
+                const aspect = ROWS / COLS;
+                let width = Math.min(wrapperWidth, 400);
+                let height = width * aspect;
+                const maxHeight = window.innerHeight * 0.55;
+                if (height > maxHeight) {
+                    height = maxHeight;
+                    width = height / aspect;
+                }
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+            }
+
+            // ----- HERNÁ SLUČKA -----
+            function gameLoop(time) {
+                if (gameOver) {
+                    drawGrid();
+                    drawNext();
+                    requestAnimationFrame(gameLoop);
+                    return;
+                }
+
+                const delta = time - lastTime;
+                lastTime = time;
+
+                dropCounter += delta;
+                if (dropCounter >= dropInterval) {
+                    dropCounter = 0;
+                    moveDown();
+                }
+
+                drawGrid();
+                drawNext();
+
+                requestAnimationFrame(gameLoop);
+            }
+
+            // ----- INICIALIZÁCIA A REŠTART -----
+            function initGame() {
+                grid = createGrid();
+                score = 0;
+                linesCleared = 0;
+                level = 1;
+                dropInterval = 1000;
+                dropCounter = 0;
+                gameOver = false;
+                hideGameOver();
+
+                // Naplniť zásobník dvoma blokmi
+                nextPieces = [];
+                for (let i = 0; i < PREVIEW_COUNT; i++) {
+                    nextPieces.push(getRandomPiece());
+                }
+
+                spawnPiece(); // vytvorí currentPiece z prvého a doplní
+                updateInfo();
+                drawNext();
+                drawGrid();
+
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            }
+
+            // ----- OVLÁDANIE (klávesnica) -----
+            function handleKeyDown(e) {
+                const key = e.key;
+                if (gameOver) {
+                    if (key === 'Enter' || key === ' ') {
+                        e.preventDefault();
+                        initGame();
+                    }
+                    return;
+                }
+
+                switch (key) {
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        moveLeft();
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        moveRight();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        rotatePiece();
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        moveDown();
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        hardDrop();
+                        break;
+                    case 'r':
+                    case 'R':
+                        initGame();
+                        break;
+                }
+            }
+
+            // ----- OVLÁDANIE (mobilné tlačidlá) -----
+            function setupButtons() {
+                const leftBtn = document.getElementById('leftBtn');
+                const rightBtn = document.getElementById('rightBtn');
+                const rotateBtn = document.getElementById('rotateBtn');
+                const dropBtn = document.getElementById('dropBtn');
+
+                let repeatInterval = null;
+
+                function startRepeat(action) {
+                    if (repeatInterval) clearInterval(repeatInterval);
+                    action();
+                    repeatInterval = setInterval(() => {
+                        if (!gameOver && currentPiece) {
+                            action();
+                        } else {
+                            clearInterval(repeatInterval);
+                            repeatInterval = null;
+                        }
+                    }, 150);
+                }
+
+                function stopRepeat() {
+                    if (repeatInterval) {
+                        clearInterval(repeatInterval);
+                        repeatInterval = null;
+                    }
+                }
+
+                const addTouchListeners = (btn, action) => {
+                    const start = (e) => {
+                        e.preventDefault();
+                        if (gameOver) return;
+                        if (audioCtx && audioCtx.state === 'suspended') {
+                            audioCtx.resume();
+                        }
+                        startRepeat(action);
+                    };
+                    const end = (e) => {
+                        e.preventDefault();
+                        stopRepeat();
+                    };
+                    btn.addEventListener('mousedown', start);
+                    btn.addEventListener('mouseup', end);
+                    btn.addEventListener('mouseleave', end);
+                    btn.addEventListener('touchstart', start, { passive: false });
+                    btn.addEventListener('touchend', end, { passive: false });
+                    btn.addEventListener('touchcancel', end, { passive: false });
+                };
+
+                addTouchListeners(leftBtn, moveLeft);
+                addTouchListeners(rightBtn, moveRight);
+                addTouchListeners(rotateBtn, rotatePiece);
+
+                const dropStart = (e) => {
+                    e.preventDefault();
+                    if (gameOver) return;
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    hardDrop();
+                };
+                dropBtn.addEventListener('mousedown', dropStart);
+                dropBtn.addEventListener('touchstart', dropStart, { passive: false });
+            }
+
+            // ----- REŠTART -----
+            restartBtn.addEventListener('click', () => {
+                initGame();
+            });
+
+            // ----- RESIZE OBSLUHA -----
+            window.addEventListener('resize', resizeCanvas);
+
+            // ----- ŠTART -----
+            function start() {
+                resizeCanvas();
+                initGame();
+                setupButtons();
+                window.addEventListener('keydown', handleKeyDown);
+                lastTime = performance.now();
+                requestAnimationFrame(gameLoop);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', start);
+            } else {
+                start();
+            }
+
+            window.addEventListener('load', resizeCanvas);
+
+        })();
+    </script>
+
+</body>
+</html>
