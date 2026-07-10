@@ -35,6 +35,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            position: relative;
         }
 
         #header h1 {
@@ -63,6 +64,7 @@
             padding: 8px;
             box-shadow: inset 0 0 0 1px #28303d;
             touch-action: none;
+            position: relative;
         }
 
         #gameCanvas {
@@ -72,6 +74,34 @@
             background: #0b0f16;
             border-radius: 10px;
             touch-action: none;
+        }
+
+        #pause-overlay {
+            position: absolute;
+            inset: 8px;
+            background: rgba(8, 12, 20, 0.75);
+            backdrop-filter: blur(4px);
+            border-radius: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: #eef3fc;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        #pause-overlay.visible {
+            display: flex;
+        }
+
+        #pause-overlay span {
+            background: rgba(109, 140, 255, 0.2);
+            padding: 16px 32px;
+            border-radius: 16px;
+            border: 2px solid rgba(109, 140, 255, 0.4);
         }
 
         #info-panel {
@@ -106,6 +136,16 @@
             color: #e8edf5;
             line-height: 1.2;
             display: block;
+        }
+
+        .high-score {
+            border-color: #fbbf24;
+        }
+        .high-score h3 {
+            color: #fbbf24 !important;
+        }
+        .high-score .value {
+            color: #fbbf24 !important;
         }
 
         #next-block {
@@ -170,6 +210,19 @@
             font-size: 30px;
         }
 
+        #pauseBtn {
+            background: #1a2a3a;
+            border-color: #3b5b9b;
+            color: #a7c0ff;
+            font-size: 24px;
+        }
+
+        #pauseBtn.paused {
+            background: #2a3a2a;
+            border-color: #34d399;
+            color: #6ee7b7;
+        }
+
         #game-over-overlay {
             position: absolute;
             inset: 0;
@@ -209,6 +262,11 @@
             color: #fff;
         }
 
+        #game-over-overlay .high-score-text {
+            font-size: 16px;
+            color: #fbbf24;
+        }
+
         #restartBtn {
             background: #3b5b9b;
             border: none;
@@ -229,10 +287,6 @@
             box-shadow: 0 1px 0 #1d2e4a;
         }
 
-        #game-container {
-            position: relative;
-        }
-
         /* Mobile adjustments */
         @media (max-width: 580px) {
             #game-container {
@@ -251,6 +305,12 @@
 
             #controls button#rotateBtn {
                 font-size: 28px;
+            }
+
+            #pauseBtn {
+                font-size: 20px;
+                width: 54px;
+                height: 54px;
             }
 
             #info-panel {
@@ -283,6 +343,13 @@
             #main {
                 gap: 12px;
             }
+
+            #pause-overlay {
+                font-size: 24px;
+            }
+            #pause-overlay span {
+                padding: 12px 24px;
+            }
         }
 
         @media (max-width: 420px) {
@@ -290,6 +357,11 @@
                 width: 48px;
                 height: 48px;
                 font-size: 20px;
+            }
+            #pauseBtn {
+                font-size: 18px;
+                width: 48px;
+                height: 48px;
             }
             #controls {
                 gap: 6px;
@@ -310,6 +382,7 @@
         <div id="main">
             <div id="canvas-wrapper">
                 <canvas id="gameCanvas" width="300" height="600"></canvas>
+                <div id="pause-overlay"><span>⏸ PAUZA</span></div>
             </div>
 
             <div id="info-panel">
@@ -323,6 +396,10 @@
                 <div class="info-card">
                     <h3>Skóre</h3>
                     <span class="value" id="scoreValue">0</span>
+                </div>
+                <div class="info-card high-score">
+                    <h3>Najlepšie</h3>
+                    <span class="value" id="highScoreValue">0</span>
                 </div>
                 <div class="info-card">
                     <h3>Riadky</h3>
@@ -340,11 +417,13 @@
             <button id="rotateBtn" aria-label="Otočiť">↻</button>
             <button id="rightBtn" aria-label="Doprava">▶</button>
             <button id="dropBtn" aria-label="Spustiť">▼</button>
+            <button id="pauseBtn" aria-label="Pauza">⏸</button>
         </div>
 
         <div id="game-over-overlay">
             <h2>Koniec hry</h2>
             <p>Skóre: <span id="finalScore">0</span></p>
+            <p class="high-score-text">Najlepšie: <span id="finalHighScore">0</span></p>
             <button id="restartBtn">Hrať znova</button>
         </div>
     </div>
@@ -356,7 +435,8 @@
             // ----- KONŠTANTY A NASTAVENIA -----
             const COLS = 10;
             const ROWS = 20;
-            const PREVIEW_COUNT = 2; // počet zobrazených nasledujúcich blokov
+            const PREVIEW_COUNT = 2;
+            const STORAGE_KEY = 'blockcascade_highscore';
 
             // Farba pozadia bunky
             const EMPTY_COLOR = '#0b0f16';
@@ -421,6 +501,31 @@
                 ] // J
             }];
 
+            // ----- HIGH SCORE (uloženie a načítanie) -----
+            let highScore = 0;
+
+            function loadHighScore() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    if (stored) {
+                        const val = parseInt(stored, 10);
+                        if (!isNaN(val) && val > 0) highScore = val;
+                    }
+                } catch (_) {}
+                document.getElementById('highScoreValue').textContent = highScore;
+            }
+
+            function saveHighScore(score) {
+                if (score > highScore) {
+                    highScore = score;
+                    try {
+                        localStorage.setItem(STORAGE_KEY, String(highScore));
+                    } catch (_) {}
+                    document.getElementById('highScoreValue').textContent = highScore;
+                    document.getElementById('finalHighScore').textContent = highScore;
+                }
+            }
+
             // ----- ZVUKY (Web Audio API) -----
             let audioCtx = null;
 
@@ -474,14 +579,15 @@
             // ----- HERNÝ STAV -----
             let grid = [];
             let currentPiece = null;
-            let nextPieces = []; // pole blokov (dĺžka PREVIEW_COUNT)
+            let nextPieces = [];
             let score = 0;
             let linesCleared = 0;
             let level = 1;
             let gameOver = false;
+            let paused = false;
 
             let dropCounter = 0;
-            let dropInterval = 1000; // ms
+            let dropInterval = 1000;
             let lastTime = 0;
 
             // ----- DOM REFERENCIE -----
@@ -496,15 +602,17 @@
             const linesSpan = document.getElementById('linesValue');
             const levelSpan = document.getElementById('levelValue');
             const finalScoreSpan = document.getElementById('finalScore');
+            const finalHighScoreSpan = document.getElementById('finalHighScore');
             const gameOverOverlay = document.getElementById('game-over-overlay');
             const restartBtn = document.getElementById('restartBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const pauseOverlay = document.getElementById('pause-overlay');
 
             // ----- POMOCOVNÉ FUNKCIE -----
             function createGrid() {
                 return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
             }
 
-            // Náhodný tvar (vráti kópiu)
             function getRandomPiece() {
                 const idx = Math.floor(Math.random() * SHAPES.length);
                 const shape = SHAPES[idx];
@@ -514,7 +622,6 @@
                 };
             }
 
-            // Rotácia tvaru o 90° v smere hodinových ručičiek okolo stredu
             function rotateBlocks(blocks) {
                 if (blocks.length === 0) return [];
                 let sumX = 0,
@@ -545,7 +652,6 @@
                 return rotated.map(([x, y]) => [x + offsetX, y + offsetY]);
             }
 
-            // Skontroluje, či je tvar na pozícii (x, y) platný
             function isValid(blocks, posX, posY) {
                 for (const [bx, by] of blocks) {
                     const col = posX + bx;
@@ -556,7 +662,6 @@
                 return true;
             }
 
-            // Uloží aktuálny blok do mriežky
             function lockPiece() {
                 if (!currentPiece) return;
                 const { blocks, color, x, y } = currentPiece;
@@ -573,7 +678,6 @@
                 spawnPiece();
             }
 
-            // Odstránenie plných riadkov a aktualizácia skóre
             function clearLines() {
                 let cleared = 0;
                 for (let row = ROWS - 1; row >= 0; ) {
@@ -598,9 +702,7 @@
                 }
             }
 
-            // Vytvorí nový blok z prvého v rade a doplní zásobník
             function spawnPiece() {
-                // Ak je zásobník prázdny, naplníme ho
                 while (nextPieces.length < PREVIEW_COUNT) {
                     nextPieces.push(getRandomPiece());
                 }
@@ -619,11 +721,9 @@
                 }
                 currentPiece.y = -minY;
 
-                // Odstrániť prvý a pridať nový na koniec
                 nextPieces.shift();
                 nextPieces.push(getRandomPiece());
 
-                // Kontrola Game Over
                 if (!isValid(currentPiece.blocks, currentPiece.x, currentPiece.y)) {
                     gameOver = true;
                     soundGameOver();
@@ -636,7 +736,7 @@
 
             // ----- POHYB A ROTÁCIA -----
             function moveLeft() {
-                if (!currentPiece || gameOver) return;
+                if (!currentPiece || gameOver || paused) return;
                 if (isValid(currentPiece.blocks, currentPiece.x - 1, currentPiece.y)) {
                     currentPiece.x--;
                     soundMove();
@@ -644,7 +744,7 @@
             }
 
             function moveRight() {
-                if (!currentPiece || gameOver) return;
+                if (!currentPiece || gameOver || paused) return;
                 if (isValid(currentPiece.blocks, currentPiece.x + 1, currentPiece.y)) {
                     currentPiece.x++;
                     soundMove();
@@ -652,7 +752,7 @@
             }
 
             function rotatePiece() {
-                if (!currentPiece || gameOver) return;
+                if (!currentPiece || gameOver || paused) return;
                 const rotated = rotateBlocks(currentPiece.blocks);
                 if (isValid(rotated, currentPiece.x, currentPiece.y)) {
                     currentPiece.blocks = rotated;
@@ -671,7 +771,7 @@
             }
 
             function hardDrop() {
-                if (!currentPiece || gameOver) return;
+                if (!currentPiece || gameOver || paused) return;
                 while (isValid(currentPiece.blocks, currentPiece.x, currentPiece.y + 1)) {
                     currentPiece.y++;
                 }
@@ -679,11 +779,24 @@
             }
 
             function moveDown() {
-                if (!currentPiece || gameOver) return;
+                if (!currentPiece || gameOver || paused) return;
                 if (isValid(currentPiece.blocks, currentPiece.x, currentPiece.y + 1)) {
                     currentPiece.y++;
                 } else {
                     lockPiece();
+                }
+            }
+
+            // ----- PAUZA -----
+            function togglePause() {
+                if (gameOver) return;
+                paused = !paused;
+                pauseBtn.textContent = paused ? '▶' : '⏸';
+                pauseBtn.classList.toggle('paused', paused);
+                pauseOverlay.classList.toggle('visible', paused);
+                if (paused) {
+                    // Pauza – zastavíme dropCounter
+                    dropCounter = 0;
                 }
             }
 
@@ -757,7 +870,7 @@
                     }
                 }
 
-                if (currentPiece && !gameOver) {
+                if (currentPiece && !gameOver && !paused) {
                     const { blocks, color, x, y } = currentPiece;
                     for (const [bx, by] of blocks) {
                         const col = x + bx;
@@ -769,9 +882,8 @@
                 }
             }
 
-            // Vykreslí jeden náhľadový blok na daný canvas
             function drawNextPiece(ctx, canvas, piece) {
-                const size = canvas.width / 4; // 4x4 mriežka
+                const size = canvas.width / 4;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = '#0b0f16';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -835,11 +947,15 @@
                 scoreSpan.textContent = score;
                 linesSpan.textContent = linesCleared;
                 levelSpan.textContent = level;
+                document.getElementById('highScoreValue').textContent = highScore;
             }
 
             function showGameOver() {
                 finalScoreSpan.textContent = score;
+                finalHighScoreSpan.textContent = highScore;
+                saveHighScore(score);
                 gameOverOverlay.classList.add('visible');
+                if (paused) togglePause();
             }
 
             function hideGameOver() {
@@ -871,13 +987,18 @@
                     return;
                 }
 
-                const delta = time - lastTime;
-                lastTime = time;
+                if (!paused) {
+                    const delta = time - lastTime;
+                    lastTime = time;
 
-                dropCounter += delta;
-                if (dropCounter >= dropInterval) {
-                    dropCounter = 0;
-                    moveDown();
+                    dropCounter += delta;
+                    if (dropCounter >= dropInterval) {
+                        dropCounter = 0;
+                        moveDown();
+                    }
+                } else {
+                    // Počas pauzy aktualizujeme čas, aby sme nehromadili dropCounter
+                    lastTime = time;
                 }
 
                 drawGrid();
@@ -895,15 +1016,20 @@
                 dropInterval = 1000;
                 dropCounter = 0;
                 gameOver = false;
+                if (paused) {
+                    paused = false;
+                    pauseBtn.textContent = '⏸';
+                    pauseBtn.classList.remove('paused');
+                    pauseOverlay.classList.remove('visible');
+                }
                 hideGameOver();
 
-                // Naplniť zásobník dvoma blokmi
                 nextPieces = [];
                 for (let i = 0; i < PREVIEW_COUNT; i++) {
                     nextPieces.push(getRandomPiece());
                 }
 
-                spawnPiece(); // vytvorí currentPiece z prvého a doplní
+                spawnPiece();
                 updateInfo();
                 drawNext();
                 drawGrid();
@@ -916,6 +1042,12 @@
             // ----- OVLÁDANIE (klávesnica) -----
             function handleKeyDown(e) {
                 const key = e.key;
+                if (key === 'p' || key === 'P' || key === 'Escape') {
+                    e.preventDefault();
+                    togglePause();
+                    return;
+                }
+
                 if (gameOver) {
                     if (key === 'Enter' || key === ' ') {
                         e.preventDefault();
@@ -923,6 +1055,8 @@
                     }
                     return;
                 }
+
+                if (paused) return;
 
                 switch (key) {
                     case 'ArrowLeft':
@@ -963,9 +1097,10 @@
 
                 function startRepeat(action) {
                     if (repeatInterval) clearInterval(repeatInterval);
+                    if (paused || gameOver) return;
                     action();
                     repeatInterval = setInterval(() => {
-                        if (!gameOver && currentPiece) {
+                        if (!gameOver && currentPiece && !paused) {
                             action();
                         } else {
                             clearInterval(repeatInterval);
@@ -984,7 +1119,7 @@
                 const addTouchListeners = (btn, action) => {
                     const start = (e) => {
                         e.preventDefault();
-                        if (gameOver) return;
+                        if (gameOver || paused) return;
                         if (audioCtx && audioCtx.state === 'suspended') {
                             audioCtx.resume();
                         }
@@ -1008,7 +1143,7 @@
 
                 const dropStart = (e) => {
                     e.preventDefault();
-                    if (gameOver) return;
+                    if (gameOver || paused) return;
                     if (audioCtx && audioCtx.state === 'suspended') {
                         audioCtx.resume();
                     }
@@ -1016,6 +1151,11 @@
                 };
                 dropBtn.addEventListener('mousedown', dropStart);
                 dropBtn.addEventListener('touchstart', dropStart, { passive: false });
+
+                // Tlačidlo pauzy
+                pauseBtn.addEventListener('click', togglePause);
+                pauseBtn.addEventListener('touchstart', (e) => { e.preventDefault();
+                    togglePause(); }, { passive: false });
             }
 
             // ----- REŠTART -----
@@ -1028,6 +1168,7 @@
 
             // ----- ŠTART -----
             function start() {
+                loadHighScore();
                 resizeCanvas();
                 initGame();
                 setupButtons();

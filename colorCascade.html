@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Color Cascade</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: #0f0f1a;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      touch-action: manipulation;
+    }
+    .game-wrapper {
+      background: #1a1a2e;
+      padding: 20px 20px 30px;
+      border-radius: 48px 48px 32px 32px;
+      box-shadow: 0 20px 30px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.06);
+      max-width: 520px;
+      width: 100%;
+      margin: 16px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 6px 16px 6px;
+      color: #e0e0ff;
+      font-weight: 600;
+      letter-spacing: 1px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .score-box {
+      background: #0b0b16;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-size: 1.1rem;
+      box-shadow: inset 0 4px 6px rgba(0,0,0,0.6);
+      border: 1px solid #3a3a5a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .score-box span {
+      color: #b7b7ff;
+    }
+    .score-box .high {
+      color: #ffd700;
+      font-size: 0.9rem;
+    }
+    .header-btns {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .header-btn {
+      background: #2a1f3d;
+      border: none;
+      color: #d4d4ff;
+      font-size: 1.2rem;
+      padding: 4px 12px;
+      border-radius: 40px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #0b0b16;
+      transition: all 0.07s;
+      touch-action: manipulation;
+      font-weight: 700;
+      border: 1px solid #4f3f6a;
+      min-width: 40px;
+    }
+    .header-btn:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+    .header-btn.paused {
+      background: #3d2a4a;
+      border-color: #6a4a7a;
+      color: #ffd700;
+    }
+    .header-btn.active {
+      background: #3a2a5a;
+      border-color: #7a5a9a;
+      color: #ffd700;
+    }
+    .size-btn-group {
+      display: flex;
+      gap: 4px;
+      background: #0b0b16;
+      border-radius: 30px;
+      padding: 3px;
+      border: 1px solid #3a3a5a;
+    }
+    .size-btn {
+      background: transparent;
+      border: none;
+      color: #6f6f9f;
+      padding: 4px 12px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      font-weight: 700;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .size-btn.active {
+      background: #4a3a6a;
+      color: #ffd700;
+    }
+    .size-btn:hover {
+      color: #d0d0ff;
+    }
+    .game-area {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .canvas-wrapper {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+    }
+    canvas#gameCanvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 10 / 18;
+      background: #12121f;
+      border-radius: 24px;
+      box-shadow: inset 0 0 0 2px #2d2d4a, 0 12px 20px rgba(0,0,0,0.8);
+      touch-action: none;
+      cursor: pointer;
+      image-rendering: crisp-edges;
+    }
+    .pause-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      border-radius: 24px;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+    }
+    .pause-overlay.show {
+      display: flex;
+    }
+    .pause-overlay span {
+      color: #ffd700;
+      font-size: 3rem;
+      font-weight: 700;
+      text-shadow: 0 0 30px rgba(255,215,0,0.3);
+      letter-spacing: 4px;
+    }
+    .next-pieces {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 65px;
+      flex-shrink: 0;
+    }
+    .next-box {
+      background: #12121f;
+      border-radius: 16px;
+      padding: 8px 6px 6px 6px;
+      box-shadow: inset 0 0 0 1px #2d2d4a, 0 4px 10px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .next-box .label {
+      color: #6f6f9f;
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .next-box canvas {
+      width: 60px;
+      height: 60px;
+      image-rendering: crisp-edges;
+      display: block;
+      background: #12121f;
+      border-radius: 8px;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 18px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .ctrl-btn {
+      background: #24243a;
+      border: none;
+      color: #d0d0ff;
+      font-size: 1.8rem;
+      padding: 12px 0;
+      flex: 1;
+      min-width: 50px;
+      border-radius: 60px;
+      box-shadow: 0 6px 0 #0b0b16;
+      transition: all 0.06s;
+      font-weight: 700;
+      touch-action: manipulation;
+      border: 1px solid #49496b;
+      text-align: center;
+      cursor: pointer;
+    }
+    .ctrl-btn:active {
+      transform: translateY(6px);
+      box-shadow: none;
+    }
+    .ctrl-btn.wide {
+      flex: 2;
+    }
+    .info-tip {
+      color: #6f6f9f;
+      text-align: center;
+      font-size: 0.7rem;
+      padding-top: 14px;
+      letter-spacing: 0.3px;
+    }
+    .key-hint {
+      color: #4a4a6a;
+      text-align: center;
+      font-size: 0.65rem;
+      padding-top: 6px;
+      letter-spacing: 0.3px;
+    }
+    @media (max-width: 480px) {
+      .game-wrapper { padding: 12px; }
+      .score-box { font-size: 0.9rem; padding: 4px 12px; }
+      .ctrl-btn { font-size: 1.4rem; padding: 8px 0; min-width: 40px; }
+      .next-box canvas { width: 48px; height: 48px; }
+      .next-pieces { min-width: 52px; gap: 6px; }
+      .next-box { padding: 6px 4px 4px 4px; }
+      .header-btn { font-size: 1rem; padding: 3px 8px; min-width: 35px; }
+      .size-btn { font-size: 0.6rem; padding: 3px 8px; }
+    }
+    @media (max-width: 400px) {
+      .game-wrapper { padding: 8px; margin: 8px; }
+      .header { font-size: 0.8rem; }
+      .next-box canvas { width: 40px; height: 40px; }
+      .next-pieces { min-width: 44px; }
+      .next-box { padding: 4px 3px 3px 3px; }
+      .ctrl-btn { font-size: 1.2rem; padding: 6px 0; min-width: 35px; }
+      .header-btn { font-size: 0.9rem; padding: 3px 6px; min-width: 30px; }
+      .size-btn { font-size: 0.5rem; padding: 2px 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="game-wrapper">
+  <div class="header">
+    <div class="score-box">
+      <span>🎯</span> <span id="scoreDisplay">0</span>
+      <span class="high">🏆</span> <span id="highScoreDisplay" class="high">0</span>
+    </div>
+    <div class="header-btns">
+      <div class="size-btn-group">
+        <button class="size-btn active" data-size="normal">🔲</button>
+        <button class="size-btn" data-size="small">🔳</button>
+      </div>
+      <button class="header-btn" id="pauseBtn">⏸</button>
+      <button class="header-btn" id="restartBtn">↺</button>
+    </div>
+  </div>
+
+  <div class="game-area">
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas" width="300" height="540"></canvas>
+      <div class="pause-overlay" id="pauseOverlay">
+        <span>⏸ PAUZA</span>
+      </div>
+    </div>
+    <div class="next-pieces">
+      <div class="next-box">
+        <div class="label">▶ ďalší</div>
+        <canvas id="nextCanvas1" width="60" height="60"></canvas>
+      </div>
+      <div class="next-box">
+        <div class="label">▶▶ ďalší</div>
+        <canvas id="nextCanvas2" width="60" height="60"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="moveLeftBtn">◀</button>
+    <button class="ctrl-btn" id="rotateBtn">↻</button>
+    <button class="ctrl-btn" id="moveRightBtn">▶</button>
+    <button class="ctrl-btn wide" id="hardDropBtn">⬇⬇</button>
+  </div>
+  <div class="info-tip">👉 Klepni / ťahaj do strán pre posun • ťahaj nadol pre rýchly pád</div>
+  <div class="key-hint">⌨️ Šípky: ← → pohyb • ↑ rotácia • ↓ / medzerník = rýchly pád • P = pauza</div>
+</div>
+
+<script>
+  (function() {
+    // ----- konfigurácia -----
+    const CANVAS_WIDTH = 300;
+    const CANVAS_HEIGHT = 540;
+    const COLORS = [
+      '#ff4d6d', // 0 – červená
+      '#ffb347', // 1 – oranžová
+      '#f9e74b', // 2 – žltá
+      '#6bcf7f', // 3 – zelená
+      '#4a9eff', // 4 – modrá
+      '#b47aea', // 5 – fialová
+    ];
+
+    // ----- DOM elementy -----
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const nextCanvas1 = document.getElementById('nextCanvas1');
+    const nextCtx1 = nextCanvas1.getContext('2d');
+    const nextCanvas2 = document.getElementById('nextCanvas2');
+    const nextCtx2 = nextCanvas2.getContext('2d');
+    const scoreSpan = document.getElementById('scoreDisplay');
+    const highScoreSpan = document.getElementById('highScoreDisplay');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    const sizeBtns = document.querySelectorAll('.size-btn');
+
+    // ----- stav hry -----
+    let board = [];
+    let currentPiece = null;
+    let nextPieces = [];
+    let score = 0;
+    let highScore = 0;
+    let gameOver = false;
+    let isPaused = false;
+    let dropInterval = 500;
+    let dropTimer = null;
+    let currentSize = 'normal';
+    
+    const NORMAL_COLS = 8;
+    const NORMAL_ROWS = 14;
+    const SMALL_COLS = 16;
+    const SMALL_ROWS = 28;
+    
+    let COLS = NORMAL_COLS;
+    let ROWS = NORMAL_ROWS;
+    let BLOCK_SIZE_W = CANVAS_WIDTH / COLS;
+    let BLOCK_SIZE_H = CANVAS_HEIGHT / ROWS;
+
+    // ----- načítanie najvyššieho skóre -----
+    function loadHighScore() {
+      try {
+        const saved = localStorage.getItem('colorCascadeHighScore');
+        highScore = saved ? parseInt(saved, 10) || 0 : 0;
+      } catch (e) { highScore = 0; }
+      highScoreSpan.textContent = highScore;
+    }
+
+    function saveHighScore() {
+      try {
+        localStorage.setItem('colorCascadeHighScore', String(highScore));
+      } catch (e) { /* ignore */ }
+    }
+
+    // ----- inicializácia boardu -----
+    function initBoard() {
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(-1));
+    }
+
+    function getColor(index) {
+      return COLORS[index % COLORS.length];
+    }
+
+    // ----- generovanie náhodného tvaru -----
+    function generateShape() {
+      const shapes = [
+        [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:3,c:0}],
+        [{r:0,c:0},{r:0,c:1},{r:1,c:0},{r:1,c:1}],
+        [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:1,c:1}],
+        [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1}],
+        [{r:0,c:1},{r:1,c:1},{r:2,c:1},{r:2,c:0}],
+        [{r:0,c:1},{r:0,c:2},{r:1,c:0},{r:1,c:1}],
+        [{r:0,c:0},{r:0,c:1},{r:1,c:1},{r:1,c:2}],
+      ];
+      return shapes[Math.floor(Math.random() * shapes.length)];
+    }
+
+    // Funkcia na výpočet stredu dielca
+    function calculateCenter(blocks) {
+      let sumR = 0, sumC = 0;
+      for (let b of blocks) {
+        sumR += b.r;
+        sumC += b.c;
+      }
+      return {
+        r: Math.round(sumR / blocks.length),
+        c: Math.round(sumC / blocks.length)
+      };
+    }
+
+    function createPieceFromShape(shape, colorIdx) {
+      const minR = Math.min(...shape.map(b => b.r));
+      const minC = Math.min(...shape.map(b => b.c));
+      
+      const offsetC = Math.floor((COLS - 2) / 2) - minC;
+      const blocks = shape.map(b => ({ 
+        r: b.r - minR,
+        c: b.c + offsetC 
+      }));
+      
+      // Vypočítame stred dielca ako priemer všetkých blokov
+      const center = calculateCenter(blocks);
+      
+      return {
+        blocks: blocks,
+        colorIndex: colorIdx !== undefined ? colorIdx : Math.floor(Math.random() * COLORS.length),
+        pivot: center
+      };
+    }
+
+    function createRandomPiece() {
+      const shape = generateShape();
+      const colorIdx = Math.floor(Math.random() * COLORS.length);
+      return createPieceFromShape(shape, colorIdx);
+    }
+
+    // ----- rotácia (OPRAVENÁ - rotuje okolo stredu) -----
+    function rotatePiece(piece) {
+      if (!piece) return piece;
+      const pivot = piece.pivot;
+      const newBlocks = piece.blocks.map(b => {
+        const dr = b.r - pivot.r;
+        const dc = b.c - pivot.c;
+        return { 
+          r: pivot.r + dc, 
+          c: pivot.c - dr 
+        };
+      });
+      
+      // Kontrola kolízie
+      for (let b of newBlocks) {
+        if (b.r < 0 || b.r >= ROWS || b.c < 0 || b.c >= COLS) {
+          return piece;
+        }
+        if (board[b.r][b.c] !== -1) {
+          return piece;
+        }
+      }
+      
+      // Vypočítame nový stred pre ďalšie rotácie
+      const newCenter = calculateCenter(newBlocks);
+      
+      return { 
+        ...piece, 
+        blocks: newBlocks,
+        pivot: newCenter
+      };
+    }
+
+    // ----- posun -----
+    function movePiece(piece, dr, dc) {
+      if (!piece) return piece;
+      const newBlocks = piece.blocks.map(b => ({ r: b.r + dr, c: b.c + dc }));
+      for (let b of newBlocks) {
+        if (b.r < 0 || b.r >= ROWS || b.c < 0 || b.c >= COLS) {
+          return piece;
+        }
+        if (board[b.r][b.c] !== -1) {
+          return piece;
+        }
+      }
+      // Aktualizujeme aj pivot pri posune
+      const newPivot = {
+        r: piece.pivot.r + dr,
+        c: piece.pivot.c + dc
+      };
+      return { ...piece, blocks: newBlocks, pivot: newPivot };
+    }
+
+    // ----- vykreslenie dielca na malé plátno -----
+    function drawPieceOnCanvas(piece, canvasEl, ctxTarget) {
+      const size = canvasEl.width;
+      ctxTarget.clearRect(0, 0, size, size);
+      ctxTarget.fillStyle = '#12121f';
+      ctxTarget.fillRect(0, 0, size, size);
+      
+      if (!piece || !piece.blocks) return;
+      const blockSize = size / 4;
+      let minR = Infinity, maxR = -Infinity, minC = Infinity, maxC = -Infinity;
+      for (let b of piece.blocks) {
+        if (b.r < minR) minR = b.r;
+        if (b.r > maxR) maxR = b.r;
+        if (b.c < minC) minC = b.c;
+        if (b.c > maxC) maxC = b.c;
+      }
+      const width = maxC - minC + 1;
+      const height = maxR - minR + 1;
+      const offsetX = (4 - width) / 2;
+      const offsetY = (4 - height) / 2;
+      const color = getColor(piece.colorIndex);
+
+      for (let b of piece.blocks) {
+        const x = (b.c - minC + offsetX) * blockSize;
+        const y = (b.r - minR + offsetY) * blockSize;
+        ctxTarget.fillStyle = color;
+        ctxTarget.fillRect(x, y, blockSize, blockSize);
+        ctxTarget.fillStyle = 'rgba(255,255,255,0.2)';
+        ctxTarget.fillRect(x + 2, y + 2, blockSize * 0.25, blockSize * 0.2);
+      }
+    }
+
+    function updateNextPreviews() {
+      drawPieceOnCanvas(nextPieces[0] || null, nextCanvas1, nextCtx1);
+      drawPieceOnCanvas(nextPieces[1] || null, nextCanvas2, nextCtx2);
+    }
+
+    // ----- spawn nového dielca z fronty -----
+    function spawnNewPiece() {
+      if (nextPieces.length === 0) {
+        nextPieces.push(createRandomPiece());
+        nextPieces.push(createRandomPiece());
+      }
+      const newPiece = nextPieces.shift();
+      while (nextPieces.length < 2) {
+        nextPieces.push(createRandomPiece());
+      }
+      updateNextPreviews();
+
+      for (let b of newPiece.blocks) {
+        if (board[b.r] && board[b.r][b.c] !== -1) {
+          gameOver = true;
+          if (dropTimer) { clearInterval(dropTimer); dropTimer = null; }
+          currentPiece = null;
+          render();
+          return false;
+        }
+      }
+      currentPiece = newPiece;
+      render();
+      return true;
+    }
+
+    // ----- lock + match-3 -----
+    function lockPiece(piece) {
+      if (!piece) return false;
+      for (let b of piece.blocks) {
+        if (b.r >= 0 && b.r < ROWS && b.c >= 0 && b.c < COLS) {
+          board[b.r][b.c] = piece.colorIndex;
+        }
+      }
+
+      let anyRemoved = true;
+      let totalCleared = 0;
+      while (anyRemoved) {
+        anyRemoved = false;
+        const toRemove = new Set();
+
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS - 2; c++) {
+            const color = board[r][c];
+            if (color === -1) continue;
+            let len = 1;
+            while (c + len < COLS && board[r][c + len] === color) len++;
+            if (len >= 3) {
+              for (let i = 0; i < len; i++) toRemove.add(r + ',' + (c + i));
+            }
+            c += len - 1;
+          }
+        }
+        for (let c = 0; c < COLS; c++) {
+          for (let r = 0; r < ROWS - 2; r++) {
+            const color = board[r][c];
+            if (color === -1) continue;
+            let len = 1;
+            while (r + len < ROWS && board[r + len][c] === color) len++;
+            if (len >= 3) {
+              for (let i = 0; i < len; i++) toRemove.add((r + i) + ',' + c);
+            }
+            r += len - 1;
+          }
+        }
+
+        if (toRemove.size > 0) {
+          anyRemoved = true;
+          totalCleared += toRemove.size;
+          for (let key of toRemove) {
+            const [r, c] = key.split(',').map(Number);
+            board[r][c] = -1;
+          }
+          for (let c = 0; c < COLS; c++) {
+            let writeRow = ROWS - 1;
+            for (let r = ROWS - 1; r >= 0; r--) {
+              if (board[r][c] !== -1) {
+                board[writeRow][c] = board[r][c];
+                if (writeRow !== r) board[r][c] = -1;
+                writeRow--;
+              }
+            }
+          }
+        }
+      }
+
+      if (totalCleared > 0) {
+        score += totalCleared * 10;
+        if (score > highScore) {
+          highScore = score;
+          saveHighScore();
+          highScoreSpan.textContent = highScore;
+        }
+        updateScore();
+      }
+
+      return spawnNewPiece();
+    }
+
+    function updateScore() {
+      scoreSpan.textContent = score;
+    }
+
+    // ----- render -----
+    function render() {
+      ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const colorIdx = board[r][c];
+          const x = c * BLOCK_SIZE_W;
+          const y = r * BLOCK_SIZE_H;
+          
+          if (colorIdx !== -1) {
+            ctx.fillStyle = getColor(colorIdx);
+            ctx.fillRect(x, y, BLOCK_SIZE_W, BLOCK_SIZE_H);
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.fillRect(x + 2, y + 2, BLOCK_SIZE_W * 0.2, BLOCK_SIZE_H * 0.15);
+          } else {
+            ctx.fillStyle = '#1e1e32';
+            ctx.fillRect(x, y, BLOCK_SIZE_W, BLOCK_SIZE_H);
+            ctx.fillStyle = '#2a2a44';
+            ctx.fillRect(x + 1, y + 1, 2, 2);
+          }
+        }
+      }
+
+      if (currentPiece && !gameOver) {
+        for (let b of currentPiece.blocks) {
+          const x = b.c * BLOCK_SIZE_W;
+          const y = b.r * BLOCK_SIZE_H;
+          ctx.fillStyle = getColor(currentPiece.colorIndex);
+          ctx.fillRect(x, y, BLOCK_SIZE_W, BLOCK_SIZE_H);
+          ctx.fillStyle = 'rgba(255,255,255,0.2)';
+          ctx.fillRect(x + 3, y + 3, BLOCK_SIZE_W * 0.2, BLOCK_SIZE_H * 0.15);
+        }
+      }
+
+      if (gameOver) {
+        ctx.fillStyle = 'rgba(20,0,30,0.75)';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.fillStyle = '#f0d0ff';
+        ctx.font = 'bold 28px "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('💥 GAME OVER', CANVAS_WIDTH/2, CANVAS_HEIGHT/2 - 10);
+        ctx.font = '18px sans-serif';
+        ctx.fillStyle = '#b0a0dd';
+        ctx.fillText('klepni na reštart', CANVAS_WIDTH/2, CANVAS_HEIGHT/2 + 40);
+      }
+    }
+
+    // ----- drop krok -----
+    function dropStep() {
+      if (gameOver || isPaused || !currentPiece) return;
+      const moved = movePiece(currentPiece, 1, 0);
+      if (moved === currentPiece) {
+        lockPiece(currentPiece);
+        render();
+      } else {
+        currentPiece = moved;
+        render();
+      }
+    }
+
+    // ----- tvrdý drop -----
+    function hardDrop() {
+      if (gameOver || isPaused || !currentPiece) return;
+      while (true) {
+        const moved = movePiece(currentPiece, 1, 0);
+        if (moved === currentPiece) break;
+        currentPiece = moved;
+      }
+      lockPiece(currentPiece);
+      render();
+    }
+
+    // ----- Pauza -----
+    function togglePause() {
+      if (gameOver) return;
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? '▶' : '⏸';
+      pauseBtn.classList.toggle('paused', isPaused);
+      pauseOverlay.classList.toggle('show', isPaused);
+      
+      if (isPaused) {
+        if (dropTimer) {
+          clearInterval(dropTimer);
+          dropTimer = null;
+        }
+      } else {
+        if (dropTimer) clearInterval(dropTimer);
+        dropTimer = setInterval(dropStep, dropInterval);
+        render();
+      }
+    }
+
+    // ----- Zmena veľkosti -----
+    function setSize(size) {
+      if (size === currentSize) return;
+      
+      sizeBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.size === size);
+      });
+      
+      currentSize = size;
+      
+      if (size === 'normal') {
+        COLS = NORMAL_COLS;
+        ROWS = NORMAL_ROWS;
+      } else {
+        COLS = SMALL_COLS;
+        ROWS = SMALL_ROWS;
+      }
+      
+      BLOCK_SIZE_W = CANVAS_WIDTH / COLS;
+      BLOCK_SIZE_H = CANVAS_HEIGHT / ROWS;
+      
+      if (dropTimer) { clearInterval(dropTimer); dropTimer = null; }
+      
+      isPaused = false;
+      pauseBtn.textContent = '⏸';
+      pauseBtn.classList.remove('paused');
+      pauseOverlay.classList.remove('show');
+      
+      initBoard();
+      score = 0;
+      updateScore();
+      highScoreSpan.textContent = highScore;
+      gameOver = false;
+      nextPieces = [createRandomPiece(), createRandomPiece()];
+      updateNextPreviews();
+      spawnNewPiece();
+      render();
+      if (dropTimer) clearInterval(dropTimer);
+      dropTimer = setInterval(dropStep, dropInterval);
+    }
+
+    // ----- reštart -----
+    function restartGame() {
+      if (dropTimer) { clearInterval(dropTimer); dropTimer = null; }
+      isPaused = false;
+      pauseBtn.textContent = '⏸';
+      pauseBtn.classList.remove('paused');
+      pauseOverlay.classList.remove('show');
+      
+      initBoard();
+      score = 0;
+      updateScore();
+      highScoreSpan.textContent = highScore;
+      gameOver = false;
+      nextPieces = [createRandomPiece(), createRandomPiece()];
+      updateNextPreviews();
+      spawnNewPiece();
+      render();
+      if (dropTimer) clearInterval(dropTimer);
+      dropTimer = setInterval(dropStep, dropInterval);
+    }
+
+    // Funkcia na rotáciu s kontrolou
+    function performRotation() {
+      if (gameOver || isPaused || !currentPiece) return;
+      const rotated = rotatePiece(currentPiece);
+      if (rotated !== currentPiece) { 
+        currentPiece = rotated; 
+        render(); 
+      }
+    }
+
+    // ----- ovládanie klávesnicou -----
+    function handleKeyDown(e) {
+      const key = e.key;
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'p', 'P'].includes(key)) {
+        e.preventDefault();
+      }
+
+      if (key === 'p' || key === 'P') {
+        togglePause();
+        return;
+      }
+
+      if (gameOver || isPaused) return;
+
+      switch (key) {
+        case 'ArrowLeft':
+          if (currentPiece) {
+            const moved = movePiece(currentPiece, 0, -1);
+            if (moved !== currentPiece) { currentPiece = moved; render(); }
+          }
+          break;
+        case 'ArrowRight':
+          if (currentPiece) {
+            const moved = movePiece(currentPiece, 0, 1);
+            if (moved !== currentPiece) { currentPiece = moved; render(); }
+          }
+          break;
+        case 'ArrowUp':
+          performRotation();
+          break;
+        case 'ArrowDown':
+        case ' ':
+          hardDrop();
+          break;
+      }
+    }
+
+    // ----- eventy -----
+    function initEvents() {
+      document.getElementById('moveLeftBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (gameOver || isPaused || !currentPiece) return;
+        const moved = movePiece(currentPiece, 0, -1);
+        if (moved !== currentPiece) { currentPiece = moved; render(); }
+      });
+      document.getElementById('moveRightBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (gameOver || isPaused || !currentPiece) return;
+        const moved = movePiece(currentPiece, 0, 1);
+        if (moved !== currentPiece) { currentPiece = moved; render(); }
+      });
+      document.getElementById('rotateBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        performRotation();
+      });
+      document.getElementById('hardDropBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        hardDrop();
+      });
+      document.getElementById('restartBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        restartGame();
+      });
+      document.getElementById('pauseBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        togglePause();
+      });
+
+      sizeBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          setSize(btn.dataset.size);
+        });
+      });
+
+      document.addEventListener('keydown', handleKeyDown);
+
+      // dotyky
+      let touchStartX = 0, touchStartY = 0;
+      let touchMoved = false;
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (gameOver || isPaused) return;
+        const t = e.touches[0];
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        touchMoved = false;
+      }, { passive: false });
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (gameOver || isPaused || !currentPiece) return;
+        const t = e.touches[0];
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+        if (Math.abs(dx) < 15 && Math.abs(dy) < 15) return;
+        touchMoved = true;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          const dir = dx > 0 ? 1 : -1;
+          const moved = movePiece(currentPiece, 0, dir);
+          if (moved !== currentPiece) {
+            currentPiece = moved;
+            render();
+            touchStartX = t.clientX;
+            touchStartY = t.clientY;
+          }
+        } else if (dy > 30) {
+          hardDrop();
+          touchStartX = t.clientX;
+          touchStartY = t.clientY;
+        }
+      }, { passive: false });
+      canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (!touchMoved && !gameOver && !isPaused && currentPiece) {
+          performRotation();
+        }
+      }, { passive: false });
+
+      // myš
+      let mouseDown = false, mouseStartX = 0, mouseStartY = 0;
+      canvas.addEventListener('mousedown', (e) => {
+        if (gameOver || isPaused) return;
+        mouseDown = true;
+        mouseStartX = e.clientX;
+        mouseStartY = e.clientY;
+      });
+      canvas.addEventListener('mousemove', (e) => {
+        if (!mouseDown || gameOver || isPaused || !currentPiece) return;
+        const dx = e.clientX - mouseStartX;
+        const dy = e.clientY - mouseStartY;
+        if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          const dir = dx > 0 ? 1 : -1;
+          const moved = movePiece(currentPiece, 0, dir);
+          if (moved !== currentPiece) {
+            currentPiece = moved;
+            render();
+            mouseStartX = e.clientX;
+            mouseStartY = e.clientY;
+          }
+        } else if (dy > 30) {
+          hardDrop();
+          mouseDown = false;
+        }
+      });
+      canvas.addEventListener('mouseup', (e) => {
+        if (mouseDown && !gameOver && !isPaused && currentPiece) {
+          const dx = e.clientX - mouseStartX;
+          const dy = e.clientY - mouseStartY;
+          if (Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+            performRotation();
+          }
+        }
+        mouseDown = false;
+      });
+      canvas.addEventListener('mouseleave', () => { mouseDown = false; });
+    }
+
+    // ----- ŠTART -----
+    function startGame() {
+      loadHighScore();
+      COLS = NORMAL_COLS;
+      ROWS = NORMAL_ROWS;
+      BLOCK_SIZE_W = CANVAS_WIDTH / COLS;
+      BLOCK_SIZE_H = CANVAS_HEIGHT / ROWS;
+      currentSize = 'normal';
+      
+      sizeBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.size === 'normal');
+      });
+      
+      initBoard();
+      score = 0;
+      updateScore();
+      highScoreSpan.textContent = highScore;
+      gameOver = false;
+      isPaused = false;
+      pauseBtn.textContent = '⏸';
+      pauseOverlay.classList.remove('show');
+      nextPieces = [createRandomPiece(), createRandomPiece()];
+      updateNextPreviews();
+      spawnNewPiece();
+      render();
+      dropTimer = setInterval(dropStep, dropInterval);
+      initEvents();
+    }
+
+    startGame();
+  })();
+</script>
+</body>
+</html>
