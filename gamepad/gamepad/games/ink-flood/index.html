@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ink Flood · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #204049;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#38bdf8;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:560px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:24px; font-weight:700;
+            background:linear-gradient(135deg,#bae6fd,#38bdf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#38bdf8; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:64px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #board-wrap {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            align-self:center;
+            position:relative;
+        }
+        #board { display:grid; gap:1px; }
+        .cell { background:#333; }
+        #palette { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+        .color-btn {
+            width:46px; height:46px; border-radius:14px; border:2px solid transparent;
+            cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.35), 0 6px 10px rgba(0,0,0,.3);
+            transition:transform .08s;
+        }
+        .color-btn:active { transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.35); }
+        .color-btn.current { border-color:#fff; opacity:.35; cursor:default; box-shadow:none; transform:none; }
+        #end-overlay {
+            position:absolute; inset:0; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:28px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:10px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:28px;
+            background:linear-gradient(135deg,#bae6fd,#38bdf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #end-overlay h2.lose {
+            background:linear-gradient(135deg,#fca5a5,#f87171);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #replayBtn {
+            background:#38bdf8; border:1px solid #bae6fd; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #0369a1; cursor:pointer; margin-top:6px;
+        }
+        #replayBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #0369a1; }
+        @media (max-width:480px) {
+            .color-btn { width:38px; height:38px; border-radius:11px; }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>💧 INK FLOOD</h1>
+            <div id="settings">
+                <label id="lbl-size">Veľkosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-size="s" id="lbl-size-s">Malá</button>
+                    <button data-size="m" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-size="l" id="lbl-size-l">Veľká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-moves">Ťahy</h3>
+                <span class="value" id="movesValue">0/0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-filled">Zaplnené</h3>
+                <span class="value" id="filledValue">0%</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="board-wrap">
+            <div id="board"></div>
+            <div id="end-overlay">
+                <h2 id="lbl-result">Vyhral si!</h2>
+                <p><span id="lbl-final-moves">Ťahy:</span> <span id="finalMoves">0</span></p>
+                <p><span id="lbl-final-filled">Zaplnené:</span> <span id="finalFilled">0%</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="replayBtn">Hrať znova</button>
+            </div>
+        </div>
+
+        <div id="palette"></div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const backLbl = document.getElementById('lbl-back');
+            const sizeGroup = document.getElementById('sizeGroup');
+            const rulesP = document.getElementById('rules');
+            const movesSpan = document.getElementById('movesValue');
+            const filledSpan = document.getElementById('filledValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const boardEl = document.getElementById('board');
+            const paletteEl = document.getElementById('palette');
+            const endOverlay = document.getElementById('end-overlay');
+            const resultH2 = document.getElementById('lbl-result');
+            const finalMoves = document.getElementById('finalMoves');
+            const finalFilled = document.getElementById('finalFilled');
+            const finalScore = document.getElementById('finalScore');
+            const replayBtn = document.getElementById('replayBtn');
+
+            // ----- PREKLADY -----
+            backLbl.textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('infSize');
+            document.getElementById('lbl-size-s').textContent = t('infSizeS');
+            document.getElementById('lbl-size-m').textContent = t('infSizeM');
+            document.getElementById('lbl-size-l').textContent = t('infSizeL');
+            document.getElementById('lbl-moves').textContent = t('infMoves');
+            document.getElementById('lbl-filled').textContent = t('infFilled');
+            document.getElementById('lbl-score').textContent = t('infScore');
+            document.getElementById('lbl-best').textContent = t('infBest');
+            document.getElementById('lbl-final-moves').textContent = t('infMoves') + ':';
+            document.getElementById('lbl-final-filled').textContent = t('infFilled') + ':';
+            document.getElementById('lbl-final-score').textContent = t('infScore') + ':';
+            replayBtn.textContent = t('infReplay');
+            rulesP.textContent = t('infRules');
+
+            // ----- KONFIGURACIA -----
+            const SIZES = {
+                s: { n: 10, colors: 5, budget: 22 },
+                m: { n: 14, colors: 6, budget: 32 },
+                l: { n: 18, colors: 6, budget: 40 }
+            };
+            const PALETTE = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#f97316'];
+
+            let sizeKey = 'm';
+            let N = 14, numColors = 6, budget = 32;
+            let grid = [];
+            let cellEls = [];
+            let regionColor = 0;
+            let inRegion = [];
+            let regionSize = 0;
+            let movesUsed = 0;
+            let score = 0;
+            let best = parseInt(localStorage.getItem('inkFloodBest') || '0', 10);
+            let ended = false;
+
+            bestSpan.textContent = best;
+
+            function neighborsOf(r, c) {
+                const res = [];
+                if (r > 0) res.push([r - 1, c]);
+                if (r < N - 1) res.push([r + 1, c]);
+                if (c > 0) res.push([r, c - 1]);
+                if (c < N - 1) res.push([r, c + 1]);
+                return res;
+            }
+
+            function generateGrid() {
+                grid = [];
+                for (let r = 0; r < N; r++) {
+                    const row = [];
+                    for (let c = 0; c < N; c++) row.push(Math.floor(Math.random() * numColors));
+                    grid.push(row);
+                }
+            }
+
+            function computeInitialRegion() {
+                inRegion = Array.from({ length: N }, () => Array(N).fill(false));
+                regionColor = grid[0][0];
+                floodAbsorb();
+            }
+
+            function floodAbsorb() {
+                let changed = true;
+                inRegion[0][0] = true;
+                while (changed) {
+                    changed = false;
+                    for (let r = 0; r < N; r++) {
+                        for (let c = 0; c < N; c++) {
+                            if (!inRegion[r][c]) continue;
+                            for (const [nr, nc] of neighborsOf(r, c)) {
+                                if (!inRegion[nr][nc] && grid[nr][nc] === regionColor) {
+                                    inRegion[nr][nc] = true;
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                regionSize = 0;
+                for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (inRegion[r][c]) regionSize++;
+            }
+
+            function renderBoard() {
+                boardEl.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+                const cellPx = N <= 10 ? 28 : (N <= 14 ? 24 : 20);
+                boardEl.style.width = (N * cellPx) + 'px';
+                boardEl.style.height = (N * cellPx) + 'px';
+                boardEl.innerHTML = '';
+                cellEls = [];
+                for (let r = 0; r < N; r++) {
+                    const rowEls = [];
+                    for (let c = 0; c < N; c++) {
+                        const div = document.createElement('div');
+                        div.className = 'cell';
+                        div.style.background = PALETTE[grid[r][c]];
+                        boardEl.appendChild(div);
+                        rowEls.push(div);
+                    }
+                    cellEls.push(rowEls);
+                }
+            }
+
+            function paintRegion() {
+                for (let r = 0; r < N; r++) {
+                    for (let c = 0; c < N; c++) {
+                        if (inRegion[r][c]) {
+                            cellEls[r][c].style.background = PALETTE[regionColor];
+                        }
+                    }
+                }
+            }
+
+            function renderPalette() {
+                paletteEl.innerHTML = '';
+                for (let i = 0; i < numColors; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = 'color-btn' + (i === regionColor ? ' current' : '');
+                    btn.style.background = PALETTE[i];
+                    btn.dataset.color = i;
+                    if (i !== regionColor) {
+                        btn.addEventListener('click', () => pickColor(i));
+                    }
+                    paletteEl.appendChild(btn);
+                }
+            }
+
+            function updateStats() {
+                movesSpan.textContent = movesUsed + '/' + budget;
+                const pct = Math.round((regionSize / (N * N)) * 100);
+                filledSpan.textContent = pct + '%';
+            }
+
+            function pickColor(color) {
+                if (ended || color === regionColor) return;
+                regionColor = color;
+                floodAbsorb();
+                movesUsed++;
+                renderPalette();
+                paintRegion();
+                updateStats();
+
+                if (regionSize === N * N) {
+                    winGame();
+                } else if (movesUsed >= budget) {
+                    loseGame();
+                }
+            }
+
+            function winGame() {
+                ended = true;
+                const leftover = Math.max(0, budget - movesUsed);
+                score = Math.max(20, (leftover + 3) * 15);
+                scoreSpan.textContent = score;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('inkFloodBest', String(best));
+                }
+                resultH2.textContent = t('infWin');
+                resultH2.classList.remove('lose');
+                finalMoves.textContent = movesUsed;
+                finalFilled.textContent = '100%';
+                finalScore.textContent = score;
+                endOverlay.classList.add('visible');
+            }
+
+            function loseGame() {
+                ended = true;
+                score = 0;
+                scoreSpan.textContent = score;
+                resultH2.textContent = t('infLose');
+                resultH2.classList.add('lose');
+                finalMoves.textContent = movesUsed;
+                finalFilled.textContent = Math.round((regionSize / (N * N)) * 100) + '%';
+                finalScore.textContent = score;
+                endOverlay.classList.add('visible');
+            }
+
+            function newGame() {
+                const cfg = SIZES[sizeKey];
+                N = cfg.n;
+                numColors = cfg.colors;
+                budget = cfg.budget;
+                movesUsed = 0;
+                score = 0;
+                ended = false;
+                scoreSpan.textContent = '0';
+                endOverlay.classList.remove('visible');
+                generateGrid();
+                computeInitialRegion();
+                renderBoard();
+                paintRegion();
+                renderPalette();
+                updateStats();
+            }
+
+            replayBtn.addEventListener('click', newGame);
+
+            document.addEventListener('keydown', (e) => {
+                const n = parseInt(e.key, 10);
+                if (!isNaN(n) && n >= 1 && n <= numColors) {
+                    pickColor(n - 1);
+                }
+            });
+
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    sizeKey = btn.dataset.size;
+                    newGame();
+                });
+            });
+
+            newGame();
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bubble Burst · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #204049;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#22d3ee;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: #0c0f16;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background: #151d2b;
+            border-radius: 28px;
+            padding: 20px 24px 24px;
+            max-width: 680px;
+            width: 100%;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+            border: 1px solid #2e3a4e;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+        }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        #header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #67e8f9, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+        #settings {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        #settings label {
+            color: #b0c4e0;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            background: #111a28;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid #29344a;
+        }
+        .btn-group button {
+            background: transparent;
+            border: none;
+            color: #7a8aa8;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-group button.active {
+            background: #22d3ee;
+            color: #0c0f16;
+        }
+        #main {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #canvas-wrapper {
+            flex: 0 0 auto;
+            background: #0f1622;
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            position: relative;
+        }
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0b111e;
+            border-radius: 10px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        #pause-overlay {
+            position: absolute;
+            inset: 8px;
+            background: rgba(8, 12, 22, 0.75);
+            backdrop-filter: blur(4px);
+            border-radius: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: #f0f4fe;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            z-index: 5;
+            pointer-events: none;
+        }
+        #pause-overlay.visible {
+            display: flex;
+        }
+        #pause-overlay span {
+            background: rgba(34, 211, 238, 0.2);
+            padding: 16px 32px;
+            border-radius: 16px;
+            border: 2px solid rgba(34, 211, 238, 0.4);
+        }
+        #info-panel {
+            flex: 1 1 150px;
+            min-width: 130px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 6px 0;
+        }
+        .info-card {
+            background: #111a28;
+            border-radius: 14px;
+            padding: 10px 14px;
+            border: 1px solid #29344a;
+        }
+        .info-card h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #7a8aa8;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .info-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #eef3fc;
+            display: block;
+        }
+        .high-score {
+            border-color: #fbbf24;
+        }
+        .high-score h3 {
+            color: #fbbf24 !important;
+        }
+        .high-score .value {
+            color: #fbbf24 !important;
+        }
+        #next-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #nextSwatch {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            box-shadow: inset 0 -4px 6px rgba(0,0,0,.35), 0 0 0 2px rgba(255,255,255,.15);
+            flex: 0 0 auto;
+        }
+        #controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        #controls button {
+            background: #1e2a3e;
+            border: none;
+            border-radius: 16px;
+            color: #d0def0;
+            font-size: 28px;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 0 #0b111e, 0 6px 12px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            border: 1px solid #354460;
+            transition: 0.08s;
+        }
+        #controls button:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #0b111e;
+        }
+        #pauseBtn {
+            background: #103a3e;
+            border-color: #22d3ee;
+            color: #67e8f9;
+            font-size: 24px;
+        }
+        #pauseBtn.paused {
+            background: #2a1e3e;
+            border-color: #4c1d95;
+            color: #c4b5e3;
+        }
+        #game-over-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(8, 12, 22, 0.88);
+            backdrop-filter: blur(6px);
+            border-radius: 28px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 30px;
+            z-index: 10;
+            color: #f0f4fe;
+        }
+        #game-over-overlay.visible {
+            display: flex;
+        }
+        #game-over-overlay h2 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #67e8f9, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #restartBtn {
+            background: #22d3ee;
+            border: none;
+            border-radius: 40px;
+            padding: 14px 40px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #0c0f16;
+            box-shadow: 0 6px 0 #0e7a8a;
+            cursor: pointer;
+            border: 1px solid #67e8f9;
+        }
+        #restartBtn:active {
+            transform: translateY(6px);
+            box-shadow: 0 1px 0 #0e7a8a;
+        }
+        @media (max-width: 580px) {
+            #controls button {
+                width: 54px;
+                height: 54px;
+                font-size: 24px;
+            }
+            #pauseBtn {
+                font-size: 20px;
+            }
+            #info-panel {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+                flex: 1 1 100%;
+                justify-content: center;
+            }
+            .info-card {
+                flex: 1 0 auto;
+                min-width: 60px;
+                padding: 6px 10px;
+                text-align: center;
+            }
+            .info-card .value {
+                font-size: 20px;
+            }
+            #pause-overlay {
+                font-size: 24px;
+            }
+            #pause-overlay span {
+                padding: 12px 24px;
+            }
+        }
+        @media (max-width: 420px) {
+            #controls button {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+            #pauseBtn {
+                font-size: 18px;
+                width: 48px;
+                height: 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🫧 BUBBLE BURST</h1>
+            <div id="settings">
+                <label id="lbl-size">Veľkosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-size="s" id="lbl-size-s">Malá</button>
+                    <button data-size="m" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-size="l" id="lbl-size-l">Veľká</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="main">
+            <div id="canvas-wrapper">
+                <canvas id="gameCanvas"></canvas>
+                <div id="pause-overlay"><span>⏸ <span id="lbl-pause"></span></span></div>
+            </div>
+            <div id="info-panel">
+                <div class="info-card" id="next-card">
+                    <div>
+                        <h3 id="lbl-next">Ďalšie</h3>
+                        <div id="nextSwatch"></div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <h3 id="lbl-score">Skóre</h3>
+                    <span class="value" id="scoreValue">0</span>
+                </div>
+                <div class="info-card high-score">
+                    <h3 id="lbl-best">Najlepšie</h3>
+                    <span class="value" id="highScoreValue">0</span>
+                </div>
+                <div class="info-card">
+                    <h3 id="lbl-combo">Kombá</h3>
+                    <span class="value" id="comboValue">0</span>
+                </div>
+                <div class="info-card">
+                    <h3 id="lbl-level">Úroveň</h3>
+                    <span class="value" id="levelValue">1</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="pauseBtn">⏸</button>
+        </div>
+
+        <div id="game-over-overlay">
+            <h2 id="lbl-gameover">Koniec hry</h2>
+            <p><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+            <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-best">Najlepšie:</span> <span id="finalHighScore">0</span></p>
+            <button id="restartBtn">Hrať znova</button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreSpan = document.getElementById('scoreValue');
+            const highScoreSpan = document.getElementById('highScoreValue');
+            const comboSpan = document.getElementById('comboValue');
+            const levelSpan = document.getElementById('levelValue');
+            const nextSwatch = document.getElementById('nextSwatch');
+            const finalScoreSpan = document.getElementById('finalScore');
+            const finalHighScoreSpan = document.getElementById('finalHighScore');
+            const gameOverOverlay = document.getElementById('game-over-overlay');
+            const restartBtn = document.getElementById('restartBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const pauseOverlay = document.getElementById('pause-overlay');
+            const sizeGroup = document.getElementById('sizeGroup');
+
+            // ----- PREKLADY -----
+            document.getElementById('lbl-back').textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('bubSize');
+            document.getElementById('lbl-size-s').textContent = t('bubSizeS');
+            document.getElementById('lbl-size-m').textContent = t('bubSizeM');
+            document.getElementById('lbl-size-l').textContent = t('bubSizeL');
+            document.getElementById('lbl-pause').textContent = t('bubPause');
+            document.getElementById('lbl-next').textContent = t('bubNext');
+            document.getElementById('lbl-score').textContent = t('bubScore');
+            document.getElementById('lbl-best').textContent = t('bubBest');
+            document.getElementById('lbl-combo').textContent = t('bubCombo');
+            document.getElementById('lbl-level').textContent = t('bubLevel');
+            document.getElementById('lbl-gameover').textContent = t('bubGameOver');
+            document.getElementById('lbl-final-score').textContent = t('bubFinalScore');
+            document.getElementById('lbl-final-best').textContent = t('bubFinalBest');
+            restartBtn.textContent = t('bubReplay');
+            pauseBtn.title = t('bubPauseTooltip');
+
+            // ----- STAV -----
+            const COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#f97316'];
+            const SIZES = {
+                s: { cols: 7, rows: 5, totalRows: 13 },
+                m: { cols: 9, rows: 6, totalRows: 15 },
+                l: { cols: 11, rows: 7, totalRows: 17 }
+            };
+
+            let sizeKey = 'm';
+            let cols, totalRows, D, ROW_H, TOP_MARGIN, canvasW, canvasH, shooterX, shooterY;
+            let grid = [];
+            let score = 0, combo = 0, level = 1;
+            let highScore = parseInt(localStorage.getItem('bubbleBurstHighScore') || '0', 10);
+            let currentColor = null, nextColor = null;
+            let flying = null; // {x,y,vx,vy,color}
+            let particles = [];
+            let dropping = []; // falling removed bubbles {x,y,vx,vy,color,alpha}
+            let aimAngle = -Math.PI / 2;
+            let paused = false;
+            let gameOver = false;
+            let shotsSinceRow = 0;
+            const SHOTS_PER_ROW = 5;
+            let animId = null;
+
+            highScoreSpan.textContent = highScore;
+
+            function activePalette() {
+                const present = new Set();
+                for (const row of grid) {
+                    for (const c of row) {
+                        if (c) present.add(c);
+                    }
+                }
+                if (present.size === 0) return COLORS.slice(0, 5);
+                return Array.from(present);
+            }
+
+            function randomColor(palette) {
+                return palette[Math.floor(Math.random() * palette.length)];
+            }
+
+            function maxColForRow(row) {
+                return (row % 2 === 1) ? cols - 1 : cols; // odd rows have one fewer slot
+            }
+
+            function cellPos(row, col) {
+                const offsetX = (row % 2 === 1) ? D / 2 : 0;
+                const x = col * D + D / 2 + offsetX;
+                const y = TOP_MARGIN + row * ROW_H + D / 2;
+                return { x, y };
+            }
+
+            function neighbors(row, col) {
+                if (row % 2 === 0) {
+                    return [[row, col - 1], [row, col + 1], [row - 1, col - 1], [row - 1, col], [row + 1, col - 1], [row + 1, col]];
+                } else {
+                    return [[row, col - 1], [row, col + 1], [row - 1, col], [row - 1, col + 1], [row + 1, col], [row + 1, col + 1]];
+                }
+            }
+
+            function inBounds(row, col) {
+                return row >= 0 && row < totalRows && col >= 0 && col < maxColForRow(row);
+            }
+
+            function setupSize(key) {
+                sizeKey = key;
+                const cfg = SIZES[key];
+                cols = cfg.cols;
+                totalRows = cfg.totalRows;
+                D = 320 / cols;
+                ROW_H = D * 0.87;
+                TOP_MARGIN = 6;
+                canvasW = cols * D;
+                canvasH = TOP_MARGIN + (totalRows - 1) * ROW_H + D + 70;
+                canvas.width = canvasW;
+                canvas.height = canvasH;
+                shooterX = canvasW / 2;
+                shooterY = canvasH - 40;
+
+                grid = Array.from({ length: totalRows }, () => Array(cols).fill(null));
+                const palette = COLORS.slice(0, 5);
+                for (let r = 0; r < cfg.rows; r++) {
+                    for (let c = 0; c < maxColForRow(r); c++) {
+                        grid[r][c] = randomColor(palette);
+                    }
+                }
+            }
+
+            function resetGame() {
+                setupSize(sizeKey);
+                score = 0;
+                combo = 0;
+                level = 1;
+                shotsSinceRow = 0;
+                particles = [];
+                dropping = [];
+                flying = null;
+                gameOver = false;
+                paused = false;
+                pauseOverlay.classList.remove('visible');
+                pauseBtn.classList.remove('paused');
+                gameOverOverlay.classList.remove('visible');
+                scoreSpan.textContent = '0';
+                comboSpan.textContent = '0';
+                levelSpan.textContent = '1';
+                const palette = activePalette();
+                currentColor = randomColor(palette);
+                nextColor = randomColor(palette);
+                nextSwatch.style.background = nextColor;
+                aimAngle = -Math.PI / 2;
+            }
+
+            document.querySelectorAll('#sizeGroup button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#sizeGroup button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    resetGame();
+                });
+            });
+
+            // ----- MIERENIE A STREĽBA -----
+            function angleFromPoint(px, py) {
+                let a = Math.atan2(py - shooterY, px - shooterX);
+                const minA = -Math.PI + 0.12;
+                const maxA = -0.12;
+                if (a > maxA) a = maxA;
+                if (a < minA) a = minA;
+                return a;
+            }
+
+            function pointerPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (paused || gameOver) return;
+                const p = pointerPos(e);
+                aimAngle = angleFromPoint(p.x, p.y);
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                if (paused || gameOver) return;
+                e.preventDefault();
+                const p = pointerPos(e);
+                aimAngle = angleFromPoint(p.x, p.y);
+            }, { passive: false });
+
+            function fire() {
+                if (flying || paused || gameOver) return;
+                const speed = 11;
+                flying = {
+                    x: shooterX,
+                    y: shooterY,
+                    vx: Math.cos(aimAngle) * speed,
+                    vy: Math.sin(aimAngle) * speed,
+                    color: currentColor
+                };
+            }
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (paused || gameOver) return;
+                const p = pointerPos(e);
+                aimAngle = angleFromPoint(p.x, p.y);
+                fire();
+            });
+            canvas.addEventListener('touchstart', (e) => {
+                if (paused || gameOver) return;
+                e.preventDefault();
+                const p = pointerPos(e);
+                aimAngle = angleFromPoint(p.x, p.y);
+                fire();
+            }, { passive: false });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'p' || e.key === 'P') {
+                    togglePause();
+                    return;
+                }
+                if (gameOver || paused) return;
+                if (e.key === 'ArrowLeft') {
+                    aimAngle = Math.max(-Math.PI + 0.12, aimAngle - 0.08);
+                } else if (e.key === 'ArrowRight') {
+                    aimAngle = Math.min(-0.12, aimAngle + 0.08);
+                } else if (e.key === ' ' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    fire();
+                }
+            });
+
+            // ----- ZHODY A FYZIKA -----
+            function findSnapCell(x, y) {
+                let bestRow = Math.round((y - TOP_MARGIN - D / 2) / ROW_H);
+                bestRow = Math.max(0, Math.min(totalRows - 1, bestRow));
+
+                let best = null, bestDist = Infinity;
+                for (let dr = -1; dr <= 1; dr++) {
+                    const row = bestRow + dr;
+                    if (row < 0 || row >= totalRows) continue;
+                    const maxC = maxColForRow(row);
+                    for (let c = 0; c < maxC; c++) {
+                        if (grid[row][c]) continue;
+                        const pos = cellPos(row, c);
+                        const dist = (pos.x - x) * (pos.x - x) + (pos.y - y) * (pos.y - y);
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            best = { row, col: c };
+                        }
+                    }
+                }
+                return best;
+            }
+
+            function spawnParticles(x, y, color, count) {
+                for (let i = 0; i < count; i++) {
+                    const ang = Math.random() * Math.PI * 2;
+                    const spd = 1.5 + Math.random() * 3;
+                    particles.push({
+                        x, y,
+                        vx: Math.cos(ang) * spd,
+                        vy: Math.sin(ang) * spd,
+                        color,
+                        life: 1
+                    });
+                }
+            }
+
+            function removeCluster(cells) {
+                for (const [r, c] of cells) {
+                    const pos = cellPos(r, c);
+                    spawnParticles(pos.x, pos.y, grid[r][c], 6);
+                    grid[r][c] = null;
+                }
+            }
+
+            function dropFloating(cells) {
+                for (const [r, c] of cells) {
+                    const pos = cellPos(r, c);
+                    dropping.push({
+                        x: pos.x, y: pos.y,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: 1,
+                        color: grid[r][c],
+                        alpha: 1
+                    });
+                    grid[r][c] = null;
+                }
+            }
+
+            function findFloating() {
+                const connected = new Set();
+                const queue = [];
+                for (let c = 0; c < maxColForRow(0); c++) {
+                    if (grid[0][c]) {
+                        queue.push([0, c]);
+                        connected.add('0,' + c);
+                    }
+                }
+                while (queue.length) {
+                    const [r, c] = queue.shift();
+                    for (const [nr, nc] of neighbors(r, c)) {
+                        if (!inBounds(nr, nc)) continue;
+                        const key = nr + ',' + nc;
+                        if (connected.has(key)) continue;
+                        if (grid[nr][nc]) {
+                            connected.add(key);
+                            queue.push([nr, nc]);
+                        }
+                    }
+                }
+                const floating = [];
+                for (let r = 0; r < totalRows; r++) {
+                    for (let c = 0; c < maxColForRow(r); c++) {
+                        if (grid[r][c] && !connected.has(r + ',' + c)) {
+                            floating.push([r, c]);
+                        }
+                    }
+                }
+                return floating;
+            }
+
+            function matchAndResolve(row, col) {
+                const color = grid[row][col];
+                const visited = new Set([row + ',' + col]);
+                const queue = [[row, col]];
+                const cluster = [[row, col]];
+                while (queue.length) {
+                    const [r, c] = queue.shift();
+                    for (const [nr, nc] of neighbors(r, c)) {
+                        if (!inBounds(nr, nc)) continue;
+                        const key = nr + ',' + nc;
+                        if (visited.has(key)) continue;
+                        if (grid[nr][nc] === color) {
+                            visited.add(key);
+                            queue.push([nr, nc]);
+                            cluster.push([nr, nc]);
+                        }
+                    }
+                }
+
+                if (cluster.length >= 3) {
+                    removeCluster(cluster);
+                    let gained = cluster.length * 12;
+                    const floating = findFloating();
+                    if (floating.length) {
+                        dropFloating(floating);
+                        gained += floating.length * 18;
+                    }
+                    score += gained;
+                    combo += 1;
+                    scoreSpan.textContent = score;
+                    comboSpan.textContent = combo;
+                    if (score > highScore) {
+                        highScore = score;
+                        highScoreSpan.textContent = highScore;
+                        localStorage.setItem('bubbleBurstHighScore', String(highScore));
+                    }
+                } else {
+                    combo = 0;
+                    comboSpan.textContent = '0';
+                }
+            }
+
+            function checkGameOver() {
+                const limitRow = totalRows - 3;
+                for (let r = limitRow; r < totalRows; r++) {
+                    for (let c = 0; c < maxColForRow(r); c++) {
+                        if (grid[r][c]) return true;
+                    }
+                }
+                return false;
+            }
+
+            function addRow() {
+                for (let r = totalRows - 1; r > 0; r--) {
+                    for (let c = 0; c < cols; c++) {
+                        grid[r][c] = (c < maxColForRow(r)) ? grid[r - 1][c] : null;
+                    }
+                }
+                const palette = COLORS.slice(0, 5);
+                for (let c = 0; c < maxColForRow(0); c++) {
+                    grid[0][c] = randomColor(palette);
+                }
+                level += 1;
+                levelSpan.textContent = level;
+            }
+
+            function endGame() {
+                gameOver = true;
+                finalScoreSpan.textContent = score;
+                finalHighScoreSpan.textContent = highScore;
+                gameOverOverlay.classList.add('visible');
+            }
+
+            function afterShot() {
+                const palette = activePalette();
+                currentColor = nextColor;
+                nextColor = randomColor(palette);
+                nextSwatch.style.background = nextColor;
+
+                shotsSinceRow += 1;
+                if (shotsSinceRow >= SHOTS_PER_ROW) {
+                    shotsSinceRow = 0;
+                    addRow();
+                }
+                if (checkGameOver()) {
+                    endGame();
+                }
+            }
+
+            function updateFlying() {
+                if (!flying) return;
+                flying.x += flying.vx;
+                flying.y += flying.vy;
+
+                if (flying.x - D / 2 < 0) {
+                    flying.x = D / 2;
+                    flying.vx *= -1;
+                } else if (flying.x + D / 2 > canvasW) {
+                    flying.x = canvasW - D / 2;
+                    flying.vx *= -1;
+                }
+
+                let hit = false;
+                if (flying.y - D / 2 <= TOP_MARGIN) {
+                    flying.y = TOP_MARGIN + D / 2;
+                    hit = true;
+                } else {
+                    for (let r = 0; r < totalRows && !hit; r++) {
+                        for (let c = 0; c < maxColForRow(r); c++) {
+                            if (!grid[r][c]) continue;
+                            const pos = cellPos(r, c);
+                            const dx = pos.x - flying.x;
+                            const dy = pos.y - flying.y;
+                            if (dx * dx + dy * dy < D * D * 0.85) {
+                                hit = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (hit) {
+                    const snap = findSnapCell(flying.x, flying.y);
+                    if (snap) {
+                        grid[snap.row][snap.col] = flying.color;
+                        matchAndResolve(snap.row, snap.col);
+                    }
+                    flying = null;
+                    afterShot();
+                }
+            }
+
+            function updateParticles() {
+                particles = particles.filter(p => p.life > 0);
+                for (const p of particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.15;
+                    p.life -= 0.045;
+                }
+            }
+
+            function updateDropping() {
+                dropping = dropping.filter(d => d.y < canvasH + 30);
+                for (const d of dropping) {
+                    d.x += d.vx;
+                    d.y += d.vy;
+                    d.vy += 0.35;
+                    d.alpha = Math.max(0, 1 - d.y / canvasH);
+                }
+            }
+
+            // ----- VYKRESLENIE -----
+            function drawBubble(x, y, color, alpha) {
+                ctx.save();
+                ctx.globalAlpha = alpha === undefined ? 1 : alpha;
+                const grad = ctx.createRadialGradient(x - D * 0.18, y - D * 0.18, D * 0.08, x, y, D * 0.52);
+                grad.addColorStop(0, 'rgba(255,255,255,0.55)');
+                grad.addColorStop(0.25, color);
+                grad.addColorStop(1, color);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(x, y, D * 0.46, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvasW, canvasH);
+
+                for (let r = 0; r < totalRows; r++) {
+                    for (let c = 0; c < maxColForRow(r); c++) {
+                        if (grid[r][c]) {
+                            const pos = cellPos(r, c);
+                            drawBubble(pos.x, pos.y, grid[r][c]);
+                        }
+                    }
+                }
+
+                for (const d of dropping) {
+                    drawBubble(d.x, d.y, d.color, d.alpha);
+                }
+
+                for (const p of particles) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, D * 0.09, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                if (!gameOver && !paused) {
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(103,232,249,0.35)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 6]);
+                    ctx.beginPath();
+                    ctx.moveTo(shooterX, shooterY);
+                    ctx.lineTo(shooterX + Math.cos(aimAngle) * 90, shooterY + Math.sin(aimAngle) * 90);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                if (flying) {
+                    drawBubble(flying.x, flying.y, flying.color);
+                } else if (!gameOver) {
+                    drawBubble(shooterX, shooterY, currentColor);
+                }
+
+                ctx.save();
+                ctx.fillStyle = '#1e2a3e';
+                ctx.beginPath();
+                ctx.arc(shooterX, shooterY, D * 0.58, 0, Math.PI * 2);
+                ctx.globalCompositeOperation = 'destination-over';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function loop() {
+                if (!paused && !gameOver) {
+                    updateFlying();
+                    updateParticles();
+                    updateDropping();
+                }
+                draw();
+                animId = requestAnimationFrame(loop);
+            }
+
+            function togglePause() {
+                if (gameOver) return;
+                paused = !paused;
+                pauseOverlay.classList.toggle('visible', paused);
+                pauseBtn.classList.toggle('paused', paused);
+            }
+
+            pauseBtn.addEventListener('click', togglePause);
+            pauseBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                togglePause();
+            }, { passive: false });
+
+            restartBtn.addEventListener('click', resetGame);
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && !gameOver && !paused) togglePause();
+            });
+
+            resetGame();
+            loop();
+        })();
+    </script>
+</body>
+</html>
