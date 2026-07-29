@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v80';
+const CACHE = 'gamepad-v85';
 
 const ASSETS = [
   './',
@@ -71,6 +71,10 @@ const ASSETS = [
   './games/word-ladder/index.html',
   './games/word-weave/index.html',
   './games/ink-flood/index.html',
+  './games/prism-path/index.html',
+  './games/wobble-tower/index.html',
+  './games/tilt-maze/index.html',
+  './games/snip-rope/index.html',
 ];
 
 self.addEventListener('install', e => {

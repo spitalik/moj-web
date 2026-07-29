@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snip Rope · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402020;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#fb7185;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:420px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:23px; font-weight:700;
+            background:linear-gradient(135deg,#fecdd3,#fb7185);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#fb7185; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:64px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #canvas-wrapper {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            position:relative; align-self:center;
+        }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:crosshair; }
+        #win-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:10px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #win-overlay.visible { display:flex; }
+        #win-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#fecdd3,#fb7185);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #nextBtn {
+            background:#fb7185; border:1px solid #fecdd3; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #be123c; cursor:pointer; margin-top:6px;
+        }
+        #nextBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #be123c; }
+        #miss-flash {
+            position:absolute; inset:8px; border-radius:10px; background:rgba(248,113,113,0.22);
+            display:none; pointer-events:none; z-index:8;
+        }
+        #miss-flash.show { display:block; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #newLevelBtn {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        #newLevelBtn:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>✂️ SNIP ROPE</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="s" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="m" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="l" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-attempts">Pokusy</h3>
+                <span class="value" id="attemptsValue">1</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="miss-flash"></div>
+            <div id="win-overlay">
+                <h2 id="lbl-win">Chytené!</h2>
+                <p><span id="lbl-final-attempts">Pokusy:</span> <span id="finalAttempts">1</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="nextBtn">Ďalšia hádanka</button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="newLevelBtn"><span id="lbl-newlevel">Nová hádanka</span></button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const LEVELS = {"s": [{"anchor": {"x": 60, "y": 40}, "ropeLen": 165, "start": {"x": 60, "y": 205}, "initVel": {"x": 300, "y": 0}, "target": {"x": 87.77154454398782, "y": 445, "r": 51.827342749525315}, "hazards": [], "windowFrames": 13, "centerCut": 0.7000000000000005}, {"anchor": {"x": 260, "y": 40}, "ropeLen": 165, "start": {"x": 260, "y": 205}, "initVel": {"x": -300, "y": 0}, "target": {"x": 232.2284554560154, "y": 445, "r": 51.827342749525414}, "hazards": [], "windowFrames": 13, "centerCut": 0.7000000000000005}, {"anchor": {"x": 60, "y": 50}, "ropeLen": 190, "start": {"x": 60, "y": 240}, "initVel": {"x": 280, "y": 0}, "target": {"x": 121.08164236848529, "y": 445, "r": 41.77017074478014}, "hazards": [], "windowFrames": 12, "centerCut": 0.6833333333333338}], "m": [{"anchor": {"x": 60, "y": 40}, "ropeLen": 165, "start": {"x": 60, "y": 205}, "initVel": {"x": 340, "y": 0}, "target": {"x": 188.10338855608143, "y": 445, "r": 32.5975362673703}, "hazards": [{"x": 124.05169427804071, "y": 345, "w": 26, "h": 26}], "windowFrames": 8, "centerCut": 0.49999999999999994}, {"anchor": {"x": 260, "y": 40}, "ropeLen": 165, "start": {"x": 260, "y": 205}, "initVel": {"x": -340, "y": 0}, "target": {"x": 131.8966114439134, "y": 445, "r": 32.59753626737041}, "hazards": [{"x": 195.9483057219567, "y": 345, "w": 26, "h": 26}], "windowFrames": 8, "centerCut": 0.49999999999999994}, {"anchor": {"x": 60, "y": 50}, "ropeLen": 190, "start": {"x": 60, "y": 240}, "initVel": {"x": 320, "y": 0}, "target": {"x": 179.74032137578527, "y": 445, "r": 26.71077807884606}, "hazards": [{"x": 129.87016068789262, "y": 349, "w": 26, "h": 26}], "windowFrames": 7, "centerCut": 0.55}], "l": [{"anchor": {"x": 60, "y": 40}, "ropeLen": 165, "start": {"x": 60, "y": 205}, "initVel": {"x": 380, "y": 0}, "target": {"x": 197.4949723853651, "y": 445, "r": 23.140114272115014}, "hazards": [{"x": 120.74748619268254, "y": 361, "w": 26, "h": 26}], "windowFrames": 5, "centerCut": 0.49999999999999994}, {"anchor": {"x": 260, "y": 40}, "ropeLen": 165, "start": {"x": 260, "y": 205}, "initVel": {"x": -380, "y": 0}, "target": {"x": 122.5050276146354, "y": 445, "r": 23.140114272115056}, "hazards": [{"x": 199.2525138073177, "y": 361, "w": 26, "h": 26}], "windowFrames": 5, "centerCut": 0.49999999999999994}, {"anchor": {"x": 60, "y": 45}, "ropeLen": 175, "start": {"x": 60, "y": 220}, "initVel": {"x": 400, "y": 0}, "target": {"x": 210.214277556344, "y": 445, "r": 19.036808172148454}, "hazards": [{"x": 135.107138778172, "y": 365, "w": 26, "h": 26}], "windowFrames": 4, "centerCut": 0.5166666666666666}]};
+
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const attemptsSpan = document.getElementById('attemptsValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const winOverlay = document.getElementById('win-overlay');
+            const finalAttempts = document.getElementById('finalAttempts');
+            const finalScore = document.getElementById('finalScore');
+            const nextBtn = document.getElementById('nextBtn');
+            const newLevelBtn = document.getElementById('newLevelBtn');
+            const sizeGroup = document.getElementById('sizeGroup');
+            const missFlash = document.getElementById('miss-flash');
+
+            // ----- PREKLADY -----
+            document.getElementById('lbl-back').textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('snpDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('snpEasy');
+            document.getElementById('lbl-size-m').textContent = t('snpMedium');
+            document.getElementById('lbl-size-l').textContent = t('snpHard');
+            document.getElementById('lbl-attempts').textContent = t('snpAttempts');
+            document.getElementById('lbl-score').textContent = t('snpScore');
+            document.getElementById('lbl-best').textContent = t('snpBest');
+            document.getElementById('lbl-win').textContent = t('snpWin');
+            document.getElementById('lbl-final-attempts').textContent = t('snpAttempts') + ':';
+            document.getElementById('lbl-final-score').textContent = t('snpScore') + ':';
+            nextBtn.textContent = t('snpNewLevel');
+            document.getElementById('lbl-newlevel').textContent = t('snpNewLevel');
+            document.getElementById('rules').textContent = t('snpRules');
+
+            // ----- FYZIKA (musí presne zodpovedať Python overovaču) -----
+            const GRAVITY = 1400;
+            const FIXED_DT = 1 / 60;
+            const DAMPING = 0.999;
+            const ITER = 3;
+            const CW = 320, CH = 480;
+            canvas.width = CW;
+            canvas.height = CH;
+
+            let diffKey = 'm';
+            let level = null;
+            let px, py, prevx, prevy;
+            let cut = false;
+            let solved = false;
+            let failed = false;
+            let attempts = 1;
+            let score = 0;
+            let best = parseInt(localStorage.getItem('snipRopeBest') || '0', 10);
+            let recentIdx = { s: -1, m: -1, l: -1 };
+            let acc = 0;
+            let lastTs = null;
+            let ballR = 12;
+            let catchAnim = 0;
+
+            bestSpan.textContent = best;
+
+            function pickLevel(diff) {
+                const arr = LEVELS[diff];
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * arr.length);
+                } while (arr.length > 1 && idx === recentIdx[diff]);
+                recentIdx[diff] = idx;
+                return arr[idx];
+            }
+
+            function resetBall() {
+                px = level.start.x; py = level.start.y;
+                prevx = px - level.initVel.x * FIXED_DT;
+                prevy = py - level.initVel.y * FIXED_DT;
+                cut = false;
+                solved = false;
+                failed = false;
+                catchAnim = 0;
+            }
+
+            function newLevel() {
+                level = pickLevel(diffKey);
+                attempts = 1;
+                score = 0;
+                attemptsSpan.textContent = attempts;
+                scoreSpan.textContent = '0';
+                winOverlay.classList.remove('visible');
+                resetBall();
+            }
+
+            function stepPhysics() {
+                const vx = (px - prevx) * DAMPING;
+                const vy = (py - prevy) * DAMPING;
+                const nx = px + vx;
+                const ny = py + vy + GRAVITY * FIXED_DT * FIXED_DT;
+                prevx = px; prevy = py;
+                px = nx; py = ny;
+
+                if (!cut) {
+                    const ax = level.anchor.x, ay = level.anchor.y;
+                    for (let i = 0; i < ITER; i++) {
+                        const dx = px - ax, dy = py - ay;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < 1e-6) continue;
+                        const diff = (dist - level.ropeLen) / dist;
+                        px -= dx * diff;
+                        py -= dy * diff;
+                    }
+                }
+
+                if (solved || failed) return;
+
+                for (const hz of level.hazards) {
+                    if (px >= hz.x && px <= hz.x + hz.w && py >= hz.y && py <= hz.y + hz.h) {
+                        triggerFail();
+                        return;
+                    }
+                }
+                if (px < -20 || px > CW + 20 || py > CH + 20) {
+                    triggerFail();
+                    return;
+                }
+                const t = level.target;
+                if (Math.hypot(px - t.x, py - t.y) < t.r) {
+                    triggerWin();
+                }
+            }
+
+            function triggerFail() {
+                failed = true;
+                missFlash.classList.add('show');
+                setTimeout(() => {
+                    missFlash.classList.remove('show');
+                    attempts++;
+                    attemptsSpan.textContent = attempts;
+                    resetBall();
+                }, 420);
+            }
+
+            function triggerWin() {
+                solved = true;
+                catchAnim = 1;
+                const penalty = Math.max(0, attempts - 1) * 30;
+                score = Math.max(20, 150 - penalty);
+                scoreSpan.textContent = score;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('snipRopeBest', String(best));
+                }
+                setTimeout(() => {
+                    finalAttempts.textContent = attempts;
+                    finalScore.textContent = score;
+                    winOverlay.classList.add('visible');
+                }, 420);
+            }
+
+            // ----- STRIHANIE (swipe cez lano) -----
+            let dragging = false;
+            let lastPt = null;
+
+            function segIntersect(p1, p2, p3, p4) {
+                const d1x = p2.x - p1.x, d1y = p2.y - p1.y;
+                const d2x = p4.x - p3.x, d2y = p4.y - p3.y;
+                const denom = d1x * d2y - d1y * d2x;
+                if (Math.abs(denom) < 1e-9) return false;
+                const t = ((p3.x - p1.x) * d2y - (p3.y - p1.y) * d2x) / denom;
+                const u = ((p3.x - p1.x) * d1y - (p3.y - p1.y) * d1x) / denom;
+                return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+            }
+
+            function canvasPoint(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
+
+            function tryCut(fromPt, toPt) {
+                if (cut || solved || failed || !level) return;
+                const anchorPt = { x: level.anchor.x, y: level.anchor.y };
+                const ballPt = { x: px, y: py };
+                if (segIntersect(fromPt, toPt, anchorPt, ballPt)) {
+                    cut = true;
+                }
+            }
+
+            function onDown(e) {
+                dragging = true;
+                lastPt = canvasPoint(e);
+                tryCut(lastPt, lastPt);
+            }
+            function onMove(e) {
+                if (!dragging) return;
+                const p = canvasPoint(e);
+                tryCut(lastPt, p);
+                lastPt = p;
+            }
+            function onUp() { dragging = false; lastPt = null; }
+
+            canvas.addEventListener('mousedown', onDown);
+            canvas.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(e); }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onMove(e); }, { passive: false });
+            canvas.addEventListener('touchend', (e) => { e.preventDefault(); onUp(); }, { passive: false });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!cut && !solved && !failed) cut = true;
+                }
+            });
+
+            // ----- VYKRESLENIE -----
+            function drawScene() {
+                ctx.clearRect(0, 0, CW, CH);
+                const grad = ctx.createLinearGradient(0, 0, 0, CH);
+                grad.addColorStop(0, '#150c14');
+                grad.addColorStop(1, '#1a0f1c');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, CW, CH);
+
+                // hazards
+                for (const hz of level.hazards) {
+                    ctx.fillStyle = '#3f0f14';
+                    ctx.fillRect(hz.x, hz.y, hz.w, hz.h);
+                    ctx.fillStyle = '#f87171';
+                    const spikes = 4;
+                    const sw = hz.w / spikes;
+                    for (let i = 0; i < spikes; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(hz.x + i * sw, hz.y + hz.h);
+                        ctx.lineTo(hz.x + i * sw + sw / 2, hz.y);
+                        ctx.lineTo(hz.x + (i + 1) * sw, hz.y + hz.h);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+
+                // target (basket)
+                const t = level.target;
+                const pulse = 1 + Math.sin(Date.now() / 260) * 0.06;
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, t.r * pulse, 0, Math.PI * 2);
+                const tg = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, t.r * pulse);
+                tg.addColorStop(0, 'rgba(74,222,128,0.32)');
+                tg.addColorStop(1, 'rgba(74,222,128,0.02)');
+                ctx.fillStyle = tg;
+                ctx.fill();
+                ctx.font = (t.r * 0.9) + 'px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🧺', t.x, t.y + 2);
+
+                // anchor
+                ctx.fillStyle = '#475569';
+                ctx.beginPath();
+                ctx.arc(level.anchor.x, level.anchor.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // rope
+                if (!cut) {
+                    ctx.strokeStyle = '#a8a29e';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(level.anchor.x, level.anchor.y);
+                    ctx.lineTo(px, py);
+                    ctx.stroke();
+                }
+
+                // ball
+                if (!(solved && catchAnim <= 0)) {
+                    const scale = solved ? Math.max(0, 1 - (1 - catchAnim)) : 1;
+                    ctx.save();
+                    ctx.translate(px, py);
+                    ctx.scale(scale, scale);
+                    const bg = ctx.createRadialGradient(-ballR * 0.3, -ballR * 0.3, 1, 0, 0, ballR);
+                    bg.addColorStop(0, '#fff1f2');
+                    bg.addColorStop(1, '#fb7185');
+                    ctx.beginPath();
+                    ctx.arc(0, 0, ballR, 0, Math.PI * 2);
+                    ctx.fillStyle = bg;
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+                if (catchAnim > 0) catchAnim = Math.max(0, catchAnim - 0.06);
+            }
+
+            function loop(ts) {
+                if (lastTs === null) lastTs = ts;
+                let frameDt = (ts - lastTs) / 1000;
+                lastTs = ts;
+                frameDt = Math.min(frameDt, 0.05);
+                acc += frameDt;
+                while (acc >= FIXED_DT) {
+                    stepPhysics();
+                    acc -= FIXED_DT;
+                }
+                drawScene();
+                requestAnimationFrame(loop);
+            }
+
+            newLevelBtn.addEventListener('click', newLevel);
+            nextBtn.addEventListener('click', newLevel);
+
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    newLevel();
+                });
+            });
+
+            newLevel();
+            requestAnimationFrame(loop);
+        })();
+    </script>
+</body>
+</html>
