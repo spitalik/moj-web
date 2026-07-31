@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v87';
+const CACHE = 'gamepad-v88';
 
 const ASSETS = [
   './',
@@ -77,6 +77,7 @@ const ASSETS = [
   './games/snip-rope/index.html',
   './games/type-rush/index.html',
   './games/whack-reflex/index.html',
+  './games/gridlock-escape/index.html',
 ];
 
 self.addEventListener('install', e => {
