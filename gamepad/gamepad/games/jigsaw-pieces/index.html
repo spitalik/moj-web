@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jigsaw Pieces · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #1a2e40;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#38bdf8;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:460px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#bae6fd,#38bdf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#38bdf8; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #canvas-wrapper {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            position:relative; align-self:center;
+        }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#bae6fd,#38bdf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #nextBtn {
+            background:#38bdf8; border:1px solid #bae6fd; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #0369a1; cursor:pointer; margin-top:6px;
+        }
+        #nextBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #0369a1; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🧩 JIGSAW PIECES</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="s" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="m" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="l" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-placed">Umiestnené</h3>
+                <span class="value" id="placedValue">0/9</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-moves">Ťahy</h3>
+                <span class="value" id="movesValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-win">Poskladané!</h2>
+                <p><span id="lbl-final-moves">Ťahy:</span> <span id="finalMoves">0</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="nextBtn">Nová skladačka</button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="newLevelBtn"><span id="lbl-newlevel">Nová skladačka</span></button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const placedSpan = document.getElementById('placedValue');
+            const movesSpan = document.getElementById('movesValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const endOverlay = document.getElementById('end-overlay');
+            const finalMoves = document.getElementById('finalMoves');
+            const finalScore = document.getElementById('finalScore');
+            const nextBtn = document.getElementById('nextBtn');
+            const newLevelBtn = document.getElementById('newLevelBtn');
+            const sizeGroup = document.getElementById('sizeGroup');
+
+            // ----- PREKLADY -----
+            document.getElementById('lbl-back').textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('jigDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('jigEasy');
+            document.getElementById('lbl-size-m').textContent = t('jigMedium');
+            document.getElementById('lbl-size-l').textContent = t('jigHard');
+            document.getElementById('lbl-placed').textContent = t('jigPlaced');
+            document.getElementById('lbl-moves').textContent = t('jigMoves');
+            document.getElementById('lbl-score').textContent = t('jigScore');
+            document.getElementById('lbl-best').textContent = t('jigBest');
+            document.getElementById('lbl-win').textContent = t('jigWin');
+            document.getElementById('lbl-final-moves').textContent = t('jigMoves') + ':';
+            document.getElementById('lbl-final-score').textContent = t('jigScore') + ':';
+            nextBtn.textContent = t('jigNewLevel');
+            document.getElementById('lbl-newlevel').textContent = t('jigNewLevel');
+            document.getElementById('rules').textContent = t('jigRules');
+
+            // ----- KONFIGURACIA -----
+            const DIFFS = { s: 3, m: 4, l: 5 };
+            const BOARD = 300;
+            const TRAY_H = 130;
+            const CW = BOARD, CH = BOARD + TRAY_H;
+            canvas.width = CW;
+            canvas.height = CH;
+
+            let diffKey = 'm';
+            let N = 4;
+            let cellSize = BOARD / N;
+            let hBump = [], vBump = [];
+            let pieces = [];
+            let moves = 0;
+            let score = 0;
+            let best = parseInt(localStorage.getItem('jigsawPiecesBest') || '0', 10);
+            let solved = false;
+            let dragIdx = null;
+            let dragOffset = { x: 0, y: 0 };
+            let pictureCanvas = null;
+            let boardOriginX = 0, boardOriginY = 0;
+
+            bestSpan.textContent = best;
+
+            // ----- OBRAZOK (procedurálne generovaná scéna) -----
+            function drawPicture(size) {
+                const off = document.createElement('canvas');
+                off.width = size; off.height = size;
+                const c = off.getContext('2d');
+                const sky = c.createLinearGradient(0, 0, 0, size);
+                sky.addColorStop(0, '#7dd3fc');
+                sky.addColorStop(0.6, '#bae6fd');
+                sky.addColorStop(1, '#fef3c7');
+                c.fillStyle = sky;
+                c.fillRect(0, 0, size, size);
+
+                c.beginPath();
+                c.arc(size * 0.78, size * 0.22, size * 0.09, 0, Math.PI * 2);
+                c.fillStyle = '#fde047';
+                c.fill();
+
+                c.fillStyle = 'rgba(255,255,255,0.85)';
+                [[0.18, 0.18, 0.07], [0.28, 0.16, 0.05], [0.1, 0.14, 0.045]].forEach(([x, y, r]) => {
+                    c.beginPath();
+                    c.arc(size * x, size * y, size * r, 0, Math.PI * 2);
+                    c.arc(size * x + size * r * 0.9, size * y + size * 0.01, size * r * 0.8, 0, Math.PI * 2);
+                    c.arc(size * x - size * r * 0.9, size * y + size * 0.01, size * r * 0.8, 0, Math.PI * 2);
+                    c.fill();
+                });
+
+                c.fillStyle = '#94a3b8';
+                c.beginPath();
+                c.moveTo(0, size * 0.62);
+                c.lineTo(size * 0.28, size * 0.32);
+                c.lineTo(size * 0.5, size * 0.62);
+                c.closePath();
+                c.fill();
+                c.fillStyle = '#64748b';
+                c.beginPath();
+                c.moveTo(size * 0.35, size * 0.62);
+                c.lineTo(size * 0.66, size * 0.24);
+                c.lineTo(size * 1.0, size * 0.62);
+                c.closePath();
+                c.fill();
+
+                c.fillStyle = '#4ade80';
+                c.fillRect(0, size * 0.62, size, size * 0.38);
+
+                c.fillStyle = '#7c4a2d';
+                c.fillRect(size * 0.14, size * 0.5, size * 0.045, size * 0.16);
+                c.fillStyle = '#22c55e';
+                c.beginPath();
+                c.arc(size * 0.162, size * 0.46, size * 0.09, 0, Math.PI * 2);
+                c.fill();
+
+                c.fillStyle = '#16a34a';
+                for (let i = 0; i < 6; i++) {
+                    c.beginPath();
+                    c.moveTo(size * (0.55 + i * 0.08), size * 1.0);
+                    c.quadraticCurveTo(size * (0.57 + i * 0.08), size * 0.86, size * (0.55 + i * 0.08 + 0.015), size * 0.8);
+                    c.quadraticCurveTo(size * (0.6 + i * 0.08), size * 0.9, size * (0.6 + i * 0.08), size * 1.0);
+                    c.fill();
+                }
+                return off;
+            }
+
+            // ----- BUMP MAPY -----
+            function generateBumps(n) {
+                hBump = Array.from({ length: n + 1 }, () => Array(n).fill(0));
+                vBump = Array.from({ length: n }, () => Array(n + 1).fill(0));
+                for (let r = 1; r < n; r++) for (let c = 0; c < n; c++) hBump[r][c] = Math.random() < 0.5 ? 1 : -1;
+                for (let r = 0; r < n; r++) for (let c = 1; c < n; c++) vBump[r][c] = Math.random() < 0.5 ? 1 : -1;
+            }
+
+            function buildPiecePath(r, c) {
+                const S = cellSize;
+                const bumpR = S * 0.16;
+                const path = new Path2D();
+                const topBump = r > 0 ? hBump[r][c] : 0;
+                const bottomBump = r < N - 1 ? hBump[r + 1][c] : 0;
+                const leftBump = c > 0 ? vBump[r][c] : 0;
+                const rightBump = c < N - 1 ? vBump[r][c + 1] : 0;
+
+                path.moveTo(0, 0);
+                // top edge (left->right); topBump>0 means tab pokes UP (out of this piece)
+                if (topBump === 0) {
+                    path.lineTo(S, 0);
+                } else {
+                    const dir = topBump > 0 ? -1 : 1; // -1 = bulge up(out), 1 = bulge down(in)
+                    path.lineTo(S / 2 - bumpR, 0);
+                    path.arc(S / 2, 0, bumpR, Math.PI, 0, dir > 0);
+                    path.lineTo(S, 0);
+                }
+                // right edge (top->bottom); rightBump>0 means tab pokes RIGHT (out)
+                if (rightBump === 0) {
+                    path.lineTo(S, S);
+                } else {
+                    const dir = rightBump > 0 ? 1 : -1;
+                    path.lineTo(S, S / 2 - bumpR);
+                    path.arc(S, S / 2, bumpR, Math.PI * 1.5, Math.PI * 0.5, dir < 0);
+                    path.lineTo(S, S);
+                }
+                // bottom edge (right->left); bottomBump>0 means tab pokes DOWN (out)
+                if (bottomBump === 0) {
+                    path.lineTo(0, S);
+                } else {
+                    const dir = bottomBump > 0 ? 1 : -1;
+                    path.lineTo(S / 2 + bumpR, S);
+                    path.arc(S / 2, S, bumpR, 0, Math.PI, dir > 0);
+                    path.lineTo(0, S);
+                }
+                // left edge (bottom->top); leftBump>0 means tab pokes LEFT (out)
+                if (leftBump === 0) {
+                    path.lineTo(0, 0);
+                } else {
+                    const dir = leftBump > 0 ? -1 : 1;
+                    path.lineTo(0, S / 2 + bumpR);
+                    path.arc(0, S / 2, bumpR, Math.PI * 0.5, Math.PI * 1.5, dir < 0);
+                    path.lineTo(0, 0);
+                }
+                path.closePath();
+                return path;
+            }
+
+            function newLevel() {
+                N = DIFFS[diffKey];
+                cellSize = BOARD / N;
+                boardOriginX = (CW - BOARD) / 2;
+                boardOriginY = 4;
+                pictureCanvas = drawPicture(BOARD);
+                generateBumps(N);
+
+                pieces = [];
+                for (let r = 0; r < N; r++) {
+                    for (let c = 0; c < N; c++) {
+                        pieces.push({
+                            r, c,
+                            path: buildPiecePath(r, c),
+                            targetX: boardOriginX + c * cellSize,
+                            targetY: boardOriginY + r * cellSize,
+                            x: 0, y: 0,
+                            placed: false
+                        });
+                    }
+                }
+                // scatter pieces into tray area
+                const trayTop = boardOriginY + BOARD + 10;
+                pieces.forEach(p => {
+                    p.x = 10 + Math.random() * (CW - cellSize - 20);
+                    p.y = trayTop + Math.random() * (TRAY_H - cellSize - 15);
+                });
+
+                moves = 0;
+                score = 0;
+                solved = false;
+                movesSpan.textContent = '0';
+                scoreSpan.textContent = '0';
+                placedSpan.textContent = '0/' + (N * N);
+                endOverlay.classList.remove('visible');
+                draw();
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, CW, CH);
+                ctx.fillStyle = '#0f1622';
+                ctx.fillRect(0, 0, CW, CH);
+
+                ctx.strokeStyle = 'rgba(148,163,184,0.25)';
+                ctx.setLineDash([4, 4]);
+                ctx.strokeRect(boardOriginX, boardOriginY, BOARD, BOARD);
+                ctx.setLineDash([]);
+
+                pieces.forEach((p, idx) => {
+                    if (idx === dragIdx) return; // draw dragged piece last (on top)
+                    drawPiece(p);
+                });
+                if (dragIdx !== null) drawPiece(pieces[dragIdx]);
+            }
+
+            function drawPiece(p) {
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.clip(p.path);
+                ctx.drawImage(pictureCanvas, -(p.c * cellSize), -(p.r * cellSize));
+                ctx.restore();
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.strokeStyle = p.placed ? 'rgba(74,222,128,0.8)' : 'rgba(0,0,0,0.35)';
+                ctx.lineWidth = p.placed ? 1.5 : 1;
+                ctx.stroke(p.path);
+                ctx.restore();
+            }
+
+            function canvasPoint(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
+
+            function pieceAt(px, py) {
+                for (let i = pieces.length - 1; i >= 0; i--) {
+                    const p = pieces[i];
+                    const localX = px - p.x, localY = py - p.y;
+                    if (ctx.isPointInPath(p.path, localX, localY)) return i;
+                }
+                return -1;
+            }
+
+            function onDown(e) {
+                if (solved) return;
+                const pt = canvasPoint(e);
+                const idx = pieceAt(pt.x, pt.y);
+                if (idx === -1) return;
+                dragIdx = idx;
+                const p = pieces[idx];
+                dragOffset.x = pt.x - p.x;
+                dragOffset.y = pt.y - p.y;
+                pieces.splice(idx, 1);
+                pieces.push(p);
+                dragIdx = pieces.length - 1;
+                draw();
+            }
+
+            function onMove(e) {
+                if (dragIdx === null) return;
+                const pt = canvasPoint(e);
+                const p = pieces[dragIdx];
+                p.x = pt.x - dragOffset.x;
+                p.y = pt.y - dragOffset.y;
+                draw();
+            }
+
+            function onUp() {
+                if (dragIdx === null) return;
+                const p = pieces[dragIdx];
+                const dx = p.x - p.targetX, dy = p.y - p.targetY;
+                const dist = Math.hypot(dx, dy);
+                if (dist < cellSize * 0.28) {
+                    p.x = p.targetX; p.y = p.targetY;
+                    p.placed = true;
+                }
+                moves++;
+                movesSpan.textContent = moves;
+                dragIdx = null;
+                updatePlacedCount();
+                draw();
+                checkWin();
+            }
+
+            function updatePlacedCount() {
+                const count = pieces.filter(p => p.placed).length;
+                placedSpan.textContent = count + '/' + (N * N);
+            }
+
+            function checkWin() {
+                if (pieces.every(p => p.placed)) winGame();
+            }
+
+            function winGame() {
+                solved = true;
+                score = Math.max(20, 150 - Math.max(0, moves - N * N) * 3);
+                scoreSpan.textContent = score;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('jigsawPiecesBest', String(best));
+                }
+                finalMoves.textContent = moves;
+                finalScore.textContent = score;
+                setTimeout(() => endOverlay.classList.add('visible'), 250);
+            }
+
+            canvas.addEventListener('mousedown', onDown);
+            canvas.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(e); }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onMove(e); }, { passive: false });
+            canvas.addEventListener('touchend', (e) => { e.preventDefault(); onUp(); }, { passive: false });
+
+            newLevelBtn.addEventListener('click', newLevel);
+            nextBtn.addEventListener('click', newLevel);
+
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    newLevel();
+                });
+            });
+
+            newLevel();
+        })();
+    </script>
+</body>
+</html>

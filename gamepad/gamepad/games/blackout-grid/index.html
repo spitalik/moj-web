@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Blackout Grid · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402a1a;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#fbbf24;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:440px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#fde68a,#fbbf24);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#fbbf24; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #board-wrap {
+            background:#0f1622; border-radius:16px; padding:10px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            align-self:center; position:relative;
+        }
+        #grid { display:grid; gap:5px; }
+        .cell {
+            border-radius:8px; cursor:pointer; aspect-ratio:1;
+            background:#1c2739; border:1px solid #2e3a4e;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+            transition: background .12s, box-shadow .12s;
+        }
+        .cell.on {
+            background:radial-gradient(circle at 35% 30%, #fef9c3, #fbbf24 70%);
+            box-shadow: 0 0 14px rgba(251,191,36,.65), inset 0 0 6px rgba(255,255,255,.4);
+        }
+        .cell:active { transform:scale(.94); }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#fde68a,#fbbf24);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #nextBtn {
+            background:#fbbf24; border:1px solid #fde68a; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #b45309; cursor:pointer; margin-top:6px;
+        }
+        #nextBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #b45309; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>💡 BLACKOUT GRID</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="s" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="m" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="l" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-moves">Ťahy</h3>
+                <span class="value" id="movesValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-par">Par</h3>
+                <span class="value" id="parValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="board-wrap">
+            <div id="grid"></div>
+            <div id="end-overlay">
+                <h2 id="lbl-win">Zhasnuté!</h2>
+                <p><span id="lbl-final-moves">Ťahy:</span> <span id="finalMoves">0</span> / <span id="finalPar">0</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="nextBtn">Ďalšia hádanka</button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="resetBtn"><span id="lbl-reset">Reštart</span></button>
+            <button id="newLevelBtn"><span id="lbl-newlevel">Nová hádanka</span></button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const backLbl = document.getElementById('lbl-back');
+            const sizeGroup = document.getElementById('sizeGroup');
+            const rulesP = document.getElementById('rules');
+            const movesSpan = document.getElementById('movesValue');
+            const parSpan = document.getElementById('parValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const gridEl = document.getElementById('grid');
+            const endOverlay = document.getElementById('end-overlay');
+            const finalMoves = document.getElementById('finalMoves');
+            const finalPar = document.getElementById('finalPar');
+            const finalScore = document.getElementById('finalScore');
+            const resetBtn = document.getElementById('resetBtn');
+            const newLevelBtn = document.getElementById('newLevelBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            // ----- PREKLADY -----
+            backLbl.textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('blkDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('blkEasy');
+            document.getElementById('lbl-size-m').textContent = t('blkMedium');
+            document.getElementById('lbl-size-l').textContent = t('blkHard');
+            document.getElementById('lbl-moves').textContent = t('blkMoves');
+            document.getElementById('lbl-score').textContent = t('blkScore');
+            document.getElementById('lbl-best').textContent = t('blkBest');
+            document.getElementById('lbl-win').textContent = t('blkWin');
+            document.getElementById('lbl-final-moves').textContent = t('blkMoves') + ':';
+            document.getElementById('lbl-final-score').textContent = t('blkScore') + ':';
+            document.getElementById('lbl-reset').textContent = t('blkReset');
+            document.getElementById('lbl-newlevel').textContent = t('blkNewLevel');
+            nextBtn.textContent = t('blkNewLevel');
+            rulesP.textContent = t('blkRules');
+
+            // ----- KONFIGURACIA -----
+            const DIFFS = {
+                s: { n: 4, scramble: 5 },
+                m: { n: 5, scramble: 8 },
+                l: { n: 6, scramble: 12 }
+            };
+
+            let diffKey = 'm';
+            let N = 5;
+            let grid = [];
+            let initialGrid = [];
+            let cellEls = [];
+            let moves = 0;
+            let par = 0;
+            let score = 0;
+            let best = parseInt(localStorage.getItem('blackoutGridBest') || '0', 10);
+            let solved = false;
+
+            bestSpan.textContent = best;
+
+            function makeGrid(n) {
+                return Array.from({ length: n }, () => Array(n).fill(false));
+            }
+
+            function neighbors(r, c) {
+                const res = [[r, c]];
+                if (r > 0) res.push([r - 1, c]);
+                if (r < N - 1) res.push([r + 1, c]);
+                if (c > 0) res.push([r, c - 1]);
+                if (c < N - 1) res.push([r, c + 1]);
+                return res;
+            }
+
+            function toggle(g, r, c) {
+                for (const [nr, nc] of neighbors(r, c)) {
+                    g[nr][nc] = !g[nr][nc];
+                }
+            }
+
+            function isSolved() {
+                for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c]) return false;
+                return true;
+            }
+
+            function cloneGrid(g) { return g.map(row => row.slice()); }
+
+            function generatePuzzle() {
+                const cfg = DIFFS[diffKey];
+                N = cfg.n;
+                let g;
+                do {
+                    g = makeGrid(N);
+                    const usedCells = new Set();
+                    let scrambleCount = 0;
+                    let attempts = 0;
+                    while (scrambleCount < cfg.scramble && attempts < cfg.scramble * 6) {
+                        attempts++;
+                        const r = Math.floor(Math.random() * N);
+                        const c = Math.floor(Math.random() * N);
+                        const key = r + ',' + c;
+                        if (usedCells.has(key)) continue;
+                        usedCells.add(key);
+                        toggle(g, r, c);
+                        scrambleCount++;
+                    }
+                    par = scrambleCount;
+                } while (isAllOff(g)); // avoid a trivially already-solved scramble
+                return g;
+            }
+
+            function isAllOff(g) {
+                for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (g[r][c]) return false;
+                return true;
+            }
+
+            function newLevel() {
+                grid = generatePuzzle();
+                initialGrid = cloneGrid(grid);
+                moves = 0;
+                score = 0;
+                solved = false;
+                movesSpan.textContent = '0';
+                parSpan.textContent = par;
+                scoreSpan.textContent = '0';
+                endOverlay.classList.remove('visible');
+                renderGrid();
+            }
+
+            function restartLevel() {
+                if (solved) return;
+                grid = cloneGrid(initialGrid);
+                moves = 0;
+                movesSpan.textContent = '0';
+                renderCells();
+            }
+
+            function renderGrid() {
+                gridEl.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+                const cellPx = N <= 4 ? 64 : (N <= 5 ? 54 : 46);
+                gridEl.style.width = (N * cellPx) + 'px';
+                gridEl.innerHTML = '';
+                cellEls = [];
+                for (let r = 0; r < N; r++) {
+                    const rowEls = [];
+                    for (let c = 0; c < N; c++) {
+                        const div = document.createElement('div');
+                        div.className = 'cell';
+                        div.addEventListener('click', () => onCellClick(r, c));
+                        gridEl.appendChild(div);
+                        rowEls.push(div);
+                    }
+                    cellEls.push(rowEls);
+                }
+                renderCells();
+            }
+
+            function renderCells() {
+                for (let r = 0; r < N; r++) {
+                    for (let c = 0; c < N; c++) {
+                        cellEls[r][c].classList.toggle('on', grid[r][c]);
+                    }
+                }
+            }
+
+            function onCellClick(r, c) {
+                if (solved) return;
+                toggle(grid, r, c);
+                moves++;
+                movesSpan.textContent = moves;
+                renderCells();
+                if (isSolved()) winGame();
+            }
+
+            function winGame() {
+                solved = true;
+                const penalty = Math.max(0, moves - par) * 12;
+                score = Math.max(20, 100 - penalty);
+                scoreSpan.textContent = score;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('blackoutGridBest', String(best));
+                }
+                finalMoves.textContent = moves;
+                finalPar.textContent = par;
+                finalScore.textContent = score;
+                endOverlay.classList.add('visible');
+            }
+
+            resetBtn.addEventListener('click', restartLevel);
+            newLevelBtn.addEventListener('click', newLevel);
+            nextBtn.addEventListener('click', newLevel);
+
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    newLevel();
+                });
+            });
+
+            newLevel();
+        })();
+    </script>
+</body>
+</html>
