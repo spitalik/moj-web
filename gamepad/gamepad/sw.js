@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v96';
+const CACHE = 'gamepad-v97';
 
 const ASSETS = [
   './',
@@ -84,6 +84,7 @@ const ASSETS = [
   './games/tangram-fit/index.html',
   './games/jigsaw-pieces/index.html',
   './games/peg-escape/index.html',
+  './games/flip-tiles/index.html',
 ];
 
 self.addEventListener('install', e => {
