@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hanoi Towers · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402a1a;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#fb923c;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:460px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#fed7aa,#fb923c);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#fb923c; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #canvas-wrapper {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            position:relative; align-self:center;
+        }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#fed7aa,#fb923c);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #restartBtn {
+            background:#fb923c; border:1px solid #fed7aa; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #c2410c; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #c2410c; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🗼 HANOI TOWERS</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-disks="4" id="lbl-size-s">Ľahká</button>
+                    <button data-disks="6" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-disks="8" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-moves">Ťahy</h3>
+                <span class="value" id="movesValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-optimal">Optimum</h3>
+                <span class="value" id="optimalValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-win">Hotovo!</h2>
+                <p><span id="lbl-final-moves">Ťahy:</span> <span id="finalMoves">0</span> / <span id="finalOptimal">0</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="restartBtn">Hrať znova</button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="undoBtn"><span id="lbl-undo">Späť</span></button>
+            <button id="newGameBtn"><span id="lbl-newgame">Nová hra</span></button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const movesSpan = document.getElementById('movesValue');
+            const optimalSpan = document.getElementById('optimalValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const endOverlay = document.getElementById('end-overlay');
+            const finalMoves = document.getElementById('finalMoves');
+            const finalOptimal = document.getElementById('finalOptimal');
+            const finalScore = document.getElementById('finalScore');
+            const restartBtn = document.getElementById('restartBtn');
+            const undoBtn = document.getElementById('undoBtn');
+            const newGameBtn = document.getElementById('newGameBtn');
+            const sizeGroup = document.getElementById('sizeGroup');
+
+            // ----- PREKLADY -----
+            document.getElementById('lbl-back').textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('hanDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('hanEasy');
+            document.getElementById('lbl-size-m').textContent = t('hanMedium');
+            document.getElementById('lbl-size-l').textContent = t('hanHard');
+            document.getElementById('lbl-moves').textContent = t('hanMoves');
+            document.getElementById('lbl-optimal').textContent = t('hanOptimal');
+            document.getElementById('lbl-score').textContent = t('hanScore');
+            document.getElementById('lbl-best').textContent = t('hanBest');
+            document.getElementById('lbl-win').textContent = t('hanWin');
+            document.getElementById('lbl-final-moves').textContent = t('hanMoves') + ':';
+            document.getElementById('lbl-final-score').textContent = t('hanScore') + ':';
+            document.getElementById('lbl-undo').textContent = t('hanUndo');
+            document.getElementById('lbl-newgame').textContent = t('hanNewGame');
+            restartBtn.textContent = t('hanNewGame');
+            document.getElementById('rules').textContent = t('hanRules');
+
+            // ----- KONFIGURACIA -----
+            const CW = 340, CH = 300;
+            canvas.width = CW;
+            canvas.height = CH;
+            const PEG_X = [CW * 0.2, CW * 0.5, CW * 0.8];
+            const BASE_Y = CH - 30;
+            const PEG_TOP_Y = 40;
+            const DISK_H = 18;
+            const COLORS = ['#fb923c', '#f97316', '#facc15', '#fbbf24', '#4ade80', '#38bdf8', '#a78bfa', '#fb7185'];
+
+            let numDisks = 6;
+            let pegs = [];
+            let selectedPeg = null;
+            let moves = 0;
+            let optimal = 0;
+            let score = 0;
+            let best = parseInt(localStorage.getItem('hanoiTowersBest') || '0', 10);
+            let ended = false;
+            let history = [];
+
+            bestSpan.textContent = best;
+
+            function newGame() {
+                pegs = [[], [], []];
+                for (let d = numDisks; d >= 1; d--) pegs[0].push(d);
+                selectedPeg = null;
+                moves = 0;
+                optimal = Math.pow(2, numDisks) - 1;
+                score = 0;
+                ended = false;
+                history = [];
+                movesSpan.textContent = '0';
+                optimalSpan.textContent = optimal;
+                scoreSpan.textContent = '0';
+                endOverlay.classList.remove('visible');
+                draw();
+            }
+
+            function canMove(from, to) {
+                if (from === to) return false;
+                if (pegs[from].length === 0) return false;
+                const disk = pegs[from][pegs[from].length - 1];
+                if (pegs[to].length === 0) return true;
+                return disk < pegs[to][pegs[to].length - 1];
+            }
+
+            function doMove(from, to) {
+                history.push({ from, to });
+                const disk = pegs[from].pop();
+                pegs[to].push(disk);
+                moves++;
+                movesSpan.textContent = moves;
+            }
+
+            function undo() {
+                if (ended || history.length === 0) return;
+                const last = history.pop();
+                const disk = pegs[last.to].pop();
+                pegs[last.from].push(disk);
+                moves = Math.max(0, moves - 1);
+                movesSpan.textContent = moves;
+                selectedPeg = null;
+                draw();
+            }
+            undoBtn.addEventListener('click', undo);
+
+            function checkWin() {
+                if (pegs[2].length === numDisks) {
+                    ended = true;
+                    const extra = Math.max(0, moves - optimal);
+                    score = Math.max(20, 150 - extra * 8);
+                    scoreSpan.textContent = score;
+                    if (score > best) {
+                        best = score;
+                        bestSpan.textContent = best;
+                        localStorage.setItem('hanoiTowersBest', String(best));
+                    }
+                    finalMoves.textContent = moves;
+                    finalOptimal.textContent = optimal;
+                    finalScore.textContent = score;
+                    setTimeout(() => endOverlay.classList.add('visible'), 250);
+                }
+            }
+
+            function pegAt(px) {
+                for (let i = 0; i < 3; i++) {
+                    if (Math.abs(px - PEG_X[i]) < CW / 6) return i;
+                }
+                return -1;
+            }
+
+            function canvasPoint(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
+
+            function onTap(e) {
+                if (ended) return;
+                const pt = canvasPoint(e);
+                const peg = pegAt(pt.x);
+                if (peg === -1) return;
+
+                if (selectedPeg === null) {
+                    if (pegs[peg].length > 0) {
+                        selectedPeg = peg;
+                        draw();
+                    }
+                    return;
+                }
+                if (peg === selectedPeg) {
+                    selectedPeg = null;
+                    draw();
+                    return;
+                }
+                if (canMove(selectedPeg, peg)) {
+                    doMove(selectedPeg, peg);
+                    selectedPeg = null;
+                    draw();
+                    checkWin();
+                } else {
+                    selectedPeg = pegs[peg].length > 0 ? peg : null;
+                    draw();
+                }
+            }
+
+            canvas.addEventListener('mousedown', onTap);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onTap(e); }, { passive: false });
+
+            restartBtn.addEventListener('click', newGame);
+            newGameBtn.addEventListener('click', newGame);
+
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    numDisks = parseInt(btn.dataset.disks, 10);
+                    newGame();
+                });
+            });
+
+            function diskWidth(d) {
+                const minW = 26, maxW = CW * 0.24;
+                return minW + (maxW - minW) * ((d - 1) / Math.max(1, numDisks - 1));
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, CW, CH);
+                const grad = ctx.createLinearGradient(0, 0, 0, CH);
+                grad.addColorStop(0, '#0b111e');
+                grad.addColorStop(1, '#0f1a2b');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, CW, CH);
+
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(20, BASE_Y, CW - 40, 8);
+
+                for (let i = 0; i < 3; i++) {
+                    ctx.fillStyle = '#475569';
+                    ctx.fillRect(PEG_X[i] - 4, PEG_TOP_Y, 8, BASE_Y - PEG_TOP_Y);
+                    if (i === selectedPeg) {
+                        ctx.strokeStyle = 'rgba(251,191,36,0.6)';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(PEG_X[i] - CW / 6 + 4, PEG_TOP_Y - 10, CW / 3 - 8, BASE_Y - PEG_TOP_Y + 20);
+                    }
+                }
+
+                for (let p = 0; p < 3; p++) {
+                    for (let level = 0; level < pegs[p].length; level++) {
+                        const d = pegs[p][level];
+                        const w = diskWidth(d);
+                        const x = PEG_X[p] - w / 2;
+                        const y = BASE_Y - (level + 1) * DISK_H;
+                        ctx.fillStyle = COLORS[(d - 1) % COLORS.length];
+                        ctx.beginPath();
+                        ctx.roundRect ? ctx.roundRect(x, y, w, DISK_H - 3, 5) : ctx.rect(x, y, w, DISK_H - 3);
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            newGame();
+        })();
+    </script>
+</body>
+</html>
