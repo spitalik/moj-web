@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v106';
+const CACHE = 'gamepad-v100';
 
 const ASSETS = [
   './',
@@ -88,35 +88,6 @@ const ASSETS = [
   './games/hanoi-towers/index.html',
   './games/cube-twist/index.html',
   './games/anagram-blitz/index.html',
-  './games/crown-jump/index.html',
-  './games/drop-four/index.html',
-  './games/nine-mills/index.html',
-  './games/dice-gates/index.html',
-  './games/seed-sow/index.html',
-  './games/box-claim/index.html',
-  './games/stone-garden/index.html',
-  './games/artillery-duel/index.html',
-  './games/loop-weaver/index.html',
-  './games/island-links/index.html',
-  './games/lantern-halls/index.html',
-  './games/shade-grid/index.html',
-  './games/sign-grid/index.html',
-  './games/code-breaker/index.html',
-  './games/tile-match/index.html',
-  './games/free-cells/index.html',
-  './games/spider-cards/index.html',
-  './games/pyramid-cards/index.html',
-  './games/five-dice/index.html',
-  './games/dot-muncher/index.html',
-  './games/blast-maze/index.html',
-  './games/sky-shield/index.html',
-  './games/bug-column/index.html',
-  './games/moon-lander/index.html',
-  './games/light-trails/index.html',
-  './games/mini-putt/index.html',
-  './games/pool-break/index.html',
-  './games/five-letters/index.html',
-  './games/hidden-word/index.html',
 ];
 
 self.addEventListener('install', e => {

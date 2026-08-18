@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pyramid Cards · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402b12;color:#a89070;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#f59e0b;color:#fff6e8;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:480px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#fde68a,#f59e0b);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#f59e0b; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#fcd34d; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#fde68a,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#f59e0b; border:1px solid #fde68a; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #b45309; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #b45309; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🔻</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-left"></h3><span class="value" id="leftValue">28</span></div>
+            <div class="info-card"><h3 id="lbl-passes"></h3><span class="value" id="passesValue">2</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-left"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="undoBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const leftSpan = document.getElementById('leftValue');
+        const passesSpan = document.getElementById('passesValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalLeftP = document.getElementById('lbl-final-left');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🔻 ' + t('pyrTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-left').textContent   = t('pyrLeft');
+        document.getElementById('lbl-passes').textContent = t('pyrPasses');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('pyrRules');
+        undoBtn.textContent    = t('uiUndo');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('pyrTitle') + ' · GamePad';
+
+        // ----- KARTY -----
+        const SUITS = ['♠', '♥', '♦', '♣'];
+        const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const rankOf = id => id % 13;                  // 0 = ace
+        const suitOf = id => Math.floor(id / 13);
+        const isRed = id => suitOf(id) === 1 || suitOf(id) === 2;
+        const valueOf = id => rankOf(id) + 1;          // ace 1 … king 13
+
+        const PASSES = { easy: 3, medium: 2, hard: 1 };
+        const MULT   = { easy: 1, medium: 1.4, hard: 1.9 };
+        const ROWS = 7, MARGIN = 10, CW = 44, CH = 62, XSTEP = 46, YSTEP = 33;
+        const W = MARGIN * 2 + ROWS * XSTEP;
+        const PYTOP = MARGIN + 4;
+        const BOTTOM = PYTOP + (ROWS - 1) * YSTEP + CH + 20;
+        const H = BOTTOM + CH + MARGIN;
+        canvas.width = W; canvas.height = H;
+
+        const idxOf = (r, c) => r * (r + 1) / 2 + c;
+
+        let diffKey = 'medium';
+        let pyramid = [], gone = [], stock = [], waste = [], passes = 0;
+        let selected = -1, history = [], score = 0, solved = false, ended = false;
+        let startedAt = 0, elapsed = 0, timer = null;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('pyramidCardsBest') || '{}')); } catch (e) { /* ignore */ }
+
+        // ----- PRAVIDLA -----
+        // A pyramid card is free once both cards resting on it are gone.
+        function uncovered(i) {
+            if (gone[i]) return false;
+            let r = 0;
+            while (idxOf(r + 1, 0) <= i) r++;
+            if (r === ROWS - 1) return true;
+            const c = i - idxOf(r, 0);
+            return gone[idxOf(r + 1, c)] && gone[idxOf(r + 1, c + 1)];
+        }
+
+        const wasteTop = () => waste.length ? waste[waste.length - 1] : -1;
+        const remaining = () => gone.filter(g => !g).length;
+
+        const snapshot = () => ({
+            gone: gone.slice(), stock: stock.slice(), waste: waste.slice(), passes,
+        });
+        function restore(s) {
+            gone = s.gone.slice(); stock = s.stock.slice(); waste = s.waste.slice(); passes = s.passes;
+        }
+        function push() { history.push(snapshot()); if (history.length > 300) history.shift(); }
+
+        function removePyramid(i) { gone[i] = true; }
+        function removeWaste() { waste.pop(); }
+
+        // Everything currently takeable: uncovered pyramid cards plus the waste top.
+        function available() {
+            const out = [];
+            for (let i = 0; i < 28; i++) if (uncovered(i)) out.push({ where: 'py', at: i, card: pyramid[i] });
+            if (waste.length) out.push({ where: 'waste', at: waste.length - 1, card: wasteTop() });
+            return out;
+        }
+
+        function anyMove() {
+            const av = available();
+            if (av.some(a => valueOf(a.card) === 13)) return true;
+            for (let i = 0; i < av.length; i++) for (let j = i + 1; j < av.length; j++)
+                if (valueOf(av[i].card) + valueOf(av[j].card) === 13) return true;
+            return stock.length > 0 || passes > 0;
+        }
+
+        function take(a) {
+            if (a.where === 'py') removePyramid(a.at); else removeWaste();
+        }
+
+        function tryPair(a, b) {
+            if (valueOf(a.card) + valueOf(b.card) !== 13) return false;
+            push();
+            take(a); take(b);
+            return true;
+        }
+
+        function flipStock() {
+            if (stock.length) { push(); waste.push(stock.pop()); return true; }
+            if (passes > 0 && waste.length) {
+                push();
+                stock = waste.reverse(); waste = [];
+                passes--;
+                return true;
+            }
+            return false;
+        }
+
+        function afterMove() {
+            selected = -1;
+            refresh(); draw();
+            if (remaining() === 0) { finish(true); return; }
+            // anyMove() already allows for stock left and passes left, so this is a dead end
+            if (!anyMove()) { statusLine.textContent = t('pyrStuck'); finish(false); }
+        }
+
+        function finish(win) {
+            solved = win; ended = true;
+            clearInterval(timer);
+            score = win ? Math.round(Math.max(60, 700 - elapsed * 2) * MULT[diffKey]) : 0;
+            scoreSpan.textContent = score;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('pyramidCardsBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = win ? t('uiSolved') : t('uiGameOver');
+            finalLeftP.textContent = t('pyrLeft') + ': ' + remaining();
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            leftSpan.textContent = remaining();
+            passesSpan.textContent = passes;
+        }
+
+        function newGame() {
+            const deck = Array.from({ length: 52 }, (_, i) => i);
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            pyramid = deck.slice(0, 28);
+            gone = new Array(28).fill(false);
+            stock = deck.slice(28);
+            waste = [];
+            passes = PASSES[diffKey];
+            selected = -1; history = []; score = 0; solved = false; ended = false; elapsed = 0;
+            scoreSpan.textContent = '0';
+            bestSpan.textContent = best[diffKey] || 0;
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('pyrHintTap');
+            refresh();
+            clearInterval(timer);
+            startedAt = Date.now();
+            timer = setInterval(() => { if (!ended) elapsed = Math.floor((Date.now() - startedAt) / 1000); }, 1000);
+            draw();
+        }
+
+        // ----- ROZLOZENIE -----
+        function cardPos(i) {
+            let r = 0;
+            while (idxOf(r + 1, 0) <= i) r++;
+            const c = i - idxOf(r, 0);
+            const rowW = (r + 1) * XSTEP;
+            return [(W - rowW) / 2 + c * XSTEP + (XSTEP - CW) / 2, PYTOP + r * YSTEP];
+        }
+        const stockPos = () => [MARGIN + 20, BOTTOM];
+        const wastePos = () => [MARGIN + 20 + CW + 26, BOTTOM];
+
+        function hitTest(x, y) {
+            for (let i = 27; i >= 0; i--) {
+                if (gone[i]) continue;
+                const [cx, cy] = cardPos(i);
+                if (x >= cx && x <= cx + CW && y >= cy && y <= cy + CH && uncovered(i))
+                    return { where: 'py', at: i, card: pyramid[i] };
+            }
+            const [sx, sy] = stockPos();
+            if (x >= sx && x <= sx + CW && y >= sy && y <= sy + CH) return { where: 'stock' };
+            const [wx, wy] = wastePos();
+            if (waste.length && x >= wx && x <= wx + CW && y >= wy && y <= wy + CH)
+                return { where: 'waste', at: waste.length - 1, card: wasteTop() };
+            return null;
+        }
+
+        function onTap(e) {
+            if (ended) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * W;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * H;
+            const hit = hitTest(x, y);
+            if (!hit) { selected = -1; draw(); return; }
+
+            if (hit.where === 'stock') {
+                selected = -1;
+                if (flipStock()) { statusLine.textContent = ''; afterMove(); }
+                else { statusLine.textContent = t('pyrNoPasses'); draw(); }
+                return;
+            }
+
+            // a king is worth thirteen on its own
+            if (valueOf(hit.card) === 13) {
+                push(); take(hit);
+                statusLine.textContent = '';
+                afterMove();
+                return;
+            }
+
+            if (selected >= 0) {
+                const prev = selected === 99 ? { where: 'waste', at: waste.length - 1, card: wasteTop() }
+                                             : { where: 'py', at: selected, card: pyramid[selected] };
+                const same = prev.where === hit.where && prev.at === hit.at;
+                if (!same && tryPair(prev, hit)) { statusLine.textContent = ''; afterMove(); return; }
+                if (same) { selected = -1; draw(); return; }
+                statusLine.textContent = t('pyrNotThirteen');
+            }
+            selected = hit.where === 'waste' ? 99 : hit.at;
+            draw();
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        undoBtn.addEventListener('click', () => {
+            if (ended || !history.length) return;
+            restore(history.pop());
+            selected = -1; statusLine.textContent = '';
+            refresh(); draw();
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function shell(x, y, r) {
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x, y, CW, CH, r); else ctx.rect(x, y, CW, CH);
+        }
+
+        function faceUp(x, y, id, state) {
+            shell(x, y, 6);
+            ctx.fillStyle = state === 'dim' ? '#d8d6c8' : '#fbfbf6';
+            ctx.fill();
+            ctx.strokeStyle = state === 'sel' ? '#b45309' : 'rgba(40,35,25,.45)';
+            ctx.lineWidth = state === 'sel' ? 3 : 1;
+            ctx.stroke();
+            ctx.fillStyle = isRed(id) ? '#c0392b' : '#1f2937';
+            ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+            ctx.font = '700 15px system-ui';
+            ctx.fillText(RANKS[rankOf(id)], x + 5, y + 4);
+            ctx.font = '14px system-ui';
+            ctx.fillText(SUITS[suitOf(id)], x + 5, y + 21);
+            ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+            ctx.font = '20px system-ui';
+            ctx.fillText(SUITS[suitOf(id)], x + CW - 5, y + CH - 4);
+        }
+
+        function faceDown(x, y) {
+            shell(x, y, 6);
+            const g = ctx.createLinearGradient(x, y, x + CW, y + CH);
+            g.addColorStop(0, '#6b4416'); g.addColorStop(1, '#3a2409');
+            ctx.fillStyle = g; ctx.fill();
+            ctx.strokeStyle = 'rgba(253,230,138,.3)'; ctx.lineWidth = 1; ctx.stroke();
+        }
+
+        function draw() {
+            ctx.fillStyle = '#1d1405'; ctx.fillRect(0, 0, W, H);
+
+            for (let i = 0; i < 28; i++) {
+                if (gone[i]) continue;
+                const [x, y] = cardPos(i);
+                const state = selected === i ? 'sel' : (uncovered(i) ? 'up' : 'dim');
+                faceUp(x, y, pyramid[i], state);
+            }
+
+            const [sx, sy] = stockPos();
+            if (stock.length) {
+                faceDown(sx, sy);
+                ctx.fillStyle = '#fde68a'; ctx.font = '700 14px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(String(stock.length), sx + CW / 2, sy + CH / 2);
+            } else {
+                shell(sx, sy, 6);
+                ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 1.3; ctx.stroke();
+                if (passes > 0) {
+                    ctx.fillStyle = 'rgba(253,230,138,.6)'; ctx.font = '700 20px system-ui';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('↻', sx + CW / 2, sy + CH / 2);
+                }
+            }
+
+            const [wx, wy] = wastePos();
+            if (waste.length) faceUp(wx, wy, wasteTop(), selected === 99 ? 'sel' : 'up');
+            else {
+                shell(wx, wy, 6);
+                ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 1.3; ctx.stroke();
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

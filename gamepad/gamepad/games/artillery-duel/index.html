@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Artillery Duel · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #40250f;color:#a8886a;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#fb923c;color:#fff3e8;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:520px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#fed7aa,#fb923c);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#fb923c; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#fdba74; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; max-width:100%; height:auto; }
+        #aim { display:flex; flex-direction:column; gap:8px; }
+        .aim-row { display:flex; align-items:center; gap:10px; }
+        .aim-row span.lbl { font-size:11px; font-weight:600; color:#b0c4e0; text-transform:uppercase; letter-spacing:.5px; width:58px; }
+        .aim-row span.val { font-size:13px; font-weight:700; color:#fdba74; width:44px; text-align:right; }
+        .aim-row input[type=range] { flex:1; accent-color:#fb923c; height:22px; }
+        #fireBtn {
+            background:#fb923c; border:1px solid #fed7aa; border-radius:14px;
+            padding:11px 20px; font-size:15px; font-weight:700; color:#0c0f16;
+            box-shadow:0 4px 0 #c2410c; cursor:pointer;
+        }
+        #fireBtn:disabled { opacity:.45; box-shadow:none; cursor:default; }
+        #fireBtn:active:not(:disabled) { transform:translateY(4px); box-shadow:0 0 0 #c2410c; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#fed7aa,#fb923c); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#fb923c; border:1px solid #fed7aa; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #c2410c; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #c2410c; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">💥</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-you"></h3><span class="value" id="youValue">100</span></div>
+            <div class="info-card"><h3 id="lbl-opp"></h3><span class="value" id="oppValue">100</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-shots"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="aim">
+            <div class="aim-row">
+                <span class="lbl" id="lbl-angle"></span>
+                <input type="range" id="angleRange" min="5" max="88" value="45">
+                <span class="val" id="angleVal">45°</span>
+            </div>
+            <div class="aim-row">
+                <span class="lbl" id="lbl-power"></span>
+                <input type="range" id="powerRange" min="15" max="100" value="60">
+                <span class="val" id="powerVal">60</span>
+            </div>
+            <div class="aim-row" style="justify-content:center;">
+                <button id="fireBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const youSpan = document.getElementById('youValue');
+        const oppSpan = document.getElementById('oppValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const shotsP = document.getElementById('lbl-shots');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const fireBtn = document.getElementById('fireBtn');
+        const diffGroup = document.getElementById('diffGroup');
+        const angleRange = document.getElementById('angleRange');
+        const powerRange = document.getElementById('powerRange');
+        const angleVal = document.getElementById('angleVal');
+        const powerVal = document.getElementById('powerVal');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '💥 ' + t('artTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-you').textContent    = t('artHp') + ' · ' + t('uiYou');
+        document.getElementById('lbl-opp').textContent    = t('artHp') + ' · ' + t('uiOpponent');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('lbl-angle').textContent  = t('artAngle');
+        document.getElementById('lbl-power').textContent  = t('artPower');
+        document.getElementById('rules').textContent      = t('artRules');
+        fireBtn.textContent    = t('artFire');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('artTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const W = 468, H = 300;
+        canvas.width = W; canvas.height = H;
+        const GRAVITY = 0.135, DT = 1;
+        const BLAST = 22, HURT = 42;
+        const AIM_NOISE = { easy: 16, medium: 6, hard: 1.8 };   // degrees/power units of AI error
+        const MULT = { easy: 1, medium: 1.5, hard: 2 };
+
+        let diffKey = 'medium';
+        let ground = new Float32Array(W);
+        let me = { x: 56, y: 0, hp: 100 }, foe = { x: W - 56, y: 0, hp: 100 };
+        let wind = 0, turn = 'me', busy = false, ended = false, score = 0;
+        let shell = null, trail = [], blast = null, shots = 0;
+        let foeAim = { angle: 45, power: 60 };
+        let best = parseInt(localStorage.getItem('artilleryDuelBest') || '0', 10);
+        bestSpan.textContent = best;
+
+        function makeTerrain() {
+            const base = H * 0.72;
+            const waves = [
+                { amp: 26 + Math.random() * 16, len: 240 + Math.random() * 160, ph: Math.random() * 6.28 },
+                { amp: 12 + Math.random() * 10, len: 90 + Math.random() * 70,  ph: Math.random() * 6.28 },
+                { amp: 5 + Math.random() * 5,   len: 38 + Math.random() * 24,  ph: Math.random() * 6.28 },
+            ];
+            for (let x = 0; x < W; x++) {
+                let y = base;
+                for (const w of waves) y += Math.sin(x / w.len * 6.283 + w.ph) * w.amp;
+                ground[x] = Math.max(H * 0.34, Math.min(H - 12, y));
+            }
+        }
+
+        const groundAt = x => ground[Math.max(0, Math.min(W - 1, Math.round(x)))];
+        const settle = tank => { tank.y = groundAt(tank.x) - 8; };
+
+        // Pure trajectory simulation — the AI uses this to find a firing solution.
+        function simulate(from, dir, angleDeg, power, w) {
+            const a = angleDeg * Math.PI / 180;
+            const v = power * 0.168;
+            let x = from.x + dir * 16, y = from.y - 8;
+            let vx = Math.cos(a) * v * dir, vy = -Math.sin(a) * v;
+            for (let step = 0; step < 1400; step++) {
+                vx += w * 0.0026;
+                vy += GRAVITY * DT;
+                x += vx * DT; y += vy * DT;
+                if (x < -40 || x > W + 40) return { x, y, offscreen: true };
+                if (y >= groundAt(x) && y > 0) return { x, y, offscreen: false };
+            }
+            return { x, y, offscreen: true };
+        }
+
+        function aiSolution() {
+            let bestShot = { angle: 45, power: 60 }, bestErr = Infinity;
+            for (let angle = 20; angle <= 80; angle += 2) {
+                for (let power = 20; power <= 100; power += 2) {
+                    const hit = simulate(foe, -1, angle, power, wind);
+                    if (hit.offscreen) continue;
+                    const err = Math.abs(hit.x - me.x);
+                    if (err < bestErr) { bestErr = err; bestShot = { angle, power }; }
+                }
+            }
+            const noise = AIM_NOISE[diffKey];
+            return {
+                angle: Math.max(5, Math.min(88, bestShot.angle + (Math.random() - 0.5) * noise)),
+                power: Math.max(15, Math.min(100, bestShot.power + (Math.random() - 0.5) * noise * 1.4)),
+            };
+        }
+
+        // ----- VYSTREL -----
+        function fire(shooter, dir, angleDeg, power) {
+            busy = true;
+            fireBtn.disabled = true;
+            shots++;
+            const a = angleDeg * Math.PI / 180;
+            const v = power * 0.168;
+            shell = {
+                x: shooter.x + dir * 16, y: shooter.y - 8,
+                vx: Math.cos(a) * v * dir, vy: -Math.sin(a) * v, dir,
+            };
+            trail = [];
+            step();
+        }
+
+        function step() {
+            if (!shell) return;
+            for (let k = 0; k < 2; k++) {                       // two physics ticks per frame
+                shell.vx += wind * 0.0026;
+                shell.vy += GRAVITY * DT;
+                shell.x += shell.vx * DT; shell.y += shell.vy * DT;
+                trail.push([shell.x, shell.y]);
+                if (trail.length > 90) trail.shift();
+                if (shell.x < -40 || shell.x > W + 40 || shell.y > H + 60) { shell = null; impact(null); return; }
+                if (shell.y >= groundAt(shell.x)) { const p = { x: shell.x, y: shell.y }; shell = null; impact(p); return; }
+            }
+            draw();
+            requestAnimationFrame(step);
+        }
+
+        function impact(point) {
+            if (!point) { draw(); endTurn(false); return; }
+            blast = { x: point.x, y: point.y, r: 4 };
+            // crater
+            for (let x = Math.max(0, Math.round(point.x - BLAST)); x < Math.min(W, point.x + BLAST); x++) {
+                const d = Math.abs(x - point.x);
+                const dip = Math.sqrt(Math.max(0, BLAST * BLAST - d * d)) * 0.55;
+                ground[x] = Math.min(H - 6, ground[x] + dip);
+            }
+            let hitSomeone = false;
+            for (const tank of [me, foe]) {
+                const d = Math.hypot(tank.x - point.x, tank.y - point.y);
+                if (d < HURT) {
+                    const dmg = Math.round(12 + 34 * (1 - d / HURT));
+                    tank.hp = Math.max(0, tank.hp - dmg);
+                    hitSomeone = true;
+                }
+            }
+            settle(me); settle(foe);
+            refresh(); draw();
+            let frames = 0;
+            const flash = () => {
+                blast.r += 3.2; frames++;
+                draw();
+                if (frames < 9) { requestAnimationFrame(flash); return; }
+                blast = null; draw();
+                endTurn(hitSomeone);
+            };
+            requestAnimationFrame(flash);
+        }
+
+        function endTurn(hitSomeone) {
+            if (me.hp <= 0 || foe.hp <= 0) { finish(); return; }
+            statusLine.textContent = hitSomeone ? t('artHit') : t('artMiss');
+            wind = Math.round((Math.random() * 12 - 6) * 10) / 10;
+            if (turn === 'me') {
+                turn = 'foe';
+                setTimeout(() => {
+                    if (ended) return;
+                    statusLine.textContent = t('uiOppTurn');
+                    foeAim = aiSolution();
+                    draw();
+                    setTimeout(() => { if (!ended) fire(foe, -1, foeAim.angle, foeAim.power); }, 520);
+                }, 620);
+            } else {
+                turn = 'me'; busy = false; fireBtn.disabled = false;
+                setTimeout(() => { if (!ended && turn === 'me') statusLine.textContent = t('uiYourTurn'); }, 620);
+                draw();
+            }
+        }
+
+        function finish() {
+            ended = true; busy = true; fireBtn.disabled = true;
+            const won = foe.hp <= 0 && me.hp > 0;
+            score = won ? Math.round((90 + me.hp + Math.max(0, 60 - shots * 4)) * MULT[diffKey]) : 0;
+            scoreSpan.textContent = score;
+            if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem("artilleryDuelBest", String(best)); }
+            resultH2.textContent = won ? t('uiYouWin') : t('uiYouLose');
+            shotsP.textContent = t('artShots', { n: shots });
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            youSpan.textContent = me.hp;
+            oppSpan.textContent = foe.hp;
+        }
+
+        function newGame() {
+            makeTerrain();
+            me = { x: 44 + Math.random() * 26, y: 0, hp: 100 };
+            foe = { x: W - 44 - Math.random() * 26, y: 0, hp: 100 };
+            settle(me); settle(foe);
+            wind = Math.round((Math.random() * 12 - 6) * 10) / 10;
+            turn = 'me'; busy = false; ended = false; score = 0;
+            shell = null; trail = []; blast = null; shots = 0;
+            foeAim = { angle: 45, power: 60 };
+            fireBtn.disabled = false;
+            scoreSpan.textContent = '0';
+            endOverlay.classList.remove('visible');
+            refresh();
+            statusLine.textContent = t('uiYourTurn');
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        const syncAim = () => {
+            angleVal.textContent = angleRange.value + '°';
+            powerVal.textContent = powerRange.value;
+            if (!busy) draw();
+        };
+        angleRange.addEventListener('input', syncAim);
+        powerRange.addEventListener('input', syncAim);
+        fireBtn.addEventListener('click', () => {
+            if (ended || busy || turn !== 'me') return;
+            fire(me, 1, +angleRange.value, +powerRange.value);
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function drawTank(tank, dir, angleDeg, colour, dark) {
+            const a = angleDeg * Math.PI / 180;
+            ctx.strokeStyle = colour; ctx.lineWidth = 3; ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(tank.x, tank.y - 4);
+            ctx.lineTo(tank.x + Math.cos(a) * 18 * dir, tank.y - 4 - Math.sin(a) * 18);
+            ctx.stroke();
+            ctx.fillStyle = dark;
+            ctx.beginPath();
+            ctx.ellipse(tank.x, tank.y + 2, 13, 7, 0, Math.PI, 0);
+            ctx.fill();
+            ctx.fillStyle = colour;
+            ctx.beginPath(); ctx.arc(tank.x, tank.y - 4, 6, Math.PI, 0); ctx.fill();
+            // health pip
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(tank.x - 16, tank.y - 26, 32, 5);
+            ctx.fillStyle = tank.hp > 55 ? '#4ade80' : (tank.hp > 25 ? '#fbbf24' : '#f87171');
+            ctx.fillRect(tank.x - 15, tank.y - 25, 30 * (tank.hp / 100), 3);
+        }
+
+        function draw() {
+            const sky = ctx.createLinearGradient(0, 0, 0, H);
+            sky.addColorStop(0, '#101a2c'); sky.addColorStop(1, '#26334a');
+            ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+            // terrain
+            ctx.beginPath();
+            ctx.moveTo(0, H);
+            for (let x = 0; x < W; x++) ctx.lineTo(x, ground[x]);
+            ctx.lineTo(W, H); ctx.closePath();
+            const soil = ctx.createLinearGradient(0, H * 0.3, 0, H);
+            soil.addColorStop(0, '#4a5a3a'); soil.addColorStop(1, '#241d13');
+            ctx.fillStyle = soil; ctx.fill();
+            ctx.strokeStyle = '#86a05e'; ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let x = 0; x < W; x++) x === 0 ? ctx.moveTo(x, ground[x]) : ctx.lineTo(x, ground[x]);
+            ctx.stroke();
+
+            drawTank(me, 1, +angleRange.value, '#fb923c', '#7c2d12');
+            drawTank(foe, -1, foeAim.angle, '#94a3b8', '#1e293b');
+
+            // trail + shell
+            if (trail.length > 1) {
+                ctx.strokeStyle = 'rgba(253,186,116,.55)'; ctx.lineWidth = 1.6;
+                ctx.beginPath();
+                trail.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+                ctx.stroke();
+            }
+            if (shell) {
+                ctx.beginPath(); ctx.arc(shell.x, shell.y, 3.4, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff7ed'; ctx.fill();
+            }
+            if (blast) {
+                const g = ctx.createRadialGradient(blast.x, blast.y, 1, blast.x, blast.y, blast.r + 6);
+                g.addColorStop(0, 'rgba(255,241,200,.95)');
+                g.addColorStop(0.5, 'rgba(251,146,60,.7)');
+                g.addColorStop(1, 'rgba(120,53,15,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath(); ctx.arc(blast.x, blast.y, blast.r + 6, 0, Math.PI * 2); ctx.fill();
+            }
+
+            // wind gauge
+            ctx.fillStyle = 'rgba(15,23,42,.7)';
+            ctx.fillRect(W / 2 - 62, 8, 124, 22);
+            ctx.strokeStyle = '#3f4a63'; ctx.lineWidth = 1;
+            ctx.strokeRect(W / 2 - 62, 8, 124, 22);
+            ctx.fillStyle = '#cbd5e1'; ctx.font = '600 11px system-ui';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            const arrow = wind === 0 ? '·' : (wind > 0 ? '▶'.repeat(Math.min(3, Math.ceil(Math.abs(wind) / 2))) : '◀'.repeat(Math.min(3, Math.ceil(Math.abs(wind) / 2))));
+            ctx.fillText(t('artWind') + ' ' + arrow + ' ' + Math.abs(wind).toFixed(1), W / 2, 19);
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

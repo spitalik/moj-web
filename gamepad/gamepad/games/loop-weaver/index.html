@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Loop Weaver · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #262a55;color:#8c8fb8;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#818cf8;color:#eef0ff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 24px 24px;
+            max-width:470px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#c7d2fe,#818cf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#818cf8; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#a5b4fc; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#c7d2fe,#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#818cf8; border:1px solid #c7d2fe; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #4338ca; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #4338ca; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🔷</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-clues"></h3><span class="value" id="cluesValue">0/0</span></div>
+            <div class="info-card"><h3 id="lbl-time"></h3><span class="value" id="timeValue">0:00</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-time"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="checkBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const cluesSpan = document.getElementById('cluesValue');
+        const timeSpan = document.getElementById('timeValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalTimeP = document.getElementById('lbl-final-time');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🔷 ' + t('lpwTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-clues').textContent  = t('lpwClues');
+        document.getElementById('lbl-time').textContent   = t('uiTime');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('lpwRules');
+        checkBtn.textContent   = t('uiCheck');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('lpwTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const SETUP = {
+            easy:   { n: 5, cell: 54, keep: 0.72, base: 240 },
+            medium: { n: 7, cell: 44, keep: 0.62, base: 480 },
+            hard:   { n: 9, cell: 36, keep: 0.54, base: 820 },
+        };
+        const MARGIN = 24;
+
+        let diffKey = 'medium';
+        let N = 7, CELL = 44, SIZE = 0;
+        let clues = [];                  // per cell: null or 0..4
+        let h = [], v = [];              // player marks: 0 none, 1 line, 2 cross
+        let solved = false, startedAt = 0, elapsed = 0, timer = null, score = 0;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('loopWeaverBest') || '{}')); } catch (e) { /* ignore */ }
+
+        const px = i => MARGIN + i * CELL;
+
+        // ----- GENEROVANIE -----
+        // A simply-connected set of cells has exactly one boundary cycle, so we grow such a
+        // region at random and read the clue numbers straight off its border.
+        function growRegion() {
+            const inR = Array.from({ length: N }, () => new Array(N).fill(false));
+            const mid = (N / 2) | 0;
+            inR[mid][mid] = true;
+            let count = 1;
+            const target = Math.max(4, Math.round(N * N * (0.34 + Math.random() * 0.16)));
+            let guard = 0;
+            while (count < target && guard++ < N * N * 60) {
+                const frontier = [];
+                for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                    if (inR[r][c]) continue;
+                    if ((r > 0 && inR[r - 1][c]) || (r < N - 1 && inR[r + 1][c]) ||
+                        (c > 0 && inR[r][c - 1]) || (c < N - 1 && inR[r][c + 1])) frontier.push([r, c]);
+                }
+                if (!frontier.length) break;
+                const [r, c] = frontier[Math.floor(Math.random() * frontier.length)];
+                inR[r][c] = true;
+                if (holeFree(inR) && noDiagonalPinch(inR)) count++;
+                else inR[r][c] = false;
+            }
+            return inR;
+        }
+
+        // The complement (plus the outside) must stay connected — otherwise the region has a hole.
+        function holeFree(inR) {
+            const seen = Array.from({ length: N + 2 }, () => new Array(N + 2).fill(false));
+            const free = (r, c) => r === 0 || c === 0 || r === N + 1 || c === N + 1 || !inR[r - 1][c - 1];
+            const stack = [[0, 0]]; seen[0][0] = true;
+            let reached = 0;
+            while (stack.length) {
+                const [r, c] = stack.pop();
+                reached++;
+                for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+                    const nr = r + dr, nc = c + dc;
+                    if (nr < 0 || nc < 0 || nr > N + 1 || nc > N + 1 || seen[nr][nc]) continue;
+                    if (!free(nr, nc)) continue;
+                    seen[nr][nc] = true; stack.push([nr, nc]);
+                }
+            }
+            let total = 0;
+            for (let r = 0; r <= N + 1; r++) for (let c = 0; c <= N + 1; c++) if (free(r, c)) total++;
+            return reached === total;
+        }
+
+        // Two region cells meeting only diagonally would make a boundary vertex of degree 4.
+        function noDiagonalPinch(inR) {
+            for (let r = 0; r < N - 1; r++) for (let c = 0; c < N - 1; c++) {
+                const a = inR[r][c], b = inR[r][c + 1], d = inR[r + 1][c], e = inR[r + 1][c + 1];
+                if (a && e && !b && !d) return false;
+                if (b && d && !a && !e) return false;
+            }
+            return true;
+        }
+
+        function buildPuzzle() {
+            const inR = growRegion();
+            const at = (r, c) => r >= 0 && r < N && c >= 0 && c < N && inR[r][c];
+            clues = Array.from({ length: N }, () => new Array(N).fill(null));
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                let n = 0;
+                if (at(r, c) !== at(r - 1, c)) n++;
+                if (at(r, c) !== at(r + 1, c)) n++;
+                if (at(r, c) !== at(r, c - 1)) n++;
+                if (at(r, c) !== at(r, c + 1)) n++;
+                clues[r][c] = n;
+            }
+            const keep = SETUP[diffKey].keep;
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++)
+                if (Math.random() > keep) clues[r][c] = null;
+        }
+
+        // ----- STAV HRACA -----
+        const edgesOfCell = (r, c) => [
+            { t: 'h', r, c }, { t: 'h', r: r + 1, c },
+            { t: 'v', r, c }, { t: 'v', r, c: c + 1 },
+        ];
+        const markOf = e => e.t === 'h' ? h[e.r][e.c] : v[e.r][e.c];
+        const setMark = (e, m) => { if (e.t === 'h') h[e.r][e.c] = m; else v[e.r][e.c] = m; };
+
+        function cluesSatisfied() {
+            let ok = 0, total = 0;
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                if (clues[r][c] === null) continue;
+                total++;
+                const lines = edgesOfCell(r, c).filter(e => markOf(e) === 1).length;
+                if (lines === clues[r][c]) ok++;
+            }
+            return { ok, total };
+        }
+
+        // Every vertex needs degree 0 or 2, and all drawn edges must form one cycle.
+        function loopState() {
+            const deg = Array.from({ length: N + 1 }, () => new Array(N + 1).fill(0));
+            const edges = [];
+            for (let r = 0; r <= N; r++) for (let c = 0; c < N; c++)
+                if (h[r][c] === 1) { deg[r][c]++; deg[r][c + 1]++; edges.push({ t: 'h', r, c }); }
+            for (let r = 0; r < N; r++) for (let c = 0; c <= N; c++)
+                if (v[r][c] === 1) { deg[r][c]++; deg[r + 1][c]++; edges.push({ t: 'v', r, c }); }
+            if (!edges.length) return { single: false, reason: 'empty' };
+            for (let r = 0; r <= N; r++) for (let c = 0; c <= N; c++)
+                if (deg[r][c] !== 0 && deg[r][c] !== 2) return { single: false, reason: 'degree' };
+
+            // walk one connected component and see whether it covers every edge
+            const key = e => e.t + e.r + '_' + e.c;
+            const byVertex = new Map();
+            const push = (vk, e) => { if (!byVertex.has(vk)) byVertex.set(vk, []); byVertex.get(vk).push(e); };
+            for (const e of edges) {
+                if (e.t === 'h') { push(e.r + ',' + e.c, e); push(e.r + ',' + (e.c + 1), e); }
+                else { push(e.r + ',' + e.c, e); push((e.r + 1) + ',' + e.c, e); }
+            }
+            const seen = new Set([key(edges[0])]);
+            const queue = [edges[0]];
+            while (queue.length) {
+                const e = queue.pop();
+                const ends = e.t === 'h'
+                    ? [e.r + ',' + e.c, e.r + ',' + (e.c + 1)]
+                    : [e.r + ',' + e.c, (e.r + 1) + ',' + e.c];
+                for (const vk of ends) for (const nx of (byVertex.get(vk) || [])) {
+                    if (seen.has(key(nx))) continue;
+                    seen.add(key(nx)); queue.push(nx);
+                }
+            }
+            if (seen.size !== edges.length) return { single: false, reason: 'split' };
+            return { single: true };
+        }
+
+        function checkSolved(announce) {
+            const cl = cluesSatisfied();
+            cluesSpan.textContent = cl.ok + '/' + cl.total;
+            const loop = loopState();
+            if (cl.ok === cl.total && loop.single) { win(); return true; }
+            if (announce) {
+                statusLine.textContent = cl.ok !== cl.total ? t('lpwClueBad') : t('lpwNotLoop');
+            }
+            return false;
+        }
+
+        function win() {
+            solved = true;
+            clearInterval(timer);
+            const setup = SETUP[diffKey];
+            score = Math.max(30, Math.round(setup.base - elapsed * 2));
+            scoreSpan.textContent = score;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('loopWeaverBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = t('uiSolved');
+            finalTimeP.textContent = t('uiTime') + ': ' + fmt(elapsed);
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+
+        function newGame() {
+            const setup = SETUP[diffKey];
+            N = setup.n; CELL = setup.cell;
+            SIZE = MARGIN * 2 + N * CELL;
+            canvas.width = SIZE; canvas.height = SIZE;
+            buildPuzzle();
+            h = Array.from({ length: N + 1 }, () => new Array(N).fill(0));
+            v = Array.from({ length: N }, () => new Array(N + 1).fill(0));
+            solved = false; score = 0; elapsed = 0;
+            scoreSpan.textContent = '0';
+            bestSpan.textContent = best[diffKey] || 0;
+            timeSpan.textContent = '0:00';
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('lpwHintTap');
+            const cl = cluesSatisfied();
+            cluesSpan.textContent = cl.ok + '/' + cl.total;
+            clearInterval(timer);
+            startedAt = Date.now();
+            timer = setInterval(() => {
+                if (solved) return;
+                elapsed = Math.floor((Date.now() - startedAt) / 1000);
+                timeSpan.textContent = fmt(elapsed);
+            }, 1000);
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        function nearestEdge(x, y) {
+            let hit = null, bestD = CELL * 0.42;
+            for (let r = 0; r <= N; r++) for (let c = 0; c < N; c++) {
+                const d = Math.hypot(px(c) + CELL / 2 - x, px(r) - y);
+                if (d < bestD) { bestD = d; hit = { t: 'h', r, c }; }
+            }
+            for (let r = 0; r < N; r++) for (let c = 0; c <= N; c++) {
+                const d = Math.hypot(px(c) - x, px(r) + CELL / 2 - y);
+                if (d < bestD) { bestD = d; hit = { t: 'v', r, c }; }
+            }
+            return hit;
+        }
+
+        function onTap(e, back) {
+            if (solved) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * SIZE;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * SIZE;
+            const edge = nearestEdge(x, y);
+            if (!edge) return;
+            const cur = markOf(edge);
+            setMark(edge, back ? (cur + 2) % 3 : (cur + 1) % 3);
+            statusLine.textContent = '';
+            draw();
+            checkSolved(false);
+        }
+
+        canvas.addEventListener('mousedown', e => { if (e.button === 2) return; onTap(e, false); });
+        canvas.addEventListener('contextmenu', e => { e.preventDefault(); onTap(e, true); });
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e, false); }, { passive: false });
+        checkBtn.addEventListener('click', () => { if (!solved) checkSolved(true); });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#141a2e'; ctx.fillRect(0, 0, SIZE, SIZE);
+
+            // clue numbers
+            ctx.font = '600 ' + Math.round(CELL * 0.44) + 'px system-ui';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                if (clues[r][c] === null) continue;
+                const lines = edgesOfCell(r, c).filter(e => markOf(e) === 1).length;
+                ctx.fillStyle = lines === clues[r][c] ? '#4ade80' : (lines > clues[r][c] ? '#f87171' : '#cbd5e1');
+                ctx.fillText(String(clues[r][c]), px(c) + CELL / 2, px(r) + CELL / 2 + 1);
+            }
+
+            // crosses
+            ctx.strokeStyle = 'rgba(148,163,184,.5)'; ctx.lineWidth = 1.6;
+            const cross = (cx, cy) => {
+                ctx.beginPath();
+                ctx.moveTo(cx - 4, cy - 4); ctx.lineTo(cx + 4, cy + 4);
+                ctx.moveTo(cx + 4, cy - 4); ctx.lineTo(cx - 4, cy + 4);
+                ctx.stroke();
+            };
+            for (let r = 0; r <= N; r++) for (let c = 0; c < N; c++)
+                if (h[r][c] === 2) cross(px(c) + CELL / 2, px(r));
+            for (let r = 0; r < N; r++) for (let c = 0; c <= N; c++)
+                if (v[r][c] === 2) cross(px(c), px(r) + CELL / 2);
+
+            // lines
+            ctx.strokeStyle = solved ? '#4ade80' : '#818cf8';
+            ctx.lineWidth = 4; ctx.lineCap = 'round';
+            for (let r = 0; r <= N; r++) for (let c = 0; c < N; c++) {
+                if (h[r][c] !== 1) continue;
+                ctx.beginPath(); ctx.moveTo(px(c), px(r)); ctx.lineTo(px(c + 1), px(r)); ctx.stroke();
+            }
+            for (let r = 0; r < N; r++) for (let c = 0; c <= N; c++) {
+                if (v[r][c] !== 1) continue;
+                ctx.beginPath(); ctx.moveTo(px(c), px(r)); ctx.lineTo(px(c), px(r + 1)); ctx.stroke();
+            }
+
+            // lattice dots on top
+            for (let r = 0; r <= N; r++) for (let c = 0; c <= N; c++) {
+                ctx.beginPath(); ctx.arc(px(c), px(r), 2.6, 0, Math.PI * 2);
+                ctx.fillStyle = '#64748b'; ctx.fill();
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nine Mills · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #1d2f4d;color:#8296b8;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#60a5fa;color:#eef4ff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 24px 24px;
+            max-width:470px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#bfdbfe,#60a5fa);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#60a5fa; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#93c5fd; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#bfdbfe,#60a5fa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#60a5fa; border:1px solid #bfdbfe; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #1d4ed8; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #1d4ed8; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🔘</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-you"></h3><span class="value" id="youValue">9</span></div>
+            <div class="info-card"><h3 id="lbl-opp"></h3><span class="value" id="oppValue">9</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p><span id="finalYou">0</span> — <span id="finalOpp">0</span></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const youSpan = document.getElementById('youValue');
+        const oppSpan = document.getElementById('oppValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalYou = document.getElementById('finalYou');
+        const finalOpp = document.getElementById('finalOpp');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🔘 ' + t('nmlTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-you').textContent    = t('uiYou');
+        document.getElementById('lbl-opp').textContent    = t('uiOpponent');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('nmlRules');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('nmlTitle') + ' · GamePad';
+
+        // ----- GEOMETRIA DOSKY -----
+        // 24 points: 0-7 outer ring, 8-15 middle, 16-23 inner.
+        // Each ring runs TL, TM, TR, RM, BR, BM, BL, LM.
+        const GRID = [
+            [0,0],[3,0],[6,0],[6,3],[6,6],[3,6],[0,6],[0,3],
+            [1,1],[3,1],[5,1],[5,3],[5,5],[3,5],[1,5],[1,3],
+            [2,2],[3,2],[4,2],[4,3],[4,4],[3,4],[2,4],[2,3],
+        ];
+
+        const ADJ = (() => {
+            const a = Array.from({ length: 24 }, () => []);
+            const link = (x, y) => { a[x].push(y); a[y].push(x); };
+            for (let ring = 0; ring < 3; ring++) {
+                const b = ring * 8;
+                link(b + 0, b + 1); link(b + 1, b + 2); link(b + 2, b + 3); link(b + 3, b + 4);
+                link(b + 4, b + 5); link(b + 5, b + 6); link(b + 6, b + 7); link(b + 7, b + 0);
+            }
+            for (const mid of [1, 3, 5, 7]) { link(mid, mid + 8); link(mid + 8, mid + 16); }
+            return a;
+        })();
+
+        const MILLS = (() => {
+            const m = [];
+            for (let ring = 0; ring < 3; ring++) {
+                const b = ring * 8;
+                m.push([b + 0, b + 1, b + 2], [b + 2, b + 3, b + 4], [b + 4, b + 5, b + 6], [b + 6, b + 7, b + 0]);
+            }
+            for (const mid of [1, 3, 5, 7]) m.push([mid, mid + 8, mid + 16]);
+            return m;
+        })();
+
+        const MILLS_AT = (() => {
+            const at = Array.from({ length: 24 }, () => []);
+            MILLS.forEach((mill, i) => mill.forEach(p => at[p].push(i)));
+            return at;
+        })();
+
+        const SIZE = 380, MARGIN = 30, UNIT = (SIZE - 2 * MARGIN) / 6;
+        canvas.width = SIZE; canvas.height = SIZE;
+        const PX = GRID.map(([gx, gy]) => [MARGIN + gx * UNIT, MARGIN + gy * UNIT]);
+
+        const HUMAN = 1, AI = 2;
+        const DEPTH = { easy: 1, medium: 3, hard: 4 };
+        const MULT  = { easy: 1, medium: 1.5, hard: 2 };
+
+        let diffKey = 'medium';
+        let S = null;                      // game state
+        let score = 0, ended = false, busy = false;
+        let selected = -1, plies = 0;
+        let best = parseInt(localStorage.getItem('nineMillsBest') || '0', 10);
+        bestSpan.textContent = best;
+
+        function newState() {
+            return { pts: new Array(24).fill(0), toPlace: { 1: 9, 2: 9 }, onBoard: { 1: 0, 2: 0 }, turn: HUMAN, removing: false };
+        }
+        const cloneState = s => ({ pts: s.pts.slice(), toPlace: { 1: s.toPlace[1], 2: s.toPlace[2] }, onBoard: { 1: s.onBoard[1], 2: s.onBoard[2] }, turn: s.turn, removing: s.removing });
+        const foe = p => p === 1 ? 2 : 1;
+        const inMill = (pts, p, player) => MILLS_AT[p].some(i => MILLS[i].every(q => pts[q] === player));
+        const phasePlacing = s => s.toPlace[s.turn] > 0;
+        const canFly = (s, player) => s.toPlace[player] === 0 && s.onBoard[player] === 3;
+
+        function removable(pts, victim) {
+            const own = [];
+            for (let p = 0; p < 24; p++) if (pts[p] === victim) own.push(p);
+            const free = own.filter(p => !inMill(pts, p, victim));
+            return free.length ? free : own;      // mills only if nothing else is left
+        }
+
+        // A move is {from:-1|idx, to:idx, remove:-1|idx}
+        function genMoves(s) {
+            const player = s.turn, out = [];
+            const bases = [];
+            if (phasePlacing(s)) {
+                for (let p = 0; p < 24; p++) if (s.pts[p] === 0) bases.push([-1, p]);
+            } else if (canFly(s, player)) {
+                for (let f = 0; f < 24; f++) if (s.pts[f] === player)
+                    for (let p = 0; p < 24; p++) if (s.pts[p] === 0) bases.push([f, p]);
+            } else {
+                for (let f = 0; f < 24; f++) if (s.pts[f] === player)
+                    for (const p of ADJ[f]) if (s.pts[p] === 0) bases.push([f, p]);
+            }
+            for (const [from, to] of bases) {
+                const pts = s.pts.slice();
+                if (from >= 0) pts[from] = 0;
+                pts[to] = player;
+                if (inMill(pts, to, player)) {
+                    for (const victim of removable(pts, foe(player))) out.push({ from, to, remove: victim });
+                } else {
+                    out.push({ from, to, remove: -1 });
+                }
+            }
+            return out;
+        }
+
+        function applyMove(s, mv) {
+            const player = s.turn;
+            if (mv.from >= 0) s.pts[mv.from] = 0; else { s.toPlace[player]--; s.onBoard[player]++; }
+            s.pts[mv.to] = player;
+            if (mv.remove >= 0) { s.pts[mv.remove] = 0; s.onBoard[foe(player)]--; }
+            s.turn = foe(player);
+            s.removing = false;
+        }
+
+        function loser(s) {
+            // returns the player who has lost, or 0
+            for (const p of [1, 2]) {
+                if (s.toPlace[p] === 0 && s.onBoard[p] < 3) return p;
+            }
+            if (s.toPlace[s.turn] === 0 && !genMoves(s).length) return s.turn;
+            return 0;
+        }
+
+        // ----- AI -----
+        function evaluate(s) {
+            let v = 0;
+            v += 90 * (s.onBoard[AI] - s.onBoard[HUMAN]);
+            let millA = 0, millH = 0, twoA = 0, twoH = 0;
+            for (const mill of MILLS) {
+                let a = 0, h = 0, e = 0;
+                for (const p of mill) {
+                    if (s.pts[p] === AI) a++; else if (s.pts[p] === HUMAN) h++; else e++;
+                }
+                if (a === 3) millA++; else if (h === 3) millH++;
+                if (a === 2 && e === 1) twoA++;
+                if (h === 2 && e === 1) twoH++;
+            }
+            v += 34 * (millA - millH) + 12 * (twoA - twoH);
+            let mobA = 0, mobH = 0;
+            for (let p = 0; p < 24; p++) {
+                if (s.pts[p] === 0) continue;
+                const free = ADJ[p].filter(q => s.pts[q] === 0).length;
+                if (s.pts[p] === AI) mobA += free; else mobH += free;
+            }
+            v += 2 * (mobA - mobH);
+            return v;
+        }
+
+        function search(s, depth, alpha, beta) {
+            const lost = loser(s);
+            if (lost) return lost === HUMAN ? 90000 + depth : -90000 - depth;
+            if (depth === 0) return evaluate(s);
+            const moves = genMoves(s);
+            if (!moves.length) return s.turn === AI ? -90000 - depth : 90000 + depth;
+            if (s.turn === AI) {
+                let v = -Infinity;
+                for (const mv of moves) {
+                    const ns = cloneState(s); applyMove(ns, mv);
+                    v = Math.max(v, search(ns, depth - 1, alpha, beta));
+                    alpha = Math.max(alpha, v);
+                    if (alpha >= beta) break;
+                }
+                return v;
+            }
+            let v = Infinity;
+            for (const mv of moves) {
+                const ns = cloneState(s); applyMove(ns, mv);
+                v = Math.min(v, search(ns, depth - 1, alpha, beta));
+                beta = Math.min(beta, v);
+                if (alpha >= beta) break;
+            }
+            return v;
+        }
+
+        function aiTurn() {
+            if (ended) return;
+            const moves = genMoves(S);
+            if (!moves.length) { finish(); return; }
+            let mv;
+            if (diffKey === 'easy' && Math.random() < 0.4) {
+                mv = moves[Math.floor(Math.random() * moves.length)];
+            } else {
+                let bestVal = -Infinity, pool = [];
+                for (const m of moves) {
+                    const ns = cloneState(S); applyMove(ns, m);
+                    const v = search(ns, DEPTH[diffKey] - 1, -Infinity, Infinity);
+                    if (v > bestVal) { bestVal = v; pool = [m]; } else if (v === bestVal) pool.push(m);
+                }
+                mv = pool[Math.floor(Math.random() * pool.length)];
+            }
+            applyMove(S, mv);
+            plies++;
+            busy = false;
+            afterMove();
+        }
+
+        function afterMove() {
+            updateCounts(); draw();
+            if (ended) return;
+            if (loser(S) || plies > 220) { finish(); return; }
+            if (S.turn === HUMAN) {
+                statusLine.textContent = phasePlacing(S)
+                    ? t('nmlPlace', { n: S.toPlace[HUMAN] })
+                    : (canFly(S, HUMAN) ? t('nmlFly') : t('nmlMove'));
+            } else {
+                statusLine.textContent = t('uiOppTurn');
+                busy = true;
+                setTimeout(aiTurn, 320);
+            }
+        }
+
+        function finish() {
+            ended = true; busy = true;
+            const lost = loser(S);
+            let result = 'draw';
+            if (lost === AI) result = 'win'; else if (lost === HUMAN) result = 'lose';
+            if (result === 'win') score = Math.round((110 + S.onBoard[HUMAN] * 12) * MULT[diffKey]);
+            else if (result === 'draw') score = Math.round(40 * MULT[diffKey]);
+            else score = 0;
+            scoreSpan.textContent = score;
+            if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem('nineMillsBest', String(best)); }
+            resultH2.textContent = result === 'win' ? t('uiYouWin') : (result === 'lose' ? t('uiYouLose') : t('uiDraw'));
+            finalYou.textContent = S.onBoard[HUMAN]; finalOpp.textContent = S.onBoard[AI];
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            endOverlay.classList.add('visible');
+        }
+
+        function updateCounts() {
+            youSpan.textContent = S.onBoard[HUMAN] + S.toPlace[HUMAN];
+            oppSpan.textContent = S.onBoard[AI] + S.toPlace[AI];
+        }
+
+        function newGame() {
+            S = newState(); score = 0; ended = false; busy = false; selected = -1; plies = 0;
+            scoreSpan.textContent = '0';
+            endOverlay.classList.remove('visible');
+            updateCounts();
+            statusLine.textContent = t('nmlPlace', { n: 9 });
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        // The human plays in two taps when a mill forms: the move, then the piece to remove.
+        let pendingMoves = null;     // candidate moves awaiting a removal choice
+
+        function pointAt(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * SIZE;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * SIZE;
+            let hit = -1, bestD = UNIT * 0.48;
+            PX.forEach(([px, py], i) => {
+                const d = Math.hypot(px - x, py - y);
+                if (d < bestD) { bestD = d; hit = i; }
+            });
+            return hit;
+        }
+
+        function commit(mv) {
+            applyMove(S, mv);
+            plies++;
+            selected = -1; pendingMoves = null;
+            afterMove();
+        }
+
+        function onTap(e) {
+            if (ended || busy || S.turn !== HUMAN) return;
+            const p = pointAt(e);
+            if (p < 0) return;
+            const moves = genMoves(S);
+
+            if (pendingMoves) {                                  // choosing which piece to remove
+                const mv = pendingMoves.find(m => m.remove === p);
+                if (mv) { commit(mv); return; }
+                return;
+            }
+
+            if (phasePlacing(S)) {
+                const opts = moves.filter(m => m.to === p);
+                if (!opts.length) return;
+                if (opts.length === 1 && opts[0].remove < 0) { commit(opts[0]); return; }
+                pendingMoves = opts;
+                statusLine.textContent = t('nmlRemove');
+                draw();
+                return;
+            }
+
+            if (selected >= 0) {
+                const opts = moves.filter(m => m.from === selected && m.to === p);
+                if (opts.length) {
+                    if (opts.length === 1 && opts[0].remove < 0) { commit(opts[0]); return; }
+                    pendingMoves = opts;
+                    statusLine.textContent = t('nmlRemove');
+                    draw();
+                    return;
+                }
+            }
+            if (S.pts[p] === HUMAN && moves.some(m => m.from === p)) {
+                selected = p;
+            } else {
+                selected = -1;
+            }
+            draw();
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#132038';
+            ctx.fillRect(0, 0, SIZE, SIZE);
+
+            ctx.strokeStyle = '#3d5478'; ctx.lineWidth = 2;
+            for (const inset of [0, 1, 2]) {
+                const a = MARGIN + inset * UNIT, b = MARGIN + (6 - inset) * UNIT;
+                ctx.strokeRect(a, a, b - a, b - a);
+            }
+            ctx.beginPath();
+            for (const mid of [1, 3, 5, 7]) {
+                const [x1, y1] = PX[mid], [x2, y2] = PX[mid + 16];
+                ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+            }
+            ctx.stroke();
+
+            const highlight = new Set();
+            if (pendingMoves) pendingMoves.forEach(m => highlight.add(m.remove));
+            else if (selected >= 0) genMoves(S).filter(m => m.from === selected).forEach(m => highlight.add(m.to));
+            else if (!ended && S.turn === HUMAN && phasePlacing(S)) genMoves(S).forEach(m => highlight.add(m.to));
+
+            PX.forEach(([x, y], i) => {
+                const v = S.pts[i];
+                if (highlight.has(i)) {
+                    ctx.beginPath(); ctx.arc(x, y, UNIT * 0.42, 0, Math.PI * 2);
+                    ctx.fillStyle = pendingMoves ? 'rgba(248,113,113,.30)' : 'rgba(96,165,250,.28)';
+                    ctx.fill();
+                }
+                if (!v) {
+                    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#526d96';
+                    ctx.fill();
+                    return;
+                }
+                const rad = UNIT * 0.32;
+                ctx.beginPath(); ctx.arc(x, y + 2, rad, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fill();
+                const g = ctx.createRadialGradient(x - rad * .35, y - rad * .35, 1, x, y, rad);
+                if (v === HUMAN) { g.addColorStop(0, '#dbeafe'); g.addColorStop(1, '#3b82f6'); }
+                else { g.addColorStop(0, '#94a3b8'); g.addColorStop(1, '#0f172a'); }
+                ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2);
+                ctx.fillStyle = g; ctx.fill();
+                ctx.strokeStyle = i === selected ? '#fcd34d' : 'rgba(0,0,0,.45)';
+                ctx.lineWidth = i === selected ? 3 : 1.2;
+                ctx.stroke();
+                if (inMill(S.pts, i, v)) {
+                    ctx.beginPath(); ctx.arc(x, y, rad * 0.45, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+                }
+            });
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

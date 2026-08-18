@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Light Trails · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #0f3540;color:#78a3ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#22d3ee;color:#eafdff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:500px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#a5f3fc,#22d3ee);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#22d3ee; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#67e8f9; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; max-width:100%; height:auto; }
+        #pad { display:grid; grid-template-columns:repeat(3,52px); grid-template-rows:repeat(2,44px); gap:6px; justify-content:center; }
+        #pad button { background:#1a2740; border:1px solid #2f4260; color:#dfe9f5; border-radius:12px; font-size:19px; font-weight:700; cursor:pointer; }
+        #pad button:active { transform:translateY(2px); }
+        #pad .up { grid-column:2; grid-row:1; }
+        #pad .left { grid-column:1; grid-row:2; }
+        #pad .down { grid-column:2; grid-row:2; }
+        #pad .right { grid-column:3; grid-row:2; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#a5f3fc,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#22d3ee; border:1px solid #a5f3fc; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #0e7490; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #0e7490; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🏍️</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-round"></h3><span class="value" id="roundValue">1</span></div>
+            <div class="info-card"><h3 id="lbl-wins"></h3><span class="value" id="winsValue">0 : 0</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-detail"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="pad">
+            <button class="up" data-dir="up">▲</button>
+            <button class="left" data-dir="left">◀</button>
+            <button class="down" data-dir="down">▼</button>
+            <button class="right" data-dir="right">▶</button>
+        </div>
+
+        <div id="controls">
+            <button id="pauseBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const roundSpan = document.getElementById('roundValue');
+        const winsSpan = document.getElementById('winsValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalDetail = document.getElementById('lbl-final-detail');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🏍️ ' + t('ltrTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-round').textContent  = t('uiRound');
+        document.getElementById('lbl-wins').textContent   = t('ltrWins');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('ltrRules');
+        pauseBtn.textContent   = t('uiPaused');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('ltrTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const COLS = 45, ROWS = 33, TS = 9;
+        const W = COLS * TS, H = ROWS * TS;
+        canvas.width = W; canvas.height = H;
+        const TARGET = 3;                             // round wins needed to take the match
+        const DIRS = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
+        const OPPOSITE = { up: 'down', down: 'up', left: 'right', right: 'left' };
+        const SETUP = {
+            easy:   { step: 7, blunder: 0.22, look: 90 },
+            medium: { step: 5, blunder: 0.08, look: 220 },
+            hard:   { step: 4, blunder: 0.02, look: 420 },
+        };
+
+        let diffKey = 'medium';
+        let grid = [], me = null, foe = null;
+        let round = 1, wins = 0, losses = 0, score = 0;
+        let queued = null, tickAcc = 0, roundOver = 0, paused = false, over = false;
+        let raf = 0, lastTick = 0;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('lightTrailsBest') || '{}')); } catch (e) { /* ignore */ }
+
+        const blocked = (r, c) => r < 0 || r >= ROWS || c < 0 || c >= COLS || grid[r][c] !== 0;
+
+        function startRound() {
+            grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+            me = { r: (ROWS >> 1), c: 6, dir: 'right', alive: true, trail: [] };
+            foe = { r: (ROWS >> 1), c: COLS - 7, dir: 'left', alive: true, trail: [] };
+            grid[me.r][me.c] = 1; me.trail.push([me.r, me.c]);
+            grid[foe.r][foe.c] = 2; foe.trail.push([foe.r, foe.c]);
+            queued = null; tickAcc = 0; roundOver = 0;
+            statusLine.textContent = t('ltrRoundStart', { n: round });
+        }
+
+        // How much open room a cycle would still have after moving — a flood fill, capped.
+        function room(r, c, cap) {
+            if (blocked(r, c)) return 0;
+            const seen = new Set([r * COLS + c]);
+            const queue = [[r, c]];
+            let n = 0;
+            while (queue.length && n < cap) {
+                const [cr, cc] = queue.shift();
+                n++;
+                for (const [dr, dc] of Object.values(DIRS)) {
+                    const nr = cr + dr, nc = cc + dc;
+                    const key = nr * COLS + nc;
+                    if (blocked(nr, nc) || seen.has(key)) continue;
+                    seen.add(key); queue.push([nr, nc]);
+                }
+            }
+            return n;
+        }
+
+        function aiChoose() {
+            const setup = SETUP[diffKey];
+            const options = Object.keys(DIRS).filter(d => d !== OPPOSITE[foe.dir]);
+            const scored = options.map(d => {
+                const [dr, dc] = DIRS[d];
+                const nr = foe.r + dr, nc = foe.c + dc;
+                if (blocked(nr, nc)) return { d, v: -1 };
+                let v = room(nr, nc, setup.look);
+                // a small nudge towards the player keeps it aggressive rather than passive
+                v += 6 - (Math.abs(nr - me.r) + Math.abs(nc - me.c)) * 0.08;
+                return { d, v };
+            }).filter(x => x.v >= 0);
+            if (!scored.length) return foe.dir;
+            if (Math.random() < setup.blunder) return scored[Math.floor(Math.random() * scored.length)].d;
+            scored.sort((a, b) => b.v - a.v);
+            return scored[0].d;
+        }
+
+        function stepCycles() {
+            if (queued && queued !== OPPOSITE[me.dir]) me.dir = queued;
+            queued = null;
+            foe.dir = aiChoose();
+
+            const [mr, mc] = DIRS[me.dir], [fr, fc] = DIRS[foe.dir];
+            const mTo = [me.r + mr, me.c + mc], fTo = [foe.r + fr, foe.c + fc];
+            const mDead = blocked(mTo[0], mTo[1]);
+            const fDead = blocked(fTo[0], fTo[1]);
+            const headOn = mTo[0] === fTo[0] && mTo[1] === fTo[1];
+
+            if (mDead || fDead || headOn) {
+                me.alive = !(mDead || headOn);
+                foe.alive = !(fDead || headOn);
+                endRound();
+                return;
+            }
+            me.r = mTo[0]; me.c = mTo[1]; grid[me.r][me.c] = 1; me.trail.push([me.r, me.c]);
+            foe.r = fTo[0]; foe.c = fTo[1]; grid[foe.r][foe.c] = 2; foe.trail.push([foe.r, foe.c]);
+            score += 1;
+        }
+
+        function endRound() {
+            roundOver = 70;
+            if (me.alive && !foe.alive) { wins++; score += 150; statusLine.textContent = t('ltrWon'); }
+            else if (!me.alive && foe.alive) { losses++; statusLine.textContent = t('ltrLost'); }
+            else { statusLine.textContent = t('uiDraw'); }
+            refresh();
+        }
+
+        function nextRound() {
+            if (wins >= TARGET || losses >= TARGET) { finish(); return; }
+            round++;
+            startRound();
+            refresh();
+        }
+
+        function finish() {
+            over = true;
+            cancelAnimationFrame(raf);
+            if (wins >= TARGET) score += 300;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('lightTrailsBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = wins >= TARGET ? t('uiYouWin') : t('uiYouLose');
+            finalDetail.textContent = wins + ' : ' + losses;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            roundSpan.textContent = round;
+            winsSpan.textContent = wins + ' : ' + losses;
+            scoreSpan.textContent = score;
+        }
+
+        function loop(now) {
+            raf = requestAnimationFrame(loop);
+            if (paused || over) return;
+            const dt = Math.min(3, (now - lastTick) / 16.67 || 1);
+            lastTick = now;
+
+            if (roundOver > 0) {
+                roundOver -= dt;
+                if (roundOver <= 0) nextRound();
+                draw();
+                return;
+            }
+            const stepEvery = Math.max(2, SETUP[diffKey].step - Math.floor((round - 1) / 2));
+            tickAcc += dt;
+            while (tickAcc >= stepEvery && roundOver <= 0) {
+                tickAcc -= stepEvery;
+                stepCycles();
+            }
+            draw();
+        }
+
+        function newGame() {
+            round = 1; wins = 0; losses = 0; score = 0;
+            over = false; paused = false;
+            startRound();
+            bestSpan.textContent = best[diffKey] || 0;
+            endOverlay.classList.remove('visible');
+            refresh();
+            cancelAnimationFrame(raf);
+            lastTick = performance.now();
+            raf = requestAnimationFrame(loop);
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        const KEYS = {
+            ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+            w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right',
+        };
+        window.addEventListener('keydown', e => {
+            const dir = KEYS[e.key];
+            if (!dir) return;
+            e.preventDefault();
+            queued = dir;
+        });
+        document.querySelectorAll('#pad button').forEach(b => {
+            b.addEventListener('click', () => { queued = b.dataset.dir; });
+        });
+        let touchStart = null;
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); touchStart = [e.touches[0].clientX, e.touches[0].clientY]; }, { passive: false });
+        canvas.addEventListener('touchend', e => {
+            if (!touchStart) return;
+            const t2 = e.changedTouches[0];
+            const dx = t2.clientX - touchStart[0], dy = t2.clientY - touchStart[1];
+            touchStart = null;
+            if (Math.abs(dx) < 16 && Math.abs(dy) < 16) return;
+            queued = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+        }, { passive: false });
+
+        pauseBtn.addEventListener('click', () => {
+            if (over) return;
+            paused = !paused;
+            statusLine.textContent = paused ? t('uiPaused') : '';
+            draw();
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#04121a'; ctx.fillRect(0, 0, W, H);
+
+            ctx.strokeStyle = 'rgba(34,211,238,.07)'; ctx.lineWidth = 1;
+            for (let c = 0; c <= COLS; c += 3) { ctx.beginPath(); ctx.moveTo(c * TS, 0); ctx.lineTo(c * TS, H); ctx.stroke(); }
+            for (let r = 0; r <= ROWS; r += 3) { ctx.beginPath(); ctx.moveTo(0, r * TS); ctx.lineTo(W, r * TS); ctx.stroke(); }
+
+            const paint = (cycle, colour, glow) => {
+                ctx.fillStyle = colour;
+                for (const [r, c] of cycle.trail) ctx.fillRect(c * TS, r * TS, TS, TS);
+                if (!cycle.alive) return;
+                ctx.shadowColor = glow; ctx.shadowBlur = 12;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(cycle.c * TS, cycle.r * TS, TS, TS);
+                ctx.shadowBlur = 0;
+            };
+            paint(foe, '#f472b6', '#f472b6');
+            paint(me, '#22d3ee', '#22d3ee');
+
+            ctx.strokeStyle = '#0e7490'; ctx.lineWidth = 3;
+            ctx.strokeRect(1.5, 1.5, W - 3, H - 3);
+
+            if (roundOver > 0 && !over) {
+                ctx.fillStyle = 'rgba(4,18,26,.6)'; ctx.fillRect(0, H / 2 - 26, W, 52);
+                ctx.fillStyle = '#a5f3fc'; ctx.font = '700 20px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(wins + ' : ' + losses, W / 2, H / 2);
+            }
+            if (paused) {
+                ctx.fillStyle = 'rgba(4,18,26,.7)'; ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = '#a5f3fc'; ctx.font = '700 22px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(t('uiPaused'), W / 2, H / 2);
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

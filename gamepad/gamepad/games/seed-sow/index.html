@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Seed Sow · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #14402f;color:#7fa393;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#34d399;color:#eafff6;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:520px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#a7f3d0,#34d399);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#34d399; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#6ee7b7; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#a7f3d0,#34d399); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#34d399; border:1px solid #a7f3d0; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #047857; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #047857; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🫘</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-you"></h3><span class="value" id="youValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-opp"></h3><span class="value" id="oppValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p><span id="finalYou">0</span> — <span id="finalOpp">0</span></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const youSpan = document.getElementById('youValue');
+        const oppSpan = document.getElementById('oppValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalYou = document.getElementById('finalYou');
+        const finalOpp = document.getElementById('finalOpp');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🫘 ' + t('ssoTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-you').textContent    = t('uiYou');
+        document.getElementById('lbl-opp').textContent    = t('uiOpponent');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('ssoRules');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('ssoTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        // 0-5 human pits, 6 human store, 7-12 AI pits, 13 AI store. Sowing runs 0 → 13 → 0.
+        const HUMAN = 0, AI = 1;
+        const H_STORE = 6, A_STORE = 13;
+        const SEEDS = 4;
+        const DEPTH = { easy: 1, medium: 5, hard: 8 };
+        const MULT  = { easy: 1, medium: 1.5, hard: 2 };
+
+        const W = 470, H = 216, PITR = 27;
+        canvas.width = W; canvas.height = H;
+        const STORE_W = 54, GAP = 8;
+        const laneX = GAP + STORE_W + GAP, laneW = W - 2 * (GAP + STORE_W + GAP);
+        const COLW = laneW / 6;
+        const TOP_Y = 66, BOT_Y = 150;
+
+        // pit index -> centre on screen
+        function pitCentre(i) {
+            if (i === H_STORE) return [W - GAP - STORE_W / 2, H / 2];
+            if (i === A_STORE) return [GAP + STORE_W / 2, H / 2];
+            if (i <= 5) return [laneX + COLW * (i + 0.5), BOT_Y];
+            const col = 12 - i;                       // AI pits run 12..7 left to right
+            return [laneX + COLW * (col + 0.5), TOP_Y];
+        }
+
+        const mine   = i => i >= 0 && i <= 5;
+        const theirs = i => i >= 7 && i <= 12;
+        const oppositePit = i => 12 - i;              // 0↔12, 5↔7
+
+        let diffKey = 'medium';
+        let pits = [], turn = HUMAN, score = 0, ended = false, busy = false;
+        let sowing = null, flash = -1;
+        let best = parseInt(localStorage.getItem('seedSowBest') || '0', 10);
+        bestSpan.textContent = best;
+
+        function fresh() {
+            const p = new Array(14).fill(SEEDS);
+            p[H_STORE] = 0; p[A_STORE] = 0;
+            return p;
+        }
+
+        const nextIndex = (i, player) => {
+            let n = (i + 1) % 14;
+            if (player === HUMAN && n === A_STORE) n = 0;
+            if (player === AI && n === H_STORE) n = 7;
+            return n;
+        };
+
+        function legalPits(p, player) {
+            const out = [];
+            const from = player === HUMAN ? 0 : 7, to = player === HUMAN ? 5 : 12;
+            for (let i = from; i <= to; i++) if (p[i] > 0) out.push(i);
+            return out;
+        }
+
+        // Returns {pits, again, captured} — `again` means the player earned another turn.
+        function sow(p, player, start) {
+            const q = p.slice();
+            let n = q[start]; q[start] = 0;
+            let at = start;
+            while (n > 0) { at = nextIndex(at, player); q[at]++; n--; }
+            const store = player === HUMAN ? H_STORE : A_STORE;
+            if (at === store) return { pits: q, again: true, captured: 0 };
+            const ownSide = player === HUMAN ? mine(at) : theirs(at);
+            let captured = 0;
+            if (ownSide && q[at] === 1) {
+                const facing = oppositePit(at);
+                if (q[facing] > 0) {
+                    captured = q[facing] + 1;
+                    q[store] += captured;
+                    q[facing] = 0; q[at] = 0;
+                }
+            }
+            return { pits: q, again: false, captured };
+        }
+
+        function sideEmpty(p, player) {
+            return legalPits(p, player).length === 0;
+        }
+
+        function sweep(p) {                            // end of game: each side banks its own pits
+            const q = p.slice();
+            for (let i = 0; i <= 5; i++) { q[H_STORE] += q[i]; q[i] = 0; }
+            for (let i = 7; i <= 12; i++) { q[A_STORE] += q[i]; q[i] = 0; }
+            return q;
+        }
+
+        const over = p => sideEmpty(p, HUMAN) || sideEmpty(p, AI);
+
+        // ----- AI -----
+        function evaluate(p) {
+            let v = (p[A_STORE] - p[H_STORE]) * 10;
+            let ai = 0, hu = 0;
+            for (let i = 7; i <= 12; i++) ai += p[i];
+            for (let i = 0; i <= 5; i++) hu += p[i];
+            v += (ai - hu) * 1.2;
+            if (p[12] > 0) v += 3;                     // keeping the pit next to the store loaded helps
+            if (p[5] > 0) v -= 3;
+            return v;
+        }
+
+        function search(p, player, depth, alpha, beta) {
+            if (over(p)) {
+                const q = sweep(p);
+                return (q[A_STORE] - q[H_STORE]) * 100;
+            }
+            if (depth === 0) return evaluate(p);
+            const moves = legalPits(p, player);
+            if (!moves.length) return evaluate(p);
+            if (player === AI) {
+                let v = -Infinity;
+                for (const m of moves) {
+                    const r = sow(p, AI, m);
+                    const val = r.again ? search(r.pits, AI, depth - 1, alpha, beta)
+                                        : search(r.pits, HUMAN, depth - 1, alpha, beta);
+                    v = Math.max(v, val);
+                    alpha = Math.max(alpha, v);
+                    if (alpha >= beta) break;
+                }
+                return v;
+            }
+            let v = Infinity;
+            for (const m of moves) {
+                const r = sow(p, HUMAN, m);
+                const val = r.again ? search(r.pits, HUMAN, depth - 1, alpha, beta)
+                                    : search(r.pits, AI, depth - 1, alpha, beta);
+                v = Math.min(v, val);
+                beta = Math.min(beta, v);
+                if (alpha >= beta) break;
+            }
+            return v;
+        }
+
+        function aiChoice() {
+            const moves = legalPits(pits, AI);
+            if (diffKey === 'easy' && Math.random() < 0.4) return moves[Math.floor(Math.random() * moves.length)];
+            let bestVal = -Infinity, pool = [];
+            for (const m of moves) {
+                const r = sow(pits, AI, m);
+                const v = r.again ? search(r.pits, AI, DEPTH[diffKey] - 1, -Infinity, Infinity)
+                                  : search(r.pits, HUMAN, DEPTH[diffKey] - 1, -Infinity, Infinity);
+                if (v > bestVal) { bestVal = v; pool = [m]; } else if (v === bestVal) pool.push(m);
+            }
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        // ----- ANIMOVANE ROZSIEVANIE -----
+        function animateSow(player, start, done) {
+            busy = true;
+            let n = pits[start], at = start;
+            pits[start] = 0;
+            draw();
+            const tick = () => {
+                if (n === 0) {
+                    const store = player === HUMAN ? H_STORE : A_STORE;
+                    const ownSide = player === HUMAN ? mine(at) : theirs(at);
+                    let again = at === store, captured = 0;
+                    if (!again && ownSide && pits[at] === 1) {
+                        const facing = oppositePit(at);
+                        if (pits[facing] > 0) {
+                            captured = pits[facing] + 1;
+                            pits[store] += captured;
+                            pits[facing] = 0; pits[at] = 0;
+                            flash = facing;
+                        }
+                    }
+                    draw();
+                    setTimeout(() => { flash = -1; done(again, captured); }, captured ? 300 : 60);
+                    return;
+                }
+                at = nextIndex(at, player);
+                pits[at]++; n--;
+                draw();
+                setTimeout(tick, 105);
+            };
+            setTimeout(tick, 105);
+        }
+
+        function afterTurn(player, again, captured) {
+            refresh();
+            if (over(pits)) { pits = sweep(pits); refresh(); draw(); finish(); return; }
+            if (again) {
+                statusLine.textContent = player === HUMAN ? t('ssoFreeTurn') : t('uiOppTurn');
+                if (player === HUMAN) { turn = HUMAN; busy = false; draw(); return; }
+                setTimeout(aiTurn, 380);
+                return;
+            }
+            if (captured) statusLine.textContent = t('ssoCapture');
+            turn = player === HUMAN ? AI : HUMAN;
+            if (turn === HUMAN) {
+                busy = false;
+                if (!captured) statusLine.textContent = t('uiYourTurn');
+                draw();
+            } else {
+                statusLine.textContent = t('uiOppTurn');
+                setTimeout(aiTurn, 420);
+            }
+        }
+
+        function aiTurn() {
+            if (ended) return;
+            const moves = legalPits(pits, AI);
+            if (!moves.length) { pits = sweep(pits); refresh(); draw(); finish(); return; }
+            const pick = aiChoice();
+            animateSow(AI, pick, (again, captured) => afterTurn(AI, again, captured));
+        }
+
+        function finish() {
+            ended = true; busy = true;
+            const me = pits[H_STORE], them = pits[A_STORE];
+            let result = me > them ? 'win' : (me < them ? 'lose' : 'draw');
+            if (result === 'win') score = Math.round((100 + (me - them) * 5) * MULT[diffKey]);
+            else if (result === 'draw') score = Math.round(40 * MULT[diffKey]);
+            else score = 0;
+            scoreSpan.textContent = score;
+            if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem('seedSowBest', String(best)); }
+            resultH2.textContent = result === 'win' ? t('uiYouWin') : (result === 'lose' ? t('uiYouLose') : t('uiDraw'));
+            finalYou.textContent = me; finalOpp.textContent = them;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            youSpan.textContent = pits[H_STORE];
+            oppSpan.textContent = pits[A_STORE];
+        }
+
+        function newGame() {
+            pits = fresh(); turn = HUMAN; score = 0; ended = false; busy = false; sowing = null; flash = -1;
+            scoreSpan.textContent = '0';
+            endOverlay.classList.remove('visible');
+            refresh();
+            statusLine.textContent = t('uiYourTurn');
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        function onTap(e) {
+            if (ended || busy || turn !== HUMAN) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * W;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * H;
+            for (let i = 0; i <= 5; i++) {
+                const [cx, cy] = pitCentre(i);
+                if (Math.hypot(cx - x, cy - y) <= PITR + 6 && pits[i] > 0) {
+                    animateSow(HUMAN, i, (again, captured) => afterTurn(HUMAN, again, captured));
+                    return;
+                }
+            }
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function seeds(cx, cy, n, radius) {
+            const shown = Math.min(n, 12);
+            for (let k = 0; k < shown; k++) {
+                const ang = k * 2.399963;                       // golden-angle spiral keeps it tidy
+                const r = radius * 0.62 * Math.sqrt((k + 0.5) / shown);
+                const sx = cx + Math.cos(ang) * r, sy = cy + Math.sin(ang) * r;
+                ctx.beginPath(); ctx.arc(sx, sy, 4.2, 0, Math.PI * 2);
+                ctx.fillStyle = '#f0c063'; ctx.fill();
+                ctx.strokeStyle = 'rgba(80,50,10,.6)'; ctx.lineWidth = .8; ctx.stroke();
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#2b1e12'; ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#3a2a18';
+            ctx.fillRect(laneX - 6, 24, laneW + 12, H - 48);
+
+            const playable = (!ended && !busy && turn === HUMAN) ? new Set(legalPits(pits, HUMAN)) : new Set();
+
+            // stores
+            for (const s of [H_STORE, A_STORE]) {
+                const [cx, cy] = pitCentre(s);
+                ctx.beginPath();
+                if (ctx.roundRect) { ctx.roundRect(cx - STORE_W / 2, 16, STORE_W, H - 32, 26); }
+                else { ctx.rect(cx - STORE_W / 2, 16, STORE_W, H - 32); }
+                ctx.fillStyle = '#1b1207'; ctx.fill();
+                ctx.strokeStyle = s === H_STORE ? '#34d399' : '#64748b'; ctx.lineWidth = 2; ctx.stroke();
+                seeds(cx, cy, pits[s], STORE_W * 0.9);
+                ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 15px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(String(pits[s]), cx, H - 30);
+            }
+
+            // pits
+            for (let i = 0; i < 14; i++) {
+                if (i === H_STORE || i === A_STORE) continue;
+                const [cx, cy] = pitCentre(i);
+                ctx.beginPath(); ctx.arc(cx, cy, PITR, 0, Math.PI * 2);
+                ctx.fillStyle = i === flash ? '#4d2b12' : '#1b1207'; ctx.fill();
+                if (playable.has(i)) { ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2.5; }
+                else if (i === flash) { ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2.5; }
+                else { ctx.strokeStyle = '#4a3520'; ctx.lineWidth = 1.5; }
+                ctx.stroke();
+                seeds(cx, cy, pits[i], PITR);
+                ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 12px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(String(pits[i]), cx, cy + PITR + 10);
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

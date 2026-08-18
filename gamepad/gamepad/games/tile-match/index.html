@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tile Match · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #123d2c;color:#7ba896;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#4ade80;color:#eafff0;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:520px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#bbf7d0,#4ade80);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#4ade80; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#86efac; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#bbf7d0,#4ade80); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#4ade80; border:1px solid #bbf7d0; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #15803d; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #15803d; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🀄</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-tiles"></h3><span class="value" id="tilesValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-time"></h3><span class="value" id="timeValue">0:00</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-time"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="hintBtn"></button>
+            <button id="undoBtn"></button>
+            <button id="shuffleBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const tilesSpan = document.getElementById('tilesValue');
+        const timeSpan = document.getElementById('timeValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalTimeP = document.getElementById('lbl-final-time');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🀄 ' + t('tmhTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-tiles').textContent  = t('tmhTiles');
+        document.getElementById('lbl-time').textContent   = t('uiTime');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('tmhRules');
+        hintBtn.textContent    = t('uiHint');
+        shuffleBtn.textContent = t('tmhShuffle');
+        undoBtn.textContent    = t('uiUndo');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('tmhTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        // Every layer sits fully on the one below, so "covered" is simply: a tile directly above.
+        const SETUP = {
+            easy: {
+                tw: 52, th: 64, base: 320,
+                layers: [{ r0: 0, r1: 3, c0: 0, c1: 5 }, { r0: 1, r1: 2, c0: 1, c1: 4 }, { r0: 1, r1: 2, c0: 2, c1: 3 }],
+            },
+            medium: {
+                tw: 44, th: 54, base: 620,
+                layers: [{ r0: 0, r1: 4, c0: 0, c1: 7 }, { r0: 1, r1: 3, c0: 1, c1: 6 }, { r0: 1, r1: 3, c0: 2, c1: 5 }, { r0: 2, r1: 2, c0: 3, c1: 4 }],
+            },
+            hard: {
+                tw: 40, th: 50, base: 980,
+                layers: [{ r0: 0, r1: 5, c0: 0, c1: 7 }, { r0: 1, r1: 4, c0: 1, c1: 6 }, { r0: 2, r1: 3, c0: 2, c1: 5 }, { r0: 2, r1: 3, c0: 3, c1: 4 }],
+            },
+        };
+        const SUITS = [
+            { mark: '●', colour: '#dc2626' },
+            { mark: '❙', colour: '#15803d' },
+            { mark: '◆', colour: '#1d4ed8' },
+        ];
+        const HONOURS = ['★', '☽', '✦', '❋', '▲', '◆', '✚'];
+        const KINDS = 27 + HONOURS.length;                  // 34 distinct tile faces
+        const MARGIN = 10;
+
+        let diffKey = 'medium';
+        let TW = 44, TH = 54, DX = 0, DY = 0, W = 0, H = 0;
+        let tiles = [], selected = -1, hintPair = null, hints = 0, shuffles = 0;
+        let plan = [];                                // the order the deal was built in — a safe line
+        let history = [];                             // removed pairs, newest last, for undo
+        let solved = false, startedAt = 0, elapsed = 0, timer = null, score = 0;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('tileMatchBest') || '{}')); } catch (e) { /* ignore */ }
+
+        const tileX = t2 => MARGIN + t2.c * TW + t2.l * DX;
+        const tileY = t2 => MARGIN + t2.r * TH + t2.l * DY;
+
+        function layoutCells() {
+            const cells = [];
+            SETUP[diffKey].layers.forEach((L, l) => {
+                for (let r = L.r0; r <= L.r1; r++) for (let c = L.c0; c <= L.c1; c++) cells.push({ l, r, c });
+            });
+            return cells;
+        }
+
+        const key = t2 => t2.l + ':' + t2.r + ':' + t2.c;
+
+        // A tile is playable when nothing rests on it and one of its long sides is open.
+        function freeIn(live, t2) {
+            if (live.has((t2.l + 1) + ':' + t2.r + ':' + t2.c)) return false;
+            const left = live.has(t2.l + ':' + t2.r + ':' + (t2.c - 1));
+            const right = live.has(t2.l + ':' + t2.r + ':' + (t2.c + 1));
+            return !left || !right;
+        }
+
+        // Deal by playing the board backwards: repeatedly take two currently-free positions
+        // and give them the same face. Replaying that order always solves the deal.
+        function deal(cells) {
+            // Use as many distinct faces as the set has. Fewer faces means more copies of
+            // each, and then careless play can pair the wrong two copies and strand the
+            // rest — measurably worse than keeping pairs as close to unique as possible.
+            for (let attempt = 0; attempt < 60; attempt++) {
+                const live = new Set(cells.map(key));
+                const faces = new Map();
+                const plan = [];
+                let pair = 0, ok = true;
+                while (live.size) {
+                    const free = cells.filter(c => live.has(key(c)) && freeIn(live, c));
+                    if (free.length < 2) { ok = false; break; }
+                    const i = Math.floor(Math.random() * free.length);
+                    let j = Math.floor(Math.random() * (free.length - 1));
+                    if (j >= i) j++;
+                    const face = pair % KINDS;
+                    faces.set(key(free[i]), face);
+                    faces.set(key(free[j]), face);
+                    plan.push([key(free[i]), key(free[j])]);
+                    live.delete(key(free[i])); live.delete(key(free[j]));
+                    pair++;
+                }
+                if (ok) return { faces, plan };
+            }
+            return null;
+        }
+
+        const liveSet = () => new Set(tiles.filter(t2 => !t2.gone).map(key));
+
+        function freeTiles() {
+            const live = liveSet();
+            return tiles.filter(t2 => !t2.gone && freeIn(live, t2));
+        }
+
+        function findPair() {
+            const free = freeTiles();
+            for (let i = 0; i < free.length; i++) for (let j = i + 1; j < free.length; j++)
+                if (free[i].face === free[j].face) return [free[i], free[j]];
+            return null;
+        }
+
+        function remaining() { return tiles.filter(t2 => !t2.gone).length; }
+
+        function refresh() { tilesSpan.textContent = remaining(); }
+
+        function afterRemoval() {
+            refresh();
+            if (!remaining()) { win(); return; }
+            if (!findPair()) statusLine.textContent = t('tmhNoMoves');
+        }
+
+        function win() {
+            solved = true;
+            clearInterval(timer);
+            score = Math.max(40, Math.round(SETUP[diffKey].base - elapsed - hints * 30 - shuffles * 60));
+            scoreSpan.textContent = score;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('tileMatchBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = t('uiSolved');
+            finalTimeP.textContent = t('uiTime') + ': ' + fmt(elapsed);
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+
+        function newGame() {
+            const setup = SETUP[diffKey];
+            TW = setup.tw; TH = setup.th;
+            DX = -Math.round(TW * 0.12); DY = -Math.round(TH * 0.12);
+            const cells = layoutCells();
+            const layers = setup.layers.length;
+            let maxC = 0, maxR = 0;
+            for (const c of cells) { maxC = Math.max(maxC, c.c); maxR = Math.max(maxR, c.r); }
+            W = MARGIN * 2 + (maxC + 1) * TW + Math.abs(DX) * (layers - 1);
+            H = MARGIN * 2 + (maxR + 1) * TH + Math.abs(DY) * (layers - 1);
+            canvas.width = W; canvas.height = H;
+
+            const dealt = deal(cells);
+            const faces = dealt ? dealt.faces : new Map(cells.map((c, i) => [key(c), Math.floor(i / 2) % KINDS]));
+            plan = dealt ? dealt.plan : [];
+            tiles = cells.map(c => ({ ...c, face: faces.get(key(c)), gone: false }));
+
+            selected = -1; hintPair = null; hints = 0; shuffles = 0; history = [];
+            solved = false; score = 0; elapsed = 0;
+            scoreSpan.textContent = '0';
+            bestSpan.textContent = best[diffKey] || 0;
+            timeSpan.textContent = '0:00';
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('tmhHintTap');
+            refresh();
+            clearInterval(timer);
+            startedAt = Date.now();
+            timer = setInterval(() => {
+                if (solved) return;
+                elapsed = Math.floor((Date.now() - startedAt) / 1000);
+                timeSpan.textContent = fmt(elapsed);
+            }, 1000);
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        // Topmost tile under the pointer wins, so upper layers are always reachable.
+        function tileAt(x, y) {
+            let hit = -1;
+            tiles.forEach((t2, i) => {
+                if (t2.gone) return;
+                const tx = tileX(t2), ty = tileY(t2);
+                if (x < tx || x > tx + TW || y < ty || y > ty + TH) return;
+                if (hit < 0 || t2.l >= tiles[hit].l) hit = i;
+            });
+            return hit;
+        }
+
+        function onTap(e) {
+            if (solved) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * W;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * H;
+            const i = tileAt(x, y);
+            if (i < 0) { selected = -1; draw(); return; }
+            const live = liveSet();
+            if (!freeIn(live, tiles[i])) { statusLine.textContent = t('tmhBlocked'); draw(); return; }
+            hintPair = null;
+            if (selected === i) { selected = -1; draw(); return; }
+            if (selected >= 0 && tiles[selected].face === tiles[i].face) {
+                tiles[selected].gone = true; tiles[i].gone = true;
+                history.push([selected, i]);
+                selected = -1;
+                statusLine.textContent = '';
+                draw();
+                afterRemoval();
+                return;
+            }
+            selected = i;
+            statusLine.textContent = '';
+            draw();
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        hintBtn.addEventListener('click', () => {
+            if (solved) return;
+            const live = liveSet();
+            const byKey = new Map(tiles.map((t2, i) => [key(t2), i]));
+            // a step from the deal's own winning line first, so the hint never traps the player
+            let pick = null;
+            for (const [a, b] of plan) {
+                if (!live.has(a) || !live.has(b)) continue;
+                const ia = byKey.get(a), ib = byKey.get(b);
+                if (freeIn(live, tiles[ia]) && freeIn(live, tiles[ib])) { pick = [ia, ib]; break; }
+            }
+            if (!pick) {
+                const pair = findPair();
+                if (!pair) { statusLine.textContent = t('tmhNoMoves'); return; }
+                pick = pair.map(t2 => tiles.indexOf(t2));
+            }
+            hintPair = pick;
+            hints++;
+            statusLine.textContent = '';
+            draw();
+        });
+        undoBtn.addEventListener('click', () => {
+            if (solved || !history.length) return;
+            const [a, b] = history.pop();
+            tiles[a].gone = false; tiles[b].gone = false;
+            selected = -1; hintPair = null;
+            statusLine.textContent = '';
+            refresh(); draw();
+        });
+        shuffleBtn.addEventListener('click', () => {
+            if (solved) return;
+            // re-deal only the tiles still on the board, so the position stays solvable
+            const livecells = tiles.filter(t2 => !t2.gone).map(t2 => ({ l: t2.l, r: t2.r, c: t2.c }));
+            if (livecells.length < 2) return;
+            const dealt = deal(livecells);
+            if (!dealt) { statusLine.textContent = t('tmhNoMoves'); return; }
+            tiles.forEach(t2 => { if (!t2.gone) t2.face = dealt.faces.get(key(t2)); });
+            plan = dealt.plan;
+            shuffles++; selected = -1; hintPair = null;
+            statusLine.textContent = '';
+            draw();
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function faceOf(face) {
+            if (face < 27) {
+                const suit = SUITS[Math.floor(face / 9)];
+                return { text: String(face % 9 + 1), mark: suit.mark, colour: suit.colour };
+            }
+            return { text: HONOURS[face - 27], mark: '', colour: '#7c3aed' };
+        }
+
+        function drawTile(t2, state) {
+            const x = tileX(t2), y = tileY(t2);
+            const rr = Math.max(4, Math.round(TW * 0.14));
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x + 2, y + 3, TW - 3, TH - 3, rr); else ctx.rect(x + 2, y + 3, TW - 3, TH - 3);
+            ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fill();
+
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x, y, TW - 3, TH - 3, rr); else ctx.rect(x, y, TW - 3, TH - 3);
+            const g = ctx.createLinearGradient(x, y, x, y + TH);
+            if (state === 'blocked') { g.addColorStop(0, '#cfd6cb'); g.addColorStop(1, '#a3ab9f'); }
+            else { g.addColorStop(0, '#fdfdf5'); g.addColorStop(1, '#dcdfd0'); }
+            ctx.fillStyle = g; ctx.fill();
+            ctx.strokeStyle = state === 'selected' ? '#16a34a' : (state === 'hint' ? '#f59e0b' : 'rgba(60,60,40,.45)');
+            ctx.lineWidth = (state === 'selected' || state === 'hint') ? 3 : 1;
+            ctx.stroke();
+
+            const f = faceOf(t2.face);
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = state === 'blocked' ? 'rgba(40,50,40,.5)' : f.colour;
+            ctx.font = '700 ' + Math.round(TH * 0.42) + 'px system-ui';
+            ctx.fillText(f.text, x + (TW - 3) / 2, y + TH * 0.40);
+            if (f.mark) {
+                ctx.font = Math.round(TH * 0.26) + 'px system-ui';
+                ctx.fillText(f.mark, x + (TW - 3) / 2, y + TH * 0.72);
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#10281c'; ctx.fillRect(0, 0, W, H);
+            const live = liveSet();
+            // bottom layers first so the higher ones overlap them
+            const order = tiles.map((t2, i) => i).filter(i => !tiles[i].gone)
+                .sort((a, b) => tiles[a].l - tiles[b].l || tiles[a].r - tiles[b].r || tiles[a].c - tiles[b].c);
+            for (const i of order) {
+                const t2 = tiles[i];
+                let state = freeIn(live, t2) ? 'free' : 'blocked';
+                if (i === selected) state = 'selected';
+                else if (hintPair && hintPair.includes(i)) state = 'hint';
+                drawTile(t2, state);
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

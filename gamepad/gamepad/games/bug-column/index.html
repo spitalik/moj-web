@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bug Column · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #1d3d16;color:#87a878;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#84cc16;color:#f4ffe8;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:420px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#d9f99d,#84cc16);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#84cc16; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#bef264; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; max-width:100%; height:auto; }
+        #padrow { display:flex; gap:12px; justify-content:center; align-items:center; }
+        #padrow button {
+            background:#1a2740; border:1px solid #2f4260; color:#dfe9f5;
+            border-radius:12px; width:58px; height:46px; font-size:18px; font-weight:700; cursor:pointer;
+        }
+        #padrow button.fire { background:#84cc16; color:#0c0f16; border-color:#d9f99d; width:96px; box-shadow:0 4px 0 #3f6212; }
+        #padrow button:active { transform:translateY(2px); }
+        #padrow button.fire:active { box-shadow:0 0 0 #3f6212; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#d9f99d,#84cc16); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#84cc16; border:1px solid #d9f99d; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #3f6212; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #3f6212; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🐛</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-wave"></h3><span class="value" id="waveValue">1</span></div>
+            <div class="info-card"><h3 id="lbl-lives"></h3><span class="value" id="livesValue">3</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-detail"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="padrow">
+            <button data-dir="left">◀</button>
+            <button data-dir="up">▲</button>
+            <button data-dir="down">▼</button>
+            <button data-dir="right">▶</button>
+            <button class="fire" id="fireBtn">✦</button>
+        </div>
+
+        <div id="controls">
+            <button id="pauseBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const waveSpan = document.getElementById('waveValue');
+        const livesSpan = document.getElementById('livesValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalDetail = document.getElementById('lbl-final-detail');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const fireBtn = document.getElementById('fireBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🐛 ' + t('bugTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-wave').textContent   = t('bugWave');
+        document.getElementById('lbl-lives').textContent  = t('uiLives');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('bugRules');
+        pauseBtn.textContent   = t('uiPaused');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('bugTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const COLS = 15, ROWS = 18, TS = 22;
+        const W = COLS * TS, H = ROWS * TS;
+        canvas.width = W; canvas.height = H;
+        const BAND = ROWS - 5;                        // the player may roam from this row down
+        const SETUP = {
+            easy:   { lives: 4, crawl: 0.55, segs: 8,  spider: 620, shroom: 0.14 },
+            medium: { lives: 3, crawl: 0.78, segs: 10, spider: 460, shroom: 0.18 },
+            hard:   { lives: 2, crawl: 1.02, segs: 12, spider: 340, shroom: 0.22 },
+        };
+
+        let diffKey = 'medium';
+        let shrooms = [], segs = [], bullets = [], spider = null;
+        let ship = null, wave = 1, lives = 3, score = 0;
+        let spiderTimer = 0, paused = false, over = false, frozen = 0;
+        let held = {}, raf = 0, lastTick = 0;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('bugColumnBest') || '{}')); } catch (e) { /* ignore */ }
+
+        const cellOf = (x, y) => [Math.floor(y / TS), Math.floor(x / TS)];
+        const shroomAt = (r, c) => (r >= 0 && r < ROWS && c >= 0 && c < COLS) ? shrooms[r][c] : 0;
+
+        function seedField() {
+            const setup = SETUP[diffKey];
+            shrooms = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+            for (let r = 2; r < ROWS - 2; r++) for (let c = 0; c < COLS; c++)
+                if (Math.random() < setup.shroom) shrooms[r][c] = 4;
+        }
+
+        function spawnCrawler() {
+            const setup = SETUP[diffKey];
+            const n = setup.segs + (wave - 1) * 2;
+            segs = [];
+            for (let i = 0; i < n; i++) {
+                segs.push({
+                    x: -i * TS + TS / 2, y: TS / 2,
+                    dir: 1, speed: setup.crawl * (1 + (wave - 1) * 0.08), head: i === 0,
+                });
+            }
+        }
+
+        function resetShip() {
+            ship = { x: W / 2, y: H - TS * 1.5 };
+            bullets = [];
+        }
+
+        // ----- TIK -----
+        function shipTick(dt) {
+            const v = 2.5 * dt;
+            if (held.left) ship.x -= v;
+            if (held.right) ship.x += v;
+            if (held.up) ship.y -= v;
+            if (held.down) ship.y += v;
+            ship.x = Math.max(TS * 0.5, Math.min(W - TS * 0.5, ship.x));
+            ship.y = Math.max(BAND * TS + TS * 0.5, Math.min(H - TS * 0.5, ship.y));
+        }
+
+        function shoot() {
+            if (over || paused) return;
+            if (bullets.length >= 2) return;
+            bullets.push({ x: ship.x, y: ship.y - TS * 0.5 });
+        }
+
+        function bulletTick(dt) {
+            for (const b of bullets) {
+                b.y -= 7 * dt;
+                if (b.y < 0) { b.done = true; continue; }
+                const [r, c] = cellOf(b.x, b.y);
+                // a segment first, then a mushroom in the same cell
+                let hit = false;
+                for (const s of segs) {
+                    if (s.done) continue;
+                    if (Math.abs(s.x - b.x) < TS * 0.5 && Math.abs(s.y - b.y) < TS * 0.5) {
+                        s.done = true; hit = true;
+                        score += s.head ? 100 : 30;
+                        const [sr, sc] = cellOf(s.x, s.y);
+                        if (sr >= 0 && sr < ROWS && sc >= 0 && sc < COLS && !shrooms[sr][sc]) shrooms[sr][sc] = 4;
+                        break;
+                    }
+                }
+                if (hit) { b.done = true; refresh(); continue; }
+                if (shroomAt(r, c)) {
+                    shrooms[r][c]--;
+                    if (!shrooms[r][c]) score += 5;
+                    b.done = true;
+                    refresh();
+                }
+            }
+            bullets = bullets.filter(b => !b.done);
+            segs = segs.filter(s => !s.done);
+        }
+
+        function segTick(s, dt) {
+            const nx = s.x + s.dir * s.speed * dt;
+            const [r, c] = cellOf(nx, s.y);
+            const wall = nx < TS * 0.4 || nx > W - TS * 0.4;
+            if (wall || shroomAt(r, c)) {
+                s.dir *= -1;
+                s.y += TS;
+                if (s.y > H - TS * 0.5) s.y = TS / 2;      // wrapped back to the top
+                return;
+            }
+            s.x = nx;
+        }
+
+        function spiderTick(dt) {
+            if (!spider) return;
+            spider.x += spider.vx * dt;
+            spider.y += spider.vy * dt;
+            if (spider.y < BAND * TS + TS * 0.5 || spider.y > H - TS * 0.5) spider.vy *= -1;
+            if (spider.x < -TS || spider.x > W + TS) { spider = null; return; }
+            const [r, c] = cellOf(spider.x, spider.y);
+            if (shroomAt(r, c)) shrooms[r][c] = 0;
+        }
+
+        function collisions() {
+            for (const s of segs) {
+                if (Math.hypot(s.x - ship.x, s.y - ship.y) < TS * 0.7) { hit(); return; }
+            }
+            if (spider && Math.hypot(spider.x - ship.x, spider.y - ship.y) < TS * 0.7) { hit(); return; }
+            for (const b of bullets) {
+                if (spider && Math.hypot(spider.x - b.x, spider.y - b.y) < TS * 0.6) {
+                    spider = null; b.done = true; score += 300; refresh();
+                }
+            }
+            if (!segs.length) nextWave();
+        }
+
+        function hit() {
+            lives--;
+            refresh();
+            if (lives <= 0) { finish(); return; }
+            frozen = 60;
+            statusLine.textContent = t('bugHit');
+            resetShip();
+            spider = null;
+            // send whatever reached the player band back to the top rather than deleting it,
+            // so a death cannot hand out a free wave or drop the player onto a segment again
+            for (const s of segs) if (s.y >= BAND * TS) s.y = TS / 2;
+        }
+
+        function nextWave() {
+            wave++;
+            spawnCrawler();
+            frozen = 60;
+            statusLine.textContent = t('bugWaveNext', { n: wave });
+            refresh();
+        }
+
+        function finish() {
+            over = true;
+            cancelAnimationFrame(raf);
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('bugColumnBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = t('uiGameOver');
+            finalDetail.textContent = t('bugWave') + ' ' + wave;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            waveSpan.textContent = wave;
+            livesSpan.textContent = Math.max(0, lives);
+            scoreSpan.textContent = score;
+        }
+
+        function loop(now) {
+            raf = requestAnimationFrame(loop);
+            if (paused || over) return;
+            const dt = Math.min(3, (now - lastTick) / 16.67 || 1);
+            lastTick = now;
+            if (frozen > 0) { frozen -= dt * 3; draw(); return; }
+
+            shipTick(dt);
+            bulletTick(dt);
+            for (const s of segs) segTick(s, dt);
+            spiderTimer -= dt;
+            if (spiderTimer <= 0 && !spider) {
+                spiderTimer = SETUP[diffKey].spider;
+                const fromLeft = Math.random() < 0.5;
+                spider = {
+                    x: fromLeft ? -TS : W + TS,
+                    y: BAND * TS + TS,
+                    vx: (fromLeft ? 1 : -1) * (1.1 + wave * 0.05),
+                    vy: 1.2 * (Math.random() < 0.5 ? 1 : -1),
+                };
+            }
+            spiderTick(dt);
+            collisions();
+            draw();
+        }
+
+        function newGame() {
+            wave = 1; lives = SETUP[diffKey].lives; score = 0;
+            over = false; paused = false; frozen = 40; spiderTimer = SETUP[diffKey].spider;
+            spider = null; held = {};
+            seedField(); spawnCrawler(); resetShip();
+            bestSpan.textContent = best[diffKey] || 0;
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('bugHint');
+            refresh();
+            cancelAnimationFrame(raf);
+            lastTick = performance.now();
+            raf = requestAnimationFrame(loop);
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        const KEYS = {
+            ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+            w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right',
+        };
+        window.addEventListener('keydown', e => {
+            if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); shoot(); return; }
+            const dir = KEYS[e.key];
+            if (!dir) return;
+            e.preventDefault();
+            held[dir] = true;
+        });
+        window.addEventListener('keyup', e => {
+            const dir = KEYS[e.key];
+            if (dir) held[dir] = false;
+        });
+        document.querySelectorAll('#padrow button[data-dir]').forEach(b => {
+            const dir = b.dataset.dir;
+            const on = e => { e.preventDefault(); held[dir] = true; };
+            const off = e => { e.preventDefault(); held[dir] = false; };
+            b.addEventListener('mousedown', on); b.addEventListener('mouseup', off);
+            b.addEventListener('mouseleave', off);
+            b.addEventListener('touchstart', on, { passive: false });
+            b.addEventListener('touchend', off, { passive: false });
+            // a plain click on a desktop still nudges the ship
+            b.addEventListener('click', () => { held[dir] = true; setTimeout(() => { held[dir] = false; }, 130); });
+        });
+        fireBtn.addEventListener('click', shoot);
+        canvas.addEventListener('mousedown', e => {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width * W;
+            ship.x = Math.max(TS * 0.5, Math.min(W - TS * 0.5, x));
+            shoot();
+        });
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.touches[0].clientX - rect.left) / rect.width * W;
+            ship.x = Math.max(TS * 0.5, Math.min(W - TS * 0.5, x));
+            shoot();
+        }, { passive: false });
+
+        pauseBtn.addEventListener('click', () => {
+            if (over) return;
+            paused = !paused;
+            statusLine.textContent = paused ? t('uiPaused') : '';
+            draw();
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#08130a'; ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = 'rgba(132,204,22,.05)';
+            ctx.fillRect(0, BAND * TS, W, H - BAND * TS);
+
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+                const hp = shrooms[r][c];
+                if (!hp) continue;
+                const cx = c * TS + TS / 2, cy = r * TS + TS / 2;
+                ctx.fillStyle = ['#4b5563', '#7f1d1d', '#b91c1c', '#dc2626'][Math.min(3, hp - 1)];
+                ctx.beginPath(); ctx.arc(cx, cy - 2, TS * 0.34, Math.PI, 0); ctx.fill();
+                ctx.fillStyle = '#e7e5d4';
+                ctx.fillRect(cx - 3, cy - 2, 6, TS * 0.3);
+            }
+
+            for (const s of segs) {
+                ctx.beginPath(); ctx.arc(s.x, s.y, TS * 0.38, 0, Math.PI * 2);
+                ctx.fillStyle = s.head ? '#f97316' : '#84cc16';
+                ctx.fill();
+                ctx.strokeStyle = '#1a2e05'; ctx.lineWidth = 1.4; ctx.stroke();
+                if (s.head) {
+                    ctx.fillStyle = '#1a2e05';
+                    ctx.beginPath(); ctx.arc(s.x - 3, s.y - 2, 1.9, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(s.x + 3, s.y - 2, 1.9, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+
+            if (spider) {
+                ctx.strokeStyle = '#c084fc'; ctx.lineWidth = 2;
+                for (let k = -2; k <= 2; k += 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(spider.x - 9, spider.y + k * 3);
+                    ctx.lineTo(spider.x + 9, spider.y + k * 3 + 3);
+                    ctx.stroke();
+                }
+                ctx.beginPath(); ctx.arc(spider.x, spider.y, TS * 0.3, 0, Math.PI * 2);
+                ctx.fillStyle = '#7e22ce'; ctx.fill();
+            }
+
+            ctx.fillStyle = '#d9f99d';
+            for (const b of bullets) ctx.fillRect(b.x - 1.6, b.y - 7, 3.2, 9);
+
+            ctx.fillStyle = '#bef264';
+            ctx.beginPath();
+            ctx.moveTo(ship.x, ship.y - TS * 0.45);
+            ctx.lineTo(ship.x + TS * 0.42, ship.y + TS * 0.4);
+            ctx.lineTo(ship.x - TS * 0.42, ship.y + TS * 0.4);
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#3f6212';
+            ctx.fillRect(ship.x - 2, ship.y - TS * 0.2, 4, TS * 0.4);
+
+            if (paused) {
+                ctx.fillStyle = 'rgba(4,10,5,.7)'; ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = '#d9f99d'; ctx.font = '700 22px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(t('uiPaused'), W / 2, H / 2);
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

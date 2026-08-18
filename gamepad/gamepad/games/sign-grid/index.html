@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sign Grid · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #123a2c;color:#7ba896;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#2dd4bf;color:#eafff9;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 24px 24px;
+            max-width:470px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#99f6e4,#2dd4bf);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#2dd4bf; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#5eead4; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #pad { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+        #pad button {
+            background:#1a2740; border:1px solid #2f4260; color:#dff3ee;
+            width:44px; height:40px; border-radius:11px; font-size:17px; font-weight:700; cursor:pointer;
+        }
+        #pad button.erase { width:auto; padding:0 14px; font-size:13px; }
+        #pad button:active { transform:translateY(2px); }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#99f6e4,#2dd4bf); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#2dd4bf; border:1px solid #99f6e4; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #0f766e; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #0f766e; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">⚖️</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-filled"></h3><span class="value" id="filledValue">0/0</span></div>
+            <div class="info-card"><h3 id="lbl-time"></h3><span class="value" id="timeValue">0:00</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-time"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="pad"></div>
+
+        <div id="controls">
+            <button id="checkBtn"></button>
+            <button id="hintBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const filledSpan = document.getElementById('filledValue');
+        const timeSpan = document.getElementById('timeValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalTimeP = document.getElementById('lbl-final-time');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const pad = document.getElementById('pad');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '⚖️ ' + t('sgnTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-filled').textContent = t('sgnFilled');
+        document.getElementById('lbl-time').textContent   = t('uiTime');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('sgnRules');
+        checkBtn.textContent   = t('uiCheck');
+        hintBtn.textContent    = t('uiHint');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('sgnTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const SETUP = {
+            easy:   { n: 4, cell: 62, signKeep: 0.50, given: 0.22, base: 300 },
+            medium: { n: 5, cell: 52, signKeep: 0.40, given: 0.16, base: 560 },
+            hard:   { n: 6, cell: 44, signKeep: 0.32, given: 0.10, base: 900 },
+        };
+        const MARGIN = 14, GAP = 20;
+
+        let diffKey = 'medium';
+        let N = 5, CELL = 52, SIZE = 0;
+        let solution = [], value = [], locked = [];
+        let hSign = [], vSign = [];                    // 0 none, 1 "left/top is smaller", 2 "left/top is larger"
+        let selected = null, hints = 0;
+        let solved = false, startedAt = 0, elapsed = 0, timer = null, score = 0;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('signGridBest') || '{}')); } catch (e) { /* ignore */ }
+
+        const cellX = c => MARGIN + c * (CELL + GAP);
+        const cellY = r => MARGIN + r * (CELL + GAP);
+        const inB = (r, c) => r >= 0 && r < N && c >= 0 && c < N;
+
+        // ----- GENEROVANIE -----
+        function latinSquare() {
+            const base = [];
+            for (let i = 0; i < N; i++) base.push(i + 1);
+            for (let i = base.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [base[i], base[j]] = [base[j], base[i]];
+            }
+            const shifts = [];
+            for (let i = 0; i < N; i++) shifts.push(i);
+            for (let i = shifts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shifts[i], shifts[j]] = [shifts[j], shifts[i]];
+            }
+            return shifts.map(s => base.map((_, c) => base[(c + s) % N]));
+        }
+
+        function generate() {
+            const setup = SETUP[diffKey];
+            solution = latinSquare();
+            hSign = Array.from({ length: N }, () => new Array(N - 1).fill(0));
+            vSign = Array.from({ length: N - 1 }, () => new Array(N).fill(0));
+            for (let r = 0; r < N; r++) for (let c = 0; c < N - 1; c++)
+                if (Math.random() < setup.signKeep)
+                    hSign[r][c] = solution[r][c] < solution[r][c + 1] ? 1 : 2;
+            for (let r = 0; r < N - 1; r++) for (let c = 0; c < N; c++)
+                if (Math.random() < setup.signKeep)
+                    vSign[r][c] = solution[r][c] < solution[r + 1][c] ? 1 : 2;
+
+            value = Array.from({ length: N }, () => new Array(N).fill(0));
+            locked = Array.from({ length: N }, () => new Array(N).fill(false));
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++)
+                if (Math.random() < setup.given) { value[r][c] = solution[r][c]; locked[r][c] = true; }
+        }
+
+        // ----- KONTROLA -----
+        function faults() {
+            const bad = new Set(), badSign = new Set();
+            for (let r = 0; r < N; r++) {
+                const seen = new Map();
+                for (let c = 0; c < N; c++) {
+                    const v = value[r][c];
+                    if (!v) continue;
+                    if (seen.has(v)) { bad.add(r + ',' + c); bad.add(seen.get(v)); }
+                    else seen.set(v, r + ',' + c);
+                }
+            }
+            for (let c = 0; c < N; c++) {
+                const seen = new Map();
+                for (let r = 0; r < N; r++) {
+                    const v = value[r][c];
+                    if (!v) continue;
+                    if (seen.has(v)) { bad.add(r + ',' + c); bad.add(seen.get(v)); }
+                    else seen.set(v, r + ',' + c);
+                }
+            }
+            for (let r = 0; r < N; r++) for (let c = 0; c < N - 1; c++) {
+                const s = hSign[r][c]; if (!s) continue;
+                const a = value[r][c], b = value[r][c + 1];
+                if (!a || !b) continue;
+                if ((s === 1 && !(a < b)) || (s === 2 && !(a > b))) badSign.add('h' + r + ',' + c);
+            }
+            for (let r = 0; r < N - 1; r++) for (let c = 0; c < N; c++) {
+                const s = vSign[r][c]; if (!s) continue;
+                const a = value[r][c], b = value[r + 1][c];
+                if (!a || !b) continue;
+                if ((s === 1 && !(a < b)) || (s === 2 && !(a > b))) badSign.add('v' + r + ',' + c);
+            }
+            let filled = 0;
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (value[r][c]) filled++;
+            return { bad, badSign, filled };
+        }
+
+        function checkSolved(announce) {
+            const f = faults();
+            filledSpan.textContent = f.filled + '/' + (N * N);
+            if (f.filled === N * N && !f.bad.size && !f.badSign.size) { win(); return true; }
+            if (announce) {
+                statusLine.textContent = f.badSign.size ? t('sgnSign')
+                    : (f.bad.size ? t('sgnRowCol') : t('sgnHintTap'));
+            }
+            return false;
+        }
+
+        function win() {
+            solved = true;
+            clearInterval(timer);
+            score = Math.max(20, Math.round(SETUP[diffKey].base - elapsed * 2 - hints * 40));
+            scoreSpan.textContent = score;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('signGridBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = t('uiSolved');
+            finalTimeP.textContent = t('uiTime') + ': ' + fmt(elapsed);
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            selected = null;
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+
+        function buildPad() {
+            pad.innerHTML = '';
+            for (let v = 1; v <= N; v++) {
+                const b = document.createElement('button');
+                b.textContent = String(v);
+                b.addEventListener('click', () => place(v));
+                pad.appendChild(b);
+            }
+            const e = document.createElement('button');
+            e.className = 'erase';
+            e.textContent = t('sgnErase');
+            e.addEventListener('click', () => place(0));
+            pad.appendChild(e);
+        }
+
+        function place(v) {
+            if (solved || !selected) return;
+            const [r, c] = selected;
+            if (locked[r][c]) return;
+            value[r][c] = v;
+            statusLine.textContent = '';
+            draw();
+            checkSolved(false);
+        }
+
+        function newGame() {
+            const setup = SETUP[diffKey];
+            N = setup.n; CELL = setup.cell;
+            SIZE = MARGIN * 2 + N * CELL + (N - 1) * GAP;
+            canvas.width = SIZE; canvas.height = SIZE;
+            generate();
+            selected = null; solved = false; score = 0; elapsed = 0; hints = 0;
+            scoreSpan.textContent = '0';
+            bestSpan.textContent = best[diffKey] || 0;
+            timeSpan.textContent = '0:00';
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('sgnHintTap');
+            buildPad();
+            checkSolved(false);
+            clearInterval(timer);
+            startedAt = Date.now();
+            timer = setInterval(() => {
+                if (solved) return;
+                elapsed = Math.floor((Date.now() - startedAt) / 1000);
+                timeSpan.textContent = fmt(elapsed);
+            }, 1000);
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        function onTap(e) {
+            if (solved) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * SIZE;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * SIZE;
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                if (x < cellX(c) || x > cellX(c) + CELL || y < cellY(r) || y > cellY(r) + CELL) continue;
+                selected = (selected && selected[0] === r && selected[1] === c) ? null : [r, c];
+                draw();
+                return;
+            }
+            selected = null;
+            draw();
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        checkBtn.addEventListener('click', () => { if (!solved) checkSolved(true); });
+        hintBtn.addEventListener('click', () => {
+            if (solved) return;
+            const wrong = [];
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++)
+                if (!locked[r][c] && value[r][c] !== solution[r][c]) wrong.push([r, c]);
+            if (!wrong.length) { statusLine.textContent = t('sgnAllDone'); return; }
+            const [r, c] = wrong[Math.floor(Math.random() * wrong.length)];
+            value[r][c] = solution[r][c];
+            hints++;
+            statusLine.textContent = '';
+            draw();
+            checkSolved(false);
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#0d1a1c'; ctx.fillRect(0, 0, SIZE, SIZE);
+            const f = faults();
+
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                const x = cellX(c), y = cellY(r), key = r + ',' + c;
+                const sel = selected && selected[0] === r && selected[1] === c;
+                ctx.beginPath();
+                if (ctx.roundRect) ctx.roundRect(x, y, CELL, CELL, 10); else ctx.rect(x, y, CELL, CELL);
+                ctx.fillStyle = locked[r][c] ? '#12303a' : '#0f2229';
+                ctx.fill();
+                ctx.strokeStyle = sel ? '#fbbf24' : (f.bad.has(key) ? '#ef4444' : '#28434c');
+                ctx.lineWidth = sel ? 3 : (f.bad.has(key) ? 2.4 : 1.4);
+                ctx.stroke();
+
+                if (value[r][c]) {
+                    ctx.fillStyle = locked[r][c] ? '#7dd3fc' : (f.bad.has(key) ? '#fca5a5' : '#eafff9');
+                    ctx.font = '700 ' + Math.round(CELL * 0.52) + 'px system-ui';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(String(value[r][c]), x + CELL / 2, y + CELL / 2 + 1);
+                }
+            }
+
+            // Signs are stroked as chevrons rather than glyphs — the vertical ones have no
+            // dependable character, and this stays crisp at any cell size.
+            const arm = Math.max(5, GAP * 0.32), tip = Math.max(4, GAP * 0.26);
+            const chevron = (cx, cy, dir, bad) => {
+                ctx.strokeStyle = bad ? '#ef4444' : '#5eead4';
+                ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                ctx.beginPath();
+                if (dir === 'left')       { ctx.moveTo(cx + tip, cy - arm); ctx.lineTo(cx - tip, cy); ctx.lineTo(cx + tip, cy + arm); }
+                else if (dir === 'right') { ctx.moveTo(cx - tip, cy - arm); ctx.lineTo(cx + tip, cy); ctx.lineTo(cx - tip, cy + arm); }
+                else if (dir === 'up')    { ctx.moveTo(cx - arm, cy + tip); ctx.lineTo(cx, cy - tip); ctx.lineTo(cx + arm, cy + tip); }
+                else                      { ctx.moveTo(cx - arm, cy - tip); ctx.lineTo(cx, cy + tip); ctx.lineTo(cx + arm, cy - tip); }
+                ctx.stroke();
+            };
+            // sign 1 means the left/upper cell is the smaller one, so the chevron opens away from it
+            for (let r = 0; r < N; r++) for (let c = 0; c < N - 1; c++) {
+                const s = hSign[r][c]; if (!s) continue;
+                chevron(cellX(c) + CELL + GAP / 2, cellY(r) + CELL / 2,
+                        s === 1 ? 'left' : 'right', f.badSign.has('h' + r + ',' + c));
+            }
+            for (let r = 0; r < N - 1; r++) for (let c = 0; c < N; c++) {
+                const s = vSign[r][c]; if (!s) continue;
+                chevron(cellX(c) + CELL / 2, cellY(r) + CELL + GAP / 2,
+                        s === 1 ? 'up' : 'down', f.badSign.has('v' + r + ',' + c));
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

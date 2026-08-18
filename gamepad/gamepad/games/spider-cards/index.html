@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spider Cards · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #2b1a3d;color:#9484ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#c084fc;color:#f6efff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 18px 24px;
+            max-width:560px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#e9d5ff,#c084fc);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#c084fc; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#d8b4fe; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#e9d5ff,#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#c084fc; border:1px solid #e9d5ff; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #7e22ce; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #7e22ce; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🕷️</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-sets"></h3><span class="value" id="setsValue">0/8</span></div>
+            <div class="info-card"><h3 id="lbl-moves"></h3><span class="value" id="movesValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-moves"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="dealBtn"></button>
+            <button id="undoBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const setsSpan = document.getElementById('setsValue');
+        const movesSpan = document.getElementById('movesValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalMovesP = document.getElementById('lbl-final-moves');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const dealBtn = document.getElementById('dealBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🕷️ ' + t('spdTitle');
+        document.getElementById('lbl-diff').textContent   = t('spdSuits') + ':';
+        document.getElementById('lbl-easy').textContent   = '1';
+        document.getElementById('lbl-medium').textContent = '2';
+        document.getElementById('lbl-hard').textContent   = '4';
+        document.getElementById('lbl-sets').textContent   = t('spdSets');
+        document.getElementById('lbl-moves').textContent  = t('uiMoves');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('spdRules');
+        dealBtn.textContent    = t('spdDeal');
+        undoBtn.textContent    = t('uiUndo');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('spdTitle') + ' · GamePad';
+
+        // ----- KARTY -----
+        const SUITS = ['♠', '♥', '♦', '♣'];
+        const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const rankOf = c => c.r, suitOf = c => c.s;
+        const isRed = c => c.s === 1 || c.s === 2;
+
+        const NSUITS = { easy: 1, medium: 2, hard: 4 };
+        const MULT   = { easy: 1, medium: 1.5, hard: 2.2 };
+        const COLS = 10, MARGIN = 8, CW = 44, CH = 62, GAPX = 4;
+        const FANUP = 19, FANDOWN = 7;
+        const W = MARGIN * 2 + COLS * (CW + GAPX) - GAPX;
+        const COLTOP = MARGIN + CH + 16;
+        const H = COLTOP + CH + 20 * FANUP;
+        canvas.width = W; canvas.height = H;
+
+        let diffKey = 'medium';
+        let cols = [], stock = [], done = 0;
+        let selected = null, history = [], moves = 0, score = 0, solved = false;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('spiderCardsBest') || '{}')); } catch (e) { /* ignore */ }
+
+        // ----- PRAVIDLA -----
+        // A run is descending by one and all the same suit, and every card in it face up.
+        function runLength(col, i) {
+            if (!col[i].up) return 0;
+            for (let k = i; k < col.length - 1; k++) {
+                if (!col[k + 1].up) return 0;
+                if (col[k + 1].s !== col[k].s || col[k + 1].r !== col[k].r - 1) return 0;
+            }
+            return col.length - i;
+        }
+
+        const snapshot = () => ({
+            cols: cols.map(c => c.map(x => ({ r: x.r, s: x.s, up: x.up }))),
+            stock: stock.map(x => ({ r: x.r, s: x.s, up: x.up })),
+            done, moves,
+        });
+        function restore(s) {
+            cols = s.cols.map(c => c.map(x => ({ r: x.r, s: x.s, up: x.up })));
+            stock = s.stock.map(x => ({ r: x.r, s: x.s, up: x.up }));
+            done = s.done; moves = s.moves;
+        }
+        function push() { history.push(snapshot()); if (history.length > 300) history.shift(); }
+
+        // A finished king-to-ace run of one suit leaves the table.
+        function harvest() {
+            let taken = false;
+            for (const col of cols) {
+                if (col.length < 13) continue;
+                const start = col.length - 13;
+                if (!col[start].up || col[start].r !== 12) continue;
+                let ok = true;
+                for (let k = 0; k < 13; k++) {
+                    const c = col[start + k];
+                    if (!c.up || c.r !== 12 - k || c.s !== col[start].s) { ok = false; break; }
+                }
+                if (!ok) continue;
+                col.length = start;
+                if (col.length && !col[col.length - 1].up) col[col.length - 1].up = true;
+                done++; taken = true;
+            }
+            return taken;
+        }
+
+        function moveRun(from, count, to) {
+            if (from === to) return false;
+            const src = cols[from], dst = cols[to];
+            const run = src.slice(src.length - count);
+            if (dst.length) {
+                const top = dst[dst.length - 1];
+                if (!top.up || top.r !== run[0].r + 1) return false;
+            }
+            push();
+            src.length -= count;
+            if (src.length && !src[src.length - 1].up) src[src.length - 1].up = true;
+            dst.push(...run);
+            moves++;
+            harvest();
+            return true;
+        }
+
+        function dealRow() {
+            if (!stock.length) { statusLine.textContent = t('spdNoStock'); return false; }
+            if (cols.some(c => c.length === 0)) { statusLine.textContent = t('spdNoEmpty'); return false; }
+            push();
+            for (let i = 0; i < COLS; i++) {
+                const card = stock.pop();
+                card.up = true;
+                cols[i].push(card);
+            }
+            moves++;
+            harvest();
+            return true;
+        }
+
+        function afterMove() {
+            selected = null;
+            refresh(); draw();
+            if (done === 8) win();
+        }
+
+        function win() {
+            solved = true;
+            score = Math.round(Math.max(80, 1000 - moves * 4) * MULT[diffKey]);
+            scoreSpan.textContent = score;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('spiderCardsBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = t('uiSolved');
+            finalMovesP.textContent = t('uiMoves') + ': ' + moves;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            setsSpan.textContent = done + '/8';
+            movesSpan.textContent = moves;
+        }
+
+        function newGame() {
+            const suits = [];
+            for (let i = 0; i < 8; i++) suits.push(i % NSUITS[diffKey]);
+            const deck = [];
+            for (const s of suits) for (let r = 0; r < 13; r++) deck.push({ r, s, up: false });
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            cols = Array.from({ length: COLS }, () => []);
+            const counts = [6, 6, 6, 6, 5, 5, 5, 5, 5, 5];
+            for (let i = 0; i < COLS; i++) for (let k = 0; k < counts[i]; k++) cols[i].push(deck.pop());
+            for (const col of cols) col[col.length - 1].up = true;
+            stock = deck;
+            done = 0; selected = null; history = []; moves = 0; score = 0; solved = false;
+            scoreSpan.textContent = '0';
+            bestSpan.textContent = best[diffKey] || 0;
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('spdHintTap');
+            refresh();
+            draw();
+        }
+
+        // ----- ROZLOZENIE -----
+        const colX = i => MARGIN + i * (CW + GAPX);
+        function colFan(i) {
+            const col = cols[i];
+            if (col.length < 2) return FANUP;
+            const room = H - COLTOP - CH;
+            const wanted = col.reduce((a, c, k) => k === col.length - 1 ? a : a + (c.up ? FANUP : FANDOWN), 0);
+            return wanted <= room ? 1 : room / wanted;      // scale factor
+        }
+        function cardY(i, k) {
+            const col = cols[i];
+            const scale = colFan(i);
+            let y = COLTOP;
+            for (let j = 0; j < k; j++) y += (col[j].up ? FANUP : FANDOWN) * scale;
+            return y;
+        }
+
+        function hitTest(x, y) {
+            if (y >= MARGIN && y <= MARGIN + CH && x >= colX(0) && x <= colX(0) + CW) return { kind: 'stock' };
+            for (let i = 0; i < COLS; i++) {
+                if (x < colX(i) || x > colX(i) + CW) continue;
+                const col = cols[i];
+                if (!col.length) return y >= COLTOP && y <= COLTOP + CH ? { kind: 'col', at: i, index: 0 } : null;
+                for (let k = col.length - 1; k >= 0; k--) {
+                    const top = cardY(i, k);
+                    const bottom = k === col.length - 1 ? top + CH : cardY(i, k + 1);
+                    if (y >= top && y <= bottom) return { kind: 'col', at: i, index: k };
+                }
+            }
+            return null;
+        }
+
+        function onTap(e) {
+            if (solved) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * W;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * H;
+            const hit = hitTest(x, y);
+            if (!hit) { selected = null; draw(); return; }
+            if (hit.kind === 'stock') {
+                selected = null;
+                if (dealRow()) { statusLine.textContent = ''; afterMove(); } else draw();
+                return;
+            }
+            if (selected && moveRun(selected.at, selected.run, hit.at)) {
+                statusLine.textContent = '';
+                afterMove();
+                return;
+            }
+            const col = cols[hit.at];
+            if (!col.length) { selected = null; draw(); return; }
+            const run = runLength(col, hit.index);
+            if (!run) { statusLine.textContent = t('spdNotRun'); selected = null; draw(); return; }
+            selected = { at: hit.at, run };
+            statusLine.textContent = '';
+            draw();
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        dealBtn.addEventListener('click', () => {
+            if (solved) return;
+            selected = null;
+            if (dealRow()) { statusLine.textContent = ''; afterMove(); } else draw();
+        });
+        undoBtn.addEventListener('click', () => {
+            if (solved || !history.length) return;
+            restore(history.pop());
+            selected = null; statusLine.textContent = '';
+            refresh(); draw();
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function shell(x, y, h, r) {
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x, y, CW, h, r); else ctx.rect(x, y, CW, h);
+        }
+
+        function faceDown(x, y, h) {
+            shell(x, y, h, 6);
+            const g = ctx.createLinearGradient(x, y, x + CW, y + h);
+            g.addColorStop(0, '#3b2a63'); g.addColorStop(1, '#1e1338');
+            ctx.fillStyle = g; ctx.fill();
+            ctx.strokeStyle = 'rgba(233,213,255,.25)'; ctx.lineWidth = 1; ctx.stroke();
+        }
+
+        function faceUp(x, y, h, c, highlight) {
+            shell(x, y, h, 6);
+            ctx.fillStyle = '#fbfbf6'; ctx.fill();
+            ctx.strokeStyle = highlight ? '#7e22ce' : 'rgba(30,30,40,.4)';
+            ctx.lineWidth = highlight ? 2.6 : 1;
+            ctx.stroke();
+            ctx.fillStyle = isRed(c) ? '#c0392b' : '#1f2937';
+            ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+            ctx.font = '700 14px system-ui';
+            ctx.fillText(RANKS[c.r], x + 4, y + 3);
+            ctx.font = '13px system-ui';
+            ctx.fillText(SUITS[c.s], x + 4, y + 18);
+        }
+
+        function draw() {
+            ctx.fillStyle = '#1a1030'; ctx.fillRect(0, 0, W, H);
+
+            // stock, showing how many rows are left to deal
+            if (stock.length) {
+                faceDown(colX(0), MARGIN, CH);
+                ctx.fillStyle = '#e9d5ff'; ctx.font = '700 15px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(String(Math.ceil(stock.length / COLS)), colX(0) + CW / 2, MARGIN + CH / 2);
+            } else {
+                shell(colX(0), MARGIN, CH, 6);
+                ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1.3; ctx.stroke();
+            }
+
+            // completed sets
+            for (let i = 0; i < 8; i++) {
+                const x = W - MARGIN - (8 - i) * 22;
+                ctx.beginPath();
+                if (ctx.roundRect) ctx.roundRect(x, MARGIN + 12, 18, CH - 24, 4); else ctx.rect(x, MARGIN + 12, 18, CH - 24);
+                ctx.fillStyle = i < done ? '#c084fc' : 'rgba(255,255,255,.05)';
+                ctx.fill();
+            }
+
+            for (let i = 0; i < COLS; i++) {
+                const col = cols[i];
+                if (!col.length) {
+                    shell(colX(i), COLTOP, CH, 6);
+                    ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fill();
+                    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1.3; ctx.stroke();
+                    continue;
+                }
+                const selFrom = selected && selected.at === i ? col.length - selected.run : -1;
+                col.forEach((c, k) => {
+                    const y = cardY(i, k);
+                    const h = k === col.length - 1 ? CH : Math.max(14, cardY(i, k + 1) - y + 6);
+                    if (!c.up) faceDown(colX(i), y, h);
+                    else faceUp(colX(i), y, h, c, selFrom >= 0 && k >= selFrom);
+                });
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

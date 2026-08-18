@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Box Claim · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #14353d;color:#7fa0a8;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#22d3ee;color:#eafdff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 24px 24px;
+            max-width:470px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#a5f3fc,#22d3ee);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#22d3ee; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#67e8f9; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#a5f3fc,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#22d3ee; border:1px solid #a5f3fc; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #0e7490; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #0e7490; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">▫️</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-you"></h3><span class="value" id="youValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-opp"></h3><span class="value" id="oppValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p><span id="finalYou">0</span> — <span id="finalOpp">0</span></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const youSpan = document.getElementById('youValue');
+        const oppSpan = document.getElementById('oppValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalYou = document.getElementById('finalYou');
+        const finalOpp = document.getElementById('finalOpp');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '▫️ ' + t('bxcTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-you').textContent    = t('uiYou');
+        document.getElementById('lbl-opp').textContent    = t('uiOpponent');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('bxcRules');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('bxcTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const N = 4;                                   // boxes per side (5x5 dots)
+        const HUMAN = 1, AI = 2;
+        const DEPTH = { easy: 1, medium: 4, hard: 10 };
+        const NODE_BUDGET = 250000;        // keeps a move responsive even on a slow phone
+        const MULT  = { easy: 1, medium: 1.5, hard: 2 };
+        const MARGIN = 30, STEP = 74;
+        const SIZE = MARGIN * 2 + N * STEP;
+        canvas.width = SIZE; canvas.height = SIZE;
+
+        let diffKey = 'medium';
+        let S = null, score = 0, ended = false, busy = false, lastLine = null;
+        let best = parseInt(localStorage.getItem('boxClaimBest') || '0', 10);
+        bestSpan.textContent = best;
+
+        // h[r][c]: horizontal segment on dot-row r spanning box-column c   (r 0..N, c 0..N-1)
+        // v[r][c]: vertical segment on dot-column c spanning box-row r     (r 0..N-1, c 0..N)
+        function newState() {
+            return {
+                h: Array.from({ length: N + 1 }, () => new Array(N).fill(0)),
+                v: Array.from({ length: N }, () => new Array(N + 1).fill(0)),
+                owner: Array.from({ length: N }, () => new Array(N).fill(0)),
+                turn: HUMAN, boxes: { 1: 0, 2: 0 },
+            };
+        }
+        const sidesOf = (s, r, c) => s.h[r][c] + s.h[r + 1][c] + s.v[r][c] + s.v[r][c + 1];
+
+        function freeLines(s) {
+            const out = [];
+            for (let r = 0; r <= N; r++) for (let c = 0; c < N; c++) if (!s.h[r][c]) out.push({ t: 'h', r, c });
+            for (let r = 0; r < N; r++) for (let c = 0; c <= N; c++) if (!s.v[r][c]) out.push({ t: 'v', r, c });
+            return out;
+        }
+
+        // Draws the line and claims any box it completes. Returns an undo record so the
+        // search can walk the tree in place instead of cloning the board at every node.
+        function applyLine(s, mv) {
+            const player = s.turn;
+            if (mv.t === 'h') s.h[mv.r][mv.c] = 1; else s.v[mv.r][mv.c] = 1;
+            const touched = mv.t === 'h'
+                ? [[mv.r - 1, mv.c], [mv.r, mv.c]]
+                : [[mv.r, mv.c - 1], [mv.r, mv.c]];
+            const claimed = [];
+            for (const [br, bc] of touched) {
+                if (br < 0 || br >= N || bc < 0 || bc >= N) continue;
+                if (s.owner[br][bc]) continue;
+                if (sidesOf(s, br, bc) === 4) { s.owner[br][bc] = player; s.boxes[player]++; claimed.push([br, bc]); }
+            }
+            const flipped = claimed.length === 0;
+            if (flipped) s.turn = player === HUMAN ? AI : HUMAN;
+            return { mv, claimed, flipped, player, gained: claimed.length };
+        }
+
+        function undoLine(s, rec) {
+            if (rec.mv.t === 'h') s.h[rec.mv.r][rec.mv.c] = 0; else s.v[rec.mv.r][rec.mv.c] = 0;
+            for (const [br, bc] of rec.claimed) { s.owner[br][bc] = 0; s.boxes[rec.player]--; }
+            if (rec.flipped) s.turn = rec.player;
+        }
+
+        const allDrawn = s => freeLines(s).length === 0;
+
+        // ----- AI -----
+        function countThrees(s) {
+            let n = 0;
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++)
+                if (!s.owner[r][c] && sidesOf(s, r, c) === 3) n++;
+            return n;
+        }
+
+        function evaluate(s) {
+            let v = 14 * (s.boxes[AI] - s.boxes[HUMAN]);
+            // boxes sitting on three sides are a gift to whoever moves next
+            v += (s.turn === HUMAN ? 5 : -5) * countThrees(s);
+            return v;
+        }
+
+        // Move ordering computed straight off the board: a line that closes a box first, a
+        // line that leaves a box on three sides (a present for the opponent) last.
+        function rankMoves(s) {
+            const out = [];
+            for (const mv of freeLines(s)) {
+                const touched = mv.t === 'h'
+                    ? [[mv.r - 1, mv.c], [mv.r, mv.c]]
+                    : [[mv.r, mv.c - 1], [mv.r, mv.c]];
+                let gain = 0, gift = 0;
+                for (const [br, bc] of touched) {
+                    if (br < 0 || br >= N || bc < 0 || bc >= N) continue;
+                    if (s.owner[br][bc]) continue;
+                    const sides = sidesOf(s, br, bc);
+                    if (sides === 3) gain++; else if (sides === 2) gift++;
+                }
+                out.push({ mv, gain, gift });
+            }
+            out.sort((a, b) => (b.gain - a.gain) || (a.gift - b.gift));
+            return out;
+        }
+
+        // Forty free lines make a fixed deep search hopeless early on, and pointless: the
+        // game is decided in the endgame, where chains have to be counted exactly. So look
+        // shallow while the board is open and deepen as it fills.
+        function depthFor(free, cap) {
+            const d = free > 30 ? 2 : free > 24 ? 3 : free > 18 ? 4 : free > 13 ? 6 : free > 9 ? 8 : free;
+            return Math.max(1, Math.min(cap, d));
+        }
+
+        let nodes = 0;
+
+        function search(s, depth, alpha, beta) {
+            if (allDrawn(s)) return 1000 * (s.boxes[AI] - s.boxes[HUMAN]);
+            if (depth === 0 || ++nodes > NODE_BUDGET) return evaluate(s);
+            const ranked = rankMoves(s);
+            if (s.turn === AI) {
+                let value = -Infinity;
+                for (const { mv } of ranked) {
+                    const rec = applyLine(s, mv);
+                    value = Math.max(value, search(s, depth - 1, alpha, beta));
+                    undoLine(s, rec);
+                    alpha = Math.max(alpha, value);
+                    if (alpha >= beta) break;
+                }
+                return value;
+            }
+            let value = Infinity;
+            for (const { mv } of ranked) {
+                const rec = applyLine(s, mv);
+                value = Math.min(value, search(s, depth - 1, alpha, beta));
+                undoLine(s, rec);
+                beta = Math.min(beta, value);
+                if (alpha >= beta) break;
+            }
+            return value;
+        }
+
+        function aiPick() {
+            const ranked = rankMoves(S);
+            if (diffKey === 'easy') {
+                const capture = ranked.find(x => x.gain > 0);
+                if (capture && Math.random() < 0.75) return capture.mv;
+                const safe = ranked.filter(x => x.gain === 0 && x.gift === 0);
+                const pool = safe.length && Math.random() < 0.6 ? safe : ranked;
+                return pool[Math.floor(Math.random() * pool.length)].mv;
+            }
+            nodes = 0;
+            const depth = depthFor(ranked.length, DEPTH[diffKey]);
+            let bestVal = -Infinity, pool = [];
+            for (const { mv } of ranked) {
+                const rec = applyLine(S, mv);
+                const v = search(S, depth - 1, -Infinity, Infinity);
+                undoLine(S, rec);
+                if (v > bestVal) { bestVal = v; pool = [mv]; } else if (v === bestVal) pool.push(mv);
+            }
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function aiTurn() {
+            if (ended) return;
+            if (allDrawn(S)) { finish(); return; }
+            const mv = aiPick();
+            lastLine = mv;
+            applyLine(S, mv);
+            refresh(); draw();
+            if (allDrawn(S)) { finish(); return; }
+            if (S.turn === AI) { setTimeout(aiTurn, 320); return; }
+            busy = false;
+            statusLine.textContent = t('uiYourTurn');
+        }
+
+        function afterHuman(gained) {
+            refresh(); draw();
+            if (allDrawn(S)) { finish(); return; }
+            if (gained) {
+                statusLine.textContent = t('bxcAgain');
+                busy = false;
+                return;
+            }
+            statusLine.textContent = t('uiOppTurn');
+            busy = true;
+            setTimeout(aiTurn, 320);
+        }
+
+        function finish() {
+            ended = true; busy = true;
+            const me = S.boxes[HUMAN], them = S.boxes[AI];
+            const result = me > them ? 'win' : (me < them ? 'lose' : 'draw');
+            if (result === 'win') score = Math.round((100 + (me - them) * 14) * MULT[diffKey]);
+            else if (result === 'draw') score = Math.round(40 * MULT[diffKey]);
+            else score = 0;
+            scoreSpan.textContent = score;
+            if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem('boxClaimBest', String(best)); }
+            resultH2.textContent = result === 'win' ? t('uiYouWin') : (result === 'lose' ? t('uiYouLose') : t('uiDraw'));
+            finalYou.textContent = me; finalOpp.textContent = them;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            youSpan.textContent = S.boxes[HUMAN];
+            oppSpan.textContent = S.boxes[AI];
+        }
+
+        function newGame() {
+            S = newState(); score = 0; ended = false; busy = false; lastLine = null;
+            scoreSpan.textContent = '0';
+            endOverlay.classList.remove('visible');
+            refresh();
+            statusLine.textContent = t('uiYourTurn');
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        const dotX = c => MARGIN + c * STEP;
+        const dotY = r => MARGIN + r * STEP;
+
+        function nearestLine(x, y) {
+            let hit = null, bestD = STEP * 0.42;
+            for (let r = 0; r <= N; r++) for (let c = 0; c < N; c++) {
+                if (S.h[r][c]) continue;
+                const d = Math.hypot(dotX(c) + STEP / 2 - x, dotY(r) - y);
+                if (d < bestD) { bestD = d; hit = { t: 'h', r, c }; }
+            }
+            for (let r = 0; r < N; r++) for (let c = 0; c <= N; c++) {
+                if (S.v[r][c]) continue;
+                const d = Math.hypot(dotX(c) - x, dotY(r) + STEP / 2 - y);
+                if (d < bestD) { bestD = d; hit = { t: 'v', r, c }; }
+            }
+            return hit;
+        }
+
+        function onTap(e) {
+            if (ended || busy || S.turn !== HUMAN) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * SIZE;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * SIZE;
+            const mv = nearestLine(x, y);
+            if (!mv) return;
+            lastLine = mv;
+            const gained = applyLine(S, mv).gained;
+            afterHuman(gained);
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#0d1b24'; ctx.fillRect(0, 0, SIZE, SIZE);
+
+            // claimed boxes
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                const o = S.owner[r][c];
+                if (!o) continue;
+                ctx.fillStyle = o === HUMAN ? 'rgba(34,211,238,.20)' : 'rgba(148,163,184,.18)';
+                ctx.fillRect(dotX(c), dotY(r), STEP, STEP);
+                ctx.fillStyle = o === HUMAN ? '#67e8f9' : '#94a3b8';
+                ctx.font = 'bold 22px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(o === HUMAN ? '●' : '○', dotX(c) + STEP / 2, dotY(r) + STEP / 2);
+            }
+
+            // three-sided boxes are worth flagging — they are the tactical crux
+            if (!ended) {
+                for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                    if (S.owner[r][c] || sidesOf(S, r, c) !== 3) continue;
+                    ctx.strokeStyle = 'rgba(251,191,36,.35)'; ctx.lineWidth = 1.5;
+                    ctx.strokeRect(dotX(c) + 6, dotY(r) + 6, STEP - 12, STEP - 12);
+                }
+            }
+
+            // drawn segments
+            ctx.lineCap = 'round';
+            const seg = (x1, y1, x2, y2, live) => {
+                ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+                ctx.strokeStyle = live ? '#22d3ee' : 'rgba(255,255,255,.05)';
+                ctx.lineWidth = live ? 5 : 2;
+                ctx.stroke();
+            };
+            for (let r = 0; r <= N; r++) for (let c = 0; c < N; c++)
+                seg(dotX(c) + 6, dotY(r), dotX(c + 1) - 6, dotY(r), S.h[r][c]);
+            for (let r = 0; r < N; r++) for (let c = 0; c <= N; c++)
+                seg(dotX(c), dotY(r) + 6, dotX(c), dotY(r + 1) - 6, S.v[r][c]);
+
+            if (lastLine) {
+                const m = lastLine;
+                ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 5;
+                ctx.beginPath();
+                if (m.t === 'h') { ctx.moveTo(dotX(m.c) + 6, dotY(m.r)); ctx.lineTo(dotX(m.c + 1) - 6, dotY(m.r)); }
+                else { ctx.moveTo(dotX(m.c), dotY(m.r) + 6); ctx.lineTo(dotX(m.c), dotY(m.r + 1) - 6); }
+                ctx.stroke();
+            }
+
+            // dots on top
+            for (let r = 0; r <= N; r++) for (let c = 0; c <= N; c++) {
+                ctx.beginPath(); ctx.arc(dotX(c), dotY(r), 4.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#cbd5e1'; ctx.fill();
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

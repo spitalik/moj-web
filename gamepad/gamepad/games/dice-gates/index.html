@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dice Gates · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #2e2350;color:#9689b8;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#a78bfa;color:#f2eeff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:520px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#ddd6fe,#a78bfa);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#a78bfa; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #dice-row { display:flex; gap:8px; align-items:center; justify-content:center; min-height:34px; }
+        .die {
+            width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+            font-size:19px; font-weight:700; background:#ede9fe; color:#2e1065; border:1px solid #c4b5fd;
+            box-shadow:0 2px 0 #6d28d9;
+        }
+        .die.spent { background:#1b2334; color:#4a5a76; border-color:#2b374f; box-shadow:none; }
+        #status-line { text-align:center; font-size:12px; color:#c4b5fd; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#ddd6fe,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#a78bfa; border:1px solid #ddd6fe; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #6d28d9; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #6d28d9; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:disabled { opacity:.4; cursor:default; }
+        #controls button:active:not(:disabled) { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">⚅</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-you"></h3><span class="value" id="youValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-opp"></h3><span class="value" id="oppValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="dice-row"></div>
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-margin"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="undoBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const youSpan = document.getElementById('youValue');
+        const oppSpan = document.getElementById('oppValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const diceRow = document.getElementById('dice-row');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const marginP = document.getElementById('lbl-margin');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '⚅ ' + t('dgtTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-you').textContent    = t('dgtOff') + ' · ' + t('uiYou');
+        document.getElementById('lbl-opp').textContent    = t('dgtOff') + ' · ' + t('uiOpponent');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('dgtRules');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        undoBtn.textContent    = t('uiUndo');
+        document.title = t('dgtTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        // pts[i] > 0  → that many HUMAN checkers, pts[i] < 0 → AI checkers.
+        // HUMAN travels 23 → 0 and bears off below 0; AI travels 0 → 23 and bears off above 23.
+        const HUMAN = 1, AI = 2;
+        const MULT = { easy: 1, medium: 1.5, hard: 2 };
+        const PIPS = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+        const W = 468, H = 330, TRAY = 30, BAR = 24;
+        const COLW = (W - TRAY - BAR) / 12;      // 34.5
+        canvas.width = W; canvas.height = H;
+        const CHK = Math.min(COLW * 0.44, 15);
+
+        let diffKey = 'medium';
+        let S = null, dice = [], remaining = [], turn = HUMAN;
+        let score = 0, ended = false, busy = false, selected = null, turnStart = null;
+        let token = 0;   // invalidates timers still queued from an undone or restarted turn
+        let best = parseInt(localStorage.getItem('diceGatesBest') || '0', 10);
+        bestSpan.textContent = best;
+
+        function startPosition() {
+            const pts = new Array(24).fill(0);
+            pts[23] = 2; pts[12] = 5; pts[7] = 3; pts[5] = 5;       // human
+            pts[0] = -2; pts[11] = -5; pts[16] = -3; pts[18] = -5;  // AI
+            return { pts, bar: { 1: 0, 2: 0 }, off: { 1: 0, 2: 0 } };
+        }
+        const clone = s => ({ pts: s.pts.slice(), bar: { 1: s.bar[1], 2: s.bar[2] }, off: { 1: s.off[1], 2: s.off[2] } });
+        const own = (s, i, p) => p === HUMAN ? Math.max(0, s.pts[i]) : Math.max(0, -s.pts[i]);
+        const opp = (s, i, p) => own(s, i, p === HUMAN ? AI : HUMAN);
+        const foe = p => p === HUMAN ? AI : HUMAN;
+
+        function allHome(s, p) {
+            if (s.bar[p] > 0) return false;
+            if (p === HUMAN) { for (let i = 6; i < 24; i++) if (s.pts[i] > 0) return false; }
+            else { for (let i = 0; i < 18; i++) if (s.pts[i] < 0) return false; }
+            return true;
+        }
+
+        function singleMoves(s, p, die) {
+            const out = [];
+            if (s.bar[p] > 0) {
+                const to = p === HUMAN ? 24 - die : die - 1;
+                if (to >= 0 && to < 24 && opp(s, to, p) <= 1) out.push({ from: -1, to });
+                return out;
+            }
+            for (let i = 0; i < 24; i++) {
+                if (own(s, i, p) === 0) continue;
+                const to = p === HUMAN ? i - die : i + die;
+                if (to >= 0 && to < 24) {
+                    if (opp(s, to, p) <= 1) out.push({ from: i, to });
+                    continue;
+                }
+                if (!allHome(s, p)) continue;
+                const exact = p === HUMAN ? (i - die === -1) : (i + die === 24);
+                if (exact) { out.push({ from: i, to: -1 }); continue; }
+                let higher = false;                          // a checker further from home blocks overshoot
+                if (p === HUMAN) { for (let j = i + 1; j < 6; j++) if (s.pts[j] > 0) higher = true; }
+                else { for (let j = 18; j < i; j++) if (s.pts[j] < 0) higher = true; }
+                if (!higher) out.push({ from: i, to: -1 });
+            }
+            return out;
+        }
+
+        function applySingle(s, p, mv) {
+            if (mv.from === -1) s.bar[p]--;
+            else s.pts[mv.from] += p === HUMAN ? -1 : 1;
+            if (mv.to === -1) { s.off[p]++; return; }
+            if (opp(s, mv.to, p) === 1) { s.pts[mv.to] = 0; s.bar[foe(p)]++; }
+            s.pts[mv.to] += p === HUMAN ? 1 : -1;
+        }
+
+        // Every legal way to use as many dice as the rules allow.
+        function sequences(s, p, diceLeft) {
+            const results = [];
+            (function rec(st, left, moves) {
+                let any = false;
+                const tried = new Set();
+                for (let k = 0; k < left.length; k++) {
+                    const d = left[k];
+                    if (tried.has(d)) continue;
+                    tried.add(d);
+                    for (const mv of singleMoves(st, p, d)) {
+                        any = true;
+                        const ns = clone(st); applySingle(ns, p, mv);
+                        const rest = left.slice(); rest.splice(k, 1);
+                        rec(ns, rest, moves.concat([{ from: mv.from, to: mv.to, die: d }]));
+                    }
+                }
+                if (!any) results.push({ moves, state: st });
+            })(s, diceLeft, []);
+            const maxLen = results.reduce((m, r) => Math.max(m, r.moves.length), 0);
+            return results.filter(r => r.moves.length === maxLen && maxLen > 0);
+        }
+
+        // ----- AI -----
+        function pipCount(s, p) {
+            let n = s.bar[p] * 25;
+            for (let i = 0; i < 24; i++) {
+                const c = own(s, i, p);
+                if (c) n += c * (p === HUMAN ? i + 1 : 24 - i);
+            }
+            return n;
+        }
+
+        function hitRisk(s) {
+            // How many of the 36 rolls give the human a shot at an AI blot. Walks direct and
+            // combination shots rather than full turn sequences — same signal, far cheaper.
+            const blots = new Set();
+            for (let i = 0; i < 24; i++) if (s.pts[i] === -1) blots.add(i);
+            if (!blots.size) return 0;
+            const sources = [];
+            for (let i = 0; i < 24; i++) if (s.pts[i] > 0) sources.push(i);
+            if (s.bar[HUMAN] > 0) sources.push(24);            // bar enters at 24 - die
+            const landable = i => i >= 0 && i < 24 && own(s, i, AI) <= 1;
+
+            let hits = 0;
+            for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) {
+                const left = a === b ? [a, a, a, a] : [a, b];
+                let hit = false;
+                for (const src of sources) {
+                    if (hit) break;
+                    (function walk(at, rest) {
+                        if (hit) return;
+                        for (let k = 0; k < rest.length; k++) {
+                            const to = at - rest[k];
+                            if (!landable(to)) continue;
+                            if (blots.has(to)) { hit = true; return; }
+                            const next = rest.slice(); next.splice(k, 1);
+                            if (next.length) walk(to, next);
+                        }
+                    })(src, left);
+                }
+                if (hit) hits++;
+            }
+            return hits / 36;
+        }
+
+        function evaluate(s, deep) {
+            let v = 0;
+            v += 42 * (s.off[AI] - s.off[HUMAN]);
+            v += (pipCount(s, HUMAN) - pipCount(s, AI)) * 1.1;
+            v -= 26 * s.bar[AI];
+            v += 26 * s.bar[HUMAN];
+            for (let i = 0; i < 24; i++) {
+                const a = own(s, i, AI), h = own(s, i, HUMAN);
+                if (a === 1) v -= 11 + (i < 12 ? 4 : 0);
+                if (h === 1) v += 9;
+                if (a >= 2) v += 7 + (i >= 18 ? 5 : (i >= 12 ? 3 : 0));
+                if (h >= 2) v -= 7 + (i <= 5 ? 5 : (i <= 11 ? 3 : 0));
+            }
+            if (deep) v -= hitRisk(s) * 60;
+            return v;
+        }
+
+        function pickSequence(seqs) {
+            if (diffKey === 'easy') return seqs[Math.floor(Math.random() * seqs.length)];
+            const uniq = new Map();
+            for (const r of seqs) {
+                const key = r.state.pts.join(',') + '|' + r.state.bar[1] + r.state.bar[2] + '|' + r.state.off[1] + r.state.off[2];
+                if (!uniq.has(key)) uniq.set(key, r);
+            }
+            let pool = [...uniq.values()];
+            if (diffKey === 'hard') {
+                pool.sort((x, y) => evaluate(y.state, false) - evaluate(x.state, false));
+                pool = pool.slice(0, 8);                       // deep check only the best handful
+                let bestR = pool[0], bestV = -Infinity;
+                for (const r of pool) {
+                    const v = evaluate(r.state, true);
+                    if (v > bestV) { bestV = v; bestR = r; }
+                }
+                return bestR;
+            }
+            let bestR = pool[0], bestV = -Infinity;
+            for (const r of pool) {
+                const v = evaluate(r.state, false);
+                if (v > bestV) { bestV = v; bestR = r; }
+            }
+            return bestR;
+        }
+
+        // ----- HERNY TOK -----
+        const roll = () => {
+            const a = 1 + Math.floor(Math.random() * 6), b = 1 + Math.floor(Math.random() * 6);
+            return a === b ? [a, a, a, a] : [a, b];
+        };
+
+        function renderDice() {
+            const usedCount = {};
+            remaining.forEach(d => usedCount[d] = (usedCount[d] || 0) + 1);
+            diceRow.innerHTML = dice.map(d => {
+                const live = usedCount[d] > 0;
+                if (live) usedCount[d]--;
+                return `<span class="die${live ? '' : ' spent'}">${PIPS[d]}</span>`;
+            }).join('');
+        }
+
+        function winner(s) {
+            if (s.off[HUMAN] === 15) return HUMAN;
+            if (s.off[AI] === 15) return AI;
+            return 0;
+        }
+
+        function startHumanTurn() {
+            turn = HUMAN; selected = null;
+            dice = roll(); remaining = dice.slice();
+            turnStart = clone(S);
+            renderDice(); undoBtn.disabled = true;
+            const seqs = sequences(S, HUMAN, remaining);
+            if (!seqs.length) {
+                statusLine.textContent = t('dgtNoMoves');
+                busy = true; draw();
+                const my = token;
+                setTimeout(() => { if (my === token) startAiTurn(); }, 1100);
+                return;
+            }
+            busy = false;
+            statusLine.textContent = t('uiYourTurn');
+            draw();
+        }
+
+        function startAiTurn() {
+            if (ended) return;
+            turn = AI; busy = true; selected = null;
+            dice = roll(); remaining = dice.slice();
+            renderDice(); undoBtn.disabled = true;
+            statusLine.textContent = t('uiOppTurn');
+            draw();
+            const my = token;
+            setTimeout(() => {
+                if (my !== token) return;
+                const seqs = sequences(S, AI, remaining);
+                if (!seqs.length) {
+                    statusLine.textContent = t('dgtOppNoMoves');
+                    setTimeout(() => { if (my === token && !ended) startHumanTurn(); }, 900);
+                    return;
+                }
+                const chosen = pickSequence(seqs);
+                let i = 0;
+                const step = () => {
+                    if (my !== token) return;
+                    if (i >= chosen.moves.length) {
+                        remaining = [];
+                        renderDice(); refreshCounts(); draw();
+                        if (winner(S)) { finish(); return; }
+                        setTimeout(() => { if (my === token) startHumanTurn(); }, 380);
+                        return;
+                    }
+                    const mv = chosen.moves[i++];
+                    applySingle(S, AI, mv);
+                    const at = remaining.indexOf(mv.die);
+                    if (at >= 0) remaining.splice(at, 1);
+                    renderDice(); refreshCounts(); draw();
+                    setTimeout(step, 420);
+                };
+                step();
+            }, 420);
+        }
+
+        function humanMoveDone() {
+            refreshCounts(); draw();
+            if (winner(S)) { finish(); return; }
+            if (!remaining.length || !sequences(S, HUMAN, remaining).length) {
+                busy = true;
+                const my = token;
+                setTimeout(() => { if (my === token) startAiTurn(); }, 420);
+            }
+        }
+
+        function finish() {
+            ended = true; busy = true;
+            const w = winner(S);
+            let mult = 1, tag = 'dgtSingle';
+            if (w) {
+                const loser = foe(w);
+                if (S.off[loser] === 0) {
+                    mult = 2; tag = 'dgtGammon';
+                    const inWinnerHome = w === HUMAN
+                        ? S.pts.slice(0, 6).some(v => v < 0)
+                        : S.pts.slice(18).some(v => v > 0);
+                    if (S.bar[loser] > 0 || inWinnerHome) { mult = 3; tag = 'dgtBackgammon'; }
+                }
+            }
+            score = w === HUMAN ? Math.round(100 * mult * MULT[diffKey]) : 0;
+            scoreSpan.textContent = score;
+            if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem('diceGatesBest', String(best)); }
+            resultH2.textContent = w === HUMAN ? t('uiYouWin') : t('uiYouLose');
+            marginP.textContent = t(tag);
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            endOverlay.classList.add('visible');
+        }
+
+        function refreshCounts() {
+            youSpan.textContent = S.off[HUMAN];
+            oppSpan.textContent = S.off[AI];
+        }
+
+        function newGame() {
+            token++;
+            S = startPosition(); score = 0; ended = false; selected = null;
+            scoreSpan.textContent = '0';
+            endOverlay.classList.remove('visible');
+            refreshCounts();
+            startHumanTurn();
+        }
+
+        // ----- OVLADANIE -----
+        // Screen layout: bottom row holds points 11..0 (left to right), top row 12..23.
+        const colX = col => col < 6 ? col * COLW : BAR + col * COLW;
+        function colOf(x) {
+            if (x >= W - TRAY) return 'tray';
+            const left = 6 * COLW;
+            if (x >= left && x < left + BAR) return 'bar';
+            const c = x < left ? Math.floor(x / COLW) : Math.floor((x - BAR) / COLW);
+            return Math.max(0, Math.min(11, c));
+        }
+
+        function hitTest(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * W;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * H;
+            const col = colOf(x);
+            if (col === 'tray') return { kind: 'tray' };
+            if (col === 'bar') return { kind: 'bar' };
+            const top = y < H / 2;
+            return { kind: 'point', idx: top ? 12 + col : 11 - col };
+        }
+
+        function allowedMoves() {
+            return sequences(S, HUMAN, remaining).map(r => r.moves[0]);
+        }
+
+        function onTap(e) {
+            if (ended || busy || turn !== HUMAN) return;
+            const hit = hitTest(e);
+            const allowed = allowedMoves();
+
+            if (selected !== null) {
+                const target = hit.kind === 'tray' ? -1 : (hit.kind === 'point' ? hit.idx : null);
+                if (target !== null) {
+                    const mv = allowed.find(m => m.from === selected && m.to === target);
+                    if (mv) {
+                        applySingle(S, HUMAN, mv);
+                        const at = remaining.indexOf(mv.die);
+                        if (at >= 0) remaining.splice(at, 1);
+                        selected = null;
+                        renderDice(); undoBtn.disabled = false;
+                        humanMoveDone();
+                        return;
+                    }
+                }
+            }
+
+            const src = hit.kind === 'bar' ? -1 : (hit.kind === 'point' ? hit.idx : null);
+            if (src !== null && allowed.some(m => m.from === src)) {
+                const opts = allowed.filter(m => m.from === src);
+                selected = src;
+                if (opts.length === 1) {                     // only one destination — play it straight away
+                    applySingle(S, HUMAN, opts[0]);
+                    const at = remaining.indexOf(opts[0].die);
+                    if (at >= 0) remaining.splice(at, 1);
+                    selected = null;
+                    renderDice(); undoBtn.disabled = false;
+                    humanMoveDone();
+                    return;
+                }
+            } else {
+                selected = null;
+            }
+            draw();
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        undoBtn.addEventListener('click', () => {
+            if (ended || turn !== HUMAN || !turnStart) return;
+            token++;                                    // drop any auto-advance already queued
+            S = clone(turnStart); remaining = dice.slice(); selected = null;
+            undoBtn.disabled = true;
+            renderDice(); refreshCounts();
+            statusLine.textContent = t('uiYourTurn');
+            busy = false;
+            draw();
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function checker(cx, cy, p, ring) {
+            const g = ctx.createRadialGradient(cx - CHK * .35, cy - CHK * .35, 1, cx, cy, CHK);
+            if (p === HUMAN) { g.addColorStop(0, '#ede9fe'); g.addColorStop(1, '#7c3aed'); }
+            else { g.addColorStop(0, '#7c8798'); g.addColorStop(1, '#0b1220'); }
+            ctx.beginPath(); ctx.arc(cx, cy, CHK, 0, Math.PI * 2);
+            ctx.fillStyle = g; ctx.fill();
+            ctx.strokeStyle = ring ? '#fcd34d' : 'rgba(0,0,0,.45)';
+            ctx.lineWidth = ring ? 2.5 : 1;
+            ctx.stroke();
+        }
+
+        function stack(col, top, count, p, ring) {
+            const cx = colX(col) + COLW / 2;
+            const shown = Math.min(count, 5);
+            for (let k = 0; k < shown; k++) {
+                const cy = top ? 10 + CHK + k * (CHK * 1.75) : H - 10 - CHK - k * (CHK * 1.75);
+                checker(cx, cy, p, ring && k === shown - 1);
+            }
+            if (count > 5) {
+                const cy = top ? 10 + CHK + (shown - 1) * (CHK * 1.75) : H - 10 - CHK - (shown - 1) * (CHK * 1.75);
+                ctx.fillStyle = '#0c0f16'; ctx.font = 'bold 12px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(String(count), cx, cy);
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#1a2436'; ctx.fillRect(0, 0, W, H);
+
+            // point triangles
+            for (let col = 0; col < 12; col++) {
+                const x = colX(col);
+                for (const top of [true, false]) {
+                    const idx = top ? 12 + col : 11 - col;
+                    ctx.beginPath();
+                    if (top) { ctx.moveTo(x, 0); ctx.lineTo(x + COLW, 0); ctx.lineTo(x + COLW / 2, H * 0.42); }
+                    else { ctx.moveTo(x, H); ctx.lineTo(x + COLW, H); ctx.lineTo(x + COLW / 2, H * 0.58); }
+                    ctx.closePath();
+                    ctx.fillStyle = (idx % 2 === 0) ? '#2b3a55' : '#212d43';
+                    ctx.fill();
+                }
+            }
+
+            // bar and off tray
+            ctx.fillStyle = '#101828';
+            ctx.fillRect(6 * COLW, 0, BAR, H);
+            ctx.fillRect(W - TRAY, 0, TRAY, H);
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+            ctx.strokeRect(6 * COLW, 0, BAR, H);
+            ctx.strokeRect(W - TRAY, 0, TRAY, H);
+
+            const allowed = (!ended && turn === HUMAN && !busy) ? allowedMoves() : [];
+            const sources = new Set(allowed.map(m => m.from));
+            const targets = new Set(selected !== null ? allowed.filter(m => m.from === selected).map(m => m.to) : []);
+
+            // destination hints
+            for (const tgt of targets) {
+                if (tgt === -1) {
+                    ctx.fillStyle = 'rgba(252,211,77,.25)';
+                    ctx.fillRect(W - TRAY, 0, TRAY, H);
+                    continue;
+                }
+                const col = tgt >= 12 ? tgt - 12 : 11 - tgt;
+                const top = tgt >= 12;
+                ctx.fillStyle = 'rgba(167,139,250,.24)';
+                ctx.fillRect(colX(col), top ? 0 : H * 0.5, COLW, H * 0.5);
+            }
+
+            // checkers on points
+            for (let i = 0; i < 24; i++) {
+                const c = S.pts[i];
+                if (!c) continue;
+                const p = c > 0 ? HUMAN : AI;
+                const col = i >= 12 ? i - 12 : 11 - i;
+                const isSrc = p === HUMAN && (sources.has(i) || selected === i);
+                stack(col, i >= 12, Math.abs(c), p, isSrc);
+            }
+
+            // bar checkers
+            for (const p of [HUMAN, AI]) {
+                const n = S.bar[p];
+                for (let k = 0; k < n; k++) {
+                    const cx = 6 * COLW + BAR / 2;
+                    const cy = p === HUMAN ? H * 0.62 + k * (CHK * 1.6) : H * 0.38 - k * (CHK * 1.6);
+                    checker(cx, cy, p, p === HUMAN && (sources.has(-1) || selected === -1) && k === n - 1);
+                }
+            }
+
+            // borne-off checkers in the tray
+            for (let k = 0; k < S.off[HUMAN]; k++) {
+                ctx.fillStyle = '#7c3aed';
+                ctx.fillRect(W - TRAY + 5, H - 8 - (k + 1) * 8, TRAY - 10, 6);
+            }
+            for (let k = 0; k < S.off[AI]; k++) {
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(W - TRAY + 5, 2 + k * 8, TRAY - 10, 6);
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

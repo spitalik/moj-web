@@ -91,7 +91,6 @@ header{padding:44px 0 0;display:flex;align-items:flex-start;justify-content:spac
 .tag-action  {color:#ff6b6b;border-color:rgba(255,107,107,0.22);background:rgba(255,107,107,0.06);}
 .tag-strategy{color:#4dc9ff;border-color:rgba(77,201,255,0.22); background:rgba(77,201,255,0.06);}
 .tag-memory  {color:#a78bfa;border-color:rgba(167,139,250,0.22);background:rgba(167,139,250,0.06);}
-.tag-word    {color:#f0abfc;border-color:rgba(240,171,252,0.22);background:rgba(240,171,252,0.06);}
 .play-arrow{width:30px;height:30px;border-radius:50%;border:1px solid var(--border-h);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;flex-shrink:0;transition:all .18s;}
 .game-card:hover .play-arrow{background:rgba(255,255,255,0.06);color:var(--text);border-color:rgba(255,255,255,0.25);}
 
@@ -143,7 +142,6 @@ header{padding:44px 0 0;display:flex;align-items:flex-start;justify-content:spac
       <button class="filter-btn" data-tag="action"></button>
       <button class="filter-btn" data-tag="strategy"></button>
       <button class="filter-btn" data-tag="memory"></button>
-      <button class="filter-btn" data-tag="word"></button>
     </div>
   </div>
 
@@ -251,40 +249,11 @@ const GAMES = [
   {id:'hanoi-towers',titleKey:'hanTitle',descKey:'hanDesc',emoji:'🗼',tags:['puzzle'],heroColor:'#1c130a',file:'games/hanoi-towers/index.html',isNew:true},
   {id:'cube-twist',titleKey:'cubTitle',descKey:'cubDesc',emoji:'🎲',tags:['puzzle'],heroColor:'#180a1c',file:'games/cube-twist/index.html',isNew:true},
   {id:'anagram-blitz',titleKey:'anaTitle',descKey:'anaDesc',emoji:'🔀',tags:['word'],heroColor:'#180a1c',file:'games/anagram-blitz/index.html',isNew:true},
-  {id:'crown-jump',titleKey:'crjTitle',descKey:'crjDesc',emoji:'♛',tags:['strategy'],heroColor:'#0e1408',file:'games/crown-jump/index.html',isNew:true},
-  {id:'drop-four',titleKey:'dr4Title',descKey:'dr4Desc',emoji:'🔴',tags:['strategy'],heroColor:'#0a1420',file:'games/drop-four/index.html',isNew:true},
-  {id:'nine-mills',titleKey:'nmlTitle',descKey:'nmlDesc',emoji:'🔘',tags:['strategy'],heroColor:'#0a1018',file:'games/nine-mills/index.html',isNew:true},
-  {id:'dice-gates',titleKey:'dgtTitle',descKey:'dgtDesc',emoji:'⚅',tags:['strategy'],heroColor:'#14100a',file:'games/dice-gates/index.html',isNew:true},
-  {id:'seed-sow',titleKey:'ssoTitle',descKey:'ssoDesc',emoji:'🫘',tags:['strategy','puzzle'],heroColor:'#14120a',file:'games/seed-sow/index.html',isNew:true},
-  {id:'box-claim',titleKey:'bxcTitle',descKey:'bxcDesc',emoji:'▫️',tags:['strategy'],heroColor:'#0a1418',file:'games/box-claim/index.html',isNew:true},
-  {id:'stone-garden',titleKey:'stgTitle',descKey:'stgDesc',emoji:'🪨',tags:['strategy'],heroColor:'#0d1210',file:'games/stone-garden/index.html',isNew:true},
-  {id:'artillery-duel',titleKey:'artTitle',descKey:'artDesc',emoji:'💥',tags:['strategy','action'],heroColor:'#1a0a05',file:'games/artillery-duel/index.html',isNew:true},
-  {id:'loop-weaver',titleKey:'lpwTitle',descKey:'lpwDesc',emoji:'🔷',tags:['puzzle'],heroColor:'#0a1420',file:'games/loop-weaver/index.html',isNew:true},
-  {id:'island-links',titleKey:'islTitle',descKey:'islDesc',emoji:'🌉',tags:['puzzle'],heroColor:'#071420',file:'games/island-links/index.html',isNew:true},
-  {id:'lantern-halls',titleKey:'lntTitle',descKey:'lntDesc',emoji:'🏮',tags:['puzzle'],heroColor:'#1a0e06',file:'games/lantern-halls/index.html',isNew:true},
-  {id:'shade-grid',titleKey:'shgTitle',descKey:'shgDesc',emoji:'◼️',tags:['puzzle'],heroColor:'#101014',file:'games/shade-grid/index.html',isNew:true},
-  {id:'sign-grid',titleKey:'sgnTitle',descKey:'sgnDesc',emoji:'⚖️',tags:['puzzle'],heroColor:'#0e1410',file:'games/sign-grid/index.html',isNew:true},
-  {id:'code-breaker',titleKey:'cdbTitle',descKey:'cdbDesc',emoji:'🔐',tags:['puzzle','memory'],heroColor:'#14060e',file:'games/code-breaker/index.html',isNew:true},
-  {id:'tile-match',titleKey:'tmhTitle',descKey:'tmhDesc',emoji:'🀄',tags:['puzzle','memory'],heroColor:'#0a1410',file:'games/tile-match/index.html',isNew:true},
-  {id:'free-cells',titleKey:'fclTitle',descKey:'fclDesc',emoji:'🂡',tags:['puzzle'],heroColor:'#0a1210',file:'games/free-cells/index.html',isNew:true},
-  {id:'spider-cards',titleKey:'spdTitle',descKey:'spdDesc',emoji:'🕷️',tags:['puzzle'],heroColor:'#0d0a16',file:'games/spider-cards/index.html',isNew:true},
-  {id:'pyramid-cards',titleKey:'pyrTitle',descKey:'pyrDesc',emoji:'🔻',tags:['puzzle'],heroColor:'#160e08',file:'games/pyramid-cards/index.html',isNew:true},
-  {id:'five-dice',titleKey:'fdcTitle',descKey:'fdcDesc',emoji:'⚂',tags:['strategy'],heroColor:'#0a1610',file:'games/five-dice/index.html',isNew:true},
-  {id:'dot-muncher',titleKey:'dmuTitle',descKey:'dmuDesc',emoji:'👻',tags:['arcade','action'],heroColor:'#0a0a1a',file:'games/dot-muncher/index.html',isNew:true},
-  {id:'blast-maze',titleKey:'blzTitle',descKey:'blzDesc',emoji:'🧨',tags:['action','arcade'],heroColor:'#1a0c06',file:'games/blast-maze/index.html',isNew:true},
-  {id:'sky-shield',titleKey:'skyTitle',descKey:'skyDesc',emoji:'🛡️',tags:['action'],heroColor:'#050a18',file:'games/sky-shield/index.html',isNew:true},
-  {id:'bug-column',titleKey:'bugTitle',descKey:'bugDesc',emoji:'🐛',tags:['action','arcade'],heroColor:'#0a1405',file:'games/bug-column/index.html',isNew:true},
-  {id:'moon-lander',titleKey:'mlnTitle',descKey:'mlnDesc',emoji:'🌕',tags:['arcade'],heroColor:'#06060c',file:'games/moon-lander/index.html',isNew:true},
-  {id:'light-trails',titleKey:'ltrTitle',descKey:'ltrDesc',emoji:'🏍️',tags:['arcade','action'],heroColor:'#06121a',file:'games/light-trails/index.html',isNew:true},
-  {id:'mini-putt',titleKey:'mptTitle',descKey:'mptDesc',emoji:'⛳',tags:['arcade','puzzle'],heroColor:'#06180c',file:'games/mini-putt/index.html',isNew:true},
-  {id:'pool-break',titleKey:'plbTitle',descKey:'plbDesc',emoji:'🎱',tags:['arcade'],heroColor:'#04140c',file:'games/pool-break/index.html',isNew:true},
-  {id:'five-letters',titleKey:'fivTitle',descKey:'fivDesc',emoji:'🟩',tags:['word','puzzle'],heroColor:'#0a1a0e',file:'games/five-letters/index.html',isNew:true},
-  {id:'hidden-word',titleKey:'hwdTitle',descKey:'hwdDesc',emoji:'🔠',tags:['word','puzzle'],heroColor:'#140a1a',file:'games/hidden-word/index.html',isNew:true},
 ];
 
-const TAG_CLASS  = {arcade:'tag-arcade',puzzle:'tag-puzzle',action:'tag-action',strategy:'tag-strategy',memory:'tag-memory',word:'tag-word'};
-const TAG_FILTER = {all:'filterAll',arcade:'filterArcade',puzzle:'filterPuzzle',action:'filterAction',strategy:'filterStrategy',memory:'filterMemory',word:'filterWord'};
-const TAG_LABEL  = {arcade:'tagArcade',puzzle:'tagPuzzle',action:'tagAction',strategy:'tagStrategy',memory:'tagMemory',word:'tagWord'};
+const TAG_CLASS  = {arcade:'tag-arcade',puzzle:'tag-puzzle',action:'tag-action',strategy:'tag-strategy',memory:'tag-memory'};
+const TAG_FILTER = {all:'filterAll',arcade:'filterArcade',puzzle:'filterPuzzle',action:'filterAction',strategy:'filterStrategy',memory:'filterMemory'};
+const TAG_LABEL  = {arcade:'tagArcade',puzzle:'tagPuzzle',action:'tagAction',strategy:'tagStrategy',memory:'tagMemory'};
 
 let activeTag='all', searchQuery='';
 

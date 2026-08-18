@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pool Break · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #123a2a;color:#7ba894;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#10b981;color:#eafff6;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:520px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#a7f3d0,#10b981);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#10b981; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#6ee7b7; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:crosshair; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#a7f3d0,#10b981); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#10b981; border:1px solid #a7f3d0; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #047857; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #047857; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🎱</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-left"></h3><span class="value" id="leftValue">7</span></div>
+            <div class="info-card"><h3 id="lbl-shots"></h3><span class="value" id="shotsValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-fouls"></h3><span class="value" id="foulsValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-detail"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const leftSpan = document.getElementById('leftValue');
+        const shotsSpan = document.getElementById('shotsValue');
+        const foulsSpan = document.getElementById('foulsValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalDetail = document.getElementById('lbl-final-detail');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🎱 ' + t('plbTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-left').textContent   = t('plbLeft');
+        document.getElementById('lbl-shots').textContent  = t('plbShots');
+        document.getElementById('lbl-fouls').textContent  = t('plbFouls');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('plbRules');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('plbTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const W = 470, H = 250, RAIL = 16, R = 8, POCKET = 13;
+        canvas.width = W; canvas.height = H;
+        const L = RAIL, T = RAIL, Rt = W - RAIL, B = H - RAIL;
+        const POCKETS = [
+            [L + 2, T + 2], [W / 2, T - 1], [Rt - 2, T + 2],
+            [L + 2, B - 2], [W / 2, B + 1], [Rt - 2, B - 2],
+        ];
+        const COLOURS = ['#eab308', '#3b82f6', '#ef4444', '#a855f7', '#f97316', '#22c55e', '#7f1d1d'];
+        const SETUP = {
+            easy:   { power: 0.30, friction: 0.986 },
+            medium: { power: 0.26, friction: 0.990 },
+            hard:   { power: 0.22, friction: 0.993 },
+        };
+
+        let diffKey = 'medium';
+        let balls = [], shots = 0, fouls = 0, over = false, won = false;
+        let aim = null, raf = 0, lastTick = 0, settling = false;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('poolBreakBest') || '{}')); } catch (e) { /* ignore */ }
+
+        const cue = () => balls[0];
+        const objectsLeft = () => balls.filter(b => !b.potted && b.n >= 1 && b.n <= 7).length;
+        const eight = () => balls.find(b => b.n === 8);
+        const moving = () => balls.some(b => !b.potted && Math.hypot(b.vx, b.vy) > 0.04);
+
+        function rack() {
+            balls = [{ n: 0, x: L + (Rt - L) * 0.26, y: H / 2, vx: 0, vy: 0, potted: false }];
+            // a small triangle with the 8 in the middle, as a real rack has it
+            const order = [1, 2, 3, 8, 4, 5, 6, 7];
+            const apexX = L + (Rt - L) * 0.68, apexY = H / 2;
+            const spacing = R * 2 + 0.6;
+            let i = 0;
+            for (let col = 0; col < 4 && i < order.length; col++) {
+                for (let row = 0; row <= col && i < order.length; row++) {
+                    const x = apexX + col * spacing * 0.87;
+                    const y = apexY + (row - col / 2) * spacing;
+                    balls.push({ n: order[i++], x, y, vx: 0, vy: 0, potted: false });
+                }
+            }
+        }
+
+        // ----- FYZIKA -----
+        function stepPhysics(dt) {
+            const setup = SETUP[diffKey];
+            const fastest = balls.reduce((m, b) => b.potted ? m : Math.max(m, Math.hypot(b.vx, b.vy)), 0);
+            const steps = Math.max(1, Math.ceil(fastest * dt / 2.5));
+            for (let s = 0; s < steps; s++) {
+                const h = dt / steps;
+                for (const b of balls) {
+                    if (b.potted) continue;
+                    b.x += b.vx * h; b.y += b.vy * h;
+                    if (b.x < L + R) { b.x = L + R; b.vx = Math.abs(b.vx) * 0.86; }
+                    if (b.x > Rt - R) { b.x = Rt - R; b.vx = -Math.abs(b.vx) * 0.86; }
+                    if (b.y < T + R) { b.y = T + R; b.vy = Math.abs(b.vy) * 0.86; }
+                    if (b.y > B - R) { b.y = B - R; b.vy = -Math.abs(b.vy) * 0.86; }
+                }
+                // equal-mass elastic collisions: swap the components along the contact normal
+                for (let i = 0; i < balls.length; i++) {
+                    const a = balls[i];
+                    if (a.potted) continue;
+                    for (let j = i + 1; j < balls.length; j++) {
+                        const c = balls[j];
+                        if (c.potted) continue;
+                        const dx = c.x - a.x, dy = c.y - a.y;
+                        const d = Math.hypot(dx, dy);
+                        if (d === 0 || d >= R * 2) continue;
+                        const nx = dx / d, ny = dy / d;
+                        const overlap = R * 2 - d;
+                        a.x -= nx * overlap / 2; a.y -= ny * overlap / 2;
+                        c.x += nx * overlap / 2; c.y += ny * overlap / 2;
+                        const av = a.vx * nx + a.vy * ny;
+                        const cv = c.vx * nx + c.vy * ny;
+                        if (av - cv <= 0) continue;             // already separating
+                        const swap = (av - cv) * 0.96;
+                        a.vx -= swap * nx; a.vy -= swap * ny;
+                        c.vx += swap * nx; c.vy += swap * ny;
+                    }
+                }
+                pockets();
+            }
+            for (const b of balls) {
+                if (b.potted) continue;
+                b.vx *= Math.pow(setup.friction, dt);
+                b.vy *= Math.pow(setup.friction, dt);
+                if (Math.hypot(b.vx, b.vy) < 0.04) { b.vx = 0; b.vy = 0; }
+            }
+        }
+
+        let pottedThisShot = [];
+
+        function pockets() {
+            for (const b of balls) {
+                if (b.potted) continue;
+                for (const [px, py] of POCKETS) {
+                    if (Math.hypot(b.x - px, b.y - py) > POCKET) continue;
+                    b.potted = true; b.vx = 0; b.vy = 0;
+                    pottedThisShot.push(b.n);
+                    break;
+                }
+            }
+        }
+
+        function resolveShot() {
+            const sank = pottedThisShot.slice();
+            pottedThisShot = [];
+            const cueIn = sank.includes(0);
+            const eightIn = sank.includes(8);
+            const objects = sank.filter(n => n >= 1 && n <= 7);
+
+            if (cueIn) {
+                fouls++;
+                const c = cue();
+                c.potted = false; c.vx = 0; c.vy = 0;
+                c.x = L + (Rt - L) * 0.26; c.y = H / 2;
+                // nudge out of anything it landed on
+                for (let guard = 0; guard < 40; guard++) {
+                    const clash = balls.find(b => b !== c && !b.potted && Math.hypot(b.x - c.x, b.y - c.y) < R * 2.1);
+                    if (!clash) break;
+                    c.x -= R * 1.1;
+                    if (c.x < L + R) { c.x = L + R; c.y += R * 2.2; }
+                }
+            }
+
+            refresh();
+            if (eightIn) {
+                if (objectsLeft() === 0 && !cueIn) finish(true);
+                else finish(false);
+                return;
+            }
+            if (objectsLeft() === 0) {
+                statusLine.textContent = t('plbEightOn');
+            } else if (objects.length) {
+                statusLine.textContent = t('plbPotted', { n: objects.length });
+            } else if (cueIn) {
+                statusLine.textContent = t('plbFoul');
+            } else {
+                statusLine.textContent = t('plbMiss');
+            }
+        }
+
+        function finish(win) {
+            over = true; won = win;
+            cancelAnimationFrame(raf);
+            const score = win ? Math.max(60, 700 - shots * 30 - fouls * 60) : 0;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('poolBreakBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = win ? t('plbCleared') : t('plbEightEarly');
+            finalDetail.textContent = t('plbShots') + ': ' + shots + '   ' + t('plbFouls') + ': ' + fouls;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            leftSpan.textContent = objectsLeft();
+            shotsSpan.textContent = shots;
+            foulsSpan.textContent = fouls;
+        }
+
+        function loop(now) {
+            raf = requestAnimationFrame(loop);
+            if (over) return;
+            const dt = Math.min(3, (now - lastTick) / 16.67 || 1);
+            lastTick = now;
+            if (moving()) { settling = true; stepPhysics(dt); }
+            else if (settling) { settling = false; resolveShot(); }
+            draw();
+        }
+
+        function newGame() {
+            shots = 0; fouls = 0; over = false; won = false; aim = null;
+            pottedThisShot = []; settling = false;
+            rack();
+            bestSpan.textContent = best[diffKey] || 0;
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('plbHint');
+            refresh();
+            cancelAnimationFrame(raf);
+            lastTick = performance.now();
+            raf = requestAnimationFrame(loop);
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        function pointer(e) {
+            const rect = canvas.getBoundingClientRect();
+            const src = e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e);
+            return {
+                x: (src.clientX - rect.left) / rect.width * W,
+                y: (src.clientY - rect.top) / rect.height * H,
+            };
+        }
+        function startAim(e) {
+            if (over || moving()) return;
+            const p = pointer(e);
+            const c = cue();
+            if (Math.hypot(p.x - c.x, p.y - c.y) > 70) return;
+            aim = p;
+        }
+        function moveAim(e) { if (aim) aim = pointer(e); }
+        function releaseAim(e) {
+            if (!aim) return;
+            const p = pointer(e);
+            const c = cue();
+            const dx = c.x - p.x, dy = c.y - p.y;         // pull back from the cue ball
+            const len = Math.hypot(dx, dy);
+            aim = null;
+            if (len < 8) return;
+            const power = Math.min(len, 120) * SETUP[diffKey].power;
+            c.vx = dx / len * power;
+            c.vy = dy / len * power;
+            shots++;
+            pottedThisShot = [];
+            refresh();
+            statusLine.textContent = '';
+        }
+
+        canvas.addEventListener('mousedown', startAim);
+        canvas.addEventListener('mousemove', moveAim);
+        canvas.addEventListener('mouseup', releaseAim);
+        canvas.addEventListener('mouseleave', () => { aim = null; });
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); startAim(e); }, { passive: false });
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); moveAim(e); }, { passive: false });
+        canvas.addEventListener('touchend', e => { e.preventDefault(); releaseAim(e); }, { passive: false });
+
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#5b3a1a'; ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#0f6b46'; ctx.fillRect(L, T, Rt - L, B - T);
+            ctx.strokeStyle = '#0a4d31'; ctx.lineWidth = 2; ctx.strokeRect(L, T, Rt - L, B - T);
+
+            for (const [px, py] of POCKETS) {
+                ctx.beginPath(); ctx.arc(px, py, POCKET, 0, Math.PI * 2);
+                ctx.fillStyle = '#06120c'; ctx.fill();
+            }
+
+            for (const b of balls) {
+                if (b.potted) continue;
+                ctx.beginPath(); ctx.arc(b.x, b.y + 1.5, R, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.fill();
+                const base = b.n === 0 ? '#f8fafc' : (b.n === 8 ? '#111827' : COLOURS[b.n - 1]);
+                const g = ctx.createRadialGradient(b.x - 3, b.y - 3, 1, b.x, b.y, R);
+                g.addColorStop(0, 'rgba(255,255,255,.75)');
+                g.addColorStop(0.35, base);
+                g.addColorStop(1, base);
+                ctx.beginPath(); ctx.arc(b.x, b.y, R, 0, Math.PI * 2);
+                ctx.fillStyle = g; ctx.fill();
+                ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1; ctx.stroke();
+                if (b.n > 0) {
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(b.x, b.y, R * 0.46, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#111827';
+                    ctx.font = '700 8px system-ui';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(String(b.n), b.x, b.y + 0.5);
+                }
+            }
+
+            if (aim) {
+                const c = cue();
+                const dx = c.x - aim.x, dy = c.y - aim.y;
+                const len = Math.min(Math.hypot(dx, dy), 120);
+                const ang = Math.atan2(dy, dx);
+                ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 2;
+                ctx.setLineDash([6, 5]);
+                ctx.beginPath(); ctx.moveTo(c.x, c.y);
+                ctx.lineTo(c.x + Math.cos(ang) * 160, c.y + Math.sin(ang) * 160);
+                ctx.stroke(); ctx.setLineDash([]);
+                ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.moveTo(c.x, c.y);
+                ctx.lineTo(c.x - Math.cos(ang) * len * 0.6, c.y - Math.sin(ang) * len * 0.6);
+                ctx.stroke();
+                ctx.fillStyle = '#fde68a'; ctx.font = '600 11px system-ui';
+                ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+                ctx.fillText(Math.round(len / 120 * 100) + '%', 20, 20);
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

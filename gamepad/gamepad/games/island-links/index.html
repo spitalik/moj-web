@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Island Links · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #123449;color:#7d9db3;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#38bdf8;color:#eaf8ff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 24px 24px;
+            max-width:470px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#bae6fd,#38bdf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#38bdf8; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#7dd3fc; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#bae6fd,#38bdf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#38bdf8; border:1px solid #bae6fd; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #0369a1; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #0369a1; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🌉</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-islands"></h3><span class="value" id="islandsValue">0/0</span></div>
+            <div class="info-card"><h3 id="lbl-time"></h3><span class="value" id="timeValue">0:00</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-time"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="checkBtn"></button>
+            <button id="clearBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const islandsSpan = document.getElementById('islandsValue');
+        const timeSpan = document.getElementById('timeValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalTimeP = document.getElementById('lbl-final-time');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent    = t('back');
+        document.getElementById('lbl-title').textContent   = '🌉 ' + t('islTitle');
+        document.getElementById('lbl-diff').textContent    = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent    = t('diffEasy');
+        document.getElementById('lbl-medium').textContent  = t('diffMedium');
+        document.getElementById('lbl-hard').textContent    = t('diffHard');
+        document.getElementById('lbl-islands').textContent = t('islIslands');
+        document.getElementById('lbl-time').textContent    = t('uiTime');
+        document.getElementById('lbl-score').textContent   = t('uiScore');
+        document.getElementById('lbl-best').textContent    = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent       = t('islRules');
+        checkBtn.textContent   = t('uiCheck');
+        clearBtn.textContent   = t('islClear');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('islTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const SETUP = {
+            easy:   { g: 7, cell: 46, islands: 9,  base: 260 },
+            medium: { g: 8, cell: 41, islands: 14, base: 520 },
+            hard:   { g: 9, cell: 37, islands: 19, base: 880 },
+        };
+        const MARGIN = 26;
+
+        let diffKey = 'medium';
+        let G = 8, CELL = 41, SIZE = 0;
+        let islands = [], links = [], bridges = [];      // bridges[i] = 0..2, parallel to links
+        let selected = -1, solved = false, startedAt = 0, elapsed = 0, timer = null, score = 0;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('islandLinksBest') || '{}')); } catch (e) { /* ignore */ }
+
+        const px = i => MARGIN + i * CELL;
+        const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+        // ----- GENEROVANIE -----
+        // Grow a connected island network by construction, then read each island's degree as
+        // its clue. A solution therefore always exists and the network is always connected.
+        function build() {
+            const setup = SETUP[diffKey];
+            const grid = Array.from({ length: G }, () => new Array(G).fill(-1));   // island id or -1
+            const span = Array.from({ length: G }, () => new Array(G).fill(0));    // 1 = horizontal bridge, 2 = vertical
+            islands = [];
+
+            const addIsland = (r, c) => {
+                grid[r][c] = islands.length;
+                islands.push({ r, c, need: 0 });
+                return islands.length - 1;
+            };
+
+            const start = 1 + Math.floor(Math.random() * (G - 2));
+            addIsland(start, 1 + Math.floor(Math.random() * (G - 2)));
+
+            let guard = 0;
+            while (islands.length < setup.islands && guard++ < setup.islands * 260) {
+                const a = Math.floor(Math.random() * islands.length);
+                const [dr, dc] = DIRS[Math.floor(Math.random() * 4)];
+                const dist = 2 + Math.floor(Math.random() * 3);
+                const A = islands[a];
+                const nr = A.r + dr * dist, nc = A.c + dc * dist;
+                if (nr < 0 || nr >= G || nc < 0 || nc >= G) continue;
+                if (grid[nr][nc] !== -1) continue;
+                if (span[nr][nc] !== 0) continue;      // never drop an island onto an existing bridge
+
+                // the cells in between must be completely free
+                let clear = true;
+                for (let k = 1; k < dist; k++) {
+                    const mr = A.r + dr * k, mc = A.c + dc * k;
+                    if (grid[mr][mc] !== -1 || span[mr][mc] !== 0) { clear = false; break; }
+                }
+                if (!clear) continue;
+
+                // keep islands apart so every pair has room for a bridge
+                let touching = false;
+                for (const [tr, tc] of DIRS) {
+                    const ar = nr + tr, ac = nc + tc;
+                    if (ar < 0 || ar >= G || ac < 0 || ac >= G) continue;
+                    if (grid[ar][ac] !== -1) touching = true;
+                }
+                if (touching) continue;
+
+                const count = Math.random() < 0.4 ? 2 : 1;
+                const b = addIsland(nr, nc);
+                const orient = dr === 0 ? 1 : 2;
+                for (let k = 1; k < dist; k++) span[A.r + dr * k][A.c + dc * k] = orient;
+                islands[a].need += count;
+                islands[b].need += count;
+            }
+
+            // enumerate every pair of islands that face each other with nothing in between
+            links = [];
+            for (let i = 0; i < islands.length; i++) {
+                for (const [dr, dc] of [[1, 0], [0, 1]]) {          // only forward, to list each pair once
+                    let r = islands[i].r + dr, c = islands[i].c + dc;
+                    while (r >= 0 && r < G && c >= 0 && c < G && grid[r][c] === -1) { r += dr; c += dc; }
+                    if (r < 0 || r >= G || c < 0 || c >= G) continue;
+                    const j = grid[r][c];
+                    if (j === -1 || j === i) continue;
+                    const gap = Math.abs(r - islands[i].r) + Math.abs(c - islands[i].c);
+                    if (gap < 2) continue;                          // adjacent islands cannot be bridged
+                    links.push({ a: i, b: j, horiz: dr === 0 });
+                }
+            }
+
+            // Growing the network attaches every island to exactly one parent, so the
+            // solution would always be a tree. Add a few more corridors that no existing
+            // bridge runs through — that puts cycles in the solution and makes the
+            // deduction less forced.
+            const extras = Math.round(islands.length / 3);
+            const order = links.map((_, i) => i).sort(() => Math.random() - 0.5);
+            let added = 0;
+            for (const li of order) {
+                if (added >= extras) break;
+                const A = islands[links[li].a], B = islands[links[li].b];
+                const dr = Math.sign(B.r - A.r), dc = Math.sign(B.c - A.c);
+                let free = true;
+                for (let r = A.r + dr, c = A.c + dc; r !== B.r || c !== B.c; r += dr, c += dc)
+                    if (span[r][c] !== 0) { free = false; break; }
+                if (!free) continue;                    // that corridor is already in use
+                const orient = dr === 0 ? 1 : 2;
+                for (let r = A.r + dr, c = A.c + dc; r !== B.r || c !== B.c; r += dr, c += dc) span[r][c] = orient;
+                const count = Math.random() < 0.35 ? 2 : 1;
+                islands[links[li].a].need += count;
+                islands[links[li].b].need += count;
+                added++;
+            }
+
+            bridges = new Array(links.length).fill(0);
+        }
+
+        // Does link L visually cross link M?
+        function crosses(L, M) {
+            if (L.horiz === M.horiz) return false;
+            const hz = L.horiz ? L : M, vt = L.horiz ? M : L;
+            const row = islands[hz.a].r;
+            const c1 = Math.min(islands[hz.a].c, islands[hz.b].c), c2 = Math.max(islands[hz.a].c, islands[hz.b].c);
+            const col = islands[vt.a].c;
+            const r1 = Math.min(islands[vt.a].r, islands[vt.b].r), r2 = Math.max(islands[vt.a].r, islands[vt.b].r);
+            return col > c1 && col < c2 && row > r1 && row < r2;
+        }
+
+        const degreeOf = id => links.reduce((n, L, i) => n + ((L.a === id || L.b === id) ? bridges[i] : 0), 0);
+
+        function connected() {
+            if (!islands.length) return false;
+            const seen = new Set([0]);
+            const stack = [0];
+            while (stack.length) {
+                const cur = stack.pop();
+                links.forEach((L, i) => {
+                    if (!bridges[i]) return;
+                    const other = L.a === cur ? L.b : (L.b === cur ? L.a : -1);
+                    if (other < 0 || seen.has(other)) return;
+                    seen.add(other); stack.push(other);
+                });
+            }
+            return seen.size === islands.length;
+        }
+
+        function progress() {
+            let ok = 0;
+            islands.forEach((isl, id) => { if (degreeOf(id) === isl.need) ok++; });
+            return { ok, total: islands.length };
+        }
+
+        function checkSolved(announce) {
+            const p = progress();
+            islandsSpan.textContent = p.ok + '/' + p.total;
+            if (p.ok === p.total && connected()) { win(); return true; }
+            if (announce) statusLine.textContent = p.ok !== p.total ? t('islCountsBad') : t('islNotConnected');
+            return false;
+        }
+
+        function win() {
+            solved = true;
+            clearInterval(timer);
+            score = Math.max(30, Math.round(SETUP[diffKey].base - elapsed * 2));
+            scoreSpan.textContent = score;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('islandLinksBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = t('uiSolved');
+            finalTimeP.textContent = t('uiTime') + ': ' + fmt(elapsed);
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            selected = -1;
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+
+        function newGame() {
+            const setup = SETUP[diffKey];
+            G = setup.g; CELL = setup.cell;
+            SIZE = MARGIN * 2 + (G - 1) * CELL;
+            canvas.width = SIZE; canvas.height = SIZE;
+            do { build(); } while (islands.length < 4 || !links.length);
+            selected = -1; solved = false; score = 0; elapsed = 0;
+            scoreSpan.textContent = '0';
+            bestSpan.textContent = best[diffKey] || 0;
+            timeSpan.textContent = '0:00';
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('islHintTap');
+            islandsSpan.textContent = '0/' + islands.length;
+            clearInterval(timer);
+            startedAt = Date.now();
+            timer = setInterval(() => {
+                if (solved) return;
+                elapsed = Math.floor((Date.now() - startedAt) / 1000);
+                timeSpan.textContent = fmt(elapsed);
+            }, 1000);
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        function islandAtPoint(x, y) {
+            for (let i = 0; i < islands.length; i++) {
+                const cx = px(islands[i].c), cy = px(islands[i].r);
+                if (Math.hypot(cx - x, cy - y) <= CELL * 0.44) return i;
+            }
+            return -1;
+        }
+
+        function toggleLink(li) {
+            const next = (bridges[li] + 1) % 3;
+            if (next > 0) {
+                for (let k = 0; k < links.length; k++) {
+                    if (k === li || !bridges[k]) continue;
+                    if (crosses(links[li], links[k])) { statusLine.textContent = t('islCross'); return; }
+                }
+            }
+            bridges[li] = next;
+            statusLine.textContent = '';
+        }
+
+        function onTap(e) {
+            if (solved) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * SIZE;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * SIZE;
+            const hit = islandAtPoint(x, y);
+            if (hit < 0) { selected = -1; draw(); return; }
+            if (selected < 0) { selected = hit; draw(); return; }
+            if (selected === hit) { selected = -1; draw(); return; }
+            const li = links.findIndex(L => (L.a === selected && L.b === hit) || (L.b === selected && L.a === hit));
+            if (li < 0) { selected = hit; draw(); return; }
+            toggleLink(li);
+            selected = -1;
+            draw();
+            checkSolved(false);
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        checkBtn.addEventListener('click', () => { if (!solved) checkSolved(true); });
+        clearBtn.addEventListener('click', () => {
+            if (solved) return;
+            bridges = new Array(links.length).fill(0);
+            selected = -1; statusLine.textContent = '';
+            draw(); checkSolved(false);
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#0a1a26'; ctx.fillRect(0, 0, SIZE, SIZE);
+
+            // faint lattice
+            ctx.fillStyle = 'rgba(148,197,230,.09)';
+            for (let r = 0; r < G; r++) for (let c = 0; c < G; c++) {
+                ctx.beginPath(); ctx.arc(px(c), px(r), 1.6, 0, Math.PI * 2); ctx.fill();
+            }
+
+            // candidate links from the selected island
+            if (selected >= 0) {
+                ctx.strokeStyle = 'rgba(56,189,248,.28)'; ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                links.forEach(L => {
+                    if (L.a !== selected && L.b !== selected) return;
+                    const A = islands[L.a], B = islands[L.b];
+                    ctx.beginPath(); ctx.moveTo(px(A.c), px(A.r)); ctx.lineTo(px(B.c), px(B.r)); ctx.stroke();
+                });
+                ctx.setLineDash([]);
+            }
+
+            // bridges
+            ctx.lineCap = 'round';
+            links.forEach((L, i) => {
+                if (!bridges[i]) return;
+                const A = islands[L.a], B = islands[L.b];
+                const offs = bridges[i] === 1 ? [0] : [-3.5, 3.5];
+                ctx.strokeStyle = solved ? '#4ade80' : '#38bdf8';
+                ctx.lineWidth = 3;
+                for (const o of offs) {
+                    ctx.beginPath();
+                    if (L.horiz) { ctx.moveTo(px(A.c), px(A.r) + o); ctx.lineTo(px(B.c), px(B.r) + o); }
+                    else { ctx.moveTo(px(A.c) + o, px(A.r)); ctx.lineTo(px(B.c) + o, px(B.r)); }
+                    ctx.stroke();
+                }
+            });
+
+            // islands
+            const rad = CELL * 0.38;
+            islands.forEach((isl, id) => {
+                const cx = px(isl.c), cy = px(isl.r);
+                const deg = degreeOf(id);
+                ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+                ctx.fillStyle = '#0f2a3d'; ctx.fill();
+                if (id === selected) { ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 3; }
+                else if (deg === isl.need) { ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 2.4; }
+                else if (deg > isl.need) { ctx.strokeStyle = '#f87171'; ctx.lineWidth = 2.4; }
+                else { ctx.strokeStyle = '#7dd3fc'; ctx.lineWidth = 2; }
+                ctx.stroke();
+                ctx.fillStyle = deg === isl.need ? '#86efac' : (deg > isl.need ? '#fca5a5' : '#e2f4ff');
+                ctx.font = '700 ' + Math.round(rad * 1.05) + 'px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(String(isl.need), cx, cy + 1);
+            });
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>
