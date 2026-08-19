@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shade Grid · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #2a2f3d;color:#8f96a8;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#cbd5e1;color:#f8fafc;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 24px 24px;
+            max-width:470px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#f1f5f9,#94a3b8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#cbd5e1; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#cbd5e1; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#f1f5f9,#94a3b8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#cbd5e1; border:1px solid #f1f5f9; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #475569; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #475569; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">◼️</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-shaded"></h3><span class="value" id="shadedValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-time"></h3><span class="value" id="timeValue">0:00</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-time"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="checkBtn"></button>
+            <button id="hintBtn"></button>
+            <button id="clearBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const shadedSpan = document.getElementById('shadedValue');
+        const timeSpan = document.getElementById('timeValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalTimeP = document.getElementById('lbl-final-time');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '◼️ ' + t('shgTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-shaded').textContent = t('shgShaded');
+        document.getElementById('lbl-time').textContent   = t('uiTime');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('shgRules');
+        checkBtn.textContent   = t('uiCheck');
+        clearBtn.textContent   = t('islClear');
+        hintBtn.textContent    = t('uiHint');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('shgTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const SETUP = {
+            easy:   { n: 5, cell: 58, shade: 0.20, base: 280 },
+            medium: { n: 7, cell: 44, shade: 0.22, base: 540 },
+            hard:   { n: 8, cell: 39, shade: 0.24, base: 880 },
+        };
+        const MARGIN = 12;
+
+        let diffKey = 'medium';
+        let N = 7, CELL = 44, SIZE = 0;
+        let grid = [], mark = [];              // mark: 0 open, 1 shaded, 2 pencilled "stays open"
+        let solution = [];                            // the shading the generator built
+        let hints = 0;
+        let solved = false, startedAt = 0, elapsed = 0, timer = null, score = 0;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('shadeGridBest') || '{}')); } catch (e) { /* ignore */ }
+
+        const px = i => MARGIN + i * CELL;
+        const inB = (r, c) => r >= 0 && r < N && c >= 0 && c < N;
+        const NB = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+        // ----- GENEROVANIE -----
+        // Unshaded cells take their value from a latin square, so they can never repeat in a
+        // row or column; shaded cells get a deliberate duplicate, which is what makes shading
+        // them necessary. That gives a puzzle with a known-good solution.
+        function latinSquare() {
+            const base = [];
+            for (let i = 0; i < N; i++) base.push(i + 1);
+            for (let i = base.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [base[i], base[j]] = [base[j], base[i]];
+            }
+            const rows = [];
+            for (let i = 0; i < N; i++) rows.push(i);
+            for (let i = rows.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [rows[i], rows[j]] = [rows[j], rows[i]];
+            }
+            return rows.map(shift => base.map((_, c) => base[(c + shift) % N]));
+        }
+
+        function unshadedConnected(shaded) {
+            let start = null;
+            for (let r = 0; r < N && !start; r++) for (let c = 0; c < N && !start; c++)
+                if (!shaded[r][c]) start = [r, c];
+            if (!start) return false;
+            const seen = Array.from({ length: N }, () => new Array(N).fill(false));
+            const stack = [start]; seen[start[0]][start[1]] = true;
+            let n = 1;
+            while (stack.length) {
+                const [r, c] = stack.pop();
+                for (const [dr, dc] of NB) {
+                    const rr = r + dr, cc = c + dc;
+                    if (!inB(rr, cc) || seen[rr][cc] || shaded[rr][cc]) continue;
+                    seen[rr][cc] = true; n++; stack.push([rr, cc]);
+                }
+            }
+            let open = 0;
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!shaded[r][c]) open++;
+            return n === open;
+        }
+
+        function generate() {
+            const setup = SETUP[diffKey];
+            const values = latinSquare();
+            const shaded = Array.from({ length: N }, () => new Array(N).fill(false));
+            const target = Math.max(2, Math.round(N * N * setup.shade));
+            const order = [];
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) order.push([r, c]);
+            for (let i = order.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [order[i], order[j]] = [order[j], order[i]];
+            }
+            let placed = 0;
+            for (const [r, c] of order) {
+                if (placed >= target) break;
+                if (NB.some(([dr, dc]) => inB(r + dr, c + dc) && shaded[r + dr][c + dc])) continue;
+                shaded[r][c] = true;
+                if (unshadedConnected(shaded)) placed++;
+                else shaded[r][c] = false;
+            }
+
+            // give every shaded cell a value that duplicates an open cell in its row or column
+            const out = values.map(row => row.slice());
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                if (!shaded[r][c]) continue;
+                const pool = [];
+                for (let k = 0; k < N; k++) {
+                    if (k !== c && !shaded[r][k]) pool.push(values[r][k]);
+                    if (k !== r && !shaded[k][c]) pool.push(values[k][c]);
+                }
+                if (pool.length) out[r][c] = pool[Math.floor(Math.random() * pool.length)];
+            }
+            return { grid: out, shaded };
+        }
+
+        // ----- KONTROLA -----
+        function faults() {
+            const dup = new Set(), touch = new Set();
+            for (let r = 0; r < N; r++) {
+                const seen = new Map();
+                for (let c = 0; c < N; c++) {
+                    if (mark[r][c] === 1) continue;
+                    const v = grid[r][c];
+                    if (seen.has(v)) { dup.add(r + ',' + c); dup.add(seen.get(v)); }
+                    else seen.set(v, r + ',' + c);
+                }
+            }
+            for (let c = 0; c < N; c++) {
+                const seen = new Map();
+                for (let r = 0; r < N; r++) {
+                    if (mark[r][c] === 1) continue;
+                    const v = grid[r][c];
+                    if (seen.has(v)) { dup.add(r + ',' + c); dup.add(seen.get(v)); }
+                    else seen.set(v, r + ',' + c);
+                }
+            }
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                if (mark[r][c] !== 1) continue;
+                for (const [dr, dc] of NB) {
+                    const rr = r + dr, cc = c + dc;
+                    if (inB(rr, cc) && mark[rr][cc] === 1) { touch.add(r + ',' + c); touch.add(rr + ',' + cc); }
+                }
+            }
+            const shadedGrid = Array.from({ length: N }, (_, r) => Array.from({ length: N }, (_, c) => mark[r][c] === 1));
+            return { dup, touch, connected: unshadedConnected(shadedGrid) };
+        }
+
+        function shadedCount() {
+            let n = 0;
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (mark[r][c] === 1) n++;
+            return n;
+        }
+
+        function checkSolved(announce) {
+            shadedSpan.textContent = shadedCount();
+            const f = faults();
+            if (!f.dup.size && !f.touch.size && f.connected) { win(); return true; }
+            if (announce) {
+                statusLine.textContent = f.touch.size ? t('shgAdjacent')
+                    : (f.dup.size ? t('shgDup') : t('shgSplit'));
+            }
+            return false;
+        }
+
+        function win() {
+            solved = true;
+            clearInterval(timer);
+            score = Math.max(20, Math.round(SETUP[diffKey].base - elapsed * 2 - hints * 40));
+            scoreSpan.textContent = score;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('shadeGridBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = t('uiSolved');
+            finalTimeP.textContent = t('uiTime') + ': ' + fmt(elapsed);
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+
+        function newGame() {
+            const setup = SETUP[diffKey];
+            N = setup.n; CELL = setup.cell;
+            SIZE = MARGIN * 2 + N * CELL;
+            canvas.width = SIZE; canvas.height = SIZE;
+            const puz = generate();
+            grid = puz.grid; solution = puz.shaded;
+            mark = Array.from({ length: N }, () => new Array(N).fill(0));
+            solved = false; score = 0; elapsed = 0; hints = 0;
+            scoreSpan.textContent = '0';
+            bestSpan.textContent = best[diffKey] || 0;
+            timeSpan.textContent = '0:00';
+            shadedSpan.textContent = '0';
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('shgHintTap');
+            clearInterval(timer);
+            startedAt = Date.now();
+            timer = setInterval(() => {
+                if (solved) return;
+                elapsed = Math.floor((Date.now() - startedAt) / 1000);
+                timeSpan.textContent = fmt(elapsed);
+            }, 1000);
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        function onTap(e, back) {
+            if (solved) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * SIZE;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * SIZE;
+            const c = Math.floor((x - MARGIN) / CELL), r = Math.floor((y - MARGIN) / CELL);
+            if (!inB(r, c)) return;
+            mark[r][c] = back ? (mark[r][c] + 2) % 3 : (mark[r][c] + 1) % 3;
+            statusLine.textContent = '';
+            draw();
+            checkSolved(false);
+        }
+
+        canvas.addEventListener('mousedown', e => { if (e.button === 2) return; onTap(e, false); });
+        canvas.addEventListener('contextmenu', e => { e.preventDefault(); onTap(e, true); });
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e, false); }, { passive: false });
+        checkBtn.addEventListener('click', () => { if (!solved) checkSolved(true); });
+        hintBtn.addEventListener('click', () => {
+            if (solved) return;
+            // correct one cell towards the solution the generator built
+            const wrong = [];
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                const want = solution[r][c] ? 1 : 0;
+                if ((mark[r][c] === 1 ? 1 : 0) !== want) wrong.push([r, c, want]);
+            }
+            if (!wrong.length) { statusLine.textContent = t('shgAllDone'); return; }
+            const [r, c, want] = wrong[Math.floor(Math.random() * wrong.length)];
+            mark[r][c] = want;
+            hints++;
+            statusLine.textContent = '';
+            draw();
+            checkSolved(false);
+        });
+        clearBtn.addEventListener('click', () => {
+            if (solved) return;
+            mark = Array.from({ length: N }, () => new Array(N).fill(0));
+            statusLine.textContent = '';
+            draw(); checkSolved(false);
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#0f1420'; ctx.fillRect(0, 0, SIZE, SIZE);
+            const f = faults();
+
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                const x = px(c), y = px(r), key = r + ',' + c;
+                const shaded = mark[r][c] === 1;
+                ctx.fillStyle = shaded ? '#0a0d14' : '#e7ecf5';
+                ctx.fillRect(x, y, CELL, CELL);
+                if (shaded && f.touch.has(key)) {
+                    ctx.fillStyle = 'rgba(239,68,68,.35)';
+                    ctx.fillRect(x, y, CELL, CELL);
+                }
+                if (!shaded && f.dup.has(key)) {
+                    ctx.fillStyle = 'rgba(239,68,68,.22)';
+                    ctx.fillRect(x, y, CELL, CELL);
+                }
+                ctx.strokeStyle = '#2c3648'; ctx.lineWidth = 1;
+                ctx.strokeRect(x + .5, y + .5, CELL - 1, CELL - 1);
+
+                ctx.font = '700 ' + Math.round(CELL * 0.46) + 'px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = shaded ? 'rgba(148,163,184,.35)' : (f.dup.has(key) ? '#b91c1c' : '#16202f');
+                ctx.fillText(String(grid[r][c]), x + CELL / 2, y + CELL / 2 + 1);
+
+                if (mark[r][c] === 2) {
+                    ctx.beginPath();
+                    ctx.arc(x + CELL / 2, y + CELL / 2, CELL * 0.38, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 2; ctx.stroke();
+                }
+            }
+
+            if (!f.connected && !solved) {
+                ctx.strokeStyle = 'rgba(251,191,36,.5)'; ctx.lineWidth = 3;
+                ctx.strokeRect(2, 2, SIZE - 4, SIZE - 4);
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tangram Fit · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402a1a;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#fb923c;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:460px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#fed7aa,#fb923c);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#fb923c; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #board-wrap {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            align-self:center; position:relative;
+        }
+        #svgRoot { display:block; touch-action:none; width:320px; height:320px; max-width:100%; aspect-ratio:1; }
+        .piece { cursor:grab; opacity:0.92; stroke:rgba(255,255,255,0.35); stroke-width:0.02; }
+        .piece.dragging { cursor:grabbing; opacity:1; filter:drop-shadow(0 0 6px rgba(255,255,255,.5)); }
+        .piece.placed { opacity:0.85; }
+        .target-outline { fill:none; stroke:rgba(255,255,255,0.18); stroke-width:0.03; stroke-dasharray:0.08 0.06; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.94); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#fed7aa,#fb923c);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #nextBtn {
+            background:#fb923c; border:1px solid #fed7aa; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #c2410c; cursor:pointer; margin-top:6px;
+        }
+        #nextBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #c2410c; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        #controls button:active { transform:translateY(2px); }
+        #rotateBtn { border-color:#fb923c; color:#fed7aa; }
+        #solveBtn { border-color:#64748b; color:#cbd5e1; }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🔺 TANGRAM FIT</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="s" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="m" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="l" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-placed">Umiestnené</h3>
+                <span class="value" id="placedValue">0/7</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-moves">Ťahy</h3>
+                <span class="value" id="movesValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="board-wrap">
+            <svg id="svgRoot" viewBox="-1 -1 6 6"></svg>
+            <div id="end-overlay">
+                <h2 id="lbl-win">Zložené!</h2>
+                <p><span id="lbl-final-moves">Ťahy:</span> <span id="finalMoves">0</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="nextBtn">Znova zamiešať</button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="rotateBtn"><span id="lbl-rotate">Otočiť</span></button>
+            <button id="newLevelBtn"><span id="lbl-newlevel">Zamiešať</span></button>
+            <button id="solveBtn"><span id="lbl-solve">Ukáž riešenie</span></button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const PIECES_DATA = {"large1": {"local": [[-2.0, -0.6667], [2.0, -0.6667], [0.0, 1.3333]], "targetCx": 2.0, "targetCy": 0.6667, "symmetry": 360}, "large2": {"local": [[-0.6667, -2.0], [1.3333, 0.0], [-0.6667, 2.0]], "targetCx": 0.6667, "targetCy": 2.0, "symmetry": 360}, "medium": {"local": [[0.6667, -1.3333], [0.6667, 0.6667], [-1.3333, 0.6667]], "targetCx": 3.3333, "targetCy": 3.3333, "symmetry": 360}, "small1": {"local": [[-0.6667, 0.0], [0.3333, -1.0], [0.3333, 1.0]], "targetCx": 3.6667, "targetCy": 1.0, "symmetry": 360}, "square_piece": {"local": [[-1.0, 0.0], [0.0, -1.0], [1.0, 0.0], [0.0, 1.0]], "targetCx": 3.0, "targetCy": 2.0, "symmetry": 90}, "small2": {"local": [[-1.0, 0.6667], [0.0, 0.6667], [1.0, -1.3333]], "targetCx": 1.0, "targetCy": 3.3333, "symmetry": 360}, "parallelogram": {"local": [[-1.0, 0.75], [0.0, 0.75], [1.0, -0.25], [0.0, -1.25]], "targetCx": 2.0, "targetCy": 3.25, "symmetry": 360}};
+
+            const backLbl = document.getElementById('lbl-back');
+            const sizeGroup = document.getElementById('sizeGroup');
+            const rulesP = document.getElementById('rules');
+            const placedSpan = document.getElementById('placedValue');
+            const movesSpan = document.getElementById('movesValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const svgRoot = document.getElementById('svgRoot');
+            const endOverlay = document.getElementById('end-overlay');
+            const finalMoves = document.getElementById('finalMoves');
+            const finalScore = document.getElementById('finalScore');
+            const rotateBtn = document.getElementById('rotateBtn');
+            const newLevelBtn = document.getElementById('newLevelBtn');
+            const solveBtn = document.getElementById('solveBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            // ----- PREKLADY -----
+            backLbl.textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('tanDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('tanEasy');
+            document.getElementById('lbl-size-m').textContent = t('tanMedium');
+            document.getElementById('lbl-size-l').textContent = t('tanHard');
+            document.getElementById('lbl-placed').textContent = t('tanPlaced');
+            document.getElementById('lbl-moves').textContent = t('tanMoves');
+            document.getElementById('lbl-score').textContent = t('tanScore');
+            document.getElementById('lbl-best').textContent = t('tanBest');
+            document.getElementById('lbl-win').textContent = t('tanWin');
+            document.getElementById('lbl-final-moves').textContent = t('tanMoves') + ':';
+            document.getElementById('lbl-final-score').textContent = t('tanScore') + ':';
+            document.getElementById('lbl-rotate').textContent = t('tanRotate');
+            document.getElementById('lbl-newlevel').textContent = t('tanShuffle');
+            document.getElementById('lbl-solve').textContent = t('tanSolve');
+            nextBtn.textContent = t('tanShuffle');
+            rulesP.textContent = t('tanRules');
+
+            // ----- KONFIGURACIA -----
+            const DIFFS = {
+                s: { posJitter: 0.6, rotChance: 0.3 },
+                m: { posJitter: 1.6, rotChance: 0.6 },
+                l: { posJitter: 2.6, rotChance: 0.9 }
+            };
+            const COLORS = ['#fb923c', '#f97316', '#fbbf24', '#facc15', '#fb7185', '#a78bfa', '#38bdf8'];
+            const POS_TOL = 0.14;
+            const ANGLE_TOL = 6;
+
+            let diffKey = 'm';
+            let pieces = [];
+            let selectedIdx = null;
+            let moves = 0;
+            let score = 0;
+            let best = parseInt(localStorage.getItem('tangramFitBest') || '0', 10);
+            let solved = false;
+            let dragInfo = null;
+            const NS = 'http://www.w3.org/2000/svg';
+
+            bestSpan.textContent = best;
+
+            function polyPointsAttr(local) {
+                return local.map(p => p[0] + ',' + p[1]).join(' ');
+            }
+
+            function normAngle(a) {
+                a = a % 360;
+                if (a < 0) a += 360;
+                return a;
+            }
+
+            function angleDiffMod(a, target, symmetry) {
+                const d = Math.abs(normAngle(a) % symmetry - normAngle(target) % symmetry);
+                return Math.min(d, symmetry - d);
+            }
+
+            function newLevel() {
+                const cfg = DIFFS[diffKey];
+                pieces = Object.keys(PIECES_DATA).map((name, i) => {
+                    const d = PIECES_DATA[name];
+                    const jitterX = (Math.random() - 0.5) * 2 * cfg.posJitter;
+                    const jitterY = (Math.random() - 0.5) * 2 * cfg.posJitter;
+                    let angle = 0;
+                    if (Math.random() < cfg.rotChance) {
+                        angle = [45, 90, 135, 180, 225, 270, 315][Math.floor(Math.random() * 7)];
+                    }
+                    return {
+                        name, local: d.local, color: COLORS[i % COLORS.length],
+                        targetCx: d.targetCx, targetCy: d.targetCy, symmetry: d.symmetry,
+                        cx: Math.max(-0.5, Math.min(4.5, d.targetCx + jitterX)),
+                        cy: Math.max(-0.5, Math.min(4.5, d.targetCy + jitterY)),
+                        angle
+                    };
+                });
+                moves = 0;
+                score = 0;
+                solved = false;
+                movesSpan.textContent = '0';
+                scoreSpan.textContent = '0';
+                endOverlay.classList.remove('visible');
+                render();
+                updatePlacedCount();
+            }
+
+            function isPiecePlaced(p) {
+                const dx = p.cx - p.targetCx, dy = p.cy - p.targetCy;
+                const posOk = Math.hypot(dx, dy) < POS_TOL;
+                const angOk = angleDiffMod(p.angle, 0, p.symmetry) < ANGLE_TOL;
+                return posOk && angOk;
+            }
+
+            function updatePlacedCount() {
+                const count = pieces.filter(isPiecePlaced).length;
+                placedSpan.textContent = count + '/7';
+                return count;
+            }
+
+            function render() {
+                svgRoot.innerHTML = '';
+                const outline = document.createElementNS(NS, 'rect');
+                outline.setAttribute('x', 0); outline.setAttribute('y', 0);
+                outline.setAttribute('width', 4); outline.setAttribute('height', 4);
+                outline.setAttribute('class', 'target-outline');
+                svgRoot.appendChild(outline);
+
+                pieces.forEach((p, idx) => {
+                    const poly = document.createElementNS(NS, 'polygon');
+                    poly.setAttribute('points', polyPointsAttr(p.local));
+                    poly.setAttribute('fill', p.color);
+                    poly.setAttribute('class', 'piece' + (isPiecePlaced(p) ? ' placed' : ''));
+                    poly.setAttribute('transform', `translate(${p.cx} ${p.cy}) rotate(${p.angle})`);
+                    poly.dataset.idx = idx;
+                    poly.addEventListener('pointerdown', (e) => onPointerDown(e, idx));
+                    svgRoot.appendChild(poly);
+                });
+            }
+
+            function svgPoint(e) {
+                const rect = svgRoot.getBoundingClientRect();
+                const vb = svgRoot.viewBox.baseVal;
+                const x = vb.x + ((e.clientX - rect.left) / rect.width) * vb.width;
+                const y = vb.y + ((e.clientY - rect.top) / rect.height) * vb.height;
+                return { x, y };
+            }
+
+            function onPointerDown(e, idx) {
+                if (solved) return;
+                e.preventDefault();
+                selectedIdx = idx;
+                const p = pieces[idx];
+                const sp = svgPoint(e);
+                dragInfo = { idx, offX: p.cx - sp.x, offY: p.cy - sp.y, moved: false };
+                svgRoot.setPointerCapture(e.pointerId);
+                const els = svgRoot.querySelectorAll('.piece');
+                els.forEach(el => el.classList.remove('dragging'));
+                if (els[idx]) els[idx].classList.add('dragging');
+                svgRoot.appendChild(els[idx]); // bring to front
+            }
+
+            svgRoot.addEventListener('pointermove', (e) => {
+                if (!dragInfo || solved) return;
+                const sp = svgPoint(e);
+                const p = pieces[dragInfo.idx];
+                p.cx = sp.x + dragInfo.offX;
+                p.cy = sp.y + dragInfo.offY;
+                dragInfo.moved = true;
+                render();
+            });
+
+            function endDrag() {
+                if (!dragInfo) return;
+                if (dragInfo.moved) {
+                    moves++;
+                    movesSpan.textContent = moves;
+                }
+                dragInfo = null;
+                updatePlacedCount();
+                checkWin();
+                render();
+            }
+
+            svgRoot.addEventListener('pointerup', endDrag);
+            svgRoot.addEventListener('pointercancel', endDrag);
+
+            rotateBtn.addEventListener('click', () => {
+                if (selectedIdx === null || solved) return;
+                pieces[selectedIdx].angle = normAngle(pieces[selectedIdx].angle + 45);
+                moves++;
+                movesSpan.textContent = moves;
+                render();
+                updatePlacedCount();
+                checkWin();
+            });
+
+            function checkWin() {
+                if (pieces.every(isPiecePlaced)) winGame();
+            }
+
+            function winGame() {
+                solved = true;
+                score = Math.max(20, 150 - moves * 4);
+                scoreSpan.textContent = score;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('tangramFitBest', String(best));
+                }
+                finalMoves.textContent = moves;
+                finalScore.textContent = score;
+                setTimeout(() => endOverlay.classList.add('visible'), 300);
+            }
+
+            function animateSolve() {
+                if (solved) return;
+                selectedIdx = null;
+                dragInfo = null;
+                const startState = pieces.map(p => ({ cx: p.cx, cy: p.cy, angle: p.angle }));
+                const duration = 500;
+                const startTs = performance.now();
+
+                function shortestAngleDelta(from, to) {
+                    let d = (to - from) % 360;
+                    if (d > 180) d -= 360;
+                    if (d < -180) d += 360;
+                    return d;
+                }
+                const angleDeltas = pieces.map((p, i) => shortestAngleDelta(startState[i].angle, 0));
+
+                function step(ts) {
+                    const progress = Math.min(1, (ts - startTs) / duration);
+                    const ease = 1 - Math.pow(1 - progress, 3);
+                    pieces.forEach((p, i) => {
+                        p.cx = startState[i].cx + (p.targetCx - startState[i].cx) * ease;
+                        p.cy = startState[i].cy + (p.targetCy - startState[i].cy) * ease;
+                        p.angle = normAngle(startState[i].angle + angleDeltas[i] * ease);
+                    });
+                    render();
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        pieces.forEach((p, i) => {
+                            p.cx = p.targetCx; p.cy = p.targetCy; p.angle = 0;
+                        });
+                        solved = true;
+                        score = 0;
+                        scoreSpan.textContent = '0';
+                        render();
+                        updatePlacedCount();
+                        finalMoves.textContent = moves;
+                        finalScore.textContent = 0;
+                        setTimeout(() => endOverlay.classList.add('visible'), 200);
+                    }
+                }
+                requestAnimationFrame(step);
+            }
+
+            newLevelBtn.addEventListener('click', newLevel);
+            nextBtn.addEventListener('click', newLevel);
+            solveBtn.addEventListener('click', animateSolve);
+
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    newLevel();
+                });
+            });
+
+            newLevel();
+        })();
+    </script>
+</body>
+</html>

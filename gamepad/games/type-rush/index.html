@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Type Rush · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #1a2e40;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#60a5fa;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:520px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:23px; font-weight:700;
+            background:linear-gradient(135deg,#bfdbfe,#60a5fa);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#60a5fa; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #canvas-wrapper {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            position:relative; align-self:center;
+        }
+        #gameCanvas { display:block; border-radius:10px; }
+        #game-over-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #game-over-overlay.visible { display:flex; }
+        #game-over-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#bfdbfe,#60a5fa);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #restartBtn {
+            background:#60a5fa; border:1px solid #bfdbfe; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #1d4ed8; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #1d4ed8; }
+        #kb { display:flex; flex-direction:column; gap:4px; align-items:center; margin-top:2px; }
+        .kb-row { display:flex; gap:4px; }
+        .kb-key {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:7px; min-width:26px; height:34px; font-size:12px; font-weight:600;
+            display:flex; align-items:center; justify-content:center; cursor:pointer;
+        }
+        .kb-key:active { background:#2c3c56; transform:translateY(1px); }
+        .kb-key.wide { min-width:44px; font-size:10px; }
+        @media (max-width:480px) {
+            .kb-key { min-width:22px; height:30px; font-size:11px; }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>⌨️ TYPE RUSH</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="easy" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="medium" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="hard" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-combo">Kombá</h3>
+                <span class="value" id="comboValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-lives">Životy</h3>
+                <span class="value" id="livesValue">3</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="game-over-overlay">
+                <h2 id="lbl-gameover">Koniec hry</h2>
+                <p><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <p><span id="lbl-final-wpm">Slová/min:</span> <span id="finalWpm">0</span></p>
+                <button id="restartBtn">Hrať znova</button>
+            </div>
+        </div>
+
+        <div id="kb"></div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const WORD_POOLS = {"easy": ["abash", "able", "abuts", "adage", "addle", "agar", "ailed", "aloe", "altho", "amuse", "ankhs", "app", "aquas", "arced", "arcs", "attic", "awake", "axiom", "baaed", "baker", "bale", "barbs", "bars", "basic", "basis", "bast", "bated", "bates", "bathe", "bays", "beads", "beds", "beefs", "begs", "belly", "bench", "beret", "berry", "beset", "bias", "bib", "bicep", "biped", "bleed", "blind", "blip", "blot", "bodes", "boil", "book", "boozy", "bored", "born", "boss", "boxer", "boy", "brad", "braid", "brews", "brims", "bring", "build", "buns", "buoy", "burrs", "burs", "bus", "byes", "came", "candy", "carpi", "cased", "caws", "chat", "chuck", "cider", "cis", "class", "codex", "cola", "colon", "comm", "cone", "cook", "cool", "copra", "cores", "corns", "cots", "count", "covey", "credo", "cult", "cynic", "dale", "day", "dazed", "dazes", "deans", "debit", "desks", "deter", "die", "docks", "dog", "dole", "dolt", "doom", "dope", "dorm", "dowdy", "doz", "dpi", "draft", "dram", "drama", "drips", "drub", "dudes", "dug", "duh", "dump", "dust", "dusty", "earl", "eases", "echo", "edit", "egos", "elite", "emend", "emery", "ems", "end", "ensue", "eon", "erase", "espy", "farce", "farms", "fats", "faun", "fauns", "favor", "feats", "feces", "feel", "fer", "filed", "fins", "fiord", "fir", "fires", "flew", "flues", "foil", "fold", "fores", "fouls", "funky", "gaffs", "gall", "gamin", "gape", "gibe", "gibed", "globs", "gonks", "gooks", "gorps", "gourd", "gout", "grebe", "guts", "gym", "halls", "harem", "harks", "hart", "hats", "hefts", "here", "hers", "hing", "hints", "hips", "his", "hiss", "hobo", "homer", "hour", "hunks", "hypo", "iambs", "idea", "ideal", "ids", "ikons", "incur", "inert", "irks", "jewel", "jibe", "jock", "jog", "join", "joist", "joke", "jokes", "karat", "keys", "kit", "knoll", "lairs", "latch", "lath", "laze", "leans", "leaps", "leech", "letup", "lewd", "lifts", "like", "lipid", "lists", "loft", "lofty", "looks", "lop", "luaus", "lusty", "lutes", "lxi", "lxvii", "madam", "manor", "maxed", "meals", "meld", "merit", "mewls", "mfg", "might", "mints", "moats", "moves", "mucky", "mulch", "mum", "mush", "muter", "nag", "nags", "naked", "natal", "natty", "naval", "neath", "nervy", "niece", "nigh", "none", "nope", "note", "now", "nude", "nuts", "oakum", "offal", "offed", "opal", "opals", "orcs", "ounce", "packs", "page", "pale", "paler", "parks", "parts", "pasha", "payee", "payer", "peaks", "peck", "peony", "per", "perms", "pesos", "pica", "piles", "pinks", "pity", "plaza", "plead", "pope", "pored", "prig", "proms", "prosy", "puff", "puppy", "purl", "quads", "qualm", "quasi", "quest", "quiz", "raid", "ram", "rape", "rats", "rays", "reap", "refs", "reins", "reorg", "reps", "rinds", "ripen", "ritzy", "roast", "roe", "romps", "route", "rou\u00e9", "rower", "rue", "ruing", "rusks", "sad", "sate", "savor", "scar", "scary", "screw", "sects", "servo", "shake", "shawl", "shed", "shes", "shins", "shoal", "shoos", "sieve", "sign", "signs", "sill", "silly", "sim", "sins", "skein", "skied", "slash", "slays", "sloes", "slugs", "slurs", "smurf", "snips", "snowy", "snuff", "soils", "son", "sop", "sores", "sough", "spa", "spays", "spear", "spook", "squab", "staph", "stint", "stoke", "stony", "stop", "sulks", "swum", "tale", "tam", "tan", "tango", "tanks", "tape", "taro", "tel", "theta", "till", "tiny", "today", "toked", "torus", "touch", "tree", "trice", "trot", "trues", "tubs", "tugs", "twain", "twig", "twin", "twink", "twirl", "twist", "twit", "udder", "ultra", "unify", "urge", "user", "vales", "var", "veal", "vegan", "vents", "verve", "viii", "vises", "visit", "vivas", "wadis", "wails", "wary", "wax", "weeds", "wench", "whys", "widen", "wild", "wire", "wish", "womb", "wombs", "woods", "worm", "wot", "wound", "writ", "writs", "yanks", "yawls", "yokes", "your", "yowl", "zinc", "zincs"], "medium": ["abate", "abode", "accrue", "acute", "adapter", "adorn", "affirms", "afghans", "angina", "angles", "annals", "apprize", "arbors", "arches", "argyle", "arraign", "arrays", "artful", "asleep", "athlete", "azimuth", "bakers", "baleen", "bandana", "banes", "barest", "basks", "baste", "bazaar", "begging", "begins", "behinds", "belts", "blink", "blowsy", "bonded", "boners", "bonnie", "boogies", "botnet", "boughs", "bouquet", "braking", "bravest", "brewing", "brownie", "bucks", "bulled", "bumping", "cage", "caliphs", "carries", "catalog", "cattier", "cavern", "chancel", "chap", "chasm", "chatter", "chirp", "chute", "chyrons", "circuit", "cistern", "citizen", "cloture", "coda", "coiled", "collies", "colones", "colossi", "confirm", "confuse", "convex", "coolly", "coppery", "cornier", "court", "crumbed", "crumple", "crypt", "cuff", "curio", "cusses", "cutlery", "dafter", "damned", "daub", "deafest", "deal", "declaim", "deem", "deform", "deli", "deploys", "details", "dimes", "dirges", "dismay", "diverge", "dizzier", "dolphin", "drubbed", "dueling", "dung", "dutiful", "eaten", "edict", "effort", "egis", "egress", "employ", "enamors", "enroll", "ermine", "erodes", "erred", "ester", "eviler", "exact", "exam", "fabric", "fads", "faintly", "falsity", "fate", "fattest", "febrile", "feeders", "feuding", "finely", "flags", "flamage", "flee", "floes", "flooded", "florins", "folded", "fooling", "footsie", "forceps", "found", "founded", "frag", "freaks", "freemen", "frizzes", "frump", "furling", "fuzzes", "gaming", "garbing", "garoted", "gaskets", "gaudily", "gelled", "genie", "geode", "gerund", "gets", "gigged", "glueing", "gnashes", "goalies", "gone", "gotchas", "gowned", "grams", "granite", "grasped", "grimace", "grouchy", "grues", "guested", "gulps", "hatch", "hearer", "heaven", "hedging", "heeling", "helices", "hereby", "hickey", "hing", "holdout", "homier", "hooey", "hoops", "horned", "house", "hovered", "howlers", "humped", "hunched", "hurried", "icebox", "imbue", "inertia", "inflow", "ing\u00e9nue", "inland", "insures", "intro", "inuring", "iota", "itchy", "japan", "jaywalk", "jeep", "jewelry", "juncoes", "ketch", "kittens", "knead", "kneels", "koans", "kudos", "laid", "lath", "lentil", "lessee", "limped", "linden", "linens", "logo", "lovers", "loves", "lugged", "lxiv", "lyres", "madly", "maim", "manures", "marches", "market", "maybes", "meek", "memento", "mesas", "mewl", "mewled", "mils", "minuted", "mister", "misuse", "mockery", "modulus", "morbid", "mortals", "mouthed", "mowing", "muffs", "mutants", "mystic", "nabbed", "nanobot", "neat", "nervous", "nibble", "niggles", "nipples", "noisier", "noisome", "notable", "nuzzles", "oblongs", "obscure", "obvious", "offset", "onion", "option", "opts", "oranges", "orchard", "outs", "pair", "parrots", "parts", "pastors", "patois", "pawned", "pedaled", "pellet", "persona", "pertain", "peseta", "peskier", "petting", "phonier", "pilafs", "pilgrim", "piquant", "pissing", "pizazz", "plague", "plaza", "pores", "posited", "prances", "prawns", "prophet", "quibble", "quilts", "quirky", "racial", "rainbow", "rank", "ranks", "ready", "recites", "reefed", "refs", "rehired", "resting", "reveler", "ride", "riot", "rival", "roam", "roans", "rocking", "role", "rotted", "roundup", "rugby", "rumba", "rustic", "rustier", "salvos", "sandlot", "sarcoma", "sauced", "saucy", "scanty", "scholar", "scope", "scraper", "scythe", "seasons", "second", "seduces", "servant", "shin", "shindig", "shiner", "shit", "showers", "shrug", "shushes", "sights", "silvery", "sims", "slicked", "slider", "smacked", "smirch", "softer", "sombre", "soprano", "sorghum", "sorting", "soupier", "spew", "spider", "spinner", "sprang", "stagger", "stapled", "starry", "startle", "staying", "steered", "stools", "stories", "strops", "subway", "suites", "suitor", "surfeit", "surrey", "swizzle", "syringe", "tallied", "tavern", "teats", "tenets", "tenth", "tests", "thereby", "thorium", "thrones", "tillage", "timbre", "tines", "tinier", "tippers", "toddled", "toddles", "toiler", "tokens", "toniest", "toot", "topcoat", "topmast", "torqued", "totted", "towels", "treas", "trig", "trigger", "tropes", "troughs", "tucks", "twos", "typos", "tyroes", "unguent", "unified", "untied", "upload", "uproots", "uptight", "urology", "usable", "valid", "vastest", "verbs", "victims", "vilest", "vivid", "waldos", "wanna", "warmest", "wastes", "wavier", "waviest", "weaning", "wearer", "weasels", "wheeled", "wigging", "wooers", "woolly", "worms", "wounder", "wrath", "yelling", "yipping", "yogurts", "zanier"], "hard": ["ablatives", "absolve", "absorbent", "aeration", "agonizing", "aircraft", "alchemist", "alibiing", "allotted", "ameliorate", "annealed", "aptness", "arrows", "arteries", "arthritics", "asymmetry", "avenger", "awakening", "awning", "balefully", "ballooning", "bandits", "barrels", "battling", "beaded", "besets", "besotted", "biding", "bilinguals", "billow", "bisque", "blockhouse", "blossoms", "borrow", "brawls", "breaking", "brickbats", "broadcast", "broadsides", "buffaloing", "bulked", "bulled", "buzzer", "caesareans", "caffeine", "calfskin", "capsule", "carafes", "caribou", "carton", "catchword", "cattlemen", "caucusing", "censoring", "censuses", "cheesier", "chickening", "childish", "chintz", "chipping", "chirped", "chumps", "clamber", "classier", "collects", "colonial", "combative", "commissary", "complected", "computer", "concubines", "confidant", "conform", "confuted", "contention", "convivial", "convoked", "cookers", "countdowns", "crimson", "curliest", "cushiest", "cyclone", "dachas", "damning", "debase", "debonairly", "debunk", "deepfakes", "defeatism", "defines", "degree", "delaying", "denial", "denting", "depravity", "despising", "digitally", "dilemmas", "disdainful", "distances", "divers", "diverted", "docilely", "doughtiest", "downloaded", "drawing", "dreamy", "dubious", "dumbwaiter", "earthliest", "ecosystem", "ejected", "election", "elevates", "emanates", "eminence", "engaged", "ergonomic", "examining", "expects", "explosions", "falsifying", "fetlocks", "finished", "finking", "firths", "flamings", "flaying", "floodlight", "flowering", "fluorides", "foiled", "folding", "footsore", "foundries", "fracas", "franchise", "freakier", "freeloader", "frequenter", "frothy", "fruits", "frustrates", "fugitive", "furlong", "gamuts", "gauche", "gelatine", "gentles", "gentrified", "gibing", "gladden", "goatees", "grimmer", "grinds", "grizzliest", "grossness", "grumpiness", "grunting", "gulling", "guzzled", "habitu\u00e9s", "hairstyle", "handful", "happening", "harked", "hawkish", "hawser", "haywire", "heartsick", "hedonist", "hellish", "hijacker", "hilarity", "himself", "hobgoblins", "hooping", "horoscope", "horrid", "horror", "hosanna", "humidifies", "hungering", "huntsmen", "hydraulics", "hysterical", "imbecile", "immoveable", "impervious", "imposing", "incise", "increased", "inducement", "indulge", "infinite", "infringing", "ingredient", "initiators", "instrument", "invasions", "inwards", "isometric", "jangle", "joining", "jousts", "judgment", "judgmental", "junkers", "kenned", "keystrokes", "kudzus", "lallygag", "landings", "larkspurs", "lastly", "laundering", "legging", "liaises", "lifespans", "lightnings", "limbers", "linchpin", "livery", "locutions", "lordliest", "lovingly", "magnifier", "manholes", "masked", "mazurka", "meddles", "medieval", "mindlessly", "misbehaves", "moisten", "mooching", "mosque", "motorways", "moused", "muddles", "munchkin", "murmured", "muskiness", "nasalize", "oblivious", "oilfields", "oleanders", "oppressor", "orgasms", "origami", "outlandish", "outvoted", "overacted", "overawes", "overloaded", "oversee", "overtimes", "ovoids", "pageantry", "pamphlet", "panicked", "papered", "pastern", "penlites", "pentathlon", "persons", "peruses", "philter", "piazze", "pilaster", "pillion", "piracy", "pirates", "pitches", "plaster", "platformed", "pleasing", "plugged", "plumed", "poisoned", "polarities", "politesse", "polyphonic", "postdate", "pouted", "prefabbing", "prefigured", "pricked", "priggish", "priority", "privileged", "profitable", "profound", "prospered", "prostrate", "prudently", "pseudos", "publicizes", "purloins", "purpose", "quieted", "quizzed", "quoits", "racehorses", "raceway", "radiantly", "rampages", "ransacking", "raping", "reappears", "receive", "reclining", "referent", "refracting", "regaining", "regarded", "regional", "religions", "remainders", "reminisces", "renounced", "reorged", "repellant", "repellents", "reprehend", "represent", "reservists", "resinous", "restart", "restful", "retrenches", "reusable", "revamp", "reworking", "rigidly", "rosewoods", "rubbish", "ruffian", "rummer", "satiety", "scalped", "schlemiels", "schoolmarm", "scrimping", "scrupulous", "seclude", "seemed", "shadier", "shagged", "shavings", "shelved", "shilled", "shoeshine", "shrinkable", "shrunk", "sidesteps", "signposts", "singling", "situation", "skinless", "slovenlier", "smacks", "smartness", "smidgins", "smokeless", "smugger", "smugglers", "snagged", "snifter", "snipers", "snuggled", "socialize", "sonars", "spellers", "spooks", "squashiest", "squelched", "stabbing", "staple", "steeliest", "sticker", "stingy", "stodginess", "stresses", "strumming", "stylizing", "subtitled", "suffusion", "suggested", "sunbathes", "supernovas", "superusers", "supplier", "swaddled", "sweetener", "swivelled", "synches", "synchs", "systemic", "tailor", "tankard", "tarragons", "tellingly", "testate", "thirtieths", "threaded", "threes", "throng", "tonsorial", "tossed", "touting", "trainees", "transports", "trellised", "triathlons", "troikas", "tropes", "tropisms", "trundling", "twaddled", "twigging", "typists", "uncoil", "undergoes", "understudy", "unhitch", "unhitches", "urethrae", "vagrancy", "vaguest", "valance", "vegetables", "veneering", "verities", "vesicle", "virtuosos", "vuvuzelas", "wardrobe", "warnings", "wassail", "watched", "wayfarer", "webisode", "weeders", "whooping", "windjammer", "wittiness", "workbooks", "worker"]};
+
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreSpan = document.getElementById('scoreValue');
+            const comboSpan = document.getElementById('comboValue');
+            const livesSpan = document.getElementById('livesValue');
+            const bestSpan = document.getElementById('bestValue');
+            const gameOverOverlay = document.getElementById('game-over-overlay');
+            const finalScore = document.getElementById('finalScore');
+            const finalWpm = document.getElementById('finalWpm');
+            const restartBtn = document.getElementById('restartBtn');
+            const sizeGroup = document.getElementById('sizeGroup');
+            const kbEl = document.getElementById('kb');
+
+            // ----- PREKLADY -----
+            document.getElementById('lbl-back').textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('typDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('typEasy');
+            document.getElementById('lbl-size-m').textContent = t('typMedium');
+            document.getElementById('lbl-size-l').textContent = t('typHard');
+            document.getElementById('lbl-score').textContent = t('typScore');
+            document.getElementById('lbl-combo').textContent = t('typCombo');
+            document.getElementById('lbl-lives').textContent = t('typLives');
+            document.getElementById('lbl-best').textContent = t('typBest');
+            document.getElementById('lbl-gameover').textContent = t('typGameOver');
+            document.getElementById('lbl-final-score').textContent = t('typScore') + ':';
+            document.getElementById('lbl-final-wpm').textContent = t('typWpm') + ':';
+            restartBtn.textContent = t('typReplay');
+            document.getElementById('rules').textContent = t('typRules');
+
+            // ----- ON-SCREEN KLAVESNICA -----
+            const KB_ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+            KB_ROWS.forEach(row => {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'kb-row';
+                row.split('').forEach(ch => {
+                    const btn = document.createElement('div');
+                    btn.className = 'kb-key';
+                    btn.textContent = ch;
+                    btn.addEventListener('click', () => handleChar(ch));
+                    rowEl.appendChild(btn);
+                });
+                kbEl.appendChild(rowEl);
+            });
+            const backspaceRow = document.createElement('div');
+            backspaceRow.className = 'kb-row';
+            const bsBtn = document.createElement('div');
+            bsBtn.className = 'kb-key wide';
+            bsBtn.textContent = '⌫';
+            bsBtn.addEventListener('click', () => backspaceCancel());
+            backspaceRow.appendChild(bsBtn);
+            kbEl.appendChild(backspaceRow);
+
+            // ----- KONFIGURACIA -----
+            const DIFFS = {
+                easy:   { speed: 42, spawnMs: 1900, maxWords: 4 },
+                medium: { speed: 56, spawnMs: 1500, maxWords: 5 },
+                hard:   { speed: 74, spawnMs: 1150, maxWords: 6 }
+            };
+            const CW = 320, CH = 420;
+            canvas.width = CW;
+            canvas.height = CH;
+
+            let diffKey = 'medium';
+            let activeWords = [];
+            let nextId = 1;
+            let targetId = null;
+            let score = 0, combo = 0, lives = 3;
+            let best = parseInt(localStorage.getItem('typeRushBest') || '0', 10);
+            let wordsCompleted = 0;
+            let startTime = 0;
+            let lastSpawn = 0;
+            let running = true;
+            let recentWords = [];
+            let particles = [];
+
+            bestSpan.textContent = best;
+
+            function randomWord() {
+                const pool = WORD_POOLS[diffKey];
+                let w;
+                let attempts = 0;
+                do {
+                    w = pool[Math.floor(Math.random() * pool.length)];
+                    attempts++;
+                } while (recentWords.includes(w) && attempts < 8);
+                recentWords.push(w);
+                if (recentWords.length > 12) recentWords.shift();
+                return w;
+            }
+
+            function spawnWord() {
+                const cfg = DIFFS[diffKey];
+                if (activeWords.length >= cfg.maxWords) return;
+                const text = randomWord();
+                const margin = 20;
+                const x = margin + Math.random() * (CW - margin * 2 - text.length * 9);
+                activeWords.push({ id: nextId++, text, typed: 0, x, y: -20 });
+            }
+
+            function handleChar(ch) {
+                if (!running) return;
+                ch = ch.toLowerCase();
+                if (targetId !== null) {
+                    const w = activeWords.find(w => w.id === targetId);
+                    if (!w) { targetId = null; return; }
+                    if (w.text[w.typed] === ch) {
+                        w.typed++;
+                        if (w.typed === w.text.length) {
+                            completeWord(w);
+                        }
+                    }
+                    return;
+                }
+                const candidates = activeWords.filter(w => w.text[0] === ch);
+                if (candidates.length === 0) return;
+                candidates.sort((a, b) => b.y - a.y);
+                const chosen = candidates[0];
+                chosen.typed = 1;
+                targetId = chosen.id;
+                if (chosen.typed === chosen.text.length) {
+                    completeWord(chosen);
+                }
+            }
+
+            function backspaceCancel() {
+                if (targetId !== null) {
+                    const w = activeWords.find(w => w.id === targetId);
+                    if (w) w.typed = 0;
+                    targetId = null;
+                }
+            }
+
+            function completeWord(w) {
+                activeWords = activeWords.filter(x => x.id !== w.id);
+                score += w.text.length * 10 + combo * 5;
+                combo++;
+                wordsCompleted++;
+                targetId = null;
+                scoreSpan.textContent = score;
+                comboSpan.textContent = combo;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('typeRushBest', String(best));
+                }
+                spawnParticles(w.x + w.text.length * 4, w.y);
+            }
+
+            function missWord(w) {
+                activeWords = activeWords.filter(x => x.id !== w.id);
+                if (targetId === w.id) targetId = null;
+                combo = 0;
+                comboSpan.textContent = '0';
+                lives--;
+                livesSpan.textContent = Math.max(0, lives);
+                if (lives <= 0) {
+                    endGame();
+                }
+            }
+
+            function spawnParticles(x, y) {
+                for (let i = 0; i < 8; i++) {
+                    const ang = Math.random() * Math.PI * 2;
+                    const spd = 1 + Math.random() * 2.5;
+                    particles.push({ x, y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, life: 1 });
+                }
+            }
+
+            function endGame() {
+                running = false;
+                const elapsedMin = Math.max(0.1, (Date.now() - startTime) / 60000);
+                const wpm = Math.round(wordsCompleted / elapsedMin);
+                finalScore.textContent = score;
+                finalWpm.textContent = wpm;
+                gameOverOverlay.classList.add('visible');
+            }
+
+            function resetGame() {
+                activeWords = [];
+                targetId = null;
+                score = 0; combo = 0; lives = 3;
+                wordsCompleted = 0;
+                recentWords = [];
+                particles = [];
+                running = true;
+                startTime = Date.now();
+                lastSpawn = 0;
+                scoreSpan.textContent = '0';
+                comboSpan.textContent = '0';
+                livesSpan.textContent = '3';
+                gameOverOverlay.classList.remove('visible');
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace') { e.preventDefault(); backspaceCancel(); return; }
+                if (/^[a-zA-Z]$/.test(e.key)) handleChar(e.key);
+            });
+
+            restartBtn.addEventListener('click', resetGame);
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    resetGame();
+                });
+            });
+
+            function update(dt) {
+                if (!running) return;
+                const cfg = DIFFS[diffKey];
+                lastSpawn += dt * 1000;
+                if (lastSpawn >= cfg.spawnMs) {
+                    lastSpawn = 0;
+                    spawnWord();
+                }
+                for (const w of activeWords.slice()) {
+                    w.y += cfg.speed * dt;
+                    if (w.y > CH - 12) {
+                        missWord(w);
+                    }
+                }
+                particles = particles.filter(p => p.life > 0);
+                for (const p of particles) {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.life -= 0.04;
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, CW, CH);
+                const grad = ctx.createLinearGradient(0, 0, 0, CH);
+                grad.addColorStop(0, '#0b111e');
+                grad.addColorStop(1, '#0f1a2b');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, CW, CH);
+
+                ctx.strokeStyle = 'rgba(248,113,113,0.35)';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(0, CH - 12);
+                ctx.lineTo(CW, CH - 12);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.font = '16px "Segoe UI", Roboto, monospace';
+                ctx.textBaseline = 'middle';
+                for (const w of activeWords) {
+                    const isTarget = w.id === targetId;
+                    let cx = w.x;
+                    for (let i = 0; i < w.text.length; i++) {
+                        ctx.fillStyle = i < w.typed ? '#4ade80' : (isTarget ? '#f0f4fe' : '#94a3b8');
+                        ctx.fillText(w.text[i], cx, w.y);
+                        cx += ctx.measureText(w.text[i]).width + 1;
+                    }
+                    if (isTarget) {
+                        ctx.strokeStyle = 'rgba(96,165,250,0.5)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(w.x - 4, w.y - 12, cx - w.x + 4, 24);
+                    }
+                }
+
+                for (const p of particles) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.fillStyle = '#4ade80';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            let lastTs = null;
+            function loop(ts) {
+                if (lastTs === null) lastTs = ts;
+                let dt = (ts - lastTs) / 1000;
+                lastTs = ts;
+                dt = Math.min(dt, 0.05);
+                update(dt);
+                draw();
+                requestAnimationFrame(loop);
+            }
+
+            resetGame();
+            requestAnimationFrame(loop);
+        })();
+    </script>
+</body>
+</html>

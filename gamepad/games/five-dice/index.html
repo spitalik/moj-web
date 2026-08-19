@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Five Dice · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #14323d;color:#7f9fab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#38bdf8;color:#eaf8ff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:470px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#bae6fd,#38bdf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#38bdf8; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#7dd3fc; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #rollRow { display:flex; gap:10px; justify-content:center; align-items:center; }
+        #rollBtn {
+            background:#38bdf8; border:1px solid #bae6fd; border-radius:14px;
+            padding:11px 24px; font-size:15px; font-weight:700; color:#0c0f16;
+            box-shadow:0 4px 0 #0369a1; cursor:pointer;
+        }
+        #rollBtn:disabled { opacity:.45; box-shadow:none; cursor:default; }
+        #rollBtn:active:not(:disabled) { transform:translateY(4px); box-shadow:0 0 0 #0369a1; }
+        #sheet { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+        .cat {
+            display:flex; justify-content:space-between; align-items:center; gap:6px;
+            background:#111a28; border:1px solid #29344a; border-radius:9px;
+            padding:6px 9px; font-size:12px; color:#b8c8de; cursor:pointer;
+        }
+        .cat.open:hover { border-color:#38bdf8; color:#eaf8ff; }
+        .cat.used { opacity:.62; cursor:default; border-color:#233046; }
+        .cat b { font-size:13px; color:#eef3fc; font-variant-numeric:tabular-nums; }
+        .cat.open b { color:#7dd3fc; }
+        .cat.zero b { color:#8494ab; }
+        .cat.bonus { grid-column:1/-1; background:#101c2c; border-color:#2b3b55; cursor:default; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#bae6fd,#38bdf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#38bdf8; border:1px solid #bae6fd; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #0369a1; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #0369a1; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">⚂</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-round"></h3><span class="value" id="roundValue">1/13</span></div>
+            <div class="info-card"><h3 id="lbl-rolls"></h3><span class="value" id="rollsValue">3</span></div>
+            <div class="info-card"><h3 id="lbl-total"></h3><span class="value" id="totalValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-detail"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="rollRow"><button id="rollBtn"></button></div>
+
+        <div id="sheet"></div>
+
+        <div id="controls">
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const roundSpan = document.getElementById('roundValue');
+        const rollsSpan = document.getElementById('rollsValue');
+        const totalSpan = document.getElementById('totalValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalDetail = document.getElementById('lbl-final-detail');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const rollBtn = document.getElementById('rollBtn');
+        const sheet = document.getElementById('sheet');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '⚂ ' + t('fdcTitle');
+        document.getElementById('lbl-diff').textContent   = t('fdcRolls') + ':';
+        document.getElementById('lbl-easy').textContent   = '4';
+        document.getElementById('lbl-medium').textContent = '3';
+        document.getElementById('lbl-hard').textContent   = '2';
+        document.getElementById('lbl-round').textContent  = t('uiRound');
+        document.getElementById('lbl-rolls').textContent  = t('fdcRolls');
+        document.getElementById('lbl-total').textContent  = t('fdcTotal');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('fdcTotal') + ':';
+        document.getElementById('rules').textContent      = t('fdcRules');
+        rollBtn.textContent    = t('fdcRoll');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('fdcTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const ROLLS = { easy: 4, medium: 3, hard: 2 };
+        const UPPER_TARGET = 63, UPPER_BONUS = 35;
+        const DICE = 5, DS = 58, GAP = 8, MARGIN = 8;
+        const W = MARGIN * 2 + DICE * (DS + GAP) - GAP;
+        const H = MARGIN * 2 + DS + 16;
+        canvas.width = W; canvas.height = H;
+
+        // key, i18n label key, whether it belongs to the upper section
+        const CATS = [
+            { k: 'ones', lbl: 'fdcOnes', up: true }, { k: 'twos', lbl: 'fdcTwos', up: true },
+            { k: 'threes', lbl: 'fdcThrees', up: true }, { k: 'fours', lbl: 'fdcFours', up: true },
+            { k: 'fives', lbl: 'fdcFives', up: true }, { k: 'sixes', lbl: 'fdcSixes', up: true },
+            { k: 'three', lbl: 'fdcThreeKind' }, { k: 'four', lbl: 'fdcFourKind' },
+            { k: 'full', lbl: 'fdcFullHouse' }, { k: 'small', lbl: 'fdcSmallRun' },
+            { k: 'large', lbl: 'fdcLargeRun' }, { k: 'five', lbl: 'fdcFiveKind' },
+            { k: 'chance', lbl: 'fdcChance' },
+        ];
+
+        let diffKey = 'medium';
+        let dice = [], held = [], rollsLeft = 0, rolledThisTurn = false;
+        let filled = {}, round = 1, ended = false;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('fiveDiceBest') || '{}')); } catch (e) { /* ignore */ }
+
+        // ----- BODOVANIE -----
+        function scoreFor(cat, d) {
+            const counts = [0, 0, 0, 0, 0, 0, 0];
+            for (const v of d) counts[v]++;
+            const sum = d.reduce((a, b) => a + b, 0);
+            const maxSame = Math.max(...counts.slice(1));
+            const uniq = [...new Set(d)].sort((a, b) => a - b);
+            const hasRun = len => {
+                let best2 = 1, run = 1;
+                for (let i = 1; i < uniq.length; i++) {
+                    run = uniq[i] === uniq[i - 1] + 1 ? run + 1 : 1;
+                    best2 = Math.max(best2, run);
+                }
+                return best2 >= len;
+            };
+            switch (cat) {
+                case 'ones': return counts[1] * 1;
+                case 'twos': return counts[2] * 2;
+                case 'threes': return counts[3] * 3;
+                case 'fours': return counts[4] * 4;
+                case 'fives': return counts[5] * 5;
+                case 'sixes': return counts[6] * 6;
+                case 'three': return maxSame >= 3 ? sum : 0;
+                case 'four': return maxSame >= 4 ? sum : 0;
+                case 'full': return (maxSame === 3 && counts.includes(2)) || maxSame === 5 ? 25 : 0;
+                case 'small': return hasRun(4) ? 30 : 0;
+                case 'large': return hasRun(5) ? 40 : 0;
+                case 'five': return maxSame === 5 ? 50 : 0;
+                case 'chance': return sum;
+                default: return 0;
+            }
+        }
+
+        const upperSum = () => CATS.filter(c => c.up).reduce((a, c) => a + (filled[c.k] || 0), 0);
+        const bonus = () => upperSum() >= UPPER_TARGET ? UPPER_BONUS : 0;
+        const total = () => CATS.reduce((a, c) => a + (filled[c.k] ?? 0), 0) + bonus();
+
+        // ----- HERNY TOK -----
+        function roll() {
+            if (ended || rollsLeft <= 0) return;
+            for (let i = 0; i < DICE; i++) if (!held[i]) dice[i] = 1 + Math.floor(Math.random() * 6);
+            rollsLeft--;
+            rolledThisTurn = true;
+            statusLine.textContent = rollsLeft ? t('fdcPickOrRoll') : t('fdcPickNow');
+            refresh(); draw(); buildSheet();
+        }
+
+        function assign(cat) {
+            if (ended || !rolledThisTurn || filled[cat] !== undefined) return;
+            filled[cat] = scoreFor(cat, dice);
+            round++;
+            if (round > 13) { finish(); return; }
+            rollsLeft = ROLLS[diffKey];
+            held = new Array(DICE).fill(false);
+            dice = new Array(DICE).fill(0);
+            rolledThisTurn = false;
+            statusLine.textContent = t('fdcRollFirst');
+            refresh(); draw(); buildSheet();
+        }
+
+        function finish() {
+            ended = true;
+            const score = total();
+            totalSpan.textContent = score;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('fiveDiceBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = t('uiGameOver');
+            finalDetail.textContent = t('fdcUpper') + ' ' + upperSum() + (bonus() ? ' + ' + UPPER_BONUS : '');
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            rollBtn.disabled = true;
+            draw(); buildSheet();
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            roundSpan.textContent = Math.min(round, 13) + '/13';
+            rollsSpan.textContent = rollsLeft;
+            totalSpan.textContent = total();
+            rollBtn.disabled = ended || rollsLeft <= 0;
+        }
+
+        function buildSheet() {
+            sheet.innerHTML = '';
+            for (const c of CATS) {
+                const used = filled[c.k] !== undefined;
+                const row = document.createElement('div');
+                const potential = rolledThisTurn && !used ? scoreFor(c.k, dice) : null;
+                row.className = 'cat ' + (used ? 'used' : 'open') + (potential === 0 ? ' zero' : '');
+                row.innerHTML = `<span>${t(c.lbl)}</span><b>${used ? filled[c.k] : (potential === null ? '·' : potential)}</b>`;
+                if (!used) row.addEventListener('click', () => {
+                    if (!rolledThisTurn) { statusLine.textContent = t('fdcRollFirst'); return; }
+                    assign(c.k);
+                });
+                sheet.appendChild(row);
+            }
+            const b = document.createElement('div');
+            b.className = 'cat bonus';
+            b.innerHTML = `<span>${t('fdcUpperBonus', { n: UPPER_TARGET })}</span><b>${upperSum()} / ${bonus()}</b>`;
+            sheet.appendChild(b);
+        }
+
+        function newGame() {
+            rollsLeft = ROLLS[diffKey];
+            dice = new Array(DICE).fill(0);
+            held = new Array(DICE).fill(false);
+            rolledThisTurn = false;
+            filled = {}; round = 1; ended = false;
+            bestSpan.textContent = best[diffKey] || 0;
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('fdcRollFirst');
+            refresh(); draw(); buildSheet();
+        }
+
+        // ----- OVLADANIE -----
+        const dieX = i => MARGIN + i * (DS + GAP);
+
+        function onTap(e) {
+            if (ended || !rolledThisTurn || rollsLeft <= 0) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * W;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * H;
+            if (y < MARGIN || y > MARGIN + DS) return;
+            for (let i = 0; i < DICE; i++) {
+                if (x >= dieX(i) && x <= dieX(i) + DS) { held[i] = !held[i]; draw(); return; }
+            }
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        rollBtn.addEventListener('click', roll);
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        const PIPS = {
+            1: [[.5, .5]],
+            2: [[.28, .28], [.72, .72]],
+            3: [[.26, .26], [.5, .5], [.74, .74]],
+            4: [[.28, .28], [.72, .28], [.28, .72], [.72, .72]],
+            5: [[.26, .26], [.74, .26], [.5, .5], [.26, .74], [.74, .74]],
+            6: [[.28, .24], [.72, .24], [.28, .5], [.72, .5], [.28, .76], [.72, .76]],
+        };
+
+        function die(x, y, v, isHeld) {
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x, y, DS, DS, 12); else ctx.rect(x, y, DS, DS);
+            const g = ctx.createLinearGradient(x, y, x, y + DS);
+            if (isHeld) { g.addColorStop(0, '#bae6fd'); g.addColorStop(1, '#7dd3fc'); }
+            else { g.addColorStop(0, '#fbfdff'); g.addColorStop(1, '#dbe6f0'); }
+            ctx.fillStyle = g; ctx.fill();
+            ctx.strokeStyle = isHeld ? '#0369a1' : 'rgba(20,30,45,.35)';
+            ctx.lineWidth = isHeld ? 3 : 1.2;
+            ctx.stroke();
+            if (!v) {
+                ctx.fillStyle = 'rgba(30,45,65,.28)';
+                ctx.font = '600 22px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('?', x + DS / 2, y + DS / 2);
+                return;
+            }
+            ctx.fillStyle = '#12283d';
+            for (const [px, py] of PIPS[v]) {
+                ctx.beginPath();
+                ctx.arc(x + px * DS, y + py * DS, DS * 0.075, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#0d1f2b'; ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < DICE; i++) die(dieX(i), MARGIN, dice[i], held[i]);
+            if (rolledThisTurn && rollsLeft > 0) {
+                ctx.fillStyle = 'rgba(125,211,252,.7)';
+                ctx.font = '600 10px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+                ctx.fillText(t('fdcHoldHint'), W / 2, MARGIN + DS + 3);
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

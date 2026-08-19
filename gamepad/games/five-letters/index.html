@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Five Letters · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #14401f;color:#82a88f;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#4ade80;color:#eafff0;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:420px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#bbf7d0,#4ade80);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#4ade80; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#86efac; min-height:16px; font-weight:600; }
+        #board { display:flex; flex-direction:column; gap:6px; align-items:center; }
+        .row { display:flex; gap:6px; }
+        .tile {
+            width:52px; height:52px; border-radius:10px;
+            border:2px solid #2b3a52; background:#111a28;
+            display:flex; align-items:center; justify-content:center;
+            font-size:25px; font-weight:800; color:#eef3fc; text-transform:uppercase;
+        }
+        .tile.filled { border-color:#42597a; }
+        .tile.hit  { background:#16a34a; border-color:#16a34a; color:#04140a; }
+        .tile.near { background:#d97706; border-color:#d97706; color:#1a0f02; }
+        .tile.miss { background:#28324a; border-color:#28324a; color:#8ea0bb; }
+        #keys { display:flex; flex-direction:column; gap:6px; align-items:center; }
+        .krow { display:flex; gap:5px; justify-content:center; }
+        .key {
+            min-width:29px; height:42px; padding:0 6px;
+            border-radius:8px; border:1px solid #2f4260; background:#1a2740; color:#dfe9f5;
+            font-size:13px; font-weight:700; cursor:pointer; text-transform:uppercase;
+        }
+        .key.wide { min-width:56px; font-size:11px; }
+        .key.hit  { background:#16a34a; border-color:#16a34a; color:#04140a; }
+        .key.near { background:#d97706; border-color:#d97706; color:#1a0f02; }
+        .key.miss { background:#131b28; border-color:#1e2738; color:#5c6b83; }
+        .key:active { transform:translateY(2px); }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.94); backdrop-filter:blur(6px);
+            border-radius:16px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#bbf7d0,#4ade80); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #end-overlay .answer { font-size:26px; font-weight:800; letter-spacing:4px; color:#86efac; text-transform:uppercase; }
+        #restartBtn {
+            background:#4ade80; border:1px solid #bbf7d0; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #15803d; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #15803d; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🟩</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-guesses"></h3><span class="value" id="guessValue">0/6</span></div>
+            <div class="info-card"><h3 id="lbl-streak"></h3><span class="value" id="streakValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div style="position:relative;">
+            <div id="board"></div>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-answer-label"></p>
+                <div class="answer" id="answerText"></div>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="keys"></div>
+
+        <div id="controls">
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const guessSpan = document.getElementById('guessValue');
+        const streakSpan = document.getElementById('streakValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const board = document.getElementById('board');
+        const keys = document.getElementById('keys');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const answerLabel = document.getElementById('lbl-answer-label');
+        const answerText = document.getElementById('answerText');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent    = t('back');
+        document.getElementById('lbl-title').textContent   = '🟩 ' + t('fivTitle');
+        document.getElementById('lbl-diff').textContent    = t('fivTries') + ':';
+        document.getElementById('lbl-easy').textContent    = '7';
+        document.getElementById('lbl-medium').textContent  = '6';
+        document.getElementById('lbl-hard').textContent    = '5';
+        document.getElementById('lbl-guesses').textContent = t('fivGuesses');
+        document.getElementById('lbl-streak').textContent  = t('fivStreak');
+        document.getElementById('lbl-score').textContent   = t('uiScore');
+        document.getElementById('lbl-best').textContent    = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent       = t('fivRules');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('fivTitle') + ' · GamePad';
+
+        // ----- SLOVNIK -----
+        // Common five-letter English words. Both the answers and the accepted guesses come
+        // from this list, so anything the game asks for is also something it will accept.
+        const WORDS = ('about above abuse actor acute admit adopt adult after again agent agree ahead alarm album alert alike ' +
+            'alive allow alone along alter among anger angle angry ankle apart apple apply arena argue arise armed armor arrow ' +
+            'aside asset audio audit avoid awake award aware badly baker basic basis beach beard began begin begun being below ' +
+            'bench birth black blade blame blank blast blend bless blind block blood board boost booth bound brain brand brass ' +
+            'brave bread break breed brick brief bring broad broke brown brush build built bunch burst buyer cabin cable camel ' +
+            'canal candy cargo carry carve catch cause cease chain chair chalk charm chart chase cheap check cheek cheer chess ' +
+            'chest chief child chill choir chose chunk civic civil claim clash class clean clear clerk click cliff climb clock ' +
+            'close cloth cloud coach coast could count court cover crack craft crash crazy cream crime cross crowd crown crude ' +
+            'cruel crush curve cycle daily dairy dance dated dealt death debut decay delay dense depth devil diary digit dirty ' +
+            'dodge doing donor doubt dozen draft drain drama drank drawn dream dress drift drill drink drive drove drown eager ' +
+            'eagle early earth eight elbow elder elect elite empty enemy enjoy enter entry equal error essay event every exact ' +
+            'exist extra faced faint fairy faith false fancy fatal fault favor feast fence ferry fetch fever fewer fiber field ' +
+            'fight final first fixed flame flash fleet flesh float flood floor flour fluid flush focus force forge forth forty ' +
+            'forum found frame fraud fresh front frost fruit fully funny giant given glass globe glory glove grace grade grain ' +
+            'grand grant grape graph grasp grass grave great greed green greet grief grill grind groan gross group grove grown ' +
+            'guard guess guest guide guilt habit handy happy harsh haste hatch haunt heard heart heavy hedge hello hence hobby ' +
+            'honey honor horse hotel hound house human humor hurry ideal image imply index inner input irony issue ivory jeans ' +
+            'jelly jewel joint judge juice knife knock known label labor large laser later laugh layer learn lease least leave ' +
+            'legal lemon level lever light limit linen liver lobby local lodge logic loose loser lower loyal lucky lunar lunch ' +
+            'lying magic major maker manor march marsh match maybe mayor meant medal media melon mercy merge merit metal meter ' +
+            'midst might minor minus mixed model moist month moral motor mount mouse mouth movie music naked nasty naval nerve ' +
+            'never newly night noble noise north noted novel nurse ocean offer often olive onion opera orbit order organ other ' +
+            'ought ounce outer owner oxide paint panel panic paper party pasta patch pause peace peach pearl pedal penny perch ' +
+            'phase phone photo piano piece pilot pinch pitch pixel place plain plane plant plate plaza plead pluck point polar ' +
+            'porch pouch pound power press price pride prime print prior prize probe proof proud prove pulse punch pupil purse ' +
+            'queen query quest queue quick quiet quilt quite quota radar radio raise rally ranch range rapid ratio reach ready ' +
+            'realm rebel refer reign relax relay renew repay reply reset resin rhyme rider ridge rifle right rigid rinse risen ' +
+            'risky rival river roast robin robot rocky rough round route royal rugby ruler rural sadly saint salad salon sandy ' +
+            'sauce scale scalp scarf scene scent scope score scout scrap screw scrub sedan seize sense serve setup seven shade ' +
+            'shaft shake shall shame shape share shark sharp sheep sheet shelf shell shift shine shiny shirt shock shone shook ' +
+            'shoot shore short shout shown shrub sight silly since siren sixth skate skill skirt slate sleep slice slide slope ' +
+            'small smart smell smile smoke snack snake sneak solar solid solve sonic sorry sound south space spare spark speak ' +
+            'spear speed spell spend spent spice spike spill spine spite split spoke spoon sport spray squad stack staff stage ' +
+            'stain stair stake stamp stand stare start state steam steel steep steer stern stick stiff still sting stock stole ' +
+            'stone stood stool store storm story stout stove strap straw strip stuck study stuff style sugar suite sunny super ' +
+            'surge sweet swept swift swing sword table taken tally taste teach tempo tenth thank theme there thick thief thigh ' +
+            'thing think third thorn those three threw throw thumb tiger tight timer tired title toast today token tooth topic ' +
+            'torch total touch tough tower toxic trace track trade trail train trait trash treat trend trial tribe trick tried ' +
+            'troop trout truck truly trunk trust truth tulip tutor twice twist ultra uncle under union unite unity until upper ' +
+            'upset urban usage usual vague valid value valve vapor vault venue verse video vigor villa vinyl viral virus visit ' +
+            'vital vivid vocal voice voter wagon waist waste watch water wheat wheel where which while whole whose widen widow ' +
+            'width wield windy witty woman world worry worse worst worth would wound woven wrist write wrong wrote yield young ' +
+            'yours youth zebra').split(' ');
+        const WORDSET = new Set(WORDS);
+
+        const TRIES = { easy: 7, medium: 6, hard: 5 };
+        const KEYROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+
+        let diffKey = 'medium';
+        let answer = '', guesses = [], current = '', over = false, won = false;
+        let streak = 0, score = 0, startedAt = 0;
+        let letterState = {};
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('fiveLettersBest') || '{}')); } catch (e) { /* ignore */ }
+        try { streak = parseInt(localStorage.getItem('fiveLettersStreak') || '0', 10) || 0; } catch (e) { /* ignore */ }
+
+        // ----- VYHODNOTENIE -----
+        // Greens first, then yellows drawn from what is left over, so a repeated letter is
+        // only ever marked as often as it actually occurs in the answer.
+        function scoreGuess(guess, secret) {
+            const marks = new Array(guess.length).fill('miss');
+            const pool = {};
+            for (let i = 0; i < secret.length; i++) {
+                if (guess[i] === secret[i]) marks[i] = 'hit';
+                else pool[secret[i]] = (pool[secret[i]] || 0) + 1;
+            }
+            for (let i = 0; i < guess.length; i++) {
+                if (marks[i] === 'hit') continue;
+                const ch = guess[i];
+                if (pool[ch] > 0) { marks[i] = 'near'; pool[ch]--; }
+            }
+            return marks;
+        }
+
+        const rank = { miss: 0, near: 1, hit: 2 };
+
+        function submit() {
+            if (over) return;
+            if (current.length < 5) { statusLine.textContent = t('fivTooShort'); return; }
+            if (!WORDSET.has(current)) { statusLine.textContent = t('fivUnknown'); return; }
+            const marks = scoreGuess(current, answer);
+            guesses.push({ word: current, marks });
+            marks.forEach((m, i) => {
+                const ch = current[i];
+                if (!letterState[ch] || rank[m] > rank[letterState[ch]]) letterState[ch] = m;
+            });
+            const solved = current === answer;
+            current = '';
+            statusLine.textContent = '';
+            render();
+            if (solved) { finish(true); return; }
+            if (guesses.length >= TRIES[diffKey]) { finish(false); return; }
+        }
+
+        function finish(win) {
+            over = true; won = win;
+            const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+            if (win) {
+                const left = TRIES[diffKey] - guesses.length;
+                score = Math.max(40, 120 + left * 60 - elapsed * 2) + streak * 15;
+                streak++;
+            } else {
+                score = 0;
+                streak = 0;
+            }
+            try { localStorage.setItem('fiveLettersStreak', String(streak)); } catch (e) { /* ignore */ }
+            scoreSpan.textContent = score;
+            streakSpan.textContent = streak;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('fiveLettersBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = win ? t('fivGotIt', { n: guesses.length }) : t('uiGameOver');
+            answerLabel.textContent = win ? '' : t('fivAnswerWas');
+            answerText.textContent = win ? '' : answer;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            render();
+            endOverlay.classList.add('visible');
+        }
+
+        function newGame() {
+            answer = WORDS[Math.floor(Math.random() * WORDS.length)];
+            guesses = []; current = ''; over = false; won = false; letterState = {};
+            score = 0; startedAt = Date.now();
+            scoreSpan.textContent = '0';
+            streakSpan.textContent = streak;
+            bestSpan.textContent = best[diffKey] || 0;
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('fivHint');
+            render();
+        }
+
+        // ----- VYKRESLENIE -----
+        function render() {
+            guessSpan.textContent = guesses.length + '/' + TRIES[diffKey];
+            board.innerHTML = '';
+            for (let r = 0; r < TRIES[diffKey]; r++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                const g = guesses[r];
+                const typing = !over && r === guesses.length;
+                for (let i = 0; i < 5; i++) {
+                    const tile = document.createElement('div');
+                    if (g) {
+                        tile.className = 'tile ' + g.marks[i];
+                        tile.textContent = g.word[i];
+                    } else if (typing && i < current.length) {
+                        tile.className = 'tile filled';
+                        tile.textContent = current[i];
+                    } else {
+                        tile.className = 'tile';
+                    }
+                    row.appendChild(tile);
+                }
+                board.appendChild(row);
+            }
+
+            keys.innerHTML = '';
+            KEYROWS.forEach((rowChars, ri) => {
+                const krow = document.createElement('div');
+                krow.className = 'krow';
+                if (ri === 2) krow.appendChild(makeKey(t('fivEnter'), 'enter', true));
+                for (const ch of rowChars) krow.appendChild(makeKey(ch, ch, false));
+                if (ri === 2) krow.appendChild(makeKey('⌫', 'back', true));
+                keys.appendChild(krow);
+            });
+        }
+
+        function makeKey(label, action, wide) {
+            const b = document.createElement('button');
+            b.className = 'key' + (wide ? ' wide' : '') + (letterState[action] ? ' ' + letterState[action] : '');
+            b.textContent = label;
+            b.addEventListener('click', () => press(action));
+            return b;
+        }
+
+        function press(action) {
+            if (over) return;
+            if (action === 'enter') { submit(); return; }
+            if (action === 'back') { current = current.slice(0, -1); statusLine.textContent = ''; render(); return; }
+            if (!/^[a-z]$/.test(action)) return;
+            if (current.length >= 5) return;
+            current += action;
+            statusLine.textContent = '';
+            render();
+        }
+
+        window.addEventListener('keydown', e => {
+            if (over) return;
+            if (e.key === 'Enter') { e.preventDefault(); press('enter'); return; }
+            if (e.key === 'Backspace') { e.preventDefault(); press('back'); return; }
+            const ch = e.key.toLowerCase();
+            if (/^[a-z]$/.test(ch)) { e.preventDefault(); press(ch); }
+        });
+
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

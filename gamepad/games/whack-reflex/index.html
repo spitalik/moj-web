@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Whack Reflex · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402a1a;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#fbbf24;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:460px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:22px; font-weight:700;
+            background:linear-gradient(135deg,#fde68a,#fbbf24);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#fbbf24; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #canvas-wrapper {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            position:relative; align-self:center;
+        }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#fde68a,#fbbf24);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #restartBtn {
+            background:#fbbf24; border:1px solid #fde68a; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #b45309; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #b45309; }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🔨 WHACK REFLEX</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="easy" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="medium" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="hard" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-time">Čas</h3>
+                <span class="value" id="timeValue">45s</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-combo">Kombá</h3>
+                <span class="value" id="comboValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-gameover">Čas vypršal!</h2>
+                <p><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <p><span id="lbl-final-hits">Zásahy:</span> <span id="finalHits">0</span></p>
+                <button id="restartBtn">Hrať znova</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const timeSpan = document.getElementById('timeValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const comboSpan = document.getElementById('comboValue');
+            const bestSpan = document.getElementById('bestValue');
+            const endOverlay = document.getElementById('end-overlay');
+            const finalScore = document.getElementById('finalScore');
+            const finalHits = document.getElementById('finalHits');
+            const restartBtn = document.getElementById('restartBtn');
+            const sizeGroup = document.getElementById('sizeGroup');
+
+            // ----- PREKLADY -----
+            document.getElementById('lbl-back').textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('wrxDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('wrxEasy');
+            document.getElementById('lbl-size-m').textContent = t('wrxMedium');
+            document.getElementById('lbl-size-l').textContent = t('wrxHard');
+            document.getElementById('lbl-time').textContent = t('wrxTime');
+            document.getElementById('lbl-score').textContent = t('wrxScore');
+            document.getElementById('lbl-combo').textContent = t('wrxCombo');
+            document.getElementById('lbl-best').textContent = t('wrxBest');
+            document.getElementById('lbl-gameover').textContent = t('wrxTimeUp');
+            document.getElementById('lbl-final-score').textContent = t('wrxScore') + ':';
+            document.getElementById('lbl-final-hits').textContent = t('wrxHits') + ':';
+            restartBtn.textContent = t('wrxReplay');
+            document.getElementById('rules').textContent = t('wrxRules');
+
+            // ----- KONFIGURACIA -----
+            const DIFFS = {
+                easy:   { grid: 3, spawnMin: 650, spawnMax: 1000, spawnMinLate: 450, spawnMaxLate: 750, visible: 1050, maxConcurrent: 1, bombChance: 0.08, goldChance: 0.10 },
+                medium: { grid: 4, spawnMin: 500, spawnMax: 800,  spawnMinLate: 320, spawnMaxLate: 550, visible: 780,  maxConcurrent: 2, bombChance: 0.13, goldChance: 0.12 },
+                hard:   { grid: 4, spawnMin: 380, spawnMax: 620,  spawnMinLate: 220, spawnMaxLate: 400, visible: 560,  maxConcurrent: 3, bombChance: 0.18, goldChance: 0.14 }
+            };
+            const ROUND_MS = 45000;
+            const CW = 320, CH = 380;
+            canvas.width = CW;
+            canvas.height = CH;
+
+            let diffKey = 'medium';
+            let grid = 4;
+            let cellSize = CW / grid;
+            let moles = {};
+            let score = 0, combo = 0, hits = 0, misses = 0;
+            let best = parseInt(localStorage.getItem('whackReflexBest') || '0', 10);
+            let running = true;
+            let elapsed = 0;
+            let timeLeft = ROUND_MS;
+            let nextSpawnIn = 500;
+            let popEffects = [];
+
+            bestSpan.textContent = best;
+
+            function holeCenter(idx) {
+                const col = idx % grid;
+                const row = Math.floor(idx / grid);
+                return { x: col * cellSize + cellSize / 2, y: row * cellSize + cellSize / 2 };
+            }
+
+            function currentSpawnRange() {
+                const cfg = DIFFS[diffKey];
+                const progress = Math.min(1, elapsed / ROUND_MS);
+                const min = cfg.spawnMin + (cfg.spawnMinLate - cfg.spawnMin) * progress;
+                const max = cfg.spawnMax + (cfg.spawnMaxLate - cfg.spawnMax) * progress;
+                return { min, max };
+            }
+
+            function pickMoleType() {
+                const cfg = DIFFS[diffKey];
+                const r = Math.random();
+                if (r < cfg.bombChance) return 'bomb';
+                if (r < cfg.bombChance + cfg.goldChance) return 'gold';
+                return 'normal';
+            }
+
+            function trySpawn() {
+                const cfg = DIFFS[diffKey];
+                const activeCount = Object.keys(moles).length;
+                if (activeCount >= cfg.maxConcurrent) return;
+                const emptyHoles = [];
+                for (let i = 0; i < grid * grid; i++) {
+                    if (!moles[i]) emptyHoles.push(i);
+                }
+                if (emptyHoles.length === 0) return;
+                const hole = emptyHoles[Math.floor(Math.random() * emptyHoles.length)];
+                const type = pickMoleType();
+                const duration = type === 'gold' ? cfg.visible * 0.72 : cfg.visible;
+                moles[hole] = { type, spawnTime: elapsed, duration, popIn: 0 };
+            }
+
+            function tapHole(hole) {
+                if (!running) return;
+                const m = moles[hole];
+                if (!m) return;
+                delete moles[hole];
+                const c = holeCenter(hole);
+                if (m.type === 'bomb') {
+                    score = Math.max(0, score - 15);
+                    combo = 0;
+                    popEffects.push({ x: c.x, y: c.y, text: '💥', life: 1, color: '#f87171' });
+                } else {
+                    const base = m.type === 'gold' ? 30 : 10;
+                    const gained = base + combo * 2;
+                    score += gained;
+                    combo++;
+                    hits++;
+                    popEffects.push({ x: c.x, y: c.y, text: '+' + gained, life: 1, color: m.type === 'gold' ? '#fde68a' : '#4ade80' });
+                }
+                scoreSpan.textContent = score;
+                comboSpan.textContent = combo;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('whackReflexBest', String(best));
+                }
+            }
+
+            function expireOld() {
+                for (const hole in moles) {
+                    const m = moles[hole];
+                    if (elapsed - m.spawnTime >= m.duration) {
+                        if (m.type !== 'bomb') {
+                            misses++;
+                            combo = 0;
+                            comboSpan.textContent = '0';
+                        }
+                        delete moles[hole];
+                    }
+                }
+            }
+
+            function resetGame() {
+                const cfg = DIFFS[diffKey];
+                grid = cfg.grid;
+                cellSize = CW / grid;
+                moles = {};
+                score = 0; combo = 0; hits = 0; misses = 0;
+                running = true;
+                elapsed = 0;
+                timeLeft = ROUND_MS;
+                nextSpawnIn = 400;
+                popEffects = [];
+                scoreSpan.textContent = '0';
+                comboSpan.textContent = '0';
+                timeSpan.textContent = Math.ceil(ROUND_MS / 1000) + 's';
+                endOverlay.classList.remove('visible');
+            }
+
+            function endGame() {
+                running = false;
+                moles = {};
+                finalScore.textContent = score;
+                finalHits.textContent = hits;
+                endOverlay.classList.add('visible');
+            }
+
+            function canvasPoint(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clientX = e.touches ? e.changedTouches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.changedTouches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
+
+            function onTap(e) {
+                if (!running) return;
+                const p = canvasPoint(e);
+                const col = Math.floor(p.x / cellSize);
+                const row = Math.floor(p.y / cellSize);
+                if (col < 0 || col >= grid || row < 0 || row >= grid) return;
+                tapHole(row * grid + col);
+            }
+
+            canvas.addEventListener('mousedown', onTap);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onTap(e); }, { passive: false });
+
+            restartBtn.addEventListener('click', resetGame);
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    resetGame();
+                });
+            });
+
+            function update(dtMs) {
+                if (!running) return;
+                elapsed += dtMs;
+                timeLeft = Math.max(0, ROUND_MS - elapsed);
+                timeSpan.textContent = Math.ceil(timeLeft / 1000) + 's';
+                if (timeLeft <= 0) {
+                    endGame();
+                    return;
+                }
+
+                nextSpawnIn -= dtMs;
+                if (nextSpawnIn <= 0) {
+                    trySpawn();
+                    const range = currentSpawnRange();
+                    nextSpawnIn = range.min + Math.random() * (range.max - range.min);
+                }
+
+                expireOld();
+
+                for (const hole in moles) {
+                    const m = moles[hole];
+                    m.popIn = Math.min(1, m.popIn + dtMs / 120);
+                }
+
+                popEffects = popEffects.filter(p => p.life > 0);
+                for (const p of popEffects) {
+                    p.y -= 0.4;
+                    p.life -= 0.03;
+                }
+            }
+
+            const MOLE_ICON = { normal: '🐹', gold: '⭐', bomb: '💣' };
+
+            function draw() {
+                ctx.clearRect(0, 0, CW, CH);
+                const grad = ctx.createLinearGradient(0, 0, 0, CH);
+                grad.addColorStop(0, '#0b111e');
+                grad.addColorStop(1, '#0f1a2b');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, CW, CH);
+
+                for (let i = 0; i < grid * grid; i++) {
+                    const c = holeCenter(i);
+                    const holeR = cellSize * 0.36;
+                    const hg = ctx.createRadialGradient(c.x, c.y, holeR * 0.2, c.x, c.y, holeR);
+                    hg.addColorStop(0, '#1c130a');
+                    hg.addColorStop(1, '#3a2a16');
+                    ctx.beginPath();
+                    ctx.ellipse(c.x, c.y, holeR, holeR * 0.62, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = hg;
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                for (const hole in moles) {
+                    const m = moles[hole];
+                    const c = holeCenter(parseInt(hole, 10));
+                    const remain = 1 - (elapsed - m.spawnTime) / m.duration;
+                    const scale = m.popIn * Math.min(1, remain * 3 + 0.3);
+                    ctx.save();
+                    ctx.translate(c.x, c.y - cellSize * 0.12 * m.popIn);
+                    ctx.scale(scale, scale);
+                    ctx.font = (cellSize * 0.5) + 'px serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(MOLE_ICON[m.type], 0, 0);
+                    ctx.restore();
+                }
+
+                for (const p of popEffects) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.fillStyle = p.color;
+                    ctx.font = 'bold 15px Segoe UI, Roboto, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(p.text, p.x, p.y);
+                    ctx.restore();
+                }
+            }
+
+            let lastTs = null;
+            function loop(ts) {
+                if (lastTs === null) lastTs = ts;
+                let dtMs = ts - lastTs;
+                lastTs = ts;
+                dtMs = Math.min(dtMs, 60);
+                update(dtMs);
+                draw();
+                requestAnimationFrame(loop);
+            }
+
+            resetGame();
+            requestAnimationFrame(loop);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hidden Word · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #2e1440;color:#9b7fab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#c084fc;color:#f7efff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:440px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#e9d5ff,#c084fc);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#c084fc; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#d8b4fe; min-height:16px; font-weight:600; }
+        #stage { display:flex; gap:12px; align-items:center; justify-content:center; }
+        #gallows { display:block; border-radius:12px; background:#0f1622; box-shadow: inset 0 0 0 1px #2a3446; }
+        #category { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#a78bfa; font-weight:700; text-align:center; }
+        #word { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+        .slot {
+            min-width:26px; height:38px; padding:0 3px;
+            border-bottom:3px solid #42597a;
+            display:flex; align-items:flex-end; justify-content:center;
+            font-size:24px; font-weight:800; color:#eef3fc; text-transform:uppercase;
+        }
+        .slot.shown { border-bottom-color:#a78bfa; }
+        .slot.missed { color:#f87171; border-bottom-color:#f87171; }
+        #keys { display:flex; flex-direction:column; gap:6px; align-items:center; }
+        .krow { display:flex; gap:5px; justify-content:center; }
+        .key {
+            min-width:29px; height:40px; padding:0 6px;
+            border-radius:8px; border:1px solid #2f4260; background:#1a2740; color:#dfe9f5;
+            font-size:13px; font-weight:700; cursor:pointer; text-transform:uppercase;
+        }
+        .key.hit  { background:#7c3aed; border-color:#a78bfa; color:#f6efff; }
+        .key.miss { background:#131b28; border-color:#1e2738; color:#5c6b83; }
+        .key:active { transform:translateY(2px); }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.94); backdrop-filter:blur(6px);
+            border-radius:16px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:25px; background:linear-gradient(135deg,#e9d5ff,#c084fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #end-overlay .answer { font-size:23px; font-weight:800; letter-spacing:3px; color:#d8b4fe; text-transform:uppercase; }
+        #restartBtn {
+            background:#c084fc; border:1px solid #e9d5ff; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #7e22ce; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #7e22ce; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🔠</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-left"></h3><span class="value" id="leftValue">6</span></div>
+            <div class="info-card"><h3 id="lbl-streak"></h3><span class="value" id="streakValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div style="position:relative;">
+            <div id="stage">
+                <canvas id="gallows" width="150" height="150"></canvas>
+                <div>
+                    <div id="category"></div>
+                    <div id="word" style="margin-top:10px;"></div>
+                </div>
+            </div>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-answer-label"></p>
+                <div class="answer" id="answerText"></div>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="keys"></div>
+
+        <div id="controls">
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gallows');
+        const ctx = canvas.getContext('2d');
+        const leftSpan = document.getElementById('leftValue');
+        const streakSpan = document.getElementById('streakValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const categoryEl = document.getElementById('category');
+        const wordEl = document.getElementById('word');
+        const keys = document.getElementById('keys');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const answerLabel = document.getElementById('lbl-answer-label');
+        const answerText = document.getElementById('answerText');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🔠 ' + t('hwdTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-left').textContent   = t('hwdLeft');
+        document.getElementById('lbl-streak').textContent = t('fivStreak');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('hwdRules');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('hwdTitle') + ' · GamePad';
+
+        // ----- SLOVA -----
+        // English words, like the library's other word games; only the interface is translated.
+        const BANK = {
+            hwdCatAnimals: ('tiger lion horse monkey rabbit giraffe penguin dolphin elephant squirrel leopard hedgehog octopus ' +
+                'butterfly crocodile kangaroo flamingo scorpion tortoise antelope raccoon otter badger beaver walrus panther ' +
+                'buffalo gazelle iguana lobster').split(' '),
+            hwdCatFood: ('bread cheese tomato potato carrot pumpkin avocado noodles pancake sandwich chocolate cinnamon ' +
+                'strawberry blueberry pineapple broccoli spinach lettuce almond walnut yoghurt pudding lasagna omelette ' +
+                'porridge biscuit pepper vinegar mustard oregano').split(' '),
+            hwdCatCountries: ('canada brazil mexico norway sweden finland iceland ireland portugal belgium hungary romania ' +
+                'bulgaria slovakia slovenia croatia austria denmark morocco ethiopia tanzania thailand vietnam malaysia ' +
+                'indonesia mongolia paraguay uruguay colombia argentina').split(' '),
+            hwdCatSports: ('soccer tennis hockey boxing rowing curling archery cycling skating fencing sailing surfing ' +
+                'climbing swimming handball baseball football softball marathon triathlon badminton bobsleigh gymnastics ' +
+                'wrestling volleyball basketball snowboard skateboard karate judo').split(' '),
+        };
+        const CATS = Object.keys(BANK);
+
+        const SETUP = {
+            easy:   { misses: 8, min: 4, max: 7 },
+            medium: { misses: 6, min: 5, max: 9 },
+            hard:   { misses: 5, min: 7, max: 12 },
+        };
+        const KEYROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+
+        let diffKey = 'medium';
+        let word = '', category = '', picked = new Set(), misses = 0, over = false, won = false;
+        let streak = 0, score = 0, startedAt = 0;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('hiddenWordBest') || '{}')); } catch (e) { /* ignore */ }
+        try { streak = parseInt(localStorage.getItem('hiddenWordStreak') || '0', 10) || 0; } catch (e) { /* ignore */ }
+
+        const allowed = () => SETUP[diffKey].misses;
+        const solved = () => [...word].every(ch => picked.has(ch));
+
+        function guess(ch) {
+            if (over || picked.has(ch)) return;
+            picked.add(ch);
+            if (!word.includes(ch)) {
+                misses++;
+                statusLine.textContent = t('hwdMiss', { c: ch.toUpperCase() });
+            } else {
+                statusLine.textContent = t('hwdHit', { c: ch.toUpperCase() });
+            }
+            render();
+            if (solved()) { finish(true); return; }
+            if (misses >= allowed()) finish(false);
+        }
+
+        function finish(win) {
+            over = true; won = win;
+            const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+            if (win) {
+                score = Math.max(40, 60 + word.length * 14 + (allowed() - misses) * 25 - elapsed) + streak * 12;
+                streak++;
+            } else {
+                score = 0;
+                streak = 0;
+            }
+            try { localStorage.setItem('hiddenWordStreak', String(streak)); } catch (e) { /* ignore */ }
+            scoreSpan.textContent = score;
+            streakSpan.textContent = streak;
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('hiddenWordBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = win ? t('hwdSaved') : t('uiGameOver');
+            answerLabel.textContent = t('hwdAnswerWas');
+            answerText.textContent = word;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            render();
+            endOverlay.classList.add('visible');
+        }
+
+        function newGame() {
+            const setup = SETUP[diffKey];
+            category = CATS[Math.floor(Math.random() * CATS.length)];
+            const pool = BANK[category].filter(w => w.length >= setup.min && w.length <= setup.max);
+            const list = pool.length ? pool : BANK[category];
+            word = list[Math.floor(Math.random() * list.length)];
+            picked = new Set(); misses = 0; over = false; won = false;
+            score = 0; startedAt = Date.now();
+            scoreSpan.textContent = '0';
+            streakSpan.textContent = streak;
+            bestSpan.textContent = best[diffKey] || 0;
+            endOverlay.classList.remove('visible');
+            statusLine.textContent = t('hwdHint');
+            render();
+        }
+
+        // ----- VYKRESLENIE -----
+        function render() {
+            leftSpan.textContent = Math.max(0, allowed() - misses);
+            categoryEl.textContent = t(category);
+
+            wordEl.innerHTML = '';
+            for (const ch of word) {
+                const slot = document.createElement('div');
+                const shown = picked.has(ch);
+                slot.className = 'slot' + (shown ? ' shown' : '') + (over && !won && !shown ? ' missed' : '');
+                slot.textContent = shown || (over && !won) ? ch : '';
+                wordEl.appendChild(slot);
+            }
+
+            keys.innerHTML = '';
+            for (const rowChars of KEYROWS) {
+                const krow = document.createElement('div');
+                krow.className = 'krow';
+                for (const ch of rowChars) {
+                    const b = document.createElement('button');
+                    const state = picked.has(ch) ? (word.includes(ch) ? ' hit' : ' miss') : '';
+                    b.className = 'key' + state;
+                    b.textContent = ch;
+                    b.disabled = over || picked.has(ch);
+                    b.addEventListener('click', () => guess(ch));
+                    krow.appendChild(b);
+                }
+                keys.appendChild(krow);
+            }
+            drawGallows();
+        }
+
+        function drawGallows() {
+            const W = canvas.width, H = canvas.height;
+            ctx.clearRect(0, 0, W, H);
+            ctx.strokeStyle = '#5b6b86'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+            // scaffold first, then the figure — spread across however many misses this level allows
+            const stages = [
+                () => { line(20, H - 12, 96, H - 12); },                       // ground
+                () => { line(40, H - 12, 40, 18); },                           // post
+                () => { line(40, 18, 100, 18); line(40, 34, 56, 18); },        // beam and brace
+                () => { line(100, 18, 100, 36); },                             // rope
+                () => { circle(100, 47, 11); },                                // head
+                () => { line(100, 58, 100, 96); },                             // body
+                () => { line(100, 68, 84, 84); line(100, 68, 116, 84); },      // arms
+                () => { line(100, 96, 86, 120); line(100, 96, 114, 120); },    // legs
+            ];
+            const shown = Math.ceil(misses / allowed() * stages.length);
+            for (let i = 0; i < shown && i < stages.length; i++) {
+                ctx.strokeStyle = i >= 4 ? '#f87171' : '#7c8aa5';
+                stages[i]();
+            }
+            function line(x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+            function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke(); }
+        }
+
+        window.addEventListener('keydown', e => {
+            const ch = e.key.toLowerCase();
+            if (/^[a-z]$/.test(ch)) { e.preventDefault(); guess(ch); }
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

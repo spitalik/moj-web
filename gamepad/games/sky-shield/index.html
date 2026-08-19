@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sky Shield · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #12294a;color:#7d93b8;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#60a5fa;color:#eef4ff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:500px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#bfdbfe,#60a5fa);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#60a5fa; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#93c5fd; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:crosshair; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#bfdbfe,#60a5fa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#60a5fa; border:1px solid #bfdbfe; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #1d4ed8; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #1d4ed8; }
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🛡️</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-wave"></h3><span class="value" id="waveValue">1</span></div>
+            <div class="info-card"><h3 id="lbl-cities"></h3><span class="value" id="citiesValue">6</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-detail"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="pauseBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const waveSpan = document.getElementById('waveValue');
+        const citiesSpan = document.getElementById('citiesValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalDetail = document.getElementById('lbl-final-detail');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🛡️ ' + t('skyTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-wave').textContent   = t('skyWave');
+        document.getElementById('lbl-cities').textContent = t('skyCities');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('skyRules');
+        pauseBtn.textContent   = t('uiPaused');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('skyTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const W = 460, H = 330;
+        canvas.width = W; canvas.height = H;
+        const GROUND = H - 30;
+        const BLAST = 30, FUSE_MAX = 42;
+        const SETUP = {
+            easy:   { speed: 0.42, perWave: 5, gap: 90, salvo: 3 },
+            medium: { speed: 0.58, perWave: 7, gap: 66, salvo: 2 },
+            hard:   { speed: 0.78, perWave: 9, gap: 48, salvo: 2 },
+        };
+
+        let diffKey = 'medium';
+        let cities = [], incoming = [], shots = [], blasts = [];
+        let wave = 1, score = 0, toLaunch = 0, spawnGap = 0, reload = 0;
+        let paused = false, over = false, waveBreak = 0;
+        let raf = 0, lastTick = 0;
+        let best = { easy: 0, medium: 0, hard: 0 };
+        try { best = Object.assign(best, JSON.parse(localStorage.getItem('skyShieldBest') || '{}')); } catch (e) { /* ignore */ }
+
+        const battery = () => ({ x: W / 2, y: GROUND - 6 });
+
+        function buildCities() {
+            cities = [];
+            const slots = [0.09, 0.21, 0.33, 0.67, 0.79, 0.91];
+            for (const s of slots) cities.push({ x: W * s, alive: true });
+        }
+
+        function startWave() {
+            const setup = SETUP[diffKey];
+            toLaunch = setup.perWave + Math.floor((wave - 1) * 1.7);
+            spawnGap = 0;
+            incoming = []; shots = []; blasts = [];
+            waveBreak = 90;
+            statusLine.textContent = t('skyWaveStart', { n: wave });
+        }
+
+        function launchEnemy() {
+            const setup = SETUP[diffKey];
+            const targets = cities.filter(c => c.alive).map(c => c.x).concat([W / 2]);
+            const tx = targets[Math.floor(Math.random() * targets.length)];
+            const sx = 20 + Math.random() * (W - 40);
+            const speed = setup.speed * (1 + (wave - 1) * 0.06);
+            const dx = tx - sx, dy = GROUND - 0;
+            const len = Math.hypot(dx, dy);
+            incoming.push({ x: sx, y: 0, vx: dx / len * speed, vy: dy / len * speed, tx, trail: [[sx, 0]] });
+        }
+
+        function fire(x, y) {
+            if (over || paused || reload > 0) return;
+            if (y > GROUND - 8) return;
+            const b = battery();
+            const dx = x - b.x, dy = y - b.y;
+            const len = Math.hypot(dx, dy) || 1;
+            const speed = 4.6;
+            shots.push({ x: b.x, y: b.y, vx: dx / len * speed, vy: dy / len * speed, tx: x, ty: y, trail: [[b.x, b.y]] });
+            reload = 9;
+        }
+
+        function boom(x, y) {
+            blasts.push({ x, y, life: FUSE_MAX });
+        }
+
+        const liveCities = () => cities.filter(c => c.alive).length;
+
+        function tick(dt) {
+            if (reload > 0) reload -= dt;
+            if (waveBreak > 0) { waveBreak -= dt; }
+            else if (toLaunch > 0) {
+                spawnGap -= dt;
+                if (spawnGap <= 0) {
+                    const setup = SETUP[diffKey];
+                    const salvo = Math.min(toLaunch, setup.salvo);
+                    for (let i = 0; i < salvo; i++) { launchEnemy(); toLaunch--; }
+                    spawnGap = Math.max(18, setup.gap - wave * 3);
+                }
+            }
+
+            for (const s of shots) {
+                s.x += s.vx * dt; s.y += s.vy * dt;
+                s.trail.push([s.x, s.y]);
+                if (s.trail.length > 40) s.trail.shift();
+                if (Math.hypot(s.x - s.tx, s.y - s.ty) < 6) { boom(s.x, s.y); s.done = true; }
+                if (s.y < 2) { boom(s.x, s.y); s.done = true; }
+            }
+            shots = shots.filter(s => !s.done);
+
+            for (const m of incoming) {
+                m.x += m.vx * dt; m.y += m.vy * dt;
+                m.trail.push([m.x, m.y]);
+                if (m.trail.length > 120) m.trail.shift();
+                if (m.y >= GROUND) {
+                    m.done = true;
+                    boom(m.x, GROUND - 4);
+                    for (const c of cities) if (c.alive && Math.abs(c.x - m.x) < 20) { c.alive = false; refresh(); }
+                }
+            }
+
+            for (const b of blasts) {
+                b.life -= dt;
+                const radius = BLAST * Math.sin(Math.max(0, b.life / FUSE_MAX) * Math.PI);
+                for (const m of incoming) {
+                    if (m.done) continue;
+                    if (Math.hypot(m.x - b.x, m.y - b.y) <= radius) {
+                        m.done = true;
+                        score += 25 * wave;
+                        boom(m.x, m.y);
+                        refresh();
+                    }
+                }
+            }
+            blasts = blasts.filter(b => b.life > 0);
+            incoming = incoming.filter(m => !m.done);
+
+            if (!liveCities()) { finish(); return; }
+            if (toLaunch === 0 && !incoming.length && !blasts.length && waveBreak <= 0) {
+                score += 100 * liveCities();
+                wave++;
+                refresh();
+                startWave();
+            }
+        }
+
+        function finish() {
+            over = true;
+            cancelAnimationFrame(raf);
+            if (score > (best[diffKey] || 0)) {
+                best[diffKey] = score;
+                localStorage.setItem('skyShieldBest', JSON.stringify(best));
+            }
+            bestSpan.textContent = best[diffKey] || 0;
+            resultH2.textContent = t('uiGameOver');
+            finalDetail.textContent = t('skyWave') + ' ' + wave;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        function refresh() {
+            waveSpan.textContent = wave;
+            citiesSpan.textContent = liveCities();
+            scoreSpan.textContent = score;
+        }
+
+        function loop(now) {
+            raf = requestAnimationFrame(loop);
+            if (paused || over) return;
+            const dt = Math.min(3, (now - lastTick) / 16.67 || 1);
+            lastTick = now;
+            tick(dt);
+            draw();
+        }
+
+        function newGame() {
+            wave = 1; score = 0; over = false; paused = false; reload = 0;
+            buildCities(); startWave();
+            bestSpan.textContent = best[diffKey] || 0;
+            endOverlay.classList.remove('visible');
+            refresh();
+            cancelAnimationFrame(raf);
+            lastTick = performance.now();
+            raf = requestAnimationFrame(loop);
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        function aim(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * W;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * H;
+            fire(x, y);
+        }
+        canvas.addEventListener('mousedown', aim);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); aim(e); }, { passive: false });
+        pauseBtn.addEventListener('click', () => {
+            if (over) return;
+            paused = !paused;
+            statusLine.textContent = paused ? t('uiPaused') : '';
+            draw();
+        });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            const sky = ctx.createLinearGradient(0, 0, 0, H);
+            sky.addColorStop(0, '#050b1c'); sky.addColorStop(1, '#122036');
+            ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+            ctx.fillStyle = '#1d3557';
+            ctx.fillRect(0, GROUND, W, H - GROUND);
+            ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, GROUND); ctx.lineTo(W, GROUND); ctx.stroke();
+
+            for (const c of cities) {
+                if (!c.alive) {
+                    ctx.fillStyle = '#334155';
+                    ctx.fillRect(c.x - 14, GROUND - 5, 28, 5);
+                    continue;
+                }
+                ctx.fillStyle = '#93c5fd';
+                ctx.fillRect(c.x - 14, GROUND - 14, 28, 14);
+                ctx.fillStyle = '#1e3a8a';
+                for (let k = 0; k < 4; k++) ctx.fillRect(c.x - 11 + k * 6, GROUND - 11, 3, 5);
+            }
+
+            const b = battery();
+            ctx.fillStyle = '#bfdbfe';
+            ctx.beginPath();
+            ctx.moveTo(b.x - 13, GROUND); ctx.lineTo(b.x + 13, GROUND); ctx.lineTo(b.x, GROUND - 18);
+            ctx.closePath(); ctx.fill();
+
+            ctx.lineWidth = 1.4;
+            for (const m of incoming) {
+                ctx.strokeStyle = 'rgba(248,113,113,.55)';
+                ctx.beginPath();
+                m.trail.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+                ctx.stroke();
+                ctx.beginPath(); ctx.arc(m.x, m.y, 2.6, 0, Math.PI * 2);
+                ctx.fillStyle = '#fecaca'; ctx.fill();
+            }
+            for (const s of shots) {
+                ctx.strokeStyle = 'rgba(147,197,253,.7)';
+                ctx.beginPath();
+                s.trail.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+                ctx.stroke();
+                ctx.beginPath(); ctx.arc(s.x, s.y, 2.2, 0, Math.PI * 2);
+                ctx.fillStyle = '#e0f2fe'; ctx.fill();
+                ctx.strokeStyle = 'rgba(191,219,254,.35)';
+                ctx.beginPath(); ctx.arc(s.tx, s.ty, 4, 0, Math.PI * 2); ctx.stroke();
+            }
+            for (const bl of blasts) {
+                const radius = BLAST * Math.sin(Math.max(0, bl.life / FUSE_MAX) * Math.PI);
+                const g = ctx.createRadialGradient(bl.x, bl.y, 1, bl.x, bl.y, Math.max(1, radius));
+                g.addColorStop(0, 'rgba(255,255,255,.95)');
+                g.addColorStop(0.55, 'rgba(96,165,250,.7)');
+                g.addColorStop(1, 'rgba(37,99,235,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath(); ctx.arc(bl.x, bl.y, Math.max(1, radius), 0, Math.PI * 2); ctx.fill();
+            }
+
+            if (waveBreak > 0 && !over) {
+                ctx.fillStyle = 'rgba(191,219,254,.85)';
+                ctx.font = '700 20px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(t('skyWave') + ' ' + wave, W / 2, H / 2 - 20);
+            }
+            if (paused) {
+                ctx.fillStyle = 'rgba(5,8,20,.7)'; ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = '#bfdbfe'; ctx.font = '700 22px system-ui';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(t('uiPaused'), W / 2, H / 2);
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

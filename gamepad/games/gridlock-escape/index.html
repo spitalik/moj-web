@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gridlock Escape · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402a1a;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#fb923c;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:460px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#fed7aa,#fb923c);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#fb923c; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #canvas-wrapper {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            position:relative; align-self:center;
+        }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:10px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#fed7aa,#fb923c);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #nextBtn {
+            background:#fb923c; border:1px solid #fed7aa; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #c2410c; cursor:pointer; margin-top:6px;
+        }
+        #nextBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #c2410c; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🚗 GRIDLOCK ESCAPE</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="s" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="m" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="l" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-moves">Ťahy</h3>
+                <span class="value" id="movesValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-par">Par</h3>
+                <span class="value" id="parValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-win">Únik!</h2>
+                <p><span id="lbl-final-moves">Ťahy:</span> <span id="finalMoves">0</span> / <span id="finalPar">0</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="nextBtn">Ďalšia hádanka</button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="resetBtn"><span id="lbl-reset">Vyčistiť</span></button>
+            <button id="newLevelBtn"><span id="lbl-newlevel">Nová hádanka</span></button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const LEVELS = {"s": [{"vehicles": [{"o": "H", "l": 2, "r": 5, "c": 1}, {"o": "V", "l": 2, "r": 3, "c": 1}, {"o": "H", "l": 3, "r": 0, "c": 1}, {"o": "H", "l": 3, "r": 3, "c": 3}, {"o": "H", "l": 2, "r": 2, "c": 0}, {"o": "H", "l": 2, "r": 1, "c": 3}, {"o": "H", "l": 2, "r": 4, "c": 2}, {"o": "V", "l": 3, "r": 0, "c": 5}, {"o": "V", "l": 2, "r": 0, "c": 0}, {"o": "V", "l": 2, "r": 4, "c": 4}], "par": 5}, {"vehicles": [{"o": "H", "l": 2, "r": 0, "c": 3}, {"o": "V", "l": 2, "r": 1, "c": 3}, {"o": "H", "l": 2, "r": 3, "c": 3}, {"o": "V", "l": 2, "r": 0, "c": 5}, {"o": "V", "l": 2, "r": 4, "c": 1}, {"o": "H", "l": 2, "r": 4, "c": 3}, {"o": "V", "l": 2, "r": 3, "c": 2}, {"o": "H", "l": 2, "r": 2, "c": 0}, {"o": "H", "l": 2, "r": 1, "c": 0}, {"o": "V", "l": 2, "r": 2, "c": 5}], "par": 3}, {"vehicles": [{"o": "H", "l": 2, "r": 4, "c": 2}, {"o": "H", "l": 2, "r": 2, "c": 1}, {"o": "V", "l": 3, "r": 0, "c": 0}, {"o": "V", "l": 2, "r": 4, "c": 5}, {"o": "H", "l": 2, "r": 5, "c": 3}, {"o": "H", "l": 2, "r": 0, "c": 3}, {"o": "H", "l": 2, "r": 2, "c": 4}], "par": 3}, {"vehicles": [{"o": "H", "l": 2, "r": 3, "c": 0}, {"o": "V", "l": 2, "r": 4, "c": 5}, {"o": "H", "l": 3, "r": 2, "c": 0}, {"o": "V", "l": 3, "r": 0, "c": 3}, {"o": "V", "l": 2, "r": 3, "c": 3}, {"o": "V", "l": 2, "r": 4, "c": 1}, {"o": "V", "l": 2, "r": 2, "c": 4}, {"o": "V", "l": 2, "r": 4, "c": 4}], "par": 3}, {"vehicles": [{"o": "H", "l": 2, "r": 2, "c": 0}, {"o": "V", "l": 2, "r": 3, "c": 1}, {"o": "H", "l": 3, "r": 0, "c": 2}, {"o": "V", "l": 3, "r": 2, "c": 5}, {"o": "V", "l": 2, "r": 1, "c": 3}, {"o": "H", "l": 2, "r": 5, "c": 4}, {"o": "V", "l": 2, "r": 0, "c": 5}], "par": 4}], "m": [{"vehicles": [{"o": "H", "l": 2, "r": 2, "c": 2}, {"o": "V", "l": 3, "r": 3, "c": 1}, {"o": "V", "l": 2, "r": 1, "c": 5}, {"o": "V", "l": 3, "r": 0, "c": 4}, {"o": "V", "l": 2, "r": 0, "c": 2}, {"o": "H", "l": 2, "r": 3, "c": 4}, {"o": "H", "l": 2, "r": 3, "c": 2}, {"o": "H", "l": 3, "r": 5, "c": 3}], "par": 7}, {"vehicles": [{"o": "H", "l": 2, "r": 2, "c": 2}, {"o": "V", "l": 2, "r": 2, "c": 5}, {"o": "V", "l": 2, "r": 4, "c": 0}, {"o": "V", "l": 3, "r": 0, "c": 4}, {"o": "H", "l": 2, "r": 4, "c": 3}, {"o": "V", "l": 3, "r": 1, "c": 1}, {"o": "H", "l": 2, "r": 4, "c": 1}, {"o": "V", "l": 2, "r": 1, "c": 0}, {"o": "H", "l": 2, "r": 5, "c": 2}], "par": 7}, {"vehicles": [{"o": "H", "l": 2, "r": 5, "c": 3}, {"o": "H", "l": 2, "r": 2, "c": 2}, {"o": "H", "l": 2, "r": 5, "c": 1}, {"o": "V", "l": 3, "r": 1, "c": 1}, {"o": "V", "l": 2, "r": 0, "c": 3}, {"o": "H", "l": 2, "r": 4, "c": 2}, {"o": "H", "l": 2, "r": 0, "c": 1}, {"o": "H", "l": 2, "r": 3, "c": 4}, {"o": "H", "l": 2, "r": 3, "c": 2}, {"o": "V", "l": 2, "r": 4, "c": 5}], "par": 8}, {"vehicles": [{"o": "H", "l": 2, "r": 1, "c": 0}, {"o": "V", "l": 2, "r": 3, "c": 0}, {"o": "V", "l": 3, "r": 1, "c": 5}, {"o": "V", "l": 2, "r": 1, "c": 3}, {"o": "H", "l": 2, "r": 3, "c": 3}, {"o": "V", "l": 2, "r": 4, "c": 2}, {"o": "V", "l": 2, "r": 0, "c": 2}, {"o": "H", "l": 2, "r": 0, "c": 4}, {"o": "V", "l": 2, "r": 4, "c": 3}, {"o": "V", "l": 2, "r": 3, "c": 1}, {"o": "H", "l": 2, "r": 2, "c": 0}], "par": 7}, {"vehicles": [{"o": "H", "l": 2, "r": 3, "c": 2}, {"o": "H", "l": 2, "r": 2, "c": 0}, {"o": "V", "l": 3, "r": 2, "c": 4}, {"o": "H", "l": 2, "r": 1, "c": 0}, {"o": "V", "l": 2, "r": 3, "c": 1}, {"o": "V", "l": 2, "r": 3, "c": 0}, {"o": "H", "l": 2, "r": 1, "c": 3}, {"o": "V", "l": 2, "r": 4, "c": 5}, {"o": "V", "l": 2, "r": 0, "c": 2}], "par": 7}], "l": [{"vehicles": [{"o": "H", "l": 2, "r": 3, "c": 1}, {"o": "H", "l": 2, "r": 1, "c": 3}, {"o": "V", "l": 3, "r": 0, "c": 0}, {"o": "V", "l": 2, "r": 0, "c": 5}, {"o": "V", "l": 2, "r": 4, "c": 5}, {"o": "V", "l": 2, "r": 2, "c": 3}, {"o": "V", "l": 2, "r": 4, "c": 0}, {"o": "V", "l": 2, "r": 1, "c": 2}, {"o": "V", "l": 2, "r": 2, "c": 4}, {"o": "H", "l": 3, "r": 4, "c": 2}, {"o": "V", "l": 2, "r": 0, "c": 1}], "par": 20}, {"vehicles": [{"o": "H", "l": 2, "r": 4, "c": 0}, {"o": "H", "l": 2, "r": 2, "c": 4}, {"o": "V", "l": 2, "r": 1, "c": 2}, {"o": "H", "l": 2, "r": 5, "c": 0}, {"o": "V", "l": 2, "r": 1, "c": 3}, {"o": "V", "l": 2, "r": 3, "c": 4}, {"o": "H", "l": 2, "r": 1, "c": 0}, {"o": "H", "l": 3, "r": 0, "c": 1}, {"o": "V", "l": 2, "r": 4, "c": 2}, {"o": "V", "l": 2, "r": 4, "c": 5}, {"o": "H", "l": 2, "r": 3, "c": 2}, {"o": "V", "l": 2, "r": 2, "c": 1}], "par": 15}, {"vehicles": [{"o": "H", "l": 2, "r": 3, "c": 1}, {"o": "V", "l": 2, "r": 3, "c": 0}, {"o": "H", "l": 2, "r": 0, "c": 3}, {"o": "H", "l": 2, "r": 2, "c": 4}, {"o": "H", "l": 3, "r": 4, "c": 1}, {"o": "V", "l": 2, "r": 1, "c": 3}, {"o": "H", "l": 3, "r": 1, "c": 0}, {"o": "V", "l": 2, "r": 3, "c": 4}, {"o": "V", "l": 2, "r": 0, "c": 5}, {"o": "H", "l": 2, "r": 5, "c": 0}, {"o": "H", "l": 2, "r": 0, "c": 1}, {"o": "H", "l": 2, "r": 2, "c": 1}, {"o": "H", "l": 3, "r": 5, "c": 3}], "par": 15}, {"vehicles": [{"o": "H", "l": 2, "r": 2, "c": 1}, {"o": "V", "l": 2, "r": 1, "c": 4}, {"o": "V", "l": 2, "r": 3, "c": 4}, {"o": "H", "l": 2, "r": 5, "c": 4}, {"o": "H", "l": 3, "r": 4, "c": 0}, {"o": "H", "l": 2, "r": 5, "c": 0}, {"o": "V", "l": 2, "r": 0, "c": 0}, {"o": "V", "l": 2, "r": 0, "c": 2}, {"o": "H", "l": 2, "r": 3, "c": 0}, {"o": "H", "l": 2, "r": 0, "c": 3}, {"o": "H", "l": 2, "r": 5, "c": 2}, {"o": "V", "l": 2, "r": 1, "c": 5}, {"o": "V", "l": 2, "r": 3, "c": 3}], "par": 12}, {"vehicles": [{"o": "H", "l": 2, "r": 3, "c": 1}, {"o": "V", "l": 2, "r": 3, "c": 0}, {"o": "H", "l": 2, "r": 0, "c": 3}, {"o": "H", "l": 2, "r": 2, "c": 4}, {"o": "H", "l": 3, "r": 4, "c": 1}, {"o": "V", "l": 2, "r": 1, "c": 3}, {"o": "H", "l": 3, "r": 1, "c": 0}, {"o": "V", "l": 2, "r": 3, "c": 4}, {"o": "V", "l": 2, "r": 0, "c": 5}, {"o": "H", "l": 2, "r": 5, "c": 0}, {"o": "H", "l": 2, "r": 0, "c": 1}, {"o": "H", "l": 2, "r": 2, "c": 1}, {"o": "H", "l": 3, "r": 5, "c": 3}], "par": 15}]};
+
+            const backLbl = document.getElementById('lbl-back');
+            const sizeGroup = document.getElementById('sizeGroup');
+            const rulesP = document.getElementById('rules');
+            const movesSpan = document.getElementById('movesValue');
+            const parSpan = document.getElementById('parValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const endOverlay = document.getElementById('end-overlay');
+            const finalMoves = document.getElementById('finalMoves');
+            const finalPar = document.getElementById('finalPar');
+            const finalScore = document.getElementById('finalScore');
+            const resetBtn = document.getElementById('resetBtn');
+            const newLevelBtn = document.getElementById('newLevelBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            // ----- PREKLADY -----
+            backLbl.textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('grdDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('grdEasy');
+            document.getElementById('lbl-size-m').textContent = t('grdMedium');
+            document.getElementById('lbl-size-l').textContent = t('grdHard');
+            document.getElementById('lbl-moves').textContent = t('grdMoves');
+            document.getElementById('lbl-score').textContent = t('grdScore');
+            document.getElementById('lbl-best').textContent = t('grdBest');
+            document.getElementById('lbl-win').textContent = t('grdWin');
+            document.getElementById('lbl-final-moves').textContent = t('grdMoves') + ':';
+            document.getElementById('lbl-final-score').textContent = t('grdScore') + ':';
+            document.getElementById('lbl-reset').textContent = t('grdReset');
+            document.getElementById('lbl-newlevel').textContent = t('grdNewLevel');
+            nextBtn.textContent = t('grdNewLevel');
+            rulesP.textContent = t('grdRules');
+
+            // ----- KONFIGURACIA -----
+            const N = 6;
+            const CELL = 54;
+            const CW = N * CELL, CH = N * CELL;
+            canvas.width = CW;
+            canvas.height = CH;
+
+            const PALETTE = ['#60a5fa', '#4ade80', '#c084fc', '#38bdf8', '#a3e635', '#f472b6', '#818cf8', '#2dd4bf', '#facc15', '#fb923c'];
+
+            let diffKey = 'm';
+            let level = null;
+            let vehicles = [];
+            let score = 0;
+            let moves = 0;
+            let best = parseInt(localStorage.getItem('gridlockBest') || '0', 10);
+            let solved = false;
+            let recentIdx = { s: -1, m: -1, l: -1 };
+            let drag = null; // {idx, axis, startPointerPx, startPos, minPos, maxPos, visualPos}
+            let escapeAnim = null; // {idx, progress}
+
+            bestSpan.textContent = best;
+
+            function pickLevel(diff) {
+                const arr = LEVELS[diff];
+                let idx;
+                do { idx = Math.floor(Math.random() * arr.length); }
+                while (arr.length > 1 && idx === recentIdx[diff]);
+                recentIdx[diff] = idx;
+                return arr[idx];
+            }
+
+            function cloneVehicles(vs) {
+                return vs.map(v => ({ o: v.o, l: v.l, r: v.r, c: v.c }));
+            }
+
+            function occupiesOf(v) {
+                const cells = [];
+                if (v.o === 'H') { for (let i = 0; i < v.l; i++) cells.push([v.r, v.c + i]); }
+                else { for (let i = 0; i < v.l; i++) cells.push([v.r + i, v.c]); }
+                return cells;
+            }
+
+            function buildOccupancy(excludeIdx) {
+                const occ = new Set();
+                vehicles.forEach((v, idx) => {
+                    if (idx === excludeIdx) return;
+                    for (const [r, c] of occupiesOf(v)) occ.add(r + ',' + c);
+                });
+                return occ;
+            }
+
+            function legalRange(idx) {
+                const v = vehicles[idx];
+                const occ = buildOccupancy(idx);
+                if (v.o === 'H') {
+                    let minC = v.c;
+                    while (minC - 1 >= 0 && !occ.has(v.r + ',' + (minC - 1))) minC--;
+                    let maxC = v.c;
+                    while (maxC + v.l <= N - 1 && !occ.has(v.r + ',' + (maxC + v.l))) maxC++;
+                    return { min: minC, max: maxC };
+                } else {
+                    let minR = v.r;
+                    while (minR - 1 >= 0 && !occ.has((minR - 1) + ',' + v.c)) minR--;
+                    let maxR = v.r;
+                    while (maxR + v.l <= N - 1 && !occ.has((maxR + v.l) + ',' + v.c)) maxR++;
+                    return { min: minR, max: maxR };
+                }
+            }
+
+            function isWinnable() {
+                const t = vehicles[0];
+                return t.c + t.l - 1 >= N - 1;
+            }
+
+            function newLevel() {
+                level = pickLevel(diffKey);
+                vehicles = cloneVehicles(level.vehicles);
+                score = 0; moves = 0; solved = false;
+                escapeAnim = null;
+                movesSpan.textContent = '0';
+                parSpan.textContent = level.par;
+                scoreSpan.textContent = '0';
+                endOverlay.classList.remove('visible');
+            }
+
+            function resetPositions() {
+                if (solved) return;
+                vehicles = cloneVehicles(level.vehicles);
+                moves = 0;
+                movesSpan.textContent = '0';
+            }
+
+            // ----- OVLADANIE -----
+            function canvasPoint(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
+
+            function vehicleAt(px, py) {
+                const col = Math.floor(px / CELL), row = Math.floor(py / CELL);
+                for (let i = 0; i < vehicles.length; i++) {
+                    for (const [r, c] of occupiesOf(vehicles[i])) {
+                        if (r === row && c === col) return i;
+                    }
+                }
+                return -1;
+            }
+
+            function startDrag(e) {
+                if (solved) return;
+                const p = canvasPoint(e);
+                const idx = vehicleAt(p.x, p.y);
+                if (idx === -1) return;
+                const v = vehicles[idx];
+                const range = legalRange(idx);
+                if (v.o === 'H') {
+                    drag = { idx, axis: 'H', startPx: p.x, startPos: v.c, min: range.min, max: range.max, visual: v.c };
+                } else {
+                    drag = { idx, axis: 'V', startPx: p.y, startPos: v.r, min: range.min, max: range.max, visual: v.r };
+                }
+            }
+
+            function moveDrag(e) {
+                if (!drag) return;
+                const p = canvasPoint(e);
+                const px = drag.axis === 'H' ? p.x : p.y;
+                const deltaCells = (px - drag.startPx) / CELL;
+                let pos = drag.startPos + deltaCells;
+                pos = Math.max(drag.min, Math.min(drag.max, pos));
+                drag.visual = pos;
+            }
+
+            function endDrag() {
+                if (!drag) return;
+                const v = vehicles[drag.idx];
+                const finalPos = Math.round(drag.visual);
+                const changed = finalPos !== drag.startPos;
+                if (drag.axis === 'H') v.c = finalPos; else v.r = finalPos;
+                drag = null;
+                if (changed) {
+                    moves++;
+                    movesSpan.textContent = moves;
+                    if (isWinnable()) {
+                        startEscapeAnim();
+                    }
+                }
+            }
+
+            canvas.addEventListener('mousedown', startDrag);
+            canvas.addEventListener('mousemove', moveDrag);
+            document.addEventListener('mouseup', endDrag);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrag(e); }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); moveDrag(e); }, { passive: false });
+            canvas.addEventListener('touchend', (e) => { e.preventDefault(); endDrag(); }, { passive: false });
+
+            function startEscapeAnim() {
+                solved = true;
+                escapeAnim = { extraC: 0 };
+                const step = () => {
+                    escapeAnim.extraC += 0.35;
+                    if (escapeAnim.extraC < N) {
+                        requestAnimationFrame(step);
+                    } else {
+                        finishWin();
+                    }
+                };
+                requestAnimationFrame(step);
+            }
+
+            function finishWin() {
+                const penalty = Math.max(0, moves - level.par) * 12;
+                score = Math.max(20, 100 - penalty);
+                scoreSpan.textContent = score;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('gridlockBest', String(best));
+                }
+                finalMoves.textContent = moves;
+                finalPar.textContent = level.par;
+                finalScore.textContent = score;
+                endOverlay.classList.add('visible');
+            }
+
+            resetBtn.addEventListener('click', resetPositions);
+            newLevelBtn.addEventListener('click', newLevel);
+            nextBtn.addEventListener('click', newLevel);
+
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    newLevel();
+                });
+            });
+
+            // ----- VYKRESLENIE -----
+            function draw() {
+                ctx.clearRect(0, 0, CW, CH);
+                const grad = ctx.createLinearGradient(0, 0, 0, CH);
+                grad.addColorStop(0, '#0b111e');
+                grad.addColorStop(1, '#0f1a2b');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, CW, CH);
+
+                ctx.strokeStyle = 'rgba(148,163,184,0.12)';
+                ctx.lineWidth = 1;
+                for (let i = 1; i < N; i++) {
+                    ctx.beginPath(); ctx.moveTo(i * CELL, 0); ctx.lineTo(i * CELL, CH); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, i * CELL); ctx.lineTo(CW, i * CELL); ctx.stroke();
+                }
+
+                // exit marker
+                const targetRow = vehicles[0].r;
+                ctx.fillStyle = 'rgba(74,222,128,0.35)';
+                ctx.fillRect(CW - 6, targetRow * CELL + 6, 6, CELL - 12);
+
+                vehicles.forEach((v, idx) => {
+                    let r = v.r, c = v.c;
+                    if (drag && drag.idx === idx) {
+                        if (drag.axis === 'H') c = drag.visual; else r = drag.visual;
+                    }
+                    if (escapeAnim && idx === 0) {
+                        c = v.c + escapeAnim.extraC;
+                    }
+                    const x = c * CELL, y = r * CELL;
+                    const w = v.o === 'H' ? v.l * CELL : CELL;
+                    const h = v.o === 'H' ? CELL : v.l * CELL;
+                    const pad = 5;
+                    ctx.save();
+                    ctx.beginPath();
+                    const rx = x + pad, ry = y + pad, rw = w - pad * 2, rh = h - pad * 2;
+                    const radius = 9;
+                    ctx.moveTo(rx + radius, ry);
+                    ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, radius);
+                    ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, radius);
+                    ctx.arcTo(rx, ry + rh, rx, ry, radius);
+                    ctx.arcTo(rx, ry, rx + rw, ry, radius);
+                    ctx.closePath();
+                    ctx.fillStyle = idx === 0 ? '#f87171' : PALETTE[idx % PALETTE.length];
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    ctx.restore();
+                });
+            }
+
+            function loop() {
+                draw();
+                requestAnimationFrame(loop);
+            }
+
+            newLevel();
+            loop();
+        })();
+    </script>
+</body>
+</html>

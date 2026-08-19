@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stone Garden · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #3d3315;color:#a3977a;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#eab308;color:#fdfaea;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 24px 24px;
+            max-width:470px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#fde68a,#eab308);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#eab308; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#fde68a; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#fde68a,#eab308); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#eab308; border:1px solid #fde68a; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #a16207; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #a16207; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:disabled { opacity:.4; cursor:default; }
+        #controls button:active:not(:disabled) { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">🪨</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-you"></h3><span class="value" id="youValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-opp"></h3><span class="value" id="oppValue">0</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p id="lbl-final-area"></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="passBtn"></button>
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const youSpan = document.getElementById('youValue');
+        const oppSpan = document.getElementById('oppValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalArea = document.getElementById('lbl-final-area');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const passBtn = document.getElementById('passBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '🪨 ' + t('stgTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-you').textContent    = t('stgCaptures') + ' · ' + t('uiYou');
+        document.getElementById('lbl-opp').textContent    = t('stgCaptures') + ' · ' + t('uiOpponent');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('stgRules');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        passBtn.textContent    = t('stgPass');
+        document.title = t('stgTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const SZ = 9, EMPTY = 0, BLACK = 1, WHITE = 2;   // human is black, AI is white
+        const KOMI = 5.5;
+        const MULT = { easy: 1, medium: 1.5, hard: 2 };
+        const MARGIN = 26, STEP = 42;
+        const SIZE = MARGIN * 2 + (SZ - 1) * STEP;
+        canvas.width = SIZE; canvas.height = SIZE;
+        const STARS = [[2, 2], [2, 6], [6, 2], [6, 6], [4, 4]];
+
+        const idx = (r, c) => r * SZ + c;
+        const rowOf = i => (i / SZ) | 0, colOf = i => i % SZ;
+        function neighbours(i) {
+            const r = rowOf(i), c = colOf(i), out = [];
+            if (r > 0) out.push(i - SZ);
+            if (r < SZ - 1) out.push(i + SZ);
+            if (c > 0) out.push(i - 1);
+            if (c < SZ - 1) out.push(i + 1);
+            return out;
+        }
+
+        let diffKey = 'medium';
+        let board, turn, captures, koPoint, passes, moveNo;
+        let score = 0, ended = false, busy = false, lastMove = -1, territory = null;
+        let best = parseInt(localStorage.getItem('stoneGardenBest') || '0', 10);
+        bestSpan.textContent = best;
+
+        // ----- PRAVIDLA -----
+        // Flood-fills the group at i, returning its stones and liberty count.
+        function group(bd, i) {
+            const colour = bd[i], stones = [i], seen = new Set([i]), libs = new Set();
+            for (let k = 0; k < stones.length; k++) {
+                for (const n of neighbours(stones[k])) {
+                    if (bd[n] === EMPTY) { libs.add(n); continue; }
+                    if (bd[n] === colour && !seen.has(n)) { seen.add(n); stones.push(n); }
+                }
+            }
+            return { stones, libs: libs.size };
+        }
+
+        // Returns null when the move is illegal, otherwise the resulting board and capture count.
+        function tryMove(bd, i, colour, ko) {
+            if (bd[i] !== EMPTY) return null;
+            if (i === ko) return null;
+            const nb = bd.slice();
+            nb[i] = colour;
+            const foe = colour === BLACK ? WHITE : BLACK;
+            let taken = [];
+            for (const n of neighbours(i)) {
+                if (nb[n] !== foe) continue;
+                const g = group(nb, n);
+                if (g.libs === 0) taken = taken.concat(g.stones);
+            }
+            for (const s of taken) nb[s] = EMPTY;
+            if (group(nb, i).libs === 0) return null;               // suicide
+            // simple ko: a single stone captured by a single stone with one liberty
+            let nextKo = -1;
+            if (taken.length === 1) {
+                const g = group(nb, i);
+                if (g.stones.length === 1 && g.libs === 1) nextKo = taken[0];
+            }
+            return { board: nb, captured: taken.length, ko: nextKo };
+        }
+
+        function legalMoves(bd, colour, ko) {
+            const out = [];
+            for (let i = 0; i < SZ * SZ; i++) {
+                const r = tryMove(bd, i, colour, ko);
+                if (r) out.push({ i, ...r });
+            }
+            return out;
+        }
+
+        // ----- AI -----
+        const EDGE_BONUS = [-7, -1, 6, 4, 2];
+
+        function moveScore(bd, mv, colour, ko, opponentLast) {
+            const foe = colour === BLACK ? WHITE : BLACK;
+            let s = 0;
+            s += mv.captured * 24;
+
+            const own = group(mv.board, mv.i);
+            if (own.libs === 1 && mv.captured === 0) s -= 20;        // self-atari
+            if (own.libs >= 3) s += 3;
+
+            // rescuing a group that was in atari
+            for (const n of neighbours(mv.i)) {
+                if (bd[n] !== colour) continue;
+                if (group(bd, n).libs === 1 && group(mv.board, n).libs > 1) s += 18;
+            }
+            // putting the opponent in atari
+            const hit = new Set();
+            for (const n of neighbours(mv.i)) {
+                if (mv.board[n] !== foe) continue;
+                const g = group(mv.board, n);
+                if (g.libs === 1 && !hit.has(g.stones[0])) { hit.add(g.stones[0]); s += 13; }
+            }
+            // shape: connect, keep off the first line, stay near the action
+            for (const n of neighbours(mv.i)) if (bd[n] === colour) s += 4;
+            const r = rowOf(mv.i), c = colOf(mv.i);
+            s += EDGE_BONUS[Math.min(4, Math.min(r, c, SZ - 1 - r, SZ - 1 - c))];
+            if (opponentLast >= 0) {
+                const d = Math.abs(r - rowOf(opponentLast)) + Math.abs(c - colOf(opponentLast));
+                if (d <= 2) s += 6; else if (d <= 4) s += 2;
+            }
+            // never fill your own eye
+            let ownAround = 0, foeAround = 0;
+            for (const n of neighbours(mv.i)) { if (bd[n] === colour) ownAround++; else if (bd[n] === foe) foeAround++; }
+            if (ownAround === neighbours(mv.i).length && foeAround === 0) s -= 30;
+            return s;
+        }
+
+        function aiChoose() {
+            const moves = legalMoves(board, WHITE, koPoint);
+            if (!moves.length) return null;
+            const scored = moves.map(mv => ({ mv, s: moveScore(board, mv, WHITE, koPoint, lastMove) }));
+
+            if (diffKey === 'easy') {
+                scored.forEach(x => x.s += (Math.random() - 0.5) * 26);
+            } else if (diffKey === 'hard') {
+                scored.sort((a, b) => b.s - a.s);
+                for (const x of scored.slice(0, 8)) {
+                    const replies = legalMoves(x.mv.board, BLACK, x.mv.ko);
+                    let bestReply = 0;
+                    for (const rm of replies) bestReply = Math.max(bestReply, moveScore(x.mv.board, rm, BLACK, x.mv.ko, x.mv.i));
+                    x.s -= bestReply * 0.55;
+                }
+            }
+            scored.sort((a, b) => b.s - a.s);
+            const top = scored[0];
+            // late in the game, filling neutral points only loses territory — pass instead
+            if (moveNo > SZ * SZ * 0.55 && top.s < 1) return null;
+            return top.mv;
+        }
+
+        // ----- SKORE (plosne / cinske) -----
+        function areaCount(bd) {
+            const out = { 1: 0, 2: 0 };
+            for (let i = 0; i < bd.length; i++) if (bd[i] !== EMPTY) out[bd[i]]++;
+            const seen = new Array(bd.length).fill(false);
+            const owner = new Array(bd.length).fill(0);
+            for (let i = 0; i < bd.length; i++) {
+                if (bd[i] !== EMPTY || seen[i]) continue;
+                const region = [i]; seen[i] = true;
+                const borders = new Set();
+                for (let k = 0; k < region.length; k++) {
+                    for (const n of neighbours(region[k])) {
+                        if (bd[n] === EMPTY) { if (!seen[n]) { seen[n] = true; region.push(n); } }
+                        else borders.add(bd[n]);
+                    }
+                }
+                if (borders.size === 1) {
+                    const c = [...borders][0];
+                    out[c] += region.length;
+                    for (const p of region) owner[p] = c;
+                }
+            }
+            return { black: out[1], white: out[2], owner };
+        }
+
+        // ----- HERNY TOK -----
+        function refresh() {
+            youSpan.textContent = captures[BLACK];
+            oppSpan.textContent = captures[WHITE];
+        }
+
+        function humanPlay(i) {
+            const mv = tryMove(board, i, BLACK, koPoint);
+            if (!mv) {
+                statusLine.textContent = i === koPoint ? t('stgKo') : t('stgIllegal');
+                return;
+            }
+            board = mv.board; captures[BLACK] += mv.captured; koPoint = mv.ko;
+            lastMove = i; passes = 0; moveNo++;
+            turn = WHITE; busy = true;
+            refresh(); draw();
+            statusLine.textContent = t('uiOppTurn');
+            setTimeout(aiTurn, 300);
+        }
+
+        function aiTurn() {
+            if (ended) return;
+            const mv = aiChoose();
+            if (!mv) {
+                passes++;
+                koPoint = -1;
+                statusLine.textContent = t('stgOppPassed');
+                if (passes >= 2) { finish(); return; }
+                turn = BLACK; busy = false;
+                draw();
+                return;
+            }
+            board = mv.board; captures[WHITE] += mv.captured; koPoint = mv.ko;
+            lastMove = mv.i; passes = 0; moveNo++;
+            turn = BLACK; busy = false;
+            refresh(); draw();
+            statusLine.textContent = t('uiYourTurn');
+        }
+
+        function humanPass() {
+            if (ended || busy || turn !== BLACK) return;
+            passes++;
+            koPoint = -1;
+            if (passes >= 2) { finish(); return; }
+            turn = WHITE; busy = true;
+            statusLine.textContent = t('uiOppTurn');
+            draw();
+            setTimeout(aiTurn, 300);
+        }
+
+        function finish() {
+            ended = true; busy = true;
+            const area = areaCount(board);
+            territory = area.owner;
+            const blackTotal = area.black;
+            const whiteTotal = area.white + KOMI;
+            const result = blackTotal > whiteTotal ? 'win' : 'lose';
+            const margin = Math.abs(blackTotal - whiteTotal);
+            score = result === 'win' ? Math.round((100 + margin * 5) * MULT[diffKey]) : 0;
+            scoreSpan.textContent = score;
+            if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem('stoneGardenBest', String(best)); }
+            resultH2.textContent = result === 'win' ? t('uiYouWin') : t('uiYouLose');
+            finalArea.textContent = blackTotal + ' — ' + whiteTotal.toFixed(1) + '  (' + t('stgKomi') + ' ' + KOMI + ')';
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            draw();
+            endOverlay.classList.add('visible');
+        }
+
+        function newGame() {
+            board = new Array(SZ * SZ).fill(EMPTY);
+            turn = BLACK; captures = { 1: 0, 2: 0 }; koPoint = -1; passes = 0; moveNo = 0;
+            score = 0; ended = false; busy = false; lastMove = -1; territory = null;
+            scoreSpan.textContent = '0';
+            endOverlay.classList.remove('visible');
+            refresh();
+            statusLine.textContent = t('uiYourTurn');
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        function onTap(e) {
+            if (ended || busy || turn !== BLACK) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * SIZE;
+            const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * SIZE;
+            const c = Math.round((x - MARGIN) / STEP), r = Math.round((y - MARGIN) / STEP);
+            if (r < 0 || r >= SZ || c < 0 || c >= SZ) return;
+            if (Math.hypot(MARGIN + c * STEP - x, MARGIN + r * STEP - y) > STEP * 0.5) return;
+            humanPlay(idx(r, c));
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        passBtn.addEventListener('click', humanPass);
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function draw() {
+            ctx.fillStyle = '#c8a165'; ctx.fillRect(0, 0, SIZE, SIZE);
+            ctx.strokeStyle = 'rgba(60,40,15,.75)'; ctx.lineWidth = 1;
+            for (let k = 0; k < SZ; k++) {
+                ctx.beginPath();
+                ctx.moveTo(MARGIN, MARGIN + k * STEP); ctx.lineTo(SIZE - MARGIN, MARGIN + k * STEP);
+                ctx.moveTo(MARGIN + k * STEP, MARGIN); ctx.lineTo(MARGIN + k * STEP, SIZE - MARGIN);
+                ctx.stroke();
+            }
+            for (const [r, c] of STARS) {
+                ctx.beginPath(); ctx.arc(MARGIN + c * STEP, MARGIN + r * STEP, 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(60,40,15,.8)'; ctx.fill();
+            }
+
+            if (territory) {
+                for (let i = 0; i < territory.length; i++) {
+                    if (!territory[i]) continue;
+                    const x = MARGIN + colOf(i) * STEP, y = MARGIN + rowOf(i) * STEP;
+                    ctx.fillStyle = territory[i] === BLACK ? 'rgba(15,23,42,.42)' : 'rgba(255,255,255,.45)';
+                    ctx.fillRect(x - 7, y - 7, 14, 14);
+                }
+            }
+
+            if (koPoint >= 0 && !ended) {
+                const x = MARGIN + colOf(koPoint) * STEP, y = MARGIN + rowOf(koPoint) * STEP;
+                ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(x - 6, y - 6); ctx.lineTo(x + 6, y + 6);
+                ctx.moveTo(x + 6, y - 6); ctx.lineTo(x - 6, y + 6); ctx.stroke();
+            }
+
+            const rad = STEP * 0.44;
+            for (let i = 0; i < board.length; i++) {
+                if (board[i] === EMPTY) continue;
+                const x = MARGIN + colOf(i) * STEP, y = MARGIN + rowOf(i) * STEP;
+                ctx.beginPath(); ctx.arc(x, y + 1.5, rad, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fill();
+                const g = ctx.createRadialGradient(x - rad * .35, y - rad * .35, 1, x, y, rad);
+                if (board[i] === BLACK) { g.addColorStop(0, '#4b5563'); g.addColorStop(1, '#0b1120'); }
+                else { g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#cbd5e1'); }
+                ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2);
+                ctx.fillStyle = g; ctx.fill();
+                ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1; ctx.stroke();
+                if (i === lastMove) {
+                    ctx.beginPath(); ctx.arc(x, y, rad * 0.32, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#eab308'; ctx.lineWidth = 2; ctx.stroke();
+                }
+            }
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Domino Drift · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #1a2e40;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#38bdf8;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:560px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:22px; font-weight:700;
+            background:linear-gradient(135deg,#bae6fd,#38bdf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#38bdf8; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+
+        #board {
+            background:#0f1622; border-radius:16px; padding:14px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            display:flex; flex-direction:column; gap:10px;
+            position:relative;
+        }
+        #ai-row { display:flex; justify-content:center; gap:5px; flex-wrap:wrap; min-height:34px; }
+        .tile-back {
+            width:20px; height:32px; background:#1e2a3e; border:1px solid #354460; border-radius:5px;
+        }
+        #status-line { text-align:center; font-size:12px; color:#93c5fd; min-height:16px; font-weight:600; }
+        #chain-wrap { overflow-x:auto; padding:6px 2px; }
+        #chain { display:flex; gap:3px; align-items:center; min-height:52px; width:max-content; margin:0 auto; }
+        .domino {
+            display:flex; background:#f8fafc; border-radius:6px; border:1px solid #cbd5e1;
+            box-shadow:0 2px 4px rgba(0,0,0,.35);
+        }
+        .domino-half {
+            width:26px; height:48px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr);
+            padding:4px; gap:1px; border-right:1.5px solid #94a3b8;
+        }
+        .domino-half:last-child { border-right:none; }
+        .pip { border-radius:50%; }
+        .pip.on { background:#1e293b; }
+        #hand-wrap { overflow-x:auto; padding:6px 2px 2px; }
+        #hand { display:flex; gap:6px; justify-content:center; min-width:min-content; }
+        .hand-tile {
+            display:flex; background:#f8fafc; border-radius:6px; border:2px solid #38bdf8;
+            box-shadow:0 3px 6px rgba(0,0,0,.4); cursor:pointer; transition:transform .1s;
+        }
+        .hand-tile:active { transform:translateY(3px); }
+        .hand-tile.disabled { border-color:#334155; opacity:.45; cursor:default; }
+        .hand-tile .domino-half { width:24px; height:44px; }
+        #drawBtn {
+            background:#1e2a3e; border:1px solid #38bdf8; color:#bae6fd;
+            border-radius:12px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer;
+            align-self:center; display:none;
+        }
+        #drawBtn.show { display:inline-block; }
+        #drawBtn:active { transform:translateY(2px); }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.94); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#bae6fd,#38bdf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #restartBtn {
+            background:#38bdf8; border:1px solid #bae6fd; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #0369a1; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #0369a1; }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🁢 DOMINO DRIFT</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="easy" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="medium" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="hard" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-turns">Ťahy</h3>
+                <span class="value" id="turnsValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-boneyard">Hromada</h3>
+                <span class="value" id="boneyardValue">14</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="board">
+            <div id="ai-row"></div>
+            <div id="status-line"></div>
+            <div id="chain-wrap"><div id="chain"></div></div>
+            <div id="hand-wrap"><div id="hand"></div></div>
+            <button id="drawBtn"></button>
+            <div id="end-overlay">
+                <h2 id="lbl-result">Vyhral si!</h2>
+                <p><span id="lbl-final-turns">Ťahy:</span> <span id="finalTurns">0</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="restartBtn">Hrať znova</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const backLbl = document.getElementById('lbl-back');
+            const sizeGroup = document.getElementById('sizeGroup');
+            const rulesP = document.getElementById('rules');
+            const turnsSpan = document.getElementById('turnsValue');
+            const boneyardSpan = document.getElementById('boneyardValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const aiRow = document.getElementById('ai-row');
+            const statusLine = document.getElementById('status-line');
+            const chainEl = document.getElementById('chain');
+            const chainWrap = document.getElementById('chain-wrap');
+            const handEl = document.getElementById('hand');
+            const drawBtn = document.getElementById('drawBtn');
+            const endOverlay = document.getElementById('end-overlay');
+            const resultH2 = document.getElementById('lbl-result');
+            const finalTurns = document.getElementById('finalTurns');
+            const finalScore = document.getElementById('finalScore');
+            const restartBtn = document.getElementById('restartBtn');
+
+            // ----- PREKLADY -----
+            backLbl.textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('domDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('domEasy');
+            document.getElementById('lbl-size-m').textContent = t('domMedium');
+            document.getElementById('lbl-size-l').textContent = t('domHard');
+            document.getElementById('lbl-turns').textContent = t('domTurns');
+            document.getElementById('lbl-boneyard').textContent = t('domBoneyard');
+            document.getElementById('lbl-score').textContent = t('domScore');
+            document.getElementById('lbl-best').textContent = t('domBest');
+            document.getElementById('lbl-final-turns').textContent = t('domTurns') + ':';
+            document.getElementById('lbl-final-score').textContent = t('domScore') + ':';
+            restartBtn.textContent = t('domReplay');
+            drawBtn.textContent = t('domDraw');
+            rulesP.textContent = t('domRules');
+
+            // ----- STAV -----
+            let diffKey = 'medium';
+            let deck, playerHand, aiHand, boneyard, chain;
+            let turn = 'player';
+            let turns = 0;
+            let score = 0;
+            let best = parseInt(localStorage.getItem('dominoDriftBest') || '0', 10);
+            let ended = false;
+            let selectedTileIdx = null;
+
+            bestSpan.textContent = best;
+
+            function makeDeck() {
+                const tiles = [];
+                for (let i = 0; i <= 6; i++) for (let j = i; j <= 6; j++) tiles.push([i, j]);
+                return tiles;
+            }
+            function shuffle(arr) {
+                const a = arr.slice();
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+            function pipTotal(hand) { return hand.reduce((s, t) => s + t[0] + t[1], 0); }
+
+            function validPlays(hand, chainArr) {
+                const results = [];
+                if (chainArr.length === 0) {
+                    hand.forEach((t, idx) => results.push({ tileIdx: idx, end: 'R', oriented: t }));
+                    return results;
+                }
+                const openLeft = chainArr[0][0];
+                const openRight = chainArr[chainArr.length - 1][1];
+                hand.forEach((t, idx) => {
+                    const [a, b] = t;
+                    if (a === openRight) results.push({ tileIdx: idx, end: 'R', oriented: [a, b] });
+                    else if (b === openRight) results.push({ tileIdx: idx, end: 'R', oriented: [b, a] });
+                    if (a === openLeft) results.push({ tileIdx: idx, end: 'L', oriented: [b, a] });
+                    else if (b === openLeft) results.push({ tileIdx: idx, end: 'L', oriented: [a, b] });
+                });
+                return results;
+            }
+
+            function applyPlay(hand, chainArr, play) {
+                const newHand = hand.slice();
+                newHand.splice(play.tileIdx, 1);
+                const newChain = play.end === 'R' ? chainArr.concat([play.oriented]) : [play.oriented].concat(chainArr);
+                return { hand: newHand, chain: newChain };
+            }
+
+            function startingPlayer() {
+                const pMaxDouble = Math.max(-1, ...playerHand.filter(t => t[0] === t[1]).map(t => t[0]));
+                const aMaxDouble = Math.max(-1, ...aiHand.filter(t => t[0] === t[1]).map(t => t[0]));
+                if (pMaxDouble >= 0 || aMaxDouble >= 0) return pMaxDouble >= aMaxDouble ? 'player' : 'ai';
+                const pMax = Math.max(...playerHand.map(t => t[0] + t[1]));
+                const aMax = Math.max(...aiHand.map(t => t[0] + t[1]));
+                return pMax >= aMax ? 'player' : 'ai';
+            }
+
+            function newGame() {
+                deck = shuffle(makeDeck());
+                playerHand = deck.slice(0, 7);
+                aiHand = deck.slice(7, 14);
+                boneyard = deck.slice(14);
+                chain = [];
+                turns = 0;
+                score = 0;
+                ended = false;
+                selectedTileIdx = null;
+                turn = startingPlayer();
+                turnsSpan.textContent = '0';
+                scoreSpan.textContent = '0';
+                boneyardSpan.textContent = boneyard.length;
+                endOverlay.classList.remove('visible');
+                render();
+                if (turn === 'ai') setTimeout(aiTurn, 550);
+                else updateStatus();
+            }
+
+            // ----- VYKRESLOVANIE DOMINA -----
+            const PIP_LAYOUTS = {
+                0: [],
+                1: [4],
+                2: [0, 8],
+                3: [0, 4, 8],
+                4: [0, 2, 6, 8],
+                5: [0, 2, 4, 6, 8],
+                6: [0, 2, 3, 5, 6, 8]
+            };
+            function renderHalf(val) {
+                const half = document.createElement('div');
+                half.className = 'domino-half';
+                const on = new Set(PIP_LAYOUTS[val]);
+                for (let i = 0; i < 9; i++) {
+                    const pip = document.createElement('div');
+                    pip.className = 'pip' + (on.has(i) ? ' on' : '');
+                    half.appendChild(pip);
+                }
+                return half;
+            }
+            function renderDomino(tile, cls) {
+                const div = document.createElement('div');
+                div.className = cls;
+                div.appendChild(renderHalf(tile[0]));
+                div.appendChild(renderHalf(tile[1]));
+                return div;
+            }
+
+            function updateStatus() {
+                if (ended) return;
+                if (turn === 'player') {
+                    const plays = validPlays(playerHand, chain);
+                    if (plays.length > 0) {
+                        statusLine.textContent = t('domYourTurn');
+                        drawBtn.classList.remove('show');
+                    } else if (boneyard.length > 0) {
+                        statusLine.textContent = t('domMustDraw');
+                        drawBtn.classList.add('show');
+                    } else {
+                        statusLine.textContent = t('domPassed');
+                        drawBtn.classList.remove('show');
+                        setTimeout(() => { checkBlocked(); if (!ended) { turn = 'ai'; render(); setTimeout(aiTurn, 500); } }, 700);
+                    }
+                } else {
+                    statusLine.textContent = t('domAiTurn');
+                    drawBtn.classList.remove('show');
+                }
+            }
+
+            function render() {
+                aiRow.innerHTML = '';
+                for (let i = 0; i < aiHand.length; i++) {
+                    const back = document.createElement('div');
+                    back.className = 'tile-back';
+                    aiRow.appendChild(back);
+                }
+
+                chainEl.innerHTML = '';
+                chain.forEach(tile => chainEl.appendChild(renderDomino(tile, 'domino')));
+                chainWrap.scrollLeft = chainWrap.scrollWidth;
+
+                const plays = turn === 'player' ? validPlays(playerHand, chain) : [];
+                const playableIdx = new Set(plays.map(p => p.tileIdx));
+
+                handEl.innerHTML = '';
+                playerHand.forEach((tile, idx) => {
+                    const el = renderDomino(tile, 'hand-tile');
+                    const canPlay = turn === 'player' && !ended && playableIdx.has(idx);
+                    if (!canPlay) el.classList.add('disabled');
+                    el.addEventListener('click', () => onTileTap(idx));
+                    handEl.appendChild(el);
+                });
+
+                boneyardSpan.textContent = boneyard.length;
+                turnsSpan.textContent = turns;
+                updateStatus();
+            }
+
+            function onTileTap(idx) {
+                if (turn !== 'player' || ended) return;
+                const plays = validPlays(playerHand, chain).filter(p => p.tileIdx === idx);
+                if (plays.length === 0) return;
+                const play = plays[0]; // if a double both ends work identically visually; pick first valid
+                const res = applyPlay(playerHand, chain, play);
+                playerHand = res.hand;
+                chain = res.chain;
+                turns++;
+                afterMove('player');
+            }
+
+            drawBtn.addEventListener('click', () => {
+                if (turn !== 'player' || ended || boneyard.length === 0) return;
+                const tile = boneyard.pop();
+                playerHand.push(tile);
+                render();
+            });
+
+            function afterMove(who) {
+                render();
+                if (who === 'player' && playerHand.length === 0) { return endGame('player'); }
+                if (who === 'ai' && aiHand.length === 0) { return endGame('ai'); }
+                checkBlocked();
+                if (ended) return;
+                turn = who === 'player' ? 'ai' : 'player';
+                render();
+                if (turn === 'ai') setTimeout(aiTurn, 600);
+            }
+
+            function checkBlocked() {
+                if (boneyard.length > 0) return;
+                const pPlays = validPlays(playerHand, chain);
+                const aPlays = validPlays(aiHand, chain);
+                if (pPlays.length === 0 && aPlays.length === 0) {
+                    const pPip = pipTotal(playerHand), aPip = pipTotal(aiHand);
+                    if (pPip < aPip) endGame('player', true);
+                    else if (aPip < pPip) endGame('ai', true);
+                    else endGame('draw', true);
+                }
+            }
+
+            function aiPickPlay(plays) {
+                const cfg = diffKey;
+                if (cfg === 'easy') {
+                    return plays[Math.floor(Math.random() * plays.length)];
+                }
+                if (cfg === 'hard') {
+                    const doubles = plays.filter(p => p.oriented[0] === p.oriented[1] || aiHand[p.tileIdx][0] === aiHand[p.tileIdx][1]);
+                    const pool = doubles.length > 0 ? doubles : plays;
+                    return pool.reduce((best, p) => {
+                        const total = aiHand[p.tileIdx][0] + aiHand[p.tileIdx][1];
+                        const bestTotal = aiHand[best.tileIdx][0] + aiHand[best.tileIdx][1];
+                        return total > bestTotal ? p : best;
+                    }, pool[0]);
+                }
+                // medium: highest pip total
+                return plays.reduce((best, p) => {
+                    const total = aiHand[p.tileIdx][0] + aiHand[p.tileIdx][1];
+                    const bestTotal = aiHand[best.tileIdx][0] + aiHand[best.tileIdx][1];
+                    return total > bestTotal ? p : best;
+                }, plays[0]);
+            }
+
+            function aiTurn() {
+                if (ended || turn !== 'ai') return;
+                let plays = validPlays(aiHand, chain);
+                while (plays.length === 0 && boneyard.length > 0) {
+                    aiHand.push(boneyard.pop());
+                    plays = validPlays(aiHand, chain);
+                    boneyardSpan.textContent = boneyard.length;
+                }
+                if (plays.length === 0) {
+                    checkBlocked();
+                    if (ended) return;
+                    turn = 'player';
+                    turns++;
+                    render();
+                    return;
+                }
+                const play = aiPickPlay(plays);
+                const res = applyPlay(aiHand, chain, play);
+                aiHand = res.hand;
+                chain = res.chain;
+                turns++;
+                afterMove('ai');
+            }
+
+            function endGame(winner, blocked) {
+                ended = true;
+                let scoreVal = 0;
+                if (winner === 'player') {
+                    const oppPips = pipTotal(aiHand);
+                    scoreVal = Math.max(20, 80 + oppPips * 2 - turns);
+                    resultH2.textContent = blocked ? t('domWinBlocked') : t('domWin');
+                } else if (winner === 'ai') {
+                    scoreVal = 0;
+                    resultH2.textContent = blocked ? t('domLoseBlocked') : t('domLose');
+                } else {
+                    scoreVal = 10;
+                    resultH2.textContent = t('domDraw2');
+                }
+                score = scoreVal;
+                scoreSpan.textContent = score;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('dominoDriftBest', String(best));
+                }
+                finalTurns.textContent = turns;
+                finalScore.textContent = score;
+                drawBtn.classList.remove('show');
+                setTimeout(() => endOverlay.classList.add('visible'), 300);
+                render();
+            }
+
+            restartBtn.addEventListener('click', newGame);
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    newGame();
+                });
+            });
+
+            newGame();
+        })();
+    </script>
+</body>
+</html>

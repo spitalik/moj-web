@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crown Jump · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #3a2a14;color:#a3927a;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#f59e0b;color:#fdf6e8;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 24px 24px;
+            max-width:470px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px; position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#fcd34d,#f59e0b);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#f59e0b; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#fcd34d; min-height:16px; font-weight:600; }
+        #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#fcd34d,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay p { font-size:14px; color:#b0c4e0; }
+        #restartBtn {
+            background:#f59e0b; border:1px solid #fcd34d; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #b45309; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #b45309; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0; border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1 id="lbl-title">♛</h1>
+            <div id="settings">
+                <label id="lbl-diff"></label>
+                <div class="btn-group" id="diffGroup">
+                    <button data-diff="easy"   id="lbl-easy"></button>
+                    <button data-diff="medium" id="lbl-medium" class="active"></button>
+                    <button data-diff="hard"   id="lbl-hard"></button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card"><h3 id="lbl-you"></h3><span class="value" id="youValue">12</span></div>
+            <div class="info-card"><h3 id="lbl-opp"></h3><span class="value" id="oppValue">12</span></div>
+            <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+            <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+        </div>
+
+        <div id="status-line"></div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-result"></h2>
+                <p><span id="finalYou">0</span> — <span id="finalOpp">0</span></p>
+                <p style="font-size:16px;color:#fbbf24;"><span id="lbl-final-score"></span> <span id="finalScore">0</span></p>
+                <button id="restartBtn"></button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="newGameBtn"></button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const youSpan = document.getElementById('youValue');
+        const oppSpan = document.getElementById('oppValue');
+        const scoreSpan = document.getElementById('scoreValue');
+        const bestSpan = document.getElementById('bestValue');
+        const statusLine = document.getElementById('status-line');
+        const endOverlay = document.getElementById('end-overlay');
+        const resultH2 = document.getElementById('lbl-result');
+        const finalYou = document.getElementById('finalYou');
+        const finalOpp = document.getElementById('finalOpp');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const diffGroup = document.getElementById('diffGroup');
+
+        // ----- PREKLADY -----
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = '♛ ' + t('crjTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-you').textContent    = t('uiYou');
+        document.getElementById('lbl-opp').textContent    = t('uiOpponent');
+        document.getElementById('lbl-score').textContent  = t('uiScore');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('lbl-final-score').textContent = t('uiScore') + ':';
+        document.getElementById('rules').textContent      = t('crjRules');
+        restartBtn.textContent = t('uiPlayAgain');
+        newGameBtn.textContent = t('uiNewGame');
+        document.title = t('crjTitle') + ' · GamePad';
+
+        // ----- KONFIGURACIA -----
+        const N = 8, CELL = 48, CW = N * CELL, CH = N * CELL;
+        canvas.width = CW; canvas.height = CH;
+
+        const HUMAN = 'r', AI = 'b';
+        const DEPTH = { easy: 1, medium: 4, hard: 6 };
+        const MULT  = { easy: 1, medium: 1.5, hard: 2 };
+
+        let diffKey = 'medium';
+        let board = [], turn = HUMAN, score = 0, ended = false, busy = false;
+        let selected = null, partial = [], candidates = [], idleMoves = 0;
+        let best = parseInt(localStorage.getItem('crownJumpBest') || '0', 10);
+        bestSpan.textContent = best;
+
+        const inB = (r, c) => r >= 0 && r < N && c >= 0 && c < N;
+        const other = p => p === 'r' ? 'b' : 'r';
+        const cloneBoard = bd => bd.map(row => row.map(cell => cell ? { p: cell.p, king: cell.king } : null));
+
+        function makeBoard() {
+            const bd = Array.from({ length: N }, () => Array(N).fill(null));
+            for (let r = 0; r < 3; r++)
+                for (let c = 0; c < N; c++)
+                    if ((r + c) % 2 === 1) bd[r][c] = { p: AI, king: false };
+            for (let r = N - 3; r < N; r++)
+                for (let c = 0; c < N; c++)
+                    if ((r + c) % 2 === 1) bd[r][c] = { p: HUMAN, king: false };
+            return bd;
+        }
+
+        // ----- GENEROVANIE TAHOV -----
+        function stepDirs(piece) {
+            if (piece.king) return [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+            return piece.p === HUMAN ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+        }
+
+        // Man promoting mid-jump ends its move (standard English draughts).
+        const promotes = (piece, r) => !piece.king && ((piece.p === HUMAN && r === 0) || (piece.p === AI && r === N - 1));
+
+        function collectJumps(bd, r, c, piece, taken, path, out) {
+            let extended = false;
+            for (const [dr, dc] of stepDirs(piece)) {
+                const mr = r + dr, mc = c + dc, lr = r + 2 * dr, lc = c + 2 * dc;
+                if (!inB(lr, lc)) continue;
+                const mid = bd[mr][mc];
+                if (!mid || mid.p === piece.p) continue;
+                if (taken.some(t => t[0] === mr && t[1] === mc)) continue;
+                if (bd[lr][lc] !== null) continue;
+                extended = true;
+                path.push([lr, lc]); taken.push([mr, mc]);
+                if (promotes(piece, lr)) out.push({ path: path.slice(), captured: taken.slice() });
+                else collectJumps(bd, lr, lc, piece, taken, path, out);
+                path.pop(); taken.pop();
+            }
+            if (!extended && path.length > 1) out.push({ path: path.slice(), captured: taken.slice() });
+        }
+
+        function legalMoves(bd, player) {
+            const jumps = [], plain = [];
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                const piece = bd[r][c];
+                if (!piece || piece.p !== player) continue;
+                collectJumps(bd, r, c, piece, [], [[r, c]], jumps);
+                for (const [dr, dc] of stepDirs(piece)) {
+                    const nr = r + dr, nc = c + dc;
+                    if (inB(nr, nc) && bd[nr][nc] === null) plain.push({ path: [[r, c], [nr, nc]], captured: [] });
+                }
+            }
+            return jumps.length ? jumps : plain;   // capture is mandatory
+        }
+
+        function applyMove(bd, mv) {
+            const [sr, sc] = mv.path[0];
+            const [er, ec] = mv.path[mv.path.length - 1];
+            const piece = bd[sr][sc];
+            bd[sr][sc] = null;
+            for (const [cr, cc] of mv.captured) bd[cr][cc] = null;
+            if (promotes(piece, er)) piece.king = true;
+            bd[er][ec] = piece;
+        }
+
+        function countPieces(bd, player) {
+            let n = 0;
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++)
+                if (bd[r][c] && bd[r][c].p === player) n++;
+            return n;
+        }
+
+        // ----- AI -----
+        function evaluate(bd) {
+            let s = 0;
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                const piece = bd[r][c];
+                if (!piece) continue;
+                let v = piece.king ? 180 : 100;
+                if (!piece.king) v += (piece.p === AI ? r : N - 1 - r) * 5;   // advancement
+                if (c === 0 || c === N - 1) v += 4;                            // edge safety
+                s += piece.p === AI ? v : -v;
+            }
+            return s;
+        }
+
+        function search(bd, player, depth, alpha, beta) {
+            const moves = legalMoves(bd, player);
+            if (!moves.length) return player === AI ? -100000 : 100000;   // stuck side loses
+            if (depth === 0) return evaluate(bd);
+            if (player === AI) {
+                let value = -Infinity;
+                for (const mv of moves) {
+                    const nb = cloneBoard(bd); applyMove(nb, mv);
+                    value = Math.max(value, search(nb, HUMAN, depth - 1, alpha, beta));
+                    alpha = Math.max(alpha, value);
+                    if (alpha >= beta) break;
+                }
+                return value;
+            }
+            let value = Infinity;
+            for (const mv of moves) {
+                const nb = cloneBoard(bd); applyMove(nb, mv);
+                value = Math.min(value, search(nb, AI, depth - 1, alpha, beta));
+                beta = Math.min(beta, value);
+                if (alpha >= beta) break;
+            }
+            return value;
+        }
+
+        function aiPick(moves) {
+            if (diffKey === 'easy' && Math.random() < 0.35) return moves[Math.floor(Math.random() * moves.length)];
+            const depth = DEPTH[diffKey];
+            let bestVal = -Infinity, pool = [];
+            for (const mv of moves) {
+                const nb = cloneBoard(board); applyMove(nb, mv);
+                const v = search(nb, HUMAN, depth - 1, -Infinity, Infinity);
+                if (v > bestVal) { bestVal = v; pool = [mv]; }
+                else if (v === bestVal) pool.push(mv);
+            }
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function aiTurn() {
+            if (ended) return;
+            const moves = legalMoves(board, AI);
+            if (!moves.length) { finish(); return; }
+            const mv = aiPick(moves);
+            idleMoves = mv.captured.length ? 0 : idleMoves + 1;
+            applyMove(board, mv);
+            turn = HUMAN; busy = false;
+            afterMove();
+        }
+
+        function afterMove() {
+            updateCounts(); draw();
+            if (ended) return;
+            if (countPieces(board, HUMAN) === 0 || countPieces(board, AI) === 0) { finish(); return; }
+            if (!legalMoves(board, turn).length) { finish(); return; }
+            if (idleMoves >= 40) { finish(true); return; }
+            if (turn === HUMAN) {
+                statusLine.textContent = t('uiYourTurn');
+            } else {
+                statusLine.textContent = t('uiOppTurn');
+                busy = true;
+                setTimeout(aiTurn, 320);
+            }
+        }
+
+        function finish(forcedDraw) {
+            ended = true; busy = true;
+            const mine = countPieces(board, HUMAN), theirs = countPieces(board, AI);
+            let result;
+            if (forcedDraw) result = 'draw';
+            else if (theirs === 0 || !legalMoves(board, AI).length) result = 'win';
+            else if (mine === 0 || !legalMoves(board, HUMAN).length) result = 'lose';
+            else result = 'draw';
+
+            if (result === 'win') score = Math.round((120 + mine * 12) * MULT[diffKey]);
+            else if (result === 'draw') score = Math.round(40 * MULT[diffKey]);
+            else score = 0;
+
+            scoreSpan.textContent = score;
+            if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem('crownJumpBest', String(best)); }
+            resultH2.textContent = result === 'win' ? t('uiYouWin') : (result === 'lose' ? t('uiYouLose') : t('uiDraw'));
+            finalYou.textContent = mine; finalOpp.textContent = theirs;
+            finalScore.textContent = score;
+            statusLine.textContent = '';
+            endOverlay.classList.add('visible');
+        }
+
+        function updateCounts() {
+            youSpan.textContent = countPieces(board, HUMAN);
+            oppSpan.textContent = countPieces(board, AI);
+        }
+
+        function newGame() {
+            board = makeBoard(); turn = HUMAN; score = 0; ended = false; busy = false;
+            selected = null; partial = []; candidates = []; idleMoves = 0;
+            scoreSpan.textContent = '0';
+            endOverlay.classList.remove('visible');
+            updateCounts();
+            statusLine.textContent = t('uiYourTurn');
+            draw();
+        }
+
+        // ----- OVLADANIE -----
+        function canvasCell(e) {
+            const rect = canvas.getBoundingClientRect();
+            const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+            return [Math.floor(cy / rect.height * N), Math.floor(cx / rect.width * N)];
+        }
+
+        function selectPiece(r, c) {
+            const all = legalMoves(board, HUMAN);
+            const mine = all.filter(m => m.path[0][0] === r && m.path[0][1] === c);
+            if (!mine.length) return false;
+            selected = [r, c]; partial = [[r, c]]; candidates = mine;
+            statusLine.textContent = mine[0].captured.length ? t('crjMustCapture') : t('uiYourTurn');
+            draw();
+            return true;
+        }
+
+        function onTap(e) {
+            if (ended || busy || turn !== HUMAN) return;
+            const [r, c] = canvasCell(e);
+            if (!inB(r, c)) return;
+
+            if (selected) {
+                const step = candidates.filter(m => {
+                    const nxt = m.path[partial.length];
+                    return nxt && nxt[0] === r && nxt[1] === c;
+                });
+                if (step.length) {
+                    partial.push([r, c]);
+                    const done = step.find(m => m.path.length === partial.length);
+                    if (done) {
+                        idleMoves = done.captured.length ? 0 : idleMoves + 1;
+                        applyMove(board, done);
+                        selected = null; partial = []; candidates = [];
+                        turn = AI;
+                        afterMove();
+                        return;
+                    }
+                    candidates = step;
+                    draw();
+                    return;
+                }
+            }
+            selected = null; partial = []; candidates = [];
+            if (!selectPiece(r, c)) draw();
+        }
+
+        canvas.addEventListener('mousedown', onTap);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); onTap(e); }, { passive: false });
+        restartBtn.addEventListener('click', newGame);
+        newGameBtn.addEventListener('click', newGame);
+        diffGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                diffKey = btn.dataset.diff;
+                newGame();
+            });
+        });
+
+        // ----- VYKRESLENIE -----
+        function drawPiece(r, c, piece) {
+            const cx = c * CELL + CELL / 2, cy = r * CELL + CELL / 2, rad = CELL * 0.37;
+            ctx.beginPath(); ctx.arc(cx, cy + 2, rad, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fill();
+            const g = ctx.createRadialGradient(cx - rad * .35, cy - rad * .35, 1, cx, cy, rad);
+            if (piece.p === HUMAN) { g.addColorStop(0, '#fde68a'); g.addColorStop(1, '#d97706'); }
+            else { g.addColorStop(0, '#64748b'); g.addColorStop(1, '#111827'); }
+            ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+            ctx.fillStyle = g; ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 1.2; ctx.stroke();
+            if (piece.king) {
+                ctx.beginPath(); ctx.arc(cx, cy, rad * 0.55, 0, Math.PI * 2);
+                ctx.strokeStyle = piece.p === HUMAN ? 'rgba(120,53,15,.85)' : 'rgba(226,232,240,.8)';
+                ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = piece.p === HUMAN ? 'rgba(120,53,15,.9)' : 'rgba(226,232,240,.9)';
+                ctx.font = 'bold ' + Math.round(CELL * 0.34) + 'px serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('♛', cx, cy + 1);
+            }
+        }
+
+        function draw() {
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+                ctx.fillStyle = (r + c) % 2 === 1 ? '#3b2a1c' : '#d6c4a8';
+                ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+            }
+
+            // reachable squares for the current selection
+            if (selected) {
+                const [sr, sc] = partial[partial.length - 1];
+                ctx.fillStyle = 'rgba(245,158,11,.35)';
+                ctx.fillRect(sc * CELL, sr * CELL, CELL, CELL);
+                for (const m of candidates) {
+                    const nxt = m.path[partial.length];
+                    if (!nxt) continue;
+                    ctx.beginPath();
+                    ctx.arc(nxt[1] * CELL + CELL / 2, nxt[0] * CELL + CELL / 2, CELL * 0.14, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(252,211,77,.75)'; ctx.fill();
+                }
+            } else if (!ended && turn === HUMAN) {
+                const starts = new Set(legalMoves(board, HUMAN).map(m => m.path[0].join(',')));
+                ctx.strokeStyle = 'rgba(252,211,77,.5)'; ctx.lineWidth = 2;
+                for (const key of starts) {
+                    const [r, c] = key.split(',').map(Number);
+                    ctx.strokeRect(c * CELL + 2, r * CELL + 2, CELL - 4, CELL - 4);
+                }
+            }
+
+            for (let r = 0; r < N; r++) for (let c = 0; c < N; c++)
+                if (board[r][c]) drawPiece(r, c, board[r][c]);
+        }
+
+        newGame();
+    })();
+    </script>
+</body>
+</html>

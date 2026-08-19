@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kakuro Cross · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402a1a;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#facc15;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:460px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#fef08a,#facc15);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#facc15; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+
+        #board-wrap {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            align-self:center; position:relative;
+        }
+        #grid { display:grid; gap:2px; }
+        .cell {
+            background:#1c2739; border-radius:4px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:18px; font-weight:700; color:#eef3fc;
+            aspect-ratio:1; position:relative;
+        }
+        .cell.block {
+            background:linear-gradient(135deg, #0d1420 calc(50% - 1px), #33415a 50%, #0d1420 calc(50% + 1px));
+        }
+        .cell.white { background:#eef3fc; color:#1e293b; cursor:pointer; }
+        .cell.white.selected { background:#fef9c3; box-shadow:inset 0 0 0 2px #facc15; }
+        .cell.white.conflict { background:#fecaca; color:#7f1d1d; }
+        .clue-across { position:absolute; left:3px; bottom:1px; font-size:9px; font-weight:600; color:#fde68a; }
+        .clue-down { position:absolute; right:3px; top:1px; font-size:9px; font-weight:600; color:#fde68a; }
+        #numpad { display:flex; gap:5px; justify-content:center; flex-wrap:wrap; }
+        .num-btn {
+            width:34px; height:34px; border-radius:8px; background:#1e2a3e; border:1px solid #354460;
+            color:#d0def0; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;
+        }
+        .num-btn:active { transform:translateY(2px); }
+        .num-btn.clear { width:auto; padding:0 12px; font-size:12px; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.94); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#fef08a,#facc15);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #nextBtn {
+            background:#facc15; border:1px solid #fef08a; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #a16207; cursor:pointer; margin-top:6px;
+        }
+        #nextBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #a16207; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        #controls button:active { transform:translateY(2px); }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🔢 KAKURO CROSS</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="s" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="m" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="l" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-filled">Zaplnené</h3>
+                <span class="value" id="filledValue">0/0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-mistakes">Chyby</h3>
+                <span class="value" id="mistakesValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="board-wrap">
+            <div id="grid"></div>
+            <div id="end-overlay">
+                <h2 id="lbl-win">Vyriešené!</h2>
+                <p><span id="lbl-final-mistakes">Chyby:</span> <span id="finalMistakes">0</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="nextBtn">Ďalšia hádanka</button>
+            </div>
+        </div>
+
+        <div id="numpad"></div>
+
+        <div id="controls">
+            <button id="newLevelBtn"><span id="lbl-newlevel">Nová hádanka</span></button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const LEVELS = {"s": [{"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 0, 0]], "h_runs": [[[3, 1], [3, 2]], [[3, 4], [3, 5]], [[4, 1], [4, 2]], [[4, 4], [4, 5]], [[5, 1], [5, 2]]], "v_runs": [[[3, 1], [4, 1], [5, 1]], [[3, 2], [4, 2], [5, 2]], [[3, 4], [4, 4]], [[3, 5], [4, 5]]], "h_clues": [4, 15, 7, 3, 17], "v_clues": [17, 11, 7, 11], "h_clue_cells": [[3, 0], [3, 3], [4, 0], [4, 3], [5, 0]], "v_clue_cells": [[2, 1], [2, 2], [2, 4], [2, 5]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 0, 0]], "h_runs": [[[3, 1], [3, 2]], [[3, 4], [3, 5]], [[4, 1], [4, 2]], [[4, 4], [4, 5]], [[5, 1], [5, 2]]], "v_runs": [[[3, 1], [4, 1], [5, 1]], [[3, 2], [4, 2], [5, 2]], [[3, 4], [4, 4]], [[3, 5], [4, 5]]], "h_clues": [8, 14, 13, 13, 12], "v_clues": [24, 9, 17, 10], "h_clue_cells": [[3, 0], [3, 3], [4, 0], [4, 3], [5, 0]], "v_clue_cells": [[2, 1], [2, 2], [2, 4], [2, 5]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 0, 0]], "h_runs": [[[3, 1], [3, 2]], [[3, 4], [3, 5]], [[4, 1], [4, 2]], [[4, 4], [4, 5]], [[5, 1], [5, 2]]], "v_runs": [[[3, 1], [4, 1], [5, 1]], [[3, 2], [4, 2], [5, 2]], [[3, 4], [4, 4]], [[3, 5], [4, 5]]], "h_clues": [12, 12, 16, 8, 5], "v_clues": [21, 12, 4, 16], "h_clue_cells": [[3, 0], [3, 3], [4, 0], [4, 3], [5, 0]], "v_clue_cells": [[2, 1], [2, 2], [2, 4], [2, 5]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 0, 0]], "h_runs": [[[3, 1], [3, 2]], [[3, 4], [3, 5]], [[4, 1], [4, 2]], [[4, 4], [4, 5]], [[5, 1], [5, 2]]], "v_runs": [[[3, 1], [4, 1], [5, 1]], [[3, 2], [4, 2], [5, 2]], [[3, 4], [4, 4]], [[3, 5], [4, 5]]], "h_clues": [3, 9, 15, 16, 10], "v_clues": [9, 19, 17, 8], "h_clue_cells": [[3, 0], [3, 3], [4, 0], [4, 3], [5, 0]], "v_clue_cells": [[2, 1], [2, 2], [2, 4], [2, 5]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 1, 1], [0, 1, 1, 0, 0, 0]], "h_runs": [[[3, 1], [3, 2]], [[3, 4], [3, 5]], [[4, 1], [4, 2]], [[4, 4], [4, 5]], [[5, 1], [5, 2]]], "v_runs": [[[3, 1], [4, 1], [5, 1]], [[3, 2], [4, 2], [5, 2]], [[3, 4], [4, 4]], [[3, 5], [4, 5]]], "h_clues": [16, 9, 10, 16, 5], "v_clues": [20, 11, 14, 11], "h_clue_cells": [[3, 0], [3, 3], [4, 0], [4, 3], [5, 0]], "v_clue_cells": [[2, 1], [2, 2], [2, 4], [2, 5]]}], "m": [{"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 2], [1, 3]], [[2, 1], [2, 2], [2, 3]], [[3, 1], [3, 2], [3, 3]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[2, 1], [3, 1]], [[1, 2], [2, 2], [3, 2]], [[1, 3], [2, 3], [3, 3], [4, 3], [5, 3]], [[4, 4], [5, 4]]], "h_clues": [14, 8, 18, 14, 10], "v_clues": [8, 21, 19, 16], "h_clue_cells": [[1, 1], [2, 0], [3, 0], [4, 2], [5, 2]], "v_clue_cells": [[1, 1], [0, 2], [0, 3], [3, 4]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 2], [1, 3]], [[2, 1], [2, 2], [2, 3]], [[3, 1], [3, 2], [3, 3]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[2, 1], [3, 1]], [[1, 2], [2, 2], [3, 2]], [[1, 3], [2, 3], [3, 3], [4, 3], [5, 3]], [[4, 4], [5, 4]]], "h_clues": [14, 12, 19, 9, 11], "v_clues": [14, 11, 34, 6], "h_clue_cells": [[1, 1], [2, 0], [3, 0], [4, 2], [5, 2]], "v_clue_cells": [[1, 1], [0, 2], [0, 3], [3, 4]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 2], [1, 3]], [[2, 1], [2, 2], [2, 3]], [[3, 1], [3, 2], [3, 3]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[2, 1], [3, 1]], [[1, 2], [2, 2], [3, 2]], [[1, 3], [2, 3], [3, 3], [4, 3], [5, 3]], [[4, 4], [5, 4]]], "h_clues": [16, 16, 11, 16, 7], "v_clues": [12, 11, 30, 13], "h_clue_cells": [[1, 1], [2, 0], [3, 0], [4, 2], [5, 2]], "v_clue_cells": [[1, 1], [0, 2], [0, 3], [3, 4]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 2], [1, 3]], [[2, 1], [2, 2], [2, 3]], [[3, 1], [3, 2], [3, 3]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[2, 1], [3, 1]], [[1, 2], [2, 2], [3, 2]], [[1, 3], [2, 3], [3, 3], [4, 3], [5, 3]], [[4, 4], [5, 4]]], "h_clues": [16, 10, 16, 8, 3], "v_clues": [4, 20, 25, 4], "h_clue_cells": [[1, 1], [2, 0], [3, 0], [4, 2], [5, 2]], "v_clue_cells": [[1, 1], [0, 2], [0, 3], [3, 4]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 1, 1, 1, 0, 0], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 2], [1, 3]], [[2, 1], [2, 2], [2, 3]], [[3, 1], [3, 2], [3, 3]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[2, 1], [3, 1]], [[1, 2], [2, 2], [3, 2]], [[1, 3], [2, 3], [3, 3], [4, 3], [5, 3]], [[4, 4], [5, 4]]], "h_clues": [3, 20, 8, 14, 12], "v_clues": [4, 11, 30, 12], "h_clue_cells": [[1, 1], [2, 0], [3, 0], [4, 2], [5, 2]], "v_clue_cells": [[1, 1], [0, 2], [0, 3], [3, 4]]}], "l": [{"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 1], [1, 2]], [[2, 1], [2, 2], [2, 3], [2, 4], [2, 5]], [[3, 3], [3, 4], [3, 5]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[1, 1], [2, 1]], [[1, 2], [2, 2]], [[2, 3], [3, 3], [4, 3], [5, 3]], [[2, 4], [3, 4], [4, 4], [5, 4]], [[2, 5], [3, 5]]], "h_clues": [12, 20, 7, 16, 10], "v_clues": [12, 6, 24, 13, 10], "h_clue_cells": [[1, 0], [2, 0], [3, 2], [4, 2], [5, 2]], "v_clue_cells": [[0, 1], [0, 2], [1, 3], [1, 4], [1, 5]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 1], [1, 2]], [[2, 1], [2, 2], [2, 3], [2, 4], [2, 5]], [[3, 3], [3, 4], [3, 5]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[1, 1], [2, 1]], [[1, 2], [2, 2]], [[2, 3], [3, 3], [4, 3], [5, 3]], [[2, 4], [3, 4], [4, 4], [5, 4]], [[2, 5], [3, 5]]], "h_clues": [16, 18, 15, 11, 12], "v_clues": [10, 12, 14, 29, 7], "h_clue_cells": [[1, 0], [2, 0], [3, 2], [4, 2], [5, 2]], "v_clue_cells": [[0, 1], [0, 2], [1, 3], [1, 4], [1, 5]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 1], [1, 2]], [[2, 1], [2, 2], [2, 3], [2, 4], [2, 5]], [[3, 3], [3, 4], [3, 5]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[1, 1], [2, 1]], [[1, 2], [2, 2]], [[2, 3], [3, 3], [4, 3], [5, 3]], [[2, 4], [3, 4], [4, 4], [5, 4]], [[2, 5], [3, 5]]], "h_clues": [4, 33, 11, 8, 15], "v_clues": [10, 11, 17, 28, 5], "h_clue_cells": [[1, 0], [2, 0], [3, 2], [4, 2], [5, 2]], "v_clue_cells": [[0, 1], [0, 2], [1, 3], [1, 4], [1, 5]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 1], [1, 2]], [[2, 1], [2, 2], [2, 3], [2, 4], [2, 5]], [[3, 3], [3, 4], [3, 5]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[1, 1], [2, 1]], [[1, 2], [2, 2]], [[2, 3], [3, 3], [4, 3], [5, 3]], [[2, 4], [3, 4], [4, 4], [5, 4]], [[2, 5], [3, 5]]], "h_clues": [13, 29, 23, 13, 9], "v_clues": [11, 17, 27, 16, 16], "h_clue_cells": [[1, 0], [2, 0], [3, 2], [4, 2], [5, 2]], "v_clue_cells": [[0, 1], [0, 2], [1, 3], [1, 4], [1, 5]]}, {"rows": 6, "cols": 6, "grid": [[0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 0], [0, 0, 0, 1, 1, 0]], "h_runs": [[[1, 1], [1, 2]], [[2, 1], [2, 2], [2, 3], [2, 4], [2, 5]], [[3, 3], [3, 4], [3, 5]], [[4, 3], [4, 4]], [[5, 3], [5, 4]]], "v_runs": [[[1, 1], [2, 1]], [[1, 2], [2, 2]], [[2, 3], [3, 3], [4, 3], [5, 3]], [[2, 4], [3, 4], [4, 4], [5, 4]], [[2, 5], [3, 5]]], "h_clues": [14, 20, 12, 17, 3], "v_clues": [10, 13, 14, 26, 3], "h_clue_cells": [[1, 0], [2, 0], [3, 2], [4, 2], [5, 2]], "v_clue_cells": [[0, 1], [0, 2], [1, 3], [1, 4], [1, 5]]}]};
+
+            const backLbl = document.getElementById('lbl-back');
+            const sizeGroup = document.getElementById('sizeGroup');
+            const rulesP = document.getElementById('rules');
+            const filledSpan = document.getElementById('filledValue');
+            const mistakesSpan = document.getElementById('mistakesValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const gridEl = document.getElementById('grid');
+            const numpadEl = document.getElementById('numpad');
+            const endOverlay = document.getElementById('end-overlay');
+            const finalMistakes = document.getElementById('finalMistakes');
+            const finalScore = document.getElementById('finalScore');
+            const nextBtn = document.getElementById('nextBtn');
+            const newLevelBtn = document.getElementById('newLevelBtn');
+
+            // ----- PREKLADY -----
+            backLbl.textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('kakDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('kakEasy');
+            document.getElementById('lbl-size-m').textContent = t('kakMedium');
+            document.getElementById('lbl-size-l').textContent = t('kakHard');
+            document.getElementById('lbl-filled').textContent = t('kakFilled');
+            document.getElementById('lbl-mistakes').textContent = t('kakMistakes');
+            document.getElementById('lbl-score').textContent = t('kakScore');
+            document.getElementById('lbl-best').textContent = t('kakBest');
+            document.getElementById('lbl-win').textContent = t('kakWin');
+            document.getElementById('lbl-final-mistakes').textContent = t('kakMistakes') + ':';
+            document.getElementById('lbl-final-score').textContent = t('kakScore') + ':';
+            nextBtn.textContent = t('kakNewLevel');
+            document.getElementById('lbl-newlevel').textContent = t('kakNewLevel');
+            rulesP.textContent = t('kakRules');
+
+            // ----- NUMPAD -----
+            for (let n = 1; n <= 9; n++) {
+                const btn = document.createElement('div');
+                btn.className = 'num-btn';
+                btn.textContent = n;
+                btn.addEventListener('click', () => setDigit(n));
+                numpadEl.appendChild(btn);
+            }
+            const clearBtn = document.createElement('div');
+            clearBtn.className = 'num-btn clear';
+            clearBtn.addEventListener('click', () => setDigit(0));
+            numpadEl.appendChild(clearBtn);
+
+            // ----- STAV -----
+            let diffKey = 'm';
+            let level = null;
+            let rows = 6, cols = 6;
+            let values = {}; // 'r,c' -> digit
+            let selected = null;
+            let mistakes = 0;
+            let score = 0;
+            let best = parseInt(localStorage.getItem('kakuroCrossBest') || '0', 10);
+            let solved = false;
+            let recentIdx = { s: -1, m: -1, l: -1 };
+            let cellEls = {};
+            let whiteCells = [];
+            let hRunOf = {}, vRunOf = {};
+
+            bestSpan.textContent = best;
+            clearBtn.textContent = t('kakClear');
+
+            function pickLevel(diff) {
+                const arr = LEVELS[diff];
+                let idx;
+                do { idx = Math.floor(Math.random() * arr.length); }
+                while (arr.length > 1 && idx === recentIdx[diff]);
+                recentIdx[diff] = idx;
+                return arr[idx];
+            }
+
+            function key(r, c) { return r + ',' + c; }
+
+            function buildRunMaps() {
+                hRunOf = {}; vRunOf = {};
+                level.h_runs.forEach((run, i) => {
+                    run.forEach(([r, c]) => { hRunOf[key(r, c)] = i; });
+                });
+                level.v_runs.forEach((run, i) => {
+                    run.forEach(([r, c]) => { vRunOf[key(r, c)] = i; });
+                });
+            }
+
+            function newLevel() {
+                level = pickLevel(diffKey);
+                rows = level.rows; cols = level.cols;
+                values = {};
+                selected = null;
+                mistakes = 0;
+                score = 0;
+                solved = false;
+                whiteCells = [];
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (level.grid[r][c] === 1) whiteCells.push(key(r, c));
+                    }
+                }
+                buildRunMaps();
+                mistakesSpan.textContent = '0';
+                scoreSpan.textContent = '0';
+                filledSpan.textContent = '0/' + whiteCells.length;
+                endOverlay.classList.remove('visible');
+                renderGrid();
+            }
+
+            function renderGrid() {
+                gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                gridEl.style.width = (cols * 46) + 'px';
+                gridEl.innerHTML = '';
+                cellEls = {};
+
+                const hClueAt = {};
+                level.h_clue_cells.forEach(([r, c], i) => { hClueAt[key(r, c)] = level.h_clues[i]; });
+                const vClueAt = {};
+                level.v_clue_cells.forEach(([r, c], i) => { vClueAt[key(r, c)] = level.v_clues[i]; });
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const div = document.createElement('div');
+                        const k = key(r, c);
+                        if (level.grid[r][c] === 1) {
+                            div.className = 'cell white';
+                            div.textContent = values[k] || '';
+                            div.addEventListener('click', () => selectCell(r, c));
+                            cellEls[k] = div;
+                        } else {
+                            div.className = 'cell block';
+                            const hc = hClueAt[k];
+                            const vc = vClueAt[k];
+                            if (hc !== undefined) {
+                                const s = document.createElement('span');
+                                s.className = 'clue-across';
+                                s.textContent = hc;
+                                div.appendChild(s);
+                            }
+                            if (vc !== undefined) {
+                                const s = document.createElement('span');
+                                s.className = 'clue-down';
+                                s.textContent = vc;
+                                div.appendChild(s);
+                            }
+                        }
+                        gridEl.appendChild(div);
+                    }
+                }
+                updateConflicts();
+            }
+
+            function selectCell(r, c) {
+                if (solved) return;
+                selected = key(r, c);
+                Object.entries(cellEls).forEach(([k, el]) => el.classList.toggle('selected', k === selected));
+            }
+
+            function runCells(runIdx, isH) {
+                return (isH ? level.h_runs[runIdx] : level.v_runs[runIdx]).map(([r, c]) => key(r, c));
+            }
+
+            function updateConflicts() {
+                const conflictSet = new Set();
+                level.h_runs.forEach((run, i) => {
+                    const seen = {};
+                    run.forEach(([r, c]) => {
+                        const k = key(r, c);
+                        const v = values[k];
+                        if (!v) return;
+                        if (seen[v]) { conflictSet.add(k); conflictSet.add(seen[v]); }
+                        seen[v] = k;
+                    });
+                });
+                level.v_runs.forEach((run, i) => {
+                    const seen = {};
+                    run.forEach(([r, c]) => {
+                        const k = key(r, c);
+                        const v = values[k];
+                        if (!v) return;
+                        if (seen[v]) { conflictSet.add(k); conflictSet.add(seen[v]); }
+                        seen[v] = k;
+                    });
+                });
+                Object.entries(cellEls).forEach(([k, el]) => {
+                    el.classList.toggle('conflict', conflictSet.has(k));
+                });
+                return conflictSet;
+            }
+
+            function setDigit(n) {
+                if (!selected || solved) return;
+                const hadConflictBefore = wouldConflict(selected, values[selected]);
+                if (n === 0) {
+                    delete values[selected];
+                } else {
+                    const willConflict = wouldConflict(selected, n);
+                    if (willConflict && values[selected] !== n) mistakes++;
+                    values[selected] = n;
+                }
+                cellEls[selected].textContent = values[selected] || '';
+                mistakesSpan.textContent = mistakes;
+                const filledCount = whiteCells.filter(k => values[k]).length;
+                filledSpan.textContent = filledCount + '/' + whiteCells.length;
+                updateConflicts();
+                checkWin();
+            }
+
+            function wouldConflict(cellKey, val) {
+                if (!val) return false;
+                const [r, c] = cellKey.split(',').map(Number);
+                const hi = hRunOf[cellKey];
+                if (hi !== undefined) {
+                    for (const [rr, cc] of level.h_runs[hi]) {
+                        const k2 = key(rr, cc);
+                        if (k2 !== cellKey && values[k2] === val) return true;
+                    }
+                }
+                const vi = vRunOf[cellKey];
+                if (vi !== undefined) {
+                    for (const [rr, cc] of level.v_runs[vi]) {
+                        const k2 = key(rr, cc);
+                        if (k2 !== cellKey && values[k2] === val) return true;
+                    }
+                }
+                return false;
+            }
+
+            function checkWin() {
+                if (whiteCells.some(k => !values[k])) return;
+                const conflicts = updateConflicts();
+                if (conflicts.size > 0) return;
+                // verify sums
+                for (let i = 0; i < level.h_runs.length; i++) {
+                    const cells = level.h_runs[i];
+                    const sum = cells.reduce((s, [r, c]) => s + values[key(r, c)], 0);
+                    if (sum !== level.h_clues[i]) return;
+                }
+                for (let i = 0; i < level.v_runs.length; i++) {
+                    const cells = level.v_runs[i];
+                    const sum = cells.reduce((s, [r, c]) => s + values[key(r, c)], 0);
+                    if (sum !== level.v_clues[i]) return;
+                }
+                winGame();
+            }
+
+            function winGame() {
+                solved = true;
+                const penalty = mistakes * 15;
+                score = Math.max(20, 120 - penalty);
+                scoreSpan.textContent = score;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem('kakuroCrossBest', String(best));
+                }
+                finalMistakes.textContent = mistakes;
+                finalScore.textContent = score;
+                endOverlay.classList.add('visible');
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (/^[1-9]$/.test(e.key)) setDigit(parseInt(e.key, 10));
+                else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') setDigit(0);
+            });
+
+            newLevelBtn.addEventListener('click', newLevel);
+            nextBtn.addEventListener('click', newLevel);
+
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    newLevel();
+                });
+            });
+
+            newLevel();
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Anagram Blitz · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402049;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#e879f9;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:460px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#f5d0fe,#e879f9);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#e879f9; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:56px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #board {
+            background:#0f1622; border-radius:16px; padding:18px 14px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            display:flex; flex-direction:column; gap:16px; align-items:center;
+            position:relative;
+        }
+        #answer-row { display:flex; gap:6px; justify-content:center; min-height:48px; flex-wrap:wrap; }
+        #scrambled-row { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+        .tile {
+            width:42px; height:42px; border-radius:10px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:19px; font-weight:800; cursor:pointer;
+            transition: transform .08s;
+        }
+        .tile.scrambled {
+            background:#1e2a3e; border:2px solid #354460; color:#eef3fc;
+        }
+        .tile.scrambled:active { transform:translateY(2px); }
+        .tile.answer-slot {
+            background:#2a1e3e; border:2px dashed #4c1d95; color:#f5d0fe;
+        }
+        .tile.answer-filled {
+            background:#4c1d95; border:2px solid #e879f9; color:#fff;
+            cursor:pointer;
+        }
+        #feedback { min-height:18px; font-size:13px; font-weight:600; text-align:center; }
+        #feedback.error { color:#f87171; }
+        #feedback.ok { color:#6ee7b7; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        #controls button:active { transform:translateY(2px); }
+        #end-overlay {
+            position:absolute; inset:0; background:rgba(8,12,22,.94); backdrop-filter:blur(6px);
+            border-radius:16px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#f5d0fe,#e879f9);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #restartBtn {
+            background:#e879f9; border:1px solid #f5d0fe; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #a21caf; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #a21caf; }
+    </style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🔀 ANAGRAM BLITZ</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="easy" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="medium" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="hard" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-time">Čas</h3>
+                <span class="value" id="timeValue">60s</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-combo">Kombá</h3>
+                <span class="value" id="comboValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-words">Slová</h3>
+                <span class="value" id="wordsValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="board">
+            <div id="answer-row"></div>
+            <div id="scrambled-row"></div>
+            <div id="end-overlay">
+                <h2 id="lbl-timeup">Čas vypršal!</h2>
+                <p><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <p><span id="lbl-final-words">Slová:</span> <span id="finalWords">0</span></p>
+                <button id="restartBtn">Hrať znova</button>
+            </div>
+        </div>
+        <div id="feedback"></div>
+
+        <div id="controls">
+            <button id="skipBtn"><span id="lbl-skip">Preskočiť</span></button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const PUZZLES = {"easy": [{"word": "abase", "siblings": ["abase"]}, {"word": "abash", "siblings": ["abash"]}, {"word": "acid", "siblings": ["acid"]}, {"word": "affix", "siblings": ["affix"]}, {"word": "agent", "siblings": ["agent"]}, {"word": "ales", "siblings": ["ales", "lase", "leas", "sale", "seal"]}, {"word": "algae", "siblings": ["algae"]}, {"word": "alien", "siblings": ["alien", "aline"]}, {"word": "ally", "siblings": ["ally"]}, {"word": "amber", "siblings": ["amber"]}, {"word": "arid", "siblings": ["arid", "raid"]}, {"word": "armed", "siblings": ["armed", "dream"]}, {"word": "augur", "siblings": ["augur"]}, {"word": "awash", "siblings": ["awash"]}, {"word": "babes", "siblings": ["babes"]}, {"word": "baby", "siblings": ["baby"]}, {"word": "banks", "siblings": ["banks"]}, {"word": "bates", "siblings": ["abets", "baste", "bates", "beast", "beats", "betas"]}, {"word": "begun", "siblings": ["begun"]}, {"word": "belay", "siblings": ["belay"]}, {"word": "bests", "siblings": ["bests"]}, {"word": "bill", "siblings": ["bill"]}, {"word": "blast", "siblings": ["blast", "blats"]}, {"word": "bloat", "siblings": ["bloat"]}, {"word": "bloc", "siblings": ["bloc"]}, {"word": "bloom", "siblings": ["bloom"]}, {"word": "bogon", "siblings": ["bogon", "bongo"]}, {"word": "booms", "siblings": ["booms", "bosom"]}, {"word": "bore", "siblings": ["bore", "robe"]}, {"word": "bouts", "siblings": ["bouts"]}, {"word": "bras", "siblings": ["bars", "bras"]}, {"word": "brats", "siblings": ["brats"]}, {"word": "broil", "siblings": ["broil"]}, {"word": "buoys", "siblings": ["buoys"]}, {"word": "burns", "siblings": ["burns"]}, {"word": "butts", "siblings": ["butts"]}, {"word": "cakes", "siblings": ["cakes"]}, {"word": "calf", "siblings": ["calf"]}, {"word": "calve", "siblings": ["calve"]}, {"word": "cave", "siblings": ["cave"]}, {"word": "celli", "siblings": ["celli"]}, {"word": "chugs", "siblings": ["chugs"]}, {"word": "clap", "siblings": ["clap"]}, {"word": "clix", "siblings": ["clix", "clxi"]}, {"word": "clop", "siblings": ["clop"]}, {"word": "cogs", "siblings": ["cogs"]}, {"word": "cones", "siblings": ["cones", "scone"]}, {"word": "cowed", "siblings": ["cowed"]}, {"word": "craws", "siblings": ["craws"]}, {"word": "creed", "siblings": ["creed"]}, {"word": "death", "siblings": ["death", "hated"]}, {"word": "demur", "siblings": ["demur"]}, {"word": "deuce", "siblings": ["deuce"]}, {"word": "dicta", "siblings": ["dicta"]}, {"word": "dike", "siblings": ["dike"]}, {"word": "dimly", "siblings": ["dimly"]}, {"word": "dinky", "siblings": ["dinky"]}, {"word": "dins", "siblings": ["dins"]}, {"word": "dips", "siblings": ["dips"]}, {"word": "dirk", "siblings": ["dirk"]}, {"word": "dogie", "siblings": ["dogie"]}, {"word": "dolly", "siblings": ["dolly"]}, {"word": "dopes", "siblings": ["dopes", "posed"]}, {"word": "druid", "siblings": ["druid"]}, {"word": "dubs", "siblings": ["buds", "dubs"]}, {"word": "dude", "siblings": ["dude"]}, {"word": "dummy", "siblings": ["dummy"]}, {"word": "dumpy", "siblings": ["dumpy"]}, {"word": "dunes", "siblings": ["dunes", "nudes"]}, {"word": "ensue", "siblings": ["ensue"]}, {"word": "equal", "siblings": ["equal"]}, {"word": "ewers", "siblings": ["ewers", "sewer"]}, {"word": "fail", "siblings": ["fail"]}, {"word": "farms", "siblings": ["farms"]}, {"word": "fatty", "siblings": ["fatty"]}, {"word": "feint", "siblings": ["feint"]}, {"word": "fever", "siblings": ["fever"]}, {"word": "finer", "siblings": ["finer", "infer"]}, {"word": "fires", "siblings": ["fires", "fries"]}, {"word": "fixed", "siblings": ["fixed"]}, {"word": "flail", "siblings": ["flail"]}, {"word": "folks", "siblings": ["folks"]}, {"word": "frill", "siblings": ["frill"]}, {"word": "gamy", "siblings": ["gamy"]}, {"word": "gates", "siblings": ["gates", "stage"]}, {"word": "geese", "siblings": ["geese"]}, {"word": "germ", "siblings": ["germ"]}, {"word": "glop", "siblings": ["glop"]}, {"word": "glue", "siblings": ["glue"]}, {"word": "goose", "siblings": ["goose"]}, {"word": "gores", "siblings": ["gores", "gorse", "ogres"]}, {"word": "grave", "siblings": ["grave"]}, {"word": "guyed", "siblings": ["guyed"]}, {"word": "hake", "siblings": ["hake"]}, {"word": "hares", "siblings": ["hares", "hears", "rheas", "share", "shear"]}, {"word": "hayed", "siblings": ["hayed", "heady"]}, {"word": "idols", "siblings": ["idols", "solid"]}, {"word": "incs", "siblings": ["incs"]}, {"word": "irks", "siblings": ["irks", "risk"]}, {"word": "jinn", "siblings": ["jinn"]}, {"word": "joker", "siblings": ["joker"]}, {"word": "jokes", "siblings": ["jokes"]}, {"word": "jolts", "siblings": ["jolts"]}, {"word": "julep", "siblings": ["julep"]}, {"word": "keens", "siblings": ["keens", "knees"]}, {"word": "kills", "siblings": ["kills", "skill"]}, {"word": "kilt", "siblings": ["kilt"]}, {"word": "kiss", "siblings": ["kiss", "skis"]}, {"word": "klutz", "siblings": ["klutz"]}, {"word": "koans", "siblings": ["koans"]}, {"word": "lank", "siblings": ["lank"]}, {"word": "lathe", "siblings": ["lathe"]}, {"word": "liar", "siblings": ["lair", "liar", "lira", "rail"]}, {"word": "licit", "siblings": ["licit"]}, {"word": "liens", "siblings": ["liens", "lines"]}, {"word": "lies", "siblings": ["isle", "leis", "lies"]}, {"word": "lifts", "siblings": ["flits", "lifts"]}, {"word": "lugs", "siblings": ["lugs", "slug"]}, {"word": "lunge", "siblings": ["lunge"]}, {"word": "magma", "siblings": ["gamma", "magma"]}, {"word": "main", "siblings": ["main"]}, {"word": "maria", "siblings": ["maria"]}, {"word": "mars", "siblings": ["arms", "mars", "rams"]}, {"word": "mash", "siblings": ["hams", "mash", "sham"]}, {"word": "masks", "siblings": ["masks"]}, {"word": "means", "siblings": ["manes", "manse", "means", "names"]}, {"word": "middy", "siblings": ["middy"]}, {"word": "mike", "siblings": ["mike"]}, {"word": "miler", "siblings": ["miler"]}, {"word": "misc", "siblings": ["misc"]}, {"word": "money", "siblings": ["money"]}, {"word": "mows", "siblings": ["mows"]}, {"word": "muggy", "siblings": ["muggy"]}, {"word": "mussy", "siblings": ["mussy"]}, {"word": "nobly", "siblings": ["nobly"]}, {"word": "oaten", "siblings": ["atone", "oaten"]}, {"word": "obits", "siblings": ["obits"]}, {"word": "ogres", "siblings": ["gores", "gorse", "ogres"]}, {"word": "oily", "siblings": ["oily"]}, {"word": "okays", "siblings": ["okays"]}, {"word": "ounce", "siblings": ["ounce"]}, {"word": "pansy", "siblings": ["pansy"]}, {"word": "pekoe", "siblings": ["pekoe"]}, {"word": "pits", "siblings": ["pits", "spit", "tips"]}, {"word": "pleas", "siblings": ["lapse", "leaps", "pales", "peals", "pleas", "sepal"]}, {"word": "poky", "siblings": ["poky"]}, {"word": "poles", "siblings": ["lopes", "poles", "slope"]}, {"word": "pore", "siblings": ["pore", "rope"]}, {"word": "pout", "siblings": ["pout"]}, {"word": "puffs", "siblings": ["puffs"]}, {"word": "punt", "siblings": ["punt"]}, {"word": "queen", "siblings": ["queen"]}, {"word": "radio", "siblings": ["radio"]}, {"word": "radon", "siblings": ["adorn", "radon"]}, {"word": "range", "siblings": ["anger", "range"]}, {"word": "rarer", "siblings": ["rarer"]}, {"word": "razes", "siblings": ["razes"]}, {"word": "reel", "siblings": ["leer", "reel"]}, {"word": "relax", "siblings": ["laxer", "relax"]}, {"word": "rend", "siblings": ["nerd", "rend"]}, {"word": "resin", "siblings": ["reins", "resin", "rinse", "risen", "siren"]}, {"word": "riots", "siblings": ["riots", "tiros", "torsi", "trios"]}, {"word": "ripe", "siblings": ["pier", "ripe"]}, {"word": "robed", "siblings": ["bored", "robed"]}, {"word": "rogue", "siblings": ["rogue", "rouge"]}, {"word": "rubs", "siblings": ["burs", "rubs"]}, {"word": "ruffs", "siblings": ["ruffs"]}, {"word": "rusty", "siblings": ["rusty"]}, {"word": "sagas", "siblings": ["sagas"]}, {"word": "sago", "siblings": ["sago"]}, {"word": "said", "siblings": ["aids", "dais", "said"]}, {"word": "sate", "siblings": ["east", "eats", "sate", "seat", "teas"]}, {"word": "saws", "siblings": ["saws"]}, {"word": "scold", "siblings": ["clods", "colds", "scold"]}, {"word": "scram", "siblings": ["crams", "scram"]}, {"word": "seals", "siblings": ["lases", "sales", "seals"]}, {"word": "servo", "siblings": ["overs", "roves", "servo"]}, {"word": "shape", "siblings": ["heaps", "phase", "shape"]}, {"word": "sheaf", "siblings": ["sheaf"]}, {"word": "shuck", "siblings": ["shuck"]}, {"word": "slags", "siblings": ["glass", "slags"]}, {"word": "slues", "siblings": ["slues"]}, {"word": "smirk", "siblings": ["smirk"]}, {"word": "snail", "siblings": ["nails", "slain", "snail"]}, {"word": "softy", "siblings": ["softy"]}, {"word": "spies", "siblings": ["spies"]}, {"word": "spool", "siblings": ["loops", "pools", "sloop", "spool"]}, {"word": "spout", "siblings": ["pouts", "spout"]}, {"word": "spun", "siblings": ["puns", "spun"]}, {"word": "sulks", "siblings": ["sulks"]}, {"word": "swim", "siblings": ["swim"]}, {"word": "tamp", "siblings": ["tamp"]}, {"word": "tango", "siblings": ["tango"]}, {"word": "tank", "siblings": ["tank"]}, {"word": "tided", "siblings": ["tided"]}, {"word": "tokes", "siblings": ["stoke", "tokes"]}, {"word": "topaz", "siblings": ["topaz"]}, {"word": "tout", "siblings": ["tout"]}, {"word": "tries", "siblings": ["rites", "tiers", "tires", "tries"]}, {"word": "trill", "siblings": ["trill"]}, {"word": "truce", "siblings": ["cruet", "cuter", "truce"]}, {"word": "umbel", "siblings": ["umbel"]}, {"word": "urban", "siblings": ["unbar", "urban"]}, {"word": "veeps", "siblings": ["veeps"]}, {"word": "veil", "siblings": ["evil", "live", "veil", "vile"]}, {"word": "vine", "siblings": ["vein", "vine"]}, {"word": "waif", "siblings": ["waif"]}, {"word": "welts", "siblings": ["welts"]}, {"word": "whale", "siblings": ["whale", "wheal"]}, {"word": "whats", "siblings": ["swath", "thaws", "whats"]}, {"word": "wimps", "siblings": ["wimps"]}, {"word": "wiped", "siblings": ["wiped"]}, {"word": "wont", "siblings": ["town", "wont"]}, {"word": "woof", "siblings": ["woof"]}, {"word": "xrefs", "siblings": ["xrefs"]}, {"word": "xxiii", "siblings": ["xxiii"]}, {"word": "yahoo", "siblings": ["yahoo"]}, {"word": "yule", "siblings": ["yule"]}, {"word": "zero", "siblings": ["zero"]}, {"word": "zinc", "siblings": ["zinc"]}], "medium": [{"word": "airiest", "siblings": ["airiest"]}, {"word": "alarm", "siblings": ["alarm"]}, {"word": "alike", "siblings": ["alike"]}, {"word": "always", "siblings": ["always"]}, {"word": "amputee", "siblings": ["amputee"]}, {"word": "angoras", "siblings": ["angoras"]}, {"word": "anodyne", "siblings": ["annoyed", "anodyne"]}, {"word": "appeals", "siblings": ["appeals"]}, {"word": "arbiter", "siblings": ["arbiter"]}, {"word": "arrayed", "siblings": ["arrayed"]}, {"word": "audited", "siblings": ["audited"]}, {"word": "aural", "siblings": ["aural"]}, {"word": "avocado", "siblings": ["avocado"]}, {"word": "backers", "siblings": ["backers"]}, {"word": "baled", "siblings": ["baled", "blade"]}, {"word": "bandana", "siblings": ["bandana"]}, {"word": "bathes", "siblings": ["bathes"]}, {"word": "bawdily", "siblings": ["bawdily"]}, {"word": "beeper", "siblings": ["beeper"]}, {"word": "belle", "siblings": ["belle"]}, {"word": "belongs", "siblings": ["belongs"]}, {"word": "bodkins", "siblings": ["bodkins"]}, {"word": "booze", "siblings": ["booze"]}, {"word": "bract", "siblings": ["bract"]}, {"word": "brawler", "siblings": ["brawler", "warbler"]}, {"word": "breads", "siblings": ["beards", "breads", "debars"]}, {"word": "bronco", "siblings": ["bronco"]}, {"word": "brood", "siblings": ["brood"]}, {"word": "buckler", "siblings": ["buckler"]}, {"word": "buffalo", "siblings": ["buffalo"]}, {"word": "buffets", "siblings": ["buffets"]}, {"word": "bugled", "siblings": ["bugled", "bulged"]}, {"word": "bunnies", "siblings": ["bunnies"]}, {"word": "burble", "siblings": ["burble", "lubber", "rubble"]}, {"word": "bussed", "siblings": ["bussed"]}, {"word": "cagiest", "siblings": ["cagiest"]}, {"word": "callow", "siblings": ["callow"]}, {"word": "cannons", "siblings": ["cannons"]}, {"word": "cantons", "siblings": ["cantons"]}, {"word": "carpus", "siblings": ["carpus"]}, {"word": "castes", "siblings": ["castes"]}, {"word": "climbed", "siblings": ["climbed"]}, {"word": "coaxes", "siblings": ["coaxes"]}, {"word": "cobalt", "siblings": ["cobalt"]}, {"word": "coils", "siblings": ["coils"]}, {"word": "coking", "siblings": ["coking"]}, {"word": "courtly", "siblings": ["courtly"]}, {"word": "cravat", "siblings": ["cravat"]}, {"word": "crayola", "siblings": ["crayola"]}, {"word": "cretins", "siblings": ["cistern", "cretins"]}, {"word": "cruelty", "siblings": ["cruelty", "cutlery"]}, {"word": "cubical", "siblings": ["cubical"]}, {"word": "cuckoos", "siblings": ["cuckoos"]}, {"word": "culling", "siblings": ["culling"]}, {"word": "curries", "siblings": ["cruiser", "curries"]}, {"word": "cyclone", "siblings": ["cyclone"]}, {"word": "dabbles", "siblings": ["dabbles", "slabbed"]}, {"word": "dapple", "siblings": ["dapple", "lapped"]}, {"word": "dimes", "siblings": ["deism", "dimes"]}, {"word": "downed", "siblings": ["downed"]}, {"word": "dozed", "siblings": ["dozed"]}, {"word": "dukes", "siblings": ["dukes"]}, {"word": "dunked", "siblings": ["dunked"]}, {"word": "earnest", "siblings": ["earnest", "eastern", "nearest"]}, {"word": "earwig", "siblings": ["earwig"]}, {"word": "envies", "siblings": ["envies"]}, {"word": "expect", "siblings": ["except", "expect"]}, {"word": "extorts", "siblings": ["extorts"]}, {"word": "eyeful", "siblings": ["eyeful"]}, {"word": "factor", "siblings": ["factor"]}, {"word": "fairly", "siblings": ["fairly"]}, {"word": "fashion", "siblings": ["fashion"]}, {"word": "faxes", "siblings": ["faxes"]}, {"word": "fillies", "siblings": ["fillies"]}, {"word": "fists", "siblings": ["fists", "sifts"]}, {"word": "flambes", "siblings": ["flambes"]}, {"word": "flamers", "siblings": ["flamers"]}, {"word": "flutes", "siblings": ["flutes"]}, {"word": "forking", "siblings": ["forking"]}, {"word": "frapp\u00e9", "siblings": ["frapp\u00e9"]}, {"word": "fringed", "siblings": ["fringed"]}, {"word": "fucks", "siblings": ["fucks"]}, {"word": "garrote", "siblings": ["garrote"]}, {"word": "getaway", "siblings": ["gateway", "getaway"]}, {"word": "goitres", "siblings": ["goiters", "goitres", "goriest"]}, {"word": "gored", "siblings": ["gored"]}, {"word": "grills", "siblings": ["grills"]}, {"word": "griming", "siblings": ["griming"]}, {"word": "groomed", "siblings": ["groomed"]}, {"word": "harden", "siblings": ["harden"]}, {"word": "haven", "siblings": ["haven"]}, {"word": "heehaw", "siblings": ["heehaw"]}, {"word": "hewing", "siblings": ["hewing"]}, {"word": "hipper", "siblings": ["hipper"]}, {"word": "hobbit", "siblings": ["hobbit"]}, {"word": "homonym", "siblings": ["homonym"]}, {"word": "hoofed", "siblings": ["hoofed"]}, {"word": "hoped", "siblings": ["hoped"]}, {"word": "inboxes", "siblings": ["inboxes"]}, {"word": "irately", "siblings": ["irately", "reality"]}, {"word": "jugged", "siblings": ["jugged"]}, {"word": "jungles", "siblings": ["jungles"]}, {"word": "jutted", "siblings": ["jutted"]}, {"word": "kebabs", "siblings": ["kebabs"]}, {"word": "kittens", "siblings": ["kittens"]}, {"word": "knifed", "siblings": ["finked", "knifed"]}, {"word": "ladders", "siblings": ["ladders"]}, {"word": "lancer", "siblings": ["lancer"]}, {"word": "leeward", "siblings": ["leeward"]}, {"word": "lexica", "siblings": ["lexica"]}, {"word": "licks", "siblings": ["licks", "slick"]}, {"word": "lowers", "siblings": ["lowers", "rowels", "slower"]}, {"word": "luggage", "siblings": ["luggage"]}, {"word": "madrasa", "siblings": ["armadas", "madrasa"]}, {"word": "margins", "siblings": ["margins"]}, {"word": "marshes", "siblings": ["marshes", "mashers"]}, {"word": "mauls", "siblings": ["alums", "mauls"]}, {"word": "mends", "siblings": ["mends"]}, {"word": "mimed", "siblings": ["mimed"]}, {"word": "moist", "siblings": ["moist", "omits"]}, {"word": "molded", "siblings": ["molded"]}, {"word": "monarch", "siblings": ["monarch"]}, {"word": "monger", "siblings": ["monger"]}, {"word": "namely", "siblings": ["laymen", "meanly", "namely"]}, {"word": "nerved", "siblings": ["nerved", "vender"]}, {"word": "nesting", "siblings": ["nesting", "tensing"]}, {"word": "niece", "siblings": ["niece"]}, {"word": "notches", "siblings": ["notches"]}, {"word": "nought", "siblings": ["nought"]}, {"word": "offal", "siblings": ["offal"]}, {"word": "palazzo", "siblings": ["palazzo"]}, {"word": "palls", "siblings": ["palls"]}, {"word": "patched", "siblings": ["patched"]}, {"word": "patty", "siblings": ["patty"]}, {"word": "peeing", "siblings": ["peeing"]}, {"word": "peppier", "siblings": ["peppier", "preppie"]}, {"word": "perky", "siblings": ["perky"]}, {"word": "plumbed", "siblings": ["plumbed"]}, {"word": "preps", "siblings": ["preps"]}, {"word": "priests", "siblings": ["persist", "priests", "spriest", "sprites", "stripes"]}, {"word": "provoke", "siblings": ["provoke"]}, {"word": "psych", "siblings": ["psych"]}, {"word": "purport", "siblings": ["purport"]}, {"word": "pursed", "siblings": ["prudes", "pursed"]}, {"word": "pursing", "siblings": ["pursing"]}, {"word": "quail", "siblings": ["quail"]}, {"word": "quartet", "siblings": ["quartet"]}, {"word": "queasy", "siblings": ["queasy"]}, {"word": "quilted", "siblings": ["quilted"]}, {"word": "raged", "siblings": ["grade", "raged"]}, {"word": "raveled", "siblings": ["raveled"]}, {"word": "relate", "siblings": ["relate"]}, {"word": "remade", "siblings": ["reamed", "remade"]}, {"word": "rending", "siblings": ["grinned", "rending"]}, {"word": "reports", "siblings": ["porters", "reports"]}, {"word": "repute", "siblings": ["repute"]}, {"word": "reverts", "siblings": ["reverts"]}, {"word": "rhythm", "siblings": ["rhythm"]}, {"word": "riffs", "siblings": ["riffs"]}, {"word": "rocks", "siblings": ["corks", "rocks"]}, {"word": "rubric", "siblings": ["rubric"]}, {"word": "sable", "siblings": ["bales", "sable"]}, {"word": "salute", "siblings": ["salute"]}, {"word": "saree", "siblings": ["erase", "saree"]}, {"word": "savanna", "siblings": ["savanna"]}, {"word": "savvied", "siblings": ["savvied"]}, {"word": "sextets", "siblings": ["sextets"]}, {"word": "shelved", "siblings": ["shelved"]}, {"word": "shies", "siblings": ["shies"]}, {"word": "shivers", "siblings": ["shivers", "shrives"]}, {"word": "shlepp", "siblings": ["shlepp"]}, {"word": "shodden", "siblings": ["shodden"]}, {"word": "showing", "siblings": ["showing"]}, {"word": "skying", "siblings": ["skying"]}, {"word": "slobber", "siblings": ["slobber"]}, {"word": "sloshes", "siblings": ["sloshes"]}, {"word": "snakes", "siblings": ["snakes", "sneaks"]}, {"word": "snippet", "siblings": ["snippet"]}, {"word": "sootier", "siblings": ["sootier"]}, {"word": "staler", "siblings": ["alerts", "alters", "salter", "staler"]}, {"word": "stifled", "siblings": ["stifled"]}, {"word": "stutter", "siblings": ["stutter"]}, {"word": "succeed", "siblings": ["succeed"]}, {"word": "suffice", "siblings": ["suffice"]}, {"word": "syphon", "siblings": ["syphon"]}, {"word": "s\u00e9ance", "siblings": ["s\u00e9ance"]}, {"word": "tainted", "siblings": ["tainted"]}, {"word": "talker", "siblings": ["talker"]}, {"word": "tangy", "siblings": ["tangy"]}, {"word": "temped", "siblings": ["temped"]}, {"word": "throve", "siblings": ["throve"]}, {"word": "tiffed", "siblings": ["tiffed"]}, {"word": "tissues", "siblings": ["tissues"]}, {"word": "towing", "siblings": ["towing"]}, {"word": "traipse", "siblings": ["parties", "pastier", "pirates", "traipse"]}, {"word": "trill", "siblings": ["trill"]}, {"word": "trucks", "siblings": ["struck", "trucks"]}, {"word": "trueing", "siblings": ["trueing"]}, {"word": "trues", "siblings": ["trues"]}, {"word": "tucker", "siblings": ["tucker"]}, {"word": "unjust", "siblings": ["unjust"]}, {"word": "unlaces", "siblings": ["unlaces"]}, {"word": "unmask", "siblings": ["unmask"]}, {"word": "unpacks", "siblings": ["unpacks"]}, {"word": "upshots", "siblings": ["upshots"]}, {"word": "urges", "siblings": ["grues", "surge", "urges"]}, {"word": "vaunted", "siblings": ["vaunted"]}, {"word": "verity", "siblings": ["verity"]}, {"word": "virtues", "siblings": ["virtues"]}, {"word": "vising", "siblings": ["vising"]}, {"word": "vodka", "siblings": ["vodka"]}, {"word": "waxwing", "siblings": ["waxwing"]}, {"word": "whaling", "siblings": ["whaling"]}, {"word": "whimper", "siblings": ["whimper"]}, {"word": "whose", "siblings": ["whose"]}, {"word": "winked", "siblings": ["winked"]}, {"word": "winning", "siblings": ["winning"]}, {"word": "wombat", "siblings": ["wombat"]}, {"word": "wrinkly", "siblings": ["wrinkly"]}, {"word": "zooms", "siblings": ["zooms"]}], "hard": [{"word": "acrider", "siblings": ["acrider", "carried"]}, {"word": "adjudges", "siblings": ["adjudges"]}, {"word": "aldermen", "siblings": ["aldermen"]}, {"word": "allspice", "siblings": ["allspice"]}, {"word": "amplified", "siblings": ["amplified"]}, {"word": "amputation", "siblings": ["amputation"]}, {"word": "annotate", "siblings": ["annotate"]}, {"word": "archaic", "siblings": ["archaic"]}, {"word": "arctics", "siblings": ["arctics"]}, {"word": "arriving", "siblings": ["arriving"]}, {"word": "asunder", "siblings": ["asunder"]}, {"word": "attained", "siblings": ["attained"]}, {"word": "auditor", "siblings": ["auditor"]}, {"word": "baneful", "siblings": ["baneful"]}, {"word": "banshees", "siblings": ["banshees"]}, {"word": "barrettes", "siblings": ["barrettes"]}, {"word": "baseballs", "siblings": ["baseballs"]}, {"word": "befuddling", "siblings": ["befuddling"]}, {"word": "betoken", "siblings": ["betoken"]}, {"word": "bugling", "siblings": ["bugling", "bulging"]}, {"word": "burners", "siblings": ["burners"]}, {"word": "caboodle", "siblings": ["caboodle"]}, {"word": "captivity", "siblings": ["captivity"]}, {"word": "cerebella", "siblings": ["cerebella"]}, {"word": "childhoods", "siblings": ["childhoods"]}, {"word": "chrysalis", "siblings": ["chrysalis"]}, {"word": "circuitous", "siblings": ["circuitous"]}, {"word": "clavicles", "siblings": ["clavicles"]}, {"word": "cleanup", "siblings": ["cleanup"]}, {"word": "coiffed", "siblings": ["coiffed"]}, {"word": "colonnades", "siblings": ["colonnades"]}, {"word": "combatted", "siblings": ["combatted"]}, {"word": "commentate", "siblings": ["commentate"]}, {"word": "communism", "siblings": ["communism"]}, {"word": "commuting", "siblings": ["commuting"]}, {"word": "companies", "siblings": ["companies"]}, {"word": "conceive", "siblings": ["conceive"]}, {"word": "contours", "siblings": ["contours"]}, {"word": "convinced", "siblings": ["convinced"]}, {"word": "correlates", "siblings": ["correlates"]}, {"word": "cresting", "siblings": ["cresting"]}, {"word": "crisped", "siblings": ["crisped"]}, {"word": "crocheting", "siblings": ["crocheting"]}, {"word": "damages", "siblings": ["damages"]}, {"word": "darneder", "siblings": ["darneder"]}, {"word": "daylights", "siblings": ["daylights"]}, {"word": "declaims", "siblings": ["decimals", "declaims", "medicals"]}, {"word": "deeding", "siblings": ["deeding", "deigned"]}, {"word": "delegating", "siblings": ["delegating"]}, {"word": "deploys", "siblings": ["deploys"]}, {"word": "descanting", "siblings": ["descanting"]}, {"word": "desiccate", "siblings": ["desiccate"]}, {"word": "detoxify", "siblings": ["detoxify"]}, {"word": "dingier", "siblings": ["dingier"]}, {"word": "directive", "siblings": ["directive"]}, {"word": "dissenting", "siblings": ["dissenting"]}, {"word": "divisively", "siblings": ["divisively"]}, {"word": "drunkest", "siblings": ["drunkest"]}, {"word": "earphones", "siblings": ["earphones"]}, {"word": "effacement", "siblings": ["effacement"]}, {"word": "employees", "siblings": ["employees"]}, {"word": "enamored", "siblings": ["demeanor", "enamored"]}, {"word": "enfeebled", "siblings": ["enfeebled"]}, {"word": "escalation", "siblings": ["escalation"]}, {"word": "esoteric", "siblings": ["coteries", "esoteric"]}, {"word": "extrudes", "siblings": ["extrudes"]}, {"word": "exultation", "siblings": ["exultation"]}, {"word": "fastness", "siblings": ["fastness"]}, {"word": "filthiness", "siblings": ["filthiness"]}, {"word": "finessing", "siblings": ["finessing"]}, {"word": "fission", "siblings": ["fission"]}, {"word": "flabbiness", "siblings": ["flabbiness"]}, {"word": "flintlock", "siblings": ["flintlock"]}, {"word": "floodgates", "siblings": ["floodgates"]}, {"word": "flophouse", "siblings": ["flophouse"]}, {"word": "flourish", "siblings": ["flourish"]}, {"word": "footmen", "siblings": ["footmen"]}, {"word": "formality", "siblings": ["formality"]}, {"word": "fornicate", "siblings": ["fornicate"]}, {"word": "fortieths", "siblings": ["fortieths", "frothiest"]}, {"word": "fortifies", "siblings": ["fortifies"]}, {"word": "freshet", "siblings": ["freshet"]}, {"word": "friendly", "siblings": ["friendly"]}, {"word": "frizzles", "siblings": ["frizzles"]}, {"word": "gainsays", "siblings": ["assaying", "gainsays"]}, {"word": "garottes", "siblings": ["garottes"]}, {"word": "getting", "siblings": ["getting"]}, {"word": "gloomily", "siblings": ["gloomily"]}, {"word": "goodness", "siblings": ["goodness"]}, {"word": "gooseberry", "siblings": ["gooseberry"]}, {"word": "gorgeous", "siblings": ["gorgeous"]}, {"word": "gremlin", "siblings": ["gremlin"]}, {"word": "halcyon", "siblings": ["halcyon"]}, {"word": "headway", "siblings": ["headway"]}, {"word": "homeless", "siblings": ["homeless"]}, {"word": "hotshot", "siblings": ["hotshot"]}, {"word": "huntresses", "siblings": ["huntresses"]}, {"word": "iambics", "siblings": ["iambics"]}, {"word": "implosion", "siblings": ["implosion"]}, {"word": "inflate", "siblings": ["inflate"]}, {"word": "initially", "siblings": ["initially"]}, {"word": "insaner", "siblings": ["insaner"]}, {"word": "insists", "siblings": ["insists"]}, {"word": "intenser", "siblings": ["intenser", "internes"]}, {"word": "jimmied", "siblings": ["jimmied"]}, {"word": "kibitzer", "siblings": ["kibitzer"]}, {"word": "knowledge", "siblings": ["knowledge"]}, {"word": "levitation", "siblings": ["levitation"]}, {"word": "lichens", "siblings": ["lichens"]}, {"word": "lotteries", "siblings": ["lotteries"]}, {"word": "meringue", "siblings": ["meringue"]}, {"word": "misdealing", "siblings": ["misdealing", "misleading"]}, {"word": "mistletoe", "siblings": ["mistletoe"]}, {"word": "monsieur", "siblings": ["monsieur"]}, {"word": "morally", "siblings": ["morally"]}, {"word": "motives", "siblings": ["motives"]}, {"word": "musings", "siblings": ["musings", "mussing"]}, {"word": "narrate", "siblings": ["narrate"]}, {"word": "needling", "siblings": ["needling"]}, {"word": "nightmares", "siblings": ["nightmares"]}, {"word": "nippers", "siblings": ["nippers"]}, {"word": "oncology", "siblings": ["oncology"]}, {"word": "outmoded", "siblings": ["outmoded"]}, {"word": "outweighs", "siblings": ["outweighs"]}, {"word": "overeaten", "siblings": ["overeaten"]}, {"word": "overpower", "siblings": ["overpower"]}, {"word": "overruns", "siblings": ["overruns"]}, {"word": "panhandles", "siblings": ["panhandles"]}, {"word": "paradigm", "siblings": ["paradigm"]}, {"word": "peeking", "siblings": ["keeping", "peeking"]}, {"word": "penetrate", "siblings": ["penetrate"]}, {"word": "perjurer", "siblings": ["perjurer"]}, {"word": "petered", "siblings": ["petered"]}, {"word": "photons", "siblings": ["photons"]}, {"word": "polishing", "siblings": ["polishing"]}, {"word": "positives", "siblings": ["positives"]}, {"word": "prawning", "siblings": ["prawning"]}, {"word": "predictive", "siblings": ["predictive"]}, {"word": "preexists", "siblings": ["preexists"]}, {"word": "privater", "siblings": ["privater"]}, {"word": "puffballs", "siblings": ["puffballs"]}, {"word": "pushier", "siblings": ["pushier"]}, {"word": "pyromania", "siblings": ["pyromania"]}, {"word": "reciting", "siblings": ["reciting"]}, {"word": "redevelops", "siblings": ["developers", "redevelops"]}, {"word": "refereed", "siblings": ["refereed"]}, {"word": "refinances", "siblings": ["refinances"]}, {"word": "refresher", "siblings": ["refresher"]}, {"word": "relapses", "siblings": ["relapses"]}, {"word": "repackages", "siblings": ["repackages"]}, {"word": "reputes", "siblings": ["reputes"]}, {"word": "rerouting", "siblings": ["rerouting"]}, {"word": "revised", "siblings": ["derives", "diverse", "revised"]}, {"word": "riflemen", "siblings": ["riflemen"]}, {"word": "rightly", "siblings": ["rightly"]}, {"word": "rumblings", "siblings": ["rumblings"]}, {"word": "sallowest", "siblings": ["sallowest"]}, {"word": "sandhog", "siblings": ["sandhog"]}, {"word": "scaring", "siblings": ["scaring"]}, {"word": "schoolbook", "siblings": ["schoolbook"]}, {"word": "screech", "siblings": ["screech"]}, {"word": "seasoned", "siblings": ["seasoned"]}, {"word": "secularize", "siblings": ["secularize"]}, {"word": "seeping", "siblings": ["seeping"]}, {"word": "simulate", "siblings": ["simulate"]}, {"word": "slipknot", "siblings": ["slipknot"]}, {"word": "snaffles", "siblings": ["snaffles"]}, {"word": "snottiest", "siblings": ["snottiest"]}, {"word": "sonnies", "siblings": ["sonnies"]}, {"word": "speedboats", "siblings": ["speedboats"]}, {"word": "spongiest", "siblings": ["spongiest"]}, {"word": "stabilizes", "siblings": ["stabilizes"]}, {"word": "stiffest", "siblings": ["stiffest"]}, {"word": "stirrer", "siblings": ["stirrer"]}, {"word": "stylishly", "siblings": ["stylishly"]}, {"word": "suffusion", "siblings": ["suffusion"]}, {"word": "sunburnt", "siblings": ["sunburnt"]}, {"word": "sunspot", "siblings": ["sunspot", "unstops"]}, {"word": "swimsuits", "siblings": ["swimsuits"]}, {"word": "symphonies", "siblings": ["symphonies"]}, {"word": "tabernacle", "siblings": ["tabernacle"]}, {"word": "tasking", "siblings": ["skating", "staking", "takings", "tasking"]}, {"word": "tasteless", "siblings": ["stateless", "tasteless"]}, {"word": "taverns", "siblings": ["servant", "taverns"]}, {"word": "teeniest", "siblings": ["teeniest"]}, {"word": "telephones", "siblings": ["telephones"]}, {"word": "tenanting", "siblings": ["tenanting"]}, {"word": "throatily", "siblings": ["throatily"]}, {"word": "tinging", "siblings": ["tinging"]}, {"word": "tolerable", "siblings": ["tolerable"]}, {"word": "tonsure", "siblings": ["tonsure"]}, {"word": "topmast", "siblings": ["topmast"]}, {"word": "tortoises", "siblings": ["tortoises"]}, {"word": "touchstone", "siblings": ["touchstone"]}, {"word": "tramped", "siblings": ["tramped"]}, {"word": "trollies", "siblings": ["trollies"]}, {"word": "trusses", "siblings": ["russets", "trusses"]}, {"word": "tumbrils", "siblings": ["tumbrils"]}, {"word": "twigging", "siblings": ["twigging"]}, {"word": "unburdens", "siblings": ["sunburned", "unburdens"]}, {"word": "uncivil", "siblings": ["uncivil"]}, {"word": "undeceived", "siblings": ["undeceived"]}, {"word": "unformed", "siblings": ["unformed"]}, {"word": "unicameral", "siblings": ["unicameral"]}, {"word": "unoccupied", "siblings": ["unoccupied"]}, {"word": "unsaying", "siblings": ["unsaying"]}, {"word": "untimelier", "siblings": ["untimelier"]}, {"word": "untried", "siblings": ["intrude", "untried"]}, {"word": "unwashed", "siblings": ["unwashed"]}, {"word": "vaporized", "siblings": ["vaporized"]}, {"word": "variety", "siblings": ["variety"]}, {"word": "veiling", "siblings": ["veiling"]}, {"word": "verandahs", "siblings": ["verandahs"]}, {"word": "vulgarly", "siblings": ["vulgarly"]}, {"word": "wafting", "siblings": ["wafting"]}, {"word": "wardrobes", "siblings": ["wardrobes"]}, {"word": "widescreen", "siblings": ["widescreen"]}, {"word": "windowing", "siblings": ["windowing"]}, {"word": "witnesses", "siblings": ["witnesses"]}, {"word": "woodwind", "siblings": ["woodwind"]}]};
+
+            const backLbl = document.getElementById('lbl-back');
+            const sizeGroup = document.getElementById('sizeGroup');
+            const rulesP = document.getElementById('rules');
+            const timeSpan = document.getElementById('timeValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const comboSpan = document.getElementById('comboValue');
+            const wordsSpan = document.getElementById('wordsValue');
+            const bestSpan = document.getElementById('bestValue');
+            const answerRow = document.getElementById('answer-row');
+            const scrambledRow = document.getElementById('scrambled-row');
+            const feedback = document.getElementById('feedback');
+            const skipBtn = document.getElementById('skipBtn');
+            const endOverlay = document.getElementById('end-overlay');
+            const finalScore = document.getElementById('finalScore');
+            const finalWords = document.getElementById('finalWords');
+            const restartBtn = document.getElementById('restartBtn');
+
+            // ----- PREKLADY -----
+            backLbl.textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('anaDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('anaEasy');
+            document.getElementById('lbl-size-m').textContent = t('anaMedium');
+            document.getElementById('lbl-size-l').textContent = t('anaHard');
+            document.getElementById('lbl-time').textContent = t('anaTime');
+            document.getElementById('lbl-score').textContent = t('anaScore');
+            document.getElementById('lbl-combo').textContent = t('anaCombo');
+            document.getElementById('lbl-words').textContent = t('anaWords');
+            document.getElementById('lbl-best').textContent = t('anaBest');
+            document.getElementById('lbl-timeup').textContent = t('anaTimeUp');
+            document.getElementById('lbl-final-score').textContent = t('anaScore') + ':';
+            document.getElementById('lbl-final-words').textContent = t('anaWords') + ':';
+            document.getElementById('lbl-skip').textContent = t('anaSkip');
+            restartBtn.textContent = t('anaReplay');
+            rulesP.textContent = t('anaRules');
+
+            // ----- STAV -----
+            const ROUND_MS = 60000;
+            let diffKey = 'medium';
+            let currentPuzzle = null;
+            let scrambled = [];
+            let answerIdx = [];
+            let score = 0, combo = 0, wordsSolved = 0;
+            let best = parseInt(localStorage.getItem('anagramBlitzBest') || '0', 10);
+            let timeLeft = ROUND_MS;
+            let running = true;
+            let timerId = null;
+            let recentWords = [];
+
+            bestSpan.textContent = best;
+
+            function pickPuzzle() {
+                const pool = PUZZLES[diffKey];
+                let p;
+                let attempts = 0;
+                do {
+                    p = pool[Math.floor(Math.random() * pool.length)];
+                    attempts++;
+                } while (recentWords.includes(p.word) && attempts < 10);
+                recentWords.push(p.word);
+                if (recentWords.length > 15) recentWords.shift();
+                return p;
+            }
+
+            function shuffleLetters(word) {
+                const letters = word.split('');
+                let attempts = 0;
+                let sh;
+                do {
+                    sh = letters.slice();
+                    for (let i = sh.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [sh[i], sh[j]] = [sh[j], sh[i]];
+                    }
+                    attempts++;
+                } while (sh.join('') === word && attempts < 20 && word.length > 1);
+                return sh;
+            }
+
+            function newWord() {
+                currentPuzzle = pickPuzzle();
+                scrambled = shuffleLetters(currentPuzzle.word);
+                answerIdx = [];
+                feedback.textContent = '';
+                feedback.className = '';
+                render();
+            }
+
+            function render() {
+                answerRow.innerHTML = '';
+                for (let i = 0; i < scrambled.length; i++) {
+                    const div = document.createElement('div');
+                    if (i < answerIdx.length) {
+                        div.className = 'tile answer-filled';
+                        div.textContent = scrambled[answerIdx[i]].toUpperCase();
+                        const slotPos = i;
+                        div.addEventListener('click', () => removeFromAnswer(slotPos));
+                    } else {
+                        div.className = 'tile answer-slot';
+                        div.textContent = '';
+                    }
+                    answerRow.appendChild(div);
+                }
+
+                scrambledRow.innerHTML = '';
+                scrambled.forEach((letter, idx) => {
+                    const div = document.createElement('div');
+                    const used = answerIdx.includes(idx);
+                    div.className = 'tile scrambled';
+                    div.textContent = letter.toUpperCase();
+                    div.style.visibility = used ? 'hidden' : 'visible';
+                    div.addEventListener('click', () => addToAnswer(idx));
+                    scrambledRow.appendChild(div);
+                });
+            }
+
+            function addToAnswer(idx) {
+                if (!running || answerIdx.includes(idx)) return;
+                answerIdx.push(idx);
+                render();
+                if (answerIdx.length === scrambled.length) {
+                    checkAnswer();
+                }
+            }
+
+            function removeFromAnswer(slotPos) {
+                if (!running) return;
+                answerIdx.splice(slotPos, 1);
+                render();
+            }
+
+            function checkAnswer() {
+                const answer = answerIdx.map(i => scrambled[i]).join('');
+                if (currentPuzzle.siblings.includes(answer)) {
+                    const gained = currentPuzzle.word.length * 8 + combo * 4;
+                    score += gained;
+                    combo++;
+                    wordsSolved++;
+                    scoreSpan.textContent = score;
+                    comboSpan.textContent = combo;
+                    wordsSpan.textContent = wordsSolved;
+                    feedback.textContent = '+' + gained;
+                    feedback.className = 'ok';
+                    if (score > best) {
+                        best = score;
+                        bestSpan.textContent = best;
+                        localStorage.setItem('anagramBlitzBest', String(best));
+                    }
+                    setTimeout(newWord, 350);
+                } else {
+                    combo = 0;
+                    comboSpan.textContent = '0';
+                    feedback.textContent = t('anaWrong');
+                    feedback.className = 'error';
+                    answerIdx = [];
+                    render();
+                }
+            }
+
+            skipBtn.addEventListener('click', () => {
+                if (!running) return;
+                combo = 0;
+                comboSpan.textContent = '0';
+                newWord();
+            });
+
+            function tick() {
+                if (!running) return;
+                timeLeft -= 1000;
+                timeSpan.textContent = Math.max(0, Math.ceil(timeLeft / 1000)) + 's';
+                if (timeLeft <= 0) endRound();
+            }
+
+            function endRound() {
+                running = false;
+                clearInterval(timerId);
+                finalScore.textContent = score;
+                finalWords.textContent = wordsSolved;
+                endOverlay.classList.add('visible');
+            }
+
+            function resetGame() {
+                clearInterval(timerId);
+                score = 0; combo = 0; wordsSolved = 0;
+                timeLeft = ROUND_MS;
+                running = true;
+                recentWords = [];
+                scoreSpan.textContent = '0';
+                comboSpan.textContent = '0';
+                wordsSpan.textContent = '0';
+                timeSpan.textContent = Math.ceil(ROUND_MS / 1000) + 's';
+                endOverlay.classList.remove('visible');
+                newWord();
+                timerId = setInterval(tick, 1000);
+            }
+
+            restartBtn.addEventListener('click', resetGame);
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    resetGame();
+                });
+            });
+
+            resetGame();
+        })();
+    </script>
+</body>
+</html>

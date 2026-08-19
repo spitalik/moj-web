@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ninja Runner · GamePad</title>
+    <script src="../../i18n.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #0a0f1e, #1a1f2e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            touch-action: none;
+        }
+        .game-wrapper {
+            background: #0e141f;
+            padding: 15px 15px 20px;
+            border-radius: 40px 40px 28px 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 0 2px #3f4a5e inset;
+            max-width: 100vw;
+            margin: 10px;
+            margin-top: 48px;
+        }
+        #back-btn {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(14, 20, 31, 0.85);
+            border: 1px solid #3d4a61;
+            color: #9aabca;
+            padding: 7px 14px;
+            border-radius: 100px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(4px);
+            transition: all .18s;
+        }
+        #back-btn:hover, #back-btn:active {
+            border-color: #7b8ba8;
+            color: #f5f9ff;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 800 / 400;
+            max-width: 800px;
+            background: radial-gradient(circle at 20% 30%, #2d3b4f, #141b26);
+            border-radius: 24px;
+            box-shadow: 0 0 0 3px #394451, 0 10px 30px rgba(0,0,0,0.7);
+            cursor: pointer;
+            touch-action: none;
+        }
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            padding: 0 8px;
+            color: #cdd9f0;
+            text-shadow: 0 2px 3px black;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .score-box {
+            background: #1d2738;
+            padding: 6px 18px;
+            border-radius: 60px;
+            font-size: 1.4rem;
+            box-shadow: 0 4px 0 #0b101a, 0 0 0 2px #4d5b72;
+            backdrop-filter: blur(2px);
+            color: #f5e97b;
+            min-width: 80px;
+            text-align: center;
+        }
+        .lives-box {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #1d2738;
+            padding: 5px 16px;
+            border-radius: 60px;
+            box-shadow: 0 4px 0 #0b101a, 0 0 0 2px #4d5b72;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+        .lives-box span {
+            line-height: 1;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #262f42;
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 6px 18px;
+            border-radius: 60px;
+            box-shadow: 0 5px 0 #0b101a, 0 0 0 2px #5c6c86;
+            transition: all 0.04s ease-in;
+            cursor: pointer;
+            background: #2b354a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #0b101a, 0 0 0 2px #7b8ba8;
+        }
+        .btn.reset {
+            background: #3f2c3a;
+            color: #ffbaba;
+        }
+        .btn.reset:active {
+            background: #5a3d4e;
+        }
+        .hint {
+            color: #9aabca;
+            font-size: 0.75rem;
+            padding: 3px 12px;
+            background: #1b2333;
+            border-radius: 30px;
+            border: 1px solid #3d4a61;
+            white-space: nowrap;
+        }
+        @media (max-width: 600px) {
+            .game-wrapper { padding: 10px; margin: 6px; border-radius: 28px; }
+            .score-box { font-size: 1.1rem; padding: 4px 14px; min-width: 60px; }
+            .lives-box { font-size: 1.2rem; padding: 4px 12px; }
+            .btn { font-size: 0.85rem; padding: 5px 14px; }
+            .hint { font-size: 0.65rem; padding: 2px 8px; }
+            .info-panel { gap: 4px; }
+        }
+        @media (max-width: 400px) {
+            .lives-box { font-size: 1rem; padding: 3px 10px; }
+            .score-box { font-size: 0.95rem; padding: 3px 10px; }
+            .btn { font-size: 0.75rem; padding: 4px 10px; }
+        }
+    </style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+<div class="game-wrapper">
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div class="info-panel">
+        <div class="score-box">🏆 <span id="scoreDisplay">0</span></div>
+        <div class="lives-box" id="livesDisplay">❤️ <span id="livesCount">3</span></div>
+        <div class="controls">
+            <span class="hint" id="lbl-hint"></span>
+            <button class="btn reset" id="resetButton"></button>
+        </div>
+    </div>
+</div>
+<script>
+    (function() {
+        // ---------- NINJA RUNNER - 3 LIVES (Mobile friendly) ----------
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreSpan = document.getElementById('scoreDisplay');
+        const livesSpan = document.getElementById('livesCount');
+
+        document.getElementById('lbl-back').textContent = t('back');
+        document.getElementById('lbl-hint').textContent = t('ninjaHint');
+        document.getElementById('resetButton').textContent = '↺ ' + t('ninjaReset');
+
+        // Cached so canvas redraw (60×/s) doesn't re-resolve translations every frame.
+        const txtGameOver = '☠️ ' + t('ninjaGameOver').toUpperCase() + ' ☠️';
+        const txtNoLives = '💔 ' + t('ninjaNoLives');
+        const txtTryAgain = t('ninjaTryAgain');
+        const txtWatermark = '⚡ ' + t('ninjaTitle').toUpperCase();
+
+        // ---------- FIXED DIMENSIONS ----------
+        const W = 800, H = 400;
+        canvas.width = W; canvas.height = H;
+
+        // ---------- GAME STATE ----------
+        let gameActive = true;
+        let score = 0;
+        let frame = 0;
+
+        // ---------- LIVES SYSTEM ----------
+        let lives = 3;
+        const MAX_LIVES = 3;
+
+        // ---------- NINJA ----------
+        const ninja = {
+            x: 70,
+            y: 300,
+            width: 28,
+            height: 38,
+            vy: 0,
+            gravity: 0.7,
+            jumpPower: -12,
+            grounded: true,
+            invincible: 0,
+        };
+
+        // ---------- PREKÁŽKY (hviezdice) ----------
+        let obstacles = [];
+        const OBS_WIDTH = 28;
+        const OBS_HEIGHT = 28;
+
+        // ---------- ŠPECIÁLNE SYMBOLY (životy) ----------
+        let specials = [];
+        const SPECIAL_WIDTH = 26;
+        const SPECIAL_HEIGHT = 26;
+        let specialSpawnCounter = 0;
+        const SPECIAL_SPAWN_RATE = 180;
+
+        // ---------- GENEROVANIE PREKÁŽOK ----------
+        let spawnCounter = 0;
+        const BASE_SPAWN_RATE = 45;
+
+        // ---------- RESET HRY ----------
+        function resetGame() {
+            gameActive = true;
+            score = 0;
+            frame = 0;
+            lives = MAX_LIVES;
+            ninja.y = 300;
+            ninja.vy = 0;
+            ninja.grounded = true;
+            ninja.invincible = 0;
+            obstacles = [];
+            specials = [];
+            spawnCounter = 0;
+            specialSpawnCounter = 0;
+            updateScore();
+            updateLives();
+        }
+
+        // ---------- SKOK ----------
+        function jump() {
+            if (!gameActive) return;
+            if (ninja.grounded) {
+                ninja.vy = ninja.jumpPower;
+                ninja.grounded = false;
+            }
+        }
+
+        // ---------- AKTUALIZÁCIA UI ----------
+        function updateScore() {
+            scoreSpan.textContent = Math.floor(score);
+        }
+        function updateLives() {
+            livesSpan.textContent = lives;
+        }
+
+        // ---------- KOLÍZIA (AABB) ----------
+        function rectCollide(r1, r2) {
+            return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x ||
+                r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);
+        }
+
+        // ---------- ZNÍŽENIE ŽIVOTA ----------
+        function loseLife() {
+            if (ninja.invincible > 0) return;
+            lives--;
+            updateLives();
+            if (lives <= 0) {
+                lives = 0;
+                gameActive = false;
+                updateLives();
+            } else {
+                ninja.invincible = 60;
+                ninja.vy = -6;
+                ninja.y -= 10;
+            }
+        }
+
+        // ---------- UPDATE ----------
+        function update() {
+            if (!gameActive) return;
+
+            // --- 1. Ninja fyzika ---
+            ninja.vy += ninja.gravity;
+            ninja.y += ninja.vy;
+
+            if (ninja.y >= 300) {
+                ninja.y = 300;
+                ninja.vy = 0;
+                ninja.grounded = true;
+            } else {
+                ninja.grounded = false;
+            }
+            if (ninja.y < 0) {
+                ninja.y = 0;
+                ninja.vy = 0;
+            }
+
+            if (ninja.invincible > 0) {
+                ninja.invincible--;
+            }
+
+            // --- 2. Prekážky ---
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.x -= 4.2;
+                obs.angle = (obs.angle || 0) + 0.08;
+
+                if (obs.x + obs.w < 0) {
+                    obstacles.splice(i, 1);
+                    continue;
+                }
+
+                const ninjaBox = {
+                    x: ninja.x,
+                    y: ninja.y,
+                    w: ninja.width,
+                    h: ninja.height
+                };
+                const obsBox = {
+                    x: obs.x + 4,
+                    y: obs.y + 4,
+                    w: obs.w - 8,
+                    h: obs.h - 8
+                };
+                if (rectCollide(ninjaBox, obsBox)) {
+                    loseLife();
+                    obstacles.splice(i, 1);
+                    if (!gameActive) break;
+                }
+            }
+
+            // --- 3. Špeciálne symboly ---
+            for (let i = specials.length - 1; i >= 0; i--) {
+                const sp = specials[i];
+                sp.x -= 4.2;
+                sp.angle = (sp.angle || 0) + 0.06;
+
+                if (sp.x + sp.w < 0) {
+                    specials.splice(i, 1);
+                    continue;
+                }
+
+                const ninjaBox = {
+                    x: ninja.x,
+                    y: ninja.y,
+                    w: ninja.width,
+                    h: ninja.height
+                };
+                const spBox = {
+                    x: sp.x + 2,
+                    y: sp.y + 2,
+                    w: sp.w - 4,
+                    h: sp.h - 4
+                };
+                if (rectCollide(ninjaBox, spBox)) {
+                    if (lives < MAX_LIVES) {
+                        lives++;
+                        updateLives();
+                    }
+                    score += 5;
+                    updateScore();
+                    specials.splice(i, 1);
+                }
+            }
+
+            // --- 4. Spawn prekážok ---
+            spawnCounter++;
+            let dynamicRate = Math.max(22, BASE_SPAWN_RATE - Math.floor(score / 25));
+            if (dynamicRate < 18) dynamicRate = 18;
+
+            if (spawnCounter >= dynamicRate) {
+                spawnCounter = 0;
+                let canSpawn = true;
+                if (obstacles.length > 0) {
+                    const last = obstacles[obstacles.length - 1];
+                    if (last.x > W - 160) canSpawn = false;
+                    if (obstacles.length > 1) {
+                        const prev = obstacles[obstacles.length - 2];
+                        if (last.x - prev.x < 100) canSpawn = false;
+                    }
+                }
+                if (canSpawn) {
+                    const yPos = 270 + Math.floor(Math.random() * 50);
+                    obstacles.push({
+                        x: W,
+                        y: yPos,
+                        w: OBS_WIDTH,
+                        h: OBS_HEIGHT,
+                        angle: 0,
+                    });
+                }
+            }
+
+            // --- 5. Spawn špeciálnych symbolov ---
+            specialSpawnCounter++;
+            let specialRate = Math.max(120, SPECIAL_SPAWN_RATE - Math.floor(score / 15));
+            if (specialRate < 80) specialRate = 80;
+
+            if (specialSpawnCounter >= specialRate && specials.length < 2) {
+                specialSpawnCounter = 0;
+                if (obstacles.length < 6) {
+                    const yPos = 275 + Math.floor(Math.random() * 45);
+                    specials.push({
+                        x: W + 20,
+                        y: yPos,
+                        w: SPECIAL_WIDTH,
+                        h: SPECIAL_HEIGHT,
+                        angle: 0,
+                        type: 'heart',
+                    });
+                }
+            }
+
+            // --- 6. Skóre ---
+            score += 0.13;
+            updateScore();
+
+            // --- 7. Udržiavanie poriadku ---
+            if (obstacles.length > 2) {
+                for (let i = 1; i < obstacles.length; i++) {
+                    if (obstacles[i].x - obstacles[i-1].x < 70) {
+                        obstacles[i].x = obstacles[i-1].x + 90;
+                    }
+                }
+            }
+
+            frame++;
+        }
+
+        // ---------- RENDER ----------
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            // ---- pozadie ----
+            ctx.fillStyle = '#6e7d9b';
+            ctx.globalAlpha = 0.2;
+            ctx.beginPath();
+            ctx.arc(680, 70, 50, 0, Math.PI*2);
+            ctx.fill();
+            ctx.globalAlpha = 0.4;
+            ctx.beginPath();
+            ctx.arc(120, 50, 30, 0, Math.PI*2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+
+            // ---- zem ----
+            ctx.fillStyle = '#2c3a4b';
+            ctx.fillRect(0, 340, W, 60);
+            ctx.fillStyle = '#3c4d62';
+            ctx.fillRect(0, 340, W, 8);
+            for (let i=0; i<20; i++) {
+                let x = (i*45 + frame*0.5) % 900 - 50;
+                ctx.fillStyle = '#4d6b4d';
+                ctx.beginPath();
+                ctx.moveTo(x, 340);
+                ctx.lineTo(x+8, 330);
+                ctx.lineTo(x+16, 340);
+                ctx.fill();
+            }
+
+            // ---- Ninja ----
+            const blink = ninja.invincible > 0 && Math.floor(ninja.invincible / 6) % 2 === 0;
+            if (!blink || ninja.invincible === 0) {
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 16;
+                ctx.shadowOffsetX = 4;
+                ctx.shadowOffsetY = 4;
+
+                ctx.fillStyle = '#1e283a';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.roundRect(ninja.x, ninja.y, ninja.width, ninja.height, 6);
+                ctx.fill();
+
+                ctx.fillStyle = '#b84a4a';
+                ctx.shadowBlur = 6;
+                ctx.fillRect(ninja.x+4, ninja.y+18, ninja.width-8, 4);
+
+                ctx.fillStyle = '#1a2335';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(ninja.x+14, ninja.y-2, 16, 0, Math.PI*2);
+                ctx.fill();
+
+                ctx.fillStyle = '#f5f9ff';
+                ctx.shadowBlur = 4;
+                ctx.beginPath();
+                ctx.arc(ninja.x+8, ninja.y-6, 4, 0, Math.PI*2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(ninja.x+20, ninja.y-6, 4, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = '#0b0f1a';
+                ctx.beginPath();
+                ctx.arc(ninja.x+6, ninja.y-8, 2, 0, Math.PI*2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(ninja.x+18, ninja.y-8, 2, 0, Math.PI*2);
+                ctx.fill();
+
+                ctx.fillStyle = '#c0392b';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.moveTo(ninja.x+4, ninja.y+4);
+                ctx.lineTo(ninja.x-6, ninja.y+14);
+                ctx.lineTo(ninja.x+4, ninja.y+10);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(ninja.x+24, ninja.y+4);
+                ctx.lineTo(ninja.x+34, ninja.y+14);
+                ctx.lineTo(ninja.x+24, ninja.y+10);
+                ctx.fill();
+
+                ctx.shadowBlur = 12;
+                ctx.strokeStyle = '#b0c7e7';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(ninja.x+28, ninja.y-6);
+                ctx.lineTo(ninja.x+48, ninja.y-24);
+                ctx.stroke();
+                ctx.strokeStyle = '#f0e68c';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(ninja.x+28, ninja.y-4);
+                ctx.lineTo(ninja.x+44, ninja.y-22);
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            // ---- Prekážky (rotujúce hviezdice) ----
+            for (let obs of obstacles) {
+                const cx = obs.x + obs.w/2;
+                const cy = obs.y + obs.h/2;
+                const rad = 16;
+                const angle = obs.angle || 0;
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle);
+
+                ctx.shadowColor = '#ffbb33';
+                ctx.shadowBlur = 22;
+                ctx.fillStyle = '#e6d3a3';
+                ctx.beginPath();
+                for (let i = 0; i < 8; i++) {
+                    const a = (i / 8) * Math.PI * 2;
+                    const r = (i % 2 === 0) ? rad : rad * 0.45;
+                    const x = Math.cos(a) * r;
+                    const y = Math.sin(a) * r;
+                    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#b8860b';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(0, 0, 6, 0, Math.PI*2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#8b6b3d';
+                ctx.lineWidth = 1.8;
+                ctx.shadowBlur = 6;
+                for (let i = 0; i < 4; i++) {
+                    const a = (i / 4) * Math.PI * 2 + Math.PI/4;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(a) * rad * 0.9, Math.sin(a) * rad * 0.9);
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = 'rgba(255, 240, 180, 0.3)';
+                ctx.beginPath();
+                ctx.arc(cx-4, cy-5, 4, 0, Math.PI*2);
+                ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+
+            // ---- Špeciálne symboly (srdcia) ----
+            for (let sp of specials) {
+                const cx = sp.x + sp.w/2;
+                const cy = sp.y + sp.h/2;
+                const angle = sp.angle || 0;
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle);
+
+                ctx.shadowColor = '#ff3b3b';
+                ctx.shadowBlur = 30;
+                const s = 13;
+                ctx.fillStyle = '#ff2d2d';
+                ctx.beginPath();
+                ctx.moveTo(0, s * 0.3);
+                ctx.bezierCurveTo(-s * 0.6, -s * 0.3, -s * 1.2, s * 0.4, 0, s * 1.0);
+                ctx.bezierCurveTo(s * 1.2, s * 0.4, s * 0.6, -s * 0.3, 0, s * 0.3);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.beginPath();
+                ctx.arc(-4, -2, 4, 0, Math.PI*2);
+                ctx.fill();
+
+                ctx.restore();
+
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = 'rgba(255, 100, 100, 0.15)';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 22, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            // ---- GAME OVER ----
+            if (!gameActive) {
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(10, 8, 20, 0.65)';
+                ctx.fillRect(0, 0, W, H);
+                ctx.font = 'bold 44px "Segoe UI", system-ui, sans-serif';
+                ctx.fillStyle = '#f0d6b0';
+                ctx.shadowColor = '#ff4d4d';
+                ctx.shadowBlur = 20;
+                ctx.textAlign = 'center';
+                ctx.fillText(txtGameOver, W/2, 160);
+                ctx.font = '26px sans-serif';
+                ctx.fillStyle = '#ffbaba';
+                ctx.fillText(txtNoLives, W/2, 210);
+                ctx.font = '22px sans-serif';
+                ctx.fillStyle = '#b0c7d9';
+                ctx.fillText(txtTryAgain, W/2, 260);
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.font = '14px monospace';
+            ctx.fillStyle = '#7c8aa3';
+            ctx.fillText('❤️ ' + lives + ' | ' + txtWatermark, 20, 30);
+        }
+
+        // helper pre roundRect
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+            if (w < 2 * r) r = w / 2;
+            if (h < 2 * r) r = h / 2;
+            this.moveTo(x + r, y);
+            this.lineTo(x + w - r, y);
+            this.quadraticCurveTo(x + w, y, x + w, y + r);
+            this.lineTo(x + w, y + h - r);
+            this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            this.lineTo(x + r, y + h);
+            this.quadraticCurveTo(x, y + h, x, y + h - r);
+            this.lineTo(x, y + r);
+            this.quadraticCurveTo(x, y, x + r, y);
+            return this;
+        };
+
+        // ---------- LOOP ----------
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ---------- EVENTY (Mobile + Desktop) ----------
+        // Klik / ťuk na canvas = skok
+        canvas.addEventListener('click', (e) => {
+            e.preventDefault();
+            jump();
+        });
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
+        }, { passive: false });
+
+        // Klávesnica
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === ' ' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                jump();
+            }
+        });
+
+        // Reset iba cez tlačidlo (dvojklik bol odstránený)
+        document.getElementById('resetButton').addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetGame();
+        });
+
+        // ---------- ŠTART ----------
+        resetGame();
+        gameLoop();
+
+    })();
+</script>
+</body>
+</html>
