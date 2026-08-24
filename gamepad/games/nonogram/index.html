@@ -29,7 +29,9 @@ table{border-collapse:collapse;}
 .grid-cell.filled{background:var(--c);box-shadow:0 0 6px rgba(77,255,145,0.4);}
 .grid-cell.marked{background:transparent;}
 .grid-cell.marked::after{content:'×';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,107,107,0.6);font-size:14px;pointer-events:none;}
-.grid-cell.wrong{background:rgba(255,107,107,0.3)!important;}
+.grid-cell.wrong{background:rgba(255,107,107,0.55)!important;box-shadow:0 0 8px rgba(255,107,107,0.55);}
+#hud-errors{transition:color .15s;}
+#hud-errors.err-flash{color:#ff6b6b;}
 .grid-cell.correct{background:rgba(77,255,145,0.15)!important;}
 /* thick borders every 5 */
 .border-r5{border-right:2px solid rgba(255,255,255,0.2)!important;}
@@ -50,20 +52,14 @@ table{border-collapse:collapse;}
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   <span id="lbl-back"></span>
 </a>
-<div id="overlay">
-  <div style="font-size:42px">🖼️</div>
-  <h2 id="ov-title"></h2>
-  <div class="hint-txt" id="ov-hint"></div>
-  <div class="diff-row" id="diff-row"></div>
-  <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
-</div>
+<div id="overlay"></div>
 <div class="page">
   <div class="game-title" id="lbl-title"></div>
   <div class="hud">
     <div class="stat-pill">⏱ <span id="hud-time">0</span>s</div>
     <div class="stat-pill"><span id="lbl-err-txt"></span>&nbsp;<span id="hud-errors">0</span></div>
-    <button class="ctrl-btn" id="btn-mode-fill" onclick="setMode('fill')"></button>
-    <button class="ctrl-btn active" id="btn-mode-mark" onclick="setMode('mark')"></button>
+    <button class="ctrl-btn active" id="btn-mode-fill" onclick="setMode('fill')"></button>
+    <button class="ctrl-btn" id="btn-mode-mark" onclick="setMode('mark')"></button>
     <button class="ctrl-btn" id="btn-new" onclick="showMenu()"></button>
   </div>
   <div id="board-wrap"><table id="grid-table"></table></div>
@@ -72,26 +68,27 @@ table{border-collapse:collapse;}
 <script>
 document.getElementById('lbl-back').textContent     = t('back');
 document.getElementById('lbl-title').textContent    = t('nonogramTitle');
-document.getElementById('ov-title').textContent     = t('nonogramTitle');
-document.getElementById('ov-hint').textContent      = t('nonogramHint');
-document.getElementById('ov-btn').textContent       = t('nonogramPlay');
 document.getElementById('lbl-err-txt').textContent  = t('nonogramErrors');
 document.getElementById('btn-mode-fill').textContent= t('nonogramFill');
 document.getElementById('btn-mode-mark').textContent= t('nonogramMark');
 document.getElementById('btn-new').textContent      = t('nonogramNew');
 
 const DIFFS=[{key:'easy',size:5},{key:'medium',size:10},{key:'hard',size:15}];
+const MAX_ERRORS=3;        // toľko chýb a hra končí
 let diffIdx=0;
-const dr=document.getElementById('diff-row');
-DIFFS.forEach((d,i)=>{
-  const btn=document.createElement('button');
-  btn.className='diff-btn'+(i===0?' active':'');
-  btn.textContent=`${t('diff'+d.key[0].toUpperCase()+d.key.slice(1))} (${d.size}×${d.size})`;
-  btn.onclick=()=>{diffIdx=i;dr.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};
-  dr.appendChild(btn);
-});
 
 let solution,state,SIZE,mode='fill',errors=0,timerVal=0,timerInt,dragging=false,dragVal=null;
+let penalized=new Set();   // políčka, za ktoré už chyba bola pripísaná (aby ťahanie nenafúklo počítadlo)
+let errFlashTO=null;
+let gameOver=false;
+
+// preklad s náhradou – ak kľúč v i18n.js (ešte) nie je, použije sa fallback
+function tr(key,fallback){
+  try{const v=t(key);return(!v||v===key)?fallback:v;}catch(e){return fallback;}
+}
+function diffLabel(d){
+  return `${t('diff'+d.key[0].toUpperCase()+d.key.slice(1))} (${d.size}×${d.size})`;
+}
 
 function setMode(m){
   mode=m;
@@ -110,9 +107,49 @@ function clues(arr){
   return groups.length?groups:[0];
 }
 
+// jedno miesto, ktoré stavia prekrytie – menu, výhru aj prehru
+function showOverlay({icon,title,big,bigColor,sub,btn}){
+  const ov=document.getElementById('overlay');
+  ov.innerHTML=`<div style="font-size:42px">${icon}</div>
+    <h2>${title}</h2>
+    ${big?`<div class="score-big"${bigColor?` style="color:${bigColor}"`:''}>${big}</div>`:''}
+    ${sub?`<div class="hint-txt">${sub}</div>`:''}
+    <div class="diff-row" id="diff-row"></div>
+    <button class="play-btn" onclick="startGame()">${btn}</button>`;
+  const dr=document.getElementById('diff-row');
+  DIFFS.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className='diff-btn'+(i===diffIdx?' active':'');
+    b.textContent=diffLabel(d);
+    b.onclick=()=>{diffIdx=i;dr.querySelectorAll('.diff-btn').forEach((x,j)=>x.classList.toggle('active',j===i));};
+    dr.appendChild(b);
+  });
+  ov.style.display='flex';
+}
+
 function showMenu(){
   clearInterval(timerInt);
-  document.getElementById('overlay').style.display='flex';
+  showOverlay({
+    icon:'🖼️',
+    title:t('nonogramTitle'),
+    sub:`${t('nonogramHint')}<br><span style="color:var(--dim)">${t('nonogramErrors')}: max ${MAX_ERRORS}</span>`,
+    btn:t('nonogramPlay')
+  });
+}
+
+function gameOverScreen(){
+  showOverlay({
+    icon:'💥',
+    title:tr('nonogramLose','Game over'),
+    big:`${errors} / ${MAX_ERRORS}`,
+    bigColor:'#ff6b6b',
+    sub:`${tr('nonogramLoseHint','Too many mistakes.')} &nbsp;⏱ ${timerVal}s`,
+    btn:t('nonogramAgain')
+  });
+}
+
+function updateErrHud(){
+  document.getElementById('hud-errors').textContent=`${errors} / ${MAX_ERRORS}`;
 }
 
 function startGame(){
@@ -120,8 +157,11 @@ function startGame(){
   SIZE=DIFFS[diffIdx].size;
   solution=genSolution(SIZE);
   state=Array.from({length:SIZE},()=>Array(SIZE).fill(0)); // 0=empty,1=filled,2=marked
-  errors=0;timerVal=0;
-  document.getElementById('hud-errors').textContent='0';
+  errors=0;timerVal=0;gameOver=false;dragging=false;
+  penalized=new Set();
+  clearTimeout(errFlashTO);
+  document.getElementById('hud-errors').classList.remove('err-flash');
+  updateErrHud();
   document.getElementById('hud-time').textContent='0';
   document.getElementById('status-txt').textContent='';
   clearInterval(timerInt);
@@ -188,6 +228,7 @@ function renderGrid(){
 }
 
 function startDrag(r,c){
+  if(gameOver)return;
   dragging=true;
   // toggle logic
   if(mode==='fill') dragVal=state[r][c]===1?0:1;
@@ -195,19 +236,57 @@ function startDrag(r,c){
   applyDrag(r,c);
 }
 
+function cellEl(r,c){
+  return document.querySelector(`.grid-cell[data-r="${r}"][data-c="${c}"]`);
+}
+
+function paintCell(r,c){
+  const td=cellEl(r,c);
+  if(!td)return null;
+  td.className='grid-cell';
+  if((c+1)%5===0&&c<SIZE-1)td.classList.add('border-r5');
+  if((r+1)%5===0&&r<SIZE-1)td.classList.add('border-b5');
+  if(state[r][c]===1)td.classList.add('filled');
+  if(state[r][c]===2)td.classList.add('marked');
+  return td;
+}
+
+// chyba = vyfarbenie prázdneho políčka, alebo krížik na políčku, ktoré má byť vyfarbené
+function isWrongMove(r,c,val){
+  if(val===1)return solution[r][c]===0;
+  if(val===2)return solution[r][c]===1;
+  return false;  // mazanie nikdy nie je chyba
+}
+
+function registerError(r,c){
+  const key=r+','+c;
+  if(!penalized.has(key)){
+    penalized.add(key);
+    errors++;
+    const errEl=document.getElementById('hud-errors');
+    updateErrHud();
+    errEl.classList.add('err-flash');
+    clearTimeout(errFlashTO);
+    errFlashTO=setTimeout(()=>errEl.classList.remove('err-flash'),400);
+  }
+  state[r][c]=0;              // ťah sa zruší
+  const td=paintCell(r,c);
+  if(td){
+    td.classList.add('wrong');
+    setTimeout(()=>td.classList.remove('wrong'),280);
+  }
+  if(errors>=MAX_ERRORS){
+    gameOver=true;dragging=false;      // ďalšie kliky sa už neberú
+    clearInterval(timerInt);
+    setTimeout(gameOverScreen,450);    // nech je posledné bliknutie vidieť
+  }
+}
+
 function applyDrag(r,c){
-  if(!dragging)return;
+  if(!dragging||gameOver)return;
+  if(isWrongMove(r,c,dragVal)){registerError(r,c);return;}
   state[r][c]=dragVal;
-  const cells=document.querySelectorAll('.grid-cell');
-  cells.forEach(td=>{
-    if(+td.dataset.r===r&&+td.dataset.c===c){
-      td.className='grid-cell';
-      if((c+1)%5===0&&c<SIZE-1)td.classList.add('border-r5');
-      if((r+1)%5===0&&r<SIZE-1)td.classList.add('border-b5');
-      if(state[r][c]===1)td.classList.add('filled');
-      if(state[r][c]===2)td.classList.add('marked');
-    }
-  });
+  paintCell(r,c);
   checkWin();
 }
 
@@ -215,21 +294,22 @@ document.addEventListener('mouseup',()=>dragging=false);
 document.addEventListener('touchend',()=>dragging=false);
 
 function checkWin(){
+  if(gameOver)return;
   const solved=solution.every((row,r)=>row.every((v,c)=>(v===1)===(state[r][c]===1)));
   if(solved){
     clearInterval(timerInt);
-    const ov=document.getElementById('overlay');
-    ov.innerHTML=`<div style="font-size:42px">🎉</div>
-      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px">${t('nonogramWin')}</h2>
-      <div class="score-big">${timerVal}s</div>
-      <div style="font-size:12px;color:var(--muted)">${t('nonogramErrors')}: ${errors}</div>
-      <div class="diff-row" id="diff-row2" style="margin-top:4px"></div>
-      <button class="play-btn" onclick="startGame()" style="margin-top:4px">${t('nonogramAgain')}</button>`;
-    ov.style.display='flex';
-    const dr2=document.getElementById('diff-row2');
-    DIFFS.forEach((d,i)=>{const btn=document.createElement('button');btn.className='diff-btn'+(i===diffIdx?' active':'');btn.textContent=`${t('diff'+d.key[0].toUpperCase()+d.key.slice(1))} (${d.size}×${d.size})`;btn.onclick=()=>{diffIdx=i;dr2.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i));};dr2.appendChild(btn);});
+    gameOver=true;
+    showOverlay({
+      icon:'🎉',
+      title:t('nonogramWin'),
+      big:`${timerVal}s`,
+      sub:`${t('nonogramErrors')}: ${errors} / ${MAX_ERRORS}`,
+      btn:t('nonogramAgain')
+    });
   }
 }
+
+showMenu();   // úvodné menu
 </script>
 </body>
 </html>
