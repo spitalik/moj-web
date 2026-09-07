@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pong · GamePad</title>
+<title>Paddle Duel · GamePad</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
@@ -196,6 +196,13 @@ document.addEventListener('keyup',e=>{keys[e.code]=false;});
   el.addEventListener('pointerup',()=>keys[code]=false);
   el.addEventListener('pointerleave',()=>keys[code]=false);
 });
+// Statický prvý frame za overlayom (predtým draw() padal na score===undefined).
+function initIdleBoard(){
+  p1={y:H/2-PAD_H/2};p2={y:H/2-PAD_H/2};
+  score={a:0,b:0};running=false;
+  resetBall(1);ball.vx=0;ball.vy=0;
+}
+initIdleBoard();
 draw();
 </script>
 </body>

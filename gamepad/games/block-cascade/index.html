@@ -457,9 +457,9 @@
             const EMPTY_COLOR = '#0b0f16';
             const GRID_LINE_COLOR = '#18202b';
 
-            // ----- TVARY (vlastné geometrické bloky) -----
+            // ----- TVARY (vlastné geometrické bloky, vlastné priradenie farieb) -----
             const SHAPES = [{
-                color: '#00e5ff',
+                color: '#ff8a3d',
                 blocks: [
                     [0, 0],
                     [1, 0],
@@ -467,7 +467,7 @@
                     [3, 0]
                 ] // I
             }, {
-                color: '#ffea00',
+                color: '#2dd4a7',
                 blocks: [
                     [0, 0],
                     [1, 0],
@@ -475,7 +475,7 @@
                     [1, 1]
                 ] // O
             }, {
-                color: '#d500f9',
+                color: '#ffd23d',
                 blocks: [
                     [0, 0],
                     [1, 0],
@@ -483,7 +483,7 @@
                     [1, 1]
                 ] // T
             }, {
-                color: '#76ff03',
+                color: '#3b7bff',
                 blocks: [
                     [1, 0],
                     [2, 0],
@@ -491,7 +491,7 @@
                     [1, 1]
                 ] // S
             }, {
-                color: '#ff1744',
+                color: '#a855f7',
                 blocks: [
                     [0, 0],
                     [1, 0],
@@ -499,7 +499,7 @@
                     [2, 1]
                 ] // Z
             }, {
-                color: '#ff9100',
+                color: '#22d3ee',
                 blocks: [
                     [0, 0],
                     [1, 0],
@@ -507,7 +507,7 @@
                     [2, 1]
                 ] // L
             }, {
-                color: '#2979ff',
+                color: '#ff4d6d',
                 blocks: [
                     [0, 0],
                     [1, 0],
@@ -725,7 +725,7 @@
 
                 if (cleared > 0) {
                     soundLineClear();
-                    const points = [0, 100, 300, 500, 800];
+                    const points = [0, 60, 150, 280, 520];
                     const addScore = points[Math.min(cleared, 4)] || 800;
                     score += addScore;
                     linesCleared += cleared;

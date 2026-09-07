@@ -38,6 +38,16 @@ A game is only fully wired up when **all three** of these are done. Missing any 
 
 **Bump the `sw.js` `CACHE` version on essentially any change** to `index.html`, `i18n.js`, or a game — otherwise returning users may be served the previous cached version.
 
+## Licensing rules — read before adding content
+
+The collection ships `LICENSE` (project rights) and `NOTICE` (third-party material). Keep `NOTICE` accurate; it is the only place a third-party licence obligation can be recorded.
+
+Three rules, all of which the collection currently satisfies:
+
+1. **Nothing third-party gets bundled.** No copied SVG, sprite sheet, sound file, font file, word list, level set or library. If you need a shape, write the function that draws it. The only outbound requests in the whole project are Google Fonts stylesheets. When you catch yourself pasting a `<path d="…">` you did not compute, stop.
+2. **Never use another company's game name.** Re-implementing a commercial game's *mechanic* is fine — mechanics and rules are not protected. The name is. Give every game its own name, the way the collection already does (Tetris → Block Cascade, Pac-Man → Dot Muncher, Wordle → Five Letters, Yahtzee → Five Dice, Connect Four → Drop Four, Slitherlink → Loop Weaver). Traditional games with no rights holder — chess, go, backgammon, sudoku, mancala, gomoku — may keep their real names.
+3. **Draw your own look, not theirs.** Mechanics are free; the *visual expression* is not (*Tetris Holding v. Xio Interactive*, 2012). So: don't reproduce a character's silhouette, don't copy a game's colour-to-piece mapping or its scoring table, don't trace a maze or a level layout. Pick shapes and palettes that are yours — `dot-muncher`'s hexagonal drones and `block-cascade`'s piece colours are deliberately unlike the originals, and that is not an accident to be "fixed".
+
 ## Conventions for new games
 
 Match the existing games' structure so the library stays consistent:

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Breakout · GamePad</title>
+<title>Brick Buster · GamePad</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
@@ -242,6 +242,16 @@ document.addEventListener('keydown',e=>{
   if(e.code==='ArrowLeft')mouseX-=20;
   if(e.code==='ArrowRight')mouseX+=20;
 });
+// Postav dosku pre prvý (statický) frame za overlayom — bez toho draw()
+// bežal nad nedefinovanými bricks/ball a hodil chybu.
+function initIdleBoard(){
+  const d=DIFFS[diffIdx];PAD_W=d.padW;
+  px=W/2-PAD_W/2;
+  ball={x:W/2,y:H-80,vx:0,vy:0};
+  bricks=makeBricks();
+  score=0;lives=3;running=false;
+}
+initIdleBoard();
 draw();
 </script>
 </body>

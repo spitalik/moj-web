@@ -829,7 +829,7 @@
           ctx.shadowColor = "#46e2ff";
           ctx.shadowBlur = 14;
           ctx.beginPath();
-          ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+          ctx.arc(e.x, e.y, Math.max(0, e.r), 0, Math.PI * 2);
           ctx.stroke();
           ctx.globalAlpha = Math.max(0, e.life) * 0.16;
           ctx.beginPath();
@@ -911,7 +911,10 @@
       }
 
       function loop(now) {
-        const dt = Math.min(0.033, (now - last) / 1000 || 0);
+        // rAF dodá timestamp začiatku framu, ktorý môže byť starší ako
+        // performance.now() zo chvíle, keď sa skript vykonal — bez dolnej
+        // hranice vyšlo dt na prvom frame negatívne a echá dostali mínusový radius.
+        const dt = Math.max(0, Math.min(0.033, (now - last) / 1000 || 0));
         last = now;
         update(dt);
         draw();

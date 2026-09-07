@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FlappyDot · GamePad</title>
+<title>Flap Dot · GamePad</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
@@ -160,6 +160,13 @@ function draw(){
 document.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();flap();}});
 C.addEventListener('touchstart',e=>{e.preventDefault();if(running)flap();},{passive:false});
 C.addEventListener('click',e=>{if(running)flap();});
+// Statický prvý frame za overlayom (predtým draw() padal na pipes===undefined).
+function initIdleBoard(){
+  const dd=DIFFS[diffIdx];GAP=dd.gap;SPEED=dd.pipeSpeed;GRAVITY=dd.grav;JUMP=dd.jump;
+  bird={x:W*0.25,y:H/2,vy:0,angle:0};
+  pipes=[];score=0;running=false;
+}
+initIdleBoard();
 draw();
 </script>
 </body>

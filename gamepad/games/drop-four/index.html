@@ -13,7 +13,7 @@
             padding:7px 14px;border-radius:100px;text-decoration:none;
             font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
         }
-        #back-btn:hover,#back-btn:active{border-color:#ef4444;color:#fdeaea;}
+        #back-btn:hover,#back-btn:active{border-color:#14b8a6;color:#e6fffa;}
         @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
         * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
         body {
@@ -32,7 +32,7 @@
         #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
         #header h1 {
             font-size:21px; font-weight:700;
-            background:linear-gradient(135deg,#fca5a5,#ef4444);
+            background:linear-gradient(135deg,#7de8d5,#14b8a6);
             -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;
         }
         #rules { font-size:12px; color:#8291ab; line-height:1.5; }
@@ -40,7 +40,7 @@
         #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
         .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
         .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
-        .btn-group button.active { background:#ef4444; color:#fff; }
+        .btn-group button.active { background:#14b8a6; color:#fff; }
         #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
         .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
         .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; letter-spacing:.4px; }
@@ -48,7 +48,7 @@
         .high-score { border-color:#fbbf24; }
         .high-score h3 { color:#fbbf24 !important; }
         .high-score .value { color:#fbbf24 !important; }
-        #status-line { text-align:center; font-size:12px; color:#fca5a5; min-height:16px; font-weight:600; }
+        #status-line { text-align:center; font-size:12px; color:#7de8d5; min-height:16px; font-weight:600; }
         #canvas-wrapper { background:#0f1622; border-radius:16px; padding:8px; box-shadow: inset 0 0 0 1px #2a3446; position:relative; align-self:center; max-width:100%; }
         #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; max-width:100%; height:auto; }
         #end-overlay {
@@ -57,10 +57,10 @@
             gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
         }
         #end-overlay.visible { display:flex; }
-        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#fca5a5,#ef4444); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        #end-overlay h2 { font-size:26px; background:linear-gradient(135deg,#7de8d5,#14b8a6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
         #end-overlay p { font-size:14px; color:#b0c4e0; }
         #restartBtn {
-            background:#ef4444; border:1px solid #fca5a5; border-radius:40px;
+            background:#14b8a6; border:1px solid #7de8d5; border-radius:40px;
             padding:12px 32px; font-size:17px; font-weight:700; color:#fff;
             box-shadow:0 6px 0 #991b1b; cursor:pointer; margin-top:6px;
         }
@@ -79,7 +79,7 @@
 
     <div id="game-container">
         <div id="header">
-            <h1 id="lbl-title">🔴</h1>
+            <h1 id="lbl-title">🟣</h1>
             <div id="settings">
                 <label id="lbl-diff"></label>
                 <div class="btn-group" id="diffGroup">
@@ -135,7 +135,7 @@
 
         // ----- PREKLADY -----
         document.getElementById('lbl-back').textContent   = t('back');
-        document.getElementById('lbl-title').textContent  = '🔴 ' + t('dr4Title');
+        document.getElementById('lbl-title').textContent  = '🟣 ' + t('dr4Title');
         document.getElementById('lbl-diff').textContent   = t('uiDifficulty') + ':';
         document.getElementById('lbl-easy').textContent   = t('diffEasy');
         document.getElementById('lbl-medium').textContent = t('diffMedium');
@@ -360,8 +360,8 @@
         function disc(cx, cy, player, glow) {
             const rad = CELL * 0.39;
             const g = ctx.createRadialGradient(cx - rad * .35, cy - rad * .35, 1, cx, cy, rad);
-            if (player === HUMAN) { g.addColorStop(0, '#fca5a5'); g.addColorStop(1, '#b91c1c'); }
-            else { g.addColorStop(0, '#fde68a'); g.addColorStop(1, '#b45309'); }
+            if (player === HUMAN) { g.addColorStop(0, '#7de8d5'); g.addColorStop(1, '#0d7d70'); }
+            else { g.addColorStop(0, '#d3b8fb'); g.addColorStop(1, '#5b21b6'); }
             ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2);
             ctx.fillStyle = g; ctx.fill();
             ctx.strokeStyle = glow ? 'rgba(255,255,255,.95)' : 'rgba(0,0,0,.4)';
@@ -369,11 +369,11 @@
         }
 
         function drawAll() {
-            ctx.fillStyle = '#132a4a';
+            ctx.fillStyle = '#232a38';
             ctx.fillRect(0, 0, CW, CH);
 
             if (hoverCol >= 0 && hoverCol < COLS && dropRow(board, hoverCol) >= 0) {
-                ctx.fillStyle = 'rgba(252,165,165,.10)';
+                ctx.fillStyle = 'rgba(125,232,213,.10)';
                 ctx.fillRect(hoverCol * CELL, 0, CELL, CH);
             }
 
@@ -381,7 +381,7 @@
             for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
                 const cx = c * CELL + CELL / 2, cy = r * CELL + CELL / 2;
                 ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.40, 0, Math.PI * 2);
-                ctx.fillStyle = '#0b1729'; ctx.fill();
+                ctx.fillStyle = '#12161f'; ctx.fill();
                 if (board[r][c]) disc(cx, cy, board[r][c], winSet.has(r + ',' + c));
             }
 
