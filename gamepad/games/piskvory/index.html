@@ -204,9 +204,13 @@ const px = c => PAD + c * CELL;
 const py = r => PAD + r * CELL;
 
 // ── rozmery a DPI ─────────────────────────────────────────────────────────
+let vw = -1, vh = -1;   // naposledy videný viewport (aj 0, kým sa stránka nerozloží)
 function layout() {
-  const maxW = Math.min(462, window.innerWidth - 30);
-  const maxH = window.innerHeight - 320;
+  vw = window.innerWidth; vh = window.innerHeight;
+  const winW = vw || document.documentElement.clientWidth || 360;
+  const winH = vh || document.documentElement.clientHeight || 640;
+  const maxW = Math.min(462, winW - 30);
+  const maxH = winH - 320;
   const avail = Math.max(250, Math.min(maxW, Math.max(268, maxH)));
   CELL = Math.max(15, Math.floor(avail / (N + 1)));
   PAD  = CELL;
@@ -309,6 +313,7 @@ function paintLayer() {
 function render(ts) {
   requestAnimationFrame(render);
   if (document.hidden) return;
+  if (vw !== window.innerWidth || vh !== window.innerHeight) layout();
   ctx.clearRect(0, 0, SIZE, SIZE);
   ctx.drawImage(layer, 0, 0, SIZE, SIZE);
 

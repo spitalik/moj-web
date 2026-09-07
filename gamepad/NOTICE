@@ -1,7 +1,7 @@
 GamePad — Third-party notices
 =============================
 
-Last reviewed: 26 August 2026
+Last reviewed: 7 September 2026
 
 GamePad bundles no third-party source code, images, audio, video or font files.
 Every game is hand-written vanilla HTML/CSS/JS; all graphics are drawn at
@@ -86,3 +86,22 @@ included.
 
 Where a game is a re-implementation of a commercial title, it carries its own
 name and its own artwork. See CLAUDE.md for the rule this project follows.
+Famous single-word titles that are another company's mark were renamed:
+Breakout -> Brick Buster, Asteroids -> Rock Drift, Pong -> Paddle Duel,
+Flappy Bird -> Dot Glider, Tetris -> Block Cascade, Pac-Man -> Dot Muncher.
+
+
+6. One name kept as a generic term - games/snake/
+-------------------------------------------------
+
+"Snake" is kept as the name of the mechanic, not as another company's title. The
+mechanic dates to the 1976 arcade game Blockade and "snake" has since become the
+generic descriptor for it, used by countless implementations; the collection
+treats it the way it treats chess or sudoku above. Nothing of any particular
+commercial version is reproduced - not its look, its palette, its levels or its
+scoring. The implementation and artwork in games/snake/ are this project's own:
+a tapering cyan-to-violet ribbon on a dark grid, drawn at runtime with Canvas 2D.
+
+This is a deliberate call, not an oversight. If it should be renamed the way the
+titles above were, the change is mechanical: the game id and folder, the i18n key
+prefix, the ASSETS entry and a CACHE bump.

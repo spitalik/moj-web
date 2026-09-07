@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v113';
+const CACHE = 'gamepad-v115';
 
 const ASSETS = [
   './',
@@ -12,7 +12,7 @@ const ASSETS = [
   './games/2048/index.html',
   './games/minesweeper/index.html',
   './games/asteroids/index.html',
-  './games/flappydot/index.html',
+  './games/dot-glider/index.html',
   './games/paddle-duel/index.html',
   './games/simon/index.html',
   './games/tower-defense/index.html',

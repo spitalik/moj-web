@@ -163,8 +163,11 @@ let W = 0, H = 0, DPR = 1;
 let PAD_H = 90, PAD_W = 12, BALL_R = 8, PAD_X = 26, SCL = 1;
 const WIN = 7;
 
+let vw = -1, vh = -1;   // naposledy videný viewport (aj 0, kým sa stránka nerozloží)
 function resize() {
-  W = window.innerWidth; H = window.innerHeight;
+  vw = window.innerWidth; vh = window.innerHeight;
+  W = vw || document.documentElement.clientWidth || 360;
+  H = vh || document.documentElement.clientHeight || 640;
   DPR = Math.min(window.devicePixelRatio || 1, 2.5);
   C.width = Math.round(W * DPR); C.height = Math.round(H * DPR);
   layer.width = C.width; layer.height = C.height;
@@ -267,6 +270,7 @@ function frame(ts) {
   let dt = (ts - prevTs) / 1000;
   prevTs = ts;
   if (document.hidden) return;
+  if (vw !== window.innerWidth || vh !== window.innerHeight) resize();
   dt = Math.min(dt, 1 / 30);
   if (state === ST.SERVE || state === ST.PLAY) update(dt);
   stepEffects(dt);
