@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Piškvorky · GamePad</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gomoku · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -12,42 +12,91 @@
   --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;
   --text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);
   --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
-  --x:#ff6b6b;--o:#4dff91;
+  --x:#ff5d73;--x-soft:rgba(255,93,115,0.14);
+  --o:#2ff0a6;--o-soft:rgba(47,240,166,0.12);
+  --accent:#a78bfa;
 }
-html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;}
-body::before{content:'';position:fixed;width:600px;height:600px;top:-200px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(100,80,255,0.08) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;-webkit-tap-highlight-color:transparent;}
+body{overflow-x:hidden;}
+/* ambientné svetlá v pozadí */
+body::before,body::after{content:'';position:fixed;border-radius:50%;pointer-events:none;z-index:0;}
+body::before{width:640px;height:640px;top:-270px;left:-150px;background:radial-gradient(circle,rgba(255,93,115,0.10) 0%,transparent 66%);}
+body::after{width:680px;height:680px;bottom:-320px;right:-190px;background:radial-gradient(circle,rgba(47,240,166,0.09) 0%,transparent 66%);}
 
-#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
-#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+#back-btn{position:fixed;top:16px;left:16px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(12,12,16,0.82);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:10px;left:10px;padding:6px 11px;font-size:11px;}}
 
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:60px 16px 30px;gap:12px;}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:58px 14px 26px;gap:13px;}
 
-.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,#a78bfa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:4px;}
+/* ── hlavička ─────────────────────────────────────────────── */
+.head{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.6px;background:linear-gradient(120deg,#fff 20%,var(--accent) 62%,var(--o) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.game-sub{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:var(--dim);}
 
-/* mode toggle */
-.mode-row{display:flex;gap:6px;}
-.mode-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:6px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;}
-.mode-btn:hover{border-color:var(--border-h);color:var(--text);}
-.mode-btn.active{background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.4);color:#a78bfa;}
+/* ── segmentované prepínače ───────────────────────────────── */
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.035);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:6px 15px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:.2px;cursor:pointer;transition:color .16s,background .16s;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(167,139,250,0.16);color:#c4b0ff;box-shadow:inset 0 0 0 1px rgba(167,139,250,0.34);}
+.seg.small button{padding:5px 12px;font-size:11px;}
+#diff-row{display:none;}
+#diff-row.show{display:flex;}
 
-/* scoreboard */
-.score-row{display:flex;align-items:center;gap:20px;}
-.sc{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.sc .lbl{font-size:10px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;}
-.sc .val{font-size:24px;font-weight:700;font-family:'Syne',sans-serif;font-variant-numeric:tabular-nums;}
-.sep{font-size:16px;color:var(--dim);}
+/* ── karty hráčov ─────────────────────────────────────────── */
+.players{display:flex;align-items:stretch;gap:10px;width:100%;max-width:462px;}
+.pcard{flex:1;position:relative;display:flex;align-items:center;gap:10px;background:linear-gradient(160deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015));border:1px solid var(--border);border-radius:16px;padding:10px 13px;overflow:hidden;transition:border-color .2s,box-shadow .25s;}
+.pcard::after{content:'';position:absolute;inset:0;opacity:0;transition:opacity .25s;pointer-events:none;}
+.pcard.x::after{background:radial-gradient(120% 120% at 0% 0%,var(--x-soft),transparent 62%);}
+.pcard.o::after{background:radial-gradient(120% 120% at 100% 0%,var(--o-soft),transparent 62%);}
+.pcard.turn::after{opacity:1;}
+.pcard.x.turn{border-color:rgba(255,93,115,0.42);box-shadow:0 0 0 1px rgba(255,93,115,0.12),0 10px 28px -16px rgba(255,93,115,0.85);}
+.pcard.o.turn{border-color:rgba(47,240,166,0.42);box-shadow:0 0 0 1px rgba(47,240,166,0.12),0 10px 28px -16px rgba(47,240,166,0.85);}
+.pcard.o{flex-direction:row-reverse;}
+.pcard.o .pmeta{align-items:flex-end;}
+.stone{width:26px;height:26px;border-radius:50%;flex:0 0 26px;}
+.stone.x{background:radial-gradient(circle at 32% 28%,#ffb3bd 0%,#ff5d73 42%,#8d1128 100%);box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.14);}
+.stone.o{background:radial-gradient(circle at 32% 28%,#b6ffe1 0%,#2ff0a6 42%,#06664a 100%);box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.14);}
+.pcard.turn .stone{animation:bob 1.7s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-2.5px) scale(1.06);}}
+.pmeta{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.pname{font-size:11px;font-weight:600;letter-spacing:.3px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;}
+.pcard.turn .pname{color:var(--text);}
+.pscore{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;line-height:1.05;font-variant-numeric:tabular-nums;}
+.pcard.x .pscore{color:var(--x);}
+.pcard.o .pscore{color:var(--o);}
+.vs{display:flex;align-items:center;font-size:10px;letter-spacing:1px;color:var(--dim);font-weight:700;}
 
-/* status */
-#status{font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;height:18px;text-align:center;}
+/* ── stav ─────────────────────────────────────────────────── */
+#status{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;font-weight:500;min-height:16px;}
+#status .dot{width:6px;height:6px;border-radius:50%;background:var(--dim);}
+#status.x .dot{background:var(--x);box-shadow:0 0 9px var(--x);}
+#status.o .dot{background:var(--o);box-shadow:0 0 9px var(--o);}
+#status.think .dot{animation:blink .9s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:.2;}50%{opacity:1;}}
 
-/* canvas */
-#canvas-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg1);}
-canvas{display:block;cursor:pointer;}
+/* ── doska ────────────────────────────────────────────────── */
+#board-wrap{position:relative;padding:8px;border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,0.075),rgba(255,255,255,0.015));box-shadow:0 28px 64px -30px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);}
+canvas{display:block;border-radius:15px;cursor:pointer;touch-action:manipulation;}
+#overlay{position:absolute;inset:8px;border-radius:15px;display:none;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(5,5,8,0.62) 0%,rgba(5,5,8,0.34) 70%);text-align:center;padding:20px;z-index:5;}
+#overlay.show{display:flex;animation:fadein .3s ease;}
+@keyframes fadein{from{opacity:0;}to{opacity:1;}}
+.ov-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 30px 22px;border-radius:20px;background:rgba(10,10,15,0.82);border:1px solid var(--border-h);backdrop-filter:blur(9px);box-shadow:0 24px 60px -24px rgba(0,0,0,.95);animation:pop .32s cubic-bezier(.2,1.5,.4,1);}
+@keyframes pop{from{transform:scale(.86);opacity:0;}to{transform:scale(1);opacity:1;}}
+#ov-title{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:2.6px;text-transform:uppercase;color:var(--muted);}
+#ov-name{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.5px;line-height:1.1;}
+#ov-btn{margin-top:6px;background:rgba(167,139,250,0.14);border:1px solid rgba(167,139,250,0.42);color:#c9b6ff;padding:11px 26px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;}
+#ov-btn:hover{background:rgba(167,139,250,0.24);color:#fff;}
+#ov-btn:active{transform:translateY(1px);}
 
-/* controls */
-.ctrl-row{display:flex;gap:8px;}
-.ctrl-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;}
-.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
+/* ── ovládanie ────────────────────────────────────────────── */
+.ctrl-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.ctrl-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.035);border:1px solid var(--border);color:var(--muted);padding:9px 18px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;}
+.ctrl-btn:hover:not(:disabled){border-color:var(--border-h);color:var(--text);background:rgba(255,255,255,0.06);}
+.ctrl-btn:active:not(:disabled){transform:translateY(1px);}
+.ctrl-btn:disabled{opacity:.32;cursor:default;}
+.ctrl-btn svg{opacity:.75;}
+@media(max-width:400px){.game-title{font-size:22px;}.pscore{font-size:20px;}.ctrl-btn{padding:8px 14px;}}
 </style>
 </head>
 <body>
@@ -57,198 +106,529 @@ canvas{display:block;cursor:pointer;}
 </a>
 
 <div class="page">
-  <div class="game-title" id="lbl-title"></div>
-
-  <div class="mode-row">
-    <button class="mode-btn active" id="pvp-btn" onclick="setMode('pvp')" id="lbl-pvp"></button>
-    <button class="mode-btn"        id="ai-btn"  onclick="setMode('ai')"  id="lbl-ai"></button>
+  <div class="head">
+    <div class="game-title" id="lbl-title"></div>
+    <div class="game-sub">15 × 15</div>
   </div>
 
-  <div class="score-row">
-    <div class="sc">
-      <span class="lbl" id="lbl-x-name"></span>
-      <span class="val" style="color:var(--x)" id="sx">0</span>
+  <div class="seg" id="mode-row">
+    <button id="pvp-btn" class="active"></button>
+    <button id="ai-btn"></button>
+  </div>
+
+  <div class="seg small" id="diff-row">
+    <button data-diff="easy"   id="lbl-easy"></button>
+    <button data-diff="medium" id="lbl-medium" class="active"></button>
+    <button data-diff="hard"   id="lbl-hard"></button>
+  </div>
+
+  <div class="players">
+    <div class="pcard x turn" id="card-x">
+      <div class="stone x"></div>
+      <div class="pmeta">
+        <span class="pname" id="lbl-x-name"></span>
+        <span class="pscore" id="sx">0</span>
+      </div>
     </div>
-    <span class="sep">:</span>
-    <div class="sc">
-      <span class="lbl" id="o-label"></span>
-      <span class="val" style="color:var(--o)" id="so">0</span>
+    <div class="vs">VS</div>
+    <div class="pcard o" id="card-o">
+      <div class="stone o"></div>
+      <div class="pmeta">
+        <span class="pname" id="o-label"></span>
+        <span class="pscore" id="so">0</span>
+      </div>
     </div>
   </div>
 
-  <div id="status"></div>
+  <div id="status"><span class="dot"></span><span id="status-txt"></span></div>
 
-  <div id="canvas-wrap"><canvas id="c"></canvas></div>
+  <div id="board-wrap">
+    <canvas id="c"></canvas>
+    <div id="overlay">
+      <div class="ov-card">
+        <div id="ov-title"></div>
+        <div id="ov-name"></div>
+        <button id="ov-btn"></button>
+      </div>
+    </div>
+  </div>
 
   <div class="ctrl-row">
-    <button class="ctrl-btn" id="btn-new"   onclick="resetGame()"></button>
-    <button class="ctrl-btn" id="btn-reset" onclick="resetScore()"></button>
+    <button class="ctrl-btn" id="btn-undo">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10H9"/></svg>
+      <span id="lbl-undo"></span>
+    </button>
+    <button class="ctrl-btn" id="btn-new"><span id="lbl-new"></span></button>
+    <button class="ctrl-btn" id="btn-reset"><span id="lbl-reset"></span></button>
   </div>
 </div>
 
 <script>
 // ── i18n ──────────────────────────────────────────────────────────────────
 function applyLang() {
-  document.getElementById('lbl-back').textContent    = t('back');
-  document.getElementById('lbl-title').textContent   = t('piskTitle');
-  document.getElementById('pvp-btn').textContent     = t('pisk2P');
-  document.getElementById('ai-btn').textContent      = t('piskVsAI');
-  document.getElementById('lbl-x-name').textContent  = t('piskP1');
-  document.getElementById('o-label').textContent     = mode === 'ai' ? t('piskAI') : t('piskP2');
-  document.getElementById('btn-new').textContent     = t('piskNew');
-  document.getElementById('btn-reset').textContent   = t('piskReset');
+  document.getElementById('lbl-back').textContent   = t('back');
+  document.getElementById('lbl-title').textContent  = t('piskTitle');
+  document.getElementById('pvp-btn').textContent    = t('pisk2P');
+  document.getElementById('ai-btn').textContent     = t('piskVsAI');
+  document.getElementById('lbl-easy').textContent   = t('diffEasy');
+  document.getElementById('lbl-medium').textContent = t('diffMedium');
+  document.getElementById('lbl-hard').textContent   = t('diffHard');
+  document.getElementById('lbl-x-name').textContent = t('piskP1');
+  document.getElementById('o-label').textContent    = mode === 'ai' ? t('piskAI') : t('piskP2');
+  document.getElementById('lbl-undo').textContent   = t('piskUndo');
+  document.getElementById('lbl-new').textContent    = t('piskNew');
+  document.getElementById('lbl-reset').textContent  = t('piskReset');
+  document.getElementById('ov-btn').textContent     = t('piskNew');
   updateStatus();
 }
 
-// ── GAME ──────────────────────────────────────────────────────────────────
+// ── stav hry ──────────────────────────────────────────────────────────────
 const N = 15, WIN = 5;
-const SIZE = Math.min(420, Math.floor(window.innerWidth * 0.92));
-const CELL = Math.floor(SIZE / N);
+const COL = {
+  X: {hi:'#ffb3bd', mid:'#ff5d73', lo:'#8d1128', glow:'#ff5d73'},
+  O: {hi:'#b6ffe1', mid:'#2ff0a6', lo:'#06664a', glow:'#2ff0a6'}
+};
 
-let board = [], cur = 'X', over = false, scores = {X:0, O:0}, mode = 'pvp', winCells = [];
+let board = Array(N * N).fill('');
+let cur = 'X', over = false, thinking = false, scores = {X:0, O:0};
+let mode = 'pvp', diff = 'medium', winCells = [], history = [];
+let anim = null, winT0 = 0, hover = -1;
 
 const canvas = document.getElementById('c');
-canvas.width = canvas.height = CELL * N;
 const ctx = canvas.getContext('2d');
+const layer = document.createElement('canvas');
+const lctx = layer.getContext('2d');
+let CELL = 26, PAD = 26, SIZE = 0, DPR = 1, RAD = 11;
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#0c0c10';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+const px = c => PAD + c * CELL;
+const py = r => PAD + r * CELL;
 
-  for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) {
-      const x = c * CELL, y = r * CELL, i = r * N + c;
-      if (winCells.includes(i)) {
-        ctx.fillStyle = 'rgba(167,139,250,0.12)';
-        ctx.fillRect(x, y, CELL, CELL);
-      }
-      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1);
-      const v = board[i];
-      if (v) {
-        ctx.fillStyle = v === 'X' ? 'rgba(255,107,107,0.15)' : 'rgba(77,255,145,0.12)';
-        ctx.fillRect(x, y, CELL, CELL);
-        ctx.fillStyle = v === 'X' ? '#ff6b6b' : '#4dff91';
-        ctx.font = `bold ${Math.floor(CELL * 0.52)}px 'Syne', monospace`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = v === 'X' ? '#ff6b6b' : '#4dff91';
-        ctx.shadowBlur = 6;
-        ctx.fillText(v, x + CELL / 2, y + CELL / 2);
-        ctx.shadowBlur = 0;
-      }
-    }
+// ── rozmery a DPI ─────────────────────────────────────────────────────────
+function layout() {
+  const maxW = Math.min(462, window.innerWidth - 30);
+  const maxH = window.innerHeight - 320;
+  const avail = Math.max(250, Math.min(maxW, Math.max(268, maxH)));
+  CELL = Math.max(15, Math.floor(avail / (N + 1)));
+  PAD  = CELL;
+  SIZE = CELL * (N - 1) + PAD * 2;
+  RAD  = CELL * 0.42;
+  DPR  = Math.min(window.devicePixelRatio || 1, 2.5);
+  [[canvas, ctx], [layer, lctx]].forEach(([cv, cc]) => {
+    cv.width  = Math.round(SIZE * DPR);
+    cv.height = Math.round(SIZE * DPR);
+    cv.style.width  = SIZE + 'px';
+    cv.style.height = SIZE + 'px';
+    cc.setTransform(DPR, 0, 0, DPR, 0, 0);
+  });
+  paintLayer();
+}
+
+// ── vykreslenie kameňa ────────────────────────────────────────────────────
+function drawStone(g, x, y, r, p, alpha, glow) {
+  const col = COL[p];
+  g.save();
+  g.globalAlpha = alpha;
+  if (glow > 0) {
+    g.shadowColor = col.glow;
+    g.shadowBlur = r * glow;
+    g.fillStyle = col.mid;
+    g.beginPath(); g.arc(x, y, r * 0.9, 0, 6.2832); g.fill();
+    g.shadowBlur = 0;
+  } else {
+    g.shadowColor = 'rgba(0,0,0,0.6)';
+    g.shadowBlur = r * 0.5;
+    g.shadowOffsetY = r * 0.22;
+    g.fillStyle = '#000';
+    g.beginPath(); g.arc(x, y, r * 0.94, 0, 6.2832); g.fill();
+    g.shadowBlur = 0; g.shadowOffsetY = 0;
+  }
+  const gr = g.createRadialGradient(x - r * 0.34, y - r * 0.38, r * 0.08, x, y, r);
+  gr.addColorStop(0, col.hi);
+  gr.addColorStop(0.42, col.mid);
+  gr.addColorStop(1, col.lo);
+  g.fillStyle = gr;
+  g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill();
+  // horný lesk
+  const sh = g.createLinearGradient(x, y - r, x, y + r * 0.25);
+  sh.addColorStop(0, 'rgba(255,255,255,0.32)');
+  sh.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = sh;
+  g.beginPath(); g.ellipse(x, y - r * 0.34, r * 0.56, r * 0.32, 0, 0, 6.2832); g.fill();
+  // obrys
+  g.lineWidth = Math.max(0.6, r * 0.06);
+  g.strokeStyle = 'rgba(255,255,255,0.16)';
+  g.beginPath(); g.arc(x, y, r - g.lineWidth / 2, 0, 6.2832); g.stroke();
+  g.restore();
+}
+
+// ── statická vrstva: doska + položené kamene ──────────────────────────────
+function paintLayer() {
+  lctx.clearRect(0, 0, SIZE, SIZE);
+  const bg = lctx.createLinearGradient(0, 0, SIZE, SIZE);
+  bg.addColorStop(0, '#15151d');
+  bg.addColorStop(0.5, '#0e0e14');
+  bg.addColorStop(1, '#09090e');
+  lctx.fillStyle = bg;
+  lctx.fillRect(0, 0, SIZE, SIZE);
+  const vg = lctx.createRadialGradient(SIZE / 2, SIZE / 2, SIZE * 0.16, SIZE / 2, SIZE / 2, SIZE * 0.78);
+  vg.addColorStop(0, 'rgba(167,139,250,0.06)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.4)');
+  lctx.fillStyle = vg;
+  lctx.fillRect(0, 0, SIZE, SIZE);
+
+  // mriežka
+  lctx.lineWidth = 1;
+  lctx.strokeStyle = 'rgba(255,255,255,0.085)';
+  lctx.beginPath();
+  for (let i = 0; i < N; i++) {
+    const p = Math.round(px(i)) + 0.5;
+    lctx.moveTo(p, py(0)); lctx.lineTo(p, py(N - 1));
+    lctx.moveTo(px(0), p); lctx.lineTo(px(N - 1), p);
+  }
+  lctx.stroke();
+  lctx.strokeStyle = 'rgba(255,255,255,0.19)';
+  lctx.lineWidth = 1.4;
+  lctx.strokeRect(px(0), py(0), CELL * (N - 1), CELL * (N - 1));
+
+  // orientačné body
+  const st = [3, 7, 11];
+  lctx.fillStyle = 'rgba(255,255,255,0.24)';
+  for (const r of st) for (const c of st) {
+    lctx.beginPath(); lctx.arc(px(c), py(r), Math.max(1.5, CELL * 0.08), 0, 6.2832); lctx.fill();
+  }
+
+  // kamene (okrem toho, ktorý sa práve animuje)
+  for (let i = 0; i < N * N; i++) {
+    const v = board[i];
+    if (!v || (anim && anim.i === i)) continue;
+    drawStone(lctx, px(i % N), py(Math.floor(i / N)), RAD, v, 1, 0);
   }
 }
 
-function getCell(e) {
+// ── snímka ────────────────────────────────────────────────────────────────
+function render(ts) {
+  requestAnimationFrame(render);
+  if (document.hidden) return;
+  ctx.clearRect(0, 0, SIZE, SIZE);
+  ctx.drawImage(layer, 0, 0, SIZE, SIZE);
+
+  // náhľad ťahu pod kurzorom
+  if (hover >= 0 && !over && !thinking && !board[hover]) {
+    ctx.save();
+    ctx.globalAlpha = 0.28;
+    drawStone(ctx, px(hover % N), py(Math.floor(hover / N)), RAD * 0.88, cur, 1, 0);
+    ctx.restore();
+  }
+
+  // dopad práve položeného kameňa
+  if (anim) {
+    const k = Math.min(1, (ts - anim.t0) / 210);
+    const e = 1 - Math.pow(1 - k, 3);
+    const s = 0.45 + 0.55 * e + Math.sin(k * Math.PI) * 0.09;
+    const x = px(anim.i % N), y = py(Math.floor(anim.i / N));
+    if (k < 1) {
+      ctx.save();
+      ctx.globalAlpha = (1 - k) * 0.5;
+      ctx.strokeStyle = COL[anim.p].glow;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(x, y, RAD * (1 + k * 1.6), 0, 6.2832); ctx.stroke();
+      ctx.restore();
+    }
+    drawStone(ctx, x, y, RAD * s, anim.p, Math.min(1, 0.4 + k * 1.8), 0);
+    if (k >= 1) { anim = null; paintLayer(); }
+  }
+
+  // pulzujúci krúžok pri poslednom ťahu
+  const last = history.length ? history[history.length - 1] : -1;
+  if (last >= 0 && board[last] && !winCells.length && !(anim && anim.i === last)) {
+    const pulse = 0.5 + 0.5 * Math.sin(ts / 460);
+    ctx.save();
+    ctx.globalAlpha = 0.3 + pulse * 0.4;
+    ctx.strokeStyle = COL[board[last]].glow;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(px(last % N), py(Math.floor(last / N)), RAD + 3 + pulse * 2.5, 0, 6.2832); ctx.stroke();
+    ctx.restore();
+  }
+
+  // víťazná päťka
+  if (winCells.length) {
+    const k = Math.min(1, (ts - winT0) / 520);
+    const w = board[winCells[0]];
+    const sorted = [...winCells].sort((a, b) => a - b);
+    const a = sorted[0], b = sorted[sorted.length - 1];
+    const x1 = px(a % N), y1 = py(Math.floor(a / N));
+    const x2 = px(b % N), y2 = py(Math.floor(b / N));
+    ctx.save();
+    ctx.fillStyle = 'rgba(5,5,9,' + (0.5 * k).toFixed(3) + ')';
+    ctx.fillRect(0, 0, SIZE, SIZE);
+    // svetelný pás popod kamene — široká aura + jasné jadro
+    const breathe = 0.5 + 0.5 * Math.sin(ts / 340);
+    const ex = x1 + (x2 - x1) * k, ey = y1 + (y2 - y1) * k;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = COL[w].glow;
+    ctx.shadowColor = COL[w].glow;
+    ctx.globalAlpha = 0.13 + breathe * 0.09;
+    ctx.lineWidth = RAD * 2.7;
+    ctx.shadowBlur = 30;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.globalAlpha = 0.3 + breathe * 0.16;
+    ctx.lineWidth = RAD * 0.9;
+    ctx.shadowBlur = 16;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    const gl = 0.9 + 0.5 * Math.sin(ts / 300);
+    sorted.forEach((i, n) => {
+      const tt = Math.min(1, Math.max(0, k * sorted.length - n));
+      if (tt <= 0) return;
+      const x = px(i % N), y = py(Math.floor(i / N));
+      drawStone(ctx, x, y, RAD, w, tt, gl * 1.4 * tt);
+      drawStone(ctx, x, y, RAD * (1 + 0.06 * tt), w, tt, 0);
+    });
+    // jasné jadro pásu ponad kamene — päťka drží pohľad ako jeden celok
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = COL[w].hi;
+    ctx.globalAlpha = 0.3 + breathe * 0.2;
+    ctx.lineWidth = Math.max(1.6, RAD * 0.26);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ── vstup ─────────────────────────────────────────────────────────────────
+function cellAt(e) {
   const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
-  const cx = (e.clientX - rect.left) * scaleX, cy = (e.clientY - rect.top) * scaleY;
-  const c = Math.floor(cx / CELL), r = Math.floor(cy / CELL);
+  const x = (e.clientX - rect.left) * (SIZE / rect.width);
+  const y = (e.clientY - rect.top) * (SIZE / rect.height);
+  const c = Math.round((x - PAD) / CELL), r = Math.round((y - PAD) / CELL);
+  // ťuk sa prilepí na najbližší priesečník — na mobile to odpúšťa nepresnosť
   if (r < 0 || r >= N || c < 0 || c >= N) return -1;
   return r * N + c;
 }
 
-canvas.onclick = e => { const i = getCell(e); if (i >= 0) play(i); };
+canvas.addEventListener('pointerdown', e => { const i = cellAt(e); if (i >= 0) play(i); });
+canvas.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') hover = cellAt(e); });
+canvas.addEventListener('pointerleave', () => { hover = -1; });
 
-function play(i) {
-  if (over || i < 0 || board[i]) return;
-  board[i] = cur;
-  const w = checkWin(board, i, cur);
-  if (w) { winCells = w; draw(); endGame(cur); return; }
-  if (board.every(x => x)) { draw(); document.getElementById('status').textContent = t('piskDraw'); over = true; return; }
-  cur = cur === 'X' ? 'O' : 'X';
-  updateStatus();
-  draw();
-  if (mode === 'ai' && cur === 'O' && !over) setTimeout(aiMove, 250);
+// ── logika ────────────────────────────────────────────────────────────────
+function place(i, p) {
+  board[i] = p;
+  history.push(i);
+  anim = {i, p, t0: performance.now()};
+  paintLayer();
 }
 
-function updateStatus() {
-  if (over) return;
-  const who = cur === 'X' ? t('piskP1') : (mode === 'ai' ? t('piskAI') : t('piskP2'));
-  document.getElementById('status').textContent = t('piskTurn') + ' ' + who;
+function finishMove(i, p) {
+  const w = checkWin(board, i, p);
+  if (w) { winCells = w; winT0 = performance.now(); endGame(p); return true; }
+  if (board.every(v => v)) {
+    over = true; thinking = false; hover = -1;
+    setStatus(t('piskDraw'), '');
+    showOverlay(t('piskDraw'), '', '');
+    setTurnCards(null);
+    syncButtons();
+    return true;
+  }
+  return false;
+}
+
+function play(i) {
+  if (over || thinking || i < 0 || board[i]) return;
+  if (mode === 'ai' && cur === 'O') return;
+  const me = cur;
+  place(i, me);
+  if (finishMove(i, me)) return;
+  cur = me === 'X' ? 'O' : 'X';
+  updateStatus();
+  syncButtons();
+  if (mode === 'ai' && cur === 'O') {
+    thinking = true; hover = -1;
+    setStatus(t('piskThinking'), 'o think');
+    setTurnCards('O');
+    syncButtons();
+    setTimeout(() => {
+      const mv = aiMove();
+      thinking = false;
+      if (over || mv < 0 || board[mv]) { updateStatus(); syncButtons(); return; }
+      place(mv, 'O');
+      if (finishMove(mv, 'O')) return;
+      cur = 'X';
+      updateStatus();
+      syncButtons();
+    }, 260);
+  }
 }
 
 function checkWin(b, idx, p) {
   const r = Math.floor(idx / N), c = idx % N;
   const dirs = [[0,1],[1,0],[1,1],[1,-1]];
   for (const [dr, dc] of dirs) {
-    let cells = [idx];
-    for (let s = 1; s < WIN; s++) { const nr = r+dr*s, nc = c+dc*s; if (nr<0||nr>=N||nc<0||nc>=N||b[nr*N+nc]!==p) break; cells.push(nr*N+nc); }
-    for (let s = 1; s < WIN; s++) { const nr = r-dr*s, nc = c-dc*s; if (nr<0||nr>=N||nc<0||nc>=N||b[nr*N+nc]!==p) break; cells.push(nr*N+nc); }
+    const cells = [idx];
+    for (let s = 1; s < WIN; s++) { const nr=r+dr*s, nc=c+dc*s; if(nr<0||nr>=N||nc<0||nc>=N||b[nr*N+nc]!==p) break; cells.push(nr*N+nc); }
+    for (let s = 1; s < WIN; s++) { const nr=r-dr*s, nc=c-dc*s; if(nr<0||nr>=N||nc<0||nc>=N||b[nr*N+nc]!==p) break; cells.push(nr*N+nc); }
     if (cells.length >= WIN) return cells;
   }
   return null;
 }
 
+function nameOf(p) {
+  return p === 'X' ? t('piskP1') : (mode === 'ai' ? t('piskAI') : t('piskP2'));
+}
+
 function endGame(p) {
-  over = true; scores[p]++;
+  over = true; thinking = false; hover = -1;
+  scores[p]++;
   document.getElementById('s' + p.toLowerCase()).textContent = scores[p];
-  const winner = p === 'X' ? t('piskP1') : (mode === 'ai' ? t('piskAI') : t('piskP2'));
-  document.getElementById('status').textContent = t('piskWon') + ' ' + winner + '!';
+  setStatus(t('piskWon') + ' ' + nameOf(p), p.toLowerCase());
+  setTurnCards(null);
+  syncButtons();
+  setTimeout(() => {
+    if (over && winCells.length) showOverlay(t('piskWon').replace(/[:：]\s*$/, ''), nameOf(p), p);
+  }, 900);
 }
 
-function scoreBoard(b, p) {
-  let s = 0;
-  for (let i = 0; i < N*N; i++) {
-    if (!b[i]) continue;
-    const r = Math.floor(i/N), c = i%N;
-    const dirs = [[0,1],[1,0],[1,1],[1,-1]];
-    for (const [dr, dc] of dirs) {
-      let cnt = 1, open = 0, blocked = 0;
-      for (let s2=1;s2<WIN;s2++){const nr=r+dr*s2,nc=c+dc*s2;if(nr<0||nr>=N||nc<0||nc>=N){blocked++;break;}if(b[nr*N+nc]===b[i])cnt++;else if(!b[nr*N+nc]){open++;break;}else{blocked++;break;}}
-      for (let s2=1;s2<WIN;s2++){const nr=r-dr*s2,nc=c-dc*s2;if(nr<0||nr>=N||nc<0||nc>=N){blocked++;break;}if(b[nr*N+nc]===b[i])cnt++;else if(!b[nr*N+nc]){open++;break;}else{blocked++;break;}}
-      if(cnt>=WIN){s+=b[i]===p?1e8:-1e8;}
-      else if(cnt===4&&open>0){s+=b[i]===p?1e5:-1e5;}
-      else if(cnt===3&&open>1){s+=b[i]===p?1e3:-1e3;}
-      else if(cnt===2&&open>1){s+=b[i]===p?10:-10;}
+function showOverlay(title, name, p) {
+  document.getElementById('ov-title').textContent = title;
+  const el = document.getElementById('ov-name');
+  el.textContent = name;
+  el.style.color = p === 'X' ? 'var(--x)' : (p === 'O' ? 'var(--o)' : 'var(--text)');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function setStatus(txt, cls) {
+  document.getElementById('status-txt').textContent = txt;
+  document.getElementById('status').className = cls;
+}
+
+function setTurnCards(p) {
+  document.getElementById('card-x').classList.toggle('turn', p === 'X');
+  document.getElementById('card-o').classList.toggle('turn', p === 'O');
+}
+
+function updateStatus() {
+  if (over || thinking) return;
+  setStatus(t('piskTurn') + ' ' + nameOf(cur), cur.toLowerCase());
+  setTurnCards(cur);
+}
+
+function syncButtons() {
+  document.getElementById('btn-undo').disabled = over || thinking || !history.length;
+}
+
+// ── AI ────────────────────────────────────────────────────────────────────
+function lineScore(cnt, open) {
+  if (cnt >= WIN) return 1e8;
+  if (cnt === 4) return open >= 2 ? 6e5 : (open === 1 ? 8e4 : 0);
+  if (cnt === 3) return open >= 2 ? 1.2e4 : (open === 1 ? 900 : 0);
+  if (cnt === 2) return open >= 2 ? 240 : (open === 1 ? 30 : 0);
+  return open >= 1 ? 4 : 0;
+}
+
+// hodnota ťahu na pole `i` pre hráča `p`
+function moveValue(b, i, p) {
+  const r = Math.floor(i / N), c = i % N;
+  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+  let total = 0;
+  for (const [dr, dc] of dirs) {
+    let cnt = 1, open = 0;
+    for (const sg of [1, -1]) {
+      for (let s = 1; s < WIN; s++) {
+        const nr = r + dr * s * sg, nc = c + dc * s * sg;
+        if (nr < 0 || nr >= N || nc < 0 || nc >= N) break;
+        const v = b[nr * N + nc];
+        if (v === p) cnt++;
+        else { if (!v) open++; break; }
+      }
     }
+    total += lineScore(cnt, open);
   }
-  return s;
+  return total;
 }
 
-function aiMove() {
-  if (over) return;
-  let best = -Infinity, bestI = -1;
-  const cands = getCandidates(board);
-  for (const i of cands) {
-    board[i] = 'O'; let s = scoreBoard(board, 'O');
-    board[i] = 'X'; let s2 = scoreBoard(board, 'O');
-    board[i] = '';
-    const f = s - s2; if (f > best) { best = f; bestI = i; }
-  }
-  if (bestI < 0) for (let i = 0; i < N*N; i++) { if (!board[i]) { bestI = i; break; } }
-  play(bestI);
-}
-
-function getCandidates(b) {
+function candidates(b, span) {
   const set = new Set();
-  for (let i = 0; i < N*N; i++) {
+  for (let i = 0; i < N * N; i++) {
     if (!b[i]) continue;
-    const r = Math.floor(i/N), c = i%N;
-    for (let dr=-2;dr<=2;dr++) for (let dc=-2;dc<=2;dc++) {
-      const nr=r+dr,nc=c+dc;
-      if (nr>=0&&nr<N&&nc>=0&&nc<N&&!b[nr*N+nc]) set.add(nr*N+nc);
+    const r = Math.floor(i / N), c = i % N;
+    for (let dr = -span; dr <= span; dr++) for (let dc = -span; dc <= span; dc++) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < N && nc >= 0 && nc < N && !b[nr * N + nc]) set.add(nr * N + nc);
     }
   }
-  if (!set.size) { const mid = Math.floor(N/2); set.add(mid*N+mid); }
+  if (!set.size) { const m = Math.floor(N / 2); set.add(m * N + m); }
   return [...set];
 }
 
+function rankMoves(span, defWeight) {
+  return candidates(board, span)
+    .map(i => ({i, v: moveValue(board, i, 'O') + defWeight * moveValue(board, i, 'X')}))
+    .sort((a, b) => b.v - a.v);
+}
+
+function aiMove() {
+  if (diff === 'easy') {
+    const list = rankMoves(1, 0.5);
+    const pick = list.slice(0, Math.min(5, list.length));
+    return pick[Math.floor(Math.random() * pick.length)].i;
+  }
+  if (diff === 'medium') {
+    const list = rankMoves(2, 0.95);
+    const top = list.filter(m => m.v >= list[0].v * 0.9);
+    return top[Math.floor(Math.random() * Math.min(2, top.length))].i;
+  }
+  // hard: po vlastnom ťahu ešte odhadni najlepšiu odpoveď súpera
+  const list = rankMoves(2, 1.15).slice(0, 8);
+  let best = -Infinity, bestI = list[0].i;
+  for (const m of list) {
+    board[m.i] = 'O';
+    let reply = 0;
+    for (const j of candidates(board, 2)) {
+      const rv = moveValue(board, j, 'X');
+      if (rv > reply) reply = rv;
+    }
+    board[m.i] = '';
+    const v = m.v - reply * 0.85;
+    if (v > best) { best = v; bestI = m.i; }
+  }
+  return bestI;
+}
+
+// ── ovládanie ─────────────────────────────────────────────────────────────
 function setMode(m) {
   mode = m;
-  document.getElementById('pvp-btn').className = 'mode-btn' + (m==='pvp'?' active':'');
-  document.getElementById('ai-btn').className  = 'mode-btn' + (m==='ai' ?' active':'');
+  document.getElementById('pvp-btn').classList.toggle('active', m === 'pvp');
+  document.getElementById('ai-btn').classList.toggle('active', m === 'ai');
+  document.getElementById('diff-row').classList.toggle('show', m === 'ai');
   document.getElementById('o-label').textContent = m === 'ai' ? t('piskAI') : t('piskP2');
   resetGame();
 }
 
+function setDiff(d) {
+  diff = d;
+  document.querySelectorAll('#diff-row button').forEach(b => b.classList.toggle('active', b.dataset.diff === d));
+  resetGame();
+}
+
+function undo() {
+  if (over || thinking || !history.length) return;
+  const steps = (mode === 'ai' && history.length >= 2) ? 2 : 1;
+  for (let s = 0; s < steps; s++) {
+    const i = history.pop();
+    if (i === undefined) break;
+    board[i] = '';
+    if (mode !== 'ai') cur = cur === 'X' ? 'O' : 'X';
+  }
+  if (mode === 'ai') cur = 'X';
+  anim = null; hover = -1;
+  paintLayer(); updateStatus(); syncButtons();
+}
+
 function resetGame() {
-  board = Array(N*N).fill(''); cur = 'X'; over = false; winCells = [];
-  draw(); updateStatus();
+  board = Array(N * N).fill('');
+  cur = 'X'; over = false; thinking = false;
+  winCells = []; history = []; anim = null; hover = -1;
+  document.getElementById('overlay').classList.remove('show');
+  paintLayer(); updateStatus(); syncButtons();
 }
 
 function resetScore() {
@@ -258,8 +638,21 @@ function resetScore() {
   resetGame();
 }
 
+document.getElementById('pvp-btn').onclick   = () => setMode('pvp');
+document.getElementById('ai-btn').onclick    = () => setMode('ai');
+document.getElementById('btn-undo').onclick  = undo;
+document.getElementById('btn-new').onclick   = resetGame;
+document.getElementById('btn-reset').onclick = resetScore;
+document.getElementById('ov-btn').onclick    = resetGame;
+document.querySelectorAll('#diff-row button').forEach(b => { b.onclick = () => setDiff(b.dataset.diff); });
+
+let rzT;
+window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(layout, 120); });
+
+layout();
 applyLang();
 resetGame();
+requestAnimationFrame(render);
 </script>
 </body>
 </html>
