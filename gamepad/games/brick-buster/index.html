@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Brick Buster · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#04060c;--text:#eef4ff;--muted:rgba(238,244,255,0.4);--dim:rgba(238,244,255,0.18);
+  --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.16);
+  --c:#38e8c8;--c2:#4d9bff;--c3:#a78bfa;--gold:#ffd166;--danger:#ff6b6b;
+}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+body::before,body::after{content:'';position:fixed;border-radius:50%;pointer-events:none;z-index:0;}
+body::before{width:560px;height:560px;top:-230px;right:-140px;background:radial-gradient(circle,rgba(56,232,200,0.09) 0%,transparent 66%);}
+body::after{width:600px;height:600px;bottom:-280px;left:-160px;background:radial-gradient(circle,rgba(167,139,250,0.09) 0%,transparent 66%);}
+
+#back-btn{position:fixed;top:16px;left:16px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(8,11,20,0.75);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:10px;left:10px;padding:6px 11px;font-size:11px;}}
+
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:58px 12px 16px;gap:10px;}
+
+/* ── HUD ──────────────────────────────────────────────────── */
+.top-bar{display:flex;align-items:center;gap:7px;width:100%;max-width:460px;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:21px;letter-spacing:-.5px;flex:1;white-space:nowrap;background:linear-gradient(110deg,#fff 22%,var(--c) 68%,var(--c3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pill{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:100px;background:linear-gradient(160deg,rgba(255,255,255,0.055),rgba(255,255,255,0.015));border:1px solid var(--border);font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);transition:transform .18s;}
+.pill.lv b{color:var(--c2);}
+.pill.best b{color:var(--gold);}
+.pill.best.record{border-color:rgba(255,209,102,.45);}
+.pill b.bump{transform:scale(1.3);}
+.lifes{display:flex;gap:4px;align-items:center;}
+.life{width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 8px rgba(255,107,107,.8);}
+.life.gone{background:rgba(255,255,255,0.12);box-shadow:none;}
+/* na úzkych displejoch sa HUD zlomí do dvoch radov, aby sa nič neodrezalo */
+@media(max-width:470px){
+  .top-bar{flex-wrap:wrap;justify-content:center;gap:6px;}
+  .game-title{flex:1 0 100%;text-align:center;font-size:18px;}
+  .pill{padding:4px 9px;}
+  .pill b{font-size:13px;}
+}
+
+/* ── doska ────────────────────────────────────────────────── */
+.board{position:relative;padding:8px;border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,0.075),rgba(255,255,255,0.015));box-shadow:0 28px 64px -30px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);}
+canvas{display:block;border-radius:15px;touch-action:none;cursor:none;}
+
+#overlay{position:absolute;inset:8px;border-radius:15px;z-index:5;display:flex;align-items:center;justify-content:center;padding:14px;background:radial-gradient(ellipse at center,rgba(4,6,12,0.7) 0%,rgba(4,6,12,0.93) 78%);backdrop-filter:blur(5px);}
+#overlay.hide{display:none;}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;padding:20px 24px 22px;border-radius:20px;background:rgba(7,10,18,0.84);border:1px solid var(--border-h);box-shadow:0 22px 54px -22px rgba(0,0,0,.95);animation:pop .32s cubic-bezier(.2,1.45,.4,1);max-width:100%;}
+@keyframes pop{from{transform:scale(.9);opacity:0;}to{transform:none;opacity:1;}}
+.emoji{font-size:32px;line-height:1;filter:drop-shadow(0 6px 14px rgba(56,232,200,.35));}
+.ov-title{font-family:'Syne',sans-serif;font-weight:800;font-size:21px;letter-spacing:-.4px;text-align:center;background:linear-gradient(110deg,var(--c),#fff 58%,var(--c3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+#result{display:none;flex-direction:column;align-items:center;gap:1px;}
+#result.show{display:flex;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-score{font-family:'Syne',sans-serif;font-weight:800;font-size:46px;line-height:1.05;letter-spacing:-1.5px;color:var(--c);text-shadow:0 0 28px rgba(56,232,200,.4);}
+#res-note{font-size:11px;font-weight:600;color:var(--muted);text-align:center;}
+#res-note.record{color:var(--gold);}
+
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;touch-action:manipulation;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(56,232,200,0.15);color:#9df3e4;box-shadow:inset 0 0 0 1px rgba(56,232,200,0.38);}
+.lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.hint{font-size:11px;line-height:1.5;color:var(--muted);text-align:center;max-width:250px;}
+.btn-row{display:flex;flex-direction:column;gap:6px;align-items:stretch;width:100%;margin-top:2px;}
+.play-btn{padding:11px 30px;border-radius:100px;border:1px solid rgba(56,232,200,.45);background:linear-gradient(180deg,rgba(56,232,200,.2),rgba(56,232,200,.08));color:#b6f5ea;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;touch-action:manipulation;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(56,232,200,.3),rgba(56,232,200,.14));color:#fff;box-shadow:0 0 22px -6px rgba(56,232,200,.5);}
+.play-btn:active{transform:translateY(1px);}
+.ghost-btn{display:none;padding:8px 20px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .18s;touch-action:manipulation;}
+.ghost-btn.show{display:block;}
+.ghost-btn:hover{border-color:var(--border-h);color:var(--text);}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<div class="page">
+  <div class="top-bar">
+    <div class="game-title" id="lbl-title"></div>
+    <div class="pill"><span id="lbl-score"></span><b id="score">0</b></div>
+    <div class="pill lv"><span id="lbl-level"></span><b id="hud-level">1</b></div>
+    <div class="pill best" id="best-pill"><span id="lbl-best"></span><b id="best">0</b></div>
+    <div class="pill"><div class="lifes" id="lifes"></div></div>
+  </div>
+
+  <div class="board">
+    <canvas id="c"></canvas>
+    <div id="overlay">
+      <div class="card">
+        <div id="brand"><div class="emoji">🧱</div></div>
+        <div class="ov-title" id="ov-title"></div>
+        <div id="result">
+          <div id="res-lbl"></div>
+          <div id="res-score">0</div>
+          <div id="res-note"></div>
+        </div>
+        <div class="lbl" id="lbl-diff"></div>
+        <div class="seg" id="diff-row"></div>
+        <div class="hint" id="ov-hint"></div>
+        <div class="btn-row">
+          <button class="play-btn" id="ov-play"></button>
+          <button class="ghost-btn" id="ov-restart"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── nastavenia ────────────────────────────────────────────────────────────
+// logická plocha; canvas sa škáluje, súradnice zostávajú v týchto jednotkách
+const W = 400, H = 480;
+const PAD_H = 11, BALL_R = 7, ROWS = 6, COLS = 8;
+const BRICK_W = 42, BRICK_H = 16, BRICK_GAP = 4, TOP_Y = 62;
+const PAD_Y = H - 40, FLOOR = H - 6;
+
+// rýchlosti v px/s, pádlo v px
+const DIFFS = [
+  {key:'diffEasy',   speed:215, padW:92, lives:4},
+  {key:'diffMedium', speed:275, padW:72, lives:3},
+  {key:'diffHard',   speed:355, padW:54, lives:2},
+];
+let diffIdx = 1;
+
+// farba kocky podľa jej odolnosti — vlastné mapovanie, nie dekoratívna dúha
+const TIER = [
+  null,
+  {lo:'#0f6f60', hi:'#7cf6e2', c:'#38e8c8', rgb:'56,232,200'},
+  {lo:'#12406f', hi:'#96c8ff', c:'#4d9bff', rgb:'77,155,255'},
+  {lo:'#3b2a6b', hi:'#cbb8ff', c:'#a78bfa', rgb:'167,139,250'},
+];
+const BEST_KEY = 'brickbuster_best';
+let best = +(localStorage.getItem(BEST_KEY) || 0);
+
+function applyLang() {
+  document.getElementById('lbl-back').textContent    = t('back');
+  document.getElementById('lbl-title').textContent   = t('bbsTitle');
+  document.getElementById('lbl-score').textContent   = t('bbsScore');
+  document.getElementById('lbl-level').textContent   = t('bbsLevelLbl');
+  document.getElementById('lbl-best').textContent    = t('uiBest');
+  const lf = document.getElementById('lifes');          // bez textu v HUD, ale prístupné
+  lf.title = t('bbsLives'); lf.setAttribute('aria-label', t('bbsLives'));
+  document.getElementById('ov-title').textContent    = t('bbsTitle');
+  document.getElementById('ov-hint').textContent     = t('bbsHint');
+  document.getElementById('ov-play').textContent     = t('bbsPlay');
+  document.getElementById('ov-restart').textContent  = t('bbsRestart');
+  document.getElementById('lbl-diff').textContent    = t('uiDifficulty');
+  document.getElementById('best').textContent        = best;
+  buildDiffRow();
+}
+
+function buildDiffRow() {
+  const row = document.getElementById('diff-row');
+  row.innerHTML = '';
+  DIFFS.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.textContent = t(d.key);
+    if (i === diffIdx) b.className = 'active';
+    b.onclick = () => { diffIdx = i; buildDiffRow(); };
+    row.appendChild(b);
+  });
+}
+
+// ── canvas ────────────────────────────────────────────────────────────────
+const C = document.getElementById('c'), ctx = C.getContext('2d');
+const layer = document.createElement('canvas'), lctx = layer.getContext('2d');
+let scale = 1, DPR = 1;
+const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+
+let lastVW = -1, lastVH = -1;
+function fitLayout() {
+  lastVW = window.innerWidth; lastVH = window.innerHeight;
+  const vw = lastVW || document.documentElement.clientWidth || 360;
+  const vh = lastVH || document.documentElement.clientHeight || 640;
+  const bar = document.querySelector('.top-bar');
+  const reserved = 58 + 16 + (bar ? bar.offsetHeight : 34) + 10 + 16;
+  const availW = Math.min(vw - 40, 460);
+  const availH = vh - reserved;
+  scale = clamp(Math.min(availW / W, availH / H), 0.4, 1.15);
+  DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  const dispW = Math.round(W * scale), dispH = Math.round(H * scale);
+  for (const cv of [C, layer]) {
+    cv.width = Math.round(dispW * DPR); cv.height = Math.round(dispH * DPR);
+  }
+  C.style.width = dispW + 'px'; C.style.height = dispH + 'px';
+  ctx.setTransform(scale * DPR, 0, 0, scale * DPR, 0, 0);
+  lctx.setTransform(scale * DPR, 0, 0, scale * DPR, 0, 0);
+  paintBg();
+}
+
+// ── stav ──────────────────────────────────────────────────────────────────
+const ST = {MENU:'menu', DOCK:'dock', PLAY:'play', PAUSE:'pause', DEAD:'dead', CLEAR:'clear'};
+let state = ST.MENU;
+let padX = W / 2, padW = 72, padHit = 0, padVel = 0;
+let ball = {x:W/2, y:PAD_Y - BALL_R - 1, vx:0, vy:0, spd:275};
+let bricks = [], score = 0, lives = 3, level = 1, combo = 0;
+let trail = [], parts = [], pops = [], shake = 0, floorFlash = 0, deadT = 0;
+const keys = {};
+
+function brickStrength(r, lv) {
+  if (lv <= 1) return 1;
+  if (lv === 2) return r < 2 ? 2 : 1;
+  return r < 2 ? 3 : (r < 4 ? 2 : 1);
+}
+
+function makeBricks() {
+  const out = [];
+  const startX = (W - (COLS * (BRICK_W + BRICK_GAP) - BRICK_GAP)) / 2;
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const s = brickStrength(r, level);
+    out.push({
+      x: startX + c * (BRICK_W + BRICK_GAP), y: TOP_Y + r * (BRICK_H + BRICK_GAP),
+      hp: s, max: s, alive: true, hit: 0
+    });
+  }
+  return out;
+}
+
+function dockBall() {
+  ball.x = padX; ball.y = PAD_Y - BALL_R - 1;
+  ball.vx = 0; ball.vy = 0;
+  trail = [];
+  state = ST.DOCK;
+}
+
+function startLevel(keepScore) {
+  const d = DIFFS[diffIdx];
+  padW = Math.max(40, d.padW - (level - 1) * 5);
+  padX = clamp(padX, padW / 2, W - padW / 2);
+  ball.spd = d.speed * (1 + (level - 1) * 0.1);
+  bricks = makeBricks();
+  combo = 0;
+  if (!keepScore) { score = 0; lives = d.lives; }
+  parts = []; pops = []; shake = 0; floorFlash = 0;
+  syncHud();
+  document.getElementById('overlay').classList.add('hide');
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('brand').style.display = '';
+  document.getElementById('ov-restart').classList.remove('show');
+  document.getElementById('ov-title').textContent = t('bbsTitle');
+  document.getElementById('ov-play').textContent = t('bbsPlay');
+  dockBall();
+}
+
+function startGame() { level = 1; startLevel(false); }
+function nextLevel() { level++; startLevel(true); }
+
+function syncHud() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('hud-level').textContent = level;
+  document.getElementById('best').textContent = best;
+  const box = document.getElementById('lifes');
+  const total = Math.max(lives, DIFFS[diffIdx].lives);
+  box.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'life' + (i < lives ? '' : ' gone');
+    box.appendChild(d);
+  }
+}
+
+function bump(id) {
+  const el = document.getElementById(id);
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 180);
+}
+
+function addScore(n) {
+  score += n;
+  document.getElementById('score').textContent = score;
+  bump('score');
+}
+
+function saveBest() {
+  if (score > best) {
+    best = score;
+    try { localStorage.setItem(BEST_KEY, best); } catch (_) {}
+    document.getElementById('best').textContent = best;
+    document.getElementById('best-pill').classList.add('record');
+    return true;
+  }
+  return false;
+}
+
+// ── prehra / postup ───────────────────────────────────────────────────────
+function loseLife() {
+  lives--; combo = 0; syncHud();
+  floorFlash = 1; shake = 0.3;
+  for (let i = 0; i < 20; i++) {
+    const a = -Math.PI * (0.15 + Math.random() * 0.7), v = 60 + Math.random() * 200;
+    parts.push({x: ball.x, y: FLOOR, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, col: '255,107,107', r: 2.2});
+  }
+  if (lives <= 0) { gameOver(); return; }
+  dockBall();
+}
+
+function gameOver() {
+  state = ST.DEAD; deadT = 0;
+  const rec = saveBest();
+  setTimeout(() => {
+    if (state !== ST.DEAD) return;
+    showCard(t('bbsOver'), '💥', rec, false);
+    state = ST.MENU;
+  }, 620);
+}
+
+function levelClear() {
+  state = ST.CLEAR;
+  saveBest();
+  bricks = [];
+  setTimeout(() => {
+    if (state !== ST.CLEAR) return;
+    showCard(t('bbsWin'), '🏆', false, true);
+    state = ST.MENU;
+  }, 560);
+}
+
+function showCard(title, emoji, rec, cleared) {
+  document.getElementById('ov-title').textContent = title;
+  document.getElementById('res-lbl').textContent = t('bbsScore');
+  document.getElementById('res-score').textContent = score;
+  const note = document.getElementById('res-note');
+  note.textContent = cleared
+    ? t('bbsLevel') + ' ' + (level + 1) + ' — ' + t('bbsFaster')
+    : (rec ? '🏆 ' + t('uiBest') + ': ' + best : t('uiBest') + ': ' + best);
+  note.classList.toggle('record', !!rec);
+  document.getElementById('result').classList.add('show');
+  document.getElementById('brand').innerHTML = '<div class="emoji">' + emoji + '</div>';
+  document.getElementById('brand').style.display = '';
+  document.getElementById('ov-play').textContent = cleared ? t('bbsNext') : t('bbsAgain');
+  document.getElementById('ov-play').dataset.next = cleared ? '1' : '';
+  document.getElementById('ov-restart').classList.toggle('show', !!cleared);
+  document.getElementById('overlay').classList.remove('hide');
+}
+
+// ── slučka ────────────────────────────────────────────────────────────────
+let prevTs = 0;
+function frame(ts) {
+  requestAnimationFrame(frame);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000;
+  prevTs = ts;
+  if (document.hidden) return;
+  if (lastVW !== window.innerWidth || lastVH !== window.innerHeight) fitLayout();
+  dt = Math.min(dt, 1 / 25);
+
+  if (state === ST.DOCK || state === ST.PLAY) movePaddle(dt);
+  if (state === ST.DOCK) { ball.x = padX; ball.y = PAD_Y - BALL_R - 1; }
+  if (state === ST.PLAY) physics(dt);
+  if (state === ST.DEAD) deadT += dt;
+  stepFx(dt);
+  draw(ts);
+}
+
+function movePaddle(dt) {
+  const spd = 470;
+  if (keys.left)  padVel = -spd;
+  else if (keys.right) padVel = spd;
+  else padVel = 0;
+  if (padVel) padX = clamp(padX + padVel * dt, padW / 2, W - padW / 2);
+}
+
+function physics(dt) {
+  // pohyb rozdelím na kroky do 3 px, aby loptička neprelietla kocku ani pádlo
+  const dist = Math.hypot(ball.vx, ball.vy) * dt;
+  const steps = Math.max(1, Math.ceil(dist / 3));
+  const sdt = dt / steps;
+  for (let s = 0; s < steps; s++) {
+    ball.x += ball.vx * sdt;
+    ball.y += ball.vy * sdt;
+
+    if (ball.x - BALL_R < 0) { ball.x = BALL_R; ball.vx = Math.abs(ball.vx); }
+    else if (ball.x + BALL_R > W) { ball.x = W - BALL_R; ball.vx = -Math.abs(ball.vx); }
+    if (ball.y - BALL_R < 0) { ball.y = BALL_R; ball.vy = Math.abs(ball.vy); }
+
+    // pádlo
+    if (ball.vy > 0 && ball.y + BALL_R >= PAD_Y && ball.y - BALL_R <= PAD_Y + PAD_H) {
+      if (ball.x >= padX - padW / 2 - BALL_R && ball.x <= padX + padW / 2 + BALL_R) {
+        const rel = clamp((ball.x - padX) / (padW / 2), -1, 1);
+        const ang = rel * 1.05;                       // do 60° od svislice
+        ball.spd = Math.min(ball.spd * 1.012, 620);
+        ball.vx = Math.sin(ang) * ball.spd;
+        ball.vy = -Math.cos(ang) * ball.spd;
+        ball.y = PAD_Y - BALL_R - 0.5;
+        padHit = 1; combo = 0;
+        for (let i = 0; i < 6; i++) {
+          const a = -Math.PI * (0.25 + Math.random() * 0.5), v = 40 + Math.random() * 90;
+          parts.push({x: ball.x, y: PAD_Y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .8, col: '56,232,200', r: 1.6});
+        }
+        continue;
+      }
+    }
+
+    if (ball.y - BALL_R > FLOOR) { loseLife(); return; }
+
+    // kocky
+    for (const b of bricks) {
+      if (!b.alive) continue;
+      if (ball.x + BALL_R <= b.x || ball.x - BALL_R >= b.x + BRICK_W ||
+          ball.y + BALL_R <= b.y || ball.y - BALL_R >= b.y + BRICK_H) continue;
+      const overlapX = Math.min(ball.x + BALL_R - b.x, b.x + BRICK_W - (ball.x - BALL_R));
+      const overlapY = Math.min(ball.y + BALL_R - b.y, b.y + BRICK_H - (ball.y - BALL_R));
+      if (overlapX < overlapY) { ball.vx *= -1; ball.x += ball.vx > 0 ? overlapX : -overlapX; }
+      else { ball.vy *= -1; ball.y += ball.vy > 0 ? overlapY : -overlapY; }
+      hitBrick(b);
+      break;
+    }
+    if (bricks.length && bricks.every(b => !b.alive)) { levelClear(); return; }
+  }
+}
+
+function hitBrick(b) {
+  b.hp--; b.hit = 1;
+  const tier = TIER[b.max];
+  const cx = b.x + BRICK_W / 2, cy = b.y + BRICK_H / 2;
+  if (b.hp > 0) {
+    addScore(5);
+    for (let i = 0; i < 5; i++) {
+      const a = Math.random() * Math.PI * 2, v = 40 + Math.random() * 90;
+      parts.push({x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .7, col: tier.rgb, r: 1.6});
+    }
+    return;
+  }
+  b.alive = false;
+  combo++;
+  const gain = (10 + (b.max - 1) * 8) * Math.min(combo, 5);
+  addScore(gain);
+  pops.push({x: cx, y: cy, t: 0, txt: '+' + gain, combo: combo >= 2 ? 'x' + Math.min(combo, 5) : ''});
+  shake = Math.min(0.16, shake + 0.06);
+  for (let i = 0; i < 14; i++) {
+    const a = Math.random() * Math.PI * 2, v = 50 + Math.random() * 190;
+    parts.push({x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, col: tier.rgb, r: 2.1});
+  }
+  ball.spd = Math.min(ball.spd * 1.006, 620);
+  const m = Math.hypot(ball.vx, ball.vy) || 1;
+  ball.vx = ball.vx / m * ball.spd; ball.vy = ball.vy / m * ball.spd;
+}
+
+function stepFx(dt) {
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i];
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    p.vy += 380 * dt; p.vx *= 0.985;
+    p.life -= dt * 1.5;
+    if (p.life <= 0) parts.splice(i, 1);
+  }
+  for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt * 1.4; if (pops[i].t >= 1) pops.splice(i, 1); }
+  if (shake > 0) shake = Math.max(0, shake - dt);
+  if (floorFlash > 0) floorFlash = Math.max(0, floorFlash - dt * 1.6);
+  if (padHit > 0) padHit = Math.max(0, padHit - dt * 4);
+  for (const b of bricks) if (b.hit > 0) b.hit = Math.max(0, b.hit - dt * 3);
+  if (state === ST.PLAY) {
+    trail.push({x: ball.x, y: ball.y});
+    if (trail.length > 13) trail.shift();
+  }
+}
+
+// ── statické pozadie ──────────────────────────────────────────────────────
+function paintBg() {
+  const g = lctx;
+  g.clearRect(0, 0, W, H);
+  const bg = g.createLinearGradient(0, 0, W * 0.4, H);
+  bg.addColorStop(0, '#0a1020');
+  bg.addColorStop(0.6, '#06080f');
+  bg.addColorStop(1, '#080611');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  // jemná mriežka
+  g.strokeStyle = 'rgba(255,255,255,0.028)';
+  g.lineWidth = 1;
+  g.beginPath();
+  for (let x = 0; x <= W; x += 20) { g.moveTo(x + .5, 0); g.lineTo(x + .5, H); }
+  for (let y = 0; y <= H; y += 20) { g.moveTo(0, y + .5); g.lineTo(W, y + .5); }
+  g.stroke();
+  // svetlo zhora
+  const top = g.createRadialGradient(W / 2, 0, 0, W / 2, 0, W * 0.9);
+  top.addColorStop(0, 'rgba(77,155,255,0.10)');
+  top.addColorStop(1, 'transparent');
+  g.fillStyle = top; g.fillRect(0, 0, W, H * 0.6);
+  // vinetácia
+  const v = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.8);
+  v.addColorStop(0, 'transparent'); v.addColorStop(1, 'rgba(0,0,0,0.45)');
+  g.fillStyle = v; g.fillRect(0, 0, W, H);
+}
+
+// ── kreslenie ─────────────────────────────────────────────────────────────
+function roundRect(g, x, y, w, h, r) {
+  r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+  g.beginPath();
+  if (g.roundRect) g.roundRect(x, y, w, h, r);
+  else {
+    g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r);
+    g.lineTo(x + w, y + h - r); g.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    g.lineTo(x + r, y + h); g.quadraticCurveTo(x, y + h, x, y + h - r);
+    g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y);
+  }
+}
+
+function drawBrick(b) {
+  const tier = TIER[b.max];
+  const dmg = 1 - (b.hp - 1) / Math.max(1, b.max - 1 || 1);   // 0 = neporušená
+  ctx.save();
+  // dosvit
+  if (b.hit > 0) {
+    ctx.shadowColor = 'rgba(' + tier.rgb + ',0.95)';
+    ctx.shadowBlur = 16 * b.hit;
+  }
+  const g = ctx.createLinearGradient(b.x, b.y, b.x, b.y + BRICK_H);
+  g.addColorStop(0, tier.hi);
+  g.addColorStop(0.42, tier.c);
+  g.addColorStop(1, tier.lo);
+  ctx.fillStyle = g;
+  roundRect(ctx, b.x, b.y, BRICK_W, BRICK_H, 4); ctx.fill();
+  ctx.restore();
+  // horný lesk
+  ctx.fillStyle = 'rgba(255,255,255,' + (0.26 + b.hit * 0.5) + ')';
+  roundRect(ctx, b.x + 2, b.y + 1.5, BRICK_W - 4, 2.5, 1.2); ctx.fill();
+  // praskliny podľa poškodenia
+  if (b.max > 1 && b.hp < b.max) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(6,8,14,' + (0.35 + dmg * 0.4) + ')';
+    ctx.lineWidth = 1.2;
+    const midX = b.x + BRICK_W / 2;
+    ctx.beginPath();
+    ctx.moveTo(midX - 8, b.y + 2); ctx.lineTo(midX - 2, b.y + BRICK_H / 2); ctx.lineTo(midX - 9, b.y + BRICK_H - 2);
+    if (b.max - b.hp > 1) { ctx.moveTo(midX + 9, b.y + 2); ctx.lineTo(midX + 3, b.y + BRICK_H / 2); ctx.lineTo(midX + 11, b.y + BRICK_H - 2); }
+    ctx.stroke();
+    ctx.restore();
+  }
+  // obrys
+  ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, b.x + .5, b.y + .5, BRICK_W - 1, BRICK_H - 1, 4); ctx.stroke();
+}
+
+function draw(ts) {
+  ctx.setTransform(scale * DPR, 0, 0, scale * DPR, 0, 0);
+  if (shake > 0) {
+    const m = 6 * (shake / 0.3);
+    ctx.translate((Math.random() - .5) * m, (Math.random() - .5) * m);
+  }
+  ctx.clearRect(-20, -20, W + 40, H + 40);
+  ctx.drawImage(layer, -20, -20, (W + 40), (H + 40));
+
+  // kocky
+  for (const b of bricks) if (b.alive) drawBrick(b);
+
+  // spodná hrana (nebezpečná zóna)
+  const fg = ctx.createLinearGradient(0, FLOOR, 0, FLOOR - 34);
+  fg.addColorStop(0, 'rgba(255,107,107,' + (0.16 + floorFlash * 0.5).toFixed(3) + ')');
+  fg.addColorStop(1, 'transparent');
+  ctx.fillStyle = fg;
+  ctx.fillRect(-20, FLOOR - 34, W + 40, 34 + 20);
+  ctx.fillStyle = 'rgba(255,107,107,' + (0.35 + floorFlash * 0.65).toFixed(3) + ')';
+  ctx.fillRect(-20, FLOOR, W + 40, 1.6);
+
+  // chvost loptičky
+  if (state === ST.PLAY || state === ST.DEAD) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    trail.forEach((p, i) => {
+      const k = (i + 1) / trail.length;
+      ctx.globalAlpha = k * 0.28;
+      ctx.fillStyle = '#9df3e4';
+      ctx.beginPath(); ctx.arc(p.x, p.y, BALL_R * k * 0.9, 0, 6.2832); ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  // pádlo
+  const pw = padW * (1 + padHit * 0.05), ph = PAD_H * (1 - padHit * 0.12);
+  const pxl = padX - pw / 2, pyl = PAD_Y + (PAD_H - ph) / 2;
+  ctx.save();
+  ctx.shadowColor = 'rgba(56,232,200,' + (0.7 + padHit * 0.3) + ')';
+  ctx.shadowBlur = 16 + padHit * 22;
+  ctx.fillStyle = 'rgba(56,232,200,0.95)';
+  roundRect(ctx, pxl, pyl, pw, ph, ph / 2); ctx.fill();
+  ctx.restore();
+  const pg = ctx.createLinearGradient(0, pyl, 0, pyl + ph);
+  pg.addColorStop(0, '#ffffff');
+  pg.addColorStop(0.55, '#8ff2e2');
+  pg.addColorStop(1, 'rgba(56,232,200,0.5)');
+  ctx.fillStyle = pg;
+  roundRect(ctx, pxl + pw * 0.04, pyl + ph * 0.18, pw * 0.92, ph * 0.5, ph * 0.25); ctx.fill();
+
+  // loptička
+  if (state !== ST.MENU) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(200,255,250,0.9)';
+    ctx.shadowBlur = 18;
+    const bgd = ctx.createRadialGradient(ball.x - BALL_R * 0.3, ball.y - BALL_R * 0.35, BALL_R * 0.1, ball.x, ball.y, BALL_R);
+    bgd.addColorStop(0, '#ffffff');
+    bgd.addColorStop(0.6, '#e8fffb');
+    bgd.addColorStop(1, '#5fd8c6');
+    ctx.fillStyle = bgd;
+    ctx.beginPath(); ctx.arc(ball.x, ball.y, BALL_R, 0, 6.2832); ctx.fill();
+    ctx.restore();
+  }
+
+  // iskry
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of parts) {
+    ctx.globalAlpha = Math.max(0, p.life) * 0.9;
+    ctx.fillStyle = 'rgba(' + p.col + ',1)';
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * Math.max(0.3, p.life), 0, 6.2832); ctx.fill();
+  }
+  ctx.restore();
+
+  // body a kombo
+  ctx.save();
+  ctx.textAlign = 'center';
+  for (const s of pops) {
+    ctx.globalAlpha = 1 - s.t;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 13px Syne, sans-serif';
+    ctx.fillText(s.txt, s.x, s.y - s.t * 26);
+    if (s.combo) {
+      ctx.fillStyle = '#ffd166';
+      ctx.font = '800 11px Syne, sans-serif';
+      ctx.fillText(s.combo, s.x, s.y - s.t * 26 - 13);
+    }
+  }
+  ctx.restore();
+
+  // výzva pred odpalom
+  if (state === ST.DOCK) {
+    ctx.save();
+    ctx.globalAlpha = 0.45 + Math.sin(ts / 300) * 0.3;
+    ctx.fillStyle = '#dff7ff';
+    ctx.font = "600 12px 'DM Sans', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.fillText(t('bbsHint'), W / 2, PAD_Y - 46);
+    ctx.restore();
+  }
+
+  if (state === ST.PAUSE) {
+    ctx.fillStyle = 'rgba(4,6,12,0.72)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(238,244,255,0.9)';
+    ctx.font = '800 30px Syne, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(t('uiPaused'), W / 2, H / 2);
+    ctx.textBaseline = 'alphabetic';
+  }
+}
+
+// ── vstup ─────────────────────────────────────────────────────────────────
+function launch() {
+  if (state !== ST.DOCK) return;
+  const ang = (Math.random() - 0.5) * 0.5;
+  ball.vx = Math.sin(ang) * ball.spd;
+  ball.vy = -Math.cos(ang) * ball.spd;
+  state = ST.PLAY;
+}
+
+function pointerToPad(clientX) {
+  const r = C.getBoundingClientRect();
+  padX = clamp((clientX - r.left) / r.width * W, padW / 2, W - padW / 2);
+}
+
+C.addEventListener('pointermove', e => {
+  if (state === ST.DOCK || state === ST.PLAY) pointerToPad(e.clientX);
+});
+C.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if (state === ST.PAUSE) { state = ST.PLAY; return; }
+  pointerToPad(e.clientX);
+  launch();
+});
+
+document.addEventListener('keydown', e => {
+  const k = e.code;
+  if (k === 'Escape' || k === 'KeyP') {
+    e.preventDefault();
+    if (state === ST.PLAY) state = ST.PAUSE;
+    else if (state === ST.PAUSE) state = ST.PLAY;
+    return;
+  }
+  if (k === 'ArrowLeft' || k === 'KeyA') { e.preventDefault(); keys.left = true; }
+  if (k === 'ArrowRight' || k === 'KeyD') { e.preventDefault(); keys.right = true; }
+  if (k === 'Space' || k === 'Enter') {
+    e.preventDefault();
+    if (state === ST.MENU) { document.getElementById('ov-play').click(); }
+    else if (state === ST.PAUSE) state = ST.PLAY;
+    else launch();
+  }
+});
+document.addEventListener('keyup', e => {
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+});
+
+document.getElementById('ov-play').onclick = () => {
+  if (document.getElementById('ov-play').dataset.next === '1') nextLevel();
+  else startGame();
+};
+document.getElementById('ov-restart').onclick = startGame;
+window.addEventListener('blur', () => { if (state === ST.PLAY) state = ST.PAUSE; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && state === ST.PLAY) state = ST.PAUSE; });
+
+fitLayout();
+applyLang();
+bricks = makeBricks();
+padW = DIFFS[diffIdx].padW;
+lives = DIFFS[diffIdx].lives;
+syncHud();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
