@@ -122,7 +122,52 @@
             .cell { font-size:18px; }
             #current-word { font-size:16px; }
         }
-    </style>
+    
+/* mobil/tablet: na nízkych obrazovkách stlačím rámce, aby ovládanie zostalo viditeľné */
+@media (max-height:900px){
+  body{padding:6px !important;}
+  #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+}
+@media (max-height:760px){
+  body{padding:3px !important;}
+  #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
+}
+
+@media (max-height:700px){
+  #rules{display:none !important;}
+}
+
+/* nizka-obrazovka-fix: na nízkych displejoch zmenším hraciu plochu */
+@media (max-height:720px){
+  #main{gap:10px !important;}
+  #board-wrap{padding:6px !important;}
+}
+
+@media (max-height:760px){
+  #info-panel{flex-direction:row !important;flex-wrap:wrap !important;justify-content:center !important;gap:6px !important;}
+  #info-panel > *{padding:4px 8px !important;}
+}
+
+/* nizka-obrazovka-fix 2 */
+@media (max-height:700px){
+  #board-wrap{padding:4px !important;}
+  #main{gap:6px !important;}
+  #controls{gap:5px !important;}
+  #controls button{padding:6px 12px !important;font-size:12px !important;}
+}
+
+/* nizka-obrazovka-fix 3 */
+@media (max-height:700px){
+  #header{gap:3px !important;}
+  #header h1{font-size:17px !important;}
+  #info-panel{gap:4px !important;}
+  #info-panel > *{padding:3px 7px !important;}
+  #info-panel h3{font-size:8.5px !important;margin-bottom:1px !important;}
+  #info-panel .value{font-size:15px !important;}
+  #board{transform:scale(.86);transform-origin:top center;}
+  #board-wrap{padding:2px !important;}
+}
+</style>
 </head>
 <body>
 

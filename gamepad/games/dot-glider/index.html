@@ -53,6 +53,11 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:
 .play-btn:hover{background:linear-gradient(180deg,rgba(77,232,255,.32),rgba(77,232,255,.16));color:#fff;box-shadow:0 0 24px -6px rgba(77,232,255,.5);}
 .play-btn:active{transform:translateY(1px);}
 @media(max-height:520px){.card{gap:9px;padding:18px 20px;}.emoji{display:none;}.title{font-size:21px;}#res-score{font-size:44px;}}
+
+/* prekryv: ak sa obsah nezmestí, nesmie zmiznúť mimo obrazovky (flex centrovanie ho odreže) */
+@media (max-height:820px){
+  #overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
+}
 </style>
 </head>
 <body>

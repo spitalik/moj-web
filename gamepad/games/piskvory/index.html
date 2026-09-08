@@ -210,7 +210,11 @@ function layout() {
   const winW = vw || document.documentElement.clientWidth || 360;
   const winH = vh || document.documentElement.clientHeight || 640;
   const maxW = Math.min(462, winW - 30);
-  const maxH = winH - 320;
+  // výšku ostatných prvkov meriam, nie hádam — inak doska pretečie na nízkych displejoch
+  let chrome = 320;
+  const page = document.querySelector('.page'), bw = document.getElementById('board-wrap');
+  if (page && bw && bw.offsetHeight) chrome = page.scrollHeight - bw.offsetHeight + 10;
+  const maxH = winH - Math.max(220, chrome);
   const avail = Math.max(250, Math.min(maxW, Math.max(268, maxH)));
   CELL = Math.max(15, Math.floor(avail / (N + 1)));
   PAD  = CELL;

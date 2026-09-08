@@ -359,6 +359,17 @@
     .difficulty-row { margin-top: 0.3rem; gap: 0.3rem; }
     .diff-btn { font-size: 0.55rem; padding: 0.25rem 0.6rem; }
   }
+
+/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button,a,[onclick]{touch-action:manipulation;}
+
+/* nizka-obrazovka-fix 2 */
+@media (max-height:760px){
+  .arena{width:min(38vh,80vw) !important;height:min(38vh,80vw) !important;}
+  .stats{gap:.7rem !important;margin-bottom:.2rem !important;}
+  .stat-value{font-size:1.15rem !important;}
+}
 </style>
 </head>
 <body>

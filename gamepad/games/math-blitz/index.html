@@ -196,6 +196,33 @@
     .numpad{grid-area:numpad;align-content:center;}
     .footnote{grid-area:foot;}
   }
+
+/* nizka-obrazovka-fix */
+@media (max-height:760px){
+  .question-card{padding:10px !important;}
+  .numpad{gap:5px !important;}
+  .numpad button{padding:8px !important;font-size:17px !important;}
+}
+@media (max-height:660px){
+  .numpad button{padding:5px !important;font-size:15px !important;}
+}
+
+/* nizka-obrazovka-fix 2 */
+@media (max-height:760px){
+  .wrap{padding-top:44px !important;gap:8px !important;}
+  .question-card{padding:8px !important;}
+  .question-card *{line-height:1.15 !important;}
+}
+@media (max-height:680px){
+  .numpad{gap:4px !important;}
+}
+
+/* nizka-obrazovka-fix 3 */
+@media (max-height:700px){
+  .question-card{padding:6px !important;}
+  #questionCard{max-height:150px !important;}
+  .wrap{padding-top:40px !important;}
+}
 </style>
 </head>
 <body>

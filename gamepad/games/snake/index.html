@@ -77,6 +77,11 @@ body.touch .dpad{display:grid;}
   .game-title{font-size:17px;}
   .dpad{grid-template-columns:repeat(3,42px);grid-template-rows:repeat(2,42px);}
 }
+
+/* úzke displeje: horná lišta sa zlomí, inak jej pilulky pretečú z obrazovky */
+@media (max-width:470px){
+  .top-bar{flex-wrap:wrap;justify-content:center;max-width:100% !important;gap:6px !important;}
+}
 </style>
 </head>
 <body>

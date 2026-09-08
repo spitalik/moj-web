@@ -230,7 +230,27 @@
             #gameBoard { gap: 6px; }
             .cell { font-size: 1.4rem; border-radius: 12px; }
         }
-    </style>
+    
+/* landscape-fix: nízke obrazovky */
+@media (max-height:760px){
+  .game-container{padding:8px 10px 10px !important;gap:6px !important;}
+  .cell{width:clamp(16px,4.6vh,30px) !important;height:clamp(16px,4.6vh,30px) !important;}
+  .btn{padding:6px 12px !important;font-size:12px !important;}
+}
+
+/* landscape-fix 2 */
+@media (max-height:700px){
+  .game-container{padding:5px 8px 8px !important;gap:4px !important;}
+  .cell{width:clamp(14px,min(4.2vh,6.5vw),26px) !important;height:clamp(14px,min(4.2vh,6.5vw),26px) !important;}
+}
+
+/* landscape-fix 3 */
+@media (orientation:landscape) and (max-height:760px){
+  .game-container h1{display:none !important;}
+  .cell{width:clamp(12px,min(3.8vh,5.5vw),22px) !important;height:clamp(12px,min(3.8vh,5.5vw),22px) !important;}
+  .game-container{padding:4px 6px 6px !important;gap:3px !important;}
+}
+</style>
 </head>
 <body>
 <a href="../../index.html" id="back-btn">

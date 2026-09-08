@@ -27,6 +27,15 @@ canvas{display:block;position:fixed;top:0;left:0;z-index:1;}
 #ctrl-area{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:30;}
 .ctrl-btn{width:64px;height:64px;background:var(--bg2);border:1px solid var(--border);border-radius:50%;color:var(--muted);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s;}
 .ctrl-btn:active{background:rgba(0,212,255,0.14);border-color:rgba(0,212,255,.35);color:var(--c);}
+
+/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button,a,[onclick]{touch-action:manipulation;}
+
+/* prekryv: ak sa obsah nezmestí, nesmie zmiznúť mimo obrazovky (flex centrovanie ho odreže) */
+@media (max-height:820px){
+  #overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
+}
 </style>
 </head>
 <body>

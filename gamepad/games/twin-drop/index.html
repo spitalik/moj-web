@@ -322,7 +322,23 @@
                 gap: 6px;
             }
         }
-    </style>
+    
+/* mobil/tablet: na nízkych obrazovkách stlačím rámce, aby ovládanie zostalo viditeľné */
+@media (max-height:900px){
+  body{padding:6px !important;}
+  #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+}
+@media (max-height:760px){
+  body{padding:3px !important;}
+  #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
+}
+
+/* nizka-obrazovka-fix 3 */
+@media (max-height:700px){
+  #controls{gap:5px !important;}
+  #header{gap:4px !important;}
+}
+</style>
 </head>
 <body>
 
@@ -768,7 +784,15 @@
                 const aspect = ROWS / COLS;
                 let width = Math.min(w, 400);
                 let height = width * aspect;
-                const maxH = window.innerHeight * 0.55;
+                // vysku beriem z toho, co realne zostane po zvysku rozlozenia,
+                // aby ovladacie tlacidla nespadli pod okraj obrazovky
+                const cont = document.getElementById('game-container');
+                const wrap2 = document.getElementById('canvas-wrapper');
+                let maxH = window.innerHeight * 0.55;
+                if (cont && wrap2) {
+                    const chrome = cont.offsetHeight - wrap2.offsetHeight;
+                    maxH = Math.max(200, window.innerHeight - chrome - 34);
+                }
                 if (height > maxH) { height = maxH;
                     width = height / aspect; }
                 canvas.style.width = width + 'px';

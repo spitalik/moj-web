@@ -32,6 +32,11 @@ canvas{position:fixed;inset:0;width:100%;height:100%;}
 .ov-btn:hover{opacity:.85;}
 /* Score popup */
 .score-pop{position:fixed;z-index:35;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;pointer-events:none;transition:opacity .4s;}
+
+/* prekryv: ak sa obsah nezmestí, nesmie zmiznúť mimo obrazovky (flex centrovanie ho odreže) */
+@media (max-height:820px){
+  #overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
+}
 </style>
 </head>
 <body>

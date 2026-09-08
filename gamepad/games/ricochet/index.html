@@ -107,6 +107,11 @@ canvas{display:block;touch-action:manipulation;}
   opacity:0;transition:all .4s;pointer-events:none;max-width:88vw;text-align:center;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 @media(max-width:520px){.page{padding-top:52px;}.game-title{font-size:19px;}}
+
+/* prekryv: ak sa obsah nezmestí, nesmie zmiznúť mimo obrazovky (flex centrovanie ho odreže) */
+@media (max-height:820px){
+  #overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
+}
 </style>
 </head>
 <body>

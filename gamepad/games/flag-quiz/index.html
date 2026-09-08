@@ -142,6 +142,10 @@
     .answer-grid{ grid-area:answers; align-content:center; overflow-y:auto; }
     .footnote{ display:none; }
   }
+
+/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button,a,[onclick]{touch-action:manipulation;}
 </style>
 </head>
 <body>

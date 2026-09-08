@@ -75,6 +75,11 @@ canvas{display:block;border-radius:15px;touch-action:none;cursor:none;}
 .ghost-btn{display:none;padding:8px 20px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .18s;touch-action:manipulation;}
 .ghost-btn.show{display:block;}
 .ghost-btn:hover{border-color:var(--border-h);color:var(--text);}
+
+/* úzke displeje: horná lišta sa zlomí, inak jej pilulky pretečú z obrazovky */
+@media (max-width:470px){
+  .top-bar{flex-wrap:wrap;justify-content:center;max-width:100% !important;gap:6px !important;}
+}
 </style>
 </head>
 <body>

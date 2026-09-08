@@ -550,6 +550,19 @@
     #finalBest{ margin-bottom:10px; }
     .btn{ padding:10px 18px; font-size:14px; }
   }
+
+/* landscape-fix: nízke obrazovky */
+@media (max-height:760px){
+  .wrap{padding-top:38px !important;gap:6px !important;}
+  .btn{padding:6px 12px !important;font-size:12px !important;}
+}
+
+/* landscape-fix 2 */
+@media (max-height:700px){
+  .wrap{padding-top:30px !important;gap:4px !important;}
+  #mapWrap,#map-wrap,.map-wrap{max-height:calc(100vh - 190px) !important;}
+  svg,canvas{max-height:calc(100vh - 190px) !important;}
+}
 </style>
 </head>
 <body>

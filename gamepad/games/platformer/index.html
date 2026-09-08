@@ -69,6 +69,11 @@ body.touch #ctrl{display:flex;}
 .play-btn:hover{background:linear-gradient(180deg,rgba(255,194,77,.34),rgba(255,194,77,.16));color:#fff;box-shadow:0 0 24px -6px rgba(255,194,77,.5);}
 .play-btn:active{transform:translateY(1px);}
 @media(max-height:520px){.card{gap:8px;padding:18px 20px;}.emoji{display:none;}.title{font-size:20px;}#res-score{font-size:40px;}}
+
+/* prekryv: ak sa obsah nezmestí, nesmie zmiznúť mimo obrazovky (flex centrovanie ho odreže) */
+@media (max-height:820px){
+  #overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
+}
 </style>
 </head>
 <body>

@@ -188,6 +188,10 @@ body {
   .card-back { font-size: min(5vw, 1.6rem); }
   #message { margin-top: 0.4rem; font-size: 11px; min-height: 14px; }
 }
+
+/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button,a,[onclick]{touch-action:manipulation;}
 </style>
 </head>
 <body>

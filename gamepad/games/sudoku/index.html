@@ -89,6 +89,16 @@ body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;left:
   .ctrl-row { gap: 5px; }
   .ctrl-btn { padding: 4px 12px; font-size: 10px; }
 }
+
+/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button,a,[onclick]{touch-action:manipulation;}
+
+/* landscape-fix: nízke obrazovky */
+@media (max-height:760px){
+  .page{padding:34px 8px 4px !important;gap:4px !important;}
+  .cell{width:clamp(16px,5vh,34px) !important;height:clamp(16px,5vh,34px) !important;}
+}
 </style>
 </head>
 <body>

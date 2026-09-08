@@ -135,6 +135,10 @@
     .answer-btn{padding:12px 8px;font-size:13px;}
     .footnote{display:none;}
   }
+
+/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button,a,[onclick]{touch-action:manipulation;}
 </style>
 </head>
 <body>

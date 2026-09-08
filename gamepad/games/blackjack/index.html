@@ -43,6 +43,19 @@ body::before{content:'';position:fixed;width:500px;height:500px;bottom:-150px;le
 .action-btn:hover{border-color:var(--border-h);color:var(--text);}
 .action-btn.primary{background:var(--cdim);border-color:rgba(255,209,102,.4);color:var(--c);}
 .action-btn:disabled{opacity:0.3;cursor:default;}
+
+/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button,a,[onclick]{touch-action:manipulation;}
+
+/* nizka-obrazovka-fix: na nízkych displejoch zmenším hraciu plochu */
+@media (max-height:760px){
+  .table-area{padding:10px !important;gap:8px !important;}
+  .card{width:46px !important;height:64px !important;font-size:13px !important;}
+}
+@media (max-height:640px){
+  .card{width:38px !important;height:54px !important;font-size:11px !important;}
+}
 </style>
 </head>
 <body>

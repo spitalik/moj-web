@@ -88,7 +88,28 @@
         }
         #controls button:active { transform:translateY(2px); }
         #undoBtn { border-color:#fb923c; color:#fed7aa; }
-    </style>
+    
+/* mobil/tablet: na nízkych obrazovkách stlačím rámce, aby ovládanie zostalo viditeľné */
+@media (max-height:900px){
+  body{padding:6px !important;}
+  #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+}
+@media (max-height:760px){
+  body{padding:3px !important;}
+  #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
+}
+
+/* nízke obrazovky: hracia plocha sa zmenší do dostupného miesta namiesto pretečenia */
+@media (max-height:900px){
+  #game-container{max-height:calc(100vh - 10px);}
+  #canvas-wrapper{min-height:0;flex:0 1 auto;}
+  #gameCanvas{max-height:100%;max-width:100%;width:auto;height:auto;}
+}
+
+@media (max-height:700px){
+  #rules{display:none !important;}
+}
+</style>
 </head>
 <body>
 

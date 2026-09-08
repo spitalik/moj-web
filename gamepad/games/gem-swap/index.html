@@ -341,7 +341,24 @@
                 gap: 6px;
             }
         }
-    </style>
+    
+/* mobil/tablet: na nízkych obrazovkách stlačím rámce, aby ovládanie zostalo viditeľné */
+@media (max-height:900px){
+  body{padding:6px !important;}
+  #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+}
+@media (max-height:760px){
+  body{padding:3px !important;}
+  #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
+}
+
+/* nizka-obrazovka-fix: na nízkych displejoch zmenším hraciu plochu */
+@media (max-height:760px){
+  #main{gap:8px !important;}
+  #info-panel{flex-direction:row !important;flex-wrap:wrap !important;justify-content:center !important;gap:6px !important;}
+  #info-panel > *{padding:4px 8px !important;min-width:0 !important;}
+}
+</style>
 </head>
 <body>
 

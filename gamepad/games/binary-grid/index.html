@@ -337,7 +337,37 @@
             #grid { gap: 4px; }
             .cell { font-size: 1.3rem; border-radius: 10px; }
         }
-    </style>
+    
+@media (max-height:700px){
+  .game-container{padding:6px 8px 8px !important;gap:4px !important;}
+  .cell{width:clamp(14px,min(4.4vh,7vw),28px) !important;height:clamp(14px,min(4.4vh,7vw),28px) !important;}
+  .btn{padding:5px 10px !important;font-size:11px !important;}
+}
+/* landscape-fix: nízke obrazovky */
+@media (max-height:760px){
+  .game-container{padding:8px 10px 10px !important;gap:6px !important;}
+  .cell{width:clamp(16px,min(5vh,7.2vw),32px) !important;height:clamp(16px,min(5vh,7.2vw),32px) !important;font-size:clamp(10px,min(2.8vh,4vw),17px) !important;}
+  .btn{padding:6px 12px !important;font-size:12px !important;}
+}
+
+/* nizka-obrazovka-fix 3 */
+@media (max-height:760px){
+  .game-container h1{font-size:18px !important;margin:0 !important;}
+  .status-bar{padding:4px 8px !important;}
+  .message{min-height:0 !important;padding:4px 6px !important;font-size:12px !important;}
+  .button-row{gap:5px !important;}
+  .button-row .btn,.button-row button{padding:5px 10px !important;font-size:11.5px !important;}
+}
+
+/* landscape-fix 3 */
+@media (orientation:landscape) and (max-height:760px){
+  .game-container h1{display:none !important;}
+  .message{display:none !important;}
+  .status-bar{padding:3px 6px !important;font-size:11px !important;}
+  .cell{width:clamp(13px,min(4vh,6vw),24px) !important;height:clamp(13px,min(4vh,6vw),24px) !important;font-size:clamp(9px,2.4vh,14px) !important;}
+  #grid{gap:3px !important;}
+}
+</style>
 </head>
 <body>
 <a href="../../index.html" id="back-btn">

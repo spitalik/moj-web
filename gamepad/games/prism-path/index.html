@@ -119,7 +119,25 @@
         }
         #nextLevelBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #a21caf; }
         @media (max-width:480px) { .cell { font-size:14px; } }
-    </style>
+    
+/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button,a,[onclick]{touch-action:manipulation;}
+
+/* mobil/tablet: na nízkych obrazovkách stlačím rámce, aby ovládanie zostalo viditeľné */
+@media (max-height:900px){
+  body{padding:6px !important;}
+  #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+}
+@media (max-height:760px){
+  body{padding:3px !important;}
+  #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
+}
+
+@media (max-height:700px){
+  #rules{display:none !important;}
+}
+</style>
 </head>
 <body>
 
