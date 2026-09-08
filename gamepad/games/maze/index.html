@@ -2,66 +2,85 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Maze · GamePad</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;
-  --text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);
-  --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
-  --c:#4dff91;--cdim:rgba(77,255,145,0.14);
+  --bg:#050b12;--text:#eaf6ff;--muted:rgba(234,246,255,0.42);--dim:rgba(234,246,255,0.18);
+  --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.17);
+  --c:#63f5c8;--c2:#8b9cff;--gold:#ffd166;
 }
-html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;}
-body::before{content:'';position:fixed;width:500px;height:500px;bottom:-150px;right:-150px;background:radial-gradient(circle,rgba(77,255,145,0.06) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
-
-#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
-#back-btn:hover{border-color:var(--border-h);color:var(--text);}
-
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 16px 20px;gap:12px;}
-
-.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-
-.hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;}
-.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
-.stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;min-width:20px;}
-
-#canvas-wrap{position:relative;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg1);flex-shrink:0;}
-canvas{display:block;}
-
-/* overlay */
-#overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.88);backdrop-filter:blur(8px);}
-#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-.5px;}
-.score-big{font-family:'Syne',sans-serif;font-size:46px;font-weight:800;color:var(--c);letter-spacing:-2px;line-height:1;}
-.hint{font-size:12px;color:var(--muted);text-align:center;padding:0 20px;}
-.play-btn{margin-top:4px;background:var(--cdim);border:1px solid rgba(77,255,145,.3);color:var(--c);padding:10px 30px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .18s;}
-.play-btn:hover{background:rgba(77,255,145,.22);}
-
-.diff-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
-.diff-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
-.diff-btn:hover,.diff-btn.active{border-color:rgba(77,255,145,.4);color:var(--c);background:var(--cdim);}
-
-/* dpad */
-#dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,52px);gap:5px;margin-top:4px;}
-.d{background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;}
-.d:active,.d.pressed{background:var(--cdim);border-color:rgba(77,255,145,.3);color:var(--c);}
-#d-up{grid-column:2;grid-row:1;}
-#d-left{grid-column:1;grid-row:2;}
-#d-down{grid-column:2;grid-row:2;}
-#d-right{grid-column:3;grid-row:2;}
-@media (orientation: landscape) and (max-height: 560px) {
-  .page { padding: 48px 12px 10px; gap: 6px; }
-  #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
-  .game-title { font-size: 17px; }
-  .stat-pill { padding: 4px 10px; font-size: 11px; }
-  #dpad { grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 4px; margin-top: 2px; }
-}
-
-/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
-html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 button,a,[onclick]{touch-action:manipulation;}
+body::before,body::after{content:'';position:fixed;border-radius:50%;pointer-events:none;z-index:0;}
+body::before{width:560px;height:560px;top:-230px;left:-150px;background:radial-gradient(circle,rgba(99,245,200,0.09) 0%,transparent 66%);}
+body::after{width:600px;height:600px;bottom:-270px;right:-160px;background:radial-gradient(circle,rgba(139,156,255,0.09) 0%,transparent 66%);}
+
+#back-btn{position:fixed;top:14px;left:14px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(8,14,22,0.75);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:9px;left:9px;padding:6px 11px;font-size:11px;}}
+
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 12px 14px;gap:10px;}
+
+/* ── HUD ──────────────────────────────────────────────────── */
+.top-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:23px;letter-spacing:-.5px;background:linear-gradient(110deg,#fff 22%,var(--c) 70%,var(--c2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pill{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:100px;background:linear-gradient(160deg,rgba(255,255,255,0.055),rgba(255,255,255,0.015));border:1px solid var(--border);font-size:9px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);transition:transform .18s;}
+.pill.best b{color:var(--gold);}
+.pill.best.record{border-color:rgba(255,209,102,.45);}
+.pill b.bump{transform:scale(1.28);}
+#hint-btn{display:flex;align-items:center;gap:6px;padding:5px 13px;border-radius:100px;border:1px solid rgba(139,156,255,.4);background:linear-gradient(180deg,rgba(139,156,255,.18),rgba(139,156,255,.07));color:#c3ccff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;}
+#hint-btn b{font-family:'Syne',sans-serif;font-size:12px;}
+#hint-btn:hover:not(:disabled){background:rgba(139,156,255,.28);color:#fff;}
+#hint-btn:disabled{opacity:.35;cursor:default;}
+
+/* ── doska ────────────────────────────────────────────────── */
+.board{position:relative;padding:7px;border-radius:20px;background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.015));box-shadow:0 26px 60px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);flex-shrink:0;}
+canvas{display:block;border-radius:14px;touch-action:none;}
+
+#overlay{position:absolute;inset:7px;border-radius:14px;z-index:5;display:flex;align-items:center;justify-content:center;padding:12px;background:radial-gradient(ellipse at center,rgba(5,11,18,0.74) 0%,rgba(5,11,18,0.93) 78%);backdrop-filter:blur(5px);}
+#overlay.hide{display:none;}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;padding:18px 22px 20px;border-radius:20px;background:rgba(7,13,21,0.86);border:1px solid var(--border-h);box-shadow:0 22px 54px -22px rgba(0,0,0,.95);animation:pop .32s cubic-bezier(.2,1.45,.4,1);max-width:100%;}
+@keyframes pop{from{transform:scale(.9);opacity:0;}to{transform:none;opacity:1;}}
+.emoji{font-size:30px;line-height:1;filter:drop-shadow(0 6px 14px rgba(99,245,200,.35));}
+.ov-title{font-family:'Syne',sans-serif;font-weight:800;font-size:21px;letter-spacing:-.4px;text-align:center;background:linear-gradient(110deg,var(--c),#fff 58%,var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#result{display:none;flex-direction:column;align-items:center;gap:1px;}
+#result.show{display:flex;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-time{font-family:'Syne',sans-serif;font-weight:800;font-size:42px;line-height:1.05;letter-spacing:-1.5px;color:var(--c);text-shadow:0 0 26px rgba(99,245,200,.4);}
+#res-note{font-size:11px;font-weight:600;color:var(--muted);text-align:center;}
+#res-note.record{color:var(--gold);}
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;touch-action:manipulation;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(99,245,200,0.15);color:#b3fce6;box-shadow:inset 0 0 0 1px rgba(99,245,200,0.4);}
+.lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.hint{font-size:11px;line-height:1.5;color:var(--muted);text-align:center;max-width:240px;}
+.btn-col{display:flex;flex-direction:column;gap:6px;width:100%;margin-top:2px;}
+.play-btn{padding:11px 28px;border-radius:100px;border:1px solid rgba(99,245,200,.48);background:linear-gradient(180deg,rgba(99,245,200,.22),rgba(99,245,200,.09));color:#c6fdef;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;touch-action:manipulation;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(99,245,200,.32),rgba(99,245,200,.15));color:#fff;}
+.play-btn:active{transform:translateY(1px);}
+.ghost-btn{display:none;padding:8px 18px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .18s;touch-action:manipulation;}
+.ghost-btn.show{display:block;}
+.ghost-btn:hover{border-color:var(--border-h);color:var(--text);}
+
+/* ── krížový ovládač (len dotykové zariadenia) ────────────── */
+#dpad{display:none;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,52px);gap:5px;}
+body.touch #dpad{display:grid;}
+.d{display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));border:1px solid var(--border);border-radius:14px;color:var(--muted);cursor:pointer;transition:background .1s,border-color .1s,color .1s,transform .1s;}
+.d svg{width:17px;height:17px;}
+.d:active,.d.pressed{background:rgba(99,245,200,0.17);border-color:rgba(99,245,200,0.45);color:var(--c);transform:scale(.94);}
+#d-up{grid-column:2;grid-row:1;}#d-left{grid-column:1;grid-row:2;}#d-down{grid-column:2;grid-row:2;}#d-right{grid-column:3;grid-row:2;}
+@media (max-height:700px){
+  .page{padding:44px 10px 8px;gap:6px;}
+  .game-title{font-size:18px;}
+  #dpad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,44px);}
+}
+@media (max-height:820px){#overlay{justify-content:flex-start !important;overflow-y:auto !important;}}
 </style>
 </head>
 <body>
@@ -73,335 +92,547 @@ button,a,[onclick]{touch-action:manipulation;}
 <div class="page">
   <div class="game-title" id="lbl-title"></div>
 
-  <div class="hud">
-    <div class="stat-pill" id="pill-level"><span id="lbl-level-txt"></span>&nbsp;<span id="hud-level">1</span></div>
-    <div class="stat-pill" id="pill-time">⏱&nbsp;<span id="hud-time">0</span>s</div>
-    <div class="stat-pill" id="pill-best"><span id="lbl-best-txt"></span>&nbsp;<span id="hud-best">—</span></div>
+  <div class="top-bar" id="top-bar">
+    <div class="pill"><span id="lbl-level"></span><b id="hud-level">1</b></div>
+    <div class="pill"><span id="lbl-time"></span><b id="hud-time">0</b></div>
+    <div class="pill best" id="best-pill"><span id="lbl-best"></span><b id="hud-best">1</b></div>
+    <button id="hint-btn"><span id="lbl-hint"></span><b id="hint-left">3</b></button>
   </div>
 
-  <div id="canvas-wrap">
+  <div class="board" id="board">
     <canvas id="c"></canvas>
     <div id="overlay">
-      <div style="font-size:42px">🌀</div>
-      <h2 id="ov-title"></h2>
-      <div class="diff-row" id="diff-row"></div>
-      <div class="hint" id="ov-hint"></div>
-      <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
+      <div class="card">
+        <div id="brand"><div class="emoji">🌀</div></div>
+        <div class="ov-title" id="ov-title"></div>
+        <div id="result">
+          <div id="res-lbl"></div>
+          <div id="res-time">0</div>
+          <div id="res-note"></div>
+        </div>
+        <div class="lbl" id="lbl-diff"></div>
+        <div class="seg" id="diff-row"></div>
+        <div class="hint" id="ov-hint"></div>
+        <div class="btn-col">
+          <button class="play-btn" id="ov-play"></button>
+          <button class="ghost-btn" id="ov-ghost"></button>
+        </div>
+      </div>
     </div>
   </div>
 
   <div id="dpad">
-    <button class="d" id="d-up"    onpointerdown="tryMove(0,-1)">▲</button>
-    <button class="d" id="d-left"  onpointerdown="tryMove(-1,0)">◄</button>
-    <button class="d" id="d-down"  onpointerdown="tryMove(0,1)">▼</button>
-    <button class="d" id="d-right" onpointerdown="tryMove(1,0)">►</button>
+    <button class="d" id="d-up" aria-label="up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+    <button class="d" id="d-left" aria-label="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <button class="d" id="d-down" aria-label="down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+    <button class="d" id="d-right" aria-label="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
   </div>
 </div>
 
 <script>
-// ── i18n ──────────────────────────────────────────────────────────────────
-document.getElementById('lbl-back').textContent    = t('back');
-document.getElementById('lbl-title').textContent   = t('mazeTitle');
-document.getElementById('lbl-level-txt').textContent = t('mazeLevel');
-document.getElementById('lbl-best-txt').textContent  = t('mazeBest');
-document.getElementById('ov-title').textContent    = t('mazeTitle');
-document.getElementById('ov-hint').textContent     = t('mazeHint');
-document.getElementById('ov-btn').textContent      = t('mazePlay');
-
-// ── DIFFICULTY ────────────────────────────────────────────────────────────
+// ── nastavenia ────────────────────────────────────────────────────────────
 const DIFFS = [
-  { key:'easy',   cols:11, rows:11 },
-  { key:'medium', cols:17, rows:17 },
-  { key:'hard',   cols:25, rows:25 },
+  {key:'diffEasy',   cols:11, rows:11, hints:3},
+  {key:'diffMedium', cols:17, rows:17, hints:3},
+  {key:'diffHard',   cols:25, rows:25, hints:2},
 ];
 let diffIdx = 1;
-const diffRow = document.getElementById('diff-row');
-DIFFS.forEach((d, i) => {
-  const btn = document.createElement('button');
-  btn.className = 'diff-btn' + (i === diffIdx ? ' active' : '');
-  btn.textContent = t('diff' + d.key.charAt(0).toUpperCase() + d.key.slice(1));
-  btn.onclick = () => {
-    diffIdx = i;
-    diffRow.querySelectorAll('.diff-btn').forEach((b,j) => b.classList.toggle('active', j===i));
-  };
-  diffRow.appendChild(btn);
-});
+const BEST_KEY = 'maze_best_level';
+let best = +(localStorage.getItem(BEST_KEY) || 1);
 
-// ── CANVAS SETUP ──────────────────────────────────────────────────────────
-const C = document.getElementById('c');
-const ctx = C.getContext('2d');
-function getMaxSize() {
-  return Math.min(window.innerWidth - 32, window.innerHeight - 280, 420);
+function applyLang() {
+  document.getElementById('lbl-back').textContent  = t('back');
+  document.getElementById('lbl-title').textContent = t('mazeTitle');
+  document.getElementById('lbl-level').textContent = t('mazeLevel');
+  document.getElementById('lbl-time').textContent  = t('uiTime');
+  document.getElementById('lbl-best').textContent  = t('mazeBest');
+  document.getElementById('lbl-hint').textContent  = t('uiHint');
+  document.getElementById('ov-title').textContent  = t('mazeTitle');
+  document.getElementById('ov-hint').textContent   = t('mazeHint');
+  document.getElementById('ov-play').textContent   = t('mazePlay');
+  document.getElementById('ov-ghost').textContent  = t('mazeRestart');
+  document.getElementById('lbl-diff').textContent  = t('uiDifficulty');
+  document.getElementById('hud-best').textContent  = best;
+  buildDiffRow();
 }
 
-// ── GAME STATE ────────────────────────────────────────────────────────────
-let maze, player, exit, level, timerVal, timerInt, running, best, cellSize;
+function buildDiffRow() {
+  const row = document.getElementById('diff-row');
+  row.innerHTML = '';
+  DIFFS.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.textContent = t(d.key);
+    if (i === diffIdx) b.className = 'active';
+    b.onclick = () => { diffIdx = i; buildDiffRow(); };
+    row.appendChild(b);
+  });
+}
 
-// ── MAZE GENERATION (recursive backtracker) ───────────────────────────────
-function genMaze(cols, rows) {
-  // walls[r][c] = {r:bool, d:bool} — right wall, down wall
-  const w = Array.from({length: rows}, () =>
-    Array.from({length: cols}, () => ({ r: true, d: true }))
-  );
-  const visited = Array.from({length: rows}, () => Array(cols).fill(false));
+// ── canvas ────────────────────────────────────────────────────────────────
+const C = document.getElementById('c'), ctx = C.getContext('2d');
+let CS = 20, COLS = 17, ROWS = 17, DPR = 1, SIZE_W = 0, SIZE_H = 0;
+const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
 
-  function carve(r, c) {
-    visited[r][c] = true;
-    const dirs = [[0,1],[0,-1],[1,0],[-1,0]].sort(() => Math.random() - 0.5);
-    for (const [dr, dc] of dirs) {
-      const nr = r + dr, nc = c + dc;
-      if (nr < 0 || nr >= rows || nc < 0 || nc >= cols || visited[nr][nc]) continue;
-      // remove wall between (r,c) and (nr,nc)
-      if (dr === 0 && dc === 1)  w[r][c].r  = false;
-      if (dr === 0 && dc === -1) w[r][nc].r = false;
-      if (dr === 1 && dc === 0)  w[r][c].d  = false;
-      if (dr === -1 && dc === 0) w[nr][c].d = false;
-      carve(nr, nc);
-    }
+// dostupné miesto: spočítam výšku všetkého OKREM dosky, aby nevznikla spätná väzba
+function availBox() {
+  const vw = window.innerWidth || document.documentElement.clientWidth || 360;
+  const vh = window.innerHeight || document.documentElement.clientHeight || 640;
+  const page = document.querySelector('.page');
+  const board = document.getElementById('board');
+  let chrome = 210;
+  if (page && board) {
+    const cs = getComputedStyle(page);
+    const gap = parseFloat(cs.rowGap || cs.gap) || 10;
+    let others = 0, n = 0;
+    for (const el of page.children) { n++; if (el !== board) others += el.offsetHeight; }
+    chrome = others + gap * Math.max(0, n - 1)
+           + (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0)
+           + 16;                                   // vnútorný okraj dosky
   }
-  carve(0, 0);
+  return {
+    w: Math.min(vw - 30, 520),
+    h: clamp(vh - chrome, 180, 700)
+  };
+}
+
+let vw = -1, vh = -1;
+function layout() {
+  vw = window.innerWidth; vh = window.innerHeight;
+  const box = availBox();
+  CS = Math.max(9, Math.floor(Math.min(box.w / COLS, box.h / ROWS)));
+  SIZE_W = CS * COLS; SIZE_H = CS * ROWS;
+  DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  C.width = Math.round(SIZE_W * DPR); C.height = Math.round(SIZE_H * DPR);
+  C.style.width = SIZE_W + 'px'; C.style.height = SIZE_H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
+// ── stav ──────────────────────────────────────────────────────────────────
+const ST = {MENU:'menu', PLAY:'play', PAUSE:'pause', WON:'won'};
+let state = ST.MENU;
+let maze = null, seen = null, player = null, exitCell = {r:0, c:0};
+let level = 1, hintsLeft = 3, hintPath = null, hintT = 0;
+let timeMs = 0, trail = [], parts = [], bump = null, glowT = 0;
+const held = {dx:0, dy:0, t:0};
+
+// ── generovanie (iteratívne, aby hlboké labyrinty nepreťažili zásobník) ──
+function genMaze(cols, rows) {
+  const w = Array.from({length: rows}, () => Array.from({length: cols}, () => ({r:true, d:true})));
+  const vis = Array.from({length: rows}, () => Array(cols).fill(false));
+  const stack = [[0, 0]];
+  vis[0][0] = true;
+  while (stack.length) {
+    const [r, c] = stack[stack.length - 1];
+    const opts = [];
+    if (r > 0 && !vis[r-1][c]) opts.push([-1, 0]);
+    if (r < rows-1 && !vis[r+1][c]) opts.push([1, 0]);
+    if (c > 0 && !vis[r][c-1]) opts.push([0, -1]);
+    if (c < cols-1 && !vis[r][c+1]) opts.push([0, 1]);
+    if (!opts.length) { stack.pop(); continue; }
+    const [dr, dc] = opts[Math.floor(Math.random() * opts.length)];
+    const nr = r + dr, nc = c + dc;
+    if (dr === 0 && dc === 1)  w[r][c].r = false;
+    if (dr === 0 && dc === -1) w[r][nc].r = false;
+    if (dr === 1 && dc === 0)  w[r][c].d = false;
+    if (dr === -1 && dc === 0) w[nr][c].d = false;
+    vis[nr][nc] = true;
+    stack.push([nr, nc]);
+  }
   return w;
 }
 
-// ── START / RESTART ───────────────────────────────────────────────────────
-function startGame() {
-  document.getElementById('overlay').style.display = 'none';
-  level = 1;
-  best = best || null;
-  document.getElementById('hud-level').textContent = level;
-  startLevel();
-}
-
-function startLevel() {
-  const d = DIFFS[diffIdx];
-  const cols = d.cols + (level - 1) * 2;
-  const rows = d.rows + (level - 1) * 2;
-  cellSize = Math.floor(getMaxSize() / Math.max(cols, rows));
-  C.width  = cols * cellSize;
-  C.height = rows * cellSize;
-
-  maze   = genMaze(cols, rows);
-  player = { r: 0, c: 0 };
-  exit   = { r: rows - 1, c: cols - 1 };
-
-  clearInterval(timerInt);
-  timerVal = 0;
-  document.getElementById('hud-time').textContent = '0';
-  timerInt = setInterval(() => {
-    timerVal++;
-    document.getElementById('hud-time').textContent = timerVal;
-  }, 1000);
-
-  running = true;
-  draw();
-}
-
-// ── DRAW ──────────────────────────────────────────────────────────────────
-function draw() {
-  const cols = maze[0].length, rows = maze.length;
-  const cs = cellSize;
-
-  ctx.fillStyle = '#0c0c10';
-  ctx.fillRect(0, 0, C.width, C.height);
-
-  // Draw visited path (fog-free — full visibility)
-  const wallColor  = 'rgba(255,255,255,0.55)';
-  const wallWidth  = Math.max(1.5, cs * 0.08);
-
-  // Floor tiles
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      ctx.fillStyle = 'rgba(255,255,255,0.02)';
-      ctx.fillRect(c*cs+1, r*cs+1, cs-2, cs-2);
-    }
-  }
-
-  // Exit glow
-  ctx.fillStyle = 'rgba(77,255,145,0.18)';
-  ctx.fillRect(exit.c*cs, exit.r*cs, cs, cs);
-  ctx.fillStyle = 'rgba(77,255,145,0.35)';
-  ctx.font = `${Math.floor(cs*0.6)}px serif`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('🚪', exit.c*cs + cs/2, exit.r*cs + cs/2);
-
-  // Walls
-  ctx.strokeStyle = wallColor;
-  ctx.lineWidth = wallWidth;
-  ctx.lineCap = 'round';
-
-  // Outer border
-  ctx.strokeRect(wallWidth/2, wallWidth/2, C.width - wallWidth, C.height - wallWidth);
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      // Right wall
-      if (maze[r][c].r && c < cols - 1) {
-        ctx.beginPath();
-        ctx.moveTo((c+1)*cs, r*cs);
-        ctx.lineTo((c+1)*cs, (r+1)*cs);
-        ctx.stroke();
-      }
-      // Down wall
-      if (maze[r][c].d && r < rows - 1) {
-        ctx.beginPath();
-        ctx.moveTo(c*cs, (r+1)*cs);
-        ctx.lineTo((c+1)*cs, (r+1)*cs);
-        ctx.stroke();
-      }
-    }
-  }
-
-  // Player
-  const px = player.c * cs + cs/2;
-  const py = player.r * cs + cs/2;
-  const pr = cs * 0.3;
-  ctx.fillStyle = '#fff';
-  ctx.shadowColor = 'rgba(77,255,145,0.8)';
-  ctx.shadowBlur  = 12;
-  ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI*2); ctx.fill();
-  ctx.shadowBlur = 0;
-  // direction dot
-  ctx.fillStyle = 'rgba(77,255,145,0.9)';
-  ctx.beginPath(); ctx.arc(px, py, pr*0.35, 0, Math.PI*2); ctx.fill();
-}
-
-// ── MOVEMENT ──────────────────────────────────────────────────────────────
-function canMove(r, c, dr, dc) {
-  const cols = maze[0].length, rows = maze.length;
+function open(r, c, dr, dc) {
   const nr = r + dr, nc = c + dc;
-  if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) return false;
-  // Check wall between (r,c) and (nr,nc)
-  if (dr === 0 && dc === 1)  return !maze[r][c].r;   // right
-  if (dr === 0 && dc === -1) return !maze[r][nc].r;  // left
-  if (dr === 1 && dc === 0)  return !maze[r][c].d;   // down
-  if (dr === -1 && dc === 0) return !maze[nr][c].d;  // up
+  if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return false;
+  if (dr === 0 && dc === 1)  return !maze[r][c].r;
+  if (dr === 0 && dc === -1) return !maze[r][nc].r;
+  if (dr === 1 && dc === 0)  return !maze[r][c].d;
+  if (dr === -1 && dc === 0) return !maze[nr][c].d;
   return false;
 }
 
-function tryMove(dc, dr) {
-  if (!running) return;
-  if (!canMove(player.r, player.c, dr, dc)) {
-    // Flash wall feedback
-    const btn = {'-1,0':'d-left','1,0':'d-right','0,-1':'d-up','0,1':'d-down'}[`${dc},${dr}`];
-    if (btn) { const el=document.getElementById(btn); el.classList.add('pressed'); setTimeout(()=>el.classList.remove('pressed'),120); }
+// najkratšia cesta k východu (na nápovedu)
+function solve() {
+  const prev = Array.from({length: ROWS}, () => Array(COLS).fill(null));
+  const q = [[Math.round(player.r), Math.round(player.c)]];
+  const seenB = Array.from({length: ROWS}, () => Array(COLS).fill(false));
+  seenB[q[0][0]][q[0][1]] = true;
+  while (q.length) {
+    const [r, c] = q.shift();
+    if (r === exitCell.r && c === exitCell.c) break;
+    for (const [dr, dc] of [[0,1],[1,0],[0,-1],[-1,0]]) {
+      if (!open(r, c, dr, dc)) continue;
+      const nr = r + dr, nc = c + dc;
+      if (seenB[nr][nc]) continue;
+      seenB[nr][nc] = true; prev[nr][nc] = [r, c];
+      q.push([nr, nc]);
+    }
+  }
+  const path = [];
+  let cur = [exitCell.r, exitCell.c];
+  while (cur) { path.push(cur); cur = prev[cur[0]][cur[1]]; }
+  return path.reverse();
+}
+
+function startLevel(keepLevel) {
+  const d = DIFFS[diffIdx];
+  if (!keepLevel) level = 1;
+  COLS = d.cols + (level - 1) * 2;
+  ROWS = d.rows + (level - 1) * 2;
+  maze = genMaze(COLS, ROWS);
+  seen = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+  player = {r: 0, c: 0, fromR: 0, fromC: 0, t: 1};
+  seen[0][0] = 1;
+  exitCell = {r: ROWS - 1, c: COLS - 1};
+  hintsLeft = d.hints; hintPath = null; hintT = 0;
+  timeMs = 0; trail = []; parts = []; bump = null;
+  layout();
+  syncHud();
+  document.getElementById('overlay').classList.add('hide');
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('brand').style.display = '';
+  document.getElementById('ov-ghost').classList.remove('show');
+  document.getElementById('ov-title').textContent = t('mazeTitle');
+  document.getElementById('ov-play').textContent = t('mazePlay');
+  state = ST.PLAY;
+}
+
+function syncHud() {
+  document.getElementById('hud-level').textContent = level;
+  document.getElementById('hud-time').textContent = Math.floor(timeMs / 1000);
+  document.getElementById('hud-best').textContent = best;
+  document.getElementById('hint-left').textContent = hintsLeft;
+  document.getElementById('hint-btn').disabled = hintsLeft <= 0 || state !== ST.PLAY;
+}
+
+function saveBest() {
+  if (level > best) {
+    best = level;
+    try { localStorage.setItem(BEST_KEY, best); } catch (_) {}
+    document.getElementById('hud-best').textContent = best;
+    document.getElementById('best-pill').classList.add('record');
+    return true;
+  }
+  return false;
+}
+
+function useHint() {
+  if (state !== ST.PLAY || hintsLeft <= 0) return;
+  hintsLeft--;
+  hintPath = solve();
+  hintT = 2.2;
+  syncHud();
+}
+
+// ── pohyb ─────────────────────────────────────────────────────────────────
+function step(dx, dy) {
+  if (state === ST.PAUSE) { state = ST.PLAY; return; }
+  if (state !== ST.PLAY || player.t < 1) return;
+  const r = Math.round(player.r), c = Math.round(player.c);
+  const el = document.getElementById(dy < 0 ? 'd-up' : dy > 0 ? 'd-down' : dx > 0 ? 'd-right' : 'd-left');
+  if (el) { el.classList.add('pressed'); setTimeout(() => el.classList.remove('pressed'), 110); }
+  if (!open(r, c, dy, dx)) {
+    bump = {r, c, dx, dy, t: 1};
     return;
   }
-  player.r += dr;
-  player.c += dc;
+  player.fromR = r; player.fromC = c;
+  player.r = r + dy; player.c = c + dx;
+  player.t = 0;
+  seen[player.r][player.c] = 1;
+  trail.push({r: player.r, c: player.c, t: 1});
+  if (trail.length > 60) trail.shift();
+  if (hintPath && hintPath.length > 1 && hintPath[1][0] === player.r && hintPath[1][1] === player.c) hintPath.shift();
+}
 
-  // d-pad pulse
-  const btn = {'-1,0':'d-left','1,0':'d-right','0,-1':'d-up','0,1':'d-down'}[`${dc},${dr}`];
-  if (btn) { const el=document.getElementById(btn); el.classList.add('pressed'); setTimeout(()=>el.classList.remove('pressed'),120); }
+function reachExit() {
+  state = ST.WON;
+  const cx = (exitCell.c + 0.5) * CS, cy = (exitCell.r + 0.5) * CS;
+  for (let i = 0; i < 26; i++) {
+    const a = Math.random() * Math.PI * 2, v = (0.5 + Math.random() * 2.2) * CS;
+    parts.push({x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1});
+  }
+  const secs = Math.floor(timeMs / 1000);
+  level++;
+  const rec = saveBest();
+  setTimeout(() => {
+    if (state !== ST.WON) return;
+    document.getElementById('ov-title').textContent = t('mazeEscaped');
+    document.getElementById('res-lbl').textContent = t('uiTime');
+    document.getElementById('res-time').textContent = secs + 's';
+    const note = document.getElementById('res-note');
+    note.textContent = (rec ? '🏆 ' : '') + t('mazeLevel') + ' ' + level + ' — ' + t('mazeBigger');
+    note.classList.toggle('record', rec);
+    document.getElementById('result').classList.add('show');
+    document.getElementById('brand').innerHTML = '<div class="emoji">🏆</div>';
+    document.getElementById('ov-play').textContent = t('mazeNext');
+    document.getElementById('ov-play').dataset.next = '1';
+    document.getElementById('ov-ghost').classList.add('show');
+    document.getElementById('overlay').classList.remove('hide');
+    syncHud();
+    state = ST.MENU;
+  }, 520);
+}
+
+function togglePause() {
+  if (state === ST.PLAY) state = ST.PAUSE;
+  else if (state === ST.PAUSE) state = ST.PLAY;
+  syncHud();
+}
+
+// ── slučka ────────────────────────────────────────────────────────────────
+let prevTs = 0;
+function frame(ts) {
+  requestAnimationFrame(frame);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000;
+  prevTs = ts;
+  if (document.hidden) return;
+  if (vw !== window.innerWidth || vh !== window.innerHeight) layout();
+  dt = Math.min(dt, 1 / 20);
+  glowT += dt;
+
+  if (state === ST.PLAY) {
+    const before = Math.floor(timeMs / 1000);
+    timeMs += dt * 1000;
+    if (Math.floor(timeMs / 1000) !== before) document.getElementById('hud-time').textContent = Math.floor(timeMs / 1000);
+    if (player.t < 1) {
+      player.t = Math.min(1, player.t + dt * 11);
+      if (player.t >= 1 && Math.round(player.r) === exitCell.r && Math.round(player.c) === exitCell.c) reachExit();
+    } else if (held.dx || held.dy) {
+      held.t -= dt;
+      if (held.t <= 0) { held.t = 0.115; step(held.dx, held.dy); }
+    }
+  }
+
+  // efekty
+  for (let i = trail.length - 1; i >= 0; i--) { trail[i].t -= dt * 0.5; if (trail[i].t <= 0) trail.splice(i, 1); }
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i];
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    p.vx *= 0.94; p.vy *= 0.94;
+    p.life -= dt * 1.4;
+    if (p.life <= 0) parts.splice(i, 1);
+  }
+  if (bump) { bump.t -= dt * 4; if (bump.t <= 0) bump = null; }
+  if (hintT > 0) hintT = Math.max(0, hintT - dt);
 
   draw();
+}
 
-  if (player.r === exit.r && player.c === exit.c) {
-    clearInterval(timerInt);
-    running = false;
-    setTimeout(() => levelWon(), 150);
+// ── kreslenie ─────────────────────────────────────────────────────────────
+function draw() {
+  if (!maze) return;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // podklad
+  const bg = ctx.createLinearGradient(0, 0, SIZE_W, SIZE_H);
+  bg.addColorStop(0, '#0a1520');
+  bg.addColorStop(0.55, '#070f18');
+  bg.addColorStop(1, '#0a1018');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, SIZE_W, SIZE_H);
+
+  // navštívené políčka
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (!seen[r][c]) continue;
+    ctx.fillStyle = 'rgba(99,245,200,0.05)';
+    ctx.fillRect(c * CS + 1, r * CS + 1, CS - 2, CS - 2);
+  }
+
+  // svieža stopa za hráčom
+  for (const s of trail) {
+    ctx.fillStyle = 'rgba(99,245,200,' + (s.t * 0.16).toFixed(3) + ')';
+    ctx.fillRect(s.c * CS + 1, s.r * CS + 1, CS - 2, CS - 2);
+  }
+
+  const px = (player.fromC + (player.c - player.fromC) * ease(player.t) + 0.5) * CS;
+  const py = (player.fromR + (player.r - player.fromR) * ease(player.t) + 0.5) * CS;
+
+  // svetlo okolo hráča
+  const lg = ctx.createRadialGradient(px, py, 0, px, py, CS * 4.2);
+  lg.addColorStop(0, 'rgba(99,245,200,0.16)');
+  lg.addColorStop(1, 'transparent');
+  ctx.fillStyle = lg;
+  ctx.fillRect(px - CS * 4.2, py - CS * 4.2, CS * 8.4, CS * 8.4);
+
+  // nápoveda: svietiaca čiara po najkratšej ceste
+  if (hintPath && hintT > 0 && hintPath.length > 1) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, hintT) * 0.75;
+    ctx.strokeStyle = '#8b9cff';
+    ctx.lineWidth = Math.max(2, CS * 0.16);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.shadowColor = 'rgba(139,156,255,0.9)';
+    ctx.shadowBlur = CS * 0.6;
+    ctx.beginPath();
+    hintPath.forEach(([r, c], i) => {
+      const x = (c + 0.5) * CS, y = (r + 0.5) * CS;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    });
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // východ — pulzujúci portál
+  const ex = (exitCell.c + 0.5) * CS, ey = (exitCell.r + 0.5) * CS;
+  const pulse = 0.5 + 0.5 * Math.sin(glowT * 2.6);
+  ctx.save();
+  const eg = ctx.createRadialGradient(ex, ey, 0, ex, ey, CS * 1.1);
+  eg.addColorStop(0, 'rgba(99,245,200,' + (0.5 + pulse * 0.3) + ')');
+  eg.addColorStop(1, 'transparent');
+  ctx.fillStyle = eg;
+  ctx.fillRect(ex - CS * 1.1, ey - CS * 1.1, CS * 2.2, CS * 2.2);
+  ctx.strokeStyle = 'rgba(190,255,238,' + (0.55 + pulse * 0.4) + ')';
+  ctx.lineWidth = Math.max(1.4, CS * 0.08);
+  for (let i = 0; i < 2; i++) {
+    const rr = CS * (0.2 + i * 0.13) + pulse * CS * 0.08;
+    ctx.beginPath(); ctx.arc(ex, ey, rr, 0, 6.2832); ctx.stroke();
+  }
+  ctx.restore();
+
+  // steny ako svietiace kapsuly
+  const wallW = Math.max(1.6, CS * 0.15);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(150,220,255,0.75)';
+  ctx.lineWidth = wallW;
+  ctx.lineCap = 'round';
+  ctx.shadowColor = 'rgba(120,200,255,0.55)';
+  ctx.shadowBlur = Math.max(3, CS * 0.32);
+  ctx.beginPath();
+  // vonkajší obvod
+  const h = wallW / 2;
+  ctx.moveTo(h, h); ctx.lineTo(SIZE_W - h, h);
+  ctx.lineTo(SIZE_W - h, SIZE_H - h); ctx.lineTo(h, SIZE_H - h); ctx.closePath();
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (maze[r][c].r && c < COLS - 1) { ctx.moveTo((c+1)*CS, r*CS); ctx.lineTo((c+1)*CS, (r+1)*CS); }
+      if (maze[r][c].d && r < ROWS - 1) { ctx.moveTo(c*CS, (r+1)*CS); ctx.lineTo((c+1)*CS, (r+1)*CS); }
+    }
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // náraz do steny
+  if (bump) {
+    const bx = (bump.c + 0.5 + bump.dx * 0.5) * CS, by = (bump.r + 0.5 + bump.dy * 0.5) * CS;
+    ctx.save();
+    ctx.globalAlpha = bump.t * 0.8;
+    ctx.strokeStyle = '#ff8fa3';
+    ctx.lineWidth = Math.max(2, CS * 0.18);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    if (bump.dx) { ctx.moveTo(bx, by - CS * 0.34); ctx.lineTo(bx, by + CS * 0.34); }
+    else { ctx.moveTo(bx - CS * 0.34, by); ctx.lineTo(bx + CS * 0.34, by); }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // hráč
+  const pr = CS * 0.3;
+  ctx.save();
+  ctx.shadowColor = 'rgba(99,245,200,0.95)';
+  ctx.shadowBlur = CS * 0.7;
+  const pg = ctx.createRadialGradient(px - pr * 0.3, py - pr * 0.35, pr * 0.1, px, py, pr);
+  pg.addColorStop(0, '#ffffff');
+  pg.addColorStop(0.5, '#9dffe4');
+  pg.addColorStop(1, '#1c9e7c');
+  ctx.fillStyle = pg;
+  ctx.beginPath(); ctx.arc(px, py, pr, 0, 6.2832); ctx.fill();
+  ctx.restore();
+
+  // iskry
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of parts) {
+    ctx.globalAlpha = Math.max(0, p.life) * 0.9;
+    ctx.fillStyle = '#b6ffe8';
+    ctx.beginPath(); ctx.arc(p.x, p.y, CS * 0.1 * Math.max(0.3, p.life), 0, 6.2832); ctx.fill();
+  }
+  ctx.restore();
+
+  if (state === ST.PAUSE) {
+    ctx.fillStyle = 'rgba(5,11,18,0.74)';
+    ctx.fillRect(0, 0, SIZE_W, SIZE_H);
+    ctx.fillStyle = 'rgba(234,246,255,0.92)';
+    ctx.font = '800 ' + Math.round(Math.min(30, SIZE_H * 0.09)) + "px Syne, sans-serif";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(t('uiPaused'), SIZE_W / 2, SIZE_H / 2);
+    ctx.textBaseline = 'alphabetic';
   }
 }
+function ease(t) { return t >= 1 ? 1 : 1 - Math.pow(1 - t, 2.4); }
 
-function levelWon() {
-  const time = timerVal;
-  if (!best || time < best) {
-    best = time;
-    document.getElementById('hud-best').textContent = best + 's';
-  }
-  level++;
-  document.getElementById('hud-level').textContent = level;
-
-  const ov = document.getElementById('overlay');
-  ov.innerHTML = `
-    <div style="font-size:42px">🏆</div>
-    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px">${t('mazeEscaped')}</h2>
-    <div style="font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--c);letter-spacing:-2px">${time}s</div>
-    <div style="font-size:12px;color:var(--muted)">${t('mazeLevel')} ${level} — ${t('mazeBigger')}</div>
-    <button class="play-btn" onclick="startLevel();document.getElementById('overlay').style.display='none';" style="margin-top:4px">${t('mazeNext')}</button>
-    <button onclick="restartFromOne()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(240,238,255,0.38);padding:7px 18px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;margin-top:2px">${t('mazeRestart')}</button>
-  `;
-  ov.style.display = 'flex';
-}
-
-function restartFromOne() {
-  level = 1;
-  document.getElementById('hud-level').textContent = 1;
-  document.getElementById('overlay').innerHTML = getInitOverlay();
-  startLevel();
-  document.getElementById('overlay').style.display = 'none';
-}
-
-// ── KEYBOARD ──────────────────────────────────────────────────────────────
+// ── vstup ─────────────────────────────────────────────────────────────────
+const KEYS = {
+  ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+  KeyW:[0,-1], KeyS:[0,1], KeyA:[-1,0], KeyD:[1,0]
+};
 document.addEventListener('keydown', e => {
-  const map = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
-                KeyW:[0,-1], KeyS:[0,1], KeyA:[-1,0], KeyD:[1,0] };
-  if (map[e.code]) { e.preventDefault(); const [dc,dr]=map[e.code]; tryMove(dc,dr); }
+  if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); if (state === ST.PLAY || state === ST.PAUSE) togglePause(); return; }
+  if (e.code === 'KeyH') { e.preventDefault(); useHint(); return; }
+  if (state === ST.MENU) {
+    if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); document.getElementById('ov-play').click(); }
+    return;
+  }
+  const m = KEYS[e.code];
+  if (!m) return;
+  e.preventDefault();
+  if (held.dx !== m[0] || held.dy !== m[1]) { held.dx = m[0]; held.dy = m[1]; held.t = 0.22; step(m[0], m[1]); }
+});
+document.addEventListener('keyup', e => {
+  const m = KEYS[e.code];
+  if (m && held.dx === m[0] && held.dy === m[1]) { held.dx = 0; held.dy = 0; }
 });
 
-// ── SWIPE ─────────────────────────────────────────────────────────────────
-// ── TOUCH: svižné posúvanie prstom ───────────────────────────────────────
-// Pohyb sa spustí hneď keď prst prejde THRESHOLD pixelov od poslednej pozície
-// Nie je viazaný na bunky — reaguje na pixel-vzdialenosť pre rýchlu odozvu
-let lastTouchX = 0, lastTouchY = 0;
-const TOUCH_THRESHOLD = cellSize * 0.35; // 35% veľkosti bunky stačí na pohyb
+[['d-up',0,-1],['d-left',-1,0],['d-down',0,1],['d-right',1,0]].forEach(([id, dx, dy]) => {
+  const el = document.getElementById(id);
+  el.addEventListener('pointerdown', e => { e.preventDefault(); held.dx = dx; held.dy = dy; held.t = 0.24; step(dx, dy); });
+  const stop = () => { if (held.dx === dx && held.dy === dy) { held.dx = 0; held.dy = 0; } };
+  el.addEventListener('pointerup', stop);
+  el.addEventListener('pointercancel', stop);
+  el.addEventListener('pointerleave', stop);
+});
 
-C.addEventListener('touchstart', e => {
-  e.preventDefault();
-  lastTouchX = e.touches[0].clientX;
-  lastTouchY = e.touches[0].clientY;
-}, { passive: false });
-
-C.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if (!running) return;
-  const tx = e.touches[0].clientX;
-  const ty = e.touches[0].clientY;
-  const dx = tx - lastTouchX;
-  const dy = ty - lastTouchY;
+// plynulé vedenie prstom po doske
+let tx = 0, ty = 0, tid = null;
+C.addEventListener('pointerdown', e => { tid = e.pointerId; tx = e.clientX; ty = e.clientY; });
+C.addEventListener('pointermove', e => {
+  if (tid !== e.pointerId || state !== ST.PLAY) return;
   const rect = C.getBoundingClientRect();
-  const scale = C.width / rect.width;
-  const sdx = dx * scale;
-  const sdy = dy * scale;
-  const thr = cellSize * 0.35;
+  const scale = SIZE_W / rect.width;
+  const dx = (e.clientX - tx) * scale, dy = (e.clientY - ty) * scale;
+  const thr = CS * 0.5;
+  if (Math.abs(dx) < thr && Math.abs(dy) < thr) return;
+  if (Math.abs(dx) >= Math.abs(dy)) step(dx > 0 ? 1 : -1, 0);
+  else step(0, dy > 0 ? 1 : -1);
+  tx = e.clientX; ty = e.clientY;
+});
+C.addEventListener('pointerup', e => {
+  if (tid !== e.pointerId) return;
+  tid = null;
+  if (state === ST.PAUSE) state = ST.PLAY;
+});
+C.addEventListener('pointercancel', () => { tid = null; });
 
-  if (Math.abs(sdx) >= thr || Math.abs(sdy) >= thr) {
-    // Pohni sa v dominantnom smere
-    if (Math.abs(sdx) >= Math.abs(sdy)) {
-      tryMove(sdx > 0 ? 1 : -1, 0);
-    } else {
-      tryMove(0, sdy > 0 ? 1 : -1);
-    }
-    // Reset referenčného bodu — pohyb začína znovu od aktuálnej pozície
-    lastTouchX = tx;
-    lastTouchY = ty;
-  }
-}, { passive: false });
+document.getElementById('hint-btn').onclick = useHint;
+document.getElementById('ov-play').onclick = () => {
+  const next = document.getElementById('ov-play').dataset.next === '1';
+  document.getElementById('ov-play').dataset.next = '';
+  startLevel(next);
+};
+document.getElementById('ov-ghost').onclick = () => { document.getElementById('ov-play').dataset.next = ''; startLevel(false); };
+window.addEventListener('blur', () => { if (state === ST.PLAY) state = ST.PAUSE; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && state === ST.PLAY) state = ST.PAUSE; });
 
-C.addEventListener('touchend', e => {
-  e.preventDefault();
-}, { passive: false });
-
-// ── INIT ──────────────────────────────────────────────────────────────────
-level = 1; best = null;
-// Set initial canvas size for overlay
-const d0 = DIFFS[diffIdx];
-cellSize = Math.floor(getMaxSize() / Math.max(d0.cols, d0.rows));
-C.width = d0.cols * cellSize; C.height = d0.rows * cellSize;
-ctx.fillStyle = '#0c0c10'; ctx.fillRect(0,0,C.width,C.height);
-
-// ── RESIZE: rescale canvas to fit new viewport (e.g. after rotation) ──────
-function resizeCanvas() {
-  const dCur = DIFFS[diffIdx];
-  const cols = maze ? maze[0].length : dCur.cols;
-  const rows = maze ? maze.length : dCur.rows;
-  cellSize = Math.floor(getMaxSize() / Math.max(cols, rows));
-  C.width = cols * cellSize; C.height = rows * cellSize;
-  if (maze) draw();
-  else { ctx.fillStyle = '#0c0c10'; ctx.fillRect(0,0,C.width,C.height); }
-}
-window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 250));
-
+if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) document.body.classList.add('touch');
+COLS = DIFFS[diffIdx].cols; ROWS = DIFFS[diffIdx].rows;
+maze = genMaze(COLS, ROWS);
+seen = Array.from({length: ROWS}, () => Array(COLS).fill(0));
+player = {r:0, c:0, fromR:0, fromC:0, t:1};
+exitCell = {r: ROWS - 1, c: COLS - 1};
+layout();
+applyLang();
+syncHud();
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>

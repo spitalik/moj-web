@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Road Hopper · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#04100e;--text:#eefff8;--muted:rgba(238,255,248,0.42);--dim:rgba(238,255,248,0.18);
+  --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.17);
+  --c:#5dffb0;--c2:#ffc24d;--gold:#ffd166;--danger:#ff6b6b;
+}
+html,body{background:var(--bg);height:100%;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none;}
+button,a,[onclick]{touch-action:manipulation;}
+
+#back-btn{position:fixed;top:14px;left:14px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(6,20,18,0.72);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:9px;left:9px;padding:6px 11px;font-size:11px;}}
+
+/* ── HUD ──────────────────────────────────────────────────── */
+#hud{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:12;display:none;align-items:center;gap:7px;pointer-events:none;}
+#hud.show{display:flex;}
+.pill{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:100px;background:rgba(6,20,18,0.62);backdrop-filter:blur(8px);border:1px solid var(--border);font-size:9px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);transition:transform .18s;}
+.pill.best b{color:var(--gold);}
+.pill.lv b{color:var(--c2);}
+.pill.best.record{border-color:rgba(255,209,102,.45);}
+.pill b.bump{transform:scale(1.3);}
+.lifes{display:flex;gap:4px;}
+.life{width:8px;height:8px;border-radius:2px;background:var(--danger);box-shadow:0 0 8px rgba(255,107,107,.85);}
+.life.gone{background:rgba(255,255,255,0.12);box-shadow:none;}
+/* pod 620 px by HUD narazil do tlačidla Späť, tak z pilulek nechám len čísla */
+@media(max-width:620px){#hud{gap:5px;left:auto;right:58px;transform:none;}.pill{padding:4px 9px;gap:6px;}.pill b{font-size:14px;}.pill span{display:none;}}
+@media(max-width:380px){.pill b{font-size:13px;}}
+
+#pause-btn{position:fixed;top:14px;right:14px;z-index:60;display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(6,20,18,0.7);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);border-radius:50%;cursor:pointer;}
+#pause-btn.show{display:flex;}
+#pause-btn:hover{border-color:var(--border-h);color:var(--text);}
+
+/* ── krížový ovládač (len dotykové zariadenia) ────────────── */
+#dpad{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:none;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;z-index:12;}
+body.touch #dpad{display:grid;}
+.d{display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));border:1px solid var(--border);border-radius:16px;color:var(--muted);cursor:pointer;transition:background .1s,border-color .1s,color .1s,transform .1s;}
+.d svg{width:19px;height:19px;}
+.d:active,.d.pressed{background:rgba(93,255,176,0.18);border-color:rgba(93,255,176,0.45);color:var(--c);transform:scale(.94);}
+#d-up{grid-column:2;grid-row:1;}#d-left{grid-column:1;grid-row:2;}#d-down{grid-column:2;grid-row:2;}#d-right{grid-column:3;grid-row:2;}
+
+/* ── karty ────────────────────────────────────────────────── */
+#overlay{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at center,rgba(4,16,14,0.78) 0%,rgba(4,16,14,0.95) 78%);backdrop-filter:blur(6px);}
+#overlay.hide{display:none;}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;width:100%;max-width:330px;padding:26px 24px 24px;border-radius:24px;background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid var(--border-h);box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);animation:pop .34s cubic-bezier(.2,1.4,.4,1);}
+@keyframes pop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+.card::before{content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;background:linear-gradient(120deg,rgba(93,255,176,.45),transparent 42%,transparent 58%,rgba(255,194,77,.45));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.emoji{font-size:36px;line-height:1;filter:drop-shadow(0 6px 16px rgba(93,255,176,.4));}
+.title{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-.5px;text-align:center;background:linear-gradient(110deg,var(--c) 5%,#fff 52%,var(--c2) 95%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#result{display:none;flex-direction:column;align-items:center;gap:2px;}
+#result.show{display:flex;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-score{font-family:'Syne',sans-serif;font-weight:800;font-size:50px;line-height:1.05;letter-spacing:-2px;color:var(--c);text-shadow:0 0 30px rgba(93,255,176,.4);}
+#res-note{font-size:11.5px;font-weight:600;color:var(--muted);}
+#res-note.record{color:var(--gold);}
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:6px 15px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;touch-action:manipulation;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(93,255,176,0.16);color:#b6ffdd;box-shadow:inset 0 0 0 1px rgba(93,255,176,0.4);}
+.lbl{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.hint{font-size:11.5px;line-height:1.55;color:var(--muted);text-align:center;}
+.play-btn{margin-top:3px;width:100%;padding:13px 30px;border-radius:100px;border:1px solid rgba(93,255,176,.5);background:linear-gradient(180deg,rgba(93,255,176,.24),rgba(93,255,176,.1));color:#c8ffe8;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;touch-action:manipulation;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(93,255,176,.34),rgba(93,255,176,.16));color:#fff;box-shadow:0 0 24px -6px rgba(93,255,176,.5);}
+.play-btn:active{transform:translateY(1px);}
+@media(max-height:640px){.card{gap:8px;padding:18px 20px;}.emoji{display:none;}.title{font-size:20px;}#res-score{font-size:38px;}}
+@media (max-height:820px){#overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div class="pill"><span id="lbl-score"></span><b id="hud-score">0</b></div>
+  <div class="pill lv"><span id="lbl-level"></span><b id="hud-level">1</b></div>
+  <div class="pill best" id="best-pill"><span id="lbl-best"></span><b id="hud-best">0</b></div>
+  <div class="pill"><div class="lifes" id="lifes"></div></div>
+</div>
+
+<button id="pause-btn" aria-label="pause">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.4"/><rect x="14" y="4" width="4" height="16" rx="1.4"/></svg>
+</button>
+
+<div id="dpad">
+  <button class="d" id="d-up" aria-label="up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+  <button class="d" id="d-left" aria-label="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <button class="d" id="d-down" aria-label="down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></button>
+  <button class="d" id="d-right" aria-label="right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+</div>
+
+<div id="overlay">
+  <div class="card">
+    <div id="brand"><div class="emoji">🐸</div></div>
+    <div class="title" id="ov-title"></div>
+    <div id="result">
+      <div id="res-lbl"></div>
+      <div id="res-score">0</div>
+      <div id="res-note"></div>
+    </div>
+    <div class="lbl" id="lbl-diff"></div>
+    <div class="seg" id="diff-row"></div>
+    <div class="hint" id="ov-hint"></div>
+    <button class="play-btn" id="ov-play"></button>
+  </div>
+</div>
+
+<script>
+// ── nastavenia ────────────────────────────────────────────────────────────
+const COLS = 11, ROWS = 13;
+const GOAL_ROW = 0, RIVER = [1, 5], MID_ROW = 6, ROAD = [7, 11], START_ROW = 12;
+const GOAL_COLS = [1, 3, 5, 7, 9];          // päť cieľových plôch
+
+// rýchlosti v šírkach políčka za sekundu
+const DIFFS = [
+  {key:'diffEasy',   car:1.5, log:1.1, lives:5},
+  {key:'diffMedium', car:2.3, log:1.6, lives:4},
+  {key:'diffHard',   car:3.2, log:2.2, lives:3},
+];
+let diffIdx = 1;
+const BEST_KEY = 'roadhopper_best';
+let best = +(localStorage.getItem(BEST_KEY) || 0);
+
+function applyLang() {
+  document.getElementById('lbl-back').textContent  = t('back');
+  document.getElementById('ov-title').textContent  = t('rhpTitle');
+  document.getElementById('ov-hint').textContent   = t('rhpHint');
+  document.getElementById('ov-play').textContent   = t('rhpPlay');
+  document.getElementById('lbl-diff').textContent  = t('uiDifficulty');
+  document.getElementById('lbl-score').textContent = t('rhpScore');
+  document.getElementById('lbl-level').textContent = t('rhpLevel');
+  document.getElementById('lbl-best').textContent  = t('uiBest');
+  document.getElementById('hud-best').textContent  = best;
+  buildDiffRow();
+}
+
+function buildDiffRow() {
+  const row = document.getElementById('diff-row');
+  row.innerHTML = '';
+  DIFFS.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.textContent = t(d.key);
+    if (i === diffIdx) b.className = 'active';
+    b.onclick = () => { diffIdx = i; buildDiffRow(); };
+    row.appendChild(b);
+  });
+}
+
+// ── canvas ────────────────────────────────────────────────────────────────
+const C = document.getElementById('c'), ctx = C.getContext('2d');
+let W = 0, H = 0, DPR = 1, CELL = 30, OX = 0, OY = 0;
+const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+
+let vw = -1, vh = -1;
+function resize() {
+  vw = window.innerWidth; vh = window.innerHeight;
+  W = vw || document.documentElement.clientWidth || 360;
+  H = vh || document.documentElement.clientHeight || 640;
+  DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  C.width = Math.round(W * DPR); C.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // doska sa vojde medzi HUD a krížový ovládač
+  const hud = document.getElementById('hud');
+  const dpad = document.getElementById('dpad');
+  const topInset = 12 + (hud.offsetHeight || 30) + 10;
+  const botInset = (document.body.classList.contains('touch') ? (dpad.offsetHeight || 118) + 26 : 18);
+  const availH = Math.max(160, H - topInset - botInset);
+  CELL = Math.floor(Math.min(W / COLS, availH / ROWS));
+  OX = Math.round((W - COLS * CELL) / 2);
+  OY = Math.round(topInset + (availH - ROWS * CELL) / 2);
+}
+
+const colX = c => OX + c * CELL;
+const rowYp = r => OY + r * CELL;
+
+// ── stav ──────────────────────────────────────────────────────────────────
+const ST = {MENU:'menu', PLAY:'play', PAUSE:'pause', DEAD:'dead'};
+let state = ST.MENU;
+let cars = [], logs = [], parts = [], pops = [], ripples = [];
+let frog = null, score = 0, lives = 3, level = 1, filled = [];
+let shake = 0, flash = null, invuln = 0, deadT = 0, waterT = 0;
+
+function difficulty() { return DIFFS[diffIdx]; }
+
+function buildTraffic() {
+  const d = difficulty();
+  const mul = 1 + (level - 1) * 0.14;
+  cars = []; logs = [];
+  for (let row = ROAD[0]; row <= ROAD[1]; row++) {
+    const dir = row % 2 === 0 ? -1 : 1;
+    const truck = row % 3 === 0;
+    const n = 2 + Math.floor(Math.random() * 2);
+    const span = COLS / n;
+    for (let i = 0; i < n; i++) {
+      cars.push({
+        row, dir, truck,
+        x: (i * span + Math.random() * span * 0.4),          // v políčkach
+        w: truck ? 2.4 : 1.6,
+        v: d.car * mul * (0.8 + Math.random() * 0.5),
+        hue: Math.floor(Math.random() * 5)
+      });
+    }
+  }
+  for (let row = RIVER[0]; row <= RIVER[1]; row++) {
+    const dir = row % 2 === 0 ? -1 : 1;
+    const n = 2 + Math.floor(Math.random() * 2);
+    const span = COLS / n;
+    for (let i = 0; i < n; i++) {
+      logs.push({
+        row, dir,
+        x: (i * span + Math.random() * span * 0.3),
+        w: 2 + Math.random() * 2,
+        v: d.log * mul * (0.75 + Math.random() * 0.45)
+      });
+    }
+  }
+}
+
+function placeFrog(atStart) {
+  frog = {col: 5, row: START_ROW, fromCol: 5, fromRow: START_ROW, hop: 1, dir: 0, ride: 0};
+  if (!atStart) frog.hop = 1;
+}
+
+function startGame() {
+  const d = difficulty();
+  level = 1; score = 0; lives = d.lives;
+  filled = GOAL_COLS.map(() => false);
+  invuln = 0; shake = 0; flash = null; deadT = 0;
+  parts = []; pops = []; ripples = [];
+  buildTraffic(); placeFrog(true);
+  syncHud(true);
+  document.getElementById('overlay').classList.add('hide');
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('brand').style.display = '';
+  document.getElementById('hud').classList.add('show');
+  document.getElementById('pause-btn').classList.add('show');
+  document.getElementById('ov-title').textContent = t('rhpTitle');
+  document.getElementById('ov-play').textContent = t('rhpPlay');
+  resize();
+  state = ST.PLAY;
+}
+
+function syncHud(silent) {
+  const el = document.getElementById('hud-score');
+  el.textContent = score;
+  if (!silent) { el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 180); }
+  document.getElementById('hud-level').textContent = level;
+  document.getElementById('hud-best').textContent = best;
+  const box = document.getElementById('lifes');
+  const total = Math.max(lives, difficulty().lives);
+  box.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'life' + (i < lives ? '' : ' gone');
+    box.appendChild(d);
+  }
+}
+
+let lastSave = 0, recordRun = false;
+function saveBest(force) {
+  let isNew = false;
+  if (score > best) { best = score; isNew = true; recordRun = true;
+    document.getElementById('hud-best').textContent = best;
+    document.getElementById('best-pill').classList.add('record');
+  }
+  const now = Date.now();
+  if ((isNew && now - lastSave > 2000) || (force && recordRun)) {
+    lastSave = now;
+    try { localStorage.setItem(BEST_KEY, best); } catch (_) {}
+  }
+  return isNew;
+}
+
+function burst(cx, cy, n, col, spread) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const v = (0.6 + Math.random() * 2.4) * CELL * (spread || 1);
+    parts.push({x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, col, r: CELL * 0.07});
+  }
+}
+
+// ── pohyb hráča ───────────────────────────────────────────────────────────
+function move(dx, dy) {
+  if (state === ST.PAUSE) { state = ST.PLAY; return; }
+  if (state !== ST.PLAY || !frog || frog.hop < 1) return;
+  const nc = clamp(Math.round(frog.col) + dx, 0, COLS - 1);
+  const nr = clamp(frog.row + dy, 0, ROWS - 1);
+  if (nc === Math.round(frog.col) && nr === frog.row) return;
+  frog.fromCol = frog.col; frog.fromRow = frog.row;
+  frog.col = nc; frog.row = nr;
+  frog.hop = 0;
+  frog.dir = dy < 0 ? 0 : dy > 0 ? 2 : (dx > 0 ? 1 : 3);
+  if (dy < 0) { score += 5; syncHud(true); saveBest(); }
+  const id = dy < 0 ? 'd-up' : dy > 0 ? 'd-down' : dx > 0 ? 'd-right' : 'd-left';
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('pressed'); setTimeout(() => el.classList.remove('pressed'), 130); }
+}
+
+function reachGoal(slot) {
+  filled[slot] = true;
+  const gained = 100 + level * 20;
+  score += gained;
+  const cx = colX(GOAL_COLS[slot]) + CELL / 2, cy = rowYp(GOAL_ROW) + CELL / 2;
+  pops.push({x: cx, y: cy, t: 0, txt: '+' + gained});
+  burst(cx, cy, 18, '93,255,176', 1.2);
+  flash = {a: 0.35, col: '93,255,176'};
+  syncHud();
+  if (filled.every(Boolean)) {
+    level++;
+    score += 500;
+    filled = GOAL_COLS.map(() => false);
+    buildTraffic();
+    flash = {a: 0.6, col: '255,194,77'};
+    pops.push({x: W / 2, y: rowYp(MID_ROW) + CELL / 2, t: 0, txt: t('rhpLevel') + ' ' + level});
+    syncHud();
+  }
+  placeFrog(true);
+}
+
+function die(reason) {
+  if (invuln > 0 || state !== ST.PLAY) return;
+  lives--; syncHud(true);
+  shake = 0.34;
+  const cx = colX(frog.col) + CELL / 2, cy = rowYp(frog.row) + CELL / 2;
+  burst(cx, cy, 22, reason === 'water' ? '93,200,255' : '255,107,107', 1.3);
+  if (reason === 'water') ripples.push({x: cx, y: cy, t: 0});
+  if (lives <= 0) { gameOver(); return; }
+  invuln = 1.2;
+  placeFrog(true);
+}
+
+function gameOver() {
+  state = ST.DEAD; deadT = 0;
+  saveBest();
+  const rec = recordRun;
+  saveBest(true);
+  setTimeout(() => {
+    if (state !== ST.DEAD) return;
+    document.getElementById('ov-title').textContent = t('rhpOver');
+    document.getElementById('res-lbl').textContent = t('rhpScore');
+    document.getElementById('res-score').textContent = score;
+    const note = document.getElementById('res-note');
+    note.textContent = (rec ? '🏆 ' : '') + t('uiBest') + ': ' + best;
+    note.classList.toggle('record', rec);
+    document.getElementById('result').classList.add('show');
+    document.getElementById('brand').innerHTML = '<div class="emoji">💀</div>';
+    document.getElementById('ov-play').textContent = t('rhpAgain');
+    document.getElementById('overlay').classList.remove('hide');
+    document.getElementById('hud').classList.remove('show');
+    document.getElementById('pause-btn').classList.remove('show');
+    state = ST.MENU;
+  }, 620);
+}
+
+function togglePause() {
+  if (state === ST.PLAY) state = ST.PAUSE;
+  else if (state === ST.PAUSE) state = ST.PLAY;
+}
+
+// ── slučka ────────────────────────────────────────────────────────────────
+let prevTs = 0;
+function frame(ts) {
+  requestAnimationFrame(frame);
+  if (!prevTs) prevTs = ts;
+  let dt = (ts - prevTs) / 1000;
+  prevTs = ts;
+  if (document.hidden) return;
+  if (vw !== window.innerWidth || vh !== window.innerHeight) resize();
+  dt = Math.min(dt, 1 / 25);
+  waterT += dt;
+  if (state === ST.PLAY) update(dt);
+  if (state === ST.DEAD) deadT += dt;
+  stepFx(dt);
+  draw(ts);
+}
+
+function update(dt) {
+  // doprava a plte
+  for (const c of cars) {
+    c.x += c.dir * c.v * dt;
+    if (c.dir > 0 && c.x > COLS + c.w) c.x = -c.w;
+    if (c.dir < 0 && c.x < -c.w) c.x = COLS + c.w;
+  }
+  for (const l of logs) {
+    l.x += l.dir * l.v * dt;
+    if (l.dir > 0 && l.x > COLS + l.w) l.x = -l.w;
+    if (l.dir < 0 && l.x < -l.w) l.x = COLS + l.w;
+  }
+
+  if (frog.hop < 1) frog.hop = Math.min(1, frog.hop + dt * 8.5);
+  if (invuln > 0) invuln -= dt;
+
+  const r = frog.row;
+
+  // rieka: musí stáť na plti a nechať sa ňou nosiť
+  if (r >= RIVER[0] && r <= RIVER[1]) {
+    let carrier = null;
+    for (const l of logs) {
+      if (l.row !== r) continue;
+      const fc = frog.col + 0.5;
+      if (fc >= l.x && fc <= l.x + l.w) { carrier = l; break; }
+    }
+    if (!carrier) {
+      if (frog.hop >= 1) { die('water'); return; }
+    } else {
+      frog.col += carrier.dir * carrier.v * dt;
+      frog.ride = carrier.dir;
+      if (frog.col < -0.6 || frog.col > COLS - 0.4) { die('water'); return; }
+      if (Math.random() < dt * 6) ripples.push({x: colX(frog.col) + CELL / 2, y: rowYp(r) + CELL * 0.9, t: 0.4});
+    }
+  } else {
+    frog.ride = 0;
+  }
+
+  // cesta: kolízia s autom
+  if (r >= ROAD[0] && r <= ROAD[1] && frog.hop >= 1) {
+    const fl = frog.col + 0.22, fr2 = frog.col + 0.78;
+    for (const c of cars) {
+      if (c.row !== r) continue;
+      if (fr2 > c.x && fl < c.x + c.w) { die('car'); return; }
+    }
+  }
+
+  // cieľové plochy
+  if (r === GOAL_ROW && frog.hop >= 1) {
+    const col = Math.round(frog.col);
+    const slot = GOAL_COLS.indexOf(col);
+    if (slot >= 0 && !filled[slot]) reachGoal(slot);
+    else { frog.row = GOAL_ROW + 1; frog.fromRow = GOAL_ROW; frog.hop = 1; }   // obsadené/mimo → späť
+  }
+}
+
+function stepFx(dt) {
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i];
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    p.vy += CELL * 4 * dt; p.vx *= 0.96;
+    p.life -= dt * 1.6;
+    if (p.life <= 0) parts.splice(i, 1);
+  }
+  for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt * 1.1; if (pops[i].t >= 1) pops.splice(i, 1); }
+  for (let i = ripples.length - 1; i >= 0; i--) { ripples[i].t += dt * 1.8; if (ripples[i].t >= 1) ripples.splice(i, 1); }
+  if (shake > 0) shake = Math.max(0, shake - dt);
+  if (flash) { flash.a -= dt * 1.3; if (flash.a <= 0) flash = null; }
+}
+
+// ── kreslenie ─────────────────────────────────────────────────────────────
+function roundRect(g, x, y, w, h, r) {
+  r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+  g.beginPath();
+  if (g.roundRect) g.roundRect(x, y, w, h, r);
+  else {
+    g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r);
+    g.lineTo(x + w, y + h - r); g.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    g.lineTo(x + r, y + h); g.quadraticCurveTo(x, y + h, x, y + h - r);
+    g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y);
+  }
+}
+
+const CAR_HUES = [
+  {a:'#ff8f6b', b:'#c23c1e'}, {a:'#ffd166', b:'#c2820e'},
+  {a:'#8fd9ff', b:'#1f6fa8'}, {a:'#c9a6ff', b:'#5b34a8'}, {a:'#9dffc7', b:'#1f8f5c'},
+];
+
+function drawBoard() {
+  // pozadie mimo dosky
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#071c18');
+  bg.addColorStop(1, '#03100e');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  const bw = COLS * CELL, bh = ROWS * CELL;
+
+  // cieľová zóna
+  const gg = ctx.createLinearGradient(0, rowYp(0), 0, rowYp(1));
+  gg.addColorStop(0, '#0d3b2a');
+  gg.addColorStop(1, '#0a2c20');
+  ctx.fillStyle = gg; ctx.fillRect(OX, rowYp(0), bw, CELL);
+
+  // rieka
+  const rv = ctx.createLinearGradient(0, rowYp(RIVER[0]), 0, rowYp(RIVER[1] + 1));
+  rv.addColorStop(0, '#08283f');
+  rv.addColorStop(0.5, '#062034');
+  rv.addColorStop(1, '#08283f');
+  ctx.fillStyle = rv; ctx.fillRect(OX, rowYp(RIVER[0]), bw, CELL * 5);
+  // pohyblivé odlesky na vode
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  for (let r = RIVER[0]; r <= RIVER[1]; r++) {
+    const y = rowYp(r) + CELL * 0.5;
+    const dir = r % 2 === 0 ? -1 : 1;
+    for (let i = 0; i < 7; i++) {
+      const ph = (waterT * 14 * dir + i * 137 + r * 53) % (bw + 90);
+      const x = OX + ((ph + bw + 90) % (bw + 90)) - 45;
+      ctx.strokeStyle = 'rgba(140,215,255,0.16)';
+      ctx.lineWidth = Math.max(1, CELL * 0.05);
+      ctx.beginPath();
+      ctx.moveTo(x, y + Math.sin(waterT * 2 + i) * CELL * 0.08);
+      ctx.lineTo(x + CELL * 0.9, y + Math.sin(waterT * 2 + i + 1) * CELL * 0.08);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  // bezpečné pásy
+  [MID_ROW, START_ROW].forEach(r => {
+    const sg = ctx.createLinearGradient(0, rowYp(r), 0, rowYp(r + 1));
+    sg.addColorStop(0, '#123024');
+    sg.addColorStop(1, '#0d2419');
+    ctx.fillStyle = sg; ctx.fillRect(OX, rowYp(r), bw, CELL);
+    ctx.fillStyle = 'rgba(93,255,176,0.18)';
+    ctx.fillRect(OX, rowYp(r), bw, 1.5);
+  });
+
+  // asfalt
+  const rd = ctx.createLinearGradient(0, rowYp(ROAD[0]), 0, rowYp(ROAD[1] + 1));
+  rd.addColorStop(0, '#191922');
+  rd.addColorStop(0.5, '#14141c');
+  rd.addColorStop(1, '#191922');
+  ctx.fillStyle = rd; ctx.fillRect(OX, rowYp(ROAD[0]), bw, CELL * 5);
+  // deliace čiary
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,209,102,0.3)';
+  ctx.lineWidth = Math.max(1.5, CELL * 0.055);
+  ctx.setLineDash([CELL * 0.42, CELL * 0.38]);
+  for (let r = ROAD[0] + 1; r <= ROAD[1]; r++) {
+    const y = rowYp(r);
+    ctx.beginPath(); ctx.moveTo(OX, y); ctx.lineTo(OX + bw, y); ctx.stroke();
+  }
+  ctx.restore();
+  // krajnice
+  ctx.fillStyle = 'rgba(255,255,255,0.14)';
+  ctx.fillRect(OX, rowYp(ROAD[0]) - 1.5, bw, 1.5);
+  ctx.fillRect(OX, rowYp(ROAD[1] + 1), bw, 1.5);
+
+  // rám dosky
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth = 1.2;
+  roundRect(ctx, OX - 1, OY - 1, bw + 2, bh + 2, 10); ctx.stroke();
+}
+
+function drawGoals() {
+  GOAL_COLS.forEach((c, i) => {
+    const x = colX(c), y = rowYp(GOAL_ROW);
+    const done = filled[i];
+    ctx.save();
+    if (done) {
+      ctx.shadowColor = 'rgba(93,255,176,0.9)';
+      ctx.shadowBlur = CELL * 0.5;
+      const g = ctx.createLinearGradient(x, y, x, y + CELL);
+      g.addColorStop(0, '#b6ffdd');
+      g.addColorStop(1, '#2fbf82');
+      ctx.fillStyle = g;
+      roundRect(ctx, x + CELL * 0.1, y + CELL * 0.14, CELL * 0.8, CELL * 0.72, CELL * 0.18); ctx.fill();
+      ctx.restore();
+      // značka splnenia
+      ctx.strokeStyle = 'rgba(6,40,28,0.9)';
+      ctx.lineWidth = Math.max(2, CELL * 0.09);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x + CELL * 0.32, y + CELL * 0.5);
+      ctx.lineTo(x + CELL * 0.45, y + CELL * 0.64);
+      ctx.lineTo(x + CELL * 0.68, y + CELL * 0.36);
+      ctx.stroke();
+    } else {
+      ctx.setLineDash([CELL * 0.14, CELL * 0.1]);
+      ctx.strokeStyle = 'rgba(93,255,176,0.5)';
+      ctx.lineWidth = Math.max(1.5, CELL * 0.06);
+      roundRect(ctx, x + CELL * 0.1, y + CELL * 0.14, CELL * 0.8, CELL * 0.72, CELL * 0.18); ctx.stroke();
+      ctx.restore();
+      const pulse = 0.35 + 0.25 * Math.sin(waterT * 3 + i);
+      ctx.fillStyle = 'rgba(93,255,176,' + pulse.toFixed(2) + ')';
+      ctx.beginPath();
+      ctx.arc(x + CELL * 0.5, y + CELL * 0.5, CELL * 0.12, 0, 6.2832);
+      ctx.fill();
+    }
+  });
+}
+
+function drawLog(l) {
+  const x = colX(l.x), y = rowYp(l.row), w = l.w * CELL, h = CELL * 0.68;
+  const oy = y + (CELL - h) / 2;
+  // brázda za pltou
+  ctx.save();
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = 'rgba(150,220,255,0.5)';
+  const tail = l.dir > 0 ? x - CELL * 0.5 : x + w;
+  roundRect(ctx, tail, oy + h * 0.3, CELL * 0.5, h * 0.4, h * 0.2); ctx.fill();
+  ctx.restore();
+  // telo plte
+  const g = ctx.createLinearGradient(0, oy, 0, oy + h);
+  g.addColorStop(0, '#2f4a55');
+  g.addColorStop(0.45, '#22383f');
+  g.addColorStop(1, '#16262b');
+  ctx.fillStyle = g;
+  roundRect(ctx, x, oy, w, h, h * 0.28); ctx.fill();
+  // svietiaci okraj
+  ctx.strokeStyle = 'rgba(140,225,255,0.5)';
+  ctx.lineWidth = Math.max(1, CELL * 0.045);
+  roundRect(ctx, x + 0.5, oy + 0.5, w - 1, h - 1, h * 0.28); ctx.stroke();
+  // priečne laty
+  ctx.save();
+  roundRect(ctx, x, oy, w, h, h * 0.28); ctx.clip();
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i * CELL * 0.55 < w; i++) {
+    const lx = x + i * CELL * 0.55;
+    ctx.beginPath(); ctx.moveTo(lx, oy); ctx.lineTo(lx, oy + h); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawCar(c) {
+  const x = colX(c.x), y = rowYp(c.row), w = c.w * CELL, h = CELL * (c.truck ? 0.74 : 0.66);
+  const oy = y + (CELL - h) / 2;
+  const hue = CAR_HUES[c.hue % CAR_HUES.length];
+  const front = c.dir > 0 ? x + w : x;
+
+  // svetelný kúžeľ pred vozidlom
+  ctx.save();
+  const cone = ctx.createLinearGradient(front, 0, front + c.dir * CELL * 1.6, 0);
+  cone.addColorStop(0, 'rgba(255,240,190,0.35)');
+  cone.addColorStop(1, 'rgba(255,240,190,0)');
+  ctx.fillStyle = cone;
+  ctx.beginPath();
+  ctx.moveTo(front, oy + h * 0.2);
+  ctx.lineTo(front + c.dir * CELL * 1.7, oy - h * 0.25);
+  ctx.lineTo(front + c.dir * CELL * 1.7, oy + h * 1.25);
+  ctx.lineTo(front, oy + h * 0.8);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  // karoséria
+  const g = ctx.createLinearGradient(0, oy, 0, oy + h);
+  g.addColorStop(0, hue.a);
+  g.addColorStop(0.55, hue.b);
+  g.addColorStop(1, '#0d0d12');
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = CELL * 0.25;
+  ctx.shadowOffsetY = CELL * 0.06;
+  ctx.fillStyle = g;
+  roundRect(ctx, x, oy, w, h, h * 0.3); ctx.fill();
+  ctx.restore();
+  // kabína
+  ctx.fillStyle = 'rgba(210,245,255,0.75)';
+  const cabW = c.truck ? w * 0.26 : w * 0.42;
+  const cabX = c.dir > 0 ? x + w - cabW - h * 0.16 : x + h * 0.16;
+  roundRect(ctx, cabX, oy + h * 0.16, cabW, h * 0.42, h * 0.16); ctx.fill();
+  // horný lesk
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  roundRect(ctx, x + w * 0.06, oy + h * 0.06, w * 0.88, h * 0.14, h * 0.07); ctx.fill();
+  // svetlá
+  ctx.fillStyle = '#fff6cc';
+  const lx = c.dir > 0 ? x + w - CELL * 0.1 : x + CELL * 0.04;
+  roundRect(ctx, lx, oy + h * 0.24, CELL * 0.07, h * 0.2, CELL * 0.03); ctx.fill();
+  ctx.fillStyle = 'rgba(255,90,90,0.9)';
+  const tx = c.dir > 0 ? x + CELL * 0.04 : x + w - CELL * 0.1;
+  roundRect(ctx, tx, oy + h * 0.24, CELL * 0.06, h * 0.18, CELL * 0.03); ctx.fill();
+  // kolesá
+  ctx.fillStyle = '#0a0a0e';
+  [x + w * 0.2, x + w * 0.8].forEach(wx => {
+    roundRect(ctx, wx - CELL * 0.11, oy + h - CELL * 0.06, CELL * 0.22, CELL * 0.12, CELL * 0.05); ctx.fill();
+  });
+}
+
+function drawFrog(ts) {
+  if (invuln > 0 && Math.floor(invuln * 12) % 2 === 0) return;
+  // oblúk skoku medzi políčkami
+  const k = frog.hop;
+  const ease = k < 1 ? 1 - Math.pow(1 - k, 2) : 1;
+  const cx = colX(frog.fromCol + (frog.col - frog.fromCol) * ease) + CELL / 2;
+  const cy = rowYp(frog.fromRow + (frog.row - frog.fromRow) * ease) + CELL / 2 - Math.sin(k * Math.PI) * CELL * 0.42;
+  const lift = Math.sin(k * Math.PI);
+  const r = CELL * 0.36 * (1 + lift * 0.08);
+
+  // tieň na zemi
+  ctx.save();
+  ctx.globalAlpha = 0.35 - lift * 0.2;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.ellipse(cx, rowYp(frog.fromRow + (frog.row - frog.fromRow) * ease) + CELL * 0.78, r * (1 - lift * 0.25), r * 0.3, 0, 0, 6.2832);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate([0, Math.PI / 2, Math.PI, -Math.PI / 2][frog.dir] * 0.12);
+  // nohy
+  ctx.strokeStyle = '#2aa06a';
+  ctx.lineWidth = Math.max(2, r * 0.24);
+  ctx.lineCap = 'round';
+  const spread = 0.55 + lift * 0.5;
+  [-1, 1].forEach(s => {
+    ctx.beginPath();
+    ctx.moveTo(s * r * 0.5, r * 0.35);
+    ctx.lineTo(s * r * spread * 1.5, r * (0.85 + lift * 0.35));
+    ctx.stroke();
+  });
+  // telo
+  ctx.shadowColor = 'rgba(93,255,176,0.85)';
+  ctx.shadowBlur = CELL * 0.4;
+  const g = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.15, 0, 0, r);
+  g.addColorStop(0, '#dfffee');
+  g.addColorStop(0.45, '#5dffb0');
+  g.addColorStop(1, '#128a5a');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, r, r * (0.88 - lift * 0.06), 0, 0, 6.2832);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  // brucho
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.beginPath(); ctx.ellipse(0, r * 0.22, r * 0.5, r * 0.34, 0, 0, 6.2832); ctx.fill();
+  // oči
+  [-1, 1].forEach(s => {
+    ctx.fillStyle = '#f6fffb';
+    ctx.beginPath(); ctx.arc(s * r * 0.42, -r * 0.42, r * 0.24, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#08231a';
+    ctx.beginPath(); ctx.arc(s * r * 0.44, -r * 0.44, r * 0.12, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.arc(s * r * 0.4, -r * 0.5, r * 0.05, 0, 6.2832); ctx.fill();
+  });
+  ctx.restore();
+}
+
+function draw(ts) {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (shake > 0) {
+    const m = 9 * (shake / 0.34);
+    ctx.translate((Math.random() - .5) * m, (Math.random() - .5) * m);
+  }
+  drawBoard();
+  drawGoals();
+
+  // vlnky na vode
+  ctx.save();
+  for (const rp of ripples) {
+    ctx.globalAlpha = (1 - rp.t) * 0.5;
+    ctx.strokeStyle = '#9fe0ff';
+    ctx.lineWidth = Math.max(1, CELL * 0.05);
+    ctx.beginPath();
+    ctx.ellipse(rp.x, rp.y, CELL * (0.2 + rp.t * 1.1), CELL * (0.08 + rp.t * 0.4), 0, 0, 6.2832);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  for (const l of logs) drawLog(l);
+  for (const c of cars) drawCar(c);
+
+  if (frog && (state !== ST.DEAD || deadT < 0.12)) drawFrog(ts);
+
+  // iskry
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of parts) {
+    ctx.globalAlpha = Math.max(0, p.life) * 0.9;
+    ctx.fillStyle = 'rgba(' + p.col + ',1)';
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * Math.max(0.3, p.life), 0, 6.2832); ctx.fill();
+  }
+  ctx.restore();
+
+  // body a hlásenia
+  ctx.save();
+  ctx.textAlign = 'center';
+  for (const s of pops) {
+    ctx.globalAlpha = 1 - s.t;
+    ctx.fillStyle = '#c8ffe8';
+    ctx.font = '800 ' + Math.round(CELL * 0.5) + "px Syne, sans-serif";
+    ctx.fillText(s.txt, s.x, s.y - s.t * CELL * 1.6);
+  }
+  ctx.restore();
+
+  if (flash) {
+    ctx.fillStyle = 'rgba(' + flash.col + ',' + (flash.a * 0.3).toFixed(3) + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  if (state === ST.PAUSE) {
+    ctx.fillStyle = 'rgba(4,16,14,0.72)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(238,255,248,0.92)';
+    ctx.font = '800 ' + Math.round(Math.min(34, H * 0.05)) + "px Syne, sans-serif";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(t('uiPaused'), W / 2, H / 2);
+    ctx.textBaseline = 'alphabetic';
+  }
+}
+
+// ── vstup ─────────────────────────────────────────────────────────────────
+const KEYS = {
+  ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+  KeyW:[0,-1], KeyS:[0,1], KeyA:[-1,0], KeyD:[1,0]
+};
+document.addEventListener('keydown', e => {
+  if (e.code === 'Escape' || e.code === 'KeyP') {
+    e.preventDefault();
+    if (state === ST.PLAY || state === ST.PAUSE) togglePause();
+    return;
+  }
+  if (state === ST.MENU) {
+    if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); document.getElementById('ov-play').click(); }
+    return;
+  }
+  const m = KEYS[e.code];
+  if (m) { e.preventDefault(); move(m[0], m[1]); }
+});
+
+[['d-up',0,-1],['d-left',-1,0],['d-down',0,1],['d-right',1,0]].forEach(([id, dx, dy]) => {
+  document.getElementById(id).addEventListener('pointerdown', e => { e.preventDefault(); move(dx, dy); });
+});
+
+// potiahnutie prstom po ploche
+let sx = 0, sy = 0, sid = null;
+C.addEventListener('pointerdown', e => { sid = e.pointerId; sx = e.clientX; sy = e.clientY; });
+C.addEventListener('pointerup', e => {
+  if (sid !== e.pointerId) return;
+  sid = null;
+  if (state === ST.PAUSE) { state = ST.PLAY; return; }
+  const dx = e.clientX - sx, dy = e.clientY - sy;
+  const min = Math.max(16, CELL * 0.45);
+  if (Math.abs(dx) < min && Math.abs(dy) < min) { move(0, -1); return; }   // ťuknutie = skok dopredu
+  if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 1 : -1, 0);
+  else move(0, dy > 0 ? 1 : -1);
+});
+
+document.getElementById('ov-play').onclick = startGame;
+document.getElementById('pause-btn').onclick = togglePause;
+window.addEventListener('blur', () => { if (state === ST.PLAY) state = ST.PAUSE; saveBest(true); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === ST.PLAY) state = ST.PAUSE; saveBest(true); } });
+window.addEventListener('pagehide', () => saveBest(true));
+
+if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) document.body.classList.add('touch');
+resize();
+applyLang();
+buildTraffic();
+placeFrog(true);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -2,55 +2,102 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Minesweeper · GamePad</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-:root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#4dc9ff;--cdim:rgba(77,201,255,0.15);}
-html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;}
-body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;right:-100px;background:radial-gradient(circle,rgba(77,201,255,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
-#back-btn{position:fixed;top:20px;left:20px;z-index:60;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
-#back-btn:hover{border-color:var(--border-h);color:var(--text);}
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px 30px;gap:14px;}
-.top-bar{display:flex;align-items:center;gap:10px;width:100%;max-width:340px;}
-.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex:1;}
-.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
-.stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;}
-.new-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
-.new-btn:hover{border-color:var(--border-h);color:var(--text);}
-#grid-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:10px;display:inline-block;}
-#grid{display:grid;gap:3px;}
-.cell{width:var(--cs,32px);height:var(--cs,32px);font-size:calc(var(--cs,32px)*0.42);border-radius:calc(var(--cs,32px)*0.19);background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;transition:background .12s;font-family:'Syne',sans-serif;}
-.cell:hover:not(.revealed){background:rgba(255,255,255,0.1);}
-.cell.revealed{background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.03);cursor:default;}
-.cell.flagged{background:rgba(255,100,100,0.12);border-color:rgba(255,100,100,0.25);}
-.cell.mine-hit{background:rgba(255,80,80,0.3);}
-.n1{color:#54a0ff;}.n2{color:#4dff91;}.n3{color:#ff6b6b;}.n4{color:#a78bfa;}.n5{color:#ff9f43;}.n6{color:#00d4ff;}.n7{color:#ffd166;}.n8{color:var(--muted);}
-#overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.88);backdrop-filter:blur(10px);z-index:20;}
-#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;}
-.score-big{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--c);letter-spacing:-2px;}
-.hint{font-size:12px;color:var(--muted);}
-.play-btn{margin-top:6px;background:var(--cdim);border:1px solid rgba(77,201,255,.3);color:var(--c);padding:11px 32px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .18s;}
-.play-btn:hover{background:rgba(77,201,255,.25);}
-.diff-row{display:flex;gap:8px;}
-.diff-btn{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
-.diff-btn:hover,.diff-btn.active{border-color:var(--border-h);color:var(--text);background:rgba(255,255,255,0.08);}
-
-/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
-html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#050a12;--text:#e9f4ff;--muted:rgba(233,244,255,0.42);--dim:rgba(233,244,255,0.18);
+  --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.17);
+  --c:#4dc9ff;--flag:#ff6b8a;--gold:#ffd166;
+  --cs:32px;
+}
+html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 button,a,[onclick]{touch-action:manipulation;}
+body::before,body::after{content:'';position:fixed;border-radius:50%;pointer-events:none;z-index:0;}
+body::before{width:560px;height:560px;top:-230px;right:-150px;background:radial-gradient(circle,rgba(77,201,255,0.09) 0%,transparent 66%);}
+body::after{width:600px;height:600px;bottom:-280px;left:-160px;background:radial-gradient(circle,rgba(255,107,138,0.07) 0%,transparent 66%);}
 
-/* úzke displeje: horná lišta sa zlomí, inak jej pilulky pretečú z obrazovky */
-@media (max-width:470px){
-  .top-bar{flex-wrap:wrap;justify-content:center;max-width:100% !important;gap:6px !important;}
-}
+#back-btn{position:fixed;top:14px;left:14px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(8,14,24,0.75);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:9px;left:9px;padding:6px 11px;font-size:11px;}}
 
-/* prekryv: ak sa obsah nezmestí, nesmie zmiznúť mimo obrazovky (flex centrovanie ho odreže) */
-@media (max-height:820px){
-  #overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
-}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 12px 16px;gap:10px;}
+
+/* ── HUD ──────────────────────────────────────────────────── */
+.top-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;max-width:100%;}
+.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(110deg,#fff 20%,var(--c) 72%,var(--flag) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pill{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:100px;background:linear-gradient(160deg,rgba(255,255,255,0.055),rgba(255,255,255,0.015));border:1px solid var(--border);font-size:9px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);transition:transform .18s;}
+.pill.mines b{color:var(--flag);}
+.pill.best b{color:var(--gold);}
+.pill.best.record{border-color:rgba(255,209,102,.45);}
+.pill b.bump{transform:scale(1.3);}
+.new-btn{padding:6px 14px;border-radius:100px;border:1px solid var(--border);background:linear-gradient(160deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;}
+.new-btn:hover{border-color:var(--border-h);color:var(--text);}
+
+/* ── doska ────────────────────────────────────────────────── */
+.board{position:relative;padding:9px;border-radius:20px;background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.015));box-shadow:0 26px 60px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);}
+.board.shake{animation:bshake .34s ease;}
+@keyframes bshake{0%,100%{transform:translate(0,0);}20%{transform:translate(-5px,2px);}45%{transform:translate(4px,-3px);}70%{transform:translate(-3px,1px);}}
+#grid{display:grid;gap:3px;}
+
+.cell{position:relative;width:var(--cs);height:var(--cs);border-radius:calc(var(--cs)*0.2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:calc(var(--cs)*0.46);cursor:pointer;
+  background:linear-gradient(158deg,#1e3245,#132434);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 2px 4px -2px rgba(0,0,0,.6);
+  transition:background .12s,transform .08s;}
+.cell:hover{background:linear-gradient(158deg,#26405a,#17293b);}
+.cell:active{transform:scale(.94);}
+.cell.open{background:rgba(255,255,255,0.035);box-shadow:inset 0 1px 3px rgba(0,0,0,.4);cursor:default;}
+.cell.open:hover{background:rgba(255,255,255,0.05);}
+.cell.pop{animation:cpop .22s cubic-bezier(.2,1.5,.4,1);}
+@keyframes cpop{from{transform:scale(.6);opacity:.2;}to{transform:scale(1);opacity:1;}}
+.n1{color:#6cc7ff;}.n2{color:#5ce6b0;}.n3{color:#ffd166;}.n4{color:#b98bff;}
+.n5{color:#ff9f6b;}.n6{color:#4de8d8;}.n7{color:#ff8fb0;}.n8{color:#c9d6e6;}
+
+/* zástavka — kreslená, nie emoji */
+.flag::before{content:'';position:absolute;left:38%;top:20%;width:9%;height:60%;border-radius:2px;background:#cfe3f5;}
+.flag::after{content:'';position:absolute;left:45%;top:20%;width:0;height:0;border-left:calc(var(--cs)*0.26) solid var(--flag);border-top:calc(var(--cs)*0.11) solid transparent;border-bottom:calc(var(--cs)*0.11) solid transparent;filter:drop-shadow(0 0 5px rgba(255,107,138,.7));}
+.cell.flag{background:linear-gradient(158deg,#3a2233,#26161f);}
+
+/* mína */
+.mine::before{content:'';position:absolute;width:44%;height:44%;border-radius:50%;background:radial-gradient(circle at 34% 30%,#8fa6bd,#1b2735 70%);box-shadow:0 0 0 2px rgba(255,255,255,.08);}
+.mine::after{content:'';position:absolute;width:74%;height:8%;border-radius:2px;background:#7d93aa;box-shadow:0 0 0 0 transparent;transform:rotate(45deg);}
+.cell.boom{background:linear-gradient(158deg,#5a1b28,#33101a);box-shadow:0 0 18px -2px rgba(255,90,110,.8);}
+.cell.boom::before{background:radial-gradient(circle at 34% 30%,#fff1c9,#ff5a6e 70%);}
+.cell.wrong{background:linear-gradient(158deg,#3a2230,#241520);}
+.cell.wrong::after{content:'';position:absolute;width:70%;height:9%;background:var(--flag);border-radius:2px;transform:rotate(-45deg);box-shadow:0 0 6px rgba(255,107,138,.8);}
+
+/* priebeh dlhého stlačenia */
+.cell .ring{position:absolute;inset:-2px;border-radius:inherit;pointer-events:none;opacity:0;}
+.cell.holding .ring{opacity:1;background:conic-gradient(var(--flag) var(--p,0%),transparent 0);mask:radial-gradient(circle,transparent 62%,#000 66%);-webkit-mask:radial-gradient(circle,transparent 62%,#000 66%);}
+
+/* ── prekryv ──────────────────────────────────────────────── */
+#overlay{position:absolute;inset:9px;border-radius:14px;z-index:5;display:flex;align-items:center;justify-content:center;padding:12px;background:radial-gradient(ellipse at center,rgba(5,10,18,0.76) 0%,rgba(5,10,18,0.94) 78%);backdrop-filter:blur(5px);}
+#overlay.hide{display:none;}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;padding:18px 22px 20px;border-radius:20px;background:rgba(7,12,20,0.86);border:1px solid var(--border-h);box-shadow:0 22px 54px -22px rgba(0,0,0,.95);animation:pop .32s cubic-bezier(.2,1.45,.4,1);max-width:100%;}
+@keyframes pop{from{transform:scale(.9);opacity:0;}to{transform:none;opacity:1;}}
+.emoji{font-size:30px;line-height:1;filter:drop-shadow(0 6px 14px rgba(77,201,255,.35));}
+.ov-title{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.4px;text-align:center;background:linear-gradient(110deg,var(--c),#fff 58%,var(--flag));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#result{display:none;flex-direction:column;align-items:center;gap:1px;}
+#result.show{display:flex;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-time{font-family:'Syne',sans-serif;font-weight:800;font-size:40px;line-height:1.05;letter-spacing:-1.5px;color:var(--c);}
+#res-note{font-size:11px;font-weight:600;color:var(--muted);text-align:center;}
+#res-note.record{color:var(--gold);}
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:6px 13px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;touch-action:manipulation;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(77,201,255,0.15);color:#b3e6ff;box-shadow:inset 0 0 0 1px rgba(77,201,255,0.4);}
+.lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.hint{font-size:11px;line-height:1.5;color:var(--muted);text-align:center;max-width:230px;}
+.play-btn{margin-top:2px;padding:11px 28px;border-radius:100px;border:1px solid rgba(77,201,255,.48);background:linear-gradient(180deg,rgba(77,201,255,.22),rgba(77,201,255,.09));color:#c7ecff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;touch-action:manipulation;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(77,201,255,.32),rgba(77,201,255,.15));color:#fff;}
+.play-btn:active{transform:translateY(1px);}
+@media (max-height:700px){.page{padding:44px 10px 8px;gap:6px;}.game-title{font-size:18px;}}
+@media (max-height:820px){#overlay{justify-content:flex-start !important;overflow-y:auto !important;}}
+@media (max-width:470px){.top-bar{gap:6px;}}
 </style>
 </head>
 <body>
@@ -58,171 +105,398 @@ button,a,[onclick]{touch-action:manipulation;}
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   <span id="lbl-back"></span>
 </a>
-<div id="overlay">
-  <div style="font-size:44px">💣</div>
-  <h2 id="ov-h">Minesweeper</h2>
-  <div class="hint" id="ov-hint"></div>
-  <div class="diff-row">
-    <button class="diff-btn active" onclick="setDiff(0,this)" id="d0"></button>
-    <button class="diff-btn" onclick="setDiff(1,this)" id="d1"></button>
-    <button class="diff-btn" onclick="setDiff(2,this)" id="d2"></button>
-  </div>
-  <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
-</div>
+
 <div class="page">
+  <div class="game-title" id="lbl-title"></div>
+
   <div class="top-bar">
-    <div class="game-title" id="lbl-title"></div>
-    <div class="stat-pill">💣 <span id="mines-left">0</span></div>
-    <div class="stat-pill">⏱ <span id="timer">0</span></div>
-    <button class="new-btn" id="lbl-new" onclick="showMenu()"></button>
+    <div class="pill mines"><span id="lbl-mines"></span><b id="mines-left">0</b></div>
+    <div class="pill"><span id="lbl-time"></span><b id="timer">0</b></div>
+    <div class="pill best" id="best-pill"><span id="lbl-best"></span><b id="best">—</b></div>
+    <button class="new-btn" id="lbl-new"></button>
   </div>
-  <div id="grid-wrap"><div id="grid"></div></div>
+
+  <div class="board" id="board">
+    <div id="grid"></div>
+    <div id="overlay">
+      <div class="card">
+        <div id="brand"><div class="emoji">💣</div></div>
+        <div class="ov-title" id="ov-title"></div>
+        <div id="result">
+          <div id="res-lbl"></div>
+          <div id="res-time">0</div>
+          <div id="res-note"></div>
+        </div>
+        <div class="lbl" id="lbl-diff"></div>
+        <div class="seg" id="diff-row"></div>
+        <div class="hint" id="ov-hint"></div>
+        <button class="play-btn" id="ov-play"></button>
+      </div>
+    </div>
+  </div>
 </div>
+
 <script>
-document.getElementById('lbl-back').textContent=t('back');
-document.getElementById('lbl-title').textContent=t('mineTitle');
-document.getElementById('lbl-new').textContent=t('mineNew');
-document.getElementById('ov-hint').textContent=t('mineHint');
-document.getElementById('ov-btn').textContent=t('minePlay');
-document.getElementById('d0').textContent=t('mineEasy');
-document.getElementById('d1').textContent=t('mineMed');
-document.getElementById('d2').textContent=t('mineHard');
+// ── nastavenia ────────────────────────────────────────────────────────────
+const DIFFS = [
+  {labelKey:'mineEasy', rows:8,  cols:8,  mines:10},
+  {labelKey:'mineMed',  rows:10, cols:10, mines:20},
+  {labelKey:'mineHard', rows:12, cols:12, mines:30},
+];
+let diffIdx = 0;
+const bestKey = i => 'minesweeper_best_' + i;
+const bestOf = i => { const v = +(localStorage.getItem(bestKey(i)) || 0); return v > 0 ? v : null; };
 
-const DIFFS=[{rows:8,cols:8,mines:10},{rows:10,cols:10,mines:20},{rows:12,cols:12,mines:30}];
-let diff=0,board,rows,cols,mines,revealed,flagged,gameOver,firstClick,timerInt,elapsed;
-
-function setDiff(d,el){
-  diff=d;
-  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+function applyLang() {
+  document.getElementById('lbl-back').textContent  = t('back');
+  document.getElementById('lbl-title').textContent = t('mineTitle');
+  document.getElementById('lbl-new').textContent   = t('mineNew');
+  document.getElementById('lbl-mines').textContent = '💣';
+  document.getElementById('lbl-time').textContent  = t('uiTime');
+  document.getElementById('lbl-best').textContent  = t('uiBest');
+  document.getElementById('ov-title').textContent  = t('mineTitle');
+  document.getElementById('ov-hint').textContent   = t('mineHint');
+  document.getElementById('ov-play').textContent   = t('minePlay');
+  document.getElementById('lbl-diff').textContent  = t('uiDifficulty');
+  buildDiffRow();
+  syncBest();
 }
 
-function showMenu(){
-  clearInterval(timerInt);
-  document.getElementById('ov-h').textContent=t('mineTitle');
-  document.getElementById('ov-hint').textContent=t('mineHint');
-  document.getElementById('ov-btn').textContent=t('minePlay');
-  const sc=document.getElementById('ov-score');if(sc)sc.remove();
-  document.getElementById('overlay').style.display='flex';
+function buildDiffRow() {
+  const row = document.getElementById('diff-row');
+  row.innerHTML = '';
+  DIFFS.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.textContent = t(d.labelKey);
+    if (i === diffIdx) b.className = 'active';
+    b.onclick = () => { diffIdx = i; buildDiffRow(); syncBest(); sizeCells(); };
+    row.appendChild(b);
+  });
 }
 
-function startGame(){
-  document.getElementById('overlay').style.display='none';
-  const d=DIFFS[diff];rows=d.rows;cols=d.cols;mines=d.mines;
-  board=Array.from({length:rows},()=>Array(cols).fill(0));
-  revealed=Array.from({length:rows},()=>Array(cols).fill(false));
-  flagged=Array.from({length:rows},()=>Array(cols).fill(false));
-  gameOver=false;firstClick=true;elapsed=0;
-  clearInterval(timerInt);
-  document.getElementById('timer').textContent='0';
-  document.getElementById('mines-left').textContent=mines;
-  renderGrid();
+function syncBest() {
+  const b = bestOf(diffIdx);
+  document.getElementById('best').textContent = b ? b + 's' : '—';
+  document.getElementById('best-pill').classList.remove('record');
 }
 
-function placeMines(sr,sc){
-  let placed=0;
-  while(placed<mines){
-    const r=Math.floor(Math.random()*rows),c=Math.floor(Math.random()*cols);
-    if(board[r][c]===-1||(Math.abs(r-sr)<=1&&Math.abs(c-sc)<=1))continue;
-    board[r][c]=-1;placed++;
-  }
-  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
-    if(board[r][c]===-1)continue;
-    let n=0;
-    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
-      const nr=r+dr,nc=c+dc;
-      if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&board[nr][nc]===-1)n++;
-    }
-    board[r][c]=n;
-  }
-  timerInt=setInterval(()=>{elapsed++;document.getElementById('timer').textContent=elapsed;},1000);
-}
+// ── stav ──────────────────────────────────────────────────────────────────
+const ST = {MENU:'menu', PLAY:'play', DONE:'done'};
+let state = ST.MENU;
+let rows = 8, cols = 8, mines = 10;
+let board = [], open_ = [], flag = [], cells = [];
+let firstMove = true, elapsed = 0, timerId = null, flagsUsed = 0;
 
-function reveal(r,c){
-  if(r<0||r>=rows||c<0||c>=cols||revealed[r][c]||flagged[r][c])return;
-  revealed[r][c]=true;
-  if(board[r][c]===0){
-    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)reveal(r+dr,c+dc);
-  }
-}
+const gridEl = document.getElementById('grid');
+const boardEl = document.getElementById('board');
+const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
 
-// velkost bunky podla sirky obrazovky, aby sa doska zmestila aj na telefone
-function cellSize(){
+// veľkosť bunky z reálne dostupného miesta (bez spätnej väzby na dosku)
+function sizeCells() {
+  const d = DIFFS[diffIdx];
+  const r = state === ST.MENU ? d.rows : rows, c = state === ST.MENU ? d.cols : cols;
   const vw = window.innerWidth || document.documentElement.clientWidth || 360;
   const vh = window.innerHeight || document.documentElement.clientHeight || 640;
-  const availW = Math.min(vw - 36, 460);
-  const availH = vh - 210;                       // hlavicka + odsadenia
-  const byW = (availW - 22 - (cols - 1) * 3) / cols;
-  const byH = (availH - 22 - (rows - 1) * 3) / rows;
-  return Math.max(17, Math.min(32, Math.floor(Math.min(byW, byH))));
+  const page = document.querySelector('.page');
+  let chrome = 190;
+  if (page) {
+    const cs = getComputedStyle(page);
+    const gap = parseFloat(cs.rowGap || cs.gap) || 10;
+    let others = 0, n = 0;
+    for (const el of page.children) { n++; if (el !== boardEl) others += el.offsetHeight; }
+    chrome = others + gap * Math.max(0, n - 1) + (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0) + 20;
+  }
+  const availW = Math.min(vw - 34, 470);
+  const availH = clamp(vh - chrome, 180, 700);
+  const byW = (availW - (c - 1) * 3) / c;
+  const byH = (availH - (r - 1) * 3) / r;
+  const size = clamp(Math.floor(Math.min(byW, byH)), 16, 38);
+  document.documentElement.style.setProperty('--cs', size + 'px');
+  gridEl.style.gridTemplateColumns = 'repeat(' + c + ',' + size + 'px)';
 }
 
-function applyCellSize(){
-  const cs = cellSize();
-  document.documentElement.style.setProperty('--cs', cs + 'px');
-  const grid = document.getElementById('grid');
-  if (grid) grid.style.gridTemplateColumns = 'repeat(' + cols + ',' + cs + 'px)';
-}
-window.addEventListener('resize', applyCellSize);
-window.addEventListener('orientationchange', () => setTimeout(applyCellSize, 250));
+let vw = -1, vh = -1;
+function onResize() { vw = window.innerWidth; vh = window.innerHeight; sizeCells(); }
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', () => setTimeout(onResize, 250));
 
-function renderGrid(){
-  const grid=document.getElementById('grid');
-  applyCellSize();
-  grid.innerHTML='';
-  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
-    const cell=document.createElement('div');
-    cell.className='cell';
-    const v=board[r][c];
-    if(revealed[r][c]){
-      cell.classList.add('revealed');
-      if(v===-1){cell.textContent='💥';cell.classList.add('mine-hit');}
-      else if(v>0){cell.textContent=v;cell.classList.add(`n${v}`);}
-    }else if(flagged[r][c]){cell.classList.add('flagged');cell.textContent='🚩';}
-    cell.addEventListener('click',()=>handleClick(r,c));
-    cell.addEventListener('contextmenu',e=>{e.preventDefault();handleFlag(r,c);});
-    cell.addEventListener('touchstart',()=>{cell._lt=Date.now();},{passive:true});
-    cell.addEventListener('touchend',()=>{if(Date.now()-cell._lt>400)handleFlag(r,c);},{passive:true});
-    grid.appendChild(cell);
+// ── stavba dosky ──────────────────────────────────────────────────────────
+function newGame() {
+  const d = DIFFS[diffIdx];
+  rows = d.rows; cols = d.cols; mines = d.mines;
+  board = Array.from({length: rows}, () => Array(cols).fill(0));
+  open_ = Array.from({length: rows}, () => Array(cols).fill(false));
+  flag  = Array.from({length: rows}, () => Array(cols).fill(false));
+  firstMove = true; elapsed = 0; flagsUsed = 0;
+  stopTimer();
+  document.getElementById('timer').textContent = '0';
+  document.getElementById('mines-left').textContent = mines;
+  syncBest();
+  buildGrid();
+  sizeCells();
+  document.getElementById('overlay').classList.add('hide');
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('brand').style.display = '';
+  document.getElementById('ov-title').textContent = t('mineTitle');
+  document.getElementById('ov-play').textContent = t('minePlay');
+  state = ST.PLAY;
+}
+
+function showMenu() {
+  stopTimer();
+  state = ST.MENU;
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('brand').style.display = '';
+  document.getElementById('brand').innerHTML = '<div class="emoji">💣</div>';
+  document.getElementById('ov-title').textContent = t('mineTitle');
+  document.getElementById('ov-hint').textContent = t('mineHint');
+  document.getElementById('ov-play').textContent = t('minePlay');
+  document.getElementById('overlay').classList.remove('hide');
+  syncBest();
+  sizeCells();
+}
+
+function buildGrid() {
+  gridEl.innerHTML = '';
+  cells = [];
+  for (let r = 0; r < rows; r++) {
+    const rowArr = [];
+    for (let c = 0; c < cols; c++) {
+      const el = document.createElement('div');
+      el.className = 'cell';
+      el.innerHTML = '<span class="ring"></span>';
+      bindCell(el, r, c);
+      gridEl.appendChild(el);
+      rowArr.push(el);
+    }
+    cells.push(rowArr);
   }
 }
 
-function handleClick(r,c){
-  if(gameOver||revealed[r][c]||flagged[r][c])return;
-  if(firstClick){firstClick=false;placeMines(r,c);}
-  if(board[r][c]===-1){
-    // reveal all mines
-    for(let i=0;i<rows;i++)for(let j=0;j<cols;j++)if(board[i][j]===-1)revealed[i][j]=true;
-    gameOver=true;clearInterval(timerInt);renderGrid();
-    setTimeout(()=>endScreen('lose'),400);return;
+function paint(r, c) {
+  const el = cells[r][c];
+  if (!el) return;
+  const v = board[r][c];
+  el.className = 'cell';
+  el.firstChild.textContent = '';
+  if (open_[r][c]) {
+    el.classList.add('open');
+    if (v === -1) el.classList.add('mine');
+    else if (v > 0) { el.appendChild(document.createTextNode(String(v))); el.classList.add('n' + v); }
+  } else if (flag[r][c]) {
+    el.classList.add('flag');
   }
-  reveal(r,c);
-  renderGrid();
+  // text uzlov mažem a znova pridávam, prstenec musí zostať prvý
+  if (!el.querySelector('.ring')) el.insertAdjacentHTML('afterbegin', '<span class="ring"></span>');
+}
+
+function repaintAll() { for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) paint(r, c); }
+
+// ── logika ────────────────────────────────────────────────────────────────
+function placeMines(sr, sc) {
+  let placed = 0;
+  while (placed < mines) {
+    const r = Math.floor(Math.random() * rows), c = Math.floor(Math.random() * cols);
+    if (board[r][c] === -1) continue;
+    if (Math.abs(r - sr) <= 1 && Math.abs(c - sc) <= 1) continue;   // prvý klik je vždy bezpečný
+    board[r][c] = -1; placed++;
+  }
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    if (board[r][c] === -1) continue;
+    let n = 0;
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc] === -1) n++;
+    }
+    board[r][c] = n;
+  }
+  startTimer();
+}
+
+function startTimer() {
+  stopTimer();
+  timerId = setInterval(() => {
+    if (state !== ST.PLAY || document.hidden) return;
+    elapsed++;
+    document.getElementById('timer').textContent = elapsed;
+  }, 1000);
+}
+function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+
+// odkrývanie s vlnou (postupné, aby bolo vidno ako sa plocha rozlieva)
+function revealFrom(r, c) {
+  const q = [[r, c, 0]];
+  const done = new Set();
+  const waves = [];
+  while (q.length) {
+    const [cr, cc, d] = q.shift();
+    const key = cr + ',' + cc;
+    if (cr < 0 || cr >= rows || cc < 0 || cc >= cols) continue;
+    if (done.has(key) || open_[cr][cc] || flag[cr][cc]) continue;
+    done.add(key);
+    open_[cr][cc] = true;
+    (waves[d] = waves[d] || []).push([cr, cc]);
+    if (board[cr][cc] === 0) {
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        if (dr || dc) q.push([cr + dr, cc + dc, d + 1]);
+      }
+    }
+  }
+  waves.forEach((list, d) => {
+    setTimeout(() => {
+      for (const [rr, cc] of list) { paint(rr, cc); cells[rr][cc].classList.add('pop'); }
+    }, Math.min(d, 14) * 22);
+  });
+  return done.size;
+}
+
+function tapCell(r, c) {
+  if (state !== ST.PLAY) return;
+  if (flag[r][c]) return;
+  if (open_[r][c]) { chord(r, c); return; }
+  if (firstMove) { firstMove = false; placeMines(r, c); }
+  if (board[r][c] === -1) { boom(r, c); return; }
+  revealFrom(r, c);
   checkWin();
 }
 
-function handleFlag(r,c){
-  if(gameOver||revealed[r][c])return;
-  flagged[r][c]=!flagged[r][c];
-  const f=DIFFS[diff].mines-flagged.flat().filter(Boolean).length;
-  document.getElementById('mines-left').textContent=Math.max(0,f);
-  renderGrid();
+// klik na odkryté číslo s dostatkom zástavok odkryje okolie
+function chord(r, c) {
+  const v = board[r][c];
+  if (v <= 0) return;
+  let f = 0;
+  const around = [];
+  for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+    if (!dr && !dc) continue;
+    const nr = r + dr, nc = c + dc;
+    if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+    if (flag[nr][nc]) f++;
+    else if (!open_[nr][nc]) around.push([nr, nc]);
+  }
+  if (f !== v || !around.length) return;
+  for (const [nr, nc] of around) {
+    if (board[nr][nc] === -1) { boom(nr, nc); return; }
+  }
+  for (const [nr, nc] of around) revealFrom(nr, nc);
+  checkWin();
 }
 
-function checkWin(){
-  const total=rows*cols,rev=revealed.flat().filter(Boolean).length;
-  if(rev===total-mines){gameOver=true;clearInterval(timerInt);setTimeout(()=>endScreen('win'),300);}
+function toggleFlag(r, c) {
+  if (state !== ST.PLAY || open_[r][c]) return;
+  flag[r][c] = !flag[r][c];
+  flagsUsed += flag[r][c] ? 1 : -1;
+  const el = document.getElementById('mines-left');
+  el.textContent = Math.max(0, mines - flagsUsed);
+  el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 180);
+  paint(r, c);
+  if (flag[r][c]) cells[r][c].classList.add('pop');
 }
 
-function endScreen(type){
-  const ov=document.getElementById('overlay');
-  ov.innerHTML=`<div style="font-size:44px">${type==='win'?'🏆':'💣'}</div>
-    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px">${type==='win'?t('mineWin'):t('mineOver')}</h2>
-    <div style="font-size:13px;color:var(--muted)">⏱ ${elapsed}s</div>
-    <button class="play-btn" onclick="startGame()" style="margin-top:8px">${t('mineAgain')}</button>`;
-  ov.style.display='flex';
+function boom(r, c) {
+  state = ST.DONE;
+  stopTimer();
+  open_[r][c] = true;
+  for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
+    if (board[i][j] === -1 && !flag[i][j]) open_[i][j] = true;
+  }
+  repaintAll();
+  cells[r][c].classList.add('boom');
+  // nesprávne zástavky
+  for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
+    if (flag[i][j] && board[i][j] !== -1) cells[i][j].classList.add('wrong');
+  }
+  boardEl.classList.add('shake');
+  setTimeout(() => boardEl.classList.remove('shake'), 360);
+  setTimeout(() => endCard(false), 620);
 }
 
+function checkWin() {
+  let opened = 0;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) if (open_[r][c]) opened++;
+  if (opened !== rows * cols - mines) return;
+  state = ST.DONE;
+  stopTimer();
+  // dourči zvyšné zástavky
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    if (board[r][c] === -1 && !flag[r][c]) { flag[r][c] = true; paint(r, c); cells[r][c].classList.add('pop'); }
+  }
+  document.getElementById('mines-left').textContent = '0';
+  const prev = bestOf(diffIdx);
+  const rec = !prev || elapsed < prev;
+  if (rec) {
+    try { localStorage.setItem(bestKey(diffIdx), elapsed); } catch (_) {}
+    document.getElementById('best').textContent = elapsed + 's';
+    document.getElementById('best-pill').classList.add('record');
+  }
+  setTimeout(() => endCard(true, rec), 480);
+}
+
+function endCard(won, rec) {
+  document.getElementById('ov-title').textContent = won ? t('mineWin') : t('mineOver');
+  document.getElementById('res-lbl').textContent = t('uiTime');
+  document.getElementById('res-time').textContent = elapsed + 's';
+  const note = document.getElementById('res-note');
+  const b = bestOf(diffIdx);
+  note.textContent = won && rec ? '🏆 ' + t('uiBest') + ': ' + elapsed + 's'
+                                : (b ? t('uiBest') + ': ' + b + 's' : '');
+  note.classList.toggle('record', !!(won && rec));
+  document.getElementById('result').classList.add('show');
+  document.getElementById('brand').innerHTML = '<div class="emoji">' + (won ? '🏆' : '💥') + '</div>';
+  document.getElementById('ov-play').textContent = t('mineAgain');
+  document.getElementById('overlay').classList.remove('hide');
+}
+
+// ── vstup: ťuknutie odkrýva, dlhé stlačenie / pravý klik dáva zástavku ───
+const HOLD_MS = 380;
+function bindCell(el, r, c) {
+  let holdT = null, held = false, raf = null, t0 = 0;
+
+  const clearHold = () => {
+    if (holdT) { clearTimeout(holdT); holdT = null; }
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    el.classList.remove('holding');
+    el.style.removeProperty('--p');
+  };
+
+  el.addEventListener('pointerdown', e => {
+    if (e.button === 2 || state !== ST.PLAY) return;
+    held = false; t0 = performance.now();
+    if (!open_[r][c]) {
+      el.classList.add('holding');
+      const tick = () => {
+        const p = Math.min(1, (performance.now() - t0) / HOLD_MS);
+        el.style.setProperty('--p', (p * 100).toFixed(0) + '%');
+        if (p < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+      holdT = setTimeout(() => { held = true; clearHold(); toggleFlag(r, c); }, HOLD_MS);
+    }
+  });
+  el.addEventListener('pointerup', e => {
+    if (e.button === 2) return;
+    const wasHeld = held;
+    clearHold();
+    if (!wasHeld) tapCell(r, c);
+    held = false;
+  });
+  el.addEventListener('pointerleave', clearHold);
+  el.addEventListener('pointercancel', clearHold);
+  el.addEventListener('contextmenu', e => { e.preventDefault(); clearHold(); held = true; toggleFlag(r, c); });
+}
+
+document.getElementById('lbl-new').onclick = showMenu;
+document.getElementById('ov-play').onclick = newGame;
+document.addEventListener('keydown', e => {
+  if ((e.code === 'Space' || e.code === 'Enter') && state !== ST.PLAY) { e.preventDefault(); newGame(); }
+});
+
+applyLang();
+rows = DIFFS[diffIdx].rows; cols = DIFFS[diffIdx].cols; mines = DIFFS[diffIdx].mines;
+board = Array.from({length: rows}, () => Array(cols).fill(0));
+open_ = Array.from({length: rows}, () => Array(cols).fill(false));
+flag  = Array.from({length: rows}, () => Array(cols).fill(false));
+buildGrid();
+onResize();
 showMenu();
 </script>
 </body>
