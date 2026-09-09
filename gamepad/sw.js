@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v128';
+const CACHE = 'gamepad-v133';
 
 const ASSETS = [
   './',
@@ -11,7 +11,7 @@ const ASSETS = [
   './games/brick-buster/index.html',
   './games/2048/index.html',
   './games/minesweeper/index.html',
-  './games/asteroids/index.html',
+  './games/rock-drift/index.html',
   './games/dot-glider/index.html',
   './games/paddle-duel/index.html',
   './games/simon/index.html',
@@ -46,7 +46,7 @@ const ASSETS = [
   './games/flow/index.html',
   './games/stars/index.html',
   './games/gear-puzzle/index.html',
-  './games/hill-racer/index.html',
+  './games/slope-rider/index.html',
   './games/top-racer/index.html',
   './games/nebula-strike/index.html',
   './games/gravity-shift/index.html',

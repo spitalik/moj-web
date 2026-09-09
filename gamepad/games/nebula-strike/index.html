@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Nebula Strike · GamePad</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <style>
         /* ===== RESET & BASE ===== */
@@ -347,6 +348,63 @@
         @media (max-width: 480px) {
             #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
         }
+
+    /* ── zladenie s ostatnymi hrami zbierky ─────────────────────────── */
+    :root{--fc:#7dd3fc;--fc2:#ff7ad9;--fgold:#ffd166;--fmuted:rgba(238,243,255,0.42);--fdim:rgba(238,243,255,0.18);--fborder:rgba(255,255,255,0.09);}
+    body{font-family:'DM Sans',system-ui,sans-serif;}
+    #hud{gap:7px !important;}
+    .hud-score,.hud-wave{
+      display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:100px;
+      background:rgba(6,4,22,0.62);backdrop-filter:blur(8px);border:1px solid var(--fborder);
+      font-size:9px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--fdim);
+      white-space:nowrap;line-height:1;
+    }
+    .hud-score span,.hud-wave span{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--fc);}
+    .hud-wave span{color:var(--fc2);}
+    .hud-health-wrap{
+      display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:100px;
+      background:rgba(6,4,22,0.62);backdrop-filter:blur(8px);border:1px solid var(--fborder);
+    }
+    .hud-health-bar{width:74px;height:6px;border-radius:4px;background:rgba(255,255,255,0.16);overflow:hidden;border:none;}
+    .hud-health-fill{border-radius:4px;}
+    .hud-health-fill.high{background:linear-gradient(90deg,#4ade80,#7dd3fc);}
+    .hud-health-fill.mid{background:linear-gradient(90deg,#ffd166,#ffa94d);}
+    .hud-health-fill.low{background:linear-gradient(90deg,#ff5d6d,#ff7ad9);}
+    .hud-health-text{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--fmuted);}
+    .hud-powerup-badge{border-radius:100px !important;background:rgba(6,4,22,0.62) !important;border:1px solid var(--fborder) !important;}
+    .ui-overlay{
+      background:radial-gradient(ellipse at center,rgba(6,4,22,0.8) 0%,rgba(2,1,10,0.95) 78%) !important;
+      backdrop-filter:blur(6px) !important;padding:18px;
+    }
+    .ui-overlay > *{max-width:334px;}
+    .ui-overlay h1{
+      font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:30px !important;
+      letter-spacing:-.5px !important;margin:0 0 2px !important;
+      background:linear-gradient(110deg,var(--fc) 5%,#fff 52%,var(--fc2) 95%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      text-shadow:none !important;animation:none !important;
+    }
+    .ui-overlay .sub{font-size:10px !important;letter-spacing:2.4px !important;color:var(--fdim) !important;text-transform:uppercase;margin-bottom:14px !important;}
+    .ui-overlay .score-display,.ui-overlay .high-score{
+      font-size:11.5px !important;font-weight:600;color:var(--fmuted) !important;
+      background:none !important;border:none !important;padding:2px 0 !important;
+    }
+    .ui-overlay .score-display span,.ui-overlay .high-score span{font-family:'Syne',sans-serif;font-weight:800;color:var(--fgold);}
+    .game-over-title{
+      font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:26px !important;
+      letter-spacing:-.5px !important;color:#fff !important;text-shadow:none !important;animation:none !important;
+    }
+    .game-over-sub{font-size:11.5px !important;color:var(--fmuted) !important;}
+    .ui-overlay .btn{
+      margin-top:12px;width:100%;max-width:300px;padding:13px 30px !important;border-radius:100px !important;
+      border:1px solid rgba(125,211,252,.5) !important;
+      background:linear-gradient(180deg,rgba(125,211,252,.24),rgba(125,211,252,.1)) !important;
+      color:#dcf1ff !important;font-family:'DM Sans',sans-serif !important;font-size:14px !important;font-weight:600 !important;
+      letter-spacing:0 !important;box-shadow:none !important;transition:all .18s;
+    }
+    .ui-overlay .btn:hover{background:linear-gradient(180deg,rgba(125,211,252,.34),rgba(125,211,252,.16)) !important;color:#fff !important;box-shadow:0 0 24px -6px rgba(125,211,252,.5) !important;}
+    /* prekryv je stlpcovy flex: scrolovanie po hlavnej osi, aby zostal na strede */
+    @media (max-height:820px){.ui-overlay{justify-content:flex-start !important;align-items:center !important;overflow-y:auto !important;}}
     </style>
 </head>
 <body>
@@ -434,15 +492,15 @@
             // ---- i18n ----
             function applyLabels() {
                 document.getElementById('lbl-back').textContent = t('back');
-                document.getElementById('lbl-wave').textContent = t('nebulaWave');
-                document.getElementById('lbl-menu-high').textContent = t('nebulaHighScore');
+                document.getElementById('lbl-wave').textContent = t('uiWave');
+                document.getElementById('lbl-menu-high').textContent = t('uiBest');
                 document.getElementById('lbl-controls').textContent = t('nebulaControlsHint');
                 document.getElementById('lbl-over-title').textContent = t('nebulaOverTitle');
                 document.getElementById('lbl-over-sub').textContent = t('nebulaOverSub');
-                document.getElementById('lbl-final-score').textContent = t('nebulaScore');
-                document.getElementById('lbl-final-high').textContent = t('nebulaHighScore');
-                startBtn.textContent = '▶ ' + t('nebulaPlay');
-                restartBtn.textContent = '🔄 ' + t('nebulaRestart');
+                document.getElementById('lbl-final-score').textContent = t('uiScore');
+                document.getElementById('lbl-final-high').textContent = t('uiBest');
+                startBtn.textContent = t('uiStart');
+                restartBtn.textContent = t('uiPlayAgain');
             }
 
             // ---- Sizing ----

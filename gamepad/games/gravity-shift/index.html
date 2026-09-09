@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Gravity Shift · GamePad</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <style>
         * {
@@ -158,6 +159,44 @@
         @media (max-width: 480px) {
             #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
         }
+    /* rodinny vzhlad */
+    :root{--fc:#88ccff;--fc2:#ffaa44;--fgold:#ffd166;--fmuted:rgba(233,240,255,0.42);--fdim:rgba(233,240,255,0.18);--fborder:rgba(255,255,255,0.09);}
+    html,body{font-family:'DM Sans',system-ui,sans-serif;}
+    #hud{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:20;display:none;align-items:center;gap:7px;pointer-events:none;}
+    #hud.show{display:flex;}
+    #hud .pill{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:100px;background:rgba(4,8,26,0.62);backdrop-filter:blur(8px);border:1px solid var(--fborder);font-size:9px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--fdim);white-space:nowrap;}
+    #hud .pill b{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--fc);}
+    #hud .pill.lvl b{color:var(--fc2);}
+    #hud .pill.best b{color:rgba(233,240,255,.72);}
+    #hud .pill.best.record{border-color:rgba(136,204,255,.45);}
+    #hud .pill.shield{display:none;}
+    #hud .pill.shield.on{display:flex;border-color:rgba(136,204,255,.45);}
+    #shield-bar{width:46px;height:5px;border-radius:3px;background:rgba(255,255,255,0.18);overflow:hidden;}
+    #shield-bar i{display:block;height:100%;background:var(--fc);border-radius:3px;}
+    @media(max-width:620px){#hud{left:auto;right:56px;transform:none;gap:5px;}#hud .pill span{display:none;}#hud .pill{padding:4px 10px;}#hud .pill b{font-size:15px;}#hud .pill.best{display:none;}}
+    #pause-btn{position:fixed;top:14px;right:14px;z-index:60;display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(4,8,26,0.7);backdrop-filter:blur(8px);border:1px solid var(--fborder);color:var(--fmuted);border-radius:50%;cursor:pointer;}
+    #pause-btn.show{display:flex;}
+    .ui-overlay{background:radial-gradient(ellipse at center,rgba(4,8,26,0.8) 0%,rgba(0,1,8,0.95) 78%) !important;backdrop-filter:blur(6px) !important;padding:18px;}
+    .fcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;width:100%;max-width:334px;padding:26px 24px 24px;border-radius:24px;background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid rgba(255,255,255,0.17);box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);animation:fpop .34s cubic-bezier(.2,1.4,.4,1);text-align:center;}
+    @keyframes fpop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+    .fcard::before{content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;background:linear-gradient(120deg,rgba(136,204,255,.5),transparent 42%,transparent 58%,rgba(255,170,68,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+    .fcard .femoji{font-size:34px;line-height:1;filter:drop-shadow(0 6px 16px rgba(136,204,255,.4));}
+    .fcard .fttl{font-family:'Syne',sans-serif;font-weight:800;font-size:23px;letter-spacing:-.5px;background:linear-gradient(110deg,var(--fc) 5%,#fff 52%,var(--fc2) 95%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .fcard .fsub{font-size:11.5px;line-height:1.5;color:var(--fmuted);}
+    .fcard .fbig{font-family:'Syne',sans-serif;font-weight:800;font-size:48px;line-height:1.05;letter-spacing:-2px;color:var(--fc);text-shadow:0 0 30px rgba(136,204,255,.4);}
+    .fcard .flbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--fdim);}
+    .fcard .fnote{font-size:11.5px;font-weight:600;color:var(--fmuted);}
+    .fcard .fnote.record{color:var(--fgold);}
+    .fstats{display:grid;width:100%;grid-template-columns:1fr 1fr;gap:7px;}
+    .fstat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid var(--fborder);}
+    .fstat i{font-size:8px;font-style:normal;letter-spacing:1.3px;text-transform:uppercase;color:var(--fdim);}
+    .fstat b{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--fc2);}
+    .fbtn{margin-top:3px;width:100%;padding:13px 30px;border-radius:100px;border:1px solid rgba(136,204,255,.5);background:linear-gradient(180deg,rgba(136,204,255,.24),rgba(136,204,255,.1));color:#dcefff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;}
+    .fbtn:hover{background:linear-gradient(180deg,rgba(136,204,255,.34),rgba(136,204,255,.16));color:#fff;box-shadow:0 0 24px -6px rgba(136,204,255,.5);}
+    .fbtn:active{transform:translateY(1px);}
+    #orientation-hint{font-size:10.5px;color:var(--fdim);}
+    /* prekryv je stlpcovy flex: na nizkych obrazovkach sa scroluje po hlavnej osi, nie do strany */
+    @media (max-height:820px){.ui-overlay{justify-content:flex-start !important;align-items:center !important;overflow-y:auto !important;}}
     </style>
 </head>
 <body>
@@ -168,19 +207,39 @@
     <canvas id="gameCanvas"></canvas>
     <div id="orientation-hint"></div>
 
+    <div id="hud">
+      <div class="pill"><span id="lbl-h-score"></span><b id="hud-score">0</b></div>
+      <div class="pill lvl"><span id="lbl-h-level"></span><b id="hud-level">1</b></div>
+      <div class="pill shield" id="shield-pill"><span id="lbl-h-shield">&#128737;&#65039;</span><div id="shield-bar"><i style="width:100%"></i></div></div>
+      <div class="pill best" id="best-pill"><span id="lbl-h-best"></span><b id="hud-best">0</b></div>
+    </div>
+    <button id="pause-btn" aria-label="pause">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.4"/><rect x="14" y="4" width="4" height="16" rx="1.4"/></svg>
+    </button>
+
     <!-- Start screen -->
     <div class="ui-overlay active" id="startOverlay">
-        <h1>🌌 GRAVITY SHIFT</h1>
-        <div class="sub" id="lbl-start-sub"></div>
-        <button class="btn" id="startBtnHtml"></button>
+      <div class="fcard">
+        <div class="femoji">🌌</div>
+        <div class="fttl" id="lbl-start-title">Gravity Shift</div>
+        <div class="fsub" id="lbl-start-sub"></div>
+        <button class="fbtn" id="startBtnHtml"></button>
+      </div>
     </div>
 
     <!-- Game over -->
     <div class="ui-overlay" id="gameOverOverlay">
-        <div class="game-over-title" id="lbl-over-title"></div>
-        <div class="score-display"><span id="lbl-final-score"></span>: <span id="finalScoreHtml">0</span></div>
-        <div class="high-score"><span id="lbl-final-level"></span>: <span id="finalLevelHtml">1</span></div>
-        <button class="btn" id="restartBtnHtml"></button>
+      <div class="fcard">
+        <div class="fttl" id="lbl-over-title"></div>
+        <div class="flbl" id="lbl-final-score"></div>
+        <div class="fbig" id="finalScoreHtml">0</div>
+        <div class="fnote" id="over-note"></div>
+        <div class="fstats">
+          <div class="fstat"><i id="lbl-final-level"></i><b id="finalLevelHtml">1</b></div>
+          <div class="fstat"><i id="lbl-final-best"></i><b id="finalBestHtml">0</b></div>
+        </div>
+        <button class="fbtn" id="restartBtnHtml"></button>
+      </div>
     </div>
     <script>
         (function() {
@@ -236,7 +295,11 @@
                 playSound(40, 0.8, 'triangle', 0.1, 15); }
 
             // ==================== GAME STATE ====================
-            let W, H, isLandscape;
+            let W, H, isLandscape, dpr = 1;
+            let paused = false;
+            const BEST_KEY = 'gravityshift_best';
+            let best = 0;
+            try { best = parseInt(localStorage.getItem(BEST_KEY), 10) || 0; } catch (e) {}
             let score = 0;
             let gameOver = false;
             let gameStarted = false;
@@ -278,10 +341,13 @@
 
             // ==================== RESIZE & ORIENTATION ====================
             function resize() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                W = canvas.width;
-                H = canvas.height;
+                // ostra kresba na displejoch s vysokou hustotou bodov
+                dpr = Math.min(2, window.devicePixelRatio || 1);
+                W = window.innerWidth;
+                H = window.innerHeight;
+                canvas.width = Math.round(W * dpr);
+                canvas.height = Math.round(H * dpr);
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
                 const wasLandscape = isLandscape;
                 isLandscape = W > H;
                 initPlayerPosition();
@@ -344,6 +410,10 @@
             // ==================== RESET ====================
             function restartGame() {
                 gameOverOverlay.classList.remove('active');
+                document.getElementById('hud').classList.add('show');
+                document.getElementById('pause-btn').classList.add('show');
+                document.getElementById('best-pill').classList.remove('record');
+                paused = false;
                 score = 0;
                 gameOver = false;
                 gameStarted = true;
@@ -588,8 +658,18 @@
                             spawnParticles(px, py, 30, '#ff8800', 5, 35);
                             sfxGameOver();
                             hint.style.opacity = '1';
+                            const rec = score > best;
+                            if (rec) { best = score; try { localStorage.setItem(BEST_KEY, String(best)); } catch (e2) {} }
                             finalScoreHtml.textContent = score;
                             finalLevelHtml.textContent = difficultyLevel;
+                            document.getElementById('finalBestHtml').textContent = best;
+                            const note = document.getElementById('over-note');
+                            note.textContent = rec ? t('uiNewRecord') : t('uiBest') + ' ' + best;
+                            note.classList.toggle('record', rec);
+                            document.getElementById('best-pill').classList.toggle('record', rec);
+                            document.getElementById('hud').classList.remove('show');
+                            document.getElementById('pause-btn').classList.remove('show');
+                            syncHud();
                             gameOverOverlay.classList.add('active');
                             break;
                         }
@@ -874,41 +954,32 @@
                 }
             }
 
-            function drawUI() {
-                // Skóre
-                ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                ctx.font = 'bold 20px "Segoe UI", system-ui, sans-serif';
-                ctx.textAlign = 'right';
-                ctx.fillText(`⭐ ${score}`, W - 20, 40);
-
-                // Shield indikátor
+            // HUD je v DOM (sklenene pilulky), na canvase zostava len orientacia
+            const hudVal = {};
+            function setHud(id, v) {
+                if (hudVal[id] === v) return;
+                hudVal[id] = v;
+                document.getElementById(id).textContent = v;
+            }
+            function syncHud() {
+                setHud('hud-score', score);
+                setHud('hud-level', difficultyLevel);
+                setHud('hud-best', best);
+                const sp = document.getElementById('shield-pill');
+                sp.classList.toggle('on', !!player.shieldActive);
                 if (player.shieldActive) {
-                    const remaining = player.shieldTimer / player.shieldMax;
-                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                    ctx.font = '12px "Segoe UI", system-ui, sans-serif';
-                    ctx.textAlign = 'right';
-                    ctx.fillText(`🛡️ ${(remaining * 100).toFixed(0)}%`, W - 20, 65);
-
-                    // Progress bar
-                    const barW = 60;
-                    const barH = 4;
-                    const barX = W - 20 - barW;
-                    const barY = 72;
-                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                    ctx.fillRect(barX, barY, barW, barH);
-                    ctx.fillStyle = '#88ccff';
-                    ctx.fillRect(barX, barY, barW * remaining, barH);
+                    const k = Math.max(0, Math.min(1, player.shieldTimer / player.shieldMax));
+                    sp.querySelector('i').style.width = (k * 100) + '%';
                 }
-
-                // Rýchlosť / level
-                ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                ctx.font = '11px "Segoe UI", system-ui, sans-serif';
+            }
+            function drawUI() {
+                syncHud();
+                // rezim (na / vysku) zostava jemne dole vlavo
+                ctx.fillStyle = 'rgba(255,255,255,0.28)';
+                ctx.font = '600 10px "DM Sans", system-ui, sans-serif';
                 ctx.textAlign = 'left';
-                ctx.fillText(`${t('gravitySpeed')}: ${scrollSpeed.toFixed(1)} | ${t('gravityLevel')}: ${difficultyLevel}`, 20, H - 15);
-
-                // Indikátor orientácie
-                const orientText = isLandscape ? '↔ ' + t('gravityLandscape') : '↕ ' + t('gravityPortrait');
-                ctx.fillText(`${t('gravityMode')}: ${orientText}`, 20, H - 35);
+                const orientText = isLandscape ? '\u2194 ' + t('gravityLandscape') : '\u2195 ' + t('gravityPortrait');
+                ctx.fillText(t('gravityMode') + ': ' + orientText + '  \u00b7  ' + t('gravitySpeed') + ' ' + scrollSpeed.toFixed(1), 18, H - 16);
             }
 
             function render() {
@@ -958,17 +1029,45 @@
             }
 
             // ==================== GAME LOOP ====================
-            function gameLoop() {
-                update();
-                render();
+            let lastTs = 0, acc = 0;
+            const STEP = 1 / 60;
+            function gameLoop(ts) {
                 requestAnimationFrame(gameLoop);
+                const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0;
+                lastTs = ts;
+                if (!paused) {
+                    acc += dt;
+                    let n = 0;
+                    // logika bezi vzdy 60x za sekundu, aj na 144 Hz displeji
+                    while (acc >= STEP && n < 4) { acc -= STEP; update(); n++; }
+                } else {
+                    acc = 0;
+                }
+                render();
+                if (paused) {
+                    ctx.fillStyle = 'rgba(0,1,8,0.62)';
+                    ctx.fillRect(0, 0, W, H);
+                    ctx.fillStyle = '#e9f0ff';
+                    ctx.font = '800 ' + Math.round(Math.min(W, H) * 0.07) + 'px Syne, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(t('uiPaused'), W / 2, H / 2);
+                }
+            }
+            function togglePause() {
+                if (!gameStarted || gameOver) return;
+                paused = !paused;
             }
 
             // ==================== INPUT ====================
             function doStart() {
                 if (gameStarted) return;
                 gameStarted = true;
+                paused = false;
                 startOverlay.classList.remove('active');
+                document.getElementById('hud').classList.add('show');
+                document.getElementById('pause-btn').classList.add('show');
+                syncHud();
                 hint.style.opacity = '0';
             }
 
@@ -1058,19 +1157,25 @@
             // ==================== INIT ====================
             document.getElementById('lbl-back').textContent = t('back');
             hint.textContent = '🔄 ' + t('gravityOrientHint');
+            document.getElementById('lbl-start-title').textContent = t('gravityTitle');
             document.getElementById('lbl-start-sub').textContent = t('gravityStartSub');
-            startBtnHtml.textContent = '▶  ' + t('gravityStartBtn');
-            document.getElementById('lbl-over-title').textContent = t('gravityOverTitle');
-            document.getElementById('lbl-final-score').textContent = t('gravityFinalScore');
-            document.getElementById('lbl-final-level').textContent = t('gravityLevel');
-            restartBtnHtml.textContent = '🔄  ' + t('gravityRestartBtn');
+            startBtnHtml.textContent = t('uiStart');
+            document.getElementById('lbl-over-title').textContent = t('uiGameOver');
+            document.getElementById('lbl-final-score').textContent = t('uiScore');
+            document.getElementById('lbl-final-level').textContent = t('uiLevel');
+            document.getElementById('lbl-final-best').textContent = t('uiBest');
+            document.getElementById('lbl-h-score').textContent = t('uiScore');
+            document.getElementById('lbl-h-level').textContent = t('uiLevel');
+            document.getElementById('lbl-h-best').textContent = t('uiBest');
+            restartBtnHtml.textContent = t('uiPlayAgain');
 
-            startBtnHtml.addEventListener('click', () => {
-                if (gameStarted) return;
-                gameStarted = true;
-                startOverlay.classList.remove('active');
-                hint.style.opacity = '0';
+            startBtnHtml.addEventListener('click', doStart);
+            document.getElementById('pause-btn').addEventListener('click', togglePause);
+            document.addEventListener('keydown', e => {
+                if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); togglePause(); }
             });
+            window.addEventListener('blur', () => { if (gameStarted && !gameOver) paused = true; });
+            document.addEventListener('visibilitychange', () => { if (document.hidden && gameStarted && !gameOver) paused = true; });
             restartBtnHtml.addEventListener('click', () => {
                 restartGame();
             });
@@ -1084,13 +1189,6 @@
             setTimeout(() => {
                 if (gameStarted) hint.style.opacity = '0';
             }, 4000);
-
-            console.log('🚀 Gravity Shift pripravený!');
-            console.log('📱 Otoč obrazovku a zmeň smer hry.');
-            console.log('🖱️  Desktop: myš / šípky / WASD');
-            console.log('👆 Mobile: dotyk / ťahanie');
-            console.log('🛡️  Zbieraj modré štíty pre dočasnú nesmrteľnosť!');
-            console.log('⭐ Zbieraj hviezdy pre extra body!');
         })();
     </script>
 </body>

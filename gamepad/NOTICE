@@ -178,3 +178,97 @@ collection that second service worker would have kept serving its own cached
 copies of the game after an update, so on 9 September 2026 the manifest and the
 service worker were deleted, the registration was removed, and the translations
 were moved into the shared i18n.js where every other game keeps them.
+
+11. Folder rename and scoring - games/rock-drift/, games/dot-muncher/
+---------------------------------------------------------------------
+
+The rock-shooting game already carried its own title, Rock Drift, but its id,
+its folder and its i18n prefix were still the marked arcade title. On
+9 September 2026 the folder became games/rock-drift/, the id became
+"rock-drift" and the prefix ast* became rdr*, so nothing in the collection
+spells the mark any more. The word "asteroid" as the astronomical object still
+appears in other games' texts; that is the plain noun, not a title.
+
+games/dot-muncher/ kept its own maze, its own hero (a spinning cutter block)
+and its own hunters (hexagonal drones), but its points were still the arcade
+original's table - 10 a dot, 50 a pellet and 200/400/800/1600 for a chain of
+hunters. Rule 5 in CLAUDE.md rules that out, so the values are now this
+project's own: 12 a dot, 60 a pellet, 120/480/1080/1920 for a chain, and a
+level bonus of 250 per cleared level.
+
+games/rhythm/ bundles no audio at all. The beat grid is derived from the chosen
+tempo by this project's own code, the note pattern is random within that grid,
+and the hit sounds are short oscillator blips synthesised in the browser.
+
+12. Hill Climb Racing distance - games/slope-rider/
+--------------------------------------------------
+
+The uphill driving game was called games/hill-racer/ with the prefix hill*,
+and its title key held the half-Slovak string "Kopec Rally". Two things were
+wrong with that. The name sat a word away from a well-known commercial title
+of the same genre, and the title key existed in the English block only, so
+every one of the twelve languages fell back to it. On 9 September 2026 the
+folder became games/slope-rider/, the id "slope-rider", the prefix slr*, and
+the title "Slope Rider" was written into all twelve blocks (transliterated for
+Russian, Japanese, Korean and Chinese). The terrain, the car, the pickups and
+the physics were and stay this project's own.
+
+The rename list in section 5 now covers: Breakout -> Brick Buster, Asteroids ->
+Rock Drift, Pong -> Paddle Duel, Flappy Bird -> Dot Glider, Tetris -> Block
+Cascade, Pac-Man -> Dot Muncher, Frogger -> Road Hopper, Space Invaders ->
+Alien Wave, Hill Climb Racing -> Slope Rider. Every one of those is renamed all
+the way through - displayed title, game id, folder name and i18n prefix.
+
+13. Description matched to the game - games/dead-grid/
+-----------------------------------------------------
+
+The zombie-wave game's description promised an "evacuation zone", and a green
+ring was drawn in the middle of the arena, but standing in it did nothing. On
+9 September 2026 the ring was given the function the text described - it heals
+the player while they stand inside it - and the description in all twelve
+languages was rewritten to say exactly that. Nothing in this game is taken
+from anywhere: the arena, the walkers, the crates and the healing ring are all
+drawn at runtime by this project's own code.
+
+14. Scoring table replaced - games/sky-shield/
+----------------------------------------------
+
+The city-defence game awarded 25 points per intercepted missile multiplied by
+the wave, and 100 points per surviving city - the arcade original's own table.
+Rule 5 in CLAUDE.md rules that out, so on 9 September 2026 the values became
+this project own: 18 points plus 6 per wave for an intercept, and 120 per city
+still standing at the end of a wave. The game keeps its own name, its own
+skyline, its own battery and its own explosion art, all drawn at runtime.
+
+15. Scoring tables and colours replaced - games/bug-column/, games/blast-maze/
+------------------------------------------------------------------------------
+
+Both games were rebuilt on 9 September 2026 and the two things that could be
+read as taken from the arcade games of the same genre were replaced.
+
+games/bug-column/ used to award 100 points for a crawler head and 300 for the
+flanking spider - the same figures the 1980 arcade original used. The table is
+now this project's own: 20 points per body segment, 75 for a head, 8 for a
+destroyed pod, 180 plus 20 per wave for the spider, and 150 plus 50 per wave
+for clearing a wave. The field's look was moved away from the original's red
+and white mushrooms on black as well: the pods are drawn in the collection's
+own teal-to-amber ramp (four hits, colour per remaining hit), the crawler is a
+sky-blue chain with a violet head, and the flanker is pink. The creature
+shapes, the ship, the band and every effect are drawn at runtime by this
+project's own code.
+
+games/blast-maze/ awarded 10 points per soft block and 200 per enemy, close
+enough to the arcade bomb-maze table to be worth changing. The values are now
+15 per crate, 250 per enemy, 60 per power-up and 400 plus 80 per level for
+clearing the maze. The green field and brown bricks were replaced by the
+collection's palette - indigo floor, steel pillars, amber crates, a pink
+player orb and violet enemies. Neither game names, nor borrows art or code
+from, any other product; "Bug Column" and "Blast Maze" are this project's own
+titles, as are the folder names, the ids and the i18n prefixes.
+
+The third game of the batch, games/orbit-escape/, needed no licensing change:
+the name, the id, the prefix, the gravity wells, the debris, the fuel cells and
+the exit portal are all this project's own, and its scoring (4 points per
+second of flight, 200 plus 60 per level plus 2 per percent of fuel left at the
+portal, 40 per fuel cell) was invented for it. The word on the portal is now
+translated instead of the hardcoded English "EXIT".
