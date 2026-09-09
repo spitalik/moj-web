@@ -1,463 +1,679 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Type Rush · GamePad</title>
-    <script src="../../i18n.js"></script>
-    <style>
-        #back-btn{
-            position:fixed;top:14px;left:14px;z-index:60;
-            display:flex;align-items:center;gap:7px;
-            background:rgba(7,9,15,.88);border:1px solid #1a2e40;color:#8291ab;
-            padding:7px 14px;border-radius:100px;text-decoration:none;
-            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
-        }
-        #back-btn:hover,#back-btn:active{border-color:#60a5fa;color:#f0f4fe;}
-        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
-        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
-        body {
-            background:#0c0f16;
-            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
-            display:flex; justify-content:center; align-items:center;
-            min-height:100vh; margin:0; padding:12px;
-            touch-action: manipulation;
-        }
-        #game-container {
-            background:#151d2b;
-            border-radius:28px;
-            padding:20px 24px 24px;
-            max-width:520px;
-            width:100%;
-            box-shadow:0 12px 40px rgba(0,0,0,.7);
-            border:1px solid #2e3a4e;
-            display:flex; flex-direction:column; gap:14px;
-            position:relative;
-        }
-        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
-        #header h1 {
-            font-size:23px; font-weight:700;
-            background:linear-gradient(135deg,#bfdbfe,#60a5fa);
-            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-            margin:0;
-        }
-        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
-        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
-        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
-        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
-        .btn-group button.active { background:#60a5fa; color:#0c0f16; }
-        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
-        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
-        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
-        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
-        .high-score { border-color:#fbbf24; }
-        .high-score h3 { color:#fbbf24 !important; }
-        .high-score .value { color:#fbbf24 !important; }
-        #canvas-wrapper {
-            background:#0f1622; border-radius:16px; padding:8px;
-            box-shadow: inset 0 0 0 1px #2a3446;
-            position:relative; align-self:center;
-        }
-        #gameCanvas { display:block; border-radius:10px; }
-        #game-over-overlay {
-            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
-            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
-            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
-        }
-        #game-over-overlay.visible { display:flex; }
-        #game-over-overlay h2 {
-            font-size:26px;
-            background:linear-gradient(135deg,#bfdbfe,#60a5fa);
-            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-        }
-        #restartBtn {
-            background:#60a5fa; border:1px solid #bfdbfe; border-radius:40px;
-            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
-            box-shadow:0 6px 0 #1d4ed8; cursor:pointer; margin-top:6px;
-        }
-        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #1d4ed8; }
-        #kb { display:flex; flex-direction:column; gap:4px; align-items:center; margin-top:2px; }
-        .kb-row { display:flex; gap:4px; }
-        .kb-key {
-            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
-            border-radius:7px; min-width:26px; height:34px; font-size:12px; font-weight:600;
-            display:flex; align-items:center; justify-content:center; cursor:pointer;
-        }
-        .kb-key:active { background:#2c3c56; transform:translateY(1px); }
-        .kb-key.wide { min-width:44px; font-size:10px; }
-        @media (max-width:480px) {
-            .kb-key { min-width:22px; height:30px; font-size:11px; }
-        }
-    
-/* mobil/tablet: na nízkych obrazovkách stlačím rámce, aby ovládanie zostalo viditeľné */
-@media (max-height:900px){
-  body{padding:6px !important;}
-  #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Type Rush · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#050a12;--text:#eaf4ff;--muted:rgba(234,244,255,0.42);--dim:rgba(234,244,255,0.18);
+  --border:rgba(255,255,255,0.09);--border-h:rgba(255,255,255,0.18);
+  --c:#60a5fa;--c2:#4ade80;--gold:#ffd166;--danger:#ff5d6d;
 }
-@media (max-height:760px){
-  body{padding:3px !important;}
-  #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
-}
+html,body{background:var(--bg);height:100%;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none;}
+button,a,[onclick]{touch-action:manipulation;}
 
-/* nízke obrazovky: hracia plocha sa zmenší do dostupného miesta namiesto pretečenia */
-@media (max-height:900px){
-  #game-container{max-height:calc(100vh - 10px);}
-  #canvas-wrapper{min-height:0;flex:0 1 auto;}
-  #gameCanvas{max-height:100%;max-width:100%;width:auto;height:auto;}
-}
+#back-btn{position:fixed;top:14px;left:14px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(8,13,24,0.72);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:9px;left:9px;padding:6px 11px;font-size:11px;}}
 
-@media (max-height:700px){
-  #rules{display:none !important;}
+#hud{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:12;display:none;align-items:center;gap:7px;pointer-events:none;}
+#hud.show{display:flex;}
+.pill{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:100px;background:rgba(8,13,24,0.6);backdrop-filter:blur(8px);border:1px solid var(--border);font-size:9px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);transition:transform .18s;}
+.pill.combo b{color:var(--c2);}
+.pill.combo{opacity:.35;transition:opacity .2s,border-color .2s;}
+.pill.combo.on{opacity:1;border-color:rgba(74,222,128,.4);}
+.pill.best b{color:rgba(234,244,255,.72);}
+.pill.best.record{border-color:rgba(96,165,250,.45);}
+.pill b.bump{transform:scale(1.32);}
+.lifes{display:flex;gap:4px;}
+.life{width:9px;height:9px;border-radius:50%;background:var(--danger);box-shadow:0 0 8px rgba(255,93,109,.9);}
+.life.gone{background:rgba(255,255,255,0.13);box-shadow:none;}
+@media(max-width:620px){#hud{left:auto;right:56px;transform:none;gap:5px;}.pill span{display:none;}.pill{padding:4px 10px;}.pill b{font-size:15px;}.pill.best{display:none;}}
+
+#pause-btn{position:fixed;top:14px;right:14px;z-index:60;display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(8,13,24,0.7);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);border-radius:50%;cursor:pointer;}
+#pause-btn.show{display:flex;}
+#pause-btn:hover{border-color:var(--border-h);color:var(--text);}
+
+#kb{position:fixed;left:0;right:0;bottom:0;z-index:14;display:none;flex-direction:column;gap:5px;padding:8px 6px 10px;background:linear-gradient(180deg,rgba(5,10,18,0),rgba(5,10,18,0.92) 32%);}
+body.touch #kb.show{display:flex;}
+.kb-row{display:flex;gap:4px;justify-content:center;}
+.kb-key{flex:1 1 0;max-width:44px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03));border:1px solid var(--border);color:var(--muted);font-size:14px;font-weight:600;text-transform:uppercase;cursor:pointer;transition:background .1s,color .1s,transform .08s;}
+.kb-key:active,.kb-key.hit{background:rgba(96,165,250,0.28);border-color:rgba(96,165,250,0.6);color:#fff;transform:scale(.94);}
+.kb-key.next{background:rgba(74,222,128,0.2);border-color:rgba(74,222,128,0.55);color:#d9ffe8;}
+.kb-key.wide{max-width:120px;flex:0 0 92px;}
+
+#overlay{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at center,rgba(8,13,24,0.78) 0%,rgba(3,6,12,0.95) 78%);backdrop-filter:blur(6px);}
+#overlay.hide{display:none;}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;width:100%;max-width:340px;padding:26px 24px 24px;border-radius:24px;background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid var(--border-h);box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);animation:pop .34s cubic-bezier(.2,1.4,.4,1);}
+@keyframes pop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+.card::before{content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;background:linear-gradient(120deg,rgba(96,165,250,.5),transparent 42%,transparent 58%,rgba(74,222,128,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.emoji{font-size:34px;line-height:1;filter:drop-shadow(0 6px 16px rgba(96,165,250,.4));}
+.title{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-.5px;text-align:center;background:linear-gradient(110deg,var(--c) 5%,#fff 52%,var(--c2) 95%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#result{display:none;flex-direction:column;align-items:center;gap:2px;}
+#result.show{display:flex;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-score{font-family:'Syne',sans-serif;font-weight:800;font-size:50px;line-height:1.05;letter-spacing:-2px;color:var(--c);text-shadow:0 0 30px rgba(96,165,250,.45);}
+#res-note{font-size:11.5px;font-weight:600;color:var(--muted);}
+#res-note.record{color:var(--gold);}
+#stats{display:none;width:100%;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+#stats.show{display:grid;}
+.stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);}
+.stat i{font-size:8px;font-style:normal;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);text-align:center;}
+.stat b{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums;color:var(--c2);white-space:nowrap;}
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(96,165,250,0.16);color:#cfe4ff;box-shadow:inset 0 0 0 1px rgba(96,165,250,0.42);}
+.lbl{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.hint{font-size:11.5px;line-height:1.55;color:var(--muted);text-align:center;}
+.play-btn{margin-top:3px;width:100%;padding:13px 30px;border-radius:100px;border:1px solid rgba(96,165,250,.5);background:linear-gradient(180deg,rgba(96,165,250,.24),rgba(96,165,250,.1));color:#d8e9ff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(96,165,250,.34),rgba(96,165,250,.16));color:#fff;box-shadow:0 0 24px -6px rgba(96,165,250,.5);}
+.play-btn:active{transform:translateY(1px);}
+@media(max-height:640px){.card{gap:8px;padding:18px 20px;}.emoji{display:none;}.title{font-size:20px;}#res-score{font-size:38px;}.stat b{font-size:14px;}.stat{padding:6px 3px;}}
+@media (max-height:820px){#overlay{align-items:flex-start !important;overflow-y:auto !important;}}
+@media(max-width:360px){.seg button{padding:6px 10px;font-size:11px;}.kb-key{height:36px;font-size:13px;}}
+
+/* krajina na nizkych obrazovkach: nizsia klavesnica, aby zostal priestor na padanie */
+@media (orientation:landscape) and (max-height:520px){
+  #kb{padding:4px 5px 6px;gap:3px;}
+  .kb-key{height:28px;max-width:38px;font-size:12px;border-radius:7px;}
+  .kb-key.wide{flex:0 0 70px;max-width:80px;}
 }
 </style>
 </head>
 <body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
 
-    <a href="../../index.html" id="back-btn">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      <span id="lbl-back"></span>
-    </a>
+<canvas id="c"></canvas>
 
-    <div id="game-container">
-        <div id="header">
-            <h1>⌨️ TYPE RUSH</h1>
-            <div id="settings">
-                <label id="lbl-size">Obtiažnosť:</label>
-                <div class="btn-group" id="sizeGroup">
-                    <button data-diff="easy" id="lbl-size-s">Ľahká</button>
-                    <button data-diff="medium" class="active" id="lbl-size-m">Stredná</button>
-                    <button data-diff="hard" id="lbl-size-l">Ťažká</button>
-                </div>
-            </div>
-        </div>
+<div id="hud">
+  <div class="pill"><span id="lbl-score"></span><b id="hud-score">0</b></div>
+  <div class="pill combo" id="combo-pill"><span id="lbl-combo"></span><b id="hud-combo">0</b></div>
+  <div class="pill"><div class="lifes" id="lifes"></div></div>
+  <div class="pill best" id="best-pill"><span id="lbl-best"></span><b id="hud-best">0</b></div>
+</div>
 
-        <p id="rules"></p>
+<button id="pause-btn" aria-label="pause">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.4"/><rect x="14" y="4" width="4" height="16" rx="1.4"/></svg>
+</button>
 
-        <div id="info-panel">
-            <div class="info-card">
-                <h3 id="lbl-score">Skóre</h3>
-                <span class="value" id="scoreValue">0</span>
-            </div>
-            <div class="info-card">
-                <h3 id="lbl-combo">Kombá</h3>
-                <span class="value" id="comboValue">0</span>
-            </div>
-            <div class="info-card">
-                <h3 id="lbl-lives">Životy</h3>
-                <span class="value" id="livesValue">3</span>
-            </div>
-            <div class="info-card high-score">
-                <h3 id="lbl-best">Najlepšie</h3>
-                <span class="value" id="bestValue">0</span>
-            </div>
-        </div>
+<div id="kb"></div>
 
-        <div id="canvas-wrapper">
-            <canvas id="gameCanvas"></canvas>
-            <div id="game-over-overlay">
-                <h2 id="lbl-gameover">Koniec hry</h2>
-                <p><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
-                <p><span id="lbl-final-wpm">Slová/min:</span> <span id="finalWpm">0</span></p>
-                <button id="restartBtn">Hrať znova</button>
-            </div>
-        </div>
-
-        <div id="kb"></div>
+<div id="overlay">
+  <div class="card">
+    <div id="brand"><div class="emoji">⌨️</div></div>
+    <div class="title" id="ov-title"></div>
+    <div id="result">
+      <div id="res-lbl"></div>
+      <div id="res-score">0</div>
+      <div id="res-note"></div>
     </div>
+    <div id="stats">
+      <div class="stat"><i id="lbl-wpm"></i><b id="st-wpm">0</b></div>
+      <div class="stat"><i id="lbl-acc"></i><b id="st-acc">0%</b></div>
+      <div class="stat"><i id="lbl-words"></i><b id="st-words">0</b></div>
+    </div>
+    <div class="lbl" id="lbl-diff"></div>
+    <div class="seg" id="diff-row"></div>
+    <div class="hint" id="ov-hint"></div>
+    <button class="play-btn" id="ov-play"></button>
+  </div>
+</div>
 
-    <script>
-        (function () {
-            'use strict';
+<script>
+// ── vlastny zoznam bezych anglickych slov (bez cudzich zdrojov) ─────────
+const POOLS = [
+  ('bell bird blue boat book cake cave city clay cloud coal coin cold corn dawn deer dish dive door dust echo fern fire fish flag flame fox frog gate gift glass gold grape green hand hawk heart hill honey ice iron jade jump keen kind king lake lamp leaf lion lock luck maple mask milk mint moon moss mouse music night note oak ocean olive owl paper park pearl pine pixel plant plum pond pride prize quick quiet radio rain reef ride ring river road robot rock rope rose sail sand seal seed shell ship shoe silk sky snow song spark star stone storm sun swan table tent tide tiger time toast town tree tulip vase wave wheat wind wing wolf wood yard zebra zone').split(' '),
+  ('anchor autumn basket bridge camera candle canyon carbon castle cavern circle clover coffee copper coral cosmos crater crystal current cyclone danger desert diamond dolphin dragon engine escape feather forest fossil garden glacier granite gravity harbor harvest helmet hollow iceberg island jungle keyhole kitchen lantern library machine magnet marble meadow mirror monsoon morning mosaic mystery nebula nickel orchard oxygen palace pattern pebble pepper planet plateau pocket prairie pumpkin puzzle quarry rabbit rainbow ribbon ripple rocket saddle sailor shadow shelter shuttle signal silver spiral splash spring stable statue stream studio summit sunset temple thunder ticket timber tunnel valley velvet violet voyage walnut whisper willow window winter wizard wonder yellow zephyr').split(' '),
+  ('adventure aluminium ambulance architect astronaut atmosphere avalanche beautiful blueprint butterfly cathedral celebrate chandelier chemistry chocolate coastline community companion conductor continent crocodile curiosity dandelion dashboard deliberate dictionary difficult discovery education elevation equipment evergreen expedition fireplace framework furniture generator gladiator harmonica headlight helicopter highlight hurricane invention jellyfish journalist keyboards kilometer landscape lighthouse lightning limestone magnesium magnitude marmalade mechanism microscope milestone moonlight mountains mushrooms navigator nightfall nocturnal notebooks observant orchestra ornaments paintings parachute passenger peninsula periscope pineapple planetary porcelain professor quicksand radiation rainstorm raspberry reflection remarkable resonance sanctuary satellite saxophone sculpture signature snowflake spacecraft spectacle staircase starlight stargazer submarine sunflower telescope thunderous timekeeper trampoline transport treasures turbulence universal vegetable ventilate vibration volcanoes waterfall wilderness windmills wonderful woodlands yesterday').split(' '),
+];
 
-            const WORD_POOLS = {"easy": ["abash", "able", "abuts", "adage", "addle", "agar", "ailed", "aloe", "altho", "amuse", "ankhs", "app", "aquas", "arced", "arcs", "attic", "awake", "axiom", "baaed", "baker", "bale", "barbs", "bars", "basic", "basis", "bast", "bated", "bates", "bathe", "bays", "beads", "beds", "beefs", "begs", "belly", "bench", "beret", "berry", "beset", "bias", "bib", "bicep", "biped", "bleed", "blind", "blip", "blot", "bodes", "boil", "book", "boozy", "bored", "born", "boss", "boxer", "boy", "brad", "braid", "brews", "brims", "bring", "build", "buns", "buoy", "burrs", "burs", "bus", "byes", "came", "candy", "carpi", "cased", "caws", "chat", "chuck", "cider", "cis", "class", "codex", "cola", "colon", "comm", "cone", "cook", "cool", "copra", "cores", "corns", "cots", "count", "covey", "credo", "cult", "cynic", "dale", "day", "dazed", "dazes", "deans", "debit", "desks", "deter", "die", "docks", "dog", "dole", "dolt", "doom", "dope", "dorm", "dowdy", "dpi", "draft", "dram", "drama", "drips", "drub", "dudes", "dug", "duh", "dump", "dust", "dusty", "earl", "eases", "echo", "edit", "egos", "elite", "emend", "emery", "ems", "end", "ensue", "eon", "erase", "espy", "farce", "farms", "fats", "faun", "fauns", "favor", "feats", "feces", "feel", "fer", "filed", "fins", "fiord", "fir", "fires", "flew", "flues", "foil", "fold", "fores", "fouls", "funky", "gaffs", "gall", "gamin", "gape", "gibe", "gibed", "globs", "gonks", "gooks", "gorps", "gourd", "gout", "grebe", "guts", "gym", "halls", "harem", "harks", "hart", "hats", "hefts", "here", "hers", "hing", "hints", "hips", "his", "hiss", "hobo", "homer", "hour", "hunks", "hypo", "iambs", "idea", "ideal", "ids", "ikons", "incur", "inert", "irks", "jewel", "jibe", "jock", "jog", "join", "joist", "joke", "jokes", "karat", "keys", "kit", "knoll", "lairs", "latch", "lath", "laze", "leans", "leaps", "leech", "letup", "lewd", "lifts", "like", "lipid", "lists", "loft", "lofty", "looks", "lop", "luaus", "lusty", "lutes", "madam", "manor", "maxed", "meals", "meld", "merit", "mewls", "might", "mints", "moats", "moves", "mucky", "mulch", "mum", "mush", "muter", "nag", "nags", "naked", "natal", "natty", "naval", "neath", "nervy", "niece", "nigh", "none", "nope", "note", "now", "nude", "nuts", "oakum", "offal", "offed", "opal", "opals", "orcs", "ounce", "packs", "page", "pale", "paler", "parks", "parts", "pasha", "payee", "payer", "peaks", "peck", "peony", "per", "perms", "pesos", "pica", "piles", "pinks", "pity", "plaza", "plead", "pope", "pored", "prig", "proms", "prosy", "puff", "puppy", "purl", "quads", "qualm", "quasi", "quest", "quiz", "raid", "ram", "rape", "rats", "rays", "reap", "refs", "reins", "reorg", "reps", "rinds", "ripen", "ritzy", "roast", "roe", "romps", "route", "rower", "rue", "ruing", "rusks", "sad", "sate", "savor", "scar", "scary", "screw", "sects", "servo", "shake", "shawl", "shed", "shes", "shins", "shoal", "shoos", "sieve", "sign", "signs", "sill", "silly", "sim", "sins", "skein", "skied", "slash", "slays", "sloes", "slugs", "slurs", "smurf", "snips", "snowy", "snuff", "soils", "son", "sop", "sores", "sough", "spa", "spays", "spear", "spook", "squab", "staph", "stint", "stoke", "stony", "stop", "sulks", "swum", "tale", "tam", "tan", "tango", "tanks", "tape", "taro", "tel", "theta", "till", "tiny", "today", "toked", "torus", "touch", "tree", "trice", "trot", "trues", "tubs", "tugs", "twain", "twig", "twin", "twink", "twirl", "twist", "twit", "udder", "ultra", "unify", "urge", "user", "vales", "var", "veal", "vegan", "vents", "verve", "vises", "visit", "vivas", "wadis", "wails", "wary", "wax", "weeds", "wench", "whys", "widen", "wild", "wire", "wish", "womb", "wombs", "woods", "worm", "wot", "wound", "writ", "writs", "yanks", "yawls", "yokes", "your", "yowl", "zinc", "zincs"], "medium": ["abate", "abode", "accrue", "acute", "adapter", "adorn", "affirms", "afghans", "angina", "angles", "annals", "apprize", "arbors", "arches", "argyle", "arraign", "arrays", "artful", "asleep", "athlete", "azimuth", "bakers", "baleen", "bandana", "banes", "barest", "basks", "baste", "bazaar", "begging", "begins", "behinds", "belts", "blink", "blowsy", "bonded", "boners", "bonnie", "boogies", "botnet", "boughs", "bouquet", "braking", "bravest", "brewing", "brownie", "bucks", "bulled", "bumping", "cage", "caliphs", "carries", "catalog", "cattier", "cavern", "chancel", "chap", "chasm", "chatter", "chirp", "chute", "chyrons", "circuit", "cistern", "citizen", "cloture", "coda", "coiled", "collies", "colones", "colossi", "confirm", "confuse", "convex", "coolly", "coppery", "cornier", "court", "crumbed", "crumple", "crypt", "cuff", "curio", "cusses", "cutlery", "dafter", "damned", "daub", "deafest", "deal", "declaim", "deem", "deform", "deli", "deploys", "details", "dimes", "dirges", "dismay", "diverge", "dizzier", "dolphin", "drubbed", "dueling", "dung", "dutiful", "eaten", "edict", "effort", "egis", "egress", "employ", "enamors", "enroll", "ermine", "erodes", "erred", "ester", "eviler", "exact", "exam", "fabric", "fads", "faintly", "falsity", "fate", "fattest", "febrile", "feeders", "feuding", "finely", "flags", "flamage", "flee", "floes", "flooded", "florins", "folded", "fooling", "footsie", "forceps", "found", "founded", "frag", "freaks", "freemen", "frizzes", "frump", "furling", "fuzzes", "gaming", "garbing", "garoted", "gaskets", "gaudily", "gelled", "genie", "geode", "gerund", "gets", "gigged", "glueing", "gnashes", "goalies", "gone", "gotchas", "gowned", "grams", "granite", "grasped", "grimace", "grouchy", "grues", "guested", "gulps", "hatch", "hearer", "heaven", "hedging", "heeling", "helices", "hereby", "hickey", "hing", "holdout", "homier", "hooey", "hoops", "horned", "house", "hovered", "howlers", "humped", "hunched", "hurried", "icebox", "imbue", "inertia", "inflow", "inland", "insures", "intro", "inuring", "iota", "itchy", "japan", "jaywalk", "jeep", "jewelry", "juncoes", "ketch", "kittens", "knead", "kneels", "koans", "kudos", "laid", "lath", "lentil", "lessee", "limped", "linden", "linens", "logo", "lovers", "loves", "lugged", "lyres", "madly", "maim", "manures", "marches", "market", "maybes", "meek", "memento", "mesas", "mewl", "mewled", "mils", "minuted", "mister", "misuse", "mockery", "modulus", "morbid", "mortals", "mouthed", "mowing", "muffs", "mutants", "mystic", "nabbed", "nanobot", "neat", "nervous", "nibble", "niggles", "nipples", "noisier", "noisome", "notable", "nuzzles", "oblongs", "obscure", "obvious", "offset", "onion", "option", "opts", "oranges", "orchard", "outs", "pair", "parrots", "parts", "pastors", "patois", "pawned", "pedaled", "pellet", "persona", "pertain", "peseta", "peskier", "petting", "phonier", "pilafs", "pilgrim", "piquant", "pissing", "pizazz", "plague", "plaza", "pores", "posited", "prances", "prawns", "prophet", "quibble", "quilts", "quirky", "racial", "rainbow", "rank", "ranks", "ready", "recites", "reefed", "refs", "rehired", "resting", "reveler", "ride", "riot", "rival", "roam", "roans", "rocking", "role", "rotted", "roundup", "rugby", "rumba", "rustic", "rustier", "salvos", "sandlot", "sarcoma", "sauced", "saucy", "scanty", "scholar", "scope", "scraper", "scythe", "seasons", "second", "seduces", "servant", "shin", "shindig", "shiner", "shit", "showers", "shrug", "shushes", "sights", "silvery", "sims", "slicked", "slider", "smacked", "smirch", "softer", "sombre", "soprano", "sorghum", "sorting", "soupier", "spew", "spider", "spinner", "sprang", "stagger", "stapled", "starry", "startle", "staying", "steered", "stools", "stories", "strops", "subway", "suites", "suitor", "surfeit", "surrey", "swizzle", "syringe", "tallied", "tavern", "teats", "tenets", "tenth", "tests", "thereby", "thorium", "thrones", "tillage", "timbre", "tines", "tinier", "tippers", "toddled", "toddles", "toiler", "tokens", "toniest", "toot", "topcoat", "topmast", "torqued", "totted", "towels", "trig", "trigger", "tropes", "troughs", "tucks", "twos", "typos", "tyroes", "unguent", "unified", "untied", "upload", "uproots", "uptight", "urology", "usable", "valid", "vastest", "verbs", "victims", "vilest", "vivid", "waldos", "wanna", "warmest", "wastes", "wavier", "waviest", "weaning", "wearer", "weasels", "wheeled", "wigging", "wooers", "woolly", "worms", "wounder", "wrath", "yelling", "yipping", "yogurts", "zanier"], "hard": ["ablatives", "absolve", "absorbent", "aeration", "agonizing", "aircraft", "alchemist", "alibiing", "allotted", "ameliorate", "annealed", "aptness", "arrows", "arteries", "arthritics", "asymmetry", "avenger", "awakening", "awning", "balefully", "ballooning", "bandits", "barrels", "battling", "beaded", "besets", "besotted", "biding", "bilinguals", "billow", "bisque", "blockhouse", "blossoms", "borrow", "brawls", "breaking", "brickbats", "broadcast", "broadsides", "buffaloing", "bulked", "bulled", "buzzer", "caesareans", "caffeine", "calfskin", "capsule", "carafes", "caribou", "carton", "catchword", "cattlemen", "caucusing", "censoring", "censuses", "cheesier", "chickening", "childish", "chintz", "chipping", "chirped", "chumps", "clamber", "classier", "collects", "colonial", "combative", "commissary", "complected", "computer", "concubines", "confidant", "conform", "confuted", "contention", "convivial", "convoked", "cookers", "countdowns", "crimson", "curliest", "cushiest", "cyclone", "dachas", "damning", "debase", "debonairly", "debunk", "deepfakes", "defeatism", "defines", "degree", "delaying", "denial", "denting", "depravity", "despising", "digitally", "dilemmas", "disdainful", "distances", "divers", "diverted", "docilely", "doughtiest", "downloaded", "drawing", "dreamy", "dubious", "dumbwaiter", "earthliest", "ecosystem", "ejected", "election", "elevates", "emanates", "eminence", "engaged", "ergonomic", "examining", "expects", "explosions", "falsifying", "fetlocks", "finished", "finking", "firths", "flamings", "flaying", "floodlight", "flowering", "fluorides", "foiled", "folding", "footsore", "foundries", "fracas", "franchise", "freakier", "freeloader", "frequenter", "frothy", "fruits", "frustrates", "fugitive", "furlong", "gamuts", "gauche", "gelatine", "gentles", "gentrified", "gibing", "gladden", "goatees", "grimmer", "grinds", "grizzliest", "grossness", "grumpiness", "grunting", "gulling", "guzzled", "hairstyle", "handful", "happening", "harked", "hawkish", "hawser", "haywire", "heartsick", "hedonist", "hellish", "hijacker", "hilarity", "himself", "hobgoblins", "hooping", "horoscope", "horrid", "horror", "hosanna", "humidifies", "hungering", "huntsmen", "hydraulics", "hysterical", "imbecile", "immoveable", "impervious", "imposing", "incise", "increased", "inducement", "indulge", "infinite", "infringing", "ingredient", "initiators", "instrument", "invasions", "inwards", "isometric", "jangle", "joining", "jousts", "judgment", "judgmental", "junkers", "kenned", "keystrokes", "kudzus", "lallygag", "landings", "larkspurs", "lastly", "laundering", "legging", "liaises", "lifespans", "lightnings", "limbers", "linchpin", "livery", "locutions", "lordliest", "lovingly", "magnifier", "manholes", "masked", "mazurka", "meddles", "medieval", "mindlessly", "misbehaves", "moisten", "mooching", "mosque", "motorways", "moused", "muddles", "munchkin", "murmured", "muskiness", "nasalize", "oblivious", "oilfields", "oleanders", "oppressor", "orgasms", "origami", "outlandish", "outvoted", "overacted", "overawes", "overloaded", "oversee", "overtimes", "ovoids", "pageantry", "pamphlet", "panicked", "papered", "pastern", "penlites", "pentathlon", "persons", "peruses", "philter", "piazze", "pilaster", "pillion", "piracy", "pirates", "pitches", "plaster", "platformed", "pleasing", "plugged", "plumed", "poisoned", "polarities", "politesse", "polyphonic", "postdate", "pouted", "prefabbing", "prefigured", "pricked", "priggish", "priority", "privileged", "profitable", "profound", "prospered", "prostrate", "prudently", "pseudos", "publicizes", "purloins", "purpose", "quieted", "quizzed", "quoits", "racehorses", "raceway", "radiantly", "rampages", "ransacking", "raping", "reappears", "receive", "reclining", "referent", "refracting", "regaining", "regarded", "regional", "religions", "remainders", "reminisces", "renounced", "reorged", "repellant", "repellents", "reprehend", "represent", "reservists", "resinous", "restart", "restful", "retrenches", "reusable", "revamp", "reworking", "rigidly", "rosewoods", "rubbish", "ruffian", "rummer", "satiety", "scalped", "schlemiels", "schoolmarm", "scrimping", "scrupulous", "seclude", "seemed", "shadier", "shagged", "shavings", "shelved", "shilled", "shoeshine", "shrinkable", "shrunk", "sidesteps", "signposts", "singling", "situation", "skinless", "slovenlier", "smacks", "smartness", "smidgins", "smokeless", "smugger", "smugglers", "snagged", "snifter", "snipers", "snuggled", "socialize", "sonars", "spellers", "spooks", "squashiest", "squelched", "stabbing", "staple", "steeliest", "sticker", "stingy", "stodginess", "stresses", "strumming", "stylizing", "subtitled", "suffusion", "suggested", "sunbathes", "supernovas", "superusers", "supplier", "swaddled", "sweetener", "swivelled", "synches", "synchs", "systemic", "tailor", "tankard", "tarragons", "tellingly", "testate", "thirtieths", "threaded", "threes", "throng", "tonsorial", "tossed", "touting", "trainees", "transports", "trellised", "triathlons", "troikas", "tropes", "tropisms", "trundling", "twaddled", "twigging", "typists", "uncoil", "undergoes", "understudy", "unhitch", "unhitches", "urethrae", "vagrancy", "vaguest", "valance", "vegetables", "veneering", "verities", "vesicle", "virtuosos", "vuvuzelas", "wardrobe", "warnings", "wassail", "watched", "wayfarer", "webisode", "weeders", "whooping", "windjammer", "wittiness", "workbooks", "worker"]};
+// ── obtiaznosti (px/s, sekundy) ─────────────────────────────────────────
+const DIFFS = [
+  {key:'diffEasy',   speed:32, gap:2.20, live:3, ramp:0.13},
+  {key:'diffMedium', speed:44, gap:1.80, live:3, ramp:0.19},
+  {key:'diffHard',   speed:54, gap:1.45, live:4, ramp:0.25},
+];
+let diffIdx = 1;
+const bestKey = i => 'typerush_best_' + i;
+let best = 0;
+const LIVES = 3;
 
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
-            const scoreSpan = document.getElementById('scoreValue');
-            const comboSpan = document.getElementById('comboValue');
-            const livesSpan = document.getElementById('livesValue');
-            const bestSpan = document.getElementById('bestValue');
-            const gameOverOverlay = document.getElementById('game-over-overlay');
-            const finalScore = document.getElementById('finalScore');
-            const finalWpm = document.getElementById('finalWpm');
-            const restartBtn = document.getElementById('restartBtn');
-            const sizeGroup = document.getElementById('sizeGroup');
-            const kbEl = document.getElementById('kb');
+const ST = {MENU:0, COUNT:1, PLAY:2, PAUSE:3, OVER:4};
+let state = ST.MENU;
 
-            // ----- PREKLADY -----
-            document.getElementById('lbl-back').textContent = t('back');
-            document.getElementById('lbl-size').textContent = t('typDifficulty');
-            document.getElementById('lbl-size-s').textContent = t('typEasy');
-            document.getElementById('lbl-size-m').textContent = t('typMedium');
-            document.getElementById('lbl-size-l').textContent = t('typHard');
-            document.getElementById('lbl-score').textContent = t('typScore');
-            document.getElementById('lbl-combo').textContent = t('typCombo');
-            document.getElementById('lbl-lives').textContent = t('typLives');
-            document.getElementById('lbl-best').textContent = t('typBest');
-            document.getElementById('lbl-gameover').textContent = t('typGameOver');
-            document.getElementById('lbl-final-score').textContent = t('typScore') + ':';
-            document.getElementById('lbl-final-wpm').textContent = t('typWpm') + ':';
-            restartBtn.textContent = t('typReplay');
-            document.getElementById('rules').textContent = t('typRules');
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, SCL = 1;
+let TOP = 90, LINE = 0, FS = 20, CW = 12;
+const MONO = "'DM Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
+function wordFont() { return '500 ' + FS + 'px ' + MONO; }
 
-            // ----- ON-SCREEN KLAVESNICA -----
-            const KB_ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
-            KB_ROWS.forEach(row => {
-                const rowEl = document.createElement('div');
-                rowEl.className = 'kb-row';
-                row.split('').forEach(ch => {
-                    const btn = document.createElement('div');
-                    btn.className = 'kb-key';
-                    btn.textContent = ch;
-                    btn.addEventListener('click', () => handleChar(ch));
-                    rowEl.appendChild(btn);
-                });
-                kbEl.appendChild(rowEl);
-            });
-            const backspaceRow = document.createElement('div');
-            backspaceRow.className = 'kb-row';
-            const bsBtn = document.createElement('div');
-            bsBtn.className = 'kb-key wide';
-            bsBtn.textContent = '⌫';
-            bsBtn.addEventListener('click', () => backspaceCancel());
-            backspaceRow.appendChild(bsBtn);
-            kbEl.appendChild(backspaceRow);
+let words = [], parts = [], pops = [], shards = [];
+let targetId = null, nextId = 1, recent = [];
+let score = 0, combo = 0, maxCombo = 0, lives = LIVES;
+let done = 0, keysOk = 0, keysBad = 0, charsOk = 0;
+let spawnIn = 0, cdLeft = 0, goFlash = 0, runSec = 0;
+let shake = 0, flash = 0, flashRgb = '255,93,109';
+let tPrev = 0, bgDirty = true;
+const bg = document.createElement('canvas'), bgx = bg.getContext('2d');
+const isTouch = window.matchMedia('(pointer: coarse)').matches;
 
-            // ----- KONFIGURACIA -----
-            const DIFFS = {
-                easy:   { speed: 42, spawnMs: 1900, maxWords: 4 },
-                medium: { speed: 56, spawnMs: 1500, maxWords: 5 },
-                hard:   { speed: 74, spawnMs: 1150, maxWords: 6 }
-            };
-            const CW = 320, CH = 420;
-            canvas.width = CW;
-            canvas.height = CH;
+function applyLang() {
+  document.getElementById('lbl-back').textContent  = t('back');
+  document.getElementById('lbl-score').textContent = t('uiScore');
+  document.getElementById('lbl-combo').textContent = t('uiCombo');
+  document.getElementById('lbl-best').textContent  = t('uiBest');
+  document.getElementById('lbl-wpm').textContent   = t('typWpm');
+  document.getElementById('lbl-acc').textContent   = t('uiAccuracy');
+  document.getElementById('lbl-words').textContent = t('typWords');
+  document.getElementById('lbl-diff').textContent  = t('uiDifficulty');
+  document.getElementById('res-lbl').textContent   = t('uiScore');
+}
 
-            let diffKey = 'medium';
-            let activeWords = [];
-            let nextId = 1;
-            let targetId = null;
-            let score = 0, combo = 0, lives = 3;
-            let best = parseInt(localStorage.getItem('typeRushBest') || '0', 10);
-            let wordsCompleted = 0;
-            let startTime = 0;
-            let lastSpawn = 0;
-            let running = true;
-            let recentWords = [];
-            let particles = [];
+function rnd(a, b) { return a + Math.random() * (b - a); }
+function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+const D = () => DIFFS[diffIdx];
 
-            bestSpan.textContent = best;
+// ── klavesnica na obrazovke ─────────────────────────────────────────────
+const kbEl = document.getElementById('kb');
+const keyEls = {};
+function buildKb() {
+  kbEl.textContent = '';
+  ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'].forEach(rw => {
+    const r = document.createElement('div');
+    r.className = 'kb-row';
+    rw.split('').forEach(ch => {
+      const k = document.createElement('div');
+      k.className = 'kb-key';
+      k.textContent = ch;
+      k.addEventListener('pointerdown', e => { e.preventDefault(); typeChar(ch); flick(k); }, {passive: false});
+      r.appendChild(k);
+      keyEls[ch] = k;
+    });
+    kbEl.appendChild(r);
+  });
+  const r = document.createElement('div');
+  r.className = 'kb-row';
+  const bs = document.createElement('div');
+  bs.className = 'kb-key wide';
+  bs.textContent = '⌫';
+  bs.addEventListener('pointerdown', e => { e.preventDefault(); dropTarget(); flick(bs); }, {passive: false});
+  r.appendChild(bs);
+  kbEl.appendChild(r);
+}
+function flick(el) { el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 110); }
+function markNextKey() {
+  for (const k in keyEls) keyEls[k].classList.remove('next');
+  const w = words.find(x => x.id === targetId);
+  if (!w || state !== ST.PLAY) return;
+  const ch = w.text[w.typed];
+  if (ch && keyEls[ch]) keyEls[ch].classList.add('next');
+}
 
-            function randomWord() {
-                const pool = WORD_POOLS[diffKey];
-                let w;
-                let attempts = 0;
-                do {
-                    w = pool[Math.floor(Math.random() * pool.length)];
-                    attempts++;
-                } while (recentWords.includes(w) && attempts < 8);
-                recentWords.push(w);
-                if (recentWords.length > 12) recentWords.shift();
-                return w;
-            }
+// ── rozmery ─────────────────────────────────────────────────────────────
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth || document.documentElement.clientWidth || 360;
+  H = window.innerHeight || document.documentElement.clientHeight || 640;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  SCL = clamp(Math.min(W, H) / 620, 0.6, 1.3);
+  FS = Math.round(clamp(Math.min(W / 22, H / 20), 14, 26));
+  TOP = (W < 620 ? 58 : 52) + 30;
+  const kbH = (isTouch && kbEl.classList.contains('show')) ? kbEl.offsetHeight : 0;
+  LINE = H - kbH - (isTouch ? 14 : 40);
+  bg.width = cv.width; bg.height = cv.height;
+  bgx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  bgDirty = true;
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 250));
 
-            function spawnWord() {
-                const cfg = DIFFS[diffKey];
-                if (activeWords.length >= cfg.maxWords) return;
-                const text = randomWord();
-                const margin = 20;
-                const x = margin + Math.random() * (CW - margin * 2 - text.length * 9);
-                activeWords.push({ id: nextId++, text, typed: 0, x, y: -20 });
-            }
+// ── pozadie ─────────────────────────────────────────────────────────────
+function drawBg() {
+  bgx.clearRect(0, 0, W, H);
+  const g = bgx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#0a1526');
+  g.addColorStop(0.6, '#070d1a');
+  g.addColorStop(1, '#03060d');
+  bgx.fillStyle = g; bgx.fillRect(0, 0, W, H);
+  // datove stopy
+  bgx.strokeStyle = 'rgba(96,165,250,0.05)';
+  bgx.lineWidth = 1;
+  bgx.beginPath();
+  for (let x = 24; x < W; x += 46) { bgx.moveTo(x, 0); bgx.lineTo(x, H); }
+  bgx.stroke();
+  bgx.fillStyle = 'rgba(96,165,250,0.055)';
+  for (let i = 0; i < 60; i++) {
+    const x = Math.random() * W, y = Math.random() * H;
+    bgx.fillRect(x, y, 2, rnd(6, 22));
+  }
+  const v = bgx.createRadialGradient(W / 2, H * 0.42, Math.min(W, H) * 0.2, W / 2, H * 0.42, Math.max(W, H) * 0.8);
+  v.addColorStop(0, 'rgba(0,0,0,0)');
+  v.addColorStop(1, 'rgba(0,0,0,0.6)');
+  bgx.fillStyle = v; bgx.fillRect(0, 0, W, H);
+  bgDirty = false;
+}
 
-            function handleChar(ch) {
-                if (!running) return;
-                ch = ch.toLowerCase();
-                if (targetId !== null) {
-                    const w = activeWords.find(w => w.id === targetId);
-                    if (!w) { targetId = null; return; }
-                    if (w.text[w.typed] === ch) {
-                        w.typed++;
-                        if (w.typed === w.text.length) {
-                            completeWord(w);
-                        }
-                    }
-                    return;
-                }
-                const candidates = activeWords.filter(w => w.text[0] === ch);
-                if (candidates.length === 0) return;
-                candidates.sort((a, b) => b.y - a.y);
-                const chosen = candidates[0];
-                chosen.typed = 1;
-                targetId = chosen.id;
-                if (chosen.typed === chosen.text.length) {
-                    completeWord(chosen);
-                }
-            }
+// ── slova ───────────────────────────────────────────────────────────────
+function charW() {
+  ctx.font = wordFont();
+  return ctx.measureText('m').width;
+}
+function wordWidth(txt) {
+  CW = charW();
+  return txt.length * CW + FS * 0.7;
+}
+function pickWord() {
+  const pool = POOLS[diffIdx];
+  let w, n = 0;
+  do { w = pool[Math.floor(Math.random() * pool.length)]; n++; } while (recent.includes(w) && n < 10);
+  recent.push(w);
+  if (recent.length > 14) recent.shift();
+  return w;
+}
+function spawn() {
+  const text = pickWord();
+  const wd = wordWidth(text);
+  const maxX = Math.max(8, W - wd - 8);
+  let x = 0, ok = false;
+  for (let i = 0; i < 24 && !ok; i++) {
+    x = rnd(8, maxX);
+    ok = true;
+    for (const o of words) {
+      if (o.y > TOP + 90) continue;
+      if (x < o.x + o.w + 12 && x + wd + 12 > o.x) { ok = false; break; }
+    }
+  }
+  if (!ok) return;
+  words.push({id: nextId++, text, typed: 0, x, y: TOP - 10, w: wd, bad: 0});
+}
 
-            function backspaceCancel() {
-                if (targetId !== null) {
-                    const w = activeWords.find(w => w.id === targetId);
-                    if (w) w.typed = 0;
-                    targetId = null;
-                }
-            }
+function burst(x, y, rgb, n, pw) {
+  for (let i = 0; i < n; i++) {
+    const a = rnd(0, 6.2832), sp = rnd(50, 250) * pw;
+    parts.push({x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, life: rnd(0.3, 0.7), max: 0.7, rgb, sz: rnd(1.5, 3.4) * SCL});
+  }
+}
+function pop(x, y, txt, rgb) { pops.push({x, y, txt, rgb, life: 0.8}); }
+function shatter(w) {
+  for (let i = 0; i < w.text.length; i++) {
+    shards.push({ch: w.text[i], x: w.x + (i + 0.5) * CW, y: w.y,
+      vx: rnd(-90, 90), vy: rnd(-150, -40), rot: rnd(-3, 3), a: 0, life: 0.9});
+  }
+}
 
-            function completeWord(w) {
-                activeWords = activeWords.filter(x => x.id !== w.id);
-                score += w.text.length * 10 + combo * 5;
-                combo++;
-                wordsCompleted++;
-                targetId = null;
-                scoreSpan.textContent = score;
-                comboSpan.textContent = combo;
-                if (score > best) {
-                    best = score;
-                    bestSpan.textContent = best;
-                    localStorage.setItem('typeRushBest', String(best));
-                }
-                spawnParticles(w.x + w.text.length * 4, w.y);
-            }
+// ── pisanie ─────────────────────────────────────────────────────────────
+function typeChar(ch) {
+  if (state === ST.PAUSE) { cdLeft = 1.2; state = ST.COUNT; return; }
+  if (state !== ST.PLAY) return;
+  ch = ch.toLowerCase();
+  if (targetId !== null) {
+    const w = words.find(x => x.id === targetId);
+    if (!w) { targetId = null; return; }
+    if (w.text[w.typed] === ch) {
+      w.typed++; keysOk++; charsOk++;
+      burst(w.x + (w.typed - 0.5) * CW, w.y, '74,222,128', 3, 0.4);
+      if (w.typed === w.text.length) complete(w);
+    } else {
+      keysBad++;
+      w.bad = 0.35;
+      shake = Math.min(1, shake + 0.16);
+    }
+    markNextKey();
+    return;
+  }
+  // ziadne slovo nie je rozpisane — zoberiem to najnizsie, ktore zacina na tento znak
+  const cand = words.filter(w => w.text[0] === ch);
+  if (!cand.length) { keysBad++; return; }
+  cand.sort((a, b) => b.y - a.y);
+  const w = cand[0];
+  w.typed = 1; keysOk++; charsOk++;
+  targetId = w.id;
+  burst(w.x + 0.5 * CW, w.y, '74,222,128', 3, 0.4);
+  if (w.typed === w.text.length) complete(w);
+  markNextKey();
+}
+function dropTarget() {
+  if (state === ST.PAUSE) { cdLeft = 1.2; state = ST.COUNT; return; }
+  const w = words.find(x => x.id === targetId);
+  if (w) w.typed = 0;
+  targetId = null;
+  markNextKey();
+}
+function complete(w) {
+  words = words.filter(x => x.id !== w.id);
+  targetId = null;
+  const mult = Math.min(5, 1 + Math.floor(combo / 3));
+  const gain = w.text.length * 10 * mult;
+  score += gain;
+  combo++; done++;
+  if (combo > maxCombo) maxCombo = combo;
+  burst(w.x + w.w / 2, w.y, '96,165,250', 18, 0.95);
+  pop(w.x + w.w / 2, w.y, '+' + gain + (mult > 1 ? '  ×' + mult : ''), '96,165,250');
+  if (combo % 5 === 0) { flash = 0.14; flashRgb = '74,222,128'; }
+  syncHud();
+}
+function miss(w) {
+  words = words.filter(x => x.id !== w.id);
+  if (targetId === w.id) targetId = null;
+  combo = 0;
+  lives--;
+  shatter(w);
+  burst(w.x + w.w / 2, LINE, '255,93,109', 20, 1.1);
+  shake = Math.min(1, shake + 0.8);
+  flash = 0.3; flashRgb = '255,93,109';
+  syncHud();
+  if (lives <= 0) endRound();
+}
 
-            function missWord(w) {
-                activeWords = activeWords.filter(x => x.id !== w.id);
-                if (targetId === w.id) targetId = null;
-                combo = 0;
-                comboSpan.textContent = '0';
-                lives--;
-                livesSpan.textContent = Math.max(0, lives);
-                if (lives <= 0) {
-                    endGame();
-                }
-            }
+// ── kolo ────────────────────────────────────────────────────────────────
+function loadBest() {
+  best = +(localStorage.getItem(bestKey(diffIdx)) || 0);
+  setHud('hud-best', best);
+  document.getElementById('best-pill').classList.remove('record');
+}
+function beginRound() {
+  words = []; parts = []; pops = []; shards = []; recent = [];
+  targetId = null;
+  score = 0; combo = 0; maxCombo = 0; lives = LIVES;
+  done = 0; keysOk = 0; keysBad = 0; charsOk = 0; runSec = 0;
+  spawnIn = 0.6; shake = 0; flash = 0; goFlash = 0;
+  cdLeft = 2.4;
+  state = ST.COUNT;
+  document.getElementById('overlay').classList.add('hide');
+  document.getElementById('hud').classList.add('show');
+  document.getElementById('pause-btn').classList.add('show');
+  kbEl.classList.add('show');
+  resize();
+  syncHud(true);
+  markNextKey();
+}
+function endRound() {
+  state = ST.OVER;
+  const rec = score > best;
+  if (rec) { best = score; try { localStorage.setItem(bestKey(diffIdx), best); } catch (e) {} }
+  const mins = Math.max(0.08, runSec / 60);
+  const wpm = Math.round((charsOk / 5) / mins);
+  const keys = keysOk + keysBad;
+  const acc = keys ? Math.round(keysOk / keys * 100) : 0;
+  document.getElementById('res-score').textContent = score;
+  const note = document.getElementById('res-note');
+  note.textContent = rec ? t('uiNewRecord') : t('uiBest') + ' ' + best;
+  note.classList.toggle('record', rec);
+  document.getElementById('st-wpm').textContent = wpm;
+  document.getElementById('st-acc').textContent = acc + '%';
+  document.getElementById('st-words').textContent = done;
+  showCard('over');
+  setHud('hud-best', best);
+  document.getElementById('best-pill').classList.toggle('record', rec);
+}
+function showCard(mode) {
+  document.getElementById('ov-title').textContent = mode === 'over' ? t('typGameOver') : t('typTitle');
+  document.getElementById('brand').style.display = mode === 'over' ? 'none' : '';
+  document.getElementById('result').classList.toggle('show', mode === 'over');
+  document.getElementById('stats').classList.toggle('show', mode === 'over');
+  document.getElementById('ov-hint').textContent = t('typRules');
+  document.getElementById('ov-play').textContent = mode === 'over' ? t('typReplay') : t('uiStart');
+  document.getElementById('overlay').classList.remove('hide');
+  document.getElementById('hud').classList.remove('show');
+  document.getElementById('pause-btn').classList.remove('show');
+  kbEl.classList.remove('show');
+}
+function togglePause() {
+  if (state === ST.PLAY) state = ST.PAUSE;
+  else if (state === ST.PAUSE) { cdLeft = 1.2; state = ST.COUNT; }
+}
 
-            function spawnParticles(x, y) {
-                for (let i = 0; i < 8; i++) {
-                    const ang = Math.random() * Math.PI * 2;
-                    const spd = 1 + Math.random() * 2.5;
-                    particles.push({ x, y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, life: 1 });
-                }
-            }
+// ── HUD ─────────────────────────────────────────────────────────────────
+const hudVal = {};
+function setHud(id, v) {
+  if (hudVal[id] === v) return;
+  hudVal[id] = v;
+  const el = document.getElementById(id);
+  el.textContent = v;
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 180);
+}
+function syncHud(force) {
+  setHud('hud-score', score);
+  setHud('hud-combo', combo);
+  document.getElementById('combo-pill').classList.toggle('on', combo >= 2);
+  const box = document.getElementById('lifes');
+  if (box.children.length !== LIVES) {
+    box.textContent = '';
+    for (let i = 0; i < LIVES; i++) { const d = document.createElement('div'); d.className = 'life'; box.appendChild(d); }
+  }
+  [...box.children].forEach((d, i) => d.classList.toggle('gone', i >= lives));
+  if (force) setHud('hud-best', best);
+}
 
-            function endGame() {
-                running = false;
-                const elapsedMin = Math.max(0.1, (Date.now() - startTime) / 60000);
-                const wpm = Math.round(wordsCompleted / elapsedMin);
-                finalScore.textContent = score;
-                finalWpm.textContent = wpm;
-                gameOverOverlay.classList.add('visible');
-            }
+// ── update ──────────────────────────────────────────────────────────────
+function update(dt) {
+  for (const p of parts) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 300 * dt; }
+  if (parts.length) parts = parts.filter(p => p.life > 0);
+  for (const p of pops) { p.life -= dt; p.y -= 40 * SCL * dt; }
+  if (pops.length) pops = pops.filter(p => p.life > 0);
+  for (const s of shards) { s.life -= dt; s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 520 * dt; s.a += s.rot * dt; }
+  if (shards.length) shards = shards.filter(s => s.life > 0);
+  if (shake > 0) shake = Math.max(0, shake - dt * 3.2);
+  if (flash > 0) flash = Math.max(0, flash - dt * 2.4);
+  if (goFlash > 0) goFlash = Math.max(0, goFlash - dt * 2);
+  for (const w of words) if (w.bad > 0) w.bad = Math.max(0, w.bad - dt * 2.6);
 
-            function resetGame() {
-                activeWords = [];
-                targetId = null;
-                score = 0; combo = 0; lives = 3;
-                wordsCompleted = 0;
-                recentWords = [];
-                particles = [];
-                running = true;
-                startTime = Date.now();
-                lastSpawn = 0;
-                scoreSpan.textContent = '0';
-                comboSpan.textContent = '0';
-                livesSpan.textContent = '3';
-                gameOverOverlay.classList.remove('visible');
-            }
+  if (state === ST.COUNT) {
+    cdLeft -= dt;
+    if (cdLeft <= 0) { state = ST.PLAY; goFlash = 0.5; }
+    return;
+  }
+  if (state !== ST.PLAY) return;
 
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace') { e.preventDefault(); backspaceCancel(); return; }
-                if (/^[a-zA-Z]$/.test(e.key)) handleChar(e.key);
-            });
+  const d = D();
+  runSec += dt;
+  // tempo aj pocet slov rastu s poctom napisanych slov - aj rychly pisatel raz narazi
+  const up = 1 + Math.min(3.4, done * d.ramp * 0.14);
+  const sp = d.speed * up * SCL;
+  const live = Math.min(8, d.live + Math.floor(done / 20));
 
-            restartBtn.addEventListener('click', resetGame);
-            sizeGroup.querySelectorAll('button').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    diffKey = btn.dataset.diff;
-                    resetGame();
-                });
-            });
+  for (const w of words.slice()) {
+    w.y += sp * dt;
+    if (w.y >= LINE - FS * 0.55) miss(w);
+  }
+  spawnIn -= dt;
+  if (spawnIn <= 0 && words.length < live) {
+    spawn();
+    spawnIn = (d.gap / up) * rnd(0.85, 1.15);
+  }
+}
 
-            function update(dt) {
-                if (!running) return;
-                const cfg = DIFFS[diffKey];
-                lastSpawn += dt * 1000;
-                if (lastSpawn >= cfg.spawnMs) {
-                    lastSpawn = 0;
-                    spawnWord();
-                }
-                for (const w of activeWords.slice()) {
-                    w.y += cfg.speed * dt;
-                    if (w.y > CH - 12) {
-                        missWord(w);
-                    }
-                }
-                particles = particles.filter(p => p.life > 0);
-                for (const p of particles) {
-                    p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.life -= 0.04;
-                }
-            }
+// ── kreslenie ───────────────────────────────────────────────────────────
+function draw() {
+  if (bgDirty) drawBg();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(bg, 0, 0, W, H);
 
-            function draw() {
-                ctx.clearRect(0, 0, CW, CH);
-                const grad = ctx.createLinearGradient(0, 0, 0, CH);
-                grad.addColorStop(0, '#0b111e');
-                grad.addColorStop(1, '#0f1a2b');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, CW, CH);
+  if (shake > 0) {
+    const s = shake * shake * 8 * SCL;
+    ctx.translate(rnd(-s, s), rnd(-s, s));
+  }
 
-                ctx.strokeStyle = 'rgba(248,113,113,0.35)';
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                ctx.moveTo(0, CH - 12);
-                ctx.lineTo(CW, CH - 12);
-                ctx.stroke();
-                ctx.setLineDash([]);
+  // ciara zaniku
+  const pulse = 0.35 + Math.sin(tPrev / 260) * 0.1;
+  ctx.strokeStyle = 'rgba(255,93,109,' + pulse + ')';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 6]);
+  ctx.beginPath(); ctx.moveTo(0, LINE); ctx.lineTo(W, LINE); ctx.stroke();
+  ctx.setLineDash([]);
+  const lg = ctx.createLinearGradient(0, LINE, 0, LINE + 26);
+  lg.addColorStop(0, 'rgba(255,93,109,0.18)');
+  lg.addColorStop(1, 'rgba(255,93,109,0)');
+  ctx.fillStyle = lg;
+  ctx.fillRect(0, LINE, W, 26);
 
-                ctx.font = '16px "Segoe UI", Roboto, monospace';
-                ctx.textBaseline = 'middle';
-                for (const w of activeWords) {
-                    const isTarget = w.id === targetId;
-                    let cx = w.x;
-                    for (let i = 0; i < w.text.length; i++) {
-                        ctx.fillStyle = i < w.typed ? '#4ade80' : (isTarget ? '#f0f4fe' : '#94a3b8');
-                        ctx.fillText(w.text[i], cx, w.y);
-                        cx += ctx.measureText(w.text[i]).width + 1;
-                    }
-                    if (isTarget) {
-                        ctx.strokeStyle = 'rgba(96,165,250,0.5)';
-                        ctx.lineWidth = 1;
-                        ctx.strokeRect(w.x - 4, w.y - 12, cx - w.x + 4, 24);
-                    }
-                }
+  ctx.textBaseline = 'middle';
+  ctx.font = wordFont();
+  CW = charW();
+  for (const w of words) {
+    const isT = w.id === targetId;
+    const cw = CW;
+    const near = clamp((w.y - TOP) / Math.max(1, LINE - TOP), 0, 1);
+    // kapsula
+    ctx.save();
+    const bad = w.bad > 0;
+    ctx.fillStyle = bad ? 'rgba(255,93,109,0.22)' : (isT ? 'rgba(96,165,250,0.16)' : 'rgba(255,255,255,0.045)');
+    ctx.strokeStyle = bad ? 'rgba(255,93,109,0.75)'
+      : (isT ? 'rgba(96,165,250,0.75)' : 'rgba(255,255,255,' + (0.1 + near * 0.16) + ')');
+    ctx.lineWidth = isT ? 1.8 : 1;
+    const bx = w.x - FS * 0.35, by = w.y - FS * 0.72, bw = w.text.length * cw + FS * 0.7, bh = FS * 1.44;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, bh / 2);
+    else ctx.rect(bx, by, bw, bh);
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+    // znaky
+    let x = w.x;
+    for (let i = 0; i < w.text.length; i++) {
+      if (i < w.typed) {
+        ctx.fillStyle = '#4ade80';
+        ctx.shadowColor = 'rgba(74,222,128,0.8)';
+        ctx.shadowBlur = 8;
+      } else {
+        ctx.fillStyle = isT ? '#eaf4ff' : 'rgba(234,244,255,' + (0.5 + near * 0.4) + ')';
+        ctx.shadowBlur = 0;
+      }
+      ctx.fillText(w.text[i], x, w.y);
+      x += cw;
+    }
+    ctx.shadowBlur = 0;
+    if (isT && w.typed < w.text.length) {
+      // kurzor pod dalsim znakom
+      ctx.fillStyle = 'rgba(96,165,250,0.9)';
+      ctx.fillRect(w.x + w.typed * cw, w.y + FS * 0.6, cw * 0.8, 2.2);
+    }
+  }
 
-                for (const p of particles) {
-                    ctx.save();
-                    ctx.globalAlpha = Math.max(0, p.life);
-                    ctx.fillStyle = '#4ade80';
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
-            }
+  // rozsypane znaky zmeskaneho slova
+  for (const s of shards) {
+    ctx.save();
+    ctx.globalAlpha = clamp(s.life / 0.9, 0, 1);
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.a);
+    ctx.fillStyle = '#ff5d6d';
+    ctx.font = wordFont();
+    ctx.fillText(s.ch, 0, 0);
+    ctx.restore();
+  }
+  for (const p of parts) {
+    ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
+    ctx.fillStyle = 'rgb(' + p.rgb + ')';
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.sz, 0, 6.2832); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'center';
+  for (const p of pops) {
+    ctx.globalAlpha = clamp(p.life / 0.8, 0, 1);
+    ctx.font = '800 ' + Math.round(19 * SCL) + "px 'Syne',sans-serif";
+    ctx.lineWidth = 3.5 * SCL;
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'rgba(3,6,12,0.8)';
+    ctx.strokeText(p.txt, p.x, p.y);
+    ctx.fillStyle = 'rgb(' + p.rgb + ')';
+    ctx.fillText(p.txt, p.x, p.y);
+  }
+  ctx.globalAlpha = 1;
 
-            let lastTs = null;
-            function loop(ts) {
-                if (lastTs === null) lastTs = ts;
-                let dt = (ts - lastTs) / 1000;
-                lastTs = ts;
-                dt = Math.min(dt, 0.05);
-                update(dt);
-                draw();
-                requestAnimationFrame(loop);
-            }
+  if (state === ST.COUNT) {
+    const n = Math.ceil(cdLeft);
+    const fr = 1 - (cdLeft - Math.floor(cdLeft));
+    ctx.globalAlpha = clamp(1.15 - fr, 0.15, 1);
+    ctx.font = '800 ' + Math.round((70 + fr * 26) * SCL) + "px 'Syne',sans-serif";
+    ctx.fillStyle = '#eaf4ff';
+    ctx.shadowColor = 'rgba(96,165,250,0.75)';
+    ctx.shadowBlur = 26;
+    ctx.fillText(String(n), W / 2, H / 2);
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  } else if (goFlash > 0) {
+    ctx.globalAlpha = clamp(goFlash / 0.5, 0, 1);
+    ctx.font = '800 ' + Math.round(52 * SCL) + "px 'Syne',sans-serif";
+    ctx.fillStyle = '#4ade80';
+    ctx.shadowColor = 'rgba(74,222,128,0.7)';
+    ctx.shadowBlur = 26;
+    ctx.fillText(t('uiGo'), W / 2, H / 2);
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  }
+  if (state === ST.PAUSE) {
+    ctx.fillStyle = 'rgba(3,6,12,0.62)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.font = '800 ' + Math.round(34 * SCL) + "px 'Syne',sans-serif";
+    ctx.fillStyle = '#eaf4ff';
+    ctx.fillText(t('uiPaused'), W / 2, H / 2);
+  }
+  ctx.textAlign = 'left';
+  if (flash > 0) {
+    ctx.fillStyle = 'rgba(' + flashRgb + ',' + (flash * 0.45) + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
 
-            resetGame();
-            requestAnimationFrame(loop);
-        })();
-    </script>
+function frame(ts) {
+  if (!tPrev) tPrev = ts;
+  const dt = Math.min(0.05, (ts - tPrev) / 1000);
+  tPrev = ts;
+  update(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+
+// ── vstup ───────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.code === 'Escape') { e.preventDefault(); if (state === ST.PLAY || state === ST.PAUSE) togglePause(); return; }
+  if (e.key === 'Backspace') { e.preventDefault(); dropTarget(); return; }
+  if (e.code === 'Enter' && (state === ST.MENU || state === ST.OVER)) { e.preventDefault(); beginRound(); return; }
+  if (/^[a-zA-Z]$/.test(e.key)) { typeChar(e.key); return; }
+  if (e.code === 'Space') { e.preventDefault(); if (state === ST.PAUSE) { cdLeft = 1.2; state = ST.COUNT; } }
+});
+cv.addEventListener('pointerdown', () => { if (state === ST.PAUSE) { cdLeft = 1.2; state = ST.COUNT; } });
+document.getElementById('pause-btn').addEventListener('click', togglePause);
+window.addEventListener('blur', () => { if (state === ST.PLAY) state = ST.PAUSE; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && state === ST.PLAY) state = ST.PAUSE; });
+
+// ── obtiaznost ──────────────────────────────────────────────────────────
+const row = document.getElementById('diff-row');
+DIFFS.forEach((d, i) => {
+  const b = document.createElement('button');
+  b.textContent = t(d.key);
+  b.className = i === diffIdx ? 'active' : '';
+  b.addEventListener('click', () => {
+    diffIdx = i;
+    [...row.children].forEach((c, j) => c.className = j === i ? 'active' : '');
+    loadBest();
+    if (state === ST.OVER) document.getElementById('res-note').textContent = t('uiBest') + ' ' + best;
+  });
+  row.appendChild(b);
+});
+document.getElementById('ov-play').addEventListener('click', beginRound);
+
+applyLang();
+buildKb();
+if (isTouch) document.body.classList.add('touch');
+resize();
+loadBest();
+showCard('menu');
+requestAnimationFrame(frame);
+</script>
 </body>
 </html>

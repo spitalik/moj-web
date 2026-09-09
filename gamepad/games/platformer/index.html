@@ -71,8 +71,10 @@ body.touch #ctrl{display:flex;}
 @media(max-height:520px){.card{gap:8px;padding:18px 20px;}.emoji{display:none;}.title{font-size:20px;}#res-score{font-size:40px;}}
 
 /* prekryv: ak sa obsah nezmestí, nesmie zmiznúť mimo obrazovky (flex centrovanie ho odreže) */
+/* uzke displeje: HUD k pravemu okraju, bez popiskov - inak prekryl tlacidlo Spat */
+@media(max-width:620px){#hud{left:auto;right:56px;transform:none;gap:5px;}.pill span{display:none;}.pill{padding:4px 10px;}.pill b{font-size:15px;}.pill.best{display:none;}}
 @media (max-height:820px){
-  #overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
+  #overlay{align-items:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
 }
 </style>
 </head>

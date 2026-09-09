@@ -36,6 +36,8 @@ button,a,[onclick]{touch-action:manipulation;}
 @media (max-height:820px){
   #overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}
 }
+/* uzke displeje: HUD sa zmensi a odsadi od tlacidla Spat */
+@media(max-width:620px){.hud{left:auto;right:10px;transform:none;gap:5px;}.hud .stat-pill{font-size:10px;padding:4px 9px;gap:4px;}}
 </style>
 </head>
 <body>

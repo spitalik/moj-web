@@ -2,102 +2,131 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sudoku · GamePad</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;
-  --text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);
-  --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
-  --c:#ffd166;--cdim:rgba(255,209,102,0.14);
+  --bg:#070609;--text:#f4f1ea;--muted:rgba(244,241,234,0.42);--dim:rgba(244,241,234,0.18);
+  --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.17);
+  --c:#ffd166;--c2:#7dd3fc;--ok:#4ade80;--danger:#ff6b81;
+  --cs:40px;
 }
-html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;}
-body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(255,209,102,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+html,body{background:var(--bg);min-height:100%;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+body{overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(680px 420px at 50% -12%,rgba(255,209,102,0.10),transparent 70%),
+  radial-gradient(520px 380px at 92% 108%,rgba(125,211,252,0.07),transparent 72%);
+  pointer-events:none;z-index:0;}
+button{font-family:'DM Sans',sans-serif;touch-action:manipulation;}
 
-#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
-#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+#back-btn{position:fixed;top:14px;left:14px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(10,9,13,0.75);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:9px;left:9px;padding:6px 11px;font-size:11px;}}
 
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:60px 16px 40px;gap:14px;}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:54px 12px 12px;}
 
-.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.title{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.4px;background:linear-gradient(110deg,#fff 26%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
-/* difficulty */
-.diff-row{display:flex;gap:6px;}
-.diff-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:6px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;}
-.diff-btn:hover{border-color:var(--border-h);color:var(--text);}
-.diff-btn.active{background:var(--cdim);border-color:rgba(255,209,102,0.4);color:var(--c);}
+.pills{display:flex;gap:6px;align-items:center;}
+.pill{display:flex;align-items:center;gap:7px;padding:4px 11px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--border);font-size:8.5px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);}
+.pill.err b{color:var(--danger);}
+.pill.best b{color:var(--c2);}
 
-/* grid */
-#board-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:10px;display:inline-block;}
-#sudoku{display:grid;grid-template-columns:repeat(9,1fr);gap:0;}
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:5px 14px;border-radius:100px;font-size:11.5px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(255,209,102,0.16);color:#ffe9b8;box-shadow:inset 0 0 0 1px rgba(255,209,102,0.42);}
 
-.cell{
-  width:clamp(34px,9vw,46px);height:clamp(34px,9vw,46px);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Syne',sans-serif;font-size:clamp(14px,3.5vw,18px);font-weight:700;
-  border:1px solid rgba(255,255,255,0.06);
-  cursor:pointer;position:relative;transition:background .12s;
-  color:var(--c);
-}
-.cell.fixed{color:var(--text);cursor:default;}
-.cell.selected{background:rgba(255,209,102,0.1);}
-.cell.same-num{background:rgba(255,209,102,0.06);}
-.cell.wrong{color:#ff6b6b !important;background:rgba(255,107,107,0.08);}
-.cell.correct{color:#4dff91 !important;}
-.cell.user{color:var(--c);}
-.cell.hint-flash{animation:hflash .4s ease;}
-@keyframes hflash{0%,100%{background:transparent;}50%{background:rgba(255,209,102,0.2);}}
+#board-wrap{position:relative;padding:9px;border-radius:16px;background:linear-gradient(165deg,rgba(255,255,255,0.055),rgba(255,255,255,0.012));border:1px solid var(--border-h);box-shadow:0 24px 60px -30px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06);}
+#board{display:grid;grid-template-columns:repeat(9,var(--cs));grid-template-rows:repeat(9,var(--cs));background:rgba(255,255,255,0.03);border-radius:6px;overflow:hidden;}
 
-/* thick 3x3 borders */
-.cell.border-r{border-right:2px solid rgba(255,255,255,0.2);}
-.cell.border-b{border-bottom:2px solid rgba(255,255,255,0.2);}
+.cell{position:relative;display:flex;align-items:center;justify-content:center;
+  border-right:1px solid rgba(255,255,255,0.055);border-bottom:1px solid rgba(255,255,255,0.055);
+  font-family:'Syne',sans-serif;font-weight:800;font-size:calc(var(--cs) * 0.46);line-height:1;
+  color:var(--c);cursor:pointer;transition:background .12s,color .12s;}
+.cell:nth-child(9n){border-right:none;}
+.cell:nth-child(n+73){border-bottom:none;}
+.cell.br{border-right:2px solid rgba(255,209,102,0.34);}
+.cell.bb{border-bottom:2px solid rgba(255,209,102,0.34);}
+.cell.fixed{color:var(--text);cursor:default;background:rgba(255,255,255,0.028);}
+.cell.peer{background:rgba(255,209,102,0.055);}
+.cell.fixed.peer{background:rgba(255,209,102,0.075);}
+.cell.same{background:rgba(125,211,252,0.14);}
+.cell.sel{background:rgba(255,209,102,0.2);box-shadow:inset 0 0 0 2px rgba(255,209,102,0.75);z-index:2;}
+.cell.bad{color:var(--danger) !important;background:rgba(255,107,129,0.16);}
+.cell.done{animation:solvewave .5s ease both;}
+@keyframes solvewave{0%{transform:scale(1);}45%{transform:scale(0.82);color:var(--ok);}100%{transform:scale(1);color:var(--ok);}}
+.cell.flash{animation:hflash .55s ease;}
+@keyframes hflash{0%,100%{background:transparent;}40%{background:rgba(255,209,102,0.42);}}
+.cell .v{pointer-events:none;}
+.cell .n{position:absolute;inset:6%;display:none;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);pointer-events:none;}
+.cell.notes .n{display:grid;}
+.cell.notes .v{display:none;}
+.cell .n i{font-style:normal;font-family:'DM Sans',sans-serif;font-weight:600;font-size:calc(var(--cs) * 0.245);line-height:1;display:flex;align-items:center;justify-content:center;color:rgba(244,241,234,0.34);}
+.cell .n i.on{color:var(--c2);}
 
-/* numpad */
-.numpad{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;max-width:clamp(306px,81vw,414px);width:100%;}
-.np-btn{
-  height:clamp(34px,9vw,44px);
-  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
-  font-family:'Syne',sans-serif;font-size:clamp(14px,3.5vw,17px);font-weight:700;
-  color:var(--muted);cursor:pointer;transition:all .15s;
-  display:flex;align-items:center;justify-content:center;
-}
-.np-btn:hover{border-color:var(--border-h);color:var(--text);}
-.np-btn:active{background:var(--cdim);color:var(--c);}
+.tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.tool{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:100px;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .16s;}
+.tool:hover{border-color:var(--border-h);color:var(--text);}
+.tool svg{width:14px;height:14px;}
+.tool.on{background:rgba(125,211,252,0.16);border-color:rgba(125,211,252,0.45);color:#cdefff;}
+.tool.primary{border-color:rgba(255,209,102,0.4);color:#ffe3a8;background:rgba(255,209,102,0.12);}
+.tool:disabled{opacity:.4;cursor:default;}
 
-/* status + controls */
-#status{font-size:12px;color:var(--muted);letter-spacing:1px;min-height:18px;text-align:center;}
-.ctrl-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
-.ctrl-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .18s;}
-.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
-.ctrl-btn.primary{border-color:rgba(255,209,102,0.35);color:var(--c);background:var(--cdim);}
-.ctrl-btn.primary:hover{background:rgba(255,209,102,0.22);}
+#numpad{display:grid;grid-template-columns:repeat(9,var(--cs));gap:4px;}
+.np{position:relative;height:max(34px,var(--cs));background:linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));border:1px solid var(--border);border-radius:10px;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:calc(var(--cs) * 0.44);color:var(--text);cursor:pointer;transition:all .14s;}
+.np:hover{border-color:var(--border-h);}
+.np:active{background:rgba(255,209,102,0.24);}
+.np small{position:absolute;right:2px;bottom:0;font-family:'DM Sans',sans-serif;font-size:8.5px;font-weight:600;color:var(--dim);}
+.np.full{opacity:.32;}
 
-@media (orientation: landscape) and (max-height: 560px) {
-  .page { padding: 42px 10px 6px; gap: 5px; }
-  #back-btn { top: 8px; left: 8px; padding: 5px 12px; font-size: 11px; }
-  .game-title { font-size: 15px; }
-  .diff-row { gap: 4px; }
-  .diff-btn { padding: 3px 9px; font-size: 10px; }
-  #board-wrap { padding: 5px; }
-  .cell { width: clamp(18px, 6.2vh, 40px); height: clamp(18px, 6.2vh, 40px); font-size: clamp(10px, 2.4vh, 16px); }
-  .numpad { gap: 3px; }
-  .np-btn { height: clamp(18px, 6.2vh, 36px); font-size: clamp(10px, 2.4vh, 15px); }
-  #status { font-size: 10px; min-height: 12px; }
-  .ctrl-row { gap: 5px; }
-  .ctrl-btn { padding: 4px 12px; font-size: 10px; }
-}
+#status{font-size:11.5px;color:var(--muted);min-height:17px;text-align:center;letter-spacing:.3px;}
+#status.bad{color:var(--danger);}
+#status.good{color:var(--ok);}
 
-/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
-html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-button,a,[onclick]{touch-action:manipulation;}
+#overlay{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at center,rgba(10,9,13,0.8) 0%,rgba(4,4,6,0.95) 78%);backdrop-filter:blur(6px);}
+#overlay.show{display:flex;}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;width:100%;max-width:330px;padding:26px 24px 24px;border-radius:24px;background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid var(--border-h);box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);animation:pop .34s cubic-bezier(.2,1.4,.4,1);}
+@keyframes pop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+.card::before{content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;background:linear-gradient(120deg,rgba(255,209,102,.5),transparent 42%,transparent 58%,rgba(125,211,252,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.emoji{font-size:34px;line-height:1;filter:drop-shadow(0 6px 16px rgba(255,209,102,.4));}
+.card .ttl{font-family:'Syne',sans-serif;font-weight:800;font-size:23px;letter-spacing:-.5px;text-align:center;background:linear-gradient(110deg,var(--c) 5%,#fff 52%,var(--c2) 95%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-time{font-family:'Syne',sans-serif;font-weight:800;font-size:46px;line-height:1.05;letter-spacing:-2px;color:var(--c);text-shadow:0 0 30px rgba(255,209,102,.4);font-variant-numeric:tabular-nums;}
+#res-note{font-size:11.5px;font-weight:600;color:var(--muted);}
+#res-note.record{color:var(--ok);}
+#ov-stats{display:grid;width:100%;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);}
+.stat i{font-size:8px;font-style:normal;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim);text-align:center;}
+.stat b{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--c2);white-space:nowrap;}
+.play-btn{margin-top:3px;width:100%;padding:13px 30px;border-radius:100px;border:1px solid rgba(255,209,102,.5);background:linear-gradient(180deg,rgba(255,209,102,.24),rgba(255,209,102,.1));color:#ffeec4;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(255,209,102,.34),rgba(255,209,102,.16));color:#fff;box-shadow:0 0 24px -6px rgba(255,209,102,.5);}
 
-/* landscape-fix: nízke obrazovky */
-@media (max-height:760px){
-  .page{padding:34px 8px 4px !important;gap:4px !important;}
-  .cell{width:clamp(16px,5vh,34px) !important;height:clamp(16px,5vh,34px) !important;}
+@media (max-height:820px){#overlay{align-items:flex-start !important;overflow-y:auto !important;}}
+@media(max-height:700px){.title{display:none;}.page{padding-top:46px;gap:7px;}}
+@media(max-width:400px){.tool{padding:7px 11px;font-size:11px;}.seg button{padding:5px 11px;font-size:11px;}}
+
+/* krajina na nizkych obrazovkach: numpad vedla dosky, inak by ostal pod okrajom */
+@media (orientation:landscape) and (max-height:560px){
+  .page{display:grid;grid-template-columns:auto minmax(180px,220px);align-content:center;justify-content:center;
+        column-gap:16px;row-gap:6px;padding:6px 10px 6px 90px;min-height:100vh;}
+  .title{display:none;}
+  #board-wrap{grid-column:1;grid-row:1 / span 5;align-self:center;padding:7px;}
+  #back-btn{padding:5px 11px;font-size:11px;}
+  .pills{grid-column:2;grid-row:1;justify-content:center;flex-wrap:wrap;gap:4px;max-width:220px;}
+  .pill{padding:3px 8px;font-size:8px;}
+  .pill b{font-size:12px;}
+  .seg{grid-column:2;grid-row:2;justify-self:center;}
+  #numpad{grid-column:2;grid-row:3;grid-template-columns:repeat(3,1fr);justify-self:center;width:100%;gap:5px;}
+  .np{height:34px;font-size:16px;}
+  .tools{grid-column:2;grid-row:4;justify-self:center;}
+  #status{grid-column:2;grid-row:5;}
+  .diff-row{grid-column:2;}
 }
 </style>
 </head>
@@ -107,254 +136,476 @@ button,a,[onclick]{touch-action:manipulation;}
   <span id="lbl-back"></span>
 </a>
 
-<div class="page">
-  <div class="game-title" id="lbl-title"></div>
+<div class="page" id="page">
+  <div class="title" id="lbl-title"></div>
 
-  <div class="diff-row" id="diff-row"></div>
+  <div class="pills">
+    <div class="pill"><span id="lbl-time"></span><b id="hud-time">0:00</b></div>
+    <div class="pill err"><span id="lbl-err"></span><b id="hud-err">0</b></div>
+    <div class="pill best"><span id="lbl-best"></span><b id="hud-best">—</b></div>
+  </div>
 
-  <div id="board-wrap"><div id="sudoku"></div></div>
+  <div class="seg" id="diff-row"></div>
 
-  <div class="numpad" id="numpad"></div>
+  <div id="board-wrap"><div id="board"></div></div>
 
+  <div class="tools">
+    <button class="tool" id="btn-notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      <span id="lbl-notes"></span></button>
+    <button class="tool" id="btn-erase">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l9-9 8 8-4 5"/><path d="M12 7l5 5"/></svg>
+      <span id="lbl-erase"></span></button>
+    <button class="tool" id="btn-undo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.6-7"/></svg>
+      <span id="lbl-undo"></span></button>
+    <button class="tool primary" id="btn-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 1 4 10.5V16H8v-3.5A6 6 0 0 1 12 2Z"/></svg>
+      <span id="lbl-hint"></span></button>
+  </div>
+
+  <div id="numpad"></div>
   <div id="status"></div>
+</div>
 
-  <div class="ctrl-row">
-    <button class="ctrl-btn primary" onclick="checkSudoku()" id="btn-check"></button>
-    <button class="ctrl-btn" onclick="hint()" id="btn-hint"></button>
-    <button class="ctrl-btn" onclick="newGame()" id="btn-new"></button>
+<div id="overlay">
+  <div class="card">
+    <div class="emoji">🔢</div>
+    <div class="ttl" id="ov-title"></div>
+    <div id="res-lbl"></div>
+    <div id="res-time">0:00</div>
+    <div id="res-note"></div>
+    <div id="ov-stats">
+      <div class="stat"><i id="lbl-s-err"></i><b id="st-err">0</b></div>
+      <div class="stat"><i id="lbl-s-hint"></i><b id="st-hint">0</b></div>
+      <div class="stat"><i id="lbl-s-best"></i><b id="st-best">—</b></div>
+    </div>
+    <button class="play-btn" id="ov-play"></button>
   </div>
 </div>
 
 <script>
-// ── i18n ──────────────────────────────────────────────────────────────────
-document.getElementById('lbl-back').textContent  = t('back');
-document.getElementById('lbl-title').textContent = t('sudokuTitle');
-document.getElementById('btn-check').textContent = t('sudokuCheck');
-document.getElementById('btn-hint').textContent  = t('sudokuHint');
-document.getElementById('btn-new').textContent   = t('sudokuNew');
-
-// ── DIFFICULTY ────────────────────────────────────────────────────────────
+// ── obtiaznosti: kolko cisel zostane na doske ───────────────────────────
 const DIFFS = [
-  { key:'easy',   remove:36, label:'diffEasy' },
-  { key:'medium', remove:46, label:'diffMedium' },
-  { key:'hard',   remove:52, label:'diffHard' },
+  {key:'diffEasy',   clues:45, hints:3},
+  {key:'diffMedium', clues:36, hints:3},
+  {key:'diffHard',   clues:28, hints:2},
 ];
 let diffIdx = 0;
-const diffRow = document.getElementById('diff-row');
-DIFFS.forEach((d, i) => {
-  const btn = document.createElement('button');
-  btn.className = 'diff-btn' + (i === 0 ? ' active' : '');
-  btn.textContent = t(d.label);
-  btn.onclick = () => { diffIdx = i; diffRow.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i)); newGame(); };
-  diffRow.appendChild(btn);
-});
+const bestKey = i => 'sudoku_best_' + i;
 
-// ── NUMPAD ────────────────────────────────────────────────────────────────
-const numpad = document.getElementById('numpad');
-for (let n = 1; n <= 9; n++) {
-  const btn = document.createElement('button');
-  btn.className = 'np-btn';
-  btn.textContent = n;
-  btn.onclick = () => inputNum(n);
-  numpad.appendChild(btn);
+let sol = null, grid = null, given = null, notes = null;
+let sel = -1, notesMode = false, hintsLeft = 3, errors = 0, hintsUsed = 0;
+let undoStack = [];
+let startedAt = 0, elapsed = 0, running = false, solved = false;
+let cellEls = [], noteEls = [], npEls = [];
+
+const boardEl = document.getElementById('board');
+const numpadEl = document.getElementById('numpad');
+const statusEl = document.getElementById('status');
+
+function applyLang() {
+  document.getElementById('lbl-back').textContent  = t('back');
+  document.getElementById('lbl-title').textContent = t('sudokuTitle');
+  document.getElementById('lbl-time').textContent  = t('uiTime');
+  document.getElementById('lbl-err').textContent   = t('sudokuMistakes');
+  document.getElementById('lbl-best').textContent  = t('uiBest');
+  document.getElementById('lbl-notes').textContent = t('sudokuNotes');
+  document.getElementById('lbl-erase').textContent = t('sudokuErase');
+  document.getElementById('lbl-undo').textContent  = t('uiUndo');
+  document.getElementById('lbl-s-err').textContent = t('sudokuMistakes');
+  document.getElementById('lbl-s-hint').textContent= t('sudokuHint');
+  document.getElementById('lbl-s-best').textContent= t('uiBest');
+  document.getElementById('res-lbl').textContent   = t('uiTime');
+  document.getElementById('ov-play').textContent   = t('sudokuNew');
 }
 
-// ── GAME STATE ────────────────────────────────────────────────────────────
-const BASE = [
-  [1,2,3,4,5,6,7,8,9],[4,5,6,7,8,9,1,2,3],[7,8,9,1,2,3,4,5,6],
-  [2,3,4,5,6,7,8,9,1],[5,6,7,8,9,1,2,3,4],[8,9,1,2,3,4,5,6,7],
-  [3,4,5,6,7,8,9,1,2],[6,7,8,9,1,2,3,4,5],[9,1,2,3,4,5,6,7,8]
-];
-
-let puzzle, solution, fixed, selected = -1, hints = 3;
-
-function generateSolution() {
-  const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
-  const map = {};
-  nums.forEach((n, i) => map[i+1] = n);
-  return BASE.map(row => row.map(n => map[n]));
+// ── generator s jedinym riesenim ────────────────────────────────────────
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; const x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
+function fits(g, r, c, v) {
+  for (let k = 0; k < 9; k++) if (g[r * 9 + k] === v || g[k * 9 + c] === v) return false;
+  const br = (r / 3 | 0) * 3, bc = (c / 3 | 0) * 3;
+  for (let dr = 0; dr < 3; dr++) for (let dc = 0; dc < 3; dc++) if (g[(br + dr) * 9 + bc + dc] === v) return false;
+  return true;
 }
-
-function generatePuzzle(sol, remove) {
-  const p = sol.map(r => [...r]);
-  let left = remove;
-  while (left > 0) {
-    const r = Math.floor(Math.random() * 9), c = Math.floor(Math.random() * 9);
-    if (p[r][c] !== 0) { p[r][c] = 0; left--; }
+function fill(g) {
+  const i = g.indexOf(0);
+  if (i < 0) return true;
+  const r = i / 9 | 0, c = i % 9;
+  for (const v of shuffle([1,2,3,4,5,6,7,8,9])) {
+    if (fits(g, r, c, v)) { g[i] = v; if (fill(g)) return true; g[i] = 0; }
   }
-  return p;
+  return false;
+}
+// pocet rieseni, koncim po dosiahnuti cap (staci vediet ci je 1 alebo viac)
+function countSol(g, cap) {
+  let bi = -1, bn = 10, bc = null;
+  for (let i = 0; i < 81; i++) {
+    if (g[i]) continue;
+    const cand = [];
+    for (let v = 1; v <= 9; v++) if (fits(g, i / 9 | 0, i % 9, v)) cand.push(v);
+    if (!cand.length) return 0;
+    if (cand.length < bn) { bn = cand.length; bi = i; bc = cand; if (bn === 1) break; }
+  }
+  if (bi < 0) return 1;
+  let n = 0;
+  for (const v of bc) {
+    g[bi] = v;
+    n += countSol(g, cap - n);
+    g[bi] = 0;
+    if (n >= cap) break;
+  }
+  return n;
+}
+function makePuzzle(clues) {
+  const s = new Array(81).fill(0);
+  fill(s);
+  const p = s.slice();
+  let left = 81;
+  // 1. symetricke dvojice — vyzera to lepsie
+  const half = shuffle([...Array(41).keys()]);
+  for (const i of half) {
+    if (left <= clues) break;
+    const j = 80 - i;
+    const a = p[i], b = p[j];
+    if (!a && !b) continue;
+    p[i] = 0; p[j] = 0;
+    if (countSol(p.slice(), 2) !== 1) { p[i] = a; p[j] = b; }
+    else left -= (i === j ? 1 : 2);
+  }
+  // 2. ak treba ubrat viac, uz nesymetricky
+  if (left > clues) {
+    for (const i of shuffle([...Array(81).keys()])) {
+      if (left <= clues) break;
+      if (!p[i]) continue;
+      const a = p[i];
+      p[i] = 0;
+      if (countSol(p.slice(), 2) !== 1) p[i] = a; else left--;
+    }
+  }
+  return {sol: s, puzzle: p, given: left};
+}
+
+// ── doska ───────────────────────────────────────────────────────────────
+function buildBoard() {
+  boardEl.textContent = '';
+  cellEls = []; noteEls = [];
+  for (let i = 0; i < 81; i++) {
+    const r = i / 9 | 0, c = i % 9;
+    const d = document.createElement('div');
+    d.className = 'cell' + ((c === 2 || c === 5) ? ' br' : '') + ((r === 2 || r === 5) ? ' bb' : '');
+    const v = document.createElement('span');
+    v.className = 'v';
+    const n = document.createElement('div');
+    n.className = 'n';
+    const is = [];
+    for (let k = 1; k <= 9; k++) { const el = document.createElement('i'); el.textContent = k; n.appendChild(el); is.push(el); }
+    d.appendChild(v); d.appendChild(n);
+    d.addEventListener('pointerdown', () => select(i));
+    boardEl.appendChild(d);
+    cellEls.push({el: d, v, is});
+    noteEls.push(is);
+  }
+  numpadEl.textContent = '';
+  npEls = [];
+  for (let n = 1; n <= 9; n++) {
+    const b = document.createElement('button');
+    b.className = 'np';
+    b.innerHTML = n + '<small></small>';
+    b.addEventListener('click', () => input(n));
+    numpadEl.appendChild(b);
+    npEls.push(b);
+  }
 }
 
 function newGame() {
-  solution = generateSolution();
-  puzzle   = generatePuzzle(solution, DIFFS[diffIdx].remove);
-  fixed    = puzzle.map(row => row.map(v => v !== 0));
-  selected = -1;
-  hints = 3;
-  document.getElementById('btn-hint').textContent = t('sudokuHint') + ' (' + hints + ')';
-  renderBoard();
-  setStatus('');
+  setStatus(t('sudokuGenerating'), '');
+  document.getElementById('overlay').classList.remove('show');
+  // dam prehliadacu snimok na vykreslenie textu, generovanie chvilu trva
+  setTimeout(() => {
+    const d = DIFFS[diffIdx];
+    const g = makePuzzle(d.clues);
+    sol = g.sol; grid = g.puzzle.slice();
+    given = g.puzzle.map(v => v !== 0);
+    notes = Array.from({length: 81}, () => new Set());
+    sel = -1; notesMode = false; errors = 0; hintsUsed = 0;
+    hintsLeft = d.hints;
+    undoStack = [];
+    elapsed = 0; startedAt = performance.now(); running = true; solved = false;
+    document.getElementById('btn-notes').classList.remove('on');
+    renderAll();
+    setStatus('', '');
+    tick();
+  }, 30);
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────
-function renderBoard() {
-  const grid = document.getElementById('sudoku');
-  grid.innerHTML = '';
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      const idx = r * 9 + c;
-      const div = document.createElement('div');
-      div.className = 'cell';
-      div.dataset.r = r; div.dataset.c = c;
-      if (fixed[r][c]) {
-        div.classList.add('fixed');
-        div.textContent = puzzle[r][c];
+function renderAll() {
+  for (let i = 0; i < 81; i++) renderCell(i);
+  paintHighlights();
+  renderCounts();
+  document.getElementById('hud-err').textContent = errors;
+  document.getElementById('lbl-hint').textContent = t('sudokuHint') + ' (' + hintsLeft + ')';
+  document.getElementById('btn-undo').disabled = !undoStack.length;
+  document.getElementById('btn-hint').disabled = hintsLeft <= 0;
+  const b = +(localStorage.getItem(bestKey(diffIdx)) || 0);
+  document.getElementById('hud-best').textContent = b ? fmt(b) : '—';
+}
+
+function renderCell(i) {
+  const c = cellEls[i], v = grid[i];
+  c.el.classList.toggle('fixed', given[i]);
+  c.el.classList.remove('bad', 'done', 'flash');
+  if (v) {
+    c.el.classList.remove('notes');
+    c.v.textContent = v;
+    if (!given[i] && v !== sol[i]) c.el.classList.add('bad');
+  } else {
+    c.v.textContent = '';
+    const has = notes[i].size > 0;
+    c.el.classList.toggle('notes', has);
+    for (let k = 0; k < 9; k++) c.is[k].classList.toggle('on', notes[i].has(k + 1));
+  }
+}
+
+function paintHighlights() {
+  const sr = sel >= 0 ? (sel / 9 | 0) : -1, sc = sel >= 0 ? sel % 9 : -1;
+  const sb = sel >= 0 ? ((sr / 3 | 0) * 3) * 9 + (sc / 3 | 0) * 3 : -1;
+  const sv = sel >= 0 ? grid[sel] : 0;
+  for (let i = 0; i < 81; i++) {
+    const el = cellEls[i].el, r = i / 9 | 0, c = i % 9;
+    el.classList.toggle('sel', i === sel);
+    const peer = sel >= 0 && i !== sel && (r === sr || c === sc || ((r / 3 | 0) === (sr / 3 | 0) && (c / 3 | 0) === (sc / 3 | 0)));
+    el.classList.toggle('peer', !!peer);
+    el.classList.toggle('same', !!(sv && grid[i] === sv && i !== sel));
+  }
+}
+
+function renderCounts() {
+  const cnt = new Array(10).fill(0);
+  for (let i = 0; i < 81; i++) if (grid[i]) cnt[grid[i]]++;
+  for (let n = 1; n <= 9; n++) {
+    const rest = 9 - cnt[n];
+    npEls[n - 1].querySelector('small').textContent = rest > 0 ? rest : '';
+    npEls[n - 1].classList.toggle('full', rest <= 0);
+  }
+}
+
+function select(i) {
+  if (solved) return;
+  sel = i;
+  paintHighlights();
+}
+
+// ── vstup ───────────────────────────────────────────────────────────────
+function pushUndo(i) {
+  undoStack.push({i, v: grid[i], n: new Set(notes[i])});
+  if (undoStack.length > 120) undoStack.shift();
+  document.getElementById('btn-undo').disabled = false;
+}
+function input(n) {
+  if (solved || sel < 0 || given[sel]) return;
+  pushUndo(sel);
+  if (notesMode) {
+    if (grid[sel]) grid[sel] = 0;
+    if (notes[sel].has(n)) notes[sel].delete(n); else notes[sel].add(n);
+  } else {
+    if (grid[sel] === n) { grid[sel] = 0; }
+    else {
+      grid[sel] = n;
+      notes[sel].clear();
+      if (n !== sol[sel]) {
+        errors++;
+        document.getElementById('hud-err').textContent = errors;
+        setStatus(t('sudokuWrong'), 'bad');
       } else {
-        if (puzzle[r][c] !== 0) { div.textContent = puzzle[r][c]; div.classList.add('user'); }
-        div.onclick = () => selectCell(idx);
+        clearPeerNotes(sel, n);
+        setStatus('', '');
       }
-      if (c === 2 || c === 5) div.classList.add('border-r');
-      if (r === 2 || r === 5) div.classList.add('border-b');
-      if (idx === selected) div.classList.add('selected');
-      grid.appendChild(div);
     }
   }
-  highlightSame();
+  renderCell(sel);
+  paintHighlights();
+  renderCounts();
+  checkWin();
 }
-
-function selectCell(idx) {
-  if (idx === selected) return;
-  selected = idx;
-  renderBoard();
+function clearPeerNotes(i, n) {
+  const r = i / 9 | 0, c = i % 9, br = (r / 3 | 0) * 3, bc = (c / 3 | 0) * 3;
+  const touch = [];
+  for (let k = 0; k < 9; k++) { touch.push(r * 9 + k); touch.push(k * 9 + c); }
+  for (let dr = 0; dr < 3; dr++) for (let dc = 0; dc < 3; dc++) touch.push((br + dr) * 9 + bc + dc);
+  for (const j of touch) if (notes[j].delete(n)) renderCell(j);
 }
-
-function inputNum(n) {
-  if (selected < 0) return;
-  const r = Math.floor(selected / 9), c = selected % 9;
-  if (fixed[r][c]) return;
-  puzzle[r][c] = n;
-  renderBoard();
-  setStatus('');
-  checkAutoWin();
+function erase() {
+  if (solved || sel < 0 || given[sel]) return;
+  if (!grid[sel] && !notes[sel].size) return;
+  pushUndo(sel);
+  grid[sel] = 0;
+  notes[sel].clear();
+  renderCell(sel);
+  paintHighlights();
+  renderCounts();
+  setStatus('', '');
 }
-
-function highlightSame() {
-  if (selected < 0) return;
-  const r = Math.floor(selected / 9), c = selected % 9;
-  const val = puzzle[r][c];
-  if (!val) return;
-  document.querySelectorAll('.cell').forEach((cell, idx) => {
-    const cr = Math.floor(idx / 9), cc = idx % 9;
-    if (puzzle[cr][cc] === val && idx !== selected) cell.classList.add('same-num');
-  });
+function undo() {
+  if (solved || !undoStack.length) return;
+  const s = undoStack.pop();
+  grid[s.i] = s.v;
+  notes[s.i] = new Set(s.n);
+  sel = s.i;
+  renderCell(s.i);
+  paintHighlights();
+  renderCounts();
+  document.getElementById('btn-undo').disabled = !undoStack.length;
+  setStatus('', '');
 }
-
-function checkSudoku() {
-  const cells = document.querySelectorAll('.cell');
-  cells.forEach(cell => cell.classList.remove('wrong', 'correct'));
-
-  // Označ všetky políčka kde je problém:
-  // 1. číslo nesedí so solution
-  // 2. duplicita v riadku, stĺpci alebo boxe
-  const wrongSet = new Set();
-
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      const val = puzzle[r][c];
-      if (!val) continue;
-
-      // Skontroluj duplicity — porovnaj so všetkými ostatnými políčkami
-      // v rovnakom riadku
-      for (let cc = 0; cc < 9; cc++) {
-        if (cc !== c && puzzle[r][cc] === val) { wrongSet.add(r*9+c); wrongSet.add(r*9+cc); }
-      }
-      // v rovnakom stĺpci
-      for (let rr = 0; rr < 9; rr++) {
-        if (rr !== r && puzzle[rr][c] === val) { wrongSet.add(r*9+c); wrongSet.add(rr*9+c); }
-      }
-      // v rovnakom boxe
-      const br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
-      for (let dr = 0; dr < 3; dr++) for (let dc = 0; dc < 3; dc++) {
-        const nr = br+dr, nc = bc+dc;
-        if ((nr !== r || nc !== c) && puzzle[nr][nc] === val) { wrongSet.add(r*9+c); wrongSet.add(nr*9+nc); }
-      }
-      // Nesedí so solution
-      if (val !== solution[r][c]) wrongSet.add(r*9+c);
-    }
-  }
-
-  let allCorrect = wrongSet.size === 0;
-  cells.forEach(cell => {
-    const r = parseInt(cell.dataset.r), c = parseInt(cell.dataset.c);
-    if (fixed[r][c]) return;
-    if (!puzzle[r][c]) return;
-    if (wrongSet.has(r*9+c)) cell.classList.add('wrong');
-    else cell.classList.add('correct');
-  });
-
-  const allFilled = puzzle.every(row => row.every(v => v !== 0));
-  if (allFilled && allCorrect) setStatus('🎉 ' + t('sudokuSolved'));
-  else if (!allCorrect) setStatus('❌ ' + t('sudokuWrong'));
-  else setStatus('✓ ' + t('sudokuSoFar'));
-}
-
-function checkAutoWin() {
-  if (!puzzle.every(row => row.every(v => v !== 0))) return;
-  if (puzzle.every((row, r) => row.every((v, c) => v === solution[r][c]))) {
-    setStatus('🎉 ' + t('sudokuSolved'));
-    document.querySelectorAll('.cell').forEach(cell => {
-      const fr2=parseInt(cell.dataset.r),fc2=parseInt(cell.dataset.c);
-      if(fixed[fr2][fc2])return;
-      cell.classList.remove('wrong'); cell.classList.add('correct');
-    });
-  }
-}
-
 function hint() {
-  if (hints <= 0) { setStatus(t('sudokuNoHints')); return; }
-  // Find a random empty/wrong cell and fill it correctly
-  const empties = [];
-  for (let r = 0; r < 9; r++)
-    for (let c = 0; c < 9; c++)
-      if (puzzle[r][c] === 0 || puzzle[r][c] !== solution[r][c]) empties.push([r,c]);
-  if (!empties.length) return;
-  const [r, c] = empties[Math.floor(Math.random() * empties.length)];
-  puzzle[r][c] = solution[r][c];
-  hints--;
-  document.getElementById('btn-hint').textContent = t('sudokuHint') + ' (' + hints + ')';
-  selected = r * 9 + c;
-  renderBoard();
-  // flash
-  const cells = document.querySelectorAll('.cell');
-  cells[r * 9 + c].classList.add('hint-flash');
-  setTimeout(() => cells[r * 9 + c]?.classList.remove('hint-flash'), 500);
-  checkAutoWin();
+  if (solved) return;
+  if (hintsLeft <= 0) { setStatus(t('sudokuNoHints'), 'bad'); return; }
+  const opts = [];
+  for (let i = 0; i < 81; i++) if (!given[i] && grid[i] !== sol[i]) opts.push(i);
+  if (!opts.length) return;
+  // najradsej pomoze tam, kde uz hrac skusal
+  const wrong = opts.filter(i => grid[i] !== 0);
+  const i = (wrong.length ? wrong : opts)[Math.floor(Math.random() * (wrong.length || opts.length))];
+  pushUndo(i);
+  grid[i] = sol[i];
+  notes[i].clear();
+  clearPeerNotes(i, sol[i]);
+  hintsLeft--; hintsUsed++;
+  sel = i;
+  renderCell(i);
+  paintHighlights();
+  renderCounts();
+  document.getElementById('lbl-hint').textContent = t('sudokuHint') + ' (' + hintsLeft + ')';
+  document.getElementById('btn-hint').disabled = hintsLeft <= 0;
+  cellEls[i].el.classList.remove('flash');
+  void cellEls[i].el.offsetWidth;
+  cellEls[i].el.classList.add('flash');
+  setStatus('', '');
+  checkWin();
 }
 
-function setStatus(msg) { document.getElementById('status').textContent = msg; }
+// ── cas a vyhra ─────────────────────────────────────────────────────────
+function fmt(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+function tick() {
+  if (running && !solved) elapsed = performance.now() - startedAt;
+  document.getElementById('hud-time').textContent = fmt(elapsed);
+  requestAnimationFrame(tick);
+}
+function checkWin() {
+  for (let i = 0; i < 81; i++) if (grid[i] !== sol[i]) return;
+  // cas odcitam priamo z hodin, nie z posledneho snimku
+  if (running) elapsed = performance.now() - startedAt;
+  solved = true; running = false;
+  const ms = elapsed;
+  const prev = +(localStorage.getItem(bestKey(diffIdx)) || 0);
+  const rec = !prev || ms < prev;
+  if (rec) { try { localStorage.setItem(bestKey(diffIdx), Math.round(ms)); } catch (e) {} }
+  const bestMs = rec ? ms : prev;
+  document.getElementById('hud-best').textContent = fmt(bestMs);
+  cellEls.forEach((c, i) => {
+    if (given[i]) return;
+    c.el.classList.remove('done');
+    const r = i / 9 | 0, cc = i % 9;
+    setTimeout(() => c.el.classList.add('done'), (r + cc) * 34);
+  });
+  setStatus('', 'good');
+  setTimeout(() => {
+    document.getElementById('ov-title').textContent = t('uiSolved');
+    document.getElementById('res-time').textContent = fmt(ms);
+    const note = document.getElementById('res-note');
+    note.textContent = rec ? t('uiNewRecord') : t('uiBest') + ' ' + fmt(prev);
+    note.classList.toggle('record', rec);
+    document.getElementById('st-err').textContent = errors;
+    document.getElementById('st-hint').textContent = hintsUsed;
+    document.getElementById('st-best').textContent = fmt(bestMs);
+    document.getElementById('overlay').classList.add('show');
+  }, 900);
+}
+function setStatus(msg, cls) {
+  statusEl.textContent = msg;
+  statusEl.className = cls || '';
+}
 
-// keyboard
+// ── ovladanie ───────────────────────────────────────────────────────────
+document.getElementById('btn-notes').addEventListener('click', () => {
+  notesMode = !notesMode;
+  document.getElementById('btn-notes').classList.toggle('on', notesMode);
+});
+document.getElementById('btn-erase').addEventListener('click', erase);
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-hint').addEventListener('click', hint);
+document.getElementById('ov-play').addEventListener('click', newGame);
+
 document.addEventListener('keydown', e => {
-  if (selected < 0) return;
-  if (e.key >= '1' && e.key <= '9') { inputNum(parseInt(e.key)); return; }
-  if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
-    const r = Math.floor(selected / 9), c = selected % 9;
-    if (!fixed[r][c]) { puzzle[r][c] = 0; renderBoard(); }
-    return;
-  }
-  // arrow navigation
-  const r = Math.floor(selected / 9), c = selected % 9;
-  const moves = { ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1] };
-  if (moves[e.key]) {
+  if (e.key >= '1' && e.key <= '9') { input(+e.key); return; }
+  if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') { e.preventDefault(); erase(); return; }
+  if (e.key === 'n' || e.key === 'N') { document.getElementById('btn-notes').click(); return; }
+  if (e.key === 'h' || e.key === 'H') { hint(); return; }
+  if (e.key === 'u' || e.key === 'U') { undo(); return; }
+  const mv = {ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1]}[e.key];
+  if (mv) {
     e.preventDefault();
-    const [dr, dc] = moves[e.key];
-    const nr = Math.max(0, Math.min(8, r+dr)), nc = Math.max(0, Math.min(8, c+dc));
-    selected = nr * 9 + nc;
-    renderBoard();
+    const r = sel < 0 ? 0 : (sel / 9 | 0), c = sel < 0 ? 0 : sel % 9;
+    select(Math.min(8, Math.max(0, r + mv[0])) * 9 + Math.min(8, Math.max(0, c + mv[1])));
   }
 });
+window.addEventListener('blur', () => { if (running && !solved) { elapsed = performance.now() - startedAt; running = false; } });
+window.addEventListener('focus', () => { if (!solved) { startedAt = performance.now() - elapsed; running = true; } });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (running && !solved) { elapsed = performance.now() - startedAt; running = false; } }
+  else if (!solved) { startedAt = performance.now() - elapsed; running = true; }
+});
 
+// ── obtiaznost ──────────────────────────────────────────────────────────
+const row = document.getElementById('diff-row');
+DIFFS.forEach((d, i) => {
+  const b = document.createElement('button');
+  b.textContent = t(d.key);
+  b.className = i === diffIdx ? 'active' : '';
+  b.addEventListener('click', () => {
+    if (i === diffIdx) return;
+    diffIdx = i;
+    [...row.children].forEach((c, j) => c.className = j === i ? 'active' : '');
+    newGame();
+  });
+  row.appendChild(b);
+});
+
+// ── velkost dosky sa zmesti do obrazovky ────────────────────────────────
+function fit() {
+  const vw = window.innerWidth || document.documentElement.clientWidth || 360;
+  const vh = window.innerHeight || document.documentElement.clientHeight || 640;
+  const page = document.getElementById('page'), wrap = document.getElementById('board-wrap');
+  // krajina: doska vlavo, numpad vpravo — velkost urcuje vyska
+  if (vh <= 560 && vw > vh) {
+    const cs2 = Math.max(20, Math.min(Math.floor((vh - 46) / 9), Math.floor((vw - 350) / 9), 46));
+    document.documentElement.style.setProperty('--cs', cs2 + 'px');
+    return;
+  }
+  const byW = Math.floor((Math.min(vw, 620) - 46) / 9);
+  // vysku merame zo vsetkeho okrem dosky, inak by sa velkost rozkolisala
+  let others = 0, n = 0;
+  for (const el of page.children) { n++; if (el !== wrap) others += el.offsetHeight; }
+  const cs = getComputedStyle(page);
+  const gap = parseFloat(cs.rowGap) || 10;
+  const pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const chrome = others + gap * Math.max(0, n - 1) + pad + 26;
+  const byH = Math.floor((vh - chrome) / 9);
+  const size = Math.max(24, Math.min(byW, byH, 54));
+  document.documentElement.style.setProperty('--cs', size + 'px');
+}
+window.addEventListener('resize', fit);
+window.addEventListener('orientationchange', () => setTimeout(fit, 250));
+
+applyLang();
+buildBoard();
+fit();
 newGame();
+setTimeout(fit, 60);
 </script>
 </body>
 </html>

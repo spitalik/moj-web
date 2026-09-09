@@ -1,394 +1,599 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hanoi Towers · GamePad</title>
-    <script src="../../i18n.js"></script>
-    <style>
-        #back-btn{
-            position:fixed;top:14px;left:14px;z-index:60;
-            display:flex;align-items:center;gap:7px;
-            background:rgba(7,9,15,.88);border:1px solid #402a1a;color:#8291ab;
-            padding:7px 14px;border-radius:100px;text-decoration:none;
-            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
-        }
-        #back-btn:hover,#back-btn:active{border-color:#fb923c;color:#f0f4fe;}
-        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
-        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
-        body {
-            background:#0c0f16;
-            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
-            display:flex; justify-content:center; align-items:center;
-            min-height:100vh; margin:0; padding:12px;
-            touch-action: manipulation;
-        }
-        #game-container {
-            background:#151d2b;
-            border-radius:28px;
-            padding:20px 24px 24px;
-            max-width:460px;
-            width:100%;
-            box-shadow:0 12px 40px rgba(0,0,0,.7);
-            border:1px solid #2e3a4e;
-            display:flex; flex-direction:column; gap:14px;
-            position:relative;
-        }
-        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
-        #header h1 {
-            font-size:21px; font-weight:700;
-            background:linear-gradient(135deg,#fed7aa,#fb923c);
-            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-            margin:0;
-        }
-        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
-        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
-        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
-        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
-        .btn-group button.active { background:#fb923c; color:#0c0f16; }
-        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
-        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
-        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
-        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
-        .high-score { border-color:#fbbf24; }
-        .high-score h3 { color:#fbbf24 !important; }
-        .high-score .value { color:#fbbf24 !important; }
-        #canvas-wrapper {
-            background:#0f1622; border-radius:16px; padding:8px;
-            box-shadow: inset 0 0 0 1px #2a3446;
-            position:relative; align-self:center;
-        }
-        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; }
-        #end-overlay {
-            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
-            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
-            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
-        }
-        #end-overlay.visible { display:flex; }
-        #end-overlay h2 {
-            font-size:26px;
-            background:linear-gradient(135deg,#fed7aa,#fb923c);
-            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-        }
-        #restartBtn {
-            background:#fb923c; border:1px solid #fed7aa; border-radius:40px;
-            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
-            box-shadow:0 6px 0 #c2410c; cursor:pointer; margin-top:6px;
-        }
-        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #c2410c; }
-        #controls { display:flex; gap:10px; justify-content:center; }
-        #controls button {
-            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
-            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
-        }
-        #controls button:active { transform:translateY(2px); }
-    
-/* mobil/tablet: na nízkych obrazovkách stlačím rámce, aby ovládanie zostalo viditeľné */
-@media (max-height:900px){
-  body{padding:6px !important;}
-  #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hanoi Towers · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0b0705;--text:#fff4e8;--muted:rgba(255,244,232,0.42);--dim:rgba(255,244,232,0.18);
+  --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.17);
+  --c:#fb923c;--c2:#38bdf8;--gold:#ffd166;--ok:#4ade80;
 }
-@media (max-height:760px){
-  body{padding:3px !important;}
-  #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
-}
+html,body{background:var(--bg);min-height:100%;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+body{overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:
+  radial-gradient(700px 420px at 50% -12%,rgba(251,146,60,0.11),transparent 70%),
+  radial-gradient(520px 380px at 96% 106%,rgba(56,189,248,0.07),transparent 72%);}
+button{font-family:'DM Sans',sans-serif;touch-action:manipulation;}
 
-/* nízke obrazovky: hracia plocha sa zmenší do dostupného miesta namiesto pretečenia */
-@media (max-height:900px){
-  #game-container{max-height:calc(100vh - 10px);}
-  #canvas-wrapper{min-height:0;flex:0 1 auto;}
-  #gameCanvas{max-height:100%;max-width:100%;width:auto;height:auto;}
-}
+#back-btn{position:fixed;top:14px;left:14px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(14,9,6,0.75);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:9px;left:9px;padding:6px 11px;font-size:11px;}}
 
-@media (max-height:700px){
-  #rules{display:none !important;}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:52px 12px 14px;}
+.title{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.4px;background:linear-gradient(110deg,#fff 26%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+.pills{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.pill{display:flex;align-items:center;gap:7px;padding:4px 11px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--border);font-size:8.5px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);}
+.pill.opt b{color:var(--c2);}
+.pill.best b{color:var(--gold);}
+.pill.best.record{border-color:rgba(255,209,102,.45);}
+.pill.moves.over b{color:var(--muted);}
+
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:5px 14px;border-radius:100px;font-size:11.5px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(251,146,60,0.16);color:#ffd8b4;box-shadow:inset 0 0 0 1px rgba(251,146,60,0.42);}
+
+#board-wrap{position:relative;padding:8px;border-radius:18px;background:linear-gradient(165deg,rgba(255,255,255,0.05),rgba(255,255,255,0.012));border:1px solid var(--border-h);box-shadow:0 24px 60px -30px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06);}
+canvas{display:block;border-radius:12px;touch-action:none;cursor:pointer;}
+
+.tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.tool{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:100px;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .16s;}
+.tool:hover{border-color:var(--border-h);color:var(--text);}
+.tool svg{width:14px;height:14px;}
+.tool:disabled{opacity:.4;cursor:default;}
+.tool.primary{border-color:rgba(251,146,60,0.4);color:#ffdcbc;background:rgba(251,146,60,0.12);}
+.foot{font-size:10.5px;color:var(--dim);text-align:center;max-width:420px;line-height:1.45;}
+
+#overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at center,rgba(14,9,6,0.8) 0%,rgba(5,3,2,0.95) 78%);backdrop-filter:blur(6px);}
+#overlay.hide{display:none;}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;width:100%;max-width:334px;padding:26px 24px 24px;border-radius:24px;background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid var(--border-h);box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);animation:pop .34s cubic-bezier(.2,1.4,.4,1);}
+@keyframes pop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+.card::before{content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;background:linear-gradient(120deg,rgba(251,146,60,.5),transparent 42%,transparent 58%,rgba(56,189,248,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.emoji{font-size:34px;line-height:1;filter:drop-shadow(0 6px 16px rgba(251,146,60,.4));}
+.ttl{font-family:'Syne',sans-serif;font-weight:800;font-size:23px;letter-spacing:-.5px;text-align:center;background:linear-gradient(110deg,var(--c) 5%,#fff 52%,var(--c2) 95%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#result{display:none;flex-direction:column;align-items:center;gap:1px;}
+#result.show{display:flex;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-moves{font-family:'Syne',sans-serif;font-weight:800;font-size:48px;line-height:1.05;letter-spacing:-2px;color:var(--c);text-shadow:0 0 30px rgba(251,146,60,.4);}
+#res-note{font-size:11.5px;font-weight:600;color:var(--muted);}
+#res-note.record{color:var(--gold);}
+#res-note.perfect{color:var(--ok);}
+#ov-stats{display:none;width:100%;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+#ov-stats.show{display:grid;}
+.stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);}
+.stat i{font-size:8px;font-style:normal;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim);text-align:center;}
+.stat b{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--c2);white-space:nowrap;}
+.lbl{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.hint{font-size:11.5px;line-height:1.5;color:var(--muted);text-align:center;}
+.play-btn{margin-top:3px;width:100%;padding:13px 30px;border-radius:100px;border:1px solid rgba(251,146,60,.5);background:linear-gradient(180deg,rgba(251,146,60,.24),rgba(251,146,60,.1));color:#ffe3c9;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(251,146,60,.34),rgba(251,146,60,.16));color:#fff;box-shadow:0 0 24px -6px rgba(251,146,60,.5);}
+.play-btn:active{transform:translateY(1px);}
+@media (max-height:820px){#overlay{align-items:flex-start !important;overflow-y:auto !important;}}
+@media(max-height:700px){.title{display:none;}.page{padding-top:46px;gap:7px;}.foot{display:none;}}
+@media(max-width:380px){.seg button{padding:5px 10px;font-size:11px;}.tool{padding:7px 11px;font-size:11px;}}
+
+/* krajina na nizkych obrazovkach: doska vlavo, ovladanie vpravo */
+@media (orientation:landscape) and (max-height:560px){
+  .page{display:grid;grid-template-columns:auto minmax(150px,205px);align-content:center;justify-content:center;
+        column-gap:16px;row-gap:6px;padding:6px 12px 6px 88px;min-height:100vh;}
+  .title{display:none;}
+  #board-wrap{grid-column:1;grid-row:1 / span 4;align-self:center;padding:6px;}
+  .pills{grid-column:2;grid-row:1;flex-wrap:wrap;max-width:205px;gap:4px;}
+  .pill{padding:3px 8px;font-size:8px;}
+  .pill b{font-size:12px;}
+  .seg{grid-column:2;grid-row:2;justify-self:center;}
+  .seg button{padding:4px 9px;font-size:10.5px;}
+  .tools{grid-column:2;grid-row:3;max-width:205px;}
+  .tool{padding:6px 10px;font-size:10.5px;}
+  .foot{grid-column:2;grid-row:4;display:block;font-size:9.5px;max-width:205px;}
+  #back-btn{padding:5px 11px;font-size:11px;}
 }
 </style>
 </head>
 <body>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
 
-    <a href="../../index.html" id="back-btn">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      <span id="lbl-back"></span>
-    </a>
+<div class="page" id="page">
+  <div class="title" id="lbl-title"></div>
 
-    <div id="game-container">
-        <div id="header">
-            <h1>🗼 HANOI TOWERS</h1>
-            <div id="settings">
-                <label id="lbl-size">Obtiažnosť:</label>
-                <div class="btn-group" id="sizeGroup">
-                    <button data-disks="4" id="lbl-size-s">Ľahká</button>
-                    <button data-disks="6" class="active" id="lbl-size-m">Stredná</button>
-                    <button data-disks="8" id="lbl-size-l">Ťažká</button>
-                </div>
-            </div>
-        </div>
+  <div class="pills">
+    <div class="pill moves" id="moves-pill"><span id="lbl-moves"></span><b id="hud-moves">0</b></div>
+    <div class="pill opt"><span id="lbl-opt"></span><b id="hud-opt">0</b></div>
+    <div class="pill"><span id="lbl-time"></span><b id="hud-time">0:00</b></div>
+    <div class="pill best" id="best-pill"><span id="lbl-best"></span><b id="hud-best">—</b></div>
+  </div>
 
-        <p id="rules"></p>
+  <div class="seg" id="diff-row"></div>
 
-        <div id="info-panel">
-            <div class="info-card">
-                <h3 id="lbl-moves">Ťahy</h3>
-                <span class="value" id="movesValue">0</span>
-            </div>
-            <div class="info-card">
-                <h3 id="lbl-optimal">Optimum</h3>
-                <span class="value" id="optimalValue">0</span>
-            </div>
-            <div class="info-card">
-                <h3 id="lbl-score">Skóre</h3>
-                <span class="value" id="scoreValue">0</span>
-            </div>
-            <div class="info-card high-score">
-                <h3 id="lbl-best">Najlepšie</h3>
-                <span class="value" id="bestValue">0</span>
-            </div>
-        </div>
+  <div id="board-wrap"><canvas id="c"></canvas></div>
 
-        <div id="canvas-wrapper">
-            <canvas id="gameCanvas"></canvas>
-            <div id="end-overlay">
-                <h2 id="lbl-win">Hotovo!</h2>
-                <p><span id="lbl-final-moves">Ťahy:</span> <span id="finalMoves">0</span> / <span id="finalOptimal">0</span></p>
-                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
-                <button id="restartBtn">Hrať znova</button>
-            </div>
-        </div>
+  <div class="tools">
+    <button class="tool" id="btn-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 1 4 10.5V16H8v-3.5A6 6 0 0 1 12 2Z"/></svg>
+      <span id="lbl-hint"></span></button>
+    <button class="tool" id="btn-undo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.6-7"/></svg>
+      <span id="lbl-undo"></span></button>
+    <button class="tool primary" id="btn-new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+      <span id="lbl-new"></span></button>
+  </div>
+  <div class="foot" id="foot"></div>
+</div>
 
-        <div id="controls">
-            <button id="undoBtn"><span id="lbl-undo">Späť</span></button>
-            <button id="newGameBtn"><span id="lbl-newgame">Nová hra</span></button>
-        </div>
+<div id="overlay">
+  <div class="card">
+    <div id="brand"><div class="emoji">🗼</div></div>
+    <div class="ttl" id="ov-title"></div>
+    <div id="result">
+      <div id="res-lbl"></div>
+      <div id="res-moves">0</div>
+      <div id="res-note"></div>
     </div>
+    <div id="ov-stats">
+      <div class="stat"><i id="lbl-s-opt"></i><b id="st-opt">0</b></div>
+      <div class="stat"><i id="lbl-s-time"></i><b id="st-time">0:00</b></div>
+      <div class="stat"><i id="lbl-s-best"></i><b id="st-best">—</b></div>
+    </div>
+    <div class="lbl" id="lbl-diff"></div>
+    <div class="seg" id="diff-row2"></div>
+    <div class="hint" id="ov-hint"></div>
+    <button class="play-btn" id="ov-play"></button>
+  </div>
+</div>
 
-    <script>
-        (function () {
-            'use strict';
+<script>
+const DIFFS = [{n: 4, key: 'diffEasy'}, {n: 6, key: 'diffMedium'}, {n: 8, key: 'diffHard'}];
+let diffIdx = 1;
+const disks = () => DIFFS[diffIdx].n;
+const bestKey = () => 'hanoi_best_' + disks();
 
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
-            const movesSpan = document.getElementById('movesValue');
-            const optimalSpan = document.getElementById('optimalValue');
-            const scoreSpan = document.getElementById('scoreValue');
-            const bestSpan = document.getElementById('bestValue');
-            const endOverlay = document.getElementById('end-overlay');
-            const finalMoves = document.getElementById('finalMoves');
-            const finalOptimal = document.getElementById('finalOptimal');
-            const finalScore = document.getElementById('finalScore');
-            const restartBtn = document.getElementById('restartBtn');
-            const undoBtn = document.getElementById('undoBtn');
-            const newGameBtn = document.getElementById('newGameBtn');
-            const sizeGroup = document.getElementById('sizeGroup');
+// vlastna farebna skala kotucov (od najmensieho)
+const HUES = [28, 42, 56, 96, 152, 190, 220, 268, 300, 340];
 
-            // ----- PREKLADY -----
-            document.getElementById('lbl-back').textContent = t('back');
-            document.getElementById('lbl-size').textContent = t('hanDifficulty');
-            document.getElementById('lbl-size-s').textContent = t('hanEasy');
-            document.getElementById('lbl-size-m').textContent = t('hanMedium');
-            document.getElementById('lbl-size-l').textContent = t('hanHard');
-            document.getElementById('lbl-moves').textContent = t('hanMoves');
-            document.getElementById('lbl-optimal').textContent = t('hanOptimal');
-            document.getElementById('lbl-score').textContent = t('hanScore');
-            document.getElementById('lbl-best').textContent = t('hanBest');
-            document.getElementById('lbl-win').textContent = t('hanWin');
-            document.getElementById('lbl-final-moves').textContent = t('hanMoves') + ':';
-            document.getElementById('lbl-final-score').textContent = t('hanScore') + ':';
-            document.getElementById('lbl-undo').textContent = t('hanUndo');
-            document.getElementById('lbl-newgame').textContent = t('hanNewGame');
-            restartBtn.textContent = t('hanNewGame');
-            document.getElementById('rules').textContent = t('hanRules');
+let pegs = [[], [], []];
+let moves = 0, optimal = 0, hintsUsed = 0;
+let elapsed = 0, startedAt = 0, running = false, solved = false;
+let history = [];
+let sel = null;            // {peg, disk} drzany kotuc
+let drag = null;           // {disk, from, x, y}
+let anim = null;           // {disk, from, to, t, dur, phase}
+let hintFlash = 0, hintMove = null, badFlash = 0, badPeg = -1, winPulse = 0;
+let parts = [];
+let W = 0, H = 0, DPR = 1, PEGX = [0, 0, 0], BASEY = 0, PEGTOP = 0, DH = 16;
 
-            // ----- KONFIGURACIA -----
-            const CW = 340, CH = 300;
-            canvas.width = CW;
-            canvas.height = CH;
-            const PEG_X = [CW * 0.2, CW * 0.5, CW * 0.8];
-            const BASE_Y = CH - 30;
-            const PEG_TOP_Y = 40;
-            const DISK_H = 18;
-            const COLORS = ['#fb923c', '#f97316', '#facc15', '#fbbf24', '#4ade80', '#38bdf8', '#a78bfa', '#fb7185'];
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
 
-            let numDisks = 6;
-            let pegs = [];
-            let selectedPeg = null;
-            let moves = 0;
-            let optimal = 0;
-            let score = 0;
-            let best = parseInt(localStorage.getItem('hanoiTowersBest') || '0', 10);
-            let ended = false;
-            let history = [];
+function applyLang() {
+  document.getElementById('lbl-back').textContent  = t('back');
+  document.getElementById('lbl-title').textContent = t('hanTitle');
+  document.getElementById('lbl-moves').textContent = t('uiMoves');
+  document.getElementById('lbl-opt').textContent   = t('hanOptimal');
+  document.getElementById('lbl-time').textContent  = t('uiTime');
+  document.getElementById('lbl-best').textContent  = t('uiBest');
+  document.getElementById('lbl-hint').textContent  = t('uiHint');
+  document.getElementById('lbl-undo').textContent  = t('uiUndo');
+  document.getElementById('lbl-new').textContent   = t('uiNewGame');
+  document.getElementById('lbl-s-opt').textContent = t('hanOptimal');
+  document.getElementById('lbl-s-time').textContent = t('uiTime');
+  document.getElementById('lbl-s-best').textContent = t('uiBest');
+  document.getElementById('res-lbl').textContent   = t('uiMoves');
+  document.getElementById('lbl-diff').textContent  = t('uiDifficulty');
+  document.getElementById('foot').textContent      = t('hanRules');
+}
+const fmt = ms => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+function rnd(a, b) { return a + Math.random() * (b - a); }
 
-            bestSpan.textContent = best;
+// ── optimalne riesenie z lubovolnej pozicie ─────────────────────────────
+function pegOf(n) { for (let i = 0; i < 3; i++) if (pegs[i].includes(n)) return i; return -1; }
+function nextOptimal(n, target) {
+  if (n === 0) return null;
+  const at = pegOf(n);
+  if (at === target) return nextOptimal(n - 1, target);
+  const other = 3 - at - target;
+  const sub = nextOptimal(n - 1, other);
+  if (sub) return sub;
+  return {from: at, to: target};
+}
+function neededFrom(n, target) {
+  if (n === 0) return 0;
+  const at = pegOf(n);
+  if (at === target) return neededFrom(n - 1, target);
+  const other = 3 - at - target;
+  return neededFrom(n - 1, other) + Math.pow(2, n - 1);
+}
 
-            function newGame() {
-                pegs = [[], [], []];
-                for (let d = numDisks; d >= 1; d--) pegs[0].push(d);
-                selectedPeg = null;
-                moves = 0;
-                optimal = Math.pow(2, numDisks) - 1;
-                score = 0;
-                ended = false;
-                history = [];
-                movesSpan.textContent = '0';
-                optimalSpan.textContent = optimal;
-                scoreSpan.textContent = '0';
-                endOverlay.classList.remove('visible');
-                draw();
-            }
+// ── rozmery ─────────────────────────────────────────────────────────────
+function layout() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const vw = window.innerWidth || 360, vh = window.innerHeight || 640;
+  const page = document.getElementById('page'), wrap = document.getElementById('board-wrap');
+  let others = 0, n = 0;
+  for (const el of page.children) { n++; if (el !== wrap) others += el.offsetHeight; }
+  const cs = getComputedStyle(page);
+  const gap = parseFloat(cs.rowGap) || 10;
+  const pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const chrome = others + gap * Math.max(0, n - 1) + pad + 26;
+  let boxW, boxH;
+  if (vh <= 560 && vw > vh) { boxW = vw - 340; boxH = vh - 34; }
+  else { boxW = Math.min(vw, 680) - 40; boxH = Math.max(180, vh - chrome); }
+  W = Math.max(220, Math.min(boxW, 620));
+  // vyska: kotuce + rezerva nad tycou
+  H = Math.max(180, Math.min(boxH, Math.round(W * 0.62)));
+  cv.style.width = W + 'px';
+  cv.style.height = H + 'px';
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  PEGX = [W * 0.2, W * 0.5, W * 0.8];
+  BASEY = H - Math.round(H * 0.1);
+  DH = Math.max(8, Math.min(Math.round((BASEY - H * 0.22) / disks()), Math.round(H * 0.09)));
+  PEGTOP = BASEY - DH * disks() - Math.round(DH * 1.2);
+}
+window.addEventListener('resize', () => layout());
+window.addEventListener('orientationchange', () => setTimeout(layout, 250));
 
-            function canMove(from, to) {
-                if (from === to) return false;
-                if (pegs[from].length === 0) return false;
-                const disk = pegs[from][pegs[from].length - 1];
-                if (pegs[to].length === 0) return true;
-                return disk < pegs[to][pegs[to].length - 1];
-            }
+function diskW(d) {
+  const minW = Math.max(26, W * 0.075), maxW = W * 0.24;
+  return minW + (maxW - minW) * ((d - 1) / Math.max(1, disks() - 1));
+}
+function diskY(pegIdx, indexFromBottom) { return BASEY - (indexFromBottom + 1) * DH; }
 
-            function doMove(from, to) {
-                history.push({ from, to });
-                const disk = pegs[from].pop();
-                pegs[to].push(disk);
-                moves++;
-                movesSpan.textContent = moves;
-            }
+// ── hra ─────────────────────────────────────────────────────────────────
+function loadBest() {
+  const b = +(localStorage.getItem(bestKey()) || 0);
+  document.getElementById('hud-best').textContent = b || '—';
+  document.getElementById('best-pill').classList.remove('record');
+  return b;
+}
+function newGame() {
+  pegs = [[], [], []];
+  for (let d = disks(); d >= 1; d--) pegs[0].push(d);
+  moves = 0; hintsUsed = 0; optimal = Math.pow(2, disks()) - 1;
+  elapsed = 0; startedAt = performance.now(); running = true; solved = false;
+  history = []; sel = null; drag = null; anim = null; parts = [];
+  hintFlash = 0; hintMove = null; badFlash = 0; winPulse = 0;
+  document.getElementById('hud-moves').textContent = '0';
+  document.getElementById('hud-opt').textContent = optimal;
+  document.getElementById('hud-time').textContent = '0:00';
+  document.getElementById('moves-pill').classList.remove('over');
+  document.getElementById('overlay').classList.add('hide');
+  loadBest();
+  layout();
+  syncTools();
+}
+function syncTools() {
+  document.getElementById('btn-undo').disabled = !history.length || solved;
+  document.getElementById('btn-hint').disabled = solved;
+}
+function canMove(from, to) {
+  if (from === to || !pegs[from].length) return false;
+  const d = pegs[from][pegs[from].length - 1];
+  return !pegs[to].length || d < pegs[to][pegs[to].length - 1];
+}
+function doMove(from, to, animate) {
+  const d = pegs[from][pegs[from].length - 1];
+  history.push({from, to});
+  pegs[from].pop();
+  pegs[to].push(d);
+  moves++;
+  document.getElementById('hud-moves').textContent = moves;
+  document.getElementById('moves-pill').classList.toggle('over', moves > optimal);
+  hintMove = null;
+  if (animate) anim = {disk: d, from, to, t: 0, dur: 0.26};
+  syncTools();
+  checkWin();
+}
+function undo() {
+  if (solved || !history.length) return;
+  const m = history.pop();
+  const d = pegs[m.to].pop();
+  pegs[m.from].push(d);
+  moves = Math.max(0, moves - 1);
+  document.getElementById('hud-moves').textContent = moves;
+  document.getElementById('moves-pill').classList.toggle('over', moves > optimal);
+  sel = null; drag = null; anim = null; hintMove = null;
+  syncTools();
+}
+function checkWin() {
+  if (pegs[2].length !== disks()) return;
+  solved = true; running = false;
+  elapsed = performance.now() - startedAt;
+  const prev = +(localStorage.getItem(bestKey()) || 0);
+  const rec = !prev || moves < prev;
+  if (rec) { try { localStorage.setItem(bestKey(), moves); } catch (e) {} }
+  const bestVal = rec ? moves : prev;
+  document.getElementById('hud-best').textContent = bestVal;
+  document.getElementById('best-pill').classList.toggle('record', rec);
+  winPulse = 1.8;
+  for (let i = 0; i < disks(); i++) {
+    const w = diskW(disks() - i);
+    for (let k = 0; k < 6; k++) {
+      const a = rnd(0, 6.2832), sp = rnd(40, 190);
+      parts.push({x: PEGX[2] + rnd(-w / 2, w / 2), y: diskY(2, i) + DH / 2, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40, life: rnd(0.4, 1.0), max: 1.0, hue: HUES[(disks() - i - 1) % HUES.length]});
+    }
+  }
+  syncTools();
+  setTimeout(() => {
+    document.getElementById('res-moves').textContent = moves;
+    const note = document.getElementById('res-note');
+    const perfect = moves === optimal;
+    note.textContent = perfect ? t('hanPerfect') : (rec ? t('uiNewRecord') : t('uiBest') + ' ' + prev);
+    note.className = perfect ? 'perfect' : (rec ? 'record' : '');
+    document.getElementById('st-opt').textContent = optimal;
+    document.getElementById('st-time').textContent = fmt(elapsed);
+    document.getElementById('st-best').textContent = bestVal;
+    showCard('win');
+  }, 1200);
+}
+function showCard(kind) {
+  document.getElementById('ov-title').textContent = kind === 'win' ? t('hanWin') : t('hanTitle');
+  document.getElementById('brand').style.display = kind === 'win' ? 'none' : '';
+  document.getElementById('result').classList.toggle('show', kind === 'win');
+  document.getElementById('ov-stats').classList.toggle('show', kind === 'win');
+  document.getElementById('ov-hint').textContent = t('hanDesc');
+  document.getElementById('ov-play').textContent = kind === 'win' ? t('uiPlayAgain') : t('uiStart');
+  document.getElementById('overlay').classList.remove('hide');
+}
 
-            function undo() {
-                if (ended || history.length === 0) return;
-                const last = history.pop();
-                const disk = pegs[last.to].pop();
-                pegs[last.from].push(disk);
-                moves = Math.max(0, moves - 1);
-                movesSpan.textContent = moves;
-                selectedPeg = null;
-                draw();
-            }
-            undoBtn.addEventListener('click', undo);
+// ── vstup ───────────────────────────────────────────────────────────────
+function pegAt(x) {
+  let best = -1, bd = Infinity;
+  for (let i = 0; i < 3; i++) { const d = Math.abs(x - PEGX[i]); if (d < bd) { bd = d; best = i; } }
+  return bd < W / 5.2 ? best : -1;
+}
+function localXY(e) {
+  const r = cv.getBoundingClientRect();
+  return {x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H};
+}
+cv.addEventListener('pointerdown', e => {
+  if (solved || anim) return;
+  e.preventDefault();
+  const {x, y} = localXY(e);
+  const p = pegAt(x);
+  if (p < 0) { sel = null; return; }
+  if (sel !== null) {
+    // druhe tuknutie = polozenie
+    if (p === sel) { sel = null; return; }
+    if (canMove(sel, p)) { doMove(sel, p, true); sel = null; }
+    else { badFlash = 0.4; badPeg = p; sel = pegs[p].length ? p : null; }
+    return;
+  }
+  if (!pegs[p].length) return;
+  drag = {disk: pegs[p][pegs[p].length - 1], from: p, x, y, moved: false, sx: x, sy: y};
+}, {passive: false});
+window.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const {x, y} = localXY(e);
+  if (Math.abs(x - drag.sx) > 5 || Math.abs(y - drag.sy) > 5) drag.moved = true;
+  drag.x = x; drag.y = y;
+});
+window.addEventListener('pointerup', e => {
+  if (!drag) return;
+  const d = drag;
+  drag = null;
+  if (!d.moved) { sel = d.from; return; }
+  const {x} = localXY(e);
+  const p = pegAt(x);
+  if (p >= 0 && canMove(d.from, p)) doMove(d.from, p, true);
+  else if (p >= 0 && p !== d.from) { badFlash = 0.4; badPeg = p; }
+});
+window.addEventListener('pointercancel', () => { drag = null; });
+cv.addEventListener('contextmenu', e => e.preventDefault());
 
-            function checkWin() {
-                if (pegs[2].length === numDisks) {
-                    ended = true;
-                    const extra = Math.max(0, moves - optimal);
-                    score = Math.max(20, 150 - extra * 8);
-                    scoreSpan.textContent = score;
-                    if (score > best) {
-                        best = score;
-                        bestSpan.textContent = best;
-                        localStorage.setItem('hanoiTowersBest', String(best));
-                    }
-                    finalMoves.textContent = moves;
-                    finalOptimal.textContent = optimal;
-                    finalScore.textContent = score;
-                    setTimeout(() => endOverlay.classList.add('visible'), 250);
-                }
-            }
+document.getElementById('btn-hint').addEventListener('click', () => {
+  if (solved) return;
+  const m = nextOptimal(disks(), 2);
+  if (!m) return;
+  hintMove = m;
+  hintFlash = 2.2;
+  hintsUsed++;
+});
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-new').addEventListener('click', newGame);
+document.getElementById('ov-play').addEventListener('click', newGame);
+document.addEventListener('keydown', e => {
+  if (e.code === 'KeyU' || (e.ctrlKey && e.code === 'KeyZ')) { e.preventDefault(); undo(); }
+  if (e.code === 'KeyH') { e.preventDefault(); document.getElementById('btn-hint').click(); }
+  if (e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit3') {
+    const p = +e.code.slice(-1) - 1;
+    if (solved || anim) return;
+    if (sel === null) { if (pegs[p].length) sel = p; }
+    else if (sel === p) sel = null;
+    else if (canMove(sel, p)) { doMove(sel, p, true); sel = null; }
+    else { badFlash = 0.4; badPeg = p; }
+  }
+});
+window.addEventListener('blur', () => { if (running) { elapsed = performance.now() - startedAt; running = false; } });
+window.addEventListener('focus', () => { if (!solved) { startedAt = performance.now() - elapsed; running = true; } });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (running) { elapsed = performance.now() - startedAt; running = false; } }
+  else if (!solved) { startedAt = performance.now() - elapsed; running = true; }
+});
 
-            function pegAt(px) {
-                for (let i = 0; i < 3; i++) {
-                    if (Math.abs(px - PEG_X[i]) < CW / 6) return i;
-                }
-                return -1;
-            }
+// ── kreslenie ───────────────────────────────────────────────────────────
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+  else ctx.rect(x, y, w, h);
+}
+function drawDisk(d, cx, cy, lifted) {
+  const w = diskW(d), h = DH * 0.86;
+  const hue = HUES[(d - 1) % HUES.length];
+  ctx.save();
+  if (lifted) { ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6; }
+  const g = ctx.createLinearGradient(0, cy - h / 2, 0, cy + h / 2);
+  g.addColorStop(0, 'hsl(' + hue + ',92%,72%)');
+  g.addColorStop(0.45, 'hsl(' + hue + ',85%,58%)');
+  g.addColorStop(1, 'hsl(' + hue + ',80%,42%)');
+  ctx.fillStyle = g;
+  rr(cx - w / 2, cy - h / 2, w, h, h / 2);
+  ctx.fill();
+  ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  ctx.strokeStyle = 'hsla(' + hue + ',90%,80%,0.75)';
+  ctx.lineWidth = 1;
+  rr(cx - w / 2 + 0.5, cy - h / 2 + 0.5, w - 1, h - 1, h / 2);
+  ctx.stroke();
+  // lesk
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  rr(cx - w / 2 + h * 0.3, cy - h / 2 + h * 0.16, w - h * 0.6, h * 0.26, h * 0.13);
+  ctx.fill();
+  // cislo kotuca
+  if (h > 12) {
+    ctx.fillStyle = 'rgba(20,10,4,0.62)';
+    ctx.font = '800 ' + Math.round(h * 0.62) + "px 'Syne',sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(d, cx, cy + h * 0.02);
+  }
+  ctx.restore();
+}
+function draw() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#1b1108');
+  bg.addColorStop(1, '#0d0805');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  // svetlo zhora
+  const lg = ctx.createRadialGradient(W / 2, -H * 0.2, 10, W / 2, -H * 0.2, H * 1.3);
+  lg.addColorStop(0, 'rgba(255,190,120,0.10)');
+  lg.addColorStop(1, 'rgba(255,190,120,0)');
+  ctx.fillStyle = lg;
+  ctx.fillRect(0, 0, W, H);
 
-            function canvasPoint(e) {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-            }
+  // podstavec
+  const baseH = Math.max(6, H * 0.035);
+  const bgr = ctx.createLinearGradient(0, BASEY, 0, BASEY + baseH);
+  bgr.addColorStop(0, '#6b4a2c');
+  bgr.addColorStop(1, '#33220f');
+  ctx.fillStyle = bgr;
+  rr(W * 0.06, BASEY, W * 0.88, baseH, baseH * 0.4);
+  ctx.fill();
 
-            function onTap(e) {
-                if (ended) return;
-                const pt = canvasPoint(e);
-                const peg = pegAt(pt.x);
-                if (peg === -1) return;
+  // tycky
+  for (let i = 0; i < 3; i++) {
+    const pw = Math.max(5, W * 0.014);
+    const g = ctx.createLinearGradient(PEGX[i] - pw, 0, PEGX[i] + pw, 0);
+    g.addColorStop(0, '#5a3f26');
+    g.addColorStop(0.5, '#8b6640');
+    g.addColorStop(1, '#4a3320');
+    ctx.fillStyle = g;
+    rr(PEGX[i] - pw / 2, PEGTOP, pw, BASEY - PEGTOP + 2, pw / 2);
+    ctx.fill();
+    // zvyraznenie ciela / vyberu / chyby / napovedy
+    let ring = null;
+    if (badFlash > 0 && badPeg === i) ring = 'rgba(255,107,129,' + Math.min(0.9, badFlash * 2) + ')';
+    else if (sel === i || (drag && drag.from === i)) ring = 'rgba(251,146,60,0.85)';
+    else if (hintFlash > 0 && hintMove && (hintMove.from === i || hintMove.to === i)) {
+      const a = 0.35 + 0.35 * Math.sin(hintFlash * 7);
+      ring = (hintMove.from === i ? 'rgba(56,189,248,' : 'rgba(74,222,128,') + a + ')';
+    }
+    if (ring) {
+      ctx.strokeStyle = ring;
+      ctx.lineWidth = 2;
+      const w = diskW(disks()) * 0.62;
+      rr(PEGX[i] - w, PEGTOP - 6, w * 2, BASEY - PEGTOP + baseH + 8, 12);
+      ctx.stroke();
+    }
+  }
 
-                if (selectedPeg === null) {
-                    if (pegs[peg].length > 0) {
-                        selectedPeg = peg;
-                        draw();
-                    }
-                    return;
-                }
-                if (peg === selectedPeg) {
-                    selectedPeg = null;
-                    draw();
-                    return;
-                }
-                if (canMove(selectedPeg, peg)) {
-                    doMove(selectedPeg, peg);
-                    selectedPeg = null;
-                    draw();
-                    checkWin();
-                } else {
-                    selectedPeg = pegs[peg].length > 0 ? peg : null;
-                    draw();
-                }
-            }
+  // kotuce na tyckach
+  for (let p = 0; p < 3; p++) {
+    for (let i = 0; i < pegs[p].length; i++) {
+      const d = pegs[p][i];
+      if (anim && anim.to === p && i === pegs[p].length - 1) continue;   // letiaci kotuc kreslim zvlast
+      if (drag && drag.from === p && i === pegs[p].length - 1) continue;
+      if (sel === p && i === pegs[p].length - 1) {
+        drawDisk(d, PEGX[p], PEGTOP - DH * 0.9, true);                   // zdvihnuty "v ruke"
+        continue;
+      }
+      const pulse = winPulse > 0 && p === 2 ? Math.sin(winPulse * 6 + i) * DH * 0.12 : 0;
+      drawDisk(d, PEGX[p], diskY(p, i) + DH / 2 + pulse, false);
+    }
+  }
 
-            canvas.addEventListener('mousedown', onTap);
-            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onTap(e); }, { passive: false });
+  // animovany prenos: zdvih -> presun -> spustenie
+  if (anim) {
+    const k = Math.min(1, anim.t / anim.dur);
+    const topY = PEGTOP - DH * 0.9;
+    const y0 = diskY(anim.from, pegs[anim.from].length) + DH / 2;
+    const y1 = diskY(anim.to, pegs[anim.to].length - 1) + DH / 2;
+    let x, y;
+    if (k < 0.3) { x = PEGX[anim.from]; y = y0 + (topY - y0) * (k / 0.3); }
+    else if (k < 0.7) { const q = (k - 0.3) / 0.4; x = PEGX[anim.from] + (PEGX[anim.to] - PEGX[anim.from]) * q; y = topY; }
+    else { const q = (k - 0.7) / 0.3; x = PEGX[anim.to]; y = topY + (y1 - topY) * q; }
+    drawDisk(anim.disk, x, y, true);
+  }
+  // tahany kotuc
+  if (drag) drawDisk(drag.disk, drag.x, drag.y, true);
 
-            restartBtn.addEventListener('click', newGame);
-            newGameBtn.addEventListener('click', newGame);
+  for (const pt of parts) {
+    ctx.globalAlpha = Math.max(0, pt.life / pt.max);
+    ctx.fillStyle = 'hsl(' + pt.hue + ',90%,65%)';
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 2.4, 0, 6.2832);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
 
-            sizeGroup.querySelectorAll('button').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    numDisks = parseInt(btn.dataset.disks, 10);
-                    newGame();
-                });
-            });
+let tPrev = 0;
+function frame(ts) {
+  requestAnimationFrame(frame);
+  const dt = tPrev ? Math.min(0.05, (ts - tPrev) / 1000) : 0;
+  tPrev = ts;
+  if (anim) { anim.t += dt; if (anim.t >= anim.dur) anim = null; }
+  if (hintFlash > 0) { hintFlash = Math.max(0, hintFlash - dt); if (hintFlash === 0) hintMove = null; }
+  if (badFlash > 0) badFlash = Math.max(0, badFlash - dt);
+  if (winPulse > 0) winPulse = Math.max(0, winPulse - dt);
+  if (parts.length) {
+    for (const p of parts) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 200 * dt; }
+    parts = parts.filter(p => p.life > 0);
+  }
+  if (running) {
+    elapsed = performance.now() - startedAt;
+    document.getElementById('hud-time').textContent = fmt(elapsed);
+  }
+  draw();
+}
 
-            function diskWidth(d) {
-                const minW = 26, maxW = CW * 0.24;
-                return minW + (maxW - minW) * ((d - 1) / Math.max(1, numDisks - 1));
-            }
+// ── obtiaznost ──────────────────────────────────────────────────────────
+function buildDiffs(el) {
+  el.textContent = '';
+  DIFFS.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.textContent = t(d.key) + ' ' + d.n;
+    b.className = i === diffIdx ? 'active' : '';
+    b.addEventListener('click', () => { diffIdx = i; syncDiffs(); newGame(); });
+    el.appendChild(b);
+  });
+}
+function syncDiffs() {
+  [document.getElementById('diff-row'), document.getElementById('diff-row2')].forEach(row => {
+    [...row.children].forEach((b, j) => b.className = j === diffIdx ? 'active' : '');
+  });
+}
 
-            function draw() {
-                ctx.clearRect(0, 0, CW, CH);
-                const grad = ctx.createLinearGradient(0, 0, 0, CH);
-                grad.addColorStop(0, '#0b111e');
-                grad.addColorStop(1, '#0f1a2b');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, CW, CH);
-
-                ctx.fillStyle = '#334155';
-                ctx.fillRect(20, BASE_Y, CW - 40, 8);
-
-                for (let i = 0; i < 3; i++) {
-                    ctx.fillStyle = '#475569';
-                    ctx.fillRect(PEG_X[i] - 4, PEG_TOP_Y, 8, BASE_Y - PEG_TOP_Y);
-                    if (i === selectedPeg) {
-                        ctx.strokeStyle = 'rgba(251,191,36,0.6)';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(PEG_X[i] - CW / 6 + 4, PEG_TOP_Y - 10, CW / 3 - 8, BASE_Y - PEG_TOP_Y + 20);
-                    }
-                }
-
-                for (let p = 0; p < 3; p++) {
-                    for (let level = 0; level < pegs[p].length; level++) {
-                        const d = pegs[p][level];
-                        const w = diskWidth(d);
-                        const x = PEG_X[p] - w / 2;
-                        const y = BASE_Y - (level + 1) * DISK_H;
-                        ctx.fillStyle = COLORS[(d - 1) % COLORS.length];
-                        ctx.beginPath();
-                        ctx.roundRect ? ctx.roundRect(x, y, w, DISK_H - 3, 5) : ctx.rect(x, y, w, DISK_H - 3);
-                        ctx.fill();
-                        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-                        ctx.lineWidth = 1;
-                        ctx.stroke();
-                    }
-                }
-            }
-
-            newGame();
-        })();
-    </script>
+applyLang();
+buildDiffs(document.getElementById('diff-row'));
+buildDiffs(document.getElementById('diff-row2'));
+newGame();
+running = false;
+showCard('menu');
+requestAnimationFrame(frame);
+</script>
 </body>
 </html>

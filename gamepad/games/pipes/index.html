@@ -2,141 +2,191 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pipes · GamePad</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;
-  --text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);
-  --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
-  --c:#00d4ff;--cdim:rgba(0,212,255,0.14);
+  --bg:#04090c;--text:#e8fbff;--muted:rgba(232,251,255,0.42);--dim:rgba(232,251,255,0.18);
+  --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.17);
+  --c:#22d3ee;--c2:#a78bfa;--gold:#ffd166;--ok:#4ade80;
 }
-html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;}
-body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;right:-150px;background:radial-gradient(circle,rgba(0,212,255,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
+html,body{background:var(--bg);min-height:100%;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+body{overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:
+  radial-gradient(700px 420px at 50% -12%,rgba(34,211,238,0.10),transparent 70%),
+  radial-gradient(520px 380px at 96% 106%,rgba(167,139,250,0.08),transparent 72%);}
+button{font-family:'DM Sans',sans-serif;touch-action:manipulation;}
 
-#back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
-#back-btn:hover{border-color:var(--border-h);color:var(--text);}
+#back-btn{position:fixed;top:14px;left:14px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(6,12,16,0.75);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:9px;left:9px;padding:6px 11px;font-size:11px;}}
 
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 16px 20px;gap:12px;}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:54px 12px 14px;}
+.title{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.4px;background:linear-gradient(110deg,#fff 26%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
-.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pills{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.pill{display:flex;align-items:center;gap:7px;padding:4px 11px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--border);font-size:8.5px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);}
+.pill.best b{color:var(--c2);}
+.pill.best.record{border-color:rgba(167,139,250,.45);}
 
-.hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
-.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
-.stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;}
-.ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
-.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:5px 13px;border-radius:100px;font-size:11.5px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(34,211,238,0.16);color:#c8f6ff;box-shadow:inset 0 0 0 1px rgba(34,211,238,0.42);}
 
-#canvas-wrap{position:relative;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg1);}
-canvas{display:block;}
+#board-wrap{position:relative;padding:9px;border-radius:18px;background:linear-gradient(165deg,rgba(255,255,255,0.055),rgba(255,255,255,0.012));border:1px solid var(--border-h);box-shadow:0 24px 60px -30px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06);}
+canvas{display:block;border-radius:10px;touch-action:none;cursor:pointer;}
 
-/* overlay */
-#overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.9);backdrop-filter:blur(10px);}
-#overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;}
-.hint{font-size:12px;color:var(--muted);text-align:center;padding:0 16px;}
-.play-btn{margin-top:4px;background:var(--cdim);border:1px solid rgba(0,212,255,.3);color:var(--c);padding:10px 30px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .18s;}
-.play-btn:hover{background:rgba(0,212,255,.2);}
-.diff-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
-.diff-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 16px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
-.diff-btn:hover,.diff-btn.active{border-color:rgba(0,212,255,.4);color:var(--c);background:var(--cdim);}
-@media (orientation: landscape) and (max-height: 560px) {
-  .page { padding: 46px 12px 10px; gap: 6px; }
-  #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
-  .game-title { font-size: 17px; }
-  .stat-pill, .ctrl-btn { padding: 4px 10px; font-size: 11px; }
+.tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.tool{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:8px 15px;border-radius:100px;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .16s;}
+.tool:hover{border-color:var(--border-h);color:var(--text);}
+.tool svg{width:14px;height:14px;}
+.tool.primary{border-color:rgba(34,211,238,0.4);color:#bff2ff;background:rgba(34,211,238,0.12);}
+.foot{font-size:10.5px;color:var(--dim);text-align:center;}
+
+#overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at center,rgba(6,12,16,0.8) 0%,rgba(2,5,7,0.95) 78%);backdrop-filter:blur(6px);}
+#overlay.hide{display:none;}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;width:100%;max-width:330px;padding:26px 24px 24px;border-radius:24px;background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid var(--border-h);box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);animation:pop .34s cubic-bezier(.2,1.4,.4,1);}
+@keyframes pop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+.card::before{content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;background:linear-gradient(120deg,rgba(34,211,238,.5),transparent 42%,transparent 58%,rgba(167,139,250,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.emoji{font-size:34px;line-height:1;filter:drop-shadow(0 6px 16px rgba(34,211,238,.4));}
+.ttl{font-family:'Syne',sans-serif;font-weight:800;font-size:23px;letter-spacing:-.5px;text-align:center;background:linear-gradient(110deg,var(--c) 5%,#fff 52%,var(--c2) 95%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#result{display:none;flex-direction:column;align-items:center;gap:1px;}
+#result.show{display:flex;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-time{font-family:'Syne',sans-serif;font-weight:800;font-size:46px;line-height:1.05;letter-spacing:-2px;color:var(--c);text-shadow:0 0 30px rgba(34,211,238,.4);font-variant-numeric:tabular-nums;}
+#res-note{font-size:11.5px;font-weight:600;color:var(--muted);}
+#res-note.record{color:var(--gold);}
+#ov-stats{display:none;width:100%;grid-template-columns:1fr 1fr;gap:7px;}
+#ov-stats.show{display:grid;}
+.stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);}
+.stat i{font-size:8px;font-style:normal;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim);text-align:center;}
+.stat b{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--c2);white-space:nowrap;}
+.lbl{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.hint{font-size:11.5px;line-height:1.5;color:var(--muted);text-align:center;}
+.play-btn{margin-top:3px;width:100%;padding:13px 30px;border-radius:100px;border:1px solid rgba(34,211,238,.5);background:linear-gradient(180deg,rgba(34,211,238,.24),rgba(34,211,238,.1));color:#cdf6ff;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(34,211,238,.34),rgba(34,211,238,.16));color:#fff;box-shadow:0 0 24px -6px rgba(34,211,238,.5);}
+.play-btn:active{transform:translateY(1px);}
+@media (max-height:820px){#overlay{align-items:flex-start !important;overflow-y:auto !important;}}
+@media(max-height:700px){.title{display:none;}.page{padding-top:46px;gap:7px;}.foot{display:none;}}
+@media(max-width:380px){.seg button{padding:5px 9px;font-size:11px;}}
+
+/* krajina na nizkych obrazovkach: doska vlavo, ovladanie vpravo */
+@media (orientation:landscape) and (max-height:560px){
+  .page{display:grid;grid-template-columns:auto minmax(150px,200px);align-content:center;justify-content:center;
+        column-gap:16px;row-gap:6px;padding:6px 12px 6px 88px;min-height:100vh;}
+  .title{display:none;}
+  #board-wrap{grid-column:1;grid-row:1 / span 4;align-self:center;padding:6px;}
+  .pills{grid-column:2;grid-row:1;flex-wrap:wrap;max-width:200px;gap:4px;}
+  .pill{padding:3px 8px;font-size:8px;}
+  .pill b{font-size:12px;}
+  .seg{grid-column:2;grid-row:2;justify-self:center;}
+  .seg button{padding:4px 9px;font-size:10.5px;}
+  .tools{grid-column:2;grid-row:3;}
+  .foot{grid-column:2;grid-row:4;display:block;font-size:9.5px;max-width:200px;}
+  #back-btn{padding:5px 11px;font-size:11px;}
 }
-
-/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
-html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-button,a,[onclick]{touch-action:manipulation;}
 </style>
 </head>
 <body>
-
 <a href="../../index.html" id="back-btn">
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   <span id="lbl-back"></span>
 </a>
 
-<div class="page">
-  <div class="game-title" id="lbl-title"></div>
+<div class="page" id="page">
+  <div class="title" id="lbl-title"></div>
 
-  <div class="hud">
-    <div class="stat-pill"><span id="lbl-moves-txt"></span>&nbsp;<span id="hud-moves">0</span></div>
-    <div class="stat-pill">⏱&nbsp;<span id="hud-time">0</span>s</div>
-    <button class="ctrl-btn" id="btn-new" onclick="newGame()"></button>
+  <div class="pills">
+    <div class="pill"><span id="lbl-moves"></span><b id="hud-moves">0</b></div>
+    <div class="pill"><span id="lbl-time"></span><b id="hud-time">0:00</b></div>
+    <div class="pill best" id="best-pill"><span id="lbl-best"></span><b id="hud-best">—</b></div>
   </div>
 
-  <div id="canvas-wrap">
-    <canvas id="c"></canvas>
-    <div id="overlay">
-      <div style="font-size:42px">🔧</div>
-      <h2 id="ov-title"></h2>
-      <div class="hint" id="ov-hint"></div>
-      <div class="diff-row" id="diff-row"></div>
-      <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
+  <div class="seg" id="diff-row"></div>
+
+  <div id="board-wrap"><canvas id="c"></canvas></div>
+
+  <div class="tools">
+    <button class="tool primary" id="btn-new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+      <span id="lbl-new"></span></button>
+  </div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<div id="overlay">
+  <div class="card">
+    <div id="brand"><div class="emoji">🔧</div></div>
+    <div class="ttl" id="ov-title"></div>
+    <div id="result">
+      <div id="res-lbl"></div>
+      <div id="res-time">0:00</div>
+      <div id="res-note"></div>
     </div>
+    <div id="ov-stats">
+      <div class="stat"><i id="lbl-s-moves"></i><b id="st-moves">0</b></div>
+      <div class="stat"><i id="lbl-s-best"></i><b id="st-best">—</b></div>
+    </div>
+    <div class="lbl" id="lbl-diff"></div>
+    <div class="seg" id="diff-row2"></div>
+    <div class="hint" id="ov-hint"></div>
+    <button class="play-btn" id="ov-play"></button>
   </div>
 </div>
 
 <script>
-// ── i18n ──────────────────────────────────────────────────────────────────
-document.getElementById('lbl-back').textContent     = t('back');
-document.getElementById('lbl-title').textContent    = t('pipesTitle');
-document.getElementById('lbl-moves-txt').textContent= t('pipesMoves');
-document.getElementById('btn-new').textContent      = t('pipesNew');
-document.getElementById('ov-title').textContent     = t('pipesTitle');
-document.getElementById('ov-hint').textContent      = t('pipesHint');
-document.getElementById('ov-btn').textContent       = t('pipesPlay');
+// ── smery ako bitova maska ──────────────────────────────────────────────
+const N = 1, E = 2, S = 4, W = 8;
+const DIRS = [N, E, S, W];
+const OPP = {1:4, 4:1, 2:8, 8:2};
+const DR = {1:-1, 4:1, 2:0, 8:0};
+const DC = {1:0, 4:0, 2:1, 8:-1};
+const ANG = {1:-Math.PI/2, 2:0, 4:Math.PI/2, 8:Math.PI};
 
-// ── DIFFICULTY ────────────────────────────────────────────────────────────
 const DIFFS = [
-  { key:'easy',   size:4 },
-  { key:'medium', size:6 },
-  { key:'hard',   size:8 },
+  {key:'diffEasy',   size:4},
+  {key:'diffMedium', size:6},
+  {key:'diffHard',   size:8},
 ];
 let diffIdx = 1;
-const diffRow = document.getElementById('diff-row');
-DIFFS.forEach((d, i) => {
-  const btn = document.createElement('button');
-  btn.className = 'diff-btn' + (i === diffIdx ? ' active' : '');
-  btn.textContent = `${t('diff'+d.key.charAt(0).toUpperCase()+d.key.slice(1))} (${d.size}×${d.size})`;
-  btn.onclick = () => { diffIdx = i; diffRow.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i)); };
-  diffRow.appendChild(btn);
-});
+const bestKey = i => 'pipes_best_' + i;
 
-// ── CANVAS ────────────────────────────────────────────────────────────────
-const C  = document.getElementById('c');
-const cx = C.getContext('2d');
-function getMax() {
-  return Math.min(window.innerWidth - 40, window.innerHeight - 220, 440);
+let size = 6, CS = 60, DPR = 1;
+let grid = [];                 // {open, spin}  spin = zostatkovy uhol animacie
+let conn = [];
+let moves = 0, elapsed = 0, startedAt = 0, running = false, solved = false;
+let winPulse = 0, parts = [];
+let tPrev = 0;
+
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+function applyLang() {
+  document.getElementById('lbl-back').textContent  = t('back');
+  document.getElementById('lbl-title').textContent = t('pipesTitle');
+  document.getElementById('lbl-moves').textContent = t('uiMoves');
+  document.getElementById('lbl-time').textContent  = t('uiTime');
+  document.getElementById('lbl-best').textContent  = t('uiBest');
+  document.getElementById('lbl-new').textContent   = t('uiNewGame');
+  document.getElementById('lbl-s-moves').textContent = t('uiMoves');
+  document.getElementById('lbl-s-best').textContent  = t('uiBest');
+  document.getElementById('res-lbl').textContent   = t('uiTime');
+  document.getElementById('lbl-diff').textContent  = t('uiDifficulty');
+  document.getElementById('foot').textContent      = t('pipesHint');
 }
 
-// ── PIPE DIRECTIONS (bitmask) ─────────────────────────────────────────────
-// N=1, E=2, S=4, W=8
-const N=1, E=2, S=4, W=8;
-const ALL_DIRS = [N,E,S,W];
-const OPPOSITE = {[N]:S,[S]:N,[E]:W,[W]:E};
-const DR = {[N]:-1,[S]:1,[E]:0,[W]:0};
-const DC = {[N]:0,[S]:0,[E]:1,[W]:-1};
+const fmt = ms => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+function rnd(a, b) { return a + Math.random() * (b - a); }
 
-// Pipe types by open sides (bitmask)
-// We'll use: straight (NS=5, EW=10), elbow (NE=3,SE=6,SW=9,NW=12), T (NSE=7,NSW=13,NEW=11,SEW=14), cross (NSEW=15), end (N=1,E=2,S=4,W=8)
-const PIPE_SHAPES = [1,2,4,8,3,6,9,12,5,10,7,11,13,14,15];
-
-// ── GAME STATE ────────────────────────────────────────────────────────────
-let grid, size, cs, moves, timerVal, timerInt, running;
-
-// grid[r][c] = { shape, rotation }  → open = rotate(shape, rotation)
-// We store the canonical shape (open sides) after rotation directly as `open` bitmask
-
-function rotateShape(shape, times) {
-  let s = shape;
+// ── generovanie: kostra grafu, potom nahodne otocenie ───────────────────
+function rotOpen(open, times) {
+  let s = open;
   for (let i = 0; i < times; i++) {
-    // rotate CW: N→E→S→W→N
     let ns = 0;
     if (s & N) ns |= E;
     if (s & E) ns |= S;
@@ -146,228 +196,339 @@ function rotateShape(shape, times) {
   }
   return s;
 }
-
-function generatePuzzle(sz) {
-  // Build a spanning tree of the grid to ensure a solvable puzzle
-  const cells = Array.from({length:sz}, (_,r) => Array.from({length:sz}, (_,c) => ({r,c,open:0})));
-
-  // DFS spanning tree
-  const visited = Array.from({length:sz}, ()=>Array(sz).fill(false));
-  function carve(r, c) {
-    visited[r][c] = true;
-    const dirs = [N,E,S,W].sort(()=>Math.random()-.5);
-    for (const d of dirs) {
-      const nr = r+DR[d], nc = c+DC[d];
-      if (nr<0||nr>=sz||nc<0||nc>=sz||visited[nr][nc]) continue;
-      cells[r][c].open |= d;
-      cells[nr][nc].open |= OPPOSITE[d];
-      carve(nr, nc);
-    }
-  }
-  carve(0, 0);
-
-  // Now shuffle rotations — store solved open, then randomize rotation
-  const puzzle = cells.map(row => row.map(cell => {
-    const solved = cell.open;
-    const rot = Math.floor(Math.random() * 4);
-    // Store current (scrambled) open + solved for reference
-    return { solved, current: rotateShape(solved, rot) };
-  }));
-  return puzzle;
-}
-
-function newGame() {
-  document.getElementById('overlay').style.display = 'none';
-  startGame();
-}
-
-function startGame() {
-  document.getElementById('overlay').style.display = 'none';
-  size = DIFFS[diffIdx].size;
-  cs   = Math.floor(getMax() / size);
-  C.width = C.height = size * cs;
-  document.getElementById('canvas-wrap').style.width  = C.width  + 'px';
-  document.getElementById('canvas-wrap').style.height = C.height + 'px';
-
-  grid = generatePuzzle(size);
-  moves = 0; timerVal = 0;
-  document.getElementById('hud-moves').textContent = '0';
-  document.getElementById('hud-time').textContent  = '0';
-  clearInterval(timerInt);
-  timerInt = setInterval(() => {
-    timerVal++;
-    document.getElementById('hud-time').textContent = timerVal;
-  }, 1000);
-  running = true;
-  render();
-}
-
-// ── FLOOD FILL to check connectivity ─────────────────────────────────────
-function computeConnected() {
-  const connected = Array.from({length:size}, ()=>Array(size).fill(false));
-  const stack = [[0,0]];
-  connected[0][0] = true;
+function generate(sz) {
+  const open = Array.from({length: sz}, () => new Array(sz).fill(0));
+  const seen = Array.from({length: sz}, () => new Array(sz).fill(false));
+  // iterativny DFS - rekurzia by pri velkej mriezke rastla do hlbky
+  const stack = [[0, 0]];
+  seen[0][0] = true;
   while (stack.length) {
-    const [r,c] = stack.pop();
-    const open = grid[r][c].current;
-    for (const d of ALL_DIRS) {
-      if (!(open & d)) continue;
-      const nr = r+DR[d], nc = c+DC[d];
-      if (nr<0||nr>=size||nc<0||nc>=size) continue;
-      // Neighbour must also open toward us
-      if (!(grid[nr][nc].current & OPPOSITE[d])) continue;
-      if (connected[nr][nc]) continue;
-      connected[nr][nc] = true;
-      stack.push([nr,nc]);
+    const [r, c] = stack[stack.length - 1];
+    const opts = [];
+    for (const d of DIRS) {
+      const nr = r + DR[d], nc = c + DC[d];
+      if (nr < 0 || nr >= sz || nc < 0 || nc >= sz || seen[nr][nc]) continue;
+      opts.push(d);
+    }
+    if (!opts.length) { stack.pop(); continue; }
+    const d = opts[Math.floor(Math.random() * opts.length)];
+    const nr = r + DR[d], nc = c + DC[d];
+    open[r][c] |= d;
+    open[nr][nc] |= OPP[d];
+    seen[nr][nc] = true;
+    stack.push([nr, nc]);
+  }
+  // otocenie: aspon jedna bunka musi byt inak, nech to nie je hned hotove
+  let g;
+  for (let tries = 0; tries < 30; tries++) {
+    g = open.map(row => row.map(o => {
+      const k = Math.floor(Math.random() * 4);
+      return {open: rotOpen(o, k), spin: 0, turned: k};
+    }));
+    if (g.some(row => row.some(cell => cell.turned !== 0))) break;
+  }
+  return g;
+}
+
+// ── stav ────────────────────────────────────────────────────────────────
+function computeConn() {
+  const out = Array.from({length: size}, () => new Array(size).fill(false));
+  const st = [[0, 0]];
+  out[0][0] = true;
+  while (st.length) {
+    const [r, c] = st.pop();
+    const o = grid[r][c].open;
+    for (const d of DIRS) {
+      if (!(o & d)) continue;
+      const nr = r + DR[d], nc = c + DC[d];
+      if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
+      if (!(grid[nr][nc].open & OPP[d])) continue;
+      if (out[nr][nc]) continue;
+      out[nr][nc] = true;
+      st.push([nr, nc]);
     }
   }
-  return connected;
+  return out;
 }
+function allConnected() { return conn.every(row => row.every(v => v)); }
 
-function isSolved() {
-  const conn = computeConnected();
-  return conn.every(row => row.every(v => v));
+function layout() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const vw = window.innerWidth || 360, vh = window.innerHeight || 640;
+  const page = document.getElementById('page'), wrap = document.getElementById('board-wrap');
+  let others = 0, n = 0;
+  for (const el of page.children) { n++; if (el !== wrap) others += el.offsetHeight; }
+  const cs = getComputedStyle(page);
+  const gap = parseFloat(cs.rowGap) || 10;
+  const pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const chrome = others + gap * Math.max(0, n - 1) + pad + 26;
+  let byW, byH;
+  if (vh <= 560 && vw > vh) { byW = vw - 330; byH = vh - 34; }   // krajina: doska vlavo, ovladanie vpravo
+  else { byW = Math.min(vw, 620) - 46; byH = vh - chrome; }
+  const box = Math.max(160, Math.min(byW, byH, 520));
+  CS = Math.floor(box / size);
+  const px = CS * size;
+  cv.style.width = px + 'px';
+  cv.style.height = px + 'px';
+  cv.width = Math.round(px * DPR);
+  cv.height = Math.round(px * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
+window.addEventListener('resize', () => { layout(); });
+window.addEventListener('orientationchange', () => setTimeout(layout, 250));
 
-// ── RENDER ────────────────────────────────────────────────────────────────
-const PIPE_COLOR     = '#00d4ff';
-const PIPE_COLOR_OFF = 'rgba(255,255,255,0.2)';
-const PIPE_W_RATIO   = 0.22;  // pipe width as fraction of cell
-
-function render() {
-  cx.clearRect(0, 0, C.width, C.height);
-  cx.fillStyle = '#0c0c10';
-  cx.fillRect(0, 0, C.width, C.height);
-
-  // Grid lines
-  cx.strokeStyle = 'rgba(255,255,255,0.04)';
-  cx.lineWidth = 1;
-  for (let i = 0; i <= size; i++) {
-    cx.beginPath(); cx.moveTo(i*cs, 0); cx.lineTo(i*cs, C.height); cx.stroke();
-    cx.beginPath(); cx.moveTo(0, i*cs); cx.lineTo(C.width, i*cs); cx.stroke();
+function loadBest() {
+  const b = +(localStorage.getItem(bestKey(diffIdx)) || 0);
+  document.getElementById('hud-best').textContent = b ? fmt(b) : '—';
+  document.getElementById('best-pill').classList.remove('record');
+  return b;
+}
+function newGame() {
+  size = DIFFS[diffIdx].size;
+  grid = generate(size);
+  conn = computeConn();
+  moves = 0; elapsed = 0; startedAt = performance.now(); running = true; solved = false;
+  winPulse = 0; parts = [];
+  document.getElementById('hud-moves').textContent = '0';
+  document.getElementById('hud-time').textContent = '0:00';
+  document.getElementById('overlay').classList.add('hide');
+  loadBest();
+  layout();
+}
+function win() {
+  solved = true; running = false;
+  elapsed = performance.now() - startedAt;
+  const prev = +(localStorage.getItem(bestKey(diffIdx)) || 0);
+  const rec = !prev || elapsed < prev;
+  if (rec) { try { localStorage.setItem(bestKey(diffIdx), Math.round(elapsed)); } catch (e) {} }
+  const bestMs = rec ? elapsed : prev;
+  document.getElementById('hud-best').textContent = fmt(bestMs);
+  document.getElementById('best-pill').classList.toggle('record', rec);
+  winPulse = 1.6;
+  // iskry po celej sieti
+  for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+    if (Math.random() < 0.5) continue;
+    for (let i = 0; i < 3; i++) {
+      const a = rnd(0, 6.2832), sp = rnd(30, 150);
+      parts.push({x: c * CS + CS / 2, y: r * CS + CS / 2, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rnd(0.4, 1.0), max: 1.0});
+    }
   }
+  setTimeout(() => {
+    document.getElementById('ov-title').textContent = t('uiSolved');
+    document.getElementById('res-time').textContent = fmt(elapsed);
+    const note = document.getElementById('res-note');
+    note.textContent = rec ? t('uiNewRecord') : t('uiBest') + ' ' + fmt(prev);
+    note.classList.toggle('record', rec);
+    document.getElementById('st-moves').textContent = moves;
+    document.getElementById('st-best').textContent = fmt(bestMs);
+    showCard('win');
+  }, 1100);
+}
+function showCard(kind) {
+  document.getElementById('ov-title').textContent = kind === 'win' ? t('uiSolved') : t('pipesTitle');
+  document.getElementById('brand').style.display = kind === 'win' ? 'none' : '';
+  document.getElementById('result').classList.toggle('show', kind === 'win');
+  document.getElementById('ov-stats').classList.toggle('show', kind === 'win');
+  document.getElementById('ov-hint').textContent = t('pipesDesc');
+  document.getElementById('ov-play').textContent = kind === 'win' ? t('uiPlayAgain') : t('uiStart');
+  document.getElementById('overlay').classList.remove('hide');
+}
 
-  const conn = computeConnected();
-  const pw   = Math.max(4, Math.floor(cs * PIPE_W_RATIO));
-  const half = cs / 2;
+// ── otacanie ────────────────────────────────────────────────────────────
+function turn(r, c, dir) {
+  if (!running) return;
+  const cell = grid[r][c];
+  cell.open = rotOpen(cell.open, dir > 0 ? 1 : 3);
+  cell.spin += dir > 0 ? -Math.PI / 2 : Math.PI / 2;
+  moves++;
+  document.getElementById('hud-moves').textContent = moves;
+  conn = computeConn();
+  if (allConnected()) win();
+}
+function cellAt(clientX, clientY) {
+  const r = cv.getBoundingClientRect();
+  const x = (clientX - r.left) / r.width * (size * CS);
+  const y = (clientY - r.top) / r.height * (size * CS);
+  const cc = Math.floor(x / CS), rr = Math.floor(y / CS);
+  if (rr < 0 || rr >= size || cc < 0 || cc >= size) return null;
+  return {r: rr, c: cc};
+}
+cv.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  const p = cellAt(e.clientX, e.clientY);
+  if (!p) return;
+  turn(p.r, p.c, e.button === 2 ? -1 : 1);
+}, {passive: false});
+cv.addEventListener('contextmenu', e => e.preventDefault());
+
+document.getElementById('btn-new').addEventListener('click', newGame);
+document.getElementById('ov-play').addEventListener('click', newGame);
+window.addEventListener('blur', () => { if (running) { elapsed = performance.now() - startedAt; running = false; } });
+window.addEventListener('focus', () => { if (!solved && grid.length) { startedAt = performance.now() - elapsed; running = true; } });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (running) { elapsed = performance.now() - startedAt; running = false; } }
+  else if (!solved && grid.length) { startedAt = performance.now() - elapsed; running = true; }
+});
+
+// ── kreslenie ───────────────────────────────────────────────────────────
+function draw() {
+  const px = size * CS;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, px, px);
+  const bg = ctx.createLinearGradient(0, 0, px, px);
+  bg.addColorStop(0, '#081319');
+  bg.addColorStop(1, '#050c10');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, px, px);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.045)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = 1; i < size; i++) { ctx.moveTo(i * CS, 0); ctx.lineTo(i * CS, px); ctx.moveTo(0, i * CS); ctx.lineTo(px, i * CS); }
+  ctx.stroke();
+
+  const pw = Math.max(4, CS * 0.19);
+  const flow = (tPrev / 1000 * (CS * 0.9)) % (CS * 0.6);
 
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
-      const x  = c * cs;
-      const y  = r * cs;
-      const cx_ = x + half;
-      const cy_ = y + half;
-      const open = grid[r][c].current;
-      const lit  = conn[r][c];
-      const col  = lit ? PIPE_COLOR : PIPE_COLOR_OFF;
-
-      // Cell background
-      cx.fillStyle = lit ? 'rgba(0,212,255,0.05)' : 'rgba(255,255,255,0.01)';
-      cx.fillRect(x+1, y+1, cs-2, cs-2);
-
-      // Draw pipe segments
-      cx.lineCap  = 'round';
-      cx.lineWidth = pw;
-
-      // Center dot
-      cx.fillStyle = col;
-      cx.shadowColor = lit ? PIPE_COLOR : 'transparent';
-      cx.shadowBlur  = lit ? 8 : 0;
-      cx.beginPath();
-      cx.arc(cx_, cy_, pw*0.6, 0, Math.PI*2);
-      cx.fill();
-      cx.shadowBlur = 0;
-
-      // Segments
-      cx.strokeStyle = col;
-      cx.shadowColor = lit ? PIPE_COLOR : 'transparent';
-      cx.shadowBlur  = lit ? 6 : 0;
-
-      if (open & N) { cx.beginPath(); cx.moveTo(cx_, cy_); cx.lineTo(cx_, y+2);    cx.stroke(); }
-      if (open & S) { cx.beginPath(); cx.moveTo(cx_, cy_); cx.lineTo(cx_, y+cs-2); cx.stroke(); }
-      if (open & E) { cx.beginPath(); cx.moveTo(cx_, cy_); cx.lineTo(x+cs-2, cy_); cx.stroke(); }
-      if (open & W) { cx.beginPath(); cx.moveTo(cx_, cy_); cx.lineTo(x+2, cy_);    cx.stroke(); }
-
-      cx.shadowBlur = 0;
+      const cell = grid[r][c];
+      const lit = conn[r][c];
+      const x = c * CS + CS / 2, y = r * CS + CS / 2;
+      if (lit) {
+        ctx.fillStyle = 'rgba(34,211,238,' + (0.05 + (winPulse > 0 ? 0.12 * Math.sin(winPulse * 9) : 0)) + ')';
+        ctx.fillRect(c * CS + 1, r * CS + 1, CS - 2, CS - 2);
+      }
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(cell.spin);
+      ctx.lineCap = 'round';
+      ctx.lineWidth = pw;
+      const col = lit ? '#22d3ee' : 'rgba(226,240,255,0.26)';
+      ctx.strokeStyle = col;
+      ctx.fillStyle = col;
+      if (lit) { ctx.shadowColor = 'rgba(34,211,238,0.85)'; ctx.shadowBlur = CS * 0.22; }
+      const reach = CS / 2;
+      ctx.beginPath();
+      for (const d of DIRS) {
+        if (!(cell.open & d)) continue;
+        const a = ANG[d];
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * reach, Math.sin(a) * reach);
+      }
+      ctx.stroke();
+      // stred: zaslepka alebo uzol
+      const ends = DIRS.filter(d => cell.open & d).length;
+      ctx.beginPath();
+      ctx.arc(0, 0, ends === 1 ? pw * 0.78 : pw * 0.52, 0, 6.2832);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      // tok vody v pripojenych rurkach
+      if (lit) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.lineWidth = Math.max(1.4, pw * 0.22);
+        ctx.setLineDash([CS * 0.1, CS * 0.5]);
+        ctx.lineDashOffset = -flow;
+        ctx.beginPath();
+        for (const d of DIRS) {
+          if (!(cell.open & d)) continue;
+          const a = ANG[d];
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * reach, Math.sin(a) * reach);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.restore();
     }
   }
+
+  // zdroj v lavom hornom rohu
+  ctx.save();
+  const sx = CS / 2, sy = CS / 2;
+  ctx.shadowColor = 'rgba(167,139,250,0.9)';
+  ctx.shadowBlur = CS * 0.3;
+  const g = ctx.createRadialGradient(sx, sy, 1, sx, sy, CS * 0.3);
+  g.addColorStop(0, '#f2eaff');
+  g.addColorStop(1, '#a78bfa');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(sx, sy, CS * 0.19, 0, 6.2832);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(167,139,250,0.6)';
+  ctx.lineWidth = Math.max(1.5, CS * 0.03);
+  ctx.beginPath();
+  ctx.arc(sx, sy, CS * 0.3 + Math.sin(tPrev / 320) * CS * 0.02, 0, 6.2832);
+  ctx.stroke();
+  ctx.restore();
+
+  for (const p of parts) {
+    ctx.globalAlpha = Math.max(0, p.life / p.max);
+    ctx.fillStyle = '#a7f3ff';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2.2, 0, 6.2832);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 }
 
-// ── INPUT ─────────────────────────────────────────────────────────────────
-function cellFromXY(clientX, clientY) {
-  const rect = C.getBoundingClientRect();
-  const scaleX = C.width  / rect.width;
-  const scaleY = C.height / rect.height;
-  const x = (clientX - rect.left) * scaleX;
-  const y = (clientY - rect.top)  * scaleY;
-  const c = Math.floor(x / cs);
-  const r = Math.floor(y / cs);
-  if (r < 0 || r >= size || c < 0 || c >= size) return null;
-  return {r, c};
+function frame(ts) {
+  requestAnimationFrame(frame);
+  const dt = tPrev ? Math.min(0.05, (ts - tPrev) / 1000) : 0;
+  tPrev = ts;
+  if (!grid.length) return;
+  // dobiehanie animacie otocenia
+  for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+    const s = grid[r][c].spin;
+    if (s !== 0) {
+      const step = Math.sign(s) * Math.min(Math.abs(s), dt * 11);
+      grid[r][c].spin = Math.abs(s) < 0.004 ? 0 : s - step;
+    }
+  }
+  if (winPulse > 0) winPulse = Math.max(0, winPulse - dt);
+  if (parts.length) {
+    for (const p of parts) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; }
+    parts = parts.filter(p => p.life > 0);
+  }
+  if (running) {
+    elapsed = performance.now() - startedAt;
+    document.getElementById('hud-time').textContent = fmt(elapsed);
+  }
+  draw();
 }
 
-function rotateCellCW(r, c) {
-  const cell = grid[r][c];
-  cell.current = rotateShape(cell.current, 1);
-  moves++;
-  document.getElementById('hud-moves').textContent = moves;
-  render();
-  if (isSolved()) setTimeout(winGame, 200);
+// ── obtiaznost ──────────────────────────────────────────────────────────
+function buildDiffs(el, other) {
+  el.textContent = '';
+  DIFFS.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.textContent = t(d.key) + ' ' + d.size + '×' + d.size;
+    b.className = i === diffIdx ? 'active' : '';
+    b.addEventListener('click', () => {
+      diffIdx = i;
+      syncDiffs();
+      newGame();
+    });
+    el.appendChild(b);
+  });
 }
-
-function handleClick(clientX, clientY) {
-  if (!running) return;
-  const cell = cellFromXY(clientX, clientY);
-  if (!cell) return;
-  rotateCellCW(cell.r, cell.c);
-}
-
-C.addEventListener('click',      e => handleClick(e.clientX, e.clientY));
-C.addEventListener('touchstart', e => { e.preventDefault(); handleClick(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
-
-// ── WIN ───────────────────────────────────────────────────────────────────
-function winGame() {
-  clearInterval(timerInt);
-  running = false;
-  const ov = document.getElementById('overlay');
-  ov.innerHTML = `
-    <div style="font-size:42px">🏆</div>
-    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px">${t('pipesWin')}</h2>
-    <div style="font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--c);letter-spacing:-2px">${timerVal}s</div>
-    <div style="font-size:12px;color:var(--muted)">${t('pipesMoves')}: ${moves}</div>
-    <div class="diff-row" id="diff-row2" style="margin-top:4px"></div>
-    <button class="play-btn" onclick="startGame()" style="margin-top:4px">${t('pipesAgain')}</button>`;
-  ov.style.display = 'flex';
-  const dr2 = document.getElementById('diff-row2');
-  DIFFS.forEach((d,i) => {
-    const btn = document.createElement('button');
-    btn.className = 'diff-btn' + (i===diffIdx?' active':'');
-    btn.textContent = `${t('diff'+d.key.charAt(0).toUpperCase()+d.key.slice(1))} (${d.size}×${d.size})`;
-    btn.onclick = () => { diffIdx=i; dr2.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i)); };
-    dr2.appendChild(btn);
+function syncDiffs() {
+  [document.getElementById('diff-row'), document.getElementById('diff-row2')].forEach(row => {
+    [...row.children].forEach((b, j) => b.className = j === diffIdx ? 'active' : '');
   });
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
-// Draw empty canvas behind overlay
+applyLang();
+buildDiffs(document.getElementById('diff-row'));
+buildDiffs(document.getElementById('diff-row2'));
 size = DIFFS[diffIdx].size;
-cs   = Math.floor(getMax() / size);
-C.width = C.height = size * cs;
-cx.fillStyle = '#0c0c10'; cx.fillRect(0,0,C.width,C.height);
-
-// ── RESIZE: rescale canvas to fit new viewport (e.g. after rotation) ──────
-function resizeCanvas() {
-  const sz = grid ? size : DIFFS[diffIdx].size;
-  cs = Math.floor(getMax() / sz);
-  C.width = C.height = sz * cs;
-  document.getElementById('canvas-wrap').style.width  = C.width  + 'px';
-  document.getElementById('canvas-wrap').style.height = C.height + 'px';
-  if (grid) render();
-  else { cx.fillStyle = '#0c0c10'; cx.fillRect(0,0,C.width,C.height); }
-}
-window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 250));
-
+grid = generate(size);
+conn = computeConn();
+layout();
+loadBest();
+showCard('menu');
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>

@@ -2,718 +2,386 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0a0a0a">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Pexeso">
-<title>Pexeso</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pexeso · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg: #0a0a0a;
-  --surface: #141414;
-  --surface2: #1e1e1e;
-  --border: rgba(255,255,255,0.08);
-  --border-hover: rgba(255,255,255,0.16);
-  --text: #f0ede8;
-  --text-muted: rgba(240,237,232,0.45);
-  --text-dim: rgba(240,237,232,0.22);
-  --accent: #e8d5a3;
-  --accent-dim: rgba(232,213,163,0.15);
-  --green-dim: rgba(74,222,128,0.12);
-  --radius: 14px;
-  --radius-sm: 8px;
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0806;--text:#f7f1e6;--muted:rgba(247,241,230,0.42);--dim:rgba(247,241,230,0.18);
+  --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.17);
+  --c:#e8d5a3;--c2:#8ab4ff;--ok:#4ade80;--gold:#ffd166;
+  --cs:76px;--cols:4;
 }
+html,body{background:var(--bg);min-height:100%;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+body{overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:
+  radial-gradient(700px 430px at 50% -12%,rgba(232,213,163,0.10),transparent 70%),
+  radial-gradient(520px 380px at 98% 106%,rgba(138,180,255,0.07),transparent 72%);}
+button{font-family:'DM Sans',sans-serif;touch-action:manipulation;}
 
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Sans', system-ui, sans-serif;
-  font-weight: 400;
-  -webkit-font-smoothing: antialiased;
-}
+#back-btn{position:fixed;top:14px;left:14px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(12,10,8,0.75);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:9px;left:9px;padding:6px 11px;font-size:11px;}}
 
-body {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 0 env(safe-area-inset-bottom);
-}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:52px 10px 14px;}
+.title{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.4px;background:linear-gradient(110deg,#fff 26%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
-.screen { display: none; width: 100%; max-width: 520px; padding: 2rem 1.25rem; flex-direction: column; min-height: auto; justify-content: center; }
-.screen.active { display: flex; }
+.pills{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.pill{display:flex;align-items:center;gap:7px;padding:4px 11px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--border);font-size:8.5px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);}
+.pill.pairs b{color:var(--ok);}
+.pill.best b{color:var(--c2);}
+.pill.best.record{border-color:rgba(138,180,255,.45);}
 
+#grid{display:grid;grid-template-columns:repeat(var(--cols),var(--cs));gap:calc(var(--cs) * 0.09);justify-content:center;}
+.card{width:var(--cs);height:var(--cs);perspective:900px;cursor:pointer;}
+.inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .42s cubic-bezier(.3,.9,.3,1);border-radius:calc(var(--cs) * 0.18);}
+.card.flip .inner,.card.done .inner{transform:rotateY(180deg);}
+.card.shake{animation:shk .4s ease;}
+@keyframes shk{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:calc(var(--cs) * 0.18);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);overflow:hidden;}
+.front{background:linear-gradient(158deg,#241d14,#15110c);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 6px 16px -8px rgba(0,0,0,.9);transition:border-color .18s,transform .18s;}
+.front::before{content:'';position:absolute;inset:0;opacity:.5;background:
+  repeating-linear-gradient(45deg,rgba(232,213,163,0.08) 0 1px,transparent 1px 7px),
+  repeating-linear-gradient(-45deg,rgba(232,213,163,0.06) 0 1px,transparent 1px 7px);}
+.front::after{content:'?';font-family:'Syne',sans-serif;font-weight:800;font-size:calc(var(--cs) * 0.36);color:rgba(232,213,163,0.4);text-shadow:0 0 14px rgba(232,213,163,0.25);}
+.card:hover:not(.flip):not(.done) .front{border-color:rgba(232,213,163,0.4);transform:translateY(-2px);}
+.back{transform:rotateY(180deg);background:linear-gradient(158deg,#fffaf0,#e6dcc6);font-size:calc(var(--cs) * 0.46);line-height:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
+.card.done .back{background:linear-gradient(158deg,#d8ffe6,#a9e9c2);border-color:rgba(74,222,128,0.55);box-shadow:0 0 20px -4px rgba(74,222,128,0.6),inset 0 1px 0 rgba(255,255,255,.7);}
+.card.done{animation:popm .42s ease;}
+@keyframes popm{0%{transform:scale(1);}45%{transform:scale(1.09);}100%{transform:scale(1);}}
 
-/* ── MENU ── */
-#screen-menu { align-items: center; justify-content: center; gap: 0; position: relative; z-index: 1; padding-top: 56px; }
+#status{font-size:11.5px;color:var(--muted);min-height:16px;text-align:center;}
+#status.good{color:var(--ok);}
+#status.bad{color:#ff9d9d;}
 
-.logo { font-family: 'DM Serif Display', serif; font-size: 56px; letter-spacing: -1px; color: var(--text); line-height: 1; margin-bottom: 6px; }
-.logo-sub { font-size: 12px; color: var(--text-muted); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 2.8rem; }
+.tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.tool{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:100px;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .16s;}
+.tool:hover{border-color:var(--border-h);color:var(--text);}
+.tool svg{width:14px;height:14px;}
+.tool.primary{border-color:rgba(232,213,163,0.4);color:#f6e7bf;background:rgba(232,213,163,0.12);}
 
-.sets-label { font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; align-self: flex-start; margin-bottom: 10px; }
-
-.sets-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 2rem; }
-
-.set-btn {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 4px 10px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  transition: border-color 0.18s, background 0.18s;
-  font-family: inherit;
-}
-.set-btn:hover { border-color: var(--border-hover); background: var(--surface2); }
-.set-btn.selected { border-color: var(--accent); background: var(--accent-dim); }
-.set-btn .set-icon { font-size: 26px; line-height: 1; }
-.set-btn .set-name { font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
-.set-btn.selected .set-name { color: var(--accent); }
-
-.btn-start {
-  width: 100%;
-  background: var(--accent);
-  color: #0a0a0a;
-  border: none;
-  border-radius: var(--radius);
-  padding: 15px;
-  font-size: 15px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  letter-spacing: 0.02em;
-  transition: opacity 0.15s, transform 0.12s;
-}
-.btn-start:hover { opacity: 0.88; transform: translateY(-1px); }
-.btn-start:active { transform: translateY(0); }
-
-/* ── GAME ── */
-#screen-game { gap: 0; position: relative; z-index: 1; align-items: stretch; justify-content: center; }
-
-.game-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-top: 0.25rem; }
-
-.game-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-
-.set-badge { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 400; margin-top: 2px; }
-
-.stats-row { display: flex; gap: 6px; }
-
-.stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
-.stat-pill strong { color: var(--text); font-weight: 500; }
-
-#grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-content: start; }
-
-/* ── CARDS ── */
-.card { aspect-ratio: 1; cursor: pointer; perspective: 800px; }
-.card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(.4,0,.2,1); border-radius: var(--radius); }
-.card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
-.card-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
-.card-front { background: var(--surface); transition: border-color 0.2s, background 0.2s; }
-.card:hover:not(.flipped):not(.matched) .card-front { border-color: var(--border-hover); background: var(--surface2); }
-.card-front::after { content: '?'; font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text-dim); }
-.card-back { background: var(--surface2); transform: rotateY(180deg); font-size: min(9vw, 2.8rem); }
-.card.matched .card-face.card-back { background: var(--green-dim); border-color: rgba(74,222,128,0.25); }
-
-#message { text-align: center; margin-top: 1rem; font-size: 13px; color: var(--text-muted); min-height: 18px; letter-spacing: 0.02em; }
-
-/* ── WIN ── */
-#win-banner { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
-.win-emoji { font-size: 60px; margin-bottom: 1.25rem; }
-.win-title { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--text); margin-bottom: 4px; }
-.win-subtitle { font-size: 14px; color: var(--text-muted); }
-.win-stats { display: flex; gap: 12px; justify-content: center; margin: 1.5rem 0 2rem; }
-.win-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 24px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.win-stat .num { font-size: 28px; font-weight: 300; color: var(--accent); line-height: 1; }
-.win-stat .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
-
-.btn-row { display: flex; gap: 10px; width: 100%; }
-.btn-secondary { flex: 1; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px; font-size: 14px; font-family: inherit; cursor: pointer; transition: border-color 0.15s; }
-.btn-secondary:hover { border-color: var(--border-hover); }
-.btn-primary { flex: 2; background: var(--accent); color: #0a0a0a; border: none; border-radius: var(--radius); padding: 13px; font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer; transition: opacity 0.15s; }
-.btn-primary:hover { opacity: 0.88; }
-
-.btn-back { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13px; font-family: inherit; padding: 5px 12px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
-.btn-back:hover { border-color: var(--border-hover); color: var(--text); }
-
-/* ── INSTALL BANNER ── */
-#install-banner { display: none; position: fixed; bottom: calc(1rem + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: calc(100% - 2.5rem); max-width: 460px; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: var(--radius); padding: 12px 14px; align-items: center; gap: 10px; z-index: 100; animation: slideUp 0.3s ease; }
-@keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
-#install-banner span { font-size: 13px; color: var(--text-muted); flex: 1; }
-.btn-install { background: var(--accent); color: #0a0a0a; border: none; border-radius: var(--radius-sm); padding: 7px 14px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; white-space: nowrap; }
-.btn-x { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 18px; padding: 2px 4px; line-height: 1; }
-
-/* ── PARTICLES ── */
-#particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
-.particle { position: absolute; opacity: 0; animation: float linear infinite; user-select: none; }
-@keyframes float { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.18; } 90% { opacity: 0.12; } 100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; } }
-
-#back-btn {
-  position: fixed; top: 20px; left: 20px; z-index: 999;
-  display: flex; align-items: center; gap: 7px;
-  background: rgba(15,15,15,0.85); backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.10); color: rgba(240,238,255,0.55);
-  padding: 7px 14px; border-radius: 100px; text-decoration: none;
-  font-size: 12px; font-weight: 500; transition: border-color .18s, color .18s;
-}
-#back-btn:hover { border-color: rgba(255,255,255,0.22); color: rgba(240,238,255,0.9); }
-
-@media (orientation: landscape) and (max-height: 560px) {
-  #back-btn { top: 10px; left: 10px; padding: 5px 12px; font-size: 11px; }
-  .screen { padding: 0.6rem 1rem; max-width: 640px; }
-  #screen-menu { padding-top: 40px; }
-  .logo { font-size: 32px; margin-bottom: 2px; }
-  .logo-sub { margin-bottom: 1rem; }
-  .sets-label { margin-bottom: 6px; }
-  .sets-grid { margin-bottom: 0.8rem; }
-  .set-btn { padding: 8px 4px 6px; }
-  .set-btn .set-icon { font-size: 18px; }
-  .btn-start { padding: 10px; }
-  .game-header { margin-bottom: 0.6rem; }
-  .game-title { font-size: 16px; }
-  #grid { grid-template-columns: repeat(8, 1fr); gap: 6px; }
-  .card-front::after { font-size: 18px; }
-  .card-back { font-size: min(5vw, 1.6rem); }
-  #message { margin-top: 0.4rem; font-size: 11px; min-height: 14px; }
-}
-
-/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
-html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-button,a,[onclick]{touch-action:manipulation;}
+#overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at center,rgba(12,10,8,0.82) 0%,rgba(4,3,2,0.95) 78%);backdrop-filter:blur(6px);}
+#overlay.hide{display:none;}
+.card-box{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:344px;padding:24px 22px 22px;border-radius:24px;background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid var(--border-h);box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);animation:pop .34s cubic-bezier(.2,1.4,.4,1);}
+@keyframes pop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+.card-box::before{content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;background:linear-gradient(120deg,rgba(232,213,163,.5),transparent 42%,transparent 58%,rgba(138,180,255,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.brand-emoji{font-size:32px;line-height:1;filter:drop-shadow(0 6px 16px rgba(232,213,163,.4));}
+.ttl{font-family:'Syne',sans-serif;font-weight:800;font-size:23px;letter-spacing:-.5px;text-align:center;background:linear-gradient(110deg,var(--c) 5%,#fff 52%,var(--c2) 95%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#result{display:none;flex-direction:column;align-items:center;gap:1px;}
+#result.show{display:flex;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-time{font-family:'Syne',sans-serif;font-weight:800;font-size:46px;line-height:1.05;letter-spacing:-2px;color:var(--c);text-shadow:0 0 30px rgba(232,213,163,.35);font-variant-numeric:tabular-nums;}
+#res-note{font-size:11.5px;font-weight:600;color:var(--muted);}
+#res-note.record{color:var(--gold);}
+#ov-stats{display:none;width:100%;grid-template-columns:1fr 1fr;gap:7px;}
+#ov-stats.show{display:grid;}
+.stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);}
+.stat i{font-size:8px;font-style:normal;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim);text-align:center;}
+.stat b{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--c2);white-space:nowrap;}
+.sets{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;width:100%;}
+.set{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;border-radius:14px;background:rgba(255,255,255,0.035);border:1px solid var(--border);cursor:pointer;transition:all .16s;}
+.set:hover{border-color:var(--border-h);}
+.set.sel{background:rgba(232,213,163,0.16);border-color:rgba(232,213,163,0.5);}
+.set .ic{font-size:19px;line-height:1;}
+.set .nm{font-size:8px;font-weight:600;color:var(--muted);text-align:center;line-height:1.15;}
+.set.sel .nm{color:var(--text);}
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:5px 13px;border-radius:100px;font-size:11.5px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(232,213,163,0.16);color:#f8ecca;box-shadow:inset 0 0 0 1px rgba(232,213,163,0.42);}
+.lbl{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.hint{font-size:11.5px;line-height:1.5;color:var(--muted);text-align:center;}
+.play-btn{margin-top:2px;width:100%;padding:13px 30px;border-radius:100px;border:1px solid rgba(232,213,163,.5);background:linear-gradient(180deg,rgba(232,213,163,.24),rgba(232,213,163,.1));color:#fbf0d4;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(232,213,163,.34),rgba(232,213,163,.16));color:#fff;box-shadow:0 0 24px -6px rgba(232,213,163,.5);}
+.play-btn:active{transform:translateY(1px);}
+@media (max-height:820px){#overlay{align-items:flex-start !important;overflow-y:auto !important;}}
+@media(max-height:700px){.title{display:none;}.page{padding-top:44px;gap:7px;}}
+@media(max-height:640px){.card-box{gap:7px;padding:16px 18px;}.brand-emoji{display:none;}.ttl{font-size:20px;}#res-time{font-size:36px;}}
 </style>
 </head>
 <body>
-
-
-<a id="back-btn" href="../../index.html">
+<a href="../../index.html" id="back-btn">
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   <span id="lbl-back"></span>
 </a>
-<div id="particles"></div>
-<div id="install-banner">
-  <span id="t-install-text"></span>
-  <button class="btn-install" id="btn-install"></button>
-  <button class="btn-x" id="install-close">✕</button>
-</div>
 
-<!-- MENU -->
-<div id="screen-menu" class="screen active">
-  <div class="logo">Pexeso</div>
-  <div class="logo-sub" id="t-tagline"></div>
-  <div class="sets-label" id="t-choose-set"></div>
-  <div class="sets-grid" id="sets-grid"></div>
-  <button class="btn-start" id="btn-start"></button>
-</div>
+<div class="page" id="page">
+  <div class="title" id="lbl-title"></div>
 
-<!-- GAME -->
-<div id="screen-game" class="screen">
-  <div class="game-header">
-    <div class="game-title">
-      <span id="game-set-icon"></span>
-      <span class="set-badge" id="game-set-name"></span>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <div class="stats-row">
-        <div class="stat-pill">⟳ <strong id="moves">0</strong></div>
-        <div class="stat-pill">⏱ <strong id="timer">0s</strong></div>
-      </div>
-      <button class="btn-back" id="t-menu-btn" onclick="goMenu()"></button>
-    </div>
+  <div class="pills">
+    <div class="pill pairs"><span id="lbl-pairs"></span><b id="hud-pairs">0</b></div>
+    <div class="pill"><span id="lbl-moves"></span><b id="hud-moves">0</b></div>
+    <div class="pill"><span id="lbl-time"></span><b id="hud-time">0:00</b></div>
+    <div class="pill best" id="best-pill"><span id="lbl-best"></span><b id="hud-best">—</b></div>
   </div>
+
   <div id="grid"></div>
-  <div id="message"></div>
-  <div id="win-banner">
-    <div class="win-emoji" id="win-emoji"></div>
-    <div class="win-title" id="t-win-title"></div>
-    <div class="win-subtitle" id="t-win-subtitle"></div>
-    <div class="win-stats">
-      <div class="win-stat"><div class="num" id="win-moves">0</div><div class="lbl" id="t-lbl-moves"></div></div>
-      <div class="win-stat"><div class="num" id="win-time">0s</div><div class="lbl" id="t-lbl-time"></div></div>
+  <div id="status"></div>
+
+  <div class="tools">
+    <button class="tool primary" id="btn-new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+      <span id="lbl-new"></span></button>
+    <button class="tool" id="btn-menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span id="lbl-sets"></span></button>
+  </div>
+</div>
+
+<div id="overlay">
+  <div class="card-box">
+    <div id="brand"><div class="brand-emoji" id="brand-emoji">🃏</div></div>
+    <div class="ttl" id="ov-title"></div>
+    <div id="result">
+      <div id="res-lbl"></div>
+      <div id="res-time">0:00</div>
+      <div id="res-note"></div>
     </div>
-    <div class="btn-row">
-      <button class="btn-secondary" id="t-change-set" onclick="goMenu()"></button>
-      <button class="btn-primary" id="t-play-again" onclick="startGame()"></button>
+    <div id="ov-stats">
+      <div class="stat"><i id="lbl-s-moves"></i><b id="st-moves">0</b></div>
+      <div class="stat"><i id="lbl-s-best"></i><b id="st-best">—</b></div>
     </div>
+    <div class="lbl" id="lbl-choose"></div>
+    <div class="sets" id="set-grid"></div>
+    <div class="lbl" id="lbl-diff"></div>
+    <div class="seg" id="diff-row"></div>
+    <div class="hint" id="ov-hint"></div>
+    <button class="play-btn" id="ov-play"></button>
   </div>
 </div>
 
 <script>
-// ── TRANSLATIONS ──
-const I18N = {
-  en: {
-    back:          'Back',
-    tagline:       'Find the Pairs',
-    chooseSet:     'Choose a card set',
-    startBtn:      'Start Game',
-    menuBtn:       'Menu',
-    msgFlip:       'Flip two cards to find a match!',
-    msgMatch:      '✓ Match! Keep going…',
-    msgNoMatch:    'No match…',
-    winTitle:      'Well done!',
-    winSubtitle:   'All pairs found',
-    lblMoves:      'Moves',
-    lblTime:       'Time',
-    changeSet:     'Change set',
-    playAgain:     'Play again',
-    installText:   '📲 Install Pexeso',
-    installBtn:    'Install',
-    sets: {
-      animals:   'Animals',
-      trees:     'Trees',
-      flowers:   'Flowers',
-      space:     'Space',
-      buildings: 'Buildings',
-    }
-  },
-  sk: {
-    back:          'Späť',
-    tagline:       'Hľadaj páry',
-    chooseSet:     'Vyber sadu kartičiek',
-    startBtn:      'Začať hru',
-    menuBtn:       'Menu',
-    msgFlip:       'Otočte dve kartičky a nájdite zhodu!',
-    msgMatch:      '✓ Zhoda! Pokračujte…',
-    msgNoMatch:    'Žiadna zhoda…',
-    winTitle:      'Výborne!',
-    winSubtitle:   'Všetky páry nájdené',
-    lblMoves:      'Ťahy',
-    lblTime:       'Čas',
-    changeSet:     'Zmeniť sadu',
-    playAgain:     'Hrať znova',
-    installText:   '📲 Nainštalovať Pexeso',
-    installBtn:    'Inštalovať',
-    sets: {
-      animals:   'Zvieratká',
-      trees:     'Stromy',
-      flowers:   'Kvety',
-      space:     'Vesmír',
-      buildings: 'Budovy',
-    }
-  },
-  es: {
-    back:          'Volver',
-    tagline:       'Encuentra las parejas',
-    chooseSet:     'Elige un mazo de cartas',
-    startBtn:      'Iniciar juego',
-    menuBtn:       'Menú',
-    msgFlip:       '¡Voltea dos cartas para encontrar la pareja!',
-    msgMatch:      '✓ ¡Pareja! Sigue…',
-    msgNoMatch:    'Sin pareja…',
-    winTitle:      '¡Bien hecho!',
-    winSubtitle:   'Todos los pares encontrados',
-    lblMoves:      'Movimientos',
-    lblTime:       'Tiempo',
-    changeSet:     'Cambiar mazo',
-    playAgain:     'Jugar de nuevo',
-    installText:   '📲 Instalar Pexeso',
-    installBtn:    'Instalar',
-    sets: { animals:'Animales', trees:'Árboles', flowers:'Flores', space:'Espacio', buildings:'Edificios' }
-  },
-  pt: {
-    back:          'Voltar',
-    tagline:       'Encontra os pares',
-    chooseSet:     'Escolha um baralho',
-    startBtn:      'Iniciar jogo',
-    menuBtn:       'Menu',
-    msgFlip:       'Vire duas cartas para encontrar o par!',
-    msgMatch:      '✓ Par! Continue…',
-    msgNoMatch:    'Sem par…',
-    winTitle:      'Muito bem!',
-    winSubtitle:   'Todos os pares encontrados',
-    lblMoves:      'Jogadas',
-    lblTime:       'Tempo',
-    changeSet:     'Mudar baralho',
-    playAgain:     'Jogar novamente',
-    installText:   '📲 Instalar Pexeso',
-    installBtn:    'Instalar',
-    sets: { animals:'Animais', trees:'Árvores', flowers:'Flores', space:'Espaço', buildings:'Edifícios' }
-  },
-  de: {
-    back:          'Zurück',
-    tagline:       'Finde die Paare',
-    chooseSet:     'Kartensatz wählen',
-    startBtn:      'Spiel starten',
-    menuBtn:       'Menü',
-    msgFlip:       'Drehe zwei Karten um, um ein Paar zu finden!',
-    msgMatch:      '✓ Paar! Weiter so…',
-    msgNoMatch:    'Kein Paar…',
-    winTitle:      'Gut gemacht!',
-    winSubtitle:   'Alle Paare gefunden',
-    lblMoves:      'Züge',
-    lblTime:       'Zeit',
-    changeSet:     'Set wechseln',
-    playAgain:     'Nochmal spielen',
-    installText:   '📲 Pexeso installieren',
-    installBtn:    'Installieren',
-    sets: { animals:'Tiere', trees:'Bäume', flowers:'Blumen', space:'Weltraum', buildings:'Gebäude' }
-  },
-  fr: {
-    back:          'Retour',
-    tagline:       'Trouve les paires',
-    chooseSet:     'Choisir un jeu de cartes',
-    startBtn:      'Démarrer',
-    menuBtn:       'Menu',
-    msgFlip:       'Retourne deux cartes pour trouver une paire !',
-    msgMatch:      '✓ Paire ! Continue…',
-    msgNoMatch:    'Pas de paire…',
-    winTitle:      'Bravo !',
-    winSubtitle:   'Toutes les paires trouvées',
-    lblMoves:      'Coups',
-    lblTime:       'Temps',
-    changeSet:     'Changer de jeu',
-    playAgain:     'Rejouer',
-    installText:   '📲 Installer Pexeso',
-    installBtn:    'Installer',
-    sets: { animals:'Animaux', trees:'Arbres', flowers:'Fleurs', space:'Espace', buildings:'Bâtiments' }
-  },
-  it: {
-    back:          'Indietro',
-    tagline:       'Trova le coppie',
-    chooseSet:     'Scegli un mazzo di carte',
-    startBtn:      'Inizia gioco',
-    menuBtn:       'Menu',
-    msgFlip:       'Gira due carte per trovare la coppia!',
-    msgMatch:      '✓ Coppia! Continua…',
-    msgNoMatch:    'Nessuna coppia…',
-    winTitle:      'Bravo!',
-    winSubtitle:   'Tutte le coppie trovate',
-    lblMoves:      'Mosse',
-    lblTime:       'Tempo',
-    changeSet:     'Cambia mazzo',
-    playAgain:     'Gioca ancora',
-    installText:   '📲 Installa Pexeso',
-    installBtn:    'Installa',
-    sets: { animals:'Animali', trees:'Alberi', flowers:'Fiori', space:'Spazio', buildings:'Edifici' }
-  },
-  ru: {
-    back:          'Назад',
-    tagline:       'Найди пары',
-    chooseSet:     'Выберите набор карточек',
-    startBtn:      'Начать игру',
-    menuBtn:       'Меню',
-    msgFlip:       'Переверните две карточки, чтобы найти пару!',
-    msgMatch:      '✓ Пара! Продолжай…',
-    msgNoMatch:    'Не совпало…',
-    winTitle:      'Отлично!',
-    winSubtitle:   'Все пары найдены',
-    lblMoves:      'Ходы',
-    lblTime:       'Время',
-    changeSet:     'Сменить набор',
-    playAgain:     'Играть снова',
-    installText:   '📲 Установить Pexeso',
-    installBtn:    'Установить',
-    sets: { animals:'Животные', trees:'Деревья', flowers:'Цветы', space:'Космос', buildings:'Здания' }
-  },
-  tr: {
-    back:          'Geri',
-    tagline:       'Eşleri bul',
-    chooseSet:     'Bir kart seti seç',
-    startBtn:      'Oyunu başlat',
-    menuBtn:       'Menü',
-    msgFlip:       'Eşleşme bulmak için iki kart çevir!',
-    msgMatch:      '✓ Eşleşme! Devam et…',
-    msgNoMatch:    'Eşleşme yok…',
-    winTitle:      'Aferin!',
-    winSubtitle:   'Tüm çiftler bulundu',
-    lblMoves:      'Hamle',
-    lblTime:       'Süre',
-    changeSet:     'Set değiştir',
-    playAgain:     'Tekrar oyna',
-    installText:   '📲 Pexeso\u2019yu yükle',
-    installBtn:    'Yükle',
-    sets: { animals:'Hayvanlar', trees:'Ağaçlar', flowers:'Çiçekler', space:'Uzay', buildings:'Binalar' }
-  },
-  ja: {
-    back:          '戻る',
-    tagline:       'ペアをさがそう',
-    chooseSet:     'カードセットを選んで',
-    startBtn:      'ゲームスタート',
-    menuBtn:       'メニュー',
-    msgFlip:       '2枚のカードをめくってペアを見つけよう！',
-    msgMatch:      '✓ ペア！続けて…',
-    msgNoMatch:    '不一致…',
-    winTitle:      'よくできました！',
-    winSubtitle:   'すべてのペアを発見',
-    lblMoves:      '手数',
-    lblTime:       '時間',
-    changeSet:     'セットを変更',
-    playAgain:     'もう一度',
-    installText:   '📲 Pexesoをインストール',
-    installBtn:    'インストール',
-    sets: { animals:'動物', trees:'木', flowers:'花', space:'宇宙', buildings:'建物' }
-  },
-  ko: {
-    back:          '뒤로',
-    tagline:       '짝을 찾아라',
-    chooseSet:     '카드 세트를 선택하세요',
-    startBtn:      '게임 시작',
-    menuBtn:       '메뉴',
-    msgFlip:       '두 장의 카드를 뒤집어 짝을 찾으세요!',
-    msgMatch:      '✓ 짝! 계속하세요…',
-    msgNoMatch:    '짝 없음…',
-    winTitle:      '잘했어요!',
-    winSubtitle:   '모든 짝을 찾았습니다',
-    lblMoves:      '이동',
-    lblTime:       '시간',
-    changeSet:     '세트 변경',
-    playAgain:     '다시 플레이',
-    installText:   '📲 Pexeso 설치',
-    installBtn:    '설치',
-    sets: { animals:'동물', trees:'나무', flowers:'꽃', space:'우주', buildings:'건물' }
-  },
-  zh: {
-    back:          '返回',
-    tagline:       '找出配对',
-    chooseSet:     '选择一套卡片',
-    startBtn:      '开始游戏',
-    menuBtn:       '菜单',
-    msgFlip:       '翻开两张卡片找到匹配的一对！',
-    msgMatch:      '✓ 匹配！继续…',
-    msgNoMatch:    '不匹配…',
-    winTitle:      '干得好！',
-    winSubtitle:   '所有对子已找到',
-    lblMoves:      '步数',
-    lblTime:       '时间',
-    changeSet:     '更换套装',
-    playAgain:     '再来一局',
-    installText:   '📲 安装 Pexeso',
-    installBtn:    '安装',
-    sets: { animals:'动物', trees:'树木', flowers:'花卉', space:'太空', buildings:'建筑' }
-  },
-};
+// ── sady symbolov (12 na sadu, hra pouzije prvych N) ────────────────────
+const SETS = [
+  {id:'animals',   key:'pexSetAnimals',   icon:'🐾', em:['🐶','🐱','🦊','🐻','🐼','🦁','🐯','🐨','🐸','🐵','🐷','🐔']},
+  {id:'trees',     key:'pexSetTrees',     icon:'🌲', em:['🌲','🌴','🌳','🌵','🎋','🎍','🍀','🌿','🍁','🍂','🌱','🪴']},
+  {id:'flowers',   key:'pexSetFlowers',   icon:'🌸', em:['🌸','🌺','🌻','🌹','🌷','💐','🪷','🌼','🌾','🍄','🥀','🏵️']},
+  {id:'space',     key:'pexSetSpace',     icon:'🚀', em:['🚀','🪐','⭐','🌙','☄️','🌍','🔭','👾','🛰️','🌌','✨','🌞']},
+  {id:'buildings', key:'pexSetBuildings', icon:'🏛️', em:['🏛️','🗼','🏰','⛩️','🕌','🗽','🏯','🕍','🏟️','🏗️','🏠','⛲']},
+];
+const DIFFS = [{pairs:6, key:'diffEasy'}, {pairs:8, key:'diffMedium'}, {pairs:12, key:'diffHard'}];
+let setIdx = 0, diffIdx = 1;
+const pairsN = () => DIFFS[diffIdx].pairs;
+const bestKey = () => 'pexeso_best_' + pairsN();
 
-// lang is managed by GamePad i18n.js — fallback to 'en' if not supported
-let lang = I18N[getLang()] ? getLang() : 'en';
+let deck = [], flipped = [], done = 0, moves = 0, lock = false;
+let elapsed = 0, startedAt = 0, running = false, started = false, solved = false;
+let cards = [];
 
-function t(key) { return (I18N[lang] || I18N['en'])[key] || key; }
-function tSet(id) { return (I18N[lang] || I18N['en']).sets[id] || id; }
+const gridEl = document.getElementById('grid');
+const statusEl = document.getElementById('status');
 
 function applyLang() {
-  const backEl = document.getElementById('lbl-back');
-  if (backEl) backEl.textContent = t('back') || '← Back';
-  document.documentElement.lang = lang;
-  document.getElementById('t-tagline').textContent       = t('tagline');
-  document.getElementById('t-choose-set').textContent    = t('chooseSet');
-  document.getElementById('btn-start').textContent       = t('startBtn');
-  document.getElementById('t-menu-btn').textContent      = t('menuBtn');
-  document.getElementById('t-win-title').textContent     = t('winTitle');
-  document.getElementById('t-win-subtitle').textContent  = t('winSubtitle');
-  document.getElementById('t-lbl-moves').textContent     = t('lblMoves');
-  document.getElementById('t-lbl-time').textContent      = t('lblTime');
-  document.getElementById('t-change-set').textContent    = t('changeSet');
-  document.getElementById('t-play-again').textContent    = t('playAgain');
-  document.getElementById('t-install-text').textContent  = t('installText');
-  document.getElementById('btn-install').textContent     = t('installBtn');
-
-  // update active message if game is running
-  const msg = document.getElementById('message');
-  if (msg.style.display !== 'none' && matched === 0 && moves === 0) {
-    msg.textContent = t('msgFlip');
-  }
-
-  // re-render set names
-  document.querySelectorAll('.set-btn').forEach(btn => {
-    const nameEl = btn.querySelector('.set-name');
-    if (nameEl) nameEl.textContent = tSet(btn.dataset.setId);
-  });
-
-  // update game set badge
-  if (currentSet) {
-    document.getElementById('game-set-name').textContent = tSet(currentSet.id);
-  }
+  document.getElementById('lbl-back').textContent   = t('back');
+  document.getElementById('lbl-title').textContent  = 'Pexeso';
+  document.getElementById('lbl-pairs').textContent  = t('pexPairs');
+  document.getElementById('lbl-moves').textContent  = t('uiMoves');
+  document.getElementById('lbl-time').textContent   = t('uiTime');
+  document.getElementById('lbl-best').textContent   = t('uiBest');
+  document.getElementById('lbl-new').textContent    = t('uiNewGame');
+  document.getElementById('lbl-sets').textContent   = t('pexChoose');
+  document.getElementById('lbl-choose').textContent = t('pexChoose');
+  document.getElementById('lbl-diff').textContent   = t('uiDifficulty');
+  document.getElementById('lbl-s-moves').textContent = t('uiMoves');
+  document.getElementById('lbl-s-best').textContent  = t('uiBest');
+  document.getElementById('res-lbl').textContent    = t('uiTime');
 }
+const fmt = ms => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+function setStatus(msg, cls) { statusEl.textContent = msg; statusEl.className = cls || ''; }
 
-// ── SETS ──
-const SETS = [
-  { id:'animals',   icon:'🐾', emojis:['🐶','🐱','🦊','🐻','🐼','🦁','🐯','🐨'] },
-  { id:'trees',     icon:'🌲', emojis:['🌲','🌴','🌳','🌵','🎋','🎍','🍀','🌿'] },
-  { id:'flowers',   icon:'🌸', emojis:['🌸','🌺','🌻','🌹','🌷','💐','🪷','🌼'] },
-  { id:'space',     icon:'🚀', emojis:['🚀','🪐','⭐','🌙','☄️','🌍','🔭','👾'] },
-  { id:'buildings', icon:'🏛️', emojis:['🏛️','🗼','🏰','⛩️','🕌','🗽','🏯','🕍'] },
-];
-
-let selectedSetId = 'animals';
-let currentSet = SETS[0];
-let flipped = [], matched = 0, moves = 0, lock = false;
-let timerInterval, seconds = 0, started = false;
-let particleInterval = null;
-
-
-// ── MENU ──
-function renderMenu() {
-  const grid = document.getElementById('sets-grid');
-  grid.innerHTML = '';
-  SETS.forEach(set => {
-    const btn = document.createElement('button');
-    btn.className = 'set-btn' + (set.id === selectedSetId ? ' selected' : '');
-    btn.dataset.setId = set.id;
-    btn.innerHTML = `<span class="set-icon">${set.icon}</span><span class="set-name">${tSet(set.id)}</span>`;
-    btn.onclick = () => {
-      selectedSetId = set.id;
-      document.querySelectorAll('.set-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      spawnParticles(set.emojis);
-    };
-    grid.appendChild(btn);
-  });
+// ── rozlozenie mriezky ──────────────────────────────────────────────────
+function gridShape() {
+  const n = pairsN() * 2;
+  const vw = window.innerWidth || 360, vh = window.innerHeight || 640;
+  const wide = vw > vh * 1.15;
+  if (n === 12) return wide ? {c: 6, r: 2} : {c: 4, r: 3};
+  if (n === 16) return wide ? {c: 8, r: 2} : {c: 4, r: 4};
+  return wide ? {c: 8, r: 3} : {c: 4, r: 6};
 }
-
-document.getElementById('btn-start').onclick = () => {
-  currentSet = SETS.find(s => s.id === selectedSetId);
-  showScreen('game');
-  startGame();
-};
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
+function layout() {
+  const {c, r} = gridShape();
+  const vw = window.innerWidth || 360, vh = window.innerHeight || 640;
+  const page = document.getElementById('page');
+  let others = 0, k = 0;
+  for (const el of page.children) { k++; if (el !== gridEl) others += el.offsetHeight; }
+  const cs = getComputedStyle(page);
+  const gap = parseFloat(cs.rowGap) || 10;
+  const pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const chrome = others + gap * Math.max(0, k - 1) + pad + 18;
+  // velkost karty: 9 % medzera medzi kartami
+  const byW = (Math.min(vw, 760) - 26) / (c + (c - 1) * 0.09);
+  const byH = Math.max(120, vh - chrome) / (r + (r - 1) * 0.09);
+  const size = Math.max(44, Math.min(byW, byH, 108));
+  document.documentElement.style.setProperty('--cs', Math.floor(size) + 'px');
+  document.documentElement.style.setProperty('--cols', c);
 }
+window.addEventListener('resize', layout);
+window.addEventListener('orientationchange', () => setTimeout(layout, 250));
 
-function goMenu() {
-  clearInterval(timerInterval);
-  showScreen('menu');
-  spawnParticles(currentSet.emojis);
+// ── hra ─────────────────────────────────────────────────────────────────
+function loadBest() {
+  const b = +(localStorage.getItem(bestKey()) || 0);
+  document.getElementById('hud-best').textContent = b ? fmt(b) : '—';
+  document.getElementById('best-pill').classList.remove('record');
+  return b;
 }
-
-// ── PARTICLES ──
-function spawnParticles(emojis) {
-  const container = document.getElementById('particles');
-  container.innerHTML = '';
-  if (particleInterval) clearInterval(particleInterval);
-  function spawn() {
-    const el = document.createElement('span');
-    el.className = 'particle';
-    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-    el.style.left = Math.random() * 100 + 'vw';
-    el.style.fontSize = (14 + Math.random() * 18) + 'px';
-    const dur = 7 + Math.random() * 8;
-    el.style.animationDuration = dur + 's';
-    el.style.animationDelay = (Math.random() * -dur) + 's';
-    container.appendChild(el);
-    if (container.children.length > 24) container.removeChild(container.firstChild);
-  }
-  for (let i = 0; i < 16; i++) spawn();
-  particleInterval = setInterval(spawn, 1000);
+function shuffle(a) {
+  const x = [...a];
+  for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t2 = x[i]; x[i] = x[j]; x[j] = t2; }
+  return x;
 }
-
-// ── GAME ──
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function startGame() {
-  clearInterval(timerInterval);
-  flipped = []; matched = 0; moves = 0; lock = false; seconds = 0; started = false;
-  document.getElementById('moves').textContent = 0;
-  document.getElementById('timer').textContent = '0s';
-  document.getElementById('message').textContent = t('msgFlip');
-  document.getElementById('message').style.display = 'block';
-  document.getElementById('win-banner').style.display = 'none';
-  document.getElementById('grid').style.display = 'grid';
-  document.getElementById('game-set-icon').textContent = currentSet.icon;
-  document.getElementById('game-set-name').textContent = tSet(currentSet.id);
-  document.getElementById('win-emoji').textContent = currentSet.icon;
-
-  const deck = shuffle([...currentSet.emojis, ...currentSet.emojis]);
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  deck.forEach(emoji => {
+function newGame() {
+  const set = SETS[setIdx];
+  const faces = set.em.slice(0, pairsN());
+  deck = shuffle([...faces, ...faces]);
+  flipped = []; done = 0; moves = 0; lock = false;
+  elapsed = 0; started = false; running = false; solved = false;
+  document.getElementById('hud-pairs').textContent = '0/' + pairsN();
+  document.getElementById('hud-moves').textContent = '0';
+  document.getElementById('hud-time').textContent = '0:00';
+  document.getElementById('brand-emoji').textContent = set.icon;
+  document.getElementById('overlay').classList.add('hide');
+  loadBest();
+  gridEl.textContent = '';
+  cards = [];
+  deck.forEach((em, i) => {
     const card = document.createElement('div');
     card.className = 'card';
-    card.dataset.emoji = emoji;
-    card.innerHTML = `<div class="card-inner"><div class="card-face card-front"></div><div class="card-face card-back">${emoji}</div></div>`;
-    card.addEventListener('click', () => flipCard(card));
-    grid.appendChild(card);
+    const inner = document.createElement('div');
+    inner.className = 'inner';
+    const front = document.createElement('div');
+    front.className = 'face front';
+    const back = document.createElement('div');
+    back.className = 'face back';
+    back.textContent = em;
+    inner.appendChild(front); inner.appendChild(back);
+    card.appendChild(inner);
+    card.addEventListener('pointerdown', e => { e.preventDefault(); flip(i); }, {passive: false});
+    gridEl.appendChild(card);
+    cards.push({el: card, em, done: false});
   });
+  setStatus(t('pexFlip'), '');
+  layout();
 }
-
-function startTimer() {
-  timerInterval = setInterval(() => {
-    seconds++;
-    document.getElementById('timer').textContent = seconds + 's';
-  }, 1000);
-}
-
-function flipCard(card) {
-  if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
-  if (!started) { started = true; startTimer(); }
-  card.classList.add('flipped');
-  flipped.push(card);
-  if (flipped.length === 2) {
-    moves++;
-    document.getElementById('moves').textContent = moves;
+function flip(i) {
+  if (lock || solved) return;
+  const c = cards[i];
+  if (c.done || c.el.classList.contains('flip')) return;
+  if (!started) { started = true; running = true; startedAt = performance.now(); }
+  c.el.classList.add('flip');
+  flipped.push(i);
+  if (flipped.length < 2) return;
+  moves++;
+  document.getElementById('hud-moves').textContent = moves;
+  const [a, b] = flipped;
+  if (cards[a].em === cards[b].em) {
+    flipped = [];
+    cards[a].done = true; cards[b].done = true;
+    [a, b].forEach(k => { cards[k].el.classList.remove('flip'); cards[k].el.classList.add('done'); });
+    done++;
+    document.getElementById('hud-pairs').textContent = done + '/' + pairsN();
+    setStatus(done < pairsN() ? t('pexMatch') : '', 'good');
+    if (done === pairsN()) win();
+  } else {
     lock = true;
-    const [a, b] = flipped;
-    if (a.dataset.emoji === b.dataset.emoji) {
-      a.classList.add('matched'); b.classList.add('matched');
-      matched++;
+    setStatus(t('pexNoMatch'), 'bad');
+    [a, b].forEach(k => cards[k].el.classList.add('shake'));
+    setTimeout(() => {
+      [a, b].forEach(k => { cards[k].el.classList.remove('flip', 'shake'); });
       flipped = []; lock = false;
-      document.getElementById('message').textContent = matched < 8 ? t('msgMatch') : '';
-      if (matched === 8) endGame();
-    } else {
-      document.getElementById('message').textContent = t('msgNoMatch');
-      setTimeout(() => {
-        a.classList.remove('flipped'); b.classList.remove('flipped');
-        flipped = []; lock = false;
-        document.getElementById('message').textContent = t('msgFlip');
-      }, 950);
+      if (!solved) setStatus(t('pexFlip'), '');
+    }, 850);
+  }
+}
+function win() {
+  solved = true; running = false;
+  elapsed = performance.now() - startedAt;
+  const prev = +(localStorage.getItem(bestKey()) || 0);
+  const rec = !prev || elapsed < prev;
+  if (rec) { try { localStorage.setItem(bestKey(), Math.round(elapsed)); } catch (e) {} }
+  const bestMs = rec ? elapsed : prev;
+  document.getElementById('hud-best').textContent = fmt(bestMs);
+  document.getElementById('best-pill').classList.toggle('record', rec);
+  setStatus('', '');
+  setTimeout(() => {
+    document.getElementById('res-time').textContent = fmt(elapsed);
+    const note = document.getElementById('res-note');
+    note.textContent = rec ? t('uiNewRecord') : t('uiBest') + ' ' + fmt(prev);
+    note.classList.toggle('record', rec);
+    document.getElementById('st-moves').textContent = moves;
+    document.getElementById('st-best').textContent = fmt(bestMs);
+    showCard('win');
+  }, 900);
+}
+function showCard(kind) {
+  document.getElementById('ov-title').textContent = kind === 'win' ? t('pexWin') : 'Pexeso';
+  document.getElementById('brand').style.display = kind === 'win' ? 'none' : '';
+  document.getElementById('result').classList.toggle('show', kind === 'win');
+  document.getElementById('ov-stats').classList.toggle('show', kind === 'win');
+  document.getElementById('ov-hint').textContent = t('pexTagline');
+  document.getElementById('ov-play').textContent = kind === 'win' ? t('uiPlayAgain') : t('uiStart');
+  document.getElementById('overlay').classList.remove('hide');
+}
+
+document.getElementById('btn-new').addEventListener('click', newGame);
+document.getElementById('btn-menu').addEventListener('click', () => { running = false; showCard('menu'); });
+document.getElementById('ov-play').addEventListener('click', newGame);
+window.addEventListener('blur', () => { if (running) { elapsed = performance.now() - startedAt; running = false; } });
+window.addEventListener('focus', () => { if (started && !solved) { startedAt = performance.now() - elapsed; running = true; } });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (running) { elapsed = performance.now() - startedAt; running = false; } }
+  else if (started && !solved) { startedAt = performance.now() - elapsed; running = true; }
+});
+
+// ── volba sady a obtiaznosti ────────────────────────────────────────────
+const setGrid = document.getElementById('set-grid');
+SETS.forEach((s, i) => {
+  const el = document.createElement('div');
+  el.className = 'set' + (i === setIdx ? ' sel' : '');
+  const ic = document.createElement('div'); ic.className = 'ic'; ic.textContent = s.icon;
+  const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = t(s.key);
+  el.appendChild(ic); el.appendChild(nm);
+  el.addEventListener('click', () => {
+    setIdx = i;
+    [...setGrid.children].forEach((c, j) => c.classList.toggle('sel', j === i));
+    document.getElementById('brand-emoji').textContent = SETS[i].icon;
+  });
+  setGrid.appendChild(el);
+});
+const diffRow = document.getElementById('diff-row');
+DIFFS.forEach((d, i) => {
+  const b = document.createElement('button');
+  b.textContent = t(d.key) + ' ' + d.pairs;
+  b.className = i === diffIdx ? 'active' : '';
+  b.addEventListener('click', () => {
+    diffIdx = i;
+    [...diffRow.children].forEach((c, j) => c.className = j === i ? 'active' : '');
+    loadBest();
+    if (solved) {
+      const prev = +(localStorage.getItem(bestKey()) || 0);
+      document.getElementById('res-note').textContent = prev ? t('uiBest') + ' ' + fmt(prev) : '';
+      document.getElementById('st-best').textContent = prev ? fmt(prev) : '—';
     }
+  });
+  diffRow.appendChild(b);
+});
+
+function tick(ts) {
+  requestAnimationFrame(tick);
+  if (running && !solved) {
+    elapsed = performance.now() - startedAt;
+    document.getElementById('hud-time').textContent = fmt(elapsed);
   }
 }
 
-function endGame() {
-  clearInterval(timerInterval);
-  document.getElementById('grid').style.display = 'none';
-  document.getElementById('message').style.display = 'none';
-  document.getElementById('win-moves').textContent = moves;
-  document.getElementById('win-time').textContent = seconds + 's';
-  document.getElementById('win-banner').style.display = 'flex';
-}
-
-// ── PWA ──
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredPrompt = e;
-  document.getElementById('install-banner').style.display = 'flex';
-});
-document.getElementById('btn-install').onclick = async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt(); await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  document.getElementById('install-banner').style.display = 'none';
-};
-document.getElementById('install-close').onclick = () => {
-  document.getElementById('install-banner').style.display = 'none';
-};
-window.addEventListener('appinstalled', () => {
-  document.getElementById('install-banner').style.display = 'none';
-});
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(console.error);
-}
-
-// ── INIT ──
 applyLang();
-renderMenu();
-spawnParticles(SETS[0].emojis);
+newGame();
+running = false;
+showCard('menu');
+requestAnimationFrame(tick);
 </script>
 </body>
 </html>

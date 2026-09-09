@@ -28,7 +28,7 @@ button,a,[onclick]{touch-action:manipulation;}
 .pill.best b{color:var(--gold);}
 .pill.best.record{border-color:rgba(255,209,102,.45);}
 .pill b.bump{transform:scale(1.28);}
-@media(max-width:600px){#hud{left:auto;right:56px;transform:none;gap:6px;}.pill span{display:none;}.pill{padding:4px 10px;}}
+@media(max-width:600px){#hud{left:auto;right:56px;transform:none;gap:6px;}.pill span{display:none;}.pill{padding:4px 10px;}.pill b{font-size:15px;}.pill.best{display:none;}}
 
 #pause-btn{position:fixed;top:14px;right:14px;z-index:60;display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(24,10,30,0.7);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);border-radius:50%;cursor:pointer;}
 #pause-btn.show{display:flex;}
@@ -62,7 +62,7 @@ body.touch #jump-btn{display:flex;}
 .play-btn:hover{background:linear-gradient(180deg,rgba(255,159,67,.34),rgba(255,159,67,.16));color:#fff;box-shadow:0 0 24px -6px rgba(255,159,67,.5);}
 .play-btn:active{transform:translateY(1px);}
 @media(max-height:640px){.card{gap:8px;padding:18px 20px;}.emoji{display:none;}.title{font-size:20px;}#res-score{font-size:40px;}}
-@media (max-height:820px){#overlay{justify-content:flex-start !important;overflow-y:auto !important;}}
+@media (max-height:820px){#overlay{align-items:flex-start !important;overflow-y:auto !important;}}
 </style>
 </head>
 <body>

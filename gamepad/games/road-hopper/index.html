@@ -34,7 +34,7 @@ button,a,[onclick]{touch-action:manipulation;}
 .life{width:8px;height:8px;border-radius:2px;background:var(--danger);box-shadow:0 0 8px rgba(255,107,107,.85);}
 .life.gone{background:rgba(255,255,255,0.12);box-shadow:none;}
 /* pod 620 px by HUD narazil do tlačidla Späť, tak z pilulek nechám len čísla */
-@media(max-width:620px){#hud{gap:5px;left:auto;right:58px;transform:none;}.pill{padding:4px 9px;gap:6px;}.pill b{font-size:14px;}.pill span{display:none;}}
+@media(max-width:620px){#hud{gap:5px;left:auto;right:58px;transform:none;}.pill{padding:4px 9px;gap:6px;}.pill b{font-size:14px;}.pill span{display:none;}.pill.best{display:none;}}
 @media(max-width:380px){.pill b{font-size:13px;}}
 
 #pause-btn{position:fixed;top:14px;right:14px;z-index:60;display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(6,20,18,0.7);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);border-radius:50%;cursor:pointer;}
@@ -73,7 +73,7 @@ body.touch #dpad{display:grid;}
 .play-btn:hover{background:linear-gradient(180deg,rgba(93,255,176,.34),rgba(93,255,176,.16));color:#fff;box-shadow:0 0 24px -6px rgba(93,255,176,.5);}
 .play-btn:active{transform:translateY(1px);}
 @media(max-height:640px){.card{gap:8px;padding:18px 20px;}.emoji{display:none;}.title{font-size:20px;}#res-score{font-size:38px;}}
-@media (max-height:820px){#overlay{justify-content:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}}
+@media (max-height:820px){#overlay{align-items:flex-start !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch;}}
 </style>
 </head>
 <body>
