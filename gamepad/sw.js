@@ -1,4 +1,4 @@
-const CACHE = 'gamepad-v137';
+const CACHE = 'gamepad-v144';
 
 const ASSETS = [
   './',
@@ -79,7 +79,7 @@ const ASSETS = [
   './games/whack-reflex/index.html',
   './games/gridlock-escape/index.html',
   './games/domino-drift/index.html',
-  './games/kakuro-cross/index.html',
+  './games/sum-cross/index.html',
   './games/blackout-grid/index.html',
   './games/tangram-fit/index.html',
   './games/jigsaw-pieces/index.html',

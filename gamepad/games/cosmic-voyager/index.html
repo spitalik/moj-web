@@ -1456,8 +1456,10 @@
             function handlePointerMove(clientX, clientY) {
                 if (gameState !== 'playing') return;
                 const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
+                // W a H su v CSS bodoch (kresli sa cez transform DPR),
+                // takze ukazovatel prepocitam do rovnakeho priestoru
+                const scaleX = W / rect.width;
+                const scaleY = H / rect.height;
                 const x = (clientX - rect.left) * scaleX;
                 const y = (clientY - rect.top) * scaleY;
                 player.targetX = Math.min(Math.max(x, player.radius), W - player.radius);

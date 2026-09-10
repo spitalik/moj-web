@@ -455,3 +455,235 @@ What was fixed in all five:
   the board takes its height from the window (the rest of the panel scrolls) -
   an earlier attempt to fold the panel into a row squeezed the board into a
   narrow strip, so it was dropped.
+
+20. Board and logic games - games/nine-mills/, games/drop-four/,
+    games/box-claim/, games/peg-escape/, games/domino-drift/
+------------------------------------------------------------------------------
+
+Reworked on 10 September 2026. All five play traditional games that belong to
+nobody - nine men's morris, the four-in-a-row drop game, the dots-and-boxes
+line game, peg solitaire and dominoes - and all five carry this project's own
+titles, folder names, ids and i18n prefixes (nml*, dr4*, bxc*, peg*, dom*).
+Every board, disc, peg and domino is drawn at runtime (four on canvas, Domino
+Drift entirely in the DOM) by this project's own code, the opponents are this
+project's own search routines, and each game's scoring was invented here. No
+licensing change was needed and nothing was renamed.
+
+What was fixed:
+
+* Sharpness and size. The four canvas games drew into a fixed-size canvas that
+  CSS stretched. All four now keep their logical coordinate space and scale it
+  onto a device-pixel-ratio canvas, with the size taken from the panel and
+  recomputed once after the first layout. The board grew from 278 to 333 pixels
+  on a 375-pixel phone and to about 595 on a tablet.
+
+* games/peg-escape/ mapped taps through the canvas's backing store, which the
+  device-pixel-ratio change made larger than the logical board, so after the
+  switch a tap would have landed on the wrong hole. Its mapping now converts to
+  the logical board explicitly. Checked: selecting a peg and jumping into the
+  centre works, and the peg count drops from 32 to 31.
+
+* games/drop-four/ dropped its disc by a fixed step per animation frame, so the
+  disc fell about twice as fast on a 120 Hz phone. The fall is now expressed in
+  pixels per second squared and advances by real elapsed time.
+
+* Records. All five kept one shared best score for every opponent strength or
+  board size; each now keeps a separate record per setting and reloads it when
+  the setting changes.
+
+* Look. All five moved to the collection's typography, glass cards, segmented
+  controls and pill buttons, and the panel no longer sits under the back button
+  on a narrow screen or on a phone held sideways (the same clearance was added
+  to the five card and dice games of the previous batch).
+
+21. Logic grids - games/sum-cross/ (renamed), games/shade-grid/,
+    games/sign-grid/, games/binary-grid/, games/blackout-grid/
+------------------------------------------------------------------------------
+
+Reworked on 10 September 2026.
+
+Rename. The folder games/kakuro-cross/ became games/sum-cross/, the id
+"kakuro-cross" became "sum-cross" and the i18n prefix kak* became smc*. The
+displayed title was already this project's own ("Sum Cross"), but "Kakuro" is a
+name coined and held by a Japanese puzzle publisher, and rule 2 in CLAUDE.md
+requires a rename to go all the way through - displayed title, id, folder name
+and key prefix. The stored best-score key moved with it. The number-sum puzzle
+itself (fill runs with 1-9 so each run matches its clue, no repeat inside a
+run) is a plain arithmetic idea and stays as it was; every level in the file is
+generated and solver-checked by this project's own tools. The rename list in
+CLAUDE.md now records Kakuro -> Sum Cross as well.
+
+The other four needed no licensing change: "Shade Grid", "Sign Grid", "Binary
+Grid" and "Blackout Grid" are this project's own titles for the shading, the
+inequality, the binary-balance and the light-up grid ideas, and none of them
+names a marked title anywhere - in the title, the id, the prefix or the
+description.
+
+games/binary-grid/ turned out to be broken, not just plain-looking. Its
+generator built six valid rows (balanced, no three in a row, all different) and
+then only tried to shuffle rows to remove column triples - it never checked
+column balance at all. The resulting "solution" broke the column rules almost
+every time, which made the puzzle unsolvable: following the hint button to the
+end left the player with a full grid and the message that it breaks the rules.
+The win check had the matching hole - it tested row balance but not column
+balance, although the stated rules ask for both. Both are fixed: the generator
+now searches over the fourteen valid rows with column constraints checked as it
+goes, then removes cells one by one as long as the puzzle keeps exactly one
+solution (with a floor of thirteen given cells, because a minimal 6x6 binary
+puzzle is punishing), and the win check tests column balance too. Eight
+generated puzzles in a row were verified against every rule, and a puzzle
+filled from its own solution now wins.
+
+games/binary-grid/ also had no record of any kind. It now times the run from
+the first move and keeps the fastest hint-free solve, shown next to the row and
+cell counters.
+
+The rest of the batch: the two canvas games (Shade Grid, Sign Grid) keep their
+logical coordinate space and scale it onto a device-pixel-ratio canvas - the
+board grew from 278 to 333 pixels on a 375-pixel phone and to about 580 on a
+tablet; Sum Cross and Blackout Grid now keep a best score per difficulty
+instead of one shared number, Sum Cross sizes its cells from the panel width
+and the window height instead of a fixed 46 pixels (it used to push the panel
+104 pixels past the bottom of a small phone, now 6), and all five moved to the
+collection's typography, glass cards, segmented controls and pill buttons.
+
+22. More logic puzzles - games/island-links/, games/loop-weaver/,
+    games/prism-path/, games/ink-flood/, games/flip-tiles/
+------------------------------------------------------------------------------
+
+Reworked on 10 September 2026. No licensing change was needed and nothing was
+renamed. All five carry this project's own titles, folder names, ids and i18n
+prefixes (isl*, lpw*, prs*, inf*, flp*), and none of them names a marked title
+anywhere - not in the title, the id, the prefix or the description. The
+underlying ideas are the bridge-building grid, the single-loop grid (already
+listed in CLAUDE.md as Slitherlink -> Loop Weaver), a mirror-and-beam puzzle,
+the colour-flood puzzle and the tile-flipping board game whose public-domain
+name is reversi - the trademarked name of that one is deliberately absent.
+Every board, bridge, beam and tile is drawn at runtime by this project's own
+code, the opponent in Flip Tiles is this project's own positional evaluator,
+and each game's scoring was invented here.
+
+What was fixed:
+
+* Sharpness and size. The three canvas games kept a fixed-size canvas that CSS
+  stretched; all three now keep their logical coordinate space and scale it
+  onto a device-pixel-ratio canvas. The board grew from 278 to 333 pixels on a
+  375-pixel phone and to about 580 on a tablet.
+
+* games/flip-tiles/ mapped taps through the canvas's backing store, which the
+  device-pixel-ratio change made larger than the logical board; its mapping now
+  converts to the logical board, and a tap on a legal square was verified to
+  play the move and draw the computer's reply. The other two canvas games
+  already mapped through the logical space, so they needed no change - a click
+  on a grid edge in Loop Weaver was checked to still draw its line.
+
+* games/ink-flood/ and games/prism-path/ built their DOM boards from a fixed
+  cell size, so on a 320-pixel phone the board pushed the page sideways and the
+  player had to scroll horizontally to see it. Both now size the cell from the
+  panel width and the window height, and neither scrolls sideways at any of the
+  five window sizes checked.
+
+* Records. Prism Path, Ink Flood and Flip Tiles kept one shared best score for
+  every difficulty or board size; each now keeps a separate record per setting
+  and reloads it when the setting changes. Island Links and Loop Weaver already
+  stored one record per difficulty.
+
+* Look. All five moved to the collection's typography, glass cards, segmented
+  controls and pill buttons, with the panel clear of the back button on narrow
+  and short screens.
+
+23. Hands-on puzzles and board games - games/jigsaw-pieces/,
+    games/tangram-fit/, games/stone-garden/, games/seed-sow/,
+    games/cube-twist/
+------------------------------------------------------------------------------
+
+Reworked on 10 September 2026. No licensing change was needed and nothing was
+renamed. "Jigsaw Pieces", "Tangram Fit", "Stone Garden", "Seed Sow" and "Cube
+Twist" are this project's own titles, folder names, ids and i18n prefixes
+(jig*, tan*, stg*, sso*, cub*). Three of them are traditional games with no
+rights holder, which CLAUDE.md allows to keep their real names anyway - the
+9x9 board game in Stone Garden, the sowing game in Seed Sow and the seven-piece
+tangram - and Cube Twist is a row-and-column shifting puzzle of this project's
+own design, not a twisty cube: the well-known cube's name appears nowhere in
+the project. Every board, piece, stone and tile is drawn at runtime by this
+project's own code, and the jigsaw's landscape picture is generated, not a
+photograph.
+
+What was fixed:
+
+* Sharpness and size. The four canvas games kept a fixed-size canvas that CSS
+  stretched. All four now keep their logical coordinate space and scale it onto
+  a device-pixel-ratio canvas; Cube Twist needed its drawing code changed to
+  read the logical size from variables, because it used to take it from the
+  canvas element itself. Boards grew from about 278 to 333 pixels on a
+  375-pixel phone and to 470-600 on a tablet.
+
+* Records. All five kept one shared best score for every difficulty; each now
+  keeps a separate record per difficulty and reloads it when the difficulty
+  changes.
+
+* Fitting. Tangram Fit's board was a fixed 320-pixel square, so it pushed the
+  panel past the bottom of a small phone; it now takes its size from the panel
+  width and the window height. Jigsaw Pieces reserves more room for its tray
+  and controls, so the panel no longer overflows on a tablet.
+
+* Pointer mapping - a mistake of mine, found and fixed here. When a game moves
+  to a device-pixel-ratio canvas, canvas.width stops being the logical width,
+  so every tap has to be converted through the logical size instead. In this
+  batch and the two before it I had converted the horizontal axis but left the
+  vertical one reading the canvas element in three games (Jigsaw Pieces, Cube
+  Twist, Flip Tiles), and in Cosmic Voyager both axes were left that way, which
+  on a phone with a doubled pixel ratio aimed the ship at twice the distance
+  and pinned it to the edge. All four are corrected, and each was re-checked on
+  a simulated phone with a doubled pixel ratio: a tap on a legal square in Flip
+  Tiles plays the move, a tray piece in Jigsaw Pieces can be dragged, an arrow
+  in Cube Twist shifts its row, and the ship in Cosmic Voyager now heads for
+  the middle of the screen when the pointer is there. Gem Swap, Bubble Burst
+  and Gridlock Escape were checked too and are correct as they stand, because
+  in those three the canvas pixels are the coordinate space the game draws in.
+
+* Look. All five moved to the collection's typography, glass cards, segmented
+  controls and pill buttons.
+
+24. Word games and sliding - games/gridlock-escape/, games/hidden-word/,
+    games/five-letters/, games/anagram-blitz/, games/word-ladder/
+------------------------------------------------------------------------------
+
+Reworked on 10 September 2026. No licensing change was needed and nothing was
+renamed. All five carry this project's own titles, folder names, ids and i18n
+prefixes (grd*, hwd*, fiv*, ana*, wld*). Two of them re-implement mechanics
+that belong to marked products - the sliding-car escape puzzle and the
+five-letter guessing game - and both were already given this project's own
+names, which CLAUDE.md records (Wordle -> Five Letters). The word lists are the
+project's own filtered selection, as section 7 of this file already describes,
+and the puzzles in Word Ladder and Anagram Blitz are generated and checked by
+this project's own tools.
+
+What was fixed:
+
+* games/gridlock-escape/ moved to a device-pixel-ratio canvas, and its tap
+  mapping was converted to the logical board at the same time - it read both
+  axes from the canvas element, which the change would otherwise have thrown
+  off. Verified on a simulated phone with a doubled pixel ratio: dragging a car
+  one square counts a move.
+
+* games/hidden-word/ drew its little scaffold picture into a 150-pixel canvas
+  that was soft on any phone; it now renders at the device pixel ratio and
+  reads its drawing size from a constant rather than from the canvas element.
+
+* Records. Anagram Blitz and Gridlock Escape kept one shared best score for all
+  difficulties; each now keeps a separate record per difficulty. Hidden Word
+  and Five Letters already stored a record per difficulty, and their run streak
+  stays shared on purpose - it is a streak of the current run, not of a
+  setting.
+
+* Fitting. Five Letters pushed its panel 22 to 39 pixels past the bottom of
+  every phone size, because the tile grid and the on-screen keyboard were fixed
+  sizes; both now scale from the window, and the panel fits at every size
+  checked. The keyboards in Hidden Word and Word Ladder overflowed sideways on
+  a 320-pixel phone, and Word Ladder's input row now wraps instead of pushing
+  its OK button off the screen.
+
+* Look. All five moved to the collection's typography, glass cards, segmented
+  controls and pill buttons. Typing a guess in Five Letters and tapping a
+  letter in Hidden Word were re-checked after the change.

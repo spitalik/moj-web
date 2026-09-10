@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Binary Grid · GamePad</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <style>
         * {
@@ -367,6 +368,86 @@
   .cell{width:clamp(13px,min(4vh,6vw),24px) !important;height:clamp(13px,min(4vh,6vw),24px) !important;font-size:clamp(9px,2.4vh,14px) !important;}
   #grid{gap:3px !important;}
 }
+
+/* ── zladenie s ostatnymi hrami zbierky ─────────────────────────────── */
+:root{--fa:#7dd3fc;--fb:#a78bfa;--fgold:#ffd166;--ftext:#eef3fc;
+      --fmuted:rgba(238,243,252,0.44);--fdim:rgba(238,243,252,0.2);--fbd:rgba(255,255,255,0.09);}
+body{
+  font-family:'DM Sans',system-ui,sans-serif !important;
+  background:radial-gradient(ellipse at 50% -8%, rgba(125,211,252,0.14) 0%, transparent 58%), #070a12 !important;
+  color:var(--ftext) !important;
+}
+#back-btn{background:rgba(10,13,24,0.72) !important;border:1px solid var(--fbd) !important;
+  color:var(--fmuted) !important;font-weight:500 !important;}
+#back-btn:hover,#back-btn:active{border-color:rgba(255,255,255,0.18) !important;color:#fff !important;}
+.game-container{
+  background:linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)) !important;
+  border:1px solid rgba(255,255,255,0.13) !important;border-radius:26px !important;
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06) !important;
+  max-width:560px !important;
+}
+.game-container h1 small{-webkit-text-fill-color:var(--fdim) !important;font-size:.46em;letter-spacing:1px;}
+.game-container h1{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;letter-spacing:-.4px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-shadow:none !important;
+}
+.status-bar{
+  background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:100px !important;color:var(--fmuted) !important;
+  /* pribudli dva udaje (cas a rekord), tak sa pas zabaluje a je kompaktny */
+  display:flex !important;flex-wrap:wrap !important;justify-content:center !important;
+  gap:2px 14px !important;font-size:11px !important;padding:5px 14px !important;margin:8px 0 12px !important;
+}
+.status-bar span{font-variant-numeric:tabular-nums;font-weight:600 !important;
+  background:transparent !important;padding:0 !important;border-radius:0 !important;
+  color:var(--fmuted) !important;white-space:nowrap;}
+.status-bar span b{font-family:'Syne',sans-serif;font-weight:800;color:var(--fa);}
+.status-bar span.rec b{color:var(--fgold);}
+#grid .cell,#grid > div{border-radius:12px !important;}
+.btn{
+  background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)) !important;
+  border:1px solid var(--fbd) !important;color:var(--fmuted) !important;
+  border-radius:100px !important;box-shadow:none !important;
+  font-family:'DM Sans',sans-serif !important;font-weight:600 !important;
+}
+.btn:hover{border-color:rgba(255,255,255,0.18) !important;color:#fff !important;}
+.btn:active{transform:scale(.96) !important;}
+.btn.check{border-color:rgba(74,222,128,.45) !important;color:#bbf7d0 !important;}
+.btn.hint{border-color:rgba(255,209,102,.45) !important;color:#ffe9b5 !important;}
+.message{color:var(--fmuted) !important;font-size:12px !important;}
+.message.win{color:#86efac !important;}
+.message.error{color:#fda4af !important;}
+.modal{
+  background:linear-gradient(165deg,rgba(20,24,40,0.98),rgba(10,12,22,0.98)) !important;
+  border:1px solid rgba(255,255,255,0.17) !important;border-radius:24px !important;
+}
+.modal h2{font-family:'Syne',sans-serif !important;font-weight:800 !important;}
+@media (max-width:560px){
+  .game-container{margin-top:52px !important;}
+}
+
+/* nizke telefony: menej chromu, aby sa mriezka aj ovladanie zmestili */
+@media (max-height:620px){
+  #rules{display:none !important;}
+  #info-panel{gap:5px !important;padding:0 !important;}
+  .info-card{padding:5px 9px !important;min-width:50px !important;}
+  .info-card h3{font-size:8px !important;margin-bottom:0 !important;}
+  .info-card .value{font-size:15px !important;}
+  .num-btn{width:30px !important;height:30px !important;}
+  #num-pad,#numPad{gap:4px !important;}
+  .btn{padding:7px 12px !important;font-size:12px !important;}
+  .message{min-height:1.4rem !important;}
+}
+
+/* mriezka sa nesmie opriet o vysku okna (je stvorcova, takze aj o sirku) */
+#grid{max-width:min(100%, calc(100vh - 300px)) !important;}
+@media (max-height:620px){
+  #grid{max-width:min(100%, calc(100vh - 250px)) !important;gap:4px !important;}
+  .cell{font-size:1.2rem !important;border-radius:10px !important;}
+  .game-container{padding:14px 12px 16px !important;margin-top:44px !important;}
+}
 </style>
 </head>
 <body>
@@ -375,10 +456,12 @@
   <span id="lbl-back"></span>
 </a>
 <div class="game-container" role="main">
-    <h1>⚫⚪ <small>6×6</small></h1>
+    <h1><span id="lbl-title"></span> <small>6×6</small></h1>
     <div class="status-bar">
         <span id="rowStatus">⬜ 0/6</span>
         <span id="cellStatus">🧩 0</span>
+        <span id="timeStatus">⏱ <b>0:00</b></span>
+        <span class="rec" id="bestStatus">🏆 <b>—</b></span>
     </div>
     <div class="grid-wrapper">
         <div id="grid" role="grid"></div>
@@ -416,6 +499,39 @@
         let solutionGrid = [];
         let gameOver = false;
         let hintCount = 0;
+        // ── cas a rekord: hre doteraz chybal akykolvek zapis vysledku
+        const BEST_KEY = 'binarygrid_best_time';
+        let startTs = 0, elapsed = 0, timerId = 0;
+        let best = 0;
+        try { best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; } catch (e) {}
+        const fmtTime = s2 => Math.floor(s2 / 60) + ':' + String(Math.floor(s2 % 60)).padStart(2, '0');
+        function showBest() {
+            document.getElementById('bestStatus').innerHTML = '\u{1F3C6} <b>' + (best ? fmtTime(best) : '\u2014') + '</b>';
+        }
+        function showTime() {
+            document.getElementById('timeStatus').innerHTML = '\u23F1 <b>' + fmtTime(elapsed) + '</b>';
+        }
+        function startTimer() {
+            stopTimer();
+            startTs = performance.now();
+            timerId = setInterval(() => {
+                elapsed = (performance.now() - startTs) / 1000;
+                showTime();
+            }, 250);
+        }
+        function stopTimer() {
+            if (timerId) { clearInterval(timerId); timerId = 0; }
+            if (startTs) { elapsed = (performance.now() - startTs) / 1000; showTime(); }
+        }
+        function finishRun() {
+            stopTimer();
+            // cas sa zapise len ked hrac nepouzil napovedu
+            if (hintCount === 0 && elapsed > 0 && (best === 0 || elapsed < best)) {
+                best = Math.max(1, Math.round(elapsed));   // 0 s by sa cital ako ziadny rekord
+                try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {}
+                showBest();
+            }
+        }
 
         const gridEl = document.getElementById('grid');
         const rowStatusEl = document.getElementById('rowStatus');
@@ -426,6 +542,7 @@
         const infoBtn = document.getElementById('infoBtn');
 
         document.getElementById('lbl-back').textContent = t('back');
+        document.getElementById('lbl-title').textContent = t('binaryTitle');
 
         const checkBtn = document.getElementById('checkBtn');
         const hintBtn = document.getElementById('hintBtn');
@@ -472,99 +589,105 @@
             return arr;
         }
 
-        function generateSolution() {
-            function randomRow() {
-                let row = [];
-                while (true) {
-                    row = [];
-                    for (let i = 0; i < SIZE; i++) row.push(Math.random() < 0.5 ? 0 : 1);
-                    if (row.filter(v => v === 0).length !== 3) continue;
+        // ── generator: vsetky platne riadky (3x0, 3x1, bez trojice) ─────────
+        const VALID_ROWS = (() => {
+            const out = [];
+            for (let m = 0; m < (1 << SIZE); m++) {
+                const row = [];
+                for (let i = 0; i < SIZE; i++) row.push((m >> i) & 1);
+                if (row.filter(v => v === 1).length !== SIZE / 2) continue;
+                let ok = true;
+                for (let i = 0; i + 2 < SIZE; i++)
+                    if (row[i] === row[i + 1] && row[i] === row[i + 2]) { ok = false; break; }
+                if (ok) out.push(row);
+            }
+            return out;
+        })();
+
+        // vyhovuje kandidat na riadok stlpcovym pravidlam pri doterajsich riadkoch?
+        function rowFits(rows, cand) {
+            const r = rows.length;
+            for (let c = 0; c < SIZE; c++) {
+                let ones = cand[c] === 1 ? 1 : 0, zeros = cand[c] === 0 ? 1 : 0;
+                for (let i = 0; i < r; i++) { if (rows[i][c] === 1) ones++; else zeros++; }
+                if (ones > SIZE / 2 || zeros > SIZE / 2) return false;
+                if (r >= 2 && rows[r - 1][c] === cand[c] && rows[r - 2][c] === cand[c]) return false;
+            }
+            return true;
+        }
+
+        function shuffledRows() {
+            return shuffleArray(VALID_ROWS.slice());
+        }
+
+        // najde riesenia, ktore sedia na uz zadane policka; zastavi pri limite
+        function solveGrid(given, limit, shuffle) {
+            const found = [];
+            const rows = [];
+            const used = new Set();
+            const cands = shuffle ? shuffledRows() : VALID_ROWS;
+            (function dfs(r) {
+                if (found.length >= limit) return;
+                if (r === SIZE) { found.push(rows.flat()); return; }
+                for (const cand of cands) {
+                    const key = cand.join('');
+                    if (used.has(key)) continue;
                     let ok = true;
-                    for (let i = 0; i < SIZE-2; i++) {
-                        if (row[i] === row[i+1] && row[i] === row[i+2]) { ok = false; break; }
+                    for (let c = 0; c < SIZE && ok; c++) {
+                        const g = given[r * SIZE + c];
+                        if ((g === 0 || g === 1) && g !== cand[c]) ok = false;
                     }
-                    if (ok) return row;
+                    if (!ok || !rowFits(rows, cand)) continue;
+                    rows.push(cand); used.add(key);
+                    dfs(r + 1);
+                    rows.pop(); used.delete(key);
+                    if (found.length >= limit) return;
                 }
-            }
+            })(0);
+            return found;
+        }
 
-            let rows = [];
-            let usedRows = new Set();
-            let attempts = 0;
-            while (rows.length < SIZE && attempts < 3000) {
-                attempts++;
-                const candidate = randomRow();
-                const key = candidate.join('');
-                if (!usedRows.has(key)) {
-                    usedRows.add(key);
-                    rows.push(candidate);
-                }
-            }
-            while (rows.length < SIZE) {
-                const fallback = [];
-                for (let i = 0; i < SIZE; i++) fallback.push(i < 3 ? 0 : 1);
-                shuffleArray(fallback);
-                const key = fallback.join('');
-                if (!usedRows.has(key)) {
-                    usedRows.add(key);
-                    rows.push(fallback);
-                } else {
-                    for (let i = 0; i < SIZE; i++) fallback[i] = fallback[i] === 0 ? 1 : 0;
-                    const key2 = fallback.join('');
-                    if (!usedRows.has(key2)) {
-                        usedRows.add(key2);
-                        rows.push(fallback);
-                    }
-                }
-            }
+        function generateSolution() {
+            const empty = new Array(TOTAL).fill(null);
+            const sol = solveGrid(empty, 1, true);
+            return sol.length ? sol[0] : solveGrid(empty, 1, false)[0];
+        }
 
-            for (let col = 0; col < SIZE; col++) {
-                let fixed = false;
-                for (let row = 0; row < SIZE-2; row++) {
-                    if (rows[row][col] === rows[row+1][col] && rows[row][col] === rows[row+2][col]) {
-                        fixed = true;
-                        break;
-                    }
-                }
-                if (fixed) {
-                    for (let r1 = 0; r1 < SIZE && fixed; r1++) {
-                        for (let r2 = r1+1; r2 < SIZE && fixed; r2++) {
-                            const row1 = rows[r1];
-                            const row2 = rows[r2];
-                            rows[r1] = row2;
-                            rows[r2] = row1;
-                            let colOk = true;
-                            for (let c = 0; c < SIZE; c++) {
-                                for (let r = 0; r < SIZE-2; r++) {
-                                    if (rows[r][c] === rows[r+1][c] && rows[r][c] === rows[r+2][c]) { colOk = false; break; }
-                                }
-                                if (!colOk) break;
-                            }
-                            if (colOk) { fixed = false; break; }
-                            else {
-                                rows[r1] = row1;
-                                rows[r2] = row2;
-                            }
-                        }
-                    }
-                }
+        // z plneho riesenia odoberam policka, kym zostane jednoznacne riesitelne
+        function makePuzzle() {
+            const sol = generateSolution();
+            const given = sol.slice();
+            const order = shuffleArray(Array.from({length: TOTAL}, (_, i) => i));
+            // odoberam, kym zostane jednoznacne riesenie a aspon MIN_GIVEN policok
+            // (uplne minimalna hadanka je na 6x6 uz velmi tvrda)
+            const MIN_GIVEN = 13;
+            let count = TOTAL;
+            for (const idx of order) {
+                if (count <= MIN_GIVEN) break;
+                const keep = given[idx];
+                given[idx] = null;
+                if (solveGrid(given, 2, false).length !== 1) given[idx] = keep;
+                else count--;
             }
-            return rows.flat();
+            return {sol, given};
         }
 
         function initGame() {
-            solutionGrid = generateSolution();
+            const puz = makePuzzle();
+            solutionGrid = puz.sol;
             grid = new Array(TOTAL).fill(null);
             fixedMask = new Array(TOTAL).fill(false);
-            const indices = Array.from({length: TOTAL}, (_, i) => i);
-            shuffleArray(indices);
-            const fixedCount = Math.floor(Math.random() * 4) + 12;
-            for (let i = 0; i < Math.min(fixedCount, TOTAL); i++) {
-                const idx = indices[i];
-                fixedMask[idx] = true;
-                grid[idx] = solutionGrid[idx];
+            for (let i = 0; i < TOTAL; i++) {
+                if (puz.given[i] === 0 || puz.given[i] === 1) {
+                    fixedMask[i] = true;
+                    grid[i] = puz.given[i];
+                }
             }
             gameOver = false;
             hintCount = 0;
+            stopTimer();
+            startTs = 0; elapsed = 0;
+            showTime(); showBest();
             render();
             messageEl.textContent = t('binaryMsgIntro');
             messageEl.className = 'message';
@@ -622,12 +745,14 @@
             else if (current === 1) newVal = null;
             else newVal = 0;
 
+            if (!timerId) startTimer();
             grid[index] = newVal;
             render();
             const filled = grid.filter(v => v === 0 || v === 1).length;
             if (filled === TOTAL) {
                 if (checkAllRules()) {
                     gameOver = true;
+                    finishRun();
                     messageEl.textContent = t('binaryMsgWin');
                     messageEl.className = 'message win';
                 } else {
@@ -653,7 +778,13 @@
             if (grid.some(v => v !== 0 && v !== 1)) return false;
             for (let r = 0; r < SIZE; r++) {
                 const row = grid.slice(r*SIZE, r*SIZE+SIZE);
-                if (row.filter(v => v === 0).length !== 3) return false;
+                if (row.filter(v => v === 0).length !== SIZE / 2) return false;
+            }
+            // stlpce musia byt vyvazene rovnako ako riadky (pravidlo 1)
+            for (let c = 0; c < SIZE; c++) {
+                let zeros = 0;
+                for (let r = 0; r < SIZE; r++) if (grid[r*SIZE + c] === 0) zeros++;
+                if (zeros !== SIZE / 2) return false;
             }
             for (let r = 0; r < SIZE; r++) {
                 for (let c = 0; c < SIZE-2; c++) {
@@ -688,6 +819,7 @@
             }
             if (checkAllRules()) {
                 gameOver = true;
+                finishRun();
                 messageEl.textContent = t('binaryMsgPerfect');
                 messageEl.className = 'message win';
                 render();
