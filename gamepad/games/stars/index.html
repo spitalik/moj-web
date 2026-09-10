@@ -2,646 +2,780 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Star Catcher · GamePad</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none;
+            -webkit-tap-highlight-color:transparent; }
         body {
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            font-family: 'Arial', sans-serif;
-            box-sizing: border-box;
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; padding:12px; touch-action:manipulation;
         }
-        
-        #gameContainer {
-            position: relative;
-            text-align: center;
-            width: 100%;
-            max-width: 650px;
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #43391a;color:#a99871;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
         }
-        
-        canvas {
-            border: 3px solid #e94560;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(233, 69, 96, 0.3);
-            background: linear-gradient(180deg, #0a0a2e 0%, #1a1a4e 100%);
-            width: 100%;
-            height: auto;
-            touch-action: none;
-        }
-        
-        #score, #lives {
-            color: white;
-            font-size: 22px;
-            margin: 5px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-        
-        #lives {
-            color: #e94560;
-            font-weight: bold;
-        }
-        
-        #controls {
-            color: rgba(255,255,255,0.7);
-            font-size: 13px;
-            margin-bottom: 10px;
-        }
-        
-        #gameOver {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
-            background: rgba(0,0,0,0.9);
-            padding: 30px;
-            border-radius: 20px;
-            z-index: 10;
-            width: 80%;
-            max-width: 400px;
-            border: 2px solid #e94560;
-        }
-        
-        #milestone {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ffd700;
-            font-size: 36px;
-            font-weight: bold;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
-            pointer-events: none;
-            z-index: 5;
-            animation: milestoneAnimation 2s ease-out forwards;
-        }
-        
-        @keyframes milestoneAnimation {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
-        }
-        
-        button {
-            margin-top: 15px;
-            padding: 12px 30px;
-            font-size: 18px;
-            background: #e94560;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-        }
-        
-        button:hover {
-            transform: scale(1.05);
-            background: #ff6b6b;
-            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
-        }
-        
-        button:active {
-            transform: scale(0.95);
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
+        #back-btn:hover,#back-btn:active{border-color:#ffd166;color:#fff8e6;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
 
-        #back-btn {
-            position: fixed; top: 20px; left: 20px; z-index: 10;
-            display: flex; align-items: center; gap: 7px;
-            background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
-            color: rgba(240,238,255,0.55); padding: 7px 14px; border-radius: 100px;
-            text-decoration: none; font-size: 12px; font-weight: 500;
-            transition: border-color 0.18s, color 0.18s;
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:520px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
         }
-        #back-btn:hover { border-color: rgba(255,255,255,0.35); color: #f0eeff; }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 { font-size:21px; font-weight:700; display:flex; align-items:center; gap:8px; }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; text-align:center; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px;
+                            border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#ffd166; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:58px; background:#111a28; border-radius:14px;
+                     padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px;
+                        font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#ffd8a1; min-height:16px; font-weight:600; }
+
+        #canvas-wrapper { background:#070b14; border-radius:18px; padding:8px; position:relative;
+                          align-self:center; max-width:100%;
+                          box-shadow:inset 0 0 0 1px #2a3446; }
+        #gameCanvas { display:block; border-radius:12px; touch-action:none; cursor:none;
+                      max-width:100%; height:auto; }
+
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+                           border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+
+        #game-over-overlay, #pause-overlay {
+            position:absolute; inset:8px; display:none; flex-direction:column;
+            align-items:center; justify-content:center; gap:8px; padding:24px;
+            border-radius:12px; z-index:20; text-align:center; color:#f0f4fe;
+            background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+        }
+        #game-over-overlay.visible, #pause-overlay.visible { display:flex; }
+        #game-over-overlay h2 { font-size:26px; }
+        #game-over-overlay p { font-size:14px; color:#b0c4e0; }
+        #milestoneLine { font-size:12px; color:#ffd166; font-weight:600; min-height:15px; }
+        #recordLine { font-size:12px; color:#ffd166; font-weight:700; letter-spacing:.4px; min-height:15px; }
+        #pause-overlay span { font-size:24px; font-weight:800; }
+        #restartBtn {
+            background:#ffd166; border:1px solid #fff1cf; border-radius:40px;
+            padding:12px 32px; font-size:16px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #b98d1f; cursor:pointer; margin-top:6px;
+        }
+        #restartBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #b98d1f; }
+
+        /* nizke obrazovky: menej chromu, plocha si vezme volne miesto */
+        @media (max-height:900px){
+          body{padding:6px !important;}
+          #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+        }
+        @media (max-height:760px){
+          body{padding:3px !important;}
+          #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
+        }
+        @media (max-height:640px){
+          #rules{display:none !important;}
+          #header h1{font-size:16px !important;}
+          .info-card{padding:5px 9px !important;min-width:50px !important;}
+          .info-card h3{font-size:8px !important;margin-bottom:0 !important;}
+          .info-card .value{font-size:15px !important;}
+        }
+        @media (max-width:560px){
+          #game-container{padding-top:44px !important;}
+        }
+        @media (max-height:520px) and (orientation:landscape){
+          body{padding:4px !important;align-items:flex-start !important;}
+          #game-container{max-width:100% !important;padding:8px 10px 8px !important;gap:4px !important;}
+          #header{padding-left:104px !important;}
+          #settings label{display:none !important;}
+          #info-panel{gap:4px !important;}
+          #status-line{font-size:10px !important;min-height:12px !important;}
+          #controls button{padding:6px 12px !important;font-size:11.5px !important;}
+        }
+        @media (min-width:700px){
+          #game-container{max-width:600px !important;}
+        }
+    
+/* ── zladenie s ostatnymi hrami zbierky ─────────────────────────────── */
+:root{
+  --fa:#ffd166;--fb:#6ee7ff;--fgold:#ffd166;
+  --ftext:#eef3fc;--fmuted:rgba(238,243,252,0.44);--fdim:rgba(238,243,252,0.2);
+  --fbd:rgba(255,255,255,0.09);
+}
+body{
+  font-family:'DM Sans',system-ui,sans-serif !important;
+  background:radial-gradient(ellipse at 50% -8%, rgba(255,209,102,.14) 0%, transparent 58%), #070a12 !important;
+  color:var(--ftext) !important;
+}
+#back-btn{background:rgba(10,13,24,0.72) !important;border:1px solid var(--fbd) !important;color:var(--fmuted) !important;font-weight:500 !important;}
+#back-btn:hover,#back-btn:active{border-color:rgba(255,255,255,0.18) !important;color:#fff !important;}
+#game-container{
+  background:linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)) !important;
+  border:1px solid rgba(255,255,255,0.13) !important;border-radius:26px !important;
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+#header h1{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:19px !important;
+  letter-spacing:-.3px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#settings label{color:var(--fdim) !important;font-size:9px !important;font-weight:600 !important;
+  letter-spacing:1.1px !important;text-transform:uppercase !important;}
+#rules{color:var(--fmuted) !important;font-size:11px !important;line-height:1.6 !important;}
+.btn-group{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:100px !important;padding:3px !important;gap:2px !important;}
+.btn-group button{border-radius:100px !important;color:var(--fmuted) !important;
+  font-family:'DM Sans',sans-serif !important;font-size:11px !important;font-weight:600 !important;
+  padding:5px 12px !important;transition:color .16s,background .16s !important;}
+.btn-group button:hover{color:#fff !important;}
+.btn-group button.active{background:rgba(255,209,102,.16) !important;color:#fff !important;
+  box-shadow:inset 0 0 0 1px rgba(255,209,102,.42) !important;}
+.info-card{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:14px !important;}
+.info-card h3{font-size:8.5px !important;letter-spacing:1.3px !important;color:var(--fdim) !important;
+  font-weight:600 !important;text-transform:uppercase !important;}
+.info-card .value{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+  font-size:18px !important;letter-spacing:-.5px !important;font-variant-numeric:tabular-nums;
+  color:var(--fa) !important;}
+.high-score{border-color:rgba(255,209,102,.35) !important;}
+.high-score h3{color:rgba(255,209,102,.55) !important;}
+.high-score .value{color:var(--fgold) !important;}
+#canvas-wrapper{background:rgba(0,0,0,0.34) !important;border-radius:18px !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.07) !important;}
+#controls button,#padrow button,#controls>button{
+  background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)) !important;
+  border:1px solid var(--fbd) !important;color:var(--fmuted) !important;
+  border-radius:15px !important;box-shadow:none !important;
+  font-family:'DM Sans',sans-serif !important;
+}
+#controls button:active,#padrow button:active{background:rgba(255,209,102,.18) !important;
+  border-color:rgba(255,209,102,.45) !important;color:#fff !important;transform:scale(.95) !important;}
+#status-line{color:var(--fmuted) !important;font-weight:600 !important;}
+/* prekryvy: rodinna karta */
+#game-over-overlay,#win-overlay,#pause-overlay{
+  background:radial-gradient(ellipse at center,rgba(8,10,20,0.84) 0%,rgba(3,4,9,0.96) 78%) !important;
+  backdrop-filter:blur(6px) !important;border-radius:18px !important;
+}
+#game-over-overlay h2,#win-overlay h2,#pause-overlay span{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;letter-spacing:-.5px !important;
+}
+#game-over-overlay h2,#win-overlay h2{
+  font-size:24px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-shadow:none !important;
+}
+#game-over-overlay p,#win-overlay p{font-size:11.5px !important;color:var(--fmuted) !important;}
+#game-over-overlay p span:last-child,#win-overlay p span:last-child{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:20px !important;
+  color:var(--fa) !important;
+}
+#restartBtn,#nextBtn,#newMazeBtn,#newGameBtn,#playAgainBtn{
+  border-radius:100px !important;border:1px solid rgba(255,209,102,.5) !important;
+  background:linear-gradient(180deg,rgba(255,209,102,.24),rgba(255,209,102,.1)) !important;
+  color:#fff !important;font-family:'DM Sans',sans-serif !important;font-size:14px !important;
+  font-weight:600 !important;box-shadow:none !important;padding:12px 30px !important;
+  text-transform:none !important;
+}
+#restartBtn:hover,#nextBtn:hover,#newMazeBtn:hover,#newGameBtn:hover,#playAgainBtn:hover{
+  background:linear-gradient(180deg,rgba(255,209,102,.34),rgba(255,209,102,.16)) !important;
+  box-shadow:0 0 24px -6px rgba(255,209,102,.5) !important;transform:none !important;
+}
+#restartBtn:active,#nextBtn:active{transform:translateY(1px) !important;}
+
     </style>
 </head>
 <body>
-    <a href="../../index.html" id="back-btn">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      <span id="lbl-back"></span>
-    </a>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
 
-    <div id="gameContainer">
-        <div id="score"></div>
-        <div id="lives"></div>
-        <div id="controls"></div>
-        <canvas id="gameCanvas" width="600" height="500"></canvas>
-        <div id="gameOver">
-            <div style="font-size: 48px;" id="overTitle"></div>
-            <div style="font-size: 24px; margin-top: 10px;" id="finalScore"></div>
-            <div style="font-size: 18px; margin-top: 10px; color: #ffd700;" id="milestonesReached"></div>
-            <button onclick="restartGame()" id="restartBtn"></button>
+<div id="game-container">
+    <div id="header">
+        <h1>⭐ <span id="lbl-title"></span></h1>
+        <div id="settings">
+            <label id="lbl-diff"></label>
+            <div class="btn-group" id="diffGroup">
+                <button data-diff="easy"   id="lbl-easy"></button>
+                <button data-diff="medium" id="lbl-medium" class="active"></button>
+                <button data-diff="hard"   id="lbl-hard"></button>
+            </div>
         </div>
     </div>
 
-    <script>
-        const gameCanvas = document.getElementById('gameCanvas');
-        const cx = gameCanvas.getContext('2d');
-        const scoreElement = document.getElementById('score');
-        const livesElement = document.getElementById('lives');
-        const gameOverElement = document.getElementById('gameOver');
-        const finalScoreElement = document.getElementById('finalScore');
-        const milestonesReachedElement = document.getElementById('milestonesReached');
+    <p id="rules"></p>
 
-        // i18n
-        function applyLang() {
-            document.getElementById('lbl-back').textContent = t('back');
-            scoreElement.textContent = t('starsScore') + ': ' + score;
-            livesElement.innerHTML = t('starsLives') + ': ' + '❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives));
-            document.getElementById('controls').textContent = t('starsControls');
-            document.getElementById('overTitle').textContent = t('starsOver');
-            document.getElementById('restartBtn').textContent = t('starsRestart');
-            document.title = t('starsTitle') + ' · GamePad';
+    <div id="info-panel">
+        <div class="info-card"><h3 id="lbl-score"></h3><span class="value" id="scoreValue">0</span></div>
+        <div class="info-card"><h3 id="lbl-lives"></h3><span class="value" id="livesValue">3</span></div>
+        <div class="info-card"><h3 id="lbl-level"></h3><span class="value" id="levelValue">1</span></div>
+        <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">0</span></div>
+    </div>
+
+    <div id="status-line"></div>
+
+    <div id="canvas-wrapper">
+        <canvas id="gameCanvas"></canvas>
+        <div id="game-over-overlay">
+            <h2 id="lbl-over"></h2>
+            <p><span id="lbl-final"></span> <span id="finalScore">0</span></p>
+            <div id="milestoneLine"></div>
+            <div id="recordLine"></div>
+            <button id="restartBtn"></button>
+        </div>
+        <div id="pause-overlay"><span id="pauseText"></span></div>
+    </div>
+
+    <div id="controls">
+        <button id="pauseBtn"></button>
+        <button id="newGameBtn"></button>
+    </div>
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = 600, H = 460;                       // logicky priestor hry
+
+    const scoreSpan = document.getElementById('scoreValue');
+    const livesSpan = document.getElementById('livesValue');
+    const levelSpan = document.getElementById('levelValue');
+    const bestSpan  = document.getElementById('bestValue');
+    const statusEl  = document.getElementById('status-line');
+    const overEl    = document.getElementById('game-over-overlay');
+    const pauseEl   = document.getElementById('pause-overlay');
+    const pauseText = document.getElementById('pauseText');
+    const recordEl  = document.getElementById('recordLine');
+    const milesEl   = document.getElementById('milestoneLine');
+    const diffGroup = document.getElementById('diffGroup');
+
+    // ── vlastne nastavenie obtiaznosti (nic prevzate)
+    const DIFF = {
+        easy:   { lives: 4, fall: 95,  step: 11, spawn: 1.15, spawnMin: 0.50, mult: 1.0, maxOn: 4 },
+        medium: { lives: 3, fall: 125, step: 15, spawn: 0.95, spawnMin: 0.42, mult: 1.4, maxOn: 5 },
+        hard:   { lives: 2, fall: 160, step: 19, spawn: 0.80, spawnMin: 0.34, mult: 1.9, maxOn: 6 },
+    };
+    let diffKey = 'medium', D = DIFF.medium;
+
+    const P_STAR = 10, P_SPECIAL = 50;            // body: vlastne cisla
+    const MAX_LIVES = 5, STARS_FOR_LIFE = 10;
+    const MILESTONE_STEP = 500;
+    const SPECIAL_EVERY = 12;                     // sekundy
+    const INVULN = 1.6;                           // sekundy
+    const BASKET_SPEED = 360;                     // logickych bodov za sekundu
+    const BW = 70, BH = 54;                       // kos
+
+    let basketX = W / 2 - BW / 2;
+    let stars = [], special = null, sparks = [], texts = [];
+    let score = 0, lives = 3, level = 1, caught = 0;
+    let nextMilestone = MILESTONE_STEP, milestones = [];
+    let spawnIn = 0, specialIn = SPECIAL_EVERY, invuln = 0;
+    let running = false, paused = false, over = false;
+    let best = 0, resumeIn = 0;
+    const keys = { left: false, right: false };
+
+    // ── rekord na obtiaznost
+    const bestKey = () => 'starcatcher_best_' + diffKey;
+    function loadBest() {
+        best = parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0;
+        bestSpan.textContent = best;
+    }
+    function saveBest() {
+        if (score > best) {
+            best = score;
+            try { localStorage.setItem(bestKey(), String(best)); } catch (e) {}
+            bestSpan.textContent = best;
+            return true;
         }
+        return false;
+    }
 
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'gamepad_lang') applyLang();
-        });
+    // ── ostra kresba: logicky priestor sa mapuje na skutocne body displeja
+    let DPR = 1;
+    function fitCanvas(hintH) {
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        const cont = document.getElementById('game-container');
+        const land = window.matchMedia('(max-height:520px) and (orientation:landscape)').matches;
+        const availW = Math.max(200, Math.min(620, (cont ? cont.clientWidth : 340) - 30));
+        const availH = hintH || Math.max(170, window.innerHeight - (land ? 130 : 290));
+        const k = Math.max(0.28, Math.min(availW / W, availH / H, 1.6));
+        canvas.width = Math.round(W * k * DPR);
+        canvas.height = Math.round(H * k * DPR);
+        canvas.style.width = (canvas.width / DPR) + 'px';
+        canvas.style.height = (canvas.height / DPR) + 'px';
+        ctx.setTransform(k * DPR, 0, 0, k * DPR, 0, 0);
+        if (!hintH) {
+            const got = canvas.getBoundingClientRect();
+            if (!land) {
+                if (got.height > 20 && H * k - got.height > 1.5) { fitCanvas(got.height); return; }
+                if (got.width > 20 && W * k - got.width > 1.5) { fitCanvas(got.width * H / W); return; }
+            }
+            const spill = document.documentElement.scrollHeight - window.innerHeight;
+            if (spill > 2 && got.height - spill > 130) { fitCanvas(got.height - spill - 3); return; }
+        }
+    }
+    let fitTimer = 0;
+    window.addEventListener('resize', () => {
+        clearTimeout(fitTimer);
+        fitTimer = setTimeout(() => { fitCanvas(); draw(); }, 120);
+    });
+    window.addEventListener('load', () => { fitCanvas(); draw(); });
 
-        // Game variables
-        let player = {
-            x: gameCanvas.width / 2 - 30,
-            y: gameCanvas.height - 70,
-            width: 60,
-            height: 60,
-            speed: 8
+    // ── ovladanie
+    function pointerX(e) {
+        const r = canvas.getBoundingClientRect();
+        const src = e.touches ? e.touches[0] : e;
+        return (src.clientX - r.left) / r.width * W;      // vzdy z logickeho priestoru
+    }
+    function moveTo(x) {
+        basketX = Math.max(0, Math.min(W - BW, x - BW / 2));
+    }
+    canvas.addEventListener('mousedown', e => { if (running && !paused) moveTo(pointerX(e)); });
+    canvas.addEventListener('mousemove', e => { if (running && !paused && e.buttons === 1) moveTo(pointerX(e)); });
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); if (running && !paused) moveTo(pointerX(e)); }, { passive: false });
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); if (running && !paused) moveTo(pointerX(e)); }, { passive: false });
+
+    document.addEventListener('keydown', e => {
+        const k = e.key;
+        if (k === 'ArrowLeft' || k === 'a' || k === 'A') { keys.left = true; e.preventDefault(); }
+        if (k === 'ArrowRight' || k === 'd' || k === 'D') { keys.right = true; e.preventDefault(); }
+        if (k === 'Escape' || k === 'p' || k === 'P') togglePause();
+        if ((k === 'r' || k === 'R') && over) newGame();
+    });
+    document.addEventListener('keyup', e => {
+        const k = e.key;
+        if (k === 'ArrowLeft' || k === 'a' || k === 'A') keys.left = false;
+        if (k === 'ArrowRight' || k === 'd' || k === 'D') keys.right = false;
+    });
+    window.addEventListener('blur', () => { if (running && !paused && !over) togglePause(); });
+
+    function togglePause() {
+        if (over || !running) return;
+        paused = !paused;
+        if (paused) {
+            pauseText.textContent = t('uiPaused');
+            pauseEl.classList.add('visible');
+        } else {
+            resumeIn = 3;                     // 3-2-1 nabeh, nech hrac nestrati zivot
+            pauseText.textContent = '3';
+        }
+        pauseBtnLabel();
+    }
+    function pauseBtnLabel() {
+        // rovnake znaky ako v ostatnych hrach zbierky (bez potreby prekladu)
+        document.getElementById('pauseBtn').textContent = paused ? '▶' : '⏸';
+    }
+
+    // ── hviezdy
+    function makeStar() {
+        const size = 26 + Math.random() * 12;
+        let x = Math.random() * (W - size), tries = 0;
+        while (tries < 8 && stars.some(s => s.y < 60 && Math.abs(s.x - x) < 70)) {
+            x = Math.random() * (W - size); tries++;
+        }
+        return {
+            x, y: -size, size,
+            vy: (D.fall + D.step * (level - 1)) * (0.82 + Math.random() * 0.45),
+            hue: 40 + Math.random() * 22,
+            rot: Math.random() * Math.PI * 2,
+            spin: (Math.random() - 0.5) * 2.6,
+            special: false,
         };
-        
-        let stars = [];
-        let specialStar = null;
-        let score = 0;
-        let lives = 3;
-        let gameRunning = true;
-        let spawnTimer = 0;
-        let specialStarTimer = 0;
-        let difficulty = 1;
-        let starsCollected = 0;
-        let invulnerable = false;
-        let invulnerableTimer = 0;
-        let milestones = [];
-        let currentMilestone = 1000;
-        
-        const MAX_LIVES = 5;
-        const STARS_FOR_EXTRA_LIFE = 10;
-        const BASE_SPAWN_RATE = 60;
-        const SPECIAL_STAR_INTERVAL = 600;
-        
-        const keys = {
-            'ArrowLeft': false,
-            'ArrowRight': false,
-            'KeyA': false,
-            'KeyD': false
+    }
+    function makeSpecial() {
+        return {
+            x: Math.random() * (W - 52), y: -52, size: 50,
+            vy: (D.fall + D.step * (level - 1)) * 0.72,
+            rot: 0, spin: 2.2, glow: 0, glowDir: 1, special: true,
         };
-        
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || 
-                e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                e.preventDefault();
-            }
-            if (e.key === 'ArrowLeft') keys['ArrowLeft'] = true;
-            if (e.key === 'ArrowRight') keys['ArrowRight'] = true;
-            if (e.key === 'a' || e.key === 'A') keys['KeyA'] = true;
-            if (e.key === 'd' || e.key === 'D') keys['KeyD'] = true;
-            if ((e.key === 'r' || e.key === 'R') && !gameRunning) restartGame();
-        });
-        
-        document.addEventListener('keyup', function(e) {
-            if (e.key === 'ArrowLeft') keys['ArrowLeft'] = false;
-            if (e.key === 'ArrowRight') keys['ArrowRight'] = false;
-            if (e.key === 'a' || e.key === 'A') keys['KeyA'] = false;
-            if (e.key === 'd' || e.key === 'D') keys['KeyD'] = false;
-        });
-        
-        gameCanvas.addEventListener('touchstart', function(e) { e.preventDefault(); handleTouch(e); });
-        gameCanvas.addEventListener('touchmove', function(e) { e.preventDefault(); handleTouch(e); });
-        
-        function handleTouch(e) {
-            if (!gameRunning) return;
-            const touch = e.touches[0];
-            const rect = gameCanvas.getBoundingClientRect();
-            const scaleX = gameCanvas.width / rect.width;
-            const touchX = (touch.clientX - rect.left) * scaleX;
-            player.x = touchX - player.width / 2;
-            player.x = Math.max(0, Math.min(player.x, gameCanvas.width - player.width));
+    }
+
+    function text(x, y, s, colour) { texts.push({ x, y, s, colour, life: 1.2, vy: -46 }); }
+    function burst(x, y, colour, n) {
+        for (let i = 0; i < n; i++) {
+            const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 190;
+            sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+                          life: 1, size: 2 + Math.random() * 4, colour });
         }
-        
-        gameCanvas.addEventListener('mousemove', function(e) {
-            if (e.buttons === 1 && gameRunning) {
-                const rect = gameCanvas.getBoundingClientRect();
-                const scaleX = gameCanvas.width / rect.width;
-                const mouseX = (e.clientX - rect.left) * scaleX;
-                player.x = mouseX - player.width / 2;
-                player.x = Math.max(0, Math.min(player.x, gameCanvas.width - player.width));
-            }
-        });
-        
-        function createStar() {
-            const minDistance = 80;
-            let x, tooClose;
-            let attempts = 0;
-            do {
-                tooClose = false;
-                x = Math.random() * (gameCanvas.width - 30);
-                for (let star of stars) {
-                    if (Math.abs(star.x - x) < minDistance && star.y < 50) { tooClose = true; break; }
-                }
-                if (specialStar && Math.abs(specialStar.x - x) < minDistance && specialStar.y < 50) tooClose = true;
-                attempts++;
-            } while (tooClose && attempts < 10);
-            return {
-                x, y: -30,
-                size: 25 + Math.random() * 10,
-                speed: 1.5 + Math.random() * 1.5 + difficulty * 0.3,
-                color: `hsl(${40 + Math.random() * 20}, 100%, ${60 + Math.random() * 20}%)`,
-                rotation: Math.random() * Math.PI * 2,
-                rotationSpeed: (Math.random() - 0.5) * 0.08,
-                isSpecial: false
-            };
+    }
+
+    function hits(s) {
+        const bx = basketX + BW / 2, by = H - BH + 16;
+        const sx = s.x + s.size / 2, sy = s.y + s.size / 2;
+        const reach = (BW / 2 + s.size / 2) * (s.special ? 0.66 : 0.6);
+        return Math.hypot(bx - sx, by - sy) < reach;
+    }
+
+    function loseLife() {
+        if (invuln > 0) return;
+        lives--;
+        livesSpan.textContent = lives;
+        burst(basketX + BW / 2, H - BH / 2, '255,80,90', 16);
+        if (lives <= 0) { finish(); return; }
+        invuln = INVULN;
+    }
+
+    function addLife() {
+        if (lives < MAX_LIVES) {
+            lives++;
+            livesSpan.textContent = lives;
+            burst(basketX + BW / 2, H - BH, '120,255,150', 16);
+            text(basketX + BW / 2, H - BH - 8, '+1 \u2665', '120,255,150');
         }
-        
-        function createSpecialStar() {
-            return {
-                x: Math.random() * (gameCanvas.width - 60),
-                y: -40, size: 45, speed: 1.2,
-                color: '#ff1744',
-                rotation: Math.random() * Math.PI * 2,
-                rotationSpeed: 0.1, isSpecial: true,
-                glowIntensity: 0, glowDirection: 1
-            };
-        }
-        
-        function drawSpecialStar(star) {
-            cx.save();
-            cx.translate(star.x + star.size/2, star.y + star.size/2);
-            cx.rotate(star.rotation);
-            star.glowIntensity += 0.05 * star.glowDirection;
-            if (star.glowIntensity >= 1) star.glowDirection = -1;
-            if (star.glowIntensity <= 0) star.glowDirection = 1;
-            const glowSize = star.size * (1.5 + star.glowIntensity * 0.5);
-            const outerGlow = cx.createRadialGradient(0, 0, star.size/2, 0, 0, glowSize);
-            outerGlow.addColorStop(0, 'rgba(255, 23, 68, 0.8)');
-            outerGlow.addColorStop(0.5, 'rgba(255, 23, 68, 0.3)');
-            outerGlow.addColorStop(1, 'rgba(255, 23, 68, 0)');
-            cx.fillStyle = outerGlow;
-            cx.fillRect(-glowSize, -glowSize, glowSize * 2, glowSize * 2);
-            cx.beginPath();
-            const spikes = 5, outerRadius = star.size/2, innerRadius = star.size/3;
-            for (let i = 0; i < spikes * 2; i++) {
-                const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                const angle = (i * Math.PI) / spikes - Math.PI/2;
-                i === 0 ? cx.moveTo(Math.cos(angle)*radius, Math.sin(angle)*radius)
-                        : cx.lineTo(Math.cos(angle)*radius, Math.sin(angle)*radius);
-            }
-            cx.closePath();
-            const gradient = cx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
-            gradient.addColorStop(0, '#FFFFFF'); gradient.addColorStop(0.3, '#FF5252');
-            gradient.addColorStop(0.7, '#D50000'); gradient.addColorStop(1, '#8B0000');
-            cx.fillStyle = gradient; cx.fill();
-            cx.strokeStyle = '#FFD700'; cx.lineWidth = 3; cx.stroke();
-            cx.fillStyle = '#FFD700'; cx.font = 'bold 20px Arial';
-            cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('❤️', 0, 0);
-            cx.restore();
-        }
-        
-        function drawStar(star) {
-            cx.save();
-            cx.translate(star.x + star.size/2, star.y + star.size/2);
-            cx.rotate(star.rotation);
-            const glowGradient = cx.createRadialGradient(0, 0, star.size/2, 0, 0, star.size);
-            glowGradient.addColorStop(0, 'rgba(255, 255, 200, 0.3)');
-            glowGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
-            cx.fillStyle = glowGradient;
-            cx.fillRect(-star.size, -star.size, star.size * 2, star.size * 2);
-            cx.beginPath();
-            const spikes = 5, outerRadius = star.size/2, innerRadius = star.size/4;
-            for (let i = 0; i < spikes * 2; i++) {
-                const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                const angle = (i * Math.PI) / spikes - Math.PI/2;
-                i === 0 ? cx.moveTo(Math.cos(angle)*radius, Math.sin(angle)*radius)
-                        : cx.lineTo(Math.cos(angle)*radius, Math.sin(angle)*radius);
-            }
-            cx.closePath();
-            const gradient = cx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
-            gradient.addColorStop(0, '#FFFFFF'); gradient.addColorStop(0.4, star.color);
-            gradient.addColorStop(1, '#FFA500');
-            cx.fillStyle = gradient; cx.fill();
-            cx.strokeStyle = '#FFF'; cx.lineWidth = 2; cx.stroke();
-            cx.restore();
-        }
-        
-        function drawPlayer() {
-            cx.save();
-            if (invulnerable && Math.floor(Date.now() / 100) % 2 === 0) cx.globalAlpha = 0.5;
-            const gradient = cx.createLinearGradient(player.x, player.y, player.x + player.width, player.y);
-            gradient.addColorStop(0, '#8B4513'); gradient.addColorStop(0.5, '#A0522D'); gradient.addColorStop(1, '#6B3410');
-            cx.fillStyle = gradient;
-            cx.beginPath();
-            cx.moveTo(player.x + 5, player.y + 20);
-            cx.lineTo(player.x + 15, player.y + player.height);
-            cx.lineTo(player.x + player.width - 15, player.y + player.height);
-            cx.lineTo(player.x + player.width - 5, player.y + 20);
-            cx.closePath(); cx.fill();
-            cx.strokeStyle = '#4A2500'; cx.lineWidth = 2; cx.stroke();
-            cx.strokeStyle = '#D2691E'; cx.lineWidth = 5;
-            cx.beginPath(); cx.arc(player.x + player.width/2, player.y + 20, 20, Math.PI, 0); cx.stroke();
-            cx.fillStyle = '#654321';
-            cx.fillRect(player.x + 15, player.y + 35, player.width - 30, 3);
-            cx.fillRect(player.x + 15, player.y + 45, player.width - 30, 3);
-            cx.restore();
-        }
-        
-        function checkCollision(player, star) {
-            const playerCenterX = player.x + player.width / 2;
-            const playerCenterY = player.y + 30;
-            const starCenterX = star.x + star.size / 2;
-            const starCenterY = star.y + star.size / 2;
-            const distance = Math.sqrt(
-                Math.pow(playerCenterX - starCenterX, 2) + 
-                Math.pow(playerCenterY - starCenterY, 2)
-            );
-            const collisionDistance = star.isSpecial ? 
-                (player.width/2 + star.size/2) * 0.7 : 
-                (player.width/2 + star.size/2) * 0.65;
-            return distance < collisionDistance;
-        }
-        
-        function showMilestone(milestone) {
-            const milestoneDiv = document.createElement('div');
-            milestoneDiv.id = 'milestone';
-            milestoneDiv.textContent = t('starsMilestoneMsg', {n: milestone});
-            document.getElementById('gameContainer').appendChild(milestoneDiv);
-            setTimeout(() => { if (milestoneDiv.parentNode) milestoneDiv.parentNode.removeChild(milestoneDiv); }, 2000);
-            if (milestone % 2000 === 0 && !specialStar) {
-                specialStar = createSpecialStar();
-                showFloatingText(gameCanvas.width/2, 50, t('starsSpecialBonus'), '#ff1744');
+    }
+
+    function checkMilestone() {
+        while (score >= nextMilestone) {
+            milestones.push(nextMilestone);
+            text(W / 2, H / 2, t('starsMilestoneMsg', { n: nextMilestone }), '255,209,102');
+            nextMilestone += MILESTONE_STEP;
+            if (!special && milestones.length % 2 === 0) {
+                special = makeSpecial();
+                text(W / 2, 70, t('starsSpecialBonus'), '255,90,110');
             }
         }
-        
-        function updateLivesDisplay() {
-            livesElement.innerHTML = t('starsLives') + ': ' + '❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives));
+    }
+
+    function setLevel() {
+        const lv = Math.min(10, 1 + Math.floor(score / 250));
+        if (lv !== level) {
+            level = lv;
+            levelSpan.textContent = level;
+            text(W / 2, H / 2 - 40, t('starsLevelUp', { n: level }), '255,209,102');
+        }
+    }
+
+    // ── beh hry
+    function update(dt) {
+        if (invuln > 0) invuln = Math.max(0, invuln - dt);
+
+        if (keys.left) basketX -= BASKET_SPEED * dt;
+        if (keys.right) basketX += BASKET_SPEED * dt;
+        basketX = Math.max(0, Math.min(W - BW, basketX));
+
+        specialIn -= dt;
+        if (!special && specialIn <= 0) {
+            special = makeSpecial();
+            specialIn = SPECIAL_EVERY;
+            text(W / 2, 70, t('starsSpecialAppear'), '255,90,110');
         }
 
-        function loseLife() {
-            if (invulnerable) return;
-            lives--;
-            updateLivesDisplay();
-            if (lives <= 0) {
-                gameOver();
+        spawnIn -= dt;
+        if (spawnIn <= 0) {
+            spawnIn = Math.max(D.spawnMin, D.spawn - level * 0.05);
+            if (stars.length < D.maxOn) stars.push(makeStar());
+        }
+
+        if (special) {
+            special.y += special.vy * dt;
+            special.rot += special.spin * dt;
+            special.glow += special.glowDir * dt * 2.2;
+            if (special.glow > 1) { special.glow = 1; special.glowDir = -1; }
+            if (special.glow < 0) { special.glow = 0; special.glowDir = 1; }
+            if (hits(special)) {
+                score += Math.round(P_SPECIAL * D.mult);
+                scoreSpan.textContent = score;
+                lives = MAX_LIVES;
+                livesSpan.textContent = lives;
+                burst(special.x + 25, special.y + 25, '255,90,110', 26);
+                text(W / 2, H / 2, t('starsFullLives'), '255,209,102');
+                special = null;
+                setLevel(); checkMilestone();
+            } else if (special.y > H + 60) {
+                special = null;
+                text(W / 2, H / 2, t('starsMissed'), '255,90,110');
+            }
+        }
+
+        for (let i = stars.length - 1; i >= 0; i--) {
+            const s = stars[i];
+            s.y += s.vy * dt;
+            s.rot += s.spin * dt;
+            if (hits(s)) {
+                score += Math.round(P_STAR * D.mult);
+                scoreSpan.textContent = score;
+                caught++;
+                burst(s.x + s.size / 2, s.y + s.size / 2, '255,209,102', 9);
+                text(s.x + s.size / 2, s.y, '+' + Math.round(P_STAR * D.mult), '255,209,102');
+                stars.splice(i, 1);
+                if (caught >= STARS_FOR_LIFE) { caught = 0; addLife(); }
+                setLevel(); checkMilestone();
+                continue;
+            }
+            if (s.y > H + 40) { stars.splice(i, 1); loseLife(); if (over) return; }
+        }
+
+        for (let i = sparks.length - 1; i >= 0; i--) {
+            const p = sparks[i];
+            p.x += p.vx * dt; p.y += p.vy * dt;
+            p.vy += 240 * dt;
+            p.life -= dt * 1.7;
+            if (p.life <= 0) sparks.splice(i, 1);
+        }
+        for (let i = texts.length - 1; i >= 0; i--) {
+            const f = texts[i];
+            f.y += f.vy * dt;
+            f.life -= dt;
+            if (f.life <= 0) texts.splice(i, 1);
+        }
+        updateStatus();
+    }
+
+    function updateStatus() {
+        if (invuln > 0) {
+            statusEl.textContent = t('starsInvulnerable') + ': ' + invuln.toFixed(1) + 's';
+        } else if (special) {
+            statusEl.textContent = t('starsSpecialOn');
+        } else {
+            statusEl.textContent = t('starsSpecialIn') + ': ' + Math.max(0, Math.ceil(specialIn)) + 's'
+                + '  \u00b7  ' + t('starsNextLife') + ': ' + (STARS_FOR_LIFE - caught) + ' \u2b50';
+        }
+    }
+
+    // ── kresba
+    function drawSky() {
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, '#070b18');
+        g.addColorStop(1, '#141a35');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+        const tw = performance.now() * 0.0006;
+        for (let i = 0; i < 70; i++) {
+            const x = (i * 97) % W, y = (i * 61) % H;
+            const a = 0.16 + Math.sin(tw + i) * 0.12;
+            ctx.fillStyle = 'rgba(255,255,255,' + Math.max(0.03, a) + ')';
+            ctx.fillRect(x, y, 2, 2);
+        }
+    }
+
+    function starPath(r1, r2) {
+        ctx.beginPath();
+        for (let i = 0; i < 10; i++) {
+            const r = i % 2 === 0 ? r1 : r2;
+            const a = i * Math.PI / 5 - Math.PI / 2;
+            if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+            else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+        }
+        ctx.closePath();
+    }
+
+    function drawStar(s) {
+        ctx.save();
+        ctx.translate(s.x + s.size / 2, s.y + s.size / 2);
+        ctx.rotate(s.rot);
+        const glow = ctx.createRadialGradient(0, 0, s.size / 3, 0, 0, s.size);
+        glow.addColorStop(0, 'rgba(255,235,170,0.3)');
+        glow.addColorStop(1, 'rgba(255,235,170,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(-s.size, -s.size, s.size * 2, s.size * 2);
+        starPath(s.size / 2, s.size / 4);
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, s.size / 2);
+        g.addColorStop(0, '#fff');
+        g.addColorStop(0.45, 'hsl(' + s.hue + ',100%,66%)');
+        g.addColorStop(1, 'hsl(' + (s.hue - 14) + ',96%,50%)');
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,.75)';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawSpecial(s) {
+        ctx.save();
+        ctx.translate(s.x + s.size / 2, s.y + s.size / 2);
+        ctx.rotate(s.rot);
+        const gs = s.size * (1.3 + s.glow * 0.5);
+        const glow = ctx.createRadialGradient(0, 0, s.size / 3, 0, 0, gs);
+        glow.addColorStop(0, 'rgba(255,70,100,0.75)');
+        glow.addColorStop(1, 'rgba(255,70,100,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(-gs, -gs, gs * 2, gs * 2);
+        starPath(s.size / 2, s.size / 3);
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, s.size / 2);
+        g.addColorStop(0, '#fff');
+        g.addColorStop(0.35, '#ff6b7d');
+        g.addColorStop(1, '#b31133');
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.strokeStyle = '#ffd166';
+        ctx.lineWidth = 2.4;
+        ctx.stroke();
+        ctx.rotate(-s.rot);
+        ctx.fillStyle = '#ffe9a8';
+        ctx.font = '700 17px "DM Sans", system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('\u2665', 0, 1);
+        ctx.restore();
+    }
+
+    function drawBasket() {
+        ctx.save();
+        if (invuln > 0 && Math.floor(performance.now() / 90) % 2 === 0) ctx.globalAlpha = 0.45;
+        const x = basketX, y = H - BH;
+        // ucho
+        ctx.strokeStyle = '#d9a94a';
+        ctx.lineWidth = 4.5;
+        ctx.beginPath();
+        ctx.arc(x + BW / 2, y + 18, 21, Math.PI, 0);
+        ctx.stroke();
+        // telo
+        const g = ctx.createLinearGradient(x, y, x + BW, y);
+        g.addColorStop(0, '#8a5a20');
+        g.addColorStop(0.5, '#b9782c');
+        g.addColorStop(1, '#7d4f1b');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(x + 4, y + 18);
+        ctx.lineTo(x + 13, y + BH);
+        ctx.lineTo(x + BW - 13, y + BH);
+        ctx.lineTo(x + BW - 4, y + 18);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#5a3510';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(90,53,16,.75)';
+        ctx.fillRect(x + 12, y + 30, BW - 24, 3);
+        ctx.fillRect(x + 12, y + 40, BW - 24, 3);
+        ctx.restore();
+    }
+
+    function draw() {
+        drawSky();
+        stars.forEach(drawStar);
+        if (special) drawSpecial(special);
+        drawBasket();
+        sparks.forEach(p => {
+            ctx.fillStyle = 'rgba(' + p.colour + ',' + Math.max(0, p.life) + ')';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.textAlign = 'center';
+        texts.forEach(f => {
+            ctx.fillStyle = 'rgba(' + f.colour + ',' + Math.min(1, f.life) + ')';
+            ctx.font = '800 17px "Syne", system-ui, sans-serif';
+            ctx.fillText(f.s, f.x, f.y);
+        });
+    }
+
+    // ── slucka: fyzika v sekundach, takze bezi rovnako na kazdom displeji
+    let last = 0;
+    function frame(ts) {
+        const now = ts || performance.now();
+        const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+        last = now;
+        if (running && !over) {
+            if (paused) {
+                // nic
+            } else if (resumeIn > 0) {
+                resumeIn -= dt;
+                if (resumeIn <= 0) { pauseEl.classList.remove('visible'); pauseText.textContent = ''; }
+                else pauseText.textContent = String(Math.ceil(resumeIn));
             } else {
-                invulnerable = true;
-                invulnerableTimer = 120;
-                createExplosion(player.x + player.width/2, player.y + player.height/2, '#ff0000');
+                update(dt);
             }
         }
-        
-        function addLife() {
-            if (lives < MAX_LIVES) {
-                lives++;
-                updateLivesDisplay();
-                createExplosion(player.x + player.width/2, player.y, '#00ff00');
-                showFloatingText(player.x + player.width/2, player.y, '+1 ❤️', '#00ff00');
-            } else {
-                showFloatingText(player.x + player.width/2, player.y, 'MAX ❤️', '#ffd700');
-            }
-        }
-        
-        function refillAllLives() {
-            lives = MAX_LIVES;
-            updateLivesDisplay();
-            createExplosion(player.x + player.width/2, player.y, '#ffd700');
-            showFloatingText(player.x + player.width/2, player.y, t('starsFullLives'), '#ffd700');
-            for (let i = 0; i < 30; i++) {
-                particles.push({
-                    x: player.x + player.width/2, y: player.y,
-                    vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
-                    life: 1, size: Math.random() * 8 + 3,
-                    color: Math.random() > 0.5 ? '#ffd700' : '#ff1744'
-                });
-            }
-        }
-        
-        let floatingTexts = [];
-        function showFloatingText(x, y, text, color) {
-            floatingTexts.push({ x, y, text, color, life: 90, vy: -2 });
-        }
-        
-        let particles = [];
-        function createExplosion(x, y, color) {
-            for (let i = 0; i < 15; i++) {
-                particles.push({
-                    x, y,
-                    vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
-                    life: 1, size: Math.random() * 5 + 2, color
-                });
-            }
-        }
-        
-        function createParticles(x, y) {
-            for (let i = 0; i < 5; i++) {
-                particles.push({
-                    x, y,
-                    vx: (Math.random() - 0.5) * 3, vy: (Math.random() - 0.5) * 3,
-                    life: 1, size: Math.random() * 3 + 1, color: '#ffd700'
-                });
-            }
-        }
-        
-        function gameOver() {
-            gameRunning = false;
-            gameOverElement.style.display = 'block';
-            finalScoreElement.textContent = t('starsFinal') + ': ' + score;
-            if (milestones.length > 0) {
-                milestonesReachedElement.textContent = t('starsMilestones') + ': ' + milestones.join(', ');
-            } else {
-                milestonesReachedElement.textContent = '';
-            }
-        }
-        
-        function checkMilestones() {
-            if (score >= currentMilestone) {
-                milestones.push(currentMilestone);
-                showMilestone(currentMilestone);
-                currentMilestone += 1000;
-            }
-        }
-        
-        function update() {
-            if (!gameRunning) return;
-            if (invulnerable) {
-                invulnerableTimer--;
-                if (invulnerableTimer <= 0) invulnerable = false;
-            }
-            if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
-            if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
-            player.x = Math.max(0, Math.min(player.x, gameCanvas.width - player.width));
-            
-            specialStarTimer++;
-            if (!specialStar && specialStarTimer >= SPECIAL_STAR_INTERVAL) {
-                specialStar = createSpecialStar();
-                specialStarTimer = 0;
-                showFloatingText(gameCanvas.width/2, 50, t('starsSpecialAppear'), '#ff1744');
-            }
-            
-            spawnTimer++;
-            const spawnRate = Math.max(BASE_SPAWN_RATE - difficulty * 5, 20);
-            if (spawnTimer > spawnRate) {
-                if (stars.length < 3 + Math.floor(difficulty)) stars.push(createStar());
-                spawnTimer = 0;
-            }
-            
-            if (specialStar) {
-                specialStar.y += specialStar.speed;
-                specialStar.rotation += specialStar.rotationSpeed;
-                if (checkCollision(player, specialStar)) {
-                    score += 50;
-                    refillAllLives();
-                    scoreElement.textContent = t('starsScore') + ': ' + score;
-                    createParticles(specialStar.x + specialStar.size/2, specialStar.y + specialStar.size/2);
-                    specialStar = null;
-                    checkMilestones();
-                } else if (specialStar.y > gameCanvas.height + 50) {
-                    specialStar = null;
-                    showFloatingText(gameCanvas.width/2, gameCanvas.height/2, t('starsMissed'), '#ff1744');
-                }
-            }
-            
-            for (let i = stars.length - 1; i >= 0; i--) {
-                stars[i].y += stars[i].speed;
-                stars[i].rotation += stars[i].rotationSpeed;
-                if (checkCollision(player, stars[i])) {
-                    score += 10;
-                    starsCollected++;
-                    scoreElement.textContent = t('starsScore') + ': ' + score;
-                    createParticles(stars[i].x + stars[i].size/2, stars[i].y + stars[i].size/2);
-                    showFloatingText(stars[i].x + stars[i].size/2, stars[i].y, '+10', '#ffd700');
-                    if (starsCollected >= STARS_FOR_EXTRA_LIFE) { addLife(); starsCollected = 0; }
-                    stars.splice(i, 1);
-                    if (score % 200 === 0 && score > 0 && score % 1000 !== 0) {
-                        difficulty = Math.min(difficulty + 0.5, 10);
-                        showFloatingText(gameCanvas.width/2, gameCanvas.height/2, t('starsLevelUp', {n: Math.floor(difficulty)}), '#ffd700');
-                    }
-                    checkMilestones();
-                    continue;
-                }
-                if (stars[i].y > gameCanvas.height + 50) { stars.splice(i, 1); loseLife(); }
-            }
-            
-            updateParticles();
-            updateFloatingTexts();
-        }
-        
-        function updateParticles() {
-            for (let i = particles.length - 1; i >= 0; i--) {
-                particles[i].x += particles[i].vx;
-                particles[i].y += particles[i].vy;
-                particles[i].life -= 0.03;
-                if (particles[i].life <= 0) particles.splice(i, 1);
-            }
-        }
-        
-        function updateFloatingTexts() {
-            for (let i = floatingTexts.length - 1; i >= 0; i--) {
-                floatingTexts[i].y += floatingTexts[i].vy;
-                floatingTexts[i].life--;
-                if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
-            }
-        }
-        
-        function draw() {
-            cx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
-            for (let i = 0; i < 80; i++) {
-                const x = (i * 89) % gameCanvas.width;
-                const y = (i * 37) % gameCanvas.height;
-                const brightness = 0.2 + Math.sin(Date.now() * 0.0005 + i) * 0.15;
-                cx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
-                cx.fillRect(x, y, 2, 2);
-            }
-            stars.forEach(star => drawStar(star));
-            if (specialStar) drawSpecialStar(specialStar);
-            drawPlayer();
-            
-            particles.forEach(particle => {
-                let color;
-                switch(particle.color) {
-                    case '#ffd700': color = '255, 215, 0'; break;
-                    case '#ff0000': color = '255, 0, 0'; break;
-                    case '#00ff00': color = '0, 255, 0'; break;
-                    case '#ff1744': color = '255, 23, 68'; break;
-                    default: color = '255, 255, 255';
-                }
-                cx.fillStyle = `rgba(${color}, ${particle.life})`;
-                cx.beginPath(); cx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2); cx.fill();
-            });
-            
-            floatingTexts.forEach(text => {
-                let color;
-                switch(text.color) {
-                    case '#ffd700': color = '255, 215, 0'; break;
-                    case '#00ff00': color = '0, 255, 0'; break;
-                    case '#ff1744': color = '255, 23, 68'; break;
-                    default: color = '255, 255, 255';
-                }
-                cx.fillStyle = `rgba(${color}, ${text.life / 90})`;
-                cx.font = 'bold 18px Arial'; cx.textAlign = 'center';
-                cx.fillText(text.text, text.x, text.y);
-            });
-            
-            cx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            cx.font = '12px Arial'; cx.textAlign = 'left';
-            cx.fillText(t('starsLevel') + ': ' + Math.floor(difficulty), 10, 20);
-            cx.fillText(t('starsNextMilestone') + ': ' + currentMilestone, 10, 40);
-            cx.fillText(t('starsNextLife') + ': ' + (STARS_FOR_EXTRA_LIFE - starsCollected) + ' ⭐', 10, 60);
-            
-            if (invulnerable) {
-                cx.fillStyle = 'rgba(255, 255, 0, 0.7)';
-                cx.fillText(t('starsInvulnerable') + ': ' + Math.ceil(invulnerableTimer / 60) + 's', 10, 80);
-            }
-            
-            if (!specialStar) {
-                const timeUntilSpecial = Math.ceil((SPECIAL_STAR_INTERVAL - specialStarTimer) / 60);
-                cx.fillStyle = 'rgba(255, 23, 68, 0.7)';
-                cx.fillText(t('starsSpecialIn') + ': ' + timeUntilSpecial + 's', 10, 100);
-            } else {
-                cx.fillStyle = 'rgba(255, 23, 68, 0.9)';
-                cx.fillText(t('starsSpecialOn'), 10, 100);
-            }
-            
-            if (milestones.length > 0) {
-                cx.fillStyle = 'rgba(255, 215, 0, 0.7)';
-                cx.fillText(t('starsMilestonesCount') + ': ' + milestones.length + 'x', 10, 120);
-            }
-        }
-        
-        function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
-        
-        function restartGame() {
-            stars = []; specialStar = null; particles = []; floatingTexts = [];
-            score = 0; lives = 3; starsCollected = 0; gameRunning = true;
-            difficulty = 1; spawnTimer = 0; specialStarTimer = 0;
-            invulnerable = false; invulnerableTimer = 0;
-            milestones = []; currentMilestone = 1000;
-            player.x = gameCanvas.width / 2 - player.width/2;
-            gameOverElement.style.display = 'none';
-            applyLang();
-        }
-        
-        // Init
-        applyLang();
-        gameLoop();
-    </script>
+        draw();
+        requestAnimationFrame(frame);
+    }
+
+    function finish() {
+        over = true;
+        running = false;
+        document.getElementById('finalScore').textContent = score;
+        milesEl.textContent = milestones.length
+            ? t('starsMilestones') + ': ' + milestones.join(', ')
+            : '';
+        recordEl.textContent = saveBest() ? t('uiNewRecord') : '';
+        overEl.classList.add('visible');
+        statusEl.textContent = '';
+    }
+
+    function newGame() {
+        loadBest();
+        stars = []; special = null; sparks = []; texts = [];
+        score = 0; lives = D.lives; level = 1; caught = 0;
+        nextMilestone = MILESTONE_STEP; milestones = [];
+        spawnIn = 0.4; specialIn = SPECIAL_EVERY; invuln = 0;
+        basketX = W / 2 - BW / 2;
+        running = true; paused = false; over = false; resumeIn = 0;
+        scoreSpan.textContent = '0';
+        livesSpan.textContent = lives;
+        levelSpan.textContent = '1';
+        overEl.classList.remove('visible');
+        pauseEl.classList.remove('visible');
+        recordEl.textContent = '';
+        milesEl.textContent = '';
+        pauseBtnLabel();
+        fitCanvas();
+        updateStatus();
+    }
+
+    document.getElementById('restartBtn').addEventListener('click', newGame);
+    document.getElementById('newGameBtn').addEventListener('click', newGame);
+    document.getElementById('pauseBtn').addEventListener('click', togglePause);
+    diffGroup.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+            diffGroup.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            diffKey = b.dataset.diff;
+            D = DIFF[diffKey];
+            newGame();
+        });
+    });
+
+    // ── jazyk
+    function applyLang() {
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = t('starsTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty');
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-score').textContent  = t('starsScore');
+        document.getElementById('lbl-lives').textContent  = t('starsLives');
+        document.getElementById('lbl-level').textContent  = t('starsLevel');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('rules').textContent      = t('starsControls');
+        document.getElementById('lbl-over').textContent   = t('starsOver');
+        document.getElementById('lbl-final').textContent  = t('starsFinal') + ':';
+        document.getElementById('restartBtn').textContent = t('starsRestart');
+        document.getElementById('newGameBtn').textContent = t('uiNewGame');
+        pauseBtnLabel();
+        document.title = t('starsTitle') + ' \u00b7 GamePad';
+    }
+    window.addEventListener('storage', e => { if (e.key === 'gamepad_lang') applyLang(); });
+
+    applyLang();
+    newGame();
+    requestAnimationFrame(() => { fitCanvas(); draw(); });
+    requestAnimationFrame(frame);
+})();
+</script>
 </body>
 </html>

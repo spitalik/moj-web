@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Artillery Duel · GamePad</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <style>
         #back-btn{
@@ -100,6 +101,144 @@
 
 @media (max-height:700px){
   #rules{display:none !important;}
+}
+
+/* ── zladenie s ostatnymi hrami zbierky ─────────────────────────────── */
+:root{
+  --fa:#fb923c;--fb:#38bdf8;--fgold:#ffd166;
+  --ftext:#eef3fc;--fmuted:rgba(238,243,252,0.44);--fdim:rgba(238,243,252,0.2);
+  --fbd:rgba(255,255,255,0.09);
+}
+body{
+  font-family:'DM Sans',system-ui,sans-serif !important;
+  background:radial-gradient(ellipse at 50% -8%, rgba(251,146,60,.14) 0%, transparent 58%), #070a12 !important;
+  color:var(--ftext) !important;
+}
+#back-btn{background:rgba(10,13,24,0.72) !important;border:1px solid var(--fbd) !important;color:var(--fmuted) !important;font-weight:500 !important;}
+#back-btn:hover,#back-btn:active{border-color:rgba(255,255,255,0.18) !important;color:#fff !important;}
+#game-container{
+  background:linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)) !important;
+  border:1px solid rgba(255,255,255,0.13) !important;border-radius:26px !important;
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+#header h1{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:19px !important;
+  letter-spacing:-.3px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#settings label{color:var(--fdim) !important;font-size:9px !important;font-weight:600 !important;
+  letter-spacing:1.1px !important;text-transform:uppercase !important;}
+#rules{color:var(--fmuted) !important;font-size:11px !important;line-height:1.6 !important;}
+.btn-group{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:100px !important;padding:3px !important;gap:2px !important;}
+.btn-group button{border-radius:100px !important;color:var(--fmuted) !important;
+  font-family:'DM Sans',sans-serif !important;font-size:11px !important;font-weight:600 !important;
+  padding:5px 12px !important;transition:color .16s,background .16s !important;}
+.btn-group button:hover{color:#fff !important;}
+.btn-group button.active{background:rgba(251,146,60,.16) !important;color:#fff !important;
+  box-shadow:inset 0 0 0 1px rgba(251,146,60,.42) !important;}
+.info-card{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:14px !important;}
+.info-card h3{font-size:8.5px !important;letter-spacing:1.3px !important;color:var(--fdim) !important;
+  font-weight:600 !important;text-transform:uppercase !important;}
+.info-card .value{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+  font-size:18px !important;letter-spacing:-.5px !important;font-variant-numeric:tabular-nums;
+  color:var(--fa) !important;}
+.high-score{border-color:rgba(255,209,102,.35) !important;}
+.high-score h3{color:rgba(255,209,102,.55) !important;}
+.high-score .value{color:var(--fgold) !important;}
+#canvas-wrapper{background:rgba(0,0,0,0.34) !important;border-radius:18px !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.07) !important;}
+#controls button,#padrow button,#controls>button{
+  background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)) !important;
+  border:1px solid var(--fbd) !important;color:var(--fmuted) !important;
+  border-radius:15px !important;box-shadow:none !important;
+  font-family:'DM Sans',sans-serif !important;
+}
+#controls button:active,#padrow button:active{background:rgba(251,146,60,.18) !important;
+  border-color:rgba(251,146,60,.45) !important;color:#fff !important;transform:scale(.95) !important;}
+#status-line{color:var(--fmuted) !important;font-weight:600 !important;}
+/* prekryvy: rodinna karta */
+#game-over-overlay,#win-overlay,#pause-overlay{
+  background:radial-gradient(ellipse at center,rgba(8,10,20,0.84) 0%,rgba(3,4,9,0.96) 78%) !important;
+  backdrop-filter:blur(6px) !important;border-radius:18px !important;
+}
+#game-over-overlay h2,#win-overlay h2,#pause-overlay span{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;letter-spacing:-.5px !important;
+}
+#game-over-overlay h2,#win-overlay h2{
+  font-size:24px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-shadow:none !important;
+}
+#game-over-overlay p,#win-overlay p{font-size:11.5px !important;color:var(--fmuted) !important;}
+#game-over-overlay p span:last-child,#win-overlay p span:last-child{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:20px !important;
+  color:var(--fa) !important;
+}
+#restartBtn,#nextBtn,#newMazeBtn,#newGameBtn,#playAgainBtn{
+  border-radius:100px !important;border:1px solid rgba(251,146,60,.5) !important;
+  background:linear-gradient(180deg,rgba(251,146,60,.24),rgba(251,146,60,.1)) !important;
+  color:#fff !important;font-family:'DM Sans',sans-serif !important;font-size:14px !important;
+  font-weight:600 !important;box-shadow:none !important;padding:12px 30px !important;
+  text-transform:none !important;
+}
+#restartBtn:hover,#nextBtn:hover,#newMazeBtn:hover,#newGameBtn:hover,#playAgainBtn:hover{
+  background:linear-gradient(180deg,rgba(251,146,60,.34),rgba(251,146,60,.16)) !important;
+  box-shadow:0 0 24px -6px rgba(251,146,60,.5) !important;transform:none !important;
+}
+#restartBtn:active,#nextBtn:active{transform:translateY(1px) !important;}
+
+/* tlacidlo Spat nesmie sedet na hlavicke panelu */
+@media (max-width:560px){
+  #game-container{padding-top:46px !important;}
+}
+/* nizke telefony: menej chromu */
+@media (max-height:620px){
+  #rules{display:none !important;}
+  #header h1{font-size:15px !important;}
+  #info-panel{gap:5px !important;padding:0 !important;}
+  .info-card{padding:5px 9px !important;min-width:50px !important;}
+  .info-card h3{font-size:8px !important;margin-bottom:0 !important;}
+  .info-card .value{font-size:15px !important;}
+}
+/* telefon na sirku: panel v stlpci, plocha si vezme vysku okna */
+@media (max-height:520px) and (orientation:landscape){
+  body{padding:4px !important;align-items:flex-start !important;}
+  #game-container{max-width:100% !important;max-height:none !important;padding-top:46px !important;}
+  #gameCanvas{max-height:none !important;}
+  #header{gap:5px !important;}
+  #info-panel{gap:3px !important;}
+  #info-panel .info-card{padding:3px 7px !important;}
+}
+/* velmi uzke obrazovky */
+@media (max-width:380px){
+  body{padding:4px !important;}
+  #game-container{padding-left:8px !important;padding-right:8px !important;}
+}
+/* velke obrazovky: panel smie narast */
+@media (min-width:700px){
+  #game-container{max-width:660px !important;}
+}
+
+/* telefon na sirku: co najmenej chromu, plocha ma prednost */
+@media (max-height:520px) and (orientation:landscape){
+  #game-container{gap:4px !important;padding-bottom:6px !important;}
+  #canvas-wrapper{padding:4px !important;}
+  #status-line{font-size:10px !important;line-height:1.25 !important;}
+  #rules{display:none !important;}
+  #settings label{display:none !important;}
+  .btn-group button{padding:4px 9px !important;font-size:10px !important;}
+  #controls{gap:5px !important;}
+  #controls button{padding:7px 13px !important;font-size:11.5px !important;}
+}
+
+@media (max-height:520px) and (orientation:landscape){
+  #aim{flex-direction:row !important;gap:10px !important;align-items:center !important;}
+  #aim > *{flex:1 1 0 !important;min-width:0 !important;}
+  #aim label{font-size:9px !important;}
 }
 </style>
 </head>
@@ -211,7 +350,41 @@
 
         // ----- KONFIGURACIA -----
         const W = 468, H = 300;
-        canvas.width = W; canvas.height = H;
+        // ── ostra kresba: logicky priestor sa mapuje na skutocne body displeja
+        let DPR = 1;
+        function fitCanvas(hintH) {
+            DPR = Math.min(window.devicePixelRatio || 1, 2);
+            const cont = document.getElementById('game-container');
+            const land = window.matchMedia('(max-height:520px) and (orientation:landscape)').matches;
+            const availW = Math.max(200, Math.min(620, (cont ? cont.clientWidth : 340) - 28));
+            const availH = hintH || Math.max(180, window.innerHeight - (land ? 110 : 260));
+            const k = Math.max(0.28, Math.min(availW / W, availH / H, 1.8));
+            canvas.width = Math.round(W * k * DPR);
+            canvas.height = Math.round(H * k * DPR);
+            canvas.style.width = (canvas.width / DPR) + 'px';
+            canvas.style.height = (canvas.height / DPR) + 'px';
+            ctx.setTransform(k * DPR, 0, 0, k * DPR, 0, 0);
+            if (!hintH) {
+                const got = canvas.getBoundingClientRect();
+                if (!land) {
+                    if (got.height > 20 && H * k - got.height > 1.5) { fitCanvas(got.height); return; }
+                    if (got.width > 20 && W * k - got.width > 1.5) { fitCanvas(got.width * H / W); return; }
+                    // par bodov pretekania (zaokruhlenie) by vyvolalo zbytocny posuvnik
+                    const spill = document.documentElement.scrollHeight - window.innerHeight;
+                    if (spill > 1 && spill <= 26 && got.height - spill > 150) { fitCanvas(got.height - spill - 3); return; }
+                } else {
+                    // na sirku: nech sa cely panel vojde do okna aj s ovladanim
+                    const over = document.documentElement.scrollHeight - window.innerHeight;
+                    if (over > 4 && got.height - over > 150) { fitCanvas(got.height - over); return; }
+                }
+            }
+        }
+        fitCanvas();
+        let fitTimer = 0;
+        window.addEventListener('resize', () => {
+            clearTimeout(fitTimer);
+            fitTimer = setTimeout(() => { fitCanvas(); draw(); }, 120);
+        });
         const GRAVITY = 0.135, DT = 1;
         const BLAST = 22, HURT = 42;
         const AIM_NOISE = { easy: 16, medium: 6, hard: 1.8 };   // degrees/power units of AI error
@@ -223,7 +396,9 @@
         let wind = 0, turn = 'me', busy = false, ended = false, score = 0;
         let shell = null, trail = [], blast = null, shots = 0;
         let foeAim = { angle: 45, power: 60 };
-        let best = parseInt(localStorage.getItem('artilleryDuelBest') || '0', 10);
+        const bestKey = () => 'artillery_best_' + diffKey;
+        let best = 0;
+        function loadBest() { best = parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0; bestSpan.textContent = best; }
         bestSpan.textContent = best;
 
         function makeTerrain() {
@@ -288,12 +463,22 @@
                 vx: Math.cos(a) * v * dir, vy: -Math.sin(a) * v, dir,
             };
             trail = [];
+            shellTs = 0; shellAcc = 0;
             step();
         }
 
-        function step() {
+        let shellTs = 0, shellAcc = 0;
+        const SHELL_STEP = 1 / 120;      // dva tiky na 60 Hz snimku, ale merane v case
+        function step(ts) {
             if (!shell) return;
-            for (let k = 0; k < 2; k++) {                       // two physics ticks per frame
+            const dtReal = shellTs ? Math.min(0.1, ((ts || performance.now()) - shellTs) / 1000) : SHELL_STEP * 2;
+            shellTs = ts || performance.now();
+            shellAcc += dtReal;
+            if (shellAcc > SHELL_STEP * 8) shellAcc = SHELL_STEP * 8;   // po zdrzani snimky cas nedohanam
+            let ticks = 0;
+            while (shellAcc >= SHELL_STEP && ticks < 8) {       // fyzika bezi rovnako rychlo na kazdom displeji
+                shellAcc -= SHELL_STEP;
+                ticks++;
                 shell.vx += wind * 0.0026;
                 shell.vy += GRAVITY * DT;
                 shell.x += shell.vx * DT; shell.y += shell.vy * DT;
@@ -362,7 +547,7 @@
             const won = foe.hp <= 0 && me.hp > 0;
             score = won ? Math.round((90 + me.hp + Math.max(0, 60 - shots * 4)) * MULT[diffKey]) : 0;
             scoreSpan.textContent = score;
-            if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem("artilleryDuelBest", String(best)); }
+            if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem(bestKey(), String(best)); }
             resultH2.textContent = won ? t('uiYouWin') : t('uiYouLose');
             shotsP.textContent = t('artShots', { n: shots });
             finalScore.textContent = score;
@@ -377,6 +562,7 @@
         }
 
         function newGame() {
+            loadBest();   // rekord patri k aktualnej obtiaznosti
             makeTerrain();
             me = { x: 44 + Math.random() * 26, y: 0, hp: 100 };
             foe = { x: W - 44 - Math.random() * 26, y: 0, hp: 100 };

@@ -4,466 +4,526 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Color Slide · GamePad</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none;
+            -webkit-tap-highlight-color:transparent; }
         body {
-            background: linear-gradient(145deg, #1e2b3c 0%, #0f1722 100%);
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
-            touch-action: manipulation;
-            padding: 12px;
-        }
-        #back-btn {
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            background: rgba(20, 33, 41, 0.85);
-            border: 1px solid #3a5a5f;
-            color: #b8d6bc;
-            padding: 7px 14px;
-            border-radius: 100px;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 500;
-            backdrop-filter: blur(4px);
-            transition: all .18s;
-        }
-        #back-btn:hover, #back-btn:active {
-            border-color: #6fa8a0;
-            color: #ecf7ed;
-        }
-        .game-container {
-            background: #223544;
-            border-radius: 48px 48px 32px 32px;
-            padding: 24px 20px 30px;
-            max-width: 520px;
-            width: 100%;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 0 1px #3d5a73 inset;
-            transition: all 0.2s;
-            margin-top: 36px;
-        }
-        h1 {
-            text-align: center;
-            margin: 0 0 6px 0;
-            font-weight: 400;
-            font-size: 1.8rem;
-            letter-spacing: 3px;
-            color: #d4e9d6;
-            text-shadow: 0 2px 0 #0b1a1f;
-            word-break: keep-all;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        h1 small {
-            font-size: 0.9rem;
-            background: #2f4a4f;
-            padding: 4px 16px;
-            border-radius: 40px;
-            color: #bcd9c0;
-            letter-spacing: 0.5px;
-            box-shadow: inset 0 1px 3px #0b1a1f;
-        }
-        .board-wrapper {
-            background: #1f2f3a;
-            border-radius: 36px;
-            padding: 16px;
-            margin: 12px 0 18px;
-            box-shadow: inset 0 6px 10px rgba(0,0,0,0.6), 0 0 0 1px #3a5a5f;
-        }
-        #gameBoard {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            aspect-ratio: 1 / 1;
-            width: 100%;
-            margin: 0 auto;
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; padding:12px;
             touch-action: manipulation;
         }
-        .cell {
-            background: #263b44;
-            border-radius: 18px;
-            box-shadow: 0 6px 0 #0f1a20, 0 8px 12px rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.2rem;
-            font-weight: 600;
-            color: white;
-            text-shadow: 0 2px 4px black;
-            transition: 0.08s ease-in;
-            cursor: pointer;
-            touch-action: manipulation;
-            aspect-ratio: 1 / 1;
-            will-change: transform;
-            border: 1px solid #3c5b64;
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #2b2b56;color:#8d88b8;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
         }
-        .cell:active {
-            transform: scale(0.94);
-            box-shadow: 0 2px 0 #0f1a20;
-        }
-        /* farby podľa hodnôt */
-        .cell-0 { background: #2d4a57; }
-        .cell-1 { background: #e15554; }
-        .cell-2 { background: #4c9f70; }
-        .cell-3 { background: #3b8cbf; }
-        .cell-4 { background: #e9b35f; }
-        .cell-5 { background: #b47eb3; }
-        .cell-6 { background: #e58a6b; }
-        .cell-7 { background: #6fa8a0; }
-        .cell-8 { background: #e15554; }
-        .cell-9 { background: #4c9f70; }
-        .cell-10 { background: #3b8cbf; }
-        .cell-11 { background: #e9b35f; }
-        .cell-12 { background: #b47eb3; }
-        .cell-13 { background: #e58a6b; }
-        .cell-14 { background: #6fa8a0; }
-        .cell-15 { background: #7c6fff; }
+        #back-btn:hover,#back-btn:active{border-color:#7c6fff;color:#ece9ff;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
 
-        .status-area {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 12px 0 16px;
-            flex-wrap: wrap;
-            gap: 10px;
+        #game-container {
+            background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+            max-width:500px; width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:12px; position:relative;
         }
-        .message-box {
-            background: #13212b;
-            padding: 10px 18px;
-            border-radius: 60px;
-            color: #c4e0c7;
-            font-weight: 500;
-            font-size: 1.1rem;
-            box-shadow: inset 0 2px 5px #0b151c;
-            flex: 1;
-            min-width: 120px;
-            text-align: center;
-            letter-spacing: 0.3px;
-            border: 1px solid #2f535a;
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 { font-size:21px; font-weight:700; display:flex; align-items:center; gap:8px; }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; text-align:center; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px;
+                            border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#7c6fff; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px;
+                     padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px;
+                        font-weight:500; letter-spacing:.4px; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #status-line { text-align:center; font-size:12px; color:#b3aaff; min-height:16px; font-weight:600; }
+
+        #canvas-wrapper { background:#0f1622; border-radius:18px; padding:9px; position:relative;
+                          align-self:center; box-shadow:inset 0 0 0 1px #2a3446; }
+        #gameBoard { position:relative; width:100%; aspect-ratio:1/1; touch-action:manipulation; }
+        .tile {
+            position:absolute; left:0; top:0;
+            display:flex; align-items:center; justify-content:center;
+            border-radius:16px; cursor:pointer;
+            font-family:'Syne', sans-serif; font-weight:800; color:#fff;
+            text-shadow:0 2px 6px rgba(0,0,0,.55);
+            box-shadow:0 5px 0 rgba(0,0,0,.34), 0 8px 14px rgba(0,0,0,.4),
+                       inset 0 1px 0 rgba(255,255,255,.18);
+            transition:transform .13s cubic-bezier(.3,.8,.4,1), box-shadow .12s, filter .12s;
+            will-change:transform;
         }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+        .tile:active { box-shadow:0 2px 0 rgba(0,0,0,.34); filter:brightness(1.14); }
+        .tile.home { box-shadow:0 5px 0 rgba(0,0,0,.34), 0 8px 14px rgba(0,0,0,.4),
+                     inset 0 1px 0 rgba(255,255,255,.18), inset 0 0 0 2px rgba(255,255,255,.34); }
+        #gameBoard.done .tile { filter:brightness(1.12) saturate(1.1); }
+
+        #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+                           border-radius:12px; padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer; }
+        #controls button:active { transform:translateY(2px); }
+
+        #win-overlay {
+            position:absolute; inset:0; display:none; flex-direction:column;
+            align-items:center; justify-content:center; gap:9px; padding:26px;
+            border-radius:28px; z-index:20; text-align:center;
+            background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
         }
-        .btn {
-            background: #2e4b52;
-            border: none;
-            color: #ecf7ed;
-            font-size: 1.2rem;
-            font-weight: 600;
-            padding: 10px 22px;
-            border-radius: 60px;
-            box-shadow: 0 6px 0 #14222a, 0 4px 8px rgba(0,0,0,0.5);
-            transition: 0.08s linear;
-            cursor: pointer;
-            touch-action: manipulation;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            border: 1px solid #4e737c;
-            letter-spacing: 0.7px;
-            flex: 1 1 auto;
+        #win-overlay.visible { display:flex; }
+        #win-overlay h2 { font-size:26px; }
+        #win-overlay p { font-size:14px; color:#b0c4e0; }
+        #recordLine { font-size:12px; color:#ffd166; font-weight:600; letter-spacing:.3px; min-height:15px; }
+        #playAgainBtn {
+            background:#7c6fff; border:1px solid #cfc9ff; border-radius:40px;
+            padding:12px 32px; font-size:16px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #4b3fd0; cursor:pointer; margin-top:6px;
         }
-        .btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #14222a;
+        #playAgainBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #4b3fd0; }
+
+        /* nizke obrazovky: menej chromu, plocha si vezme volne miesto */
+        @media (max-height:900px){
+          body{padding:6px !important;}
+          #game-container{padding:12px 14px 14px !important;gap:9px !important;}
         }
-        .btn-primary {
-            background: #4c7a7a;
-            border-color: #70a0a0;
-            box-shadow: 0 6px 0 #1e3a3a;
+        @media (max-height:760px){
+          body{padding:3px !important;}
+          #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
+          #win-overlay{border-radius:18px !important;}
         }
-        .btn-primary:active {
-            box-shadow: 0 2px 0 #1e3a3a;
+        @media (max-height:640px){
+          #rules{display:none !important;}
+          #header h1{font-size:16px !important;}
         }
-        .btn-secondary {
-            background: #5f4f6b;
-            border-color: #8a7a96;
-            box-shadow: 0 6px 0 #342b3d;
+        @media (max-width:560px){
+          #game-container{padding-top:44px !important;}
         }
-        .btn-secondary:active {
-            box-shadow: 0 2px 0 #342b3d;
+        @media (max-height:520px) and (orientation:landscape){
+          /* na sirku nechavam co najviac miesta ploche: nazov ide vedla tlacidla Spat */
+          body{padding:4px !important;align-items:flex-start !important;}
+          #game-container{max-width:100% !important;padding:8px 10px 8px !important;gap:4px !important;}
+          #header{padding-left:104px !important;}
+          #settings label{display:none !important;}
+          #info-panel{gap:4px !important;}
+          .info-card{padding:4px 8px !important;min-width:52px !important;}
+          .info-card h3{font-size:8px !important;margin-bottom:0 !important;}
+          .info-card .value{font-size:15px !important;}
+          #status-line{font-size:10px !important;min-height:12px !important;}
+          #controls button{padding:6px 12px !important;font-size:11.5px !important;}
         }
-        .move-counter {
-            background: #1f313a;
-            padding: 6px 16px;
-            border-radius: 40px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #b8d6bc;
-            border: 1px solid #2b4b50;
-            white-space: nowrap;
-        }
-        .footer-note {
-            text-align: center;
-            color: #6e8f8f;
-            margin-top: 12px;
-            font-size: 0.85rem;
-            letter-spacing: 0.3px;
-            opacity: 0.8;
-        }
-        @media (max-width: 480px) {
-            .game-container { padding: 16px 12px 20px; }
-            .cell { font-size: 1.8rem; border-radius: 14px; }
-            .btn { font-size: 1rem; padding: 8px 14px; }
-            .message-box { font-size: 1rem; padding: 8px 12px; }
-        }
-        @media (max-width: 400px) {
-            #gameBoard { gap: 6px; }
-            .cell { font-size: 1.4rem; border-radius: 12px; }
+        @media (min-width:700px){
+          #game-container{max-width:560px !important;}
         }
     
-/* landscape-fix: nízke obrazovky */
-@media (max-height:760px){
-  .game-container{padding:8px 10px 10px !important;gap:6px !important;}
-  .cell{width:clamp(16px,4.6vh,30px) !important;height:clamp(16px,4.6vh,30px) !important;}
-  .btn{padding:6px 12px !important;font-size:12px !important;}
+/* ── zladenie s ostatnymi hrami zbierky ─────────────────────────────── */
+:root{
+  --fa:#7c6fff;--fb:#4c9f70;--fgold:#ffd166;
+  --ftext:#eef3fc;--fmuted:rgba(238,243,252,0.44);--fdim:rgba(238,243,252,0.2);
+  --fbd:rgba(255,255,255,0.09);
 }
+body{
+  font-family:'DM Sans',system-ui,sans-serif !important;
+  background:radial-gradient(ellipse at 50% -8%, rgba(124,111,255,.14) 0%, transparent 58%), #070a12 !important;
+  color:var(--ftext) !important;
+}
+#back-btn{background:rgba(10,13,24,0.72) !important;border:1px solid var(--fbd) !important;color:var(--fmuted) !important;font-weight:500 !important;}
+#back-btn:hover,#back-btn:active{border-color:rgba(255,255,255,0.18) !important;color:#fff !important;}
+#game-container{
+  background:linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)) !important;
+  border:1px solid rgba(255,255,255,0.13) !important;border-radius:26px !important;
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+#header h1{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:19px !important;
+  letter-spacing:-.3px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#settings label{color:var(--fdim) !important;font-size:9px !important;font-weight:600 !important;
+  letter-spacing:1.1px !important;text-transform:uppercase !important;}
+#rules{color:var(--fmuted) !important;font-size:11px !important;line-height:1.6 !important;}
+.btn-group{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:100px !important;padding:3px !important;gap:2px !important;}
+.btn-group button{border-radius:100px !important;color:var(--fmuted) !important;
+  font-family:'DM Sans',sans-serif !important;font-size:11px !important;font-weight:600 !important;
+  padding:5px 12px !important;transition:color .16s,background .16s !important;}
+.btn-group button:hover{color:#fff !important;}
+.btn-group button.active{background:rgba(124,111,255,.16) !important;color:#fff !important;
+  box-shadow:inset 0 0 0 1px rgba(124,111,255,.42) !important;}
+.info-card{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:14px !important;}
+.info-card h3{font-size:8.5px !important;letter-spacing:1.3px !important;color:var(--fdim) !important;
+  font-weight:600 !important;text-transform:uppercase !important;}
+.info-card .value{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+  font-size:18px !important;letter-spacing:-.5px !important;font-variant-numeric:tabular-nums;
+  color:var(--fa) !important;}
+.high-score{border-color:rgba(255,209,102,.35) !important;}
+.high-score h3{color:rgba(255,209,102,.55) !important;}
+.high-score .value{color:var(--fgold) !important;}
+#canvas-wrapper{background:rgba(0,0,0,0.34) !important;border-radius:18px !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.07) !important;}
+#controls button,#padrow button,#controls>button{
+  background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)) !important;
+  border:1px solid var(--fbd) !important;color:var(--fmuted) !important;
+  border-radius:15px !important;box-shadow:none !important;
+  font-family:'DM Sans',sans-serif !important;
+}
+#controls button:active,#padrow button:active{background:rgba(124,111,255,.18) !important;
+  border-color:rgba(124,111,255,.45) !important;color:#fff !important;transform:scale(.95) !important;}
+#status-line{color:var(--fmuted) !important;font-weight:600 !important;}
+/* prekryvy: rodinna karta */
+#game-over-overlay,#win-overlay,#pause-overlay{
+  background:radial-gradient(ellipse at center,rgba(8,10,20,0.84) 0%,rgba(3,4,9,0.96) 78%) !important;
+  backdrop-filter:blur(6px) !important;border-radius:18px !important;
+}
+#game-over-overlay h2,#win-overlay h2,#pause-overlay span{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;letter-spacing:-.5px !important;
+}
+#game-over-overlay h2,#win-overlay h2{
+  font-size:24px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-shadow:none !important;
+}
+#game-over-overlay p,#win-overlay p{font-size:11.5px !important;color:var(--fmuted) !important;}
+#game-over-overlay p span:last-child,#win-overlay p span:last-child{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:20px !important;
+  color:var(--fa) !important;
+}
+#restartBtn,#nextBtn,#newMazeBtn,#newGameBtn,#playAgainBtn{
+  border-radius:100px !important;border:1px solid rgba(124,111,255,.5) !important;
+  background:linear-gradient(180deg,rgba(124,111,255,.24),rgba(124,111,255,.1)) !important;
+  color:#fff !important;font-family:'DM Sans',sans-serif !important;font-size:14px !important;
+  font-weight:600 !important;box-shadow:none !important;padding:12px 30px !important;
+  text-transform:none !important;
+}
+#restartBtn:hover,#nextBtn:hover,#newMazeBtn:hover,#newGameBtn:hover,#playAgainBtn:hover{
+  background:linear-gradient(180deg,rgba(124,111,255,.34),rgba(124,111,255,.16)) !important;
+  box-shadow:0 0 24px -6px rgba(124,111,255,.5) !important;transform:none !important;
+}
+#restartBtn:active,#nextBtn:active{transform:translateY(1px) !important;}
 
-/* landscape-fix 2 */
-@media (max-height:700px){
-  .game-container{padding:5px 8px 8px !important;gap:4px !important;}
-  .cell{width:clamp(14px,min(4.2vh,6.5vw),26px) !important;height:clamp(14px,min(4.2vh,6.5vw),26px) !important;}
-}
-
-/* landscape-fix 3 */
-@media (orientation:landscape) and (max-height:760px){
-  .game-container h1{display:none !important;}
-  .cell{width:clamp(12px,min(3.8vh,5.5vw),22px) !important;height:clamp(12px,min(3.8vh,5.5vw),22px) !important;}
-  .game-container{padding:4px 6px 6px !important;gap:3px !important;}
-}
-</style>
+    </style>
 </head>
 <body>
 <a href="../../index.html" id="back-btn">
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   <span id="lbl-back"></span>
 </a>
-<div class="game-container">
-    <h1>
-        🎲 <span id="lbl-title"></span>
-        <small id="lbl-tag"></small>
-    </h1>
-    <div class="board-wrapper">
+
+<div id="game-container">
+    <div id="header">
+        <h1>🎲 <span id="lbl-title"></span></h1>
+        <div id="settings">
+            <label id="lbl-size"></label>
+            <div class="btn-group" id="sizeGroup">
+                <button data-n="4" class="active">4×4</button>
+                <button data-n="5">5×5</button>
+                <button data-n="6">6×6</button>
+            </div>
+        </div>
+    </div>
+
+    <p id="rules"></p>
+
+    <div id="info-panel">
+        <div class="info-card"><h3 id="lbl-moves"></h3><span class="value" id="moveValue">0</span></div>
+        <div class="info-card"><h3 id="lbl-time"></h3><span class="value" id="timeValue">0:00</span></div>
+        <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">-</span></div>
+    </div>
+
+    <div id="status-line"></div>
+
+    <div id="canvas-wrapper">
         <div id="gameBoard"></div>
     </div>
 
-    <div class="status-area">
-        <div class="message-box" id="statusMessage"></div>
-        <div class="move-counter" id="moveCounter">🔄 0</div>
+    <div id="controls">
+        <button id="newGameBtn"></button>
+        <button id="restartBtn"></button>
     </div>
 
-    <div class="btn-group">
-        <button class="btn btn-primary" id="newGameBtn"></button>
-        <button class="btn btn-secondary" id="resetBtn"></button>
+    <div id="win-overlay">
+        <h2 id="lbl-win"></h2>
+        <p><span id="lbl-win-moves"></span> <span id="finalMoves">0</span></p>
+        <p><span id="lbl-win-time"></span> <span id="finalTime">0:00</span></p>
+        <div id="recordLine"></div>
+        <button id="playAgainBtn"></button>
     </div>
-    <div class="footer-note" id="lbl-footer"></div>
 </div>
 
 <script>
-    document.getElementById('lbl-back').textContent   = t('back');
-    document.getElementById('lbl-title').textContent  = t('cestyTitle');
-    document.getElementById('lbl-tag').textContent    = t('cestyTag');
-    document.getElementById('newGameBtn').textContent = t('cestyBtnNew');
-    document.getElementById('resetBtn').textContent   = t('cestyBtnReset');
-    document.getElementById('lbl-footer').textContent = t('cestyFooter');
+(function () {
+    "use strict";
 
-    (function() {
-        // ----- HERNÝ STAV -----
-        const BOARD_SIZE = 4;
-        const CELL_COUNT = BOARD_SIZE * BOARD_SIZE; // 16
+    const boardEl   = document.getElementById('gameBoard');
+    const wrapEl    = document.getElementById('canvas-wrapper');
+    const statusEl  = document.getElementById('status-line');
+    const moveSpan  = document.getElementById('moveValue');
+    const timeSpan  = document.getElementById('timeValue');
+    const bestSpan  = document.getElementById('bestValue');
+    const overlay   = document.getElementById('win-overlay');
+    const recordEl  = document.getElementById('recordLine');
+    const sizeGroup = document.getElementById('sizeGroup');
 
-        // indexy: 0..15, prázdne miesto má hodnotu 0
-        let board = new Array(CELL_COUNT).fill(0);
-        let emptyIndex = 0;      // vždy ukazuje na index s hodnotou 0
-        let moves = 0;
-        let gameOver = false;
+    const gapFor = n => n >= 6 ? 5 : (n === 5 ? 6 : 8);   // vacsia plocha, tesnejsie odstupy
+    let N = 4;                           // strana plochy
+    let board = [], startBoard = [], gap = 0;
+    let moves = 0, solved = false;
+    let tiles = new Map();               // hodnota dlazdice -> jej prvok
+    let startedAt = 0, elapsed = 0, ticker = 0;
+    let best = 0;
 
-        // DOM elementy
-        const boardEl = document.getElementById('gameBoard');
-        const statusEl = document.getElementById('statusMessage');
-        const moveEl = document.getElementById('moveCounter');
-
-        // ----- POMOCNÉ FUNKCIE -----
-        function isAdjacent(indexA, indexB) {
-            const rowA = Math.floor(indexA / BOARD_SIZE);
-            const colA = indexA % BOARD_SIZE;
-            const rowB = Math.floor(indexB / BOARD_SIZE);
-            const colB = indexB % BOARD_SIZE;
-            const rowDiff = Math.abs(rowA - rowB);
-            const colDiff = Math.abs(colA - colB);
-            return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+    // ----- rekord na velkost plochy -----
+    const bestKey = () => 'colorslide_best_' + N;
+    function loadBest() {
+        best = parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0;
+        bestSpan.textContent = best ? best : '-';
+    }
+    function saveBest(m) {
+        if (!best || m < best) {
+            best = m;
+            try { localStorage.setItem(bestKey(), String(best)); } catch (e) {}
+            bestSpan.textContent = best;
+            return true;
         }
+        return false;
+    }
 
-        // ----- VYTVORENIE ZAMIEŠANÉHO STAVU (riešiteľný) -----
-        function generateSolvableBoard() {
-            const target = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
-            let arr = [...target];
-            let emptyPos = 15;
+    // ----- cas -----
+    const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+    function stopClock() { clearInterval(ticker); ticker = 0; }
+    function startClock() {
+        stopClock();
+        startedAt = Date.now();
+        elapsed = 0;
+        timeSpan.textContent = '0:00';
+        ticker = setInterval(() => {
+            if (solved) return;
+            elapsed = (Date.now() - startedAt) / 1000;
+            timeSpan.textContent = fmt(elapsed);
+        }, 250);
+    }
 
-            const totalMoves = 180 + Math.floor(Math.random() * 120);
-            let lastMoveFrom = -1;
-            for (let i = 0; i < totalMoves; i++) {
-                const neighbors = [];
-                const row = Math.floor(emptyPos / BOARD_SIZE);
-                const col = emptyPos % BOARD_SIZE;
-
-                if (row > 0) neighbors.push(emptyPos - BOARD_SIZE);
-                if (row < BOARD_SIZE - 1) neighbors.push(emptyPos + BOARD_SIZE);
-                if (col > 0) neighbors.push(emptyPos - 1);
-                if (col < BOARD_SIZE - 1) neighbors.push(emptyPos + 1);
-
-                let available = neighbors.filter(idx => idx !== lastMoveFrom);
-                if (available.length === 0) available = neighbors;
-
-                const randomIdx = available[Math.floor(Math.random() * available.length)];
-                arr[emptyPos] = arr[randomIdx];
-                arr[randomIdx] = 0;
-                lastMoveFrom = emptyPos;
-                emptyPos = randomIdx;
-            }
-
-            const zeroIndex = arr.indexOf(0);
-            if (zeroIndex === -1) {
-                arr[15] = 0;
-                emptyPos = 15;
-            } else {
-                emptyPos = zeroIndex;
-            }
-
-            return { board: arr, emptyIndex: emptyPos };
+    // ----- zamiesanie, ktore je vzdy riesitelne (miesam z hotoveho stavu) -----
+    function shuffled() {
+        const arr = [];
+        for (let i = 1; i < N * N; i++) arr.push(i);
+        arr.push(0);
+        let g = N * N - 1, last = -1;
+        const steps = 90 * N;
+        for (let i = 0; i < steps; i++) {
+            const r = Math.floor(g / N), c = g % N, nb = [];
+            if (r > 0) nb.push(g - N);
+            if (r < N - 1) nb.push(g + N);
+            if (c > 0) nb.push(g - 1);
+            if (c < N - 1) nb.push(g + 1);
+            let pick = nb.filter(x => x !== last);
+            if (!pick.length) pick = nb;
+            const to = pick[Math.floor(Math.random() * pick.length)];
+            arr[g] = arr[to]; arr[to] = 0;
+            last = g; g = to;
         }
+        if (isDone(arr)) return shuffled();      // hotovu plochu na zaciatku nechcem
+        return { board: arr, gap: arr.indexOf(0) };
+    }
 
-        // ----- INICIALIZÁCIA / RESET HRY -----
-        function initGame() {
-            const generated = generateSolvableBoard();
-            board = [...generated.board];
-            emptyIndex = generated.emptyIndex;
-            moves = 0;
-            gameOver = false;
-            renderBoard();
-            updateStatus();
-            updateMoveCounter();
+    function isDone(arr) {
+        for (let i = 0; i < arr.length - 1; i++) if (arr[i] !== i + 1) return false;
+        return arr[arr.length - 1] === 0;
+    }
+
+    // ----- kresba -----
+    // farba nesie cielove miesto dlazdice: odtien plynie v poradi citania,
+    // takze hotova plocha je plynuly farebny prechod a ziadne cisla netreba.
+    // Svetlost mierne klesa po riadkoch, aby sa dva blizke odtiene odlisili.
+    function tileColour(v) {
+        const home = v - 1;
+        const r = Math.floor(home / N);
+        const hue = Math.round(home / (N * N - 2) * 320);
+        const lig = 62 - r * 3;
+        return 'linear-gradient(160deg,hsl(' + hue + ',74%,' + (lig + 7) + '%),hsl(' + hue + ',68%,' + (lig - 7) + '%))';
+    }
+
+    function build() {
+        boardEl.innerHTML = '';
+        tiles = new Map();
+        for (let i = 0; i < board.length; i++) {
+            const v = board[i];
+            if (!v) continue;
+            const el = document.createElement('div');
+            el.className = 'tile';
+            el.setAttribute('aria-label', String(v));
+            el.style.background = tileColour(v);
+            el.addEventListener('click', () => tap(v));
+            tiles.set(v, el);
+            boardEl.appendChild(el);
         }
+        layout();
+    }
 
-        function resetGame() {
-            initGame();
+    function layout() {
+        const side = boardEl.clientWidth;
+        if (side < 20) return;
+        const GAP = gapFor(N);
+        const cell = (side - GAP * (N - 1)) / N;
+        boardEl.style.setProperty('--cell', cell + 'px');
+        tiles.forEach((el, v) => {
+            const i = board.indexOf(v);
+            const r = Math.floor(i / N), c = i % N;
+            el.style.width = cell + 'px';
+            el.style.height = cell + 'px';
+            el.style.borderRadius = Math.max(9, Math.round(cell * 0.2)) + 'px';
+            el.style.transform = 'translate(' + (c * (cell + GAP)) + 'px,' + (r * (cell + GAP)) + 'px)';
+            el.classList.toggle('home', v === i + 1);
+        });
+    }
+
+    // plocha je stvorec: sirku beriem z panelu, ale nesmie prerast vysku okna
+    function fitBoard(hint) {
+        const cont = document.getElementById('game-container');
+        const land = window.matchMedia('(max-height:520px) and (orientation:landscape)').matches;
+        const availW = Math.min(430, (cont ? cont.clientWidth : 340) - 40);
+        const availH = hint || Math.max(150, window.innerHeight - (land ? 150 : 300));
+        const side = Math.max(120, Math.min(availW, availH));
+        wrapEl.style.width = (side + 18) + 'px';
+        layout();
+        if (!hint) {
+            // par bodov pretekania by vyvolalo posuvnik: vratim ich ploche
+            const spill = document.documentElement.scrollHeight - window.innerHeight;
+            if (spill > 2 && side - spill > 120) { fitBoard(side - spill - 3); }
         }
+    }
 
-        function newGame() {
-            initGame();
-        }
+    // ----- tah -----
+    function canMove(i) {
+        const r = Math.floor(i / N), c = i % N;
+        const gr = Math.floor(gap / N), gc = gap % N;
+        return (r === gr && Math.abs(c - gc) === 1) || (c === gc && Math.abs(r - gr) === 1);
+    }
 
-        // ----- RENDER -----
-        function renderBoard() {
-            boardEl.innerHTML = '';
-            for (let i = 0; i < board.length; i++) {
-                const val = board[i];
-                const cell = document.createElement('div');
-                cell.className = `cell cell-${val}`;
-                cell.textContent = val === 0 ? '' : val;
-                if (val === 0) {
-                    cell.style.background = '#1c2f38';
-                    cell.style.boxShadow = 'inset 0 0 0 1px #3b6069, 0 4px 0 #0f1a20';
-                    cell.style.color = '#4f7a7a';
-                }
-                cell.dataset.index = i;
-                cell.addEventListener('click', cellClickHandler);
-                cell.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    cellClickHandler.call(cell, e);
-                });
-                boardEl.appendChild(cell);
-            }
-        }
+    function tap(v) {
+        if (solved) return;
+        const i = board.indexOf(v);
+        if (!canMove(i)) { statusEl.textContent = t('cestyStatusInvalid'); return; }
+        board[gap] = v; board[i] = 0; gap = i;
+        moves++;
+        moveSpan.textContent = moves;
+        statusEl.textContent = '';
+        layout();
+        if (isDone(board)) win();
+    }
 
-        // ----- OBSLUHA KLIKU -----
-        function cellClickHandler(e) {
-            if (gameOver) {
-                statusEl.textContent = t('cestyStatusGameOver');
-                return;
-            }
+    // klavesnica: smer je ten, ktorym sa dlazdica posunie
+    function keyMove(dr, dc) {
+        const gr = Math.floor(gap / N), gc = gap % N;
+        const r = gr - dr, c = gc - dc;
+        if (r < 0 || r >= N || c < 0 || c >= N) return;
+        tap(board[r * N + c]);
+    }
 
-            const cell = e.currentTarget;
-            const index = parseInt(cell.dataset.index, 10);
-            if (board[index] === 0) {
-                statusEl.textContent = t('cestyStatusEmpty');
-                return;
-            }
+    function win() {
+        solved = true;
+        stopClock();
+        boardEl.classList.add('done');
+        statusEl.textContent = t('cestyStatusWin');
+        document.getElementById('finalMoves').textContent = moves;
+        document.getElementById('finalTime').textContent = fmt(elapsed);
+        recordEl.textContent = saveBest(moves) ? t('uiNewRecord') : '';
+        overlay.classList.add('visible');
+    }
 
-            if (!isAdjacent(index, emptyIndex)) {
-                statusEl.textContent = t('cestyStatusInvalid');
-                return;
-            }
+    // ----- start -----
+    function newGame() {
+        const s = shuffled();
+        startBoard = s.board.slice();
+        start(startBoard);
+        statusEl.textContent = t('cestyStatusNewGame');
+        setTimeout(() => { if (!solved && !moves) statusEl.textContent = t('cestyStatusReady'); }, 500);
+    }
 
-            board[emptyIndex] = board[index];
-            board[index] = 0;
-            emptyIndex = index;
-            moves++;
+    function restart() {
+        start(startBoard);
+        statusEl.textContent = t('cestyStatusReset');
+        setTimeout(() => { if (!solved && !moves) statusEl.textContent = t('cestyStatusReady'); }, 500);
+    }
 
-            renderBoard();
-            updateMoveCounter();
-            statusEl.textContent = t('cestyStatusMoved');
+    function start(src) {
+        board = src.slice();
+        gap = board.indexOf(0);
+        moves = 0; solved = false;
+        moveSpan.textContent = '0';
+        boardEl.classList.remove('done');
+        overlay.classList.remove('visible');
+        recordEl.textContent = '';
+        loadBest();
+        build();
+        fitBoard();
+        startClock();
+    }
 
-            const isWin = board.every((val, idx) => {
-                if (idx === 15) return val === 0;
-                return val === idx + 1;
-            });
-
-            if (isWin) {
-                gameOver = true;
-                statusEl.textContent = t('cestyStatusWin');
-                boardEl.style.filter = 'drop-shadow(0 0 12px #b3d9b3)';
-            } else {
-                boardEl.style.filter = 'none';
-            }
-        }
-
-        // ----- UPDATE STATUS / ŤAHY -----
-        function updateStatus() {
-            statusEl.textContent = gameOver ? t('cestyStatusWin') : t('cestyStatusReady');
-        }
-
-        function updateMoveCounter() {
-            moveEl.textContent = `🔄 ${moves}`;
-        }
-
-        // ----- EVENTY TLAČIDIEL -----
-        document.getElementById('newGameBtn').addEventListener('click', () => {
+    // ----- ovladanie -----
+    document.getElementById('newGameBtn').addEventListener('click', newGame);
+    document.getElementById('restartBtn').addEventListener('click', restart);
+    document.getElementById('playAgainBtn').addEventListener('click', newGame);
+    sizeGroup.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+            sizeGroup.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            N = parseInt(b.dataset.n, 10);
             newGame();
-            boardEl.style.filter = 'none';
-            statusEl.textContent = t('cestyStatusNewGame');
-            setTimeout(() => { if (!gameOver) statusEl.textContent = t('cestyStatusReady'); }, 400);
         });
+    });
+    document.addEventListener('keydown', e => {
+        const k = e.key;
+        let d = null;
+        if (k === 'ArrowLeft' || k === 'a' || k === 'A') d = [0, -1];
+        else if (k === 'ArrowRight' || k === 'd' || k === 'D') d = [0, 1];
+        else if (k === 'ArrowUp' || k === 'w' || k === 'W') d = [-1, 0];
+        else if (k === 'ArrowDown' || k === 's' || k === 'S') d = [1, 0];
+        if (!d) return;
+        e.preventDefault();
+        keyMove(d[0], d[1]);
+    });
+    let fitTimer = 0;
+    window.addEventListener('resize', () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitBoard, 120); });
+    window.addEventListener('load', () => fitBoard());   // udalost sa nesmie dostat do parametra
 
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            resetGame();
-            boardEl.style.filter = 'none';
-            statusEl.textContent = t('cestyStatusReset');
-            setTimeout(() => { if (!gameOver) statusEl.textContent = t('cestyStatusReady'); }, 300);
-        });
+    // ----- jazyk -----
+    function applyLang() {
+        document.getElementById('lbl-back').textContent  = t('back');
+        document.getElementById('lbl-title').textContent = t('cestyTitle');
+        document.getElementById('lbl-size').textContent  = t('uiDifficulty');
+        document.getElementById('lbl-moves').textContent = t('uiMoves');
+        document.getElementById('lbl-time').textContent  = t('uiTime');
+        document.getElementById('lbl-best').textContent  = t('uiBest');
+        document.getElementById('rules').textContent     = t('cestyFooter');
+        document.getElementById('newGameBtn').textContent  = t('cestyBtnNew');
+        document.getElementById('restartBtn').textContent  = t('cestyBtnReset');
+        document.getElementById('lbl-win').textContent     = t('uiSolved');
+        document.getElementById('lbl-win-moves').textContent = t('uiMoves') + ':';
+        document.getElementById('lbl-win-time').textContent  = t('uiTime') + ':';
+        document.getElementById('playAgainBtn').textContent = t('uiNewGame');
+        document.title = t('cestyTitle') + ' · GamePad';
+    }
+    window.addEventListener('storage', e => { if (e.key === 'gamepad_lang') applyLang(); });
 
-        // ----- SPUSTENIE -----
-        initGame();
-    })();
+    applyLang();
+    newGame();
+    requestAnimationFrame(() => fitBoard());
+})();
 </script>
 </body>
 </html>

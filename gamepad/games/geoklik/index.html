@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GeoKlik · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
   :root{
@@ -563,6 +564,152 @@
   #mapWrap,#map-wrap,.map-wrap{max-height:calc(100vh - 190px) !important;}
   svg,canvas{max-height:calc(100vh - 190px) !important;}
 }
+
+  /* ── rodinny vzhlad zbierky ─────────────────────────────────────── */
+  body{font-family:'DM Sans',ui-sans-serif,system-ui,sans-serif !important;}
+  .brand{
+    font-family:'Syne',sans-serif !important;font-weight:800 !important;
+    font-size:15px !important;letter-spacing:-.3px !important;
+    background:linear-gradient(105deg,rgba(181,140,255,.7) 5%,#fff 60%,rgba(63,214,195,.7) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .brand .dot{-webkit-text-fill-color:initial;flex:0 0 auto;}
+  .stat-group{
+    background:rgba(6,12,20,0.62);border:1px solid rgba(255,255,255,0.09);
+    border-radius:100px;padding:7px 14px;gap:13px !important;backdrop-filter:blur(8px);
+  }
+  .score-label{font-size:8.5px !important;letter-spacing:1.2px !important;
+               color:rgba(239,248,255,0.24) !important;}
+  .score-value{
+    font-family:'Syne',sans-serif !important;font-weight:800 !important;
+    font-variant-numeric:tabular-nums !important;letter-spacing:0 !important;
+  }
+  .best-box .score-value{color:#ffc857 !important;}
+  .streak-box .score-value{color:rgba(181,140,255,.9) !important;}
+  .hearts{font-size:15px !important;}
+
+  .mode-switch{
+    background:rgba(6,12,20,0.62) !important;border:1px solid rgba(255,255,255,0.09) !important;
+    border-radius:100px !important;padding:4px !important;backdrop-filter:blur(8px);
+  }
+  .mode-btn{
+    border-radius:100px !important;font-family:'DM Sans',sans-serif !important;
+    font-weight:600 !important;font-size:12px !important;letter-spacing:.1px;
+    color:rgba(239,248,255,0.42) !important;
+  }
+  .mode-btn.active{
+    background:linear-gradient(180deg,rgba(181,140,255,.24),rgba(181,140,255,.1)) !important;
+    border:1px solid rgba(181,140,255,.5) !important;color:#fff !important;
+    box-shadow:0 0 20px -8px rgba(181,140,255,.7) !important;
+  }
+
+  .prompt-card{
+    position:relative;
+    background:linear-gradient(165deg,rgba(255,255,255,0.055),rgba(255,255,255,0.014)) !important;
+    border:1px solid rgba(255,255,255,0.1) !important;border-radius:22px !important;
+    box-shadow:0 24px 50px -30px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05) !important;
+  }
+  .prompt-card::before{
+    content:'';position:absolute;inset:-1px;border-radius:22px;padding:1px;
+    background:linear-gradient(120deg,rgba(181,140,255,.5),transparent 42%,transparent 58%,rgba(63,214,195,.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+  }
+  .prompt-label{font-size:9px !important;letter-spacing:1.3px !important;
+                color:rgba(239,248,255,0.24) !important;}
+  .prompt-name{
+    font-family:'Syne',sans-serif !important;font-weight:800 !important;
+    letter-spacing:-.6px !important;
+  }
+  .tier-badge{font-size:9px !important;letter-spacing:1.1px !important;text-transform:uppercase;
+              border-radius:100px !important;font-weight:600 !important;}
+  .feedback-msg{font-size:12px !important;font-weight:500 !important;}
+
+  .answer-btn{
+    background:rgba(255,255,255,0.035) !important;border:1px solid rgba(255,255,255,0.1) !important;
+    border-radius:16px !important;font-family:'DM Sans',sans-serif !important;
+    font-weight:600 !important;color:rgba(239,248,255,0.86) !important;
+  }
+  .answer-btn:hover:not(.correct):not(.wrong){
+    border-color:rgba(181,140,255,.5) !important;color:#fff !important;
+    box-shadow:0 0 26px -12px rgba(181,140,255,.7) !important;
+  }
+  .footnote{font-size:10.5px !important;color:rgba(239,248,255,0.28) !important;}
+
+  .modal{
+    position:relative;
+    background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015)) !important;
+    border:1px solid rgba(255,255,255,0.17) !important;border-radius:24px !important;
+    box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07) !important;
+  }
+  .modal::before{
+    content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;
+    background:linear-gradient(120deg,rgba(181,140,255,.5),transparent 42%,transparent 58%,rgba(63,214,195,.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+  }
+  .modal h2{
+    font-family:'Syne',sans-serif !important;font-weight:800 !important;
+    font-size:24px !important;letter-spacing:-.5px !important;
+    background:linear-gradient(110deg,rgba(181,140,255,.7) 5%,#fff 55%,rgba(63,214,195,.7) 95%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  }
+  .modal .sub{font-size:11.5px !important;color:rgba(239,248,255,0.42) !important;}
+  .modal .big-score{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+                    letter-spacing:-1.5px !important;}
+  .modal .acc{font-size:11.5px !important;color:rgba(239,248,255,0.42) !important;}
+  .modal .best-line{font-size:11.5px !important;color:#ffc857 !important;letter-spacing:.4px;}
+  .btn{
+    border-radius:100px !important;border:1px solid rgba(181,140,255,.5) !important;
+    background:linear-gradient(180deg,rgba(181,140,255,.24),rgba(181,140,255,.1)) !important;
+    color:#fff !important;font-family:'DM Sans',sans-serif !important;
+    font-size:14px !important;font-weight:600 !important;box-shadow:none !important;
+  }
+  .btn:hover{
+    background:linear-gradient(180deg,rgba(181,140,255,.34),rgba(181,140,255,.16)) !important;
+    box-shadow:0 0 24px -6px rgba(181,140,255,.5) !important;
+  }
+  .overlay{background:radial-gradient(ellipse at center,rgba(6,12,20,0.8) 0%,rgba(1,4,7,0.95) 78%) !important;}
+
+  /* uzke telefony: nazov a pilulka so stavom sa musia zmestit do jedneho riadku */
+  .topbar{flex-wrap:nowrap !important;}
+  .brand{white-space:nowrap;flex:0 0 auto;}
+  @media(max-width:460px){
+    .brand{font-size:12.5px !important;}
+    .stat-group{padding:5px 10px !important;gap:9px !important;}
+    .hearts{font-size:12px !important;gap:2px !important;}
+    .score-value{font-size:17px !important;}
+    .best-box .score-value,.streak-box .score-value{font-size:12.5px !important;}
+  }
+  @media(max-width:360px){
+    .brand{display:none !important;}
+    .stat-group{flex:1;justify-content:space-between;}
+  }
+
+  .map-shell{
+    position:relative;
+    border:1px solid rgba(255,255,255,0.1) !important;border-radius:22px !important;
+    box-shadow:0 24px 50px -30px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05) !important;
+  }
+  .map-shell::after{
+    content:'';position:absolute;inset:-1px;border-radius:22px;padding:1px;
+    background:linear-gradient(120deg,rgba(181,140,255,.5),transparent 42%,transparent 58%,rgba(63,214,195,.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:9;
+  }
+  .zoom-btn{
+    border-radius:100px !important;background:rgba(6,12,20,0.72) !important;
+    border:1px solid rgba(255,255,255,0.12) !important;
+    font-family:'Syne',sans-serif !important;font-weight:800 !important;
+    width:34px !important;height:34px !important;backdrop-filter:blur(8px) !important;
+  }
+  .zoom-btn:hover{border-color:rgba(181,140,255,.5) !important;color:#fff !important;}
+  .legend-item{font-size:10px !important;letter-spacing:.6px;text-transform:uppercase;
+               color:rgba(239,248,255,0.34) !important;}
+  .legend-swatch{border-radius:100px !important;width:8px !important;height:8px !important;}
+
+  /* obal s odsadenim uz nesmie zaroven zaberat celu vysku okna */
+  @media (min-width:481px){ .wrap{min-height:0 !important;} }
 </style>
 </head>
 <body>
@@ -1130,6 +1277,31 @@ buildLegend();
 buildMap();
 updateModeTexts();
 resetGame();
+</script>
+
+<script>
+  // ── mapa sa zmesti do okna: po rozlozeni vratim pretekajucu vysku
+  (function () {
+    const svgMap = document.getElementById('map');
+    const wide = () => !window.matchMedia('(orientation:landscape) and (max-height:560px)').matches;
+    function fitMap() {
+      if (!svgMap) return;
+      if (!wide()) { svgMap.style.maxHeight = ''; return; }
+      svgMap.style.maxHeight = '';
+      for (let pass = 0; pass < 3; pass++) {
+        const spill = document.documentElement.scrollHeight - window.innerHeight;
+        if (spill <= 2) break;
+        const h = svgMap.getBoundingClientRect().height;
+        const want = Math.max(150, h - spill - 4);
+        if (want >= h) break;
+        svgMap.style.maxHeight = want + 'px';
+      }
+    }
+    let mapTimer = 0;
+    window.addEventListener('resize', () => { clearTimeout(mapTimer); mapTimer = setTimeout(fitMap, 120); });
+    window.addEventListener('load', () => fitMap());
+    requestAnimationFrame(() => fitMap());
+  })();
 </script>
 </body>
 </html>
