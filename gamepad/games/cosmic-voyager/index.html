@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>🌌 Cosmic Voyager · GamePad</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <style>
         /* Reset & základ */
@@ -510,7 +511,122 @@
   #canvas-wrapper{min-height:0;flex:0 1 auto;}
   #gameCanvas{max-height:100%;max-width:100%;width:auto;height:auto;}
 }
-</style>
+    /* ── zladenie s ostatnymi hrami zbierky ────────────────────────── */
+    :root{--fc:#7dd3fc;--fc2:#c084fc;--fgold:#ffd166;--ftext:#eaf2ff;
+          --fmuted:rgba(234,242,255,0.42);--fdim:rgba(234,242,255,0.18);--fborder:rgba(255,255,255,0.09);}
+    body,#game-container{font-family:'DM Sans',system-ui,sans-serif !important;}
+    #ui-overlay{padding:12px 14px !important;}
+    #score-display{
+      display:flex !important;align-items:center !important;gap:8px !important;
+      padding:5px 12px !important;border-radius:100px !important;
+      background:rgba(6,8,22,0.62) !important;backdrop-filter:blur(8px) !important;
+      border:1px solid var(--fborder) !important;box-shadow:none !important;
+    }
+    #score-display br{display:none;}
+    #score-display .score-label{
+      font-size:9px !important;font-weight:600 !important;letter-spacing:1.1px !important;
+      text-transform:uppercase !important;color:var(--fdim) !important;margin:0 !important;
+    }
+    #score-display .score-value{
+      font-family:'Syne',sans-serif !important;font-size:17px !important;font-weight:800 !important;
+      letter-spacing:0 !important;font-variant-numeric:tabular-nums;color:var(--fc) !important;
+      text-shadow:none !important;
+    }
+    #high-score{
+      display:flex !important;align-items:center !important;gap:7px !important;
+      padding:5px 12px !important;border-radius:100px !important;
+      background:rgba(6,8,22,0.62) !important;backdrop-filter:blur(8px) !important;
+      border:1px solid var(--fborder) !important;font-size:11px !important;color:var(--fmuted) !important;
+      box-shadow:none !important;
+    }
+    #high-score span{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+      font-size:15px !important;color:var(--fgold) !important;text-shadow:none !important;}
+
+    #pause-btn{position:absolute;top:12px;right:14px;z-index:22;display:none;
+      align-items:center;justify-content:center;width:36px;height:36px;
+      background:rgba(6,8,22,0.7);backdrop-filter:blur(8px);border:1px solid var(--fborder);
+      color:var(--fmuted);border-radius:50%;cursor:pointer;}
+    #pause-btn.show{display:flex;}
+    #pause-btn:hover{border-color:rgba(255,255,255,0.18);color:#fff;}
+
+    #controls button{
+      background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)) !important;
+      border:1px solid var(--fborder) !important;color:var(--fmuted) !important;
+      border-radius:16px !important;box-shadow:none !important;
+    }
+    #controls button:active{
+      background:rgba(125,211,252,0.18) !important;border-color:rgba(125,211,252,0.45) !important;
+      color:var(--fc) !important;transform:scale(.94) !important;
+    }
+
+    #start-screen,#game-over{
+      background:radial-gradient(ellipse at center,rgba(6,8,22,0.8) 0%,rgba(2,2,8,0.95) 78%) !important;
+      backdrop-filter:blur(6px) !important;padding:18px !important;
+    }
+    #start-screen > *,#game-over > *{max-width:334px;width:100%;}
+    #start-screen .title{
+      font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:27px !important;
+      letter-spacing:-.5px !important;
+      background:linear-gradient(110deg,var(--fc) 5%,#fff 52%,var(--fc2) 95%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      text-shadow:none !important;animation:none !important;margin-bottom:2px !important;
+    }
+    #start-screen .subtitle{font-size:10px !important;letter-spacing:2.4px !important;
+      text-transform:uppercase;color:var(--fdim) !important;margin-bottom:14px !important;}
+    #start-screen .controls-info{font-size:11.5px !important;line-height:1.6 !important;
+      color:var(--fmuted) !important;background:none !important;border:none !important;}
+    #game-over .go-title{
+      font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:25px !important;
+      letter-spacing:-.5px !important;color:#fff !important;text-shadow:none !important;animation:none !important;
+    }
+    #game-over .go-score{font-size:11.5px !important;letter-spacing:2px;text-transform:uppercase;
+      color:var(--fdim) !important;}
+    #game-over .go-score span{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+      font-size:44px !important;letter-spacing:-2px;color:var(--fc) !important;display:block;
+      text-shadow:0 0 30px rgba(125,211,252,.4) !important;}
+    #game-over .go-high{font-size:11.5px !important;font-weight:600;color:var(--fmuted) !important;}
+    #game-over .go-high span{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+      color:var(--fgold) !important;}
+    #start-btn,#restart-btn{
+      margin-top:12px !important;width:100%;max-width:300px;padding:13px 30px !important;
+      border-radius:100px !important;border:1px solid rgba(125,211,252,.5) !important;
+      background:linear-gradient(180deg,rgba(125,211,252,.24),rgba(125,211,252,.1)) !important;
+      color:#dcf1ff !important;font-family:'DM Sans',sans-serif !important;font-size:14px !important;
+      font-weight:600 !important;letter-spacing:0 !important;box-shadow:none !important;
+      text-transform:none !important;animation:none !important;
+    }
+    #start-btn:hover,#restart-btn:hover{
+      background:linear-gradient(180deg,rgba(125,211,252,.34),rgba(125,211,252,.16)) !important;
+      color:#fff !important;box-shadow:0 0 24px -6px rgba(125,211,252,.5) !important;transform:none !important;
+    }
+    /* prekryv je stlpcovy flex: na nizkych obrazovkach sa scroluje po hlavnej osi */
+    @media (max-height:820px){
+      #start-screen,#game-over{justify-content:flex-start !important;align-items:center !important;overflow-y:auto !important;}
+    }
+
+    .fcard{
+      position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;
+      width:100%;max-width:334px;padding:26px 24px 24px;border-radius:24px;
+      background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));
+      border:1px solid rgba(255,255,255,0.17);
+      box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);
+      animation:fpop .34s cubic-bezier(.2,1.4,.4,1);text-align:center;
+    }
+    @keyframes fpop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+    .fcard::before{
+      content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;
+      background:linear-gradient(120deg,rgba(125,211,252,.5),transparent 42%,transparent 58%,rgba(192,132,252,.5));
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+    }
+    #start-screen,#game-over{padding-top:62px !important;}
+    #game-over .go-score{display:flex;flex-direction:column;align-items:center;gap:1px;}
+    @media (max-height:640px){
+      .fcard{gap:7px;padding:18px 20px;}
+      #start-screen .title{font-size:21px !important;}
+      #game-over .go-score span{font-size:34px !important;}
+    }
+  </style>
 </head>
 <body>
 
@@ -535,6 +651,10 @@
             </div>
         </div>
 
+        <button id="pause-btn" aria-label="pause">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.4"/><rect x="14" y="4" width="4" height="16" rx="1.4"/></svg>
+        </button>
+
         <!-- Mobilné ovládanie -->
         <div id="controls">
             <button class="ctrl-left" id="btnLeft">◀</button>
@@ -544,22 +664,26 @@
 
         <!-- Start Screen -->
         <div id="start-screen">
+          <div class="fcard">
             <div class="title">🚀 Cosmic Voyager</div>
             <div class="subtitle" id="lbl-subtitle"></div>
-            <button id="start-btn"></button>
             <div class="controls-info">
                 <span class="desktop-only" id="lbl-hint-desktop"></span>
                 <span class="mobile-only" id="lbl-hint-mobile"></span>
                 <br><span style="opacity:0.5; font-size:0.8em;" id="lbl-hint-goal"></span>
             </div>
+            <button id="start-btn"></button>
+          </div>
         </div>
 
         <!-- Game Over -->
         <div id="game-over">
+          <div class="fcard">
             <div class="go-title" id="lbl-gameover-title"></div>
-            <div class="go-score"><span id="lbl-final-score"></span>: <span id="finalScore">0</span></div>
+            <div class="go-score"><span id="lbl-final-score"></span><span id="finalScore">0</span></div>
             <div class="go-high">🏆 <span id="lbl-final-best"></span>: <span id="finalHigh">0</span></div>
             <button id="restart-btn"></button>
+          </div>
         </div>
     </div>
 
@@ -599,7 +723,8 @@
             const btnUp = document.getElementById('btnUp');
 
             // --- Premenné hry ---
-            let W, H;
+            let W, H, DPR = 1;
+            let paused = false;
             let gameState = 'menu'; // 'menu' | 'playing' | 'gameover'
             let score = 0;
             let highScore = 0;
@@ -677,11 +802,17 @@
 
             // --- Rozmery canvasa ---
             function resize() {
-                const rect = canvas.parentElement.getBoundingClientRect();
-                canvas.width = rect.width;
-                canvas.height = rect.height;
-                W = canvas.width;
-                H = canvas.height;
+                // canvas najprv vyplni rodica, potom si zmeriam jeho skutocnu velkost
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                const rect = canvas.getBoundingClientRect();
+                // ostra kresba na displejoch s vysokou hustotou bodov
+                DPR = Math.min(window.devicePixelRatio || 1, 2);
+                W = Math.max(1, Math.round(rect.width));
+                H = Math.max(1, Math.round(rect.height));
+                canvas.width = Math.round(W * DPR);
+                canvas.height = Math.round(H * DPR);
+                ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
                 // Umiestnenie hráča
                 if (gameState === 'menu' || gameState === 'gameover') {
                     player.x = W / 2;
@@ -855,6 +986,8 @@
             // --- Game over ---
             function gameOver() {
                 gameState = 'gameover';
+                paused = false;
+                showPauseBtn(false);
                 if (score > highScore) {
                     highScore = score;
                     try { localStorage.setItem('cosmicVoyagerHigh', String(highScore)); } catch(e) {}
@@ -895,6 +1028,8 @@
                 gameOverScreen.style.display = 'none';
                 startScreen.style.display = 'none';
                 gameState = 'playing';
+                paused = false;
+                showPauseBtn(true);
             }
 
             // --- Update logika ---
@@ -1277,11 +1412,44 @@
             }
 
             // --- Hlavný herný cyklus ---
-            function gameLoop() {
-                update();
-                render();
+            let lastTs = 0, acc = 0;
+            const STEP = 1 / 60;
+            function gameLoop(ts) {
                 requestAnimationFrame(gameLoop);
+                const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0;
+                lastTs = ts;
+                if (!paused) {
+                    acc += dt;
+                    let n = 0;
+                    // logika bezi vzdy 60x za sekundu, aj na 144 Hz displeji
+                    while (acc >= STEP && n < 4) { acc -= STEP; update(); n++; }
+                } else {
+                    acc = 0;
+                }
+                render();
+                if (paused) {
+                    ctx.fillStyle = 'rgba(3,4,12,0.66)';
+                    ctx.fillRect(0, 0, W, H);
+                    ctx.fillStyle = '#eaf2ff';
+                    ctx.font = '800 ' + Math.round(Math.min(W, H) * 0.075) + 'px Syne, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(t('uiPaused'), W / 2, H / 2);
+                    ctx.fillStyle = 'rgba(234,242,255,0.42)';
+                    ctx.font = '600 12px "DM Sans", sans-serif';
+                    ctx.fillText(t('uiResume'), W / 2, H / 2 + Math.min(W, H) * 0.06);
+                }
             }
+            function togglePause() {
+                if (gameState !== 'playing') return;
+                paused = !paused;
+            }
+            function showPauseBtn(on) {
+                document.getElementById('pause-btn').classList.toggle('show', !!on);
+            }
+            document.getElementById('pause-btn').addEventListener('click', togglePause);
+            window.addEventListener('blur', () => { if (gameState === 'playing') paused = true; });
+            document.addEventListener('visibilitychange', () => { if (document.hidden && gameState === 'playing') paused = true; });
 
             // --- Vstup: Myš / Touch / Klávesnica ---
 
@@ -1353,6 +1521,12 @@
             // --- Klávesnica ---
             document.addEventListener('keydown', (e) => {
                 const key = e.key;
+                if (key === 'Escape' || key === 'p' || key === 'P') {
+                    e.preventDefault();
+                    togglePause();
+                    return;
+                }
+                if (paused) { paused = false; return; }
                 if (key === 'ArrowLeft' || key === 'a') {
                     e.preventDefault();
                     input.keys.left = true;

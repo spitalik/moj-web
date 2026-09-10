@@ -272,3 +272,186 @@ the exit portal are all this project's own, and its scoring (4 points per
 second of flight, 200 plus 60 per level plus 2 per percent of fuel left at the
 portal, 40 per fuel cell) was invented for it. The word on the portal is now
 translated instead of the hardcoded English "EXIT".
+
+16. Names, look and rules checked - games/moon-lander/, games/ninja-runner/,
+    games/crown-jump/
+------------------------------------------------------------------------------
+
+All three were rebuilt on 10 September 2026.
+
+games/moon-lander/ was checked against the arcade mark first. The 1979 Atari
+title is "Lunar Lander"; this game is called "Moon Lander", a plain
+description of what the player does, and the folder name, the game id and the
+i18n prefix (mln*) are this project's own. The rebuilt game also moves further
+away from the arcade's visual expression: the wireframe-on-black look was
+replaced by the collection's own - a gradient sky with a background planet, a
+filled terrain body under a thin ridge line, a glowing landing pad with a soft
+guide band, and the collection's glass HUD pills. Its scoring was invented
+here: 120 points for a touchdown plus 2 per unit of fuel left plus 3 for every
+pixel the pad is narrower than the difficulty's starting width. The physics
+were rewritten in px/s and px/s2 so the game plays the same at any refresh
+rate.
+
+games/ninja-runner/ needed no licensing change - the name, the id, the ninja*
+prefix, the runner, the shuriken, the hearts and the lantern night scene are
+all this project's own, drawn at runtime. It was rebuilt for playability:
+delta-time physics, a variable-height jump (hold the key or the button), three
+difficulties, a best score per difficulty, a pause with a resume countdown,
+and a device-pixel-ratio canvas. Three i18n keys that the old version used and
+the new one does not (ninjaReset, ninjaNoLives, ninjaTryAgain) were removed
+from all twelve language blocks.
+
+games/crown-jump/ plays draughts, a traditional game in the public domain with
+no owner; the name "Crown Jump", the id, the crj* prefix, the minimax opponent
+and every drawn piece are this project's own. One rule detail was corrected
+while rebuilding: move generation now takes the piece off its starting square
+while it searches a capture chain, so a multi-jump that passes back through
+its own starting square is found - the old code left the piece there and
+silently blocked that move. Promotion in the middle of a jump still ends the
+move, as English draughts requires, and capture stays mandatory.
+
+17. Look, physics and records - games/tilt-maze/, games/cosmic-voyager/,
+    games/echodrift/
+------------------------------------------------------------------------------
+
+Reworked on 10 September 2026. None of the three needed a licensing change:
+the names "Tilt Maze", "Cosmic Voyager" and "EchoDrift", the folder names, the
+ids, the i18n prefixes (tlt*, voyager*, drift*), the mazes, the asteroid field,
+the sonar levels and every drawn shape are this project's own, generated or
+drawn at runtime. No third-party art, audio file, font file or code is used;
+Cosmic Voyager's sounds are synthesised by the Web Audio API at runtime.
+
+games/tilt-maze/ was rebuilt. Its description called it a tilt-controlled
+marble maze, but the old version had no tilt at all - only a joystick. The
+rebuilt game asks for the device-orientation permission when the player picks
+"Tilt" on the card and then really rolls the marble by tilting, with the
+joystick kept as the default and as the fallback when a device or browser
+refuses. The board now scales to the window on a device-pixel-ratio canvas
+(it used to be a fixed 320 x 320 canvas stretched by CSS), the friction is
+converted to a per-second value so the roll is the same at any refresh rate,
+the collision step is subdivided so a fast marble cannot pass through a wall,
+and the best score is kept per difficulty instead of one shared number. Pause,
+the resume countdown and the 12-language wiring follow the rest of the
+collection. Six i18n keys that only duplicated shared ones (tltDifficulty,
+tltEasy, tltMedium, tltHard, tltScore, tltBest) were removed from all twelve
+language blocks.
+
+games/cosmic-voyager/ kept its own engine and art. Its loop ran one update per
+animation frame, so the game ran roughly twice as fast on a 120 Hz phone; it
+now runs a fixed 60 Hz accumulator, so the logic ticks sixty times a second
+whatever the display does. The canvas is device-pixel-ratio aware and its
+backing store now matches its displayed size exactly (before, the buffer was
+sized from the parent box while CSS displayed it narrower, which both blurred
+the picture and skewed pointer aiming). A pause button, Escape/P and pausing on
+lost focus were added, and the score, best score, start screen and game-over
+screen were restyled into the collection's glass pills and gradient-bordered
+card.
+
+games/echodrift/ already had a device-pixel-ratio canvas, delta-time movement
+and a pause, so it kept its engine and got the collection's look plus the one
+thing it lacked: a record. It now stores the best star rating for each of its
+three levels and shows both the level's record in the HUD and the total
+collected on every overlay. Its overlay was also a fixed 430-pixel box; it is
+now a full-screen backdrop with the card centred in it, which fixes a card
+that sat off-centre on wide screens and one that slid to the left edge on
+short ones.
+
+18. Sharpness, fixed step and records - games/twin-drop/, games/gem-swap/,
+    games/bubble-burst/, games/snip-rope/, games/wobble-tower/
+------------------------------------------------------------------------------
+
+Reworked on 10 September 2026. None of the five needed a licensing change and
+none was renamed: "Twin Drop", "Gem Swap", "Bubble Burst", "Snip Rope" and
+"Wobble Tower" are this project's own titles, as are the folder names, the ids
+and the i18n prefixes (twd*, gsw*, bub*, snp*, wob*). Every board, gem, bubble,
+rope and block is drawn at runtime by this project's own code, and each game's
+scoring was invented here, not taken from the commercial games of the same
+genres - twelve points per cleared block plus fifty per chain step in Twin
+Drop, base points plus fifty per chain in Gem Swap, twelve per popped bubble
+and eighteen per dropped one in Bubble Burst, a hundred and fifty minus thirty
+per extra attempt in Snip Rope, and twenty-five plus three per combo for a
+perfect landing in Wobble Tower.
+
+What was fixed in all five:
+
+* Sharpness. Every one of them drew into a fixed-size canvas that CSS then
+  stretched, so the picture was soft on any phone. The grid games (Twin Drop,
+  Gem Swap) now size their cell in real device pixels, and the fixed-space
+  games (Bubble Burst, Snip Rope, Wobble Tower) keep their logical coordinate
+  space and scale it onto a device-pixel-ratio canvas. Pointer mapping was
+  rewritten to match, and the displayed size is now exactly the drawn size, so
+  nothing is stretched in one axis (checked at six window sizes).
+
+* Frame rate. Bubble Burst and Wobble Tower advanced their physics once per
+  animation frame, so they ran about twice as fast on a 120 Hz phone. Both now
+  run a fixed 60 Hz accumulator. Twin Drop and Gem Swap were already
+  time-based, and Snip Rope's physics is a fixed 1/60 step that had to stay
+  untouched: its levels are pre-verified by a solver, and the cut window is
+  stored per level, so any change to the step would invalidate them.
+
+* Records. All five kept one shared best score across difficulties or board
+  sizes; each now keeps a separate record per setting and reloads it when the
+  setting changes.
+
+* Pause. Snip Rope had none at all - it now has a pause button, Escape/P and a
+  veil, and the four that had a pause now also pause when the window loses
+  focus.
+
+* Small screens. The shared old panel layout left the game area a strip on a
+  phone in landscape - Bubble Burst was reduced to a fifty-pixel-tall field by
+  a hardcoded "100vh - 350px" cap. The cap is now proportional, the panel turns
+  into a row on short landscape screens so the board gets the full height, the
+  data strip becomes compact, and the board no longer pushes the panel wider
+  than the screen. Twin Drop's board grew from 132 to 276 pixels on a 375-wide
+  phone as a result.
+
+* Look. All five were moved to the collection's typography, glass cards,
+  segmented controls and pill buttons.
+
+19. Card and dice games - games/free-cells/, games/spider-cards/,
+    games/pyramid-cards/, games/five-dice/, games/dice-gates/
+------------------------------------------------------------------------------
+
+Reworked on 10 September 2026. All five play traditional games that belong to
+nobody - open solitaire, spider solitaire, pyramid solitaire, a five-dice
+category game and backgammon - and all five carry this project's own titles,
+folder names, ids and i18n prefixes (fcl*, spd*, pyr*, fdc*, dgt*). Every card,
+die, checker and board is drawn at runtime by this project's own code; no card
+image, font file or third-party code is used.
+
+One licensing change was needed. games/five-dice/ used the scoring table of the
+best-known commercial version of the five-dice game: 25 for a full house, 30
+and 40 for the two runs, 50 for five of a kind and a 35-point bonus at 63 in
+the upper section. Those exact figures are that product's own table, and rule 5
+in CLAUDE.md rules them out, so on 10 September 2026 they became this
+project's: 30 for a full house, 25 for the small run, 45 for the large run, 60
+for five of a kind, and a 40-point bonus at 60. The categories themselves (the
+six faces, three and four of a kind, full house, the runs, five of a kind and
+chance) are the old folk dice game's own and stay as they are. The translated
+label already carried the target as a parameter, so all twelve languages picked
+the new number up without a change.
+
+What was fixed in all five:
+
+* Sharpness and size. Each game drew into a fixed-size canvas that CSS
+  stretched, so cards and pips were soft on every phone. All five now keep
+  their logical coordinate space - so the tap mapping and the whole game logic
+  are untouched - and scale it onto a device-pixel-ratio canvas. The size is
+  taken from the panel rather than from the canvas's own wrapper (measuring the
+  wrapper fed the old size back into the calculation), and it is recomputed
+  once more after the first layout, because the first call runs before the
+  panel is laid out. On a 375-pixel phone the board grew from 304 to 333
+  pixels, and on a tablet from 304 to about 600.
+
+* Records. games/dice-gates/ kept one shared best score for all three opponent
+  strengths; it now keeps one per strength and reloads it when the strength
+  changes. The other four already stored a record per difficulty.
+
+* Look. All five moved to the collection's typography, glass cards, segmented
+  controls and pill buttons, and the panel no longer sits under the back
+  button on a narrow screen.
+
+* Short screens. On a phone held sideways the panel keeps its column layout and
+  the board takes its height from the window (the rest of the panel scrolls) -
+  an earlier attempt to fold the panel into a row squeezed the board into a
+  narrow strip, so it was dropped.

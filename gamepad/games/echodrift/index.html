@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>EchoDrift · GamePad</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <script src="../../i18n.js"></script>
   <style>
     :root {
@@ -283,6 +284,87 @@
         display: none;
       }
     }
+
+    /* ── zladenie s ostatnymi hrami zbierky ────────────────────────── */
+    body { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif !important; }
+    .card, .controls, .stick {
+      border: 1px solid rgba(255,255,255,0.09) !important;
+      border-radius: 100px !important;
+      background: rgba(4,10,16,0.62) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(8px) !important;
+    }
+    .card.stats { border-radius: 18px !important; padding: 9px 13px !important; }
+    .card:not(.stats) { padding: 8px 15px !important; }
+    .title {
+      font-family: 'Syne', sans-serif !important; font-weight: 800 !important;
+      font-size: 15px !important; margin: 0 !important; letter-spacing: -.2px !important;
+    }
+    .hint { font-size: 11px !important; color: rgba(236,248,255,0.42) !important; }
+    .card:not(.stats) .hint { display: none; }
+    .row { font-size: 9px !important; letter-spacing: 1.1px; text-transform: uppercase;
+           color: rgba(236,248,255,0.2) !important; align-items: baseline; }
+    .row strong { font-family: 'Syne', sans-serif !important; font-weight: 800 !important;
+                  font-size: 15px !important; color: #46e2ff !important; letter-spacing: 0; }
+    .row.rec strong { color: #ffc857 !important; }
+    .bar { height: 6px !important; border-radius: 4px !important; }
+    .controls button {
+      border-radius: 100px !important;
+      font-family: 'DM Sans', sans-serif !important; font-weight: 600 !important;
+    }
+    .overlay {
+      /* prekryv je cez celu obrazovku a karta v nom stoji presne v strede */
+      position: fixed !important; inset: 0 !important; left: 0 !important; top: 0 !important;
+      width: auto !important; transform: none !important;
+      display: flex !important; align-items: center !important; justify-content: center !important;
+      border: none !important; border-radius: 0 !important;
+      background: radial-gradient(ellipse at center, rgba(4,10,16,0.8) 0%, rgba(1,4,7,0.95) 78%) !important;
+      backdrop-filter: blur(6px) !important; box-shadow: none !important; padding: 18px !important;
+    }
+    .overlay[hidden] { display: none !important; }
+    .overlay > * { max-width: 334px; width: 100%; }
+    .overlay h1 {
+      font-family: 'Syne', sans-serif !important; font-weight: 800 !important;
+      font-size: 26px !important; letter-spacing: -.5px !important;
+      background: linear-gradient(110deg, #46e2ff 5%, #fff 52%, #5cf2b4 95%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .overlay p { font-size: 11.5px !important; line-height: 1.6 !important;
+                 color: rgba(236,248,255,0.42) !important; }
+    #bestLine { font-size: 11.5px; font-weight: 600; color: #ffc857; letter-spacing: .4px; }
+    .overlay button.wide {
+      margin-top: 10px; width: 100%; max-width: 300px; padding: 13px 30px !important;
+      border-radius: 100px !important; border: 1px solid rgba(70,226,255,.5) !important;
+      background: linear-gradient(180deg, rgba(70,226,255,.24), rgba(70,226,255,.1)) !important;
+      color: #dcf6ff !important; font-family: 'DM Sans', sans-serif !important;
+      font-size: 14px !important; font-weight: 600 !important; box-shadow: none !important;
+    }
+    .overlay button.wide:hover {
+      background: linear-gradient(180deg, rgba(70,226,255,.34), rgba(70,226,255,.16)) !important;
+      color: #fff !important; box-shadow: 0 0 24px -6px rgba(70,226,255,.5) !important;
+    }
+    @media (max-height: 820px) {
+      /* prekryv je riadkovy flex: na nizkych obrazovkach sa scroluje po zvislej osi, nie do strany */
+      .overlay { align-items: flex-start !important; justify-content: center !important; overflow-y: auto !important; }
+    }
+
+    .fcard{
+      position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;
+      width:100%;max-width:334px;padding:26px 24px 24px;border-radius:24px;
+      background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));
+      border:1px solid rgba(255,255,255,0.17);
+      box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);
+      animation:fpop .34s cubic-bezier(.2,1.4,.4,1);text-align:center;
+    }
+    @keyframes fpop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+    .fcard::before{
+      content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;
+      background:linear-gradient(120deg,rgba(70,226,255,.5),transparent 42%,transparent 58%,rgba(92,242,180,.5));
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+    }
+    .overlay{padding-top:62px !important;}
+    @media (max-height:640px){.fcard{gap:7px;padding:18px 20px;}.overlay h1{font-size:21px !important;}}
   </style>
 </head>
 <body>
@@ -302,6 +384,7 @@
       <div class="row"><span id="lbl-level"></span><strong id="levelText">1</strong></div>
       <div class="row"><span id="lbl-time"></span><strong id="timeText">0.0</strong></div>
       <div class="row"><span id="lbl-pulses"></span><strong id="pulseText">0</strong></div>
+      <div class="row rec"><span id="lbl-record"></span><strong id="recordText">-</strong></div>
       <div class="bar"><i id="energyBar"></i></div>
     </div>
   </section>
@@ -315,9 +398,12 @@
   </nav>
 
   <div id="overlay" class="overlay">
-    <h1 id="overlayTitle">EchoDrift</h1>
-    <p id="overlayText">V tme vidíš len blízke okolie. Sonar odhalí cestu, energiu aj hrozby, ale privolá viac šumu.</p>
-    <button id="startBtn" class="wide">Štart</button>
+   <div class="fcard">
+    <h1 id="overlayTitle"></h1>
+    <p id="overlayText"></p>
+    <div id="bestLine"></div>
+    <button id="startBtn" class="wide"></button>
+   </div>
   </div>
 
   <script>
@@ -327,6 +413,7 @@
       const canvas = document.getElementById("game");
       const ctx = canvas.getContext("2d");
       const levelText = document.getElementById("levelText");
+      const recordText = document.getElementById("recordText");
       const timeText = document.getElementById("timeText");
       const pulseText = document.getElementById("pulseText");
       const energyBar = document.getElementById("energyBar");
@@ -344,6 +431,24 @@
       document.getElementById('lbl-level').textContent = t('driftLevel');
       document.getElementById('lbl-time').textContent = t('driftTime');
       document.getElementById('lbl-pulses').textContent = t('driftPulses');
+      document.getElementById('lbl-record').textContent = t('uiBest');
+
+      // najlepsi vysledok (hviezdy) za kazdy level
+      const STARS_KEY = 'echodrift_stars';
+      let bestStars = [];
+      try { bestStars = JSON.parse(localStorage.getItem(STARS_KEY) || '[]') || []; } catch (e) { bestStars = []; }
+      const starText = n => n > 0 ? '\u2605'.repeat(n) + '\u2606'.repeat(3 - n) : '-';
+      function saveStars(idx, n) {
+        if (!(bestStars[idx] >= n)) {
+          bestStars[idx] = n;
+          try { localStorage.setItem(STARS_KEY, JSON.stringify(bestStars)); } catch (e) {}
+        }
+      }
+      function starSummary() {
+        let got = 0;
+        for (let i = 0; i < levels.length; i++) got += bestStars[i] || 0;
+        return got ? '\u2605 ' + got + ' / ' + (levels.length * 3) : '';
+      }
       document.getElementById('lbl-controls-nav').setAttribute('aria-label', t('driftControlsAria'));
       pulseBtn.title = t('driftPulseTitle');
       pulseBtn.setAttribute('aria-label', t('driftPulseTitle'));
@@ -464,6 +569,7 @@
         levelText.textContent = String(levelIndex + 1);
         timeText.textContent = elapsed.toFixed(1);
         pulseText.textContent = String(pulses);
+        recordText.textContent = starText(bestStars[levelIndex] || 0);
         energyBar.style.transform = `scaleX(${Math.max(0, energy / energyMax)})`;
       }
 
@@ -471,6 +577,7 @@
         overlayTitle.textContent = title;
         overlayText.textContent = text;
         startBtn.textContent = button;
+        document.getElementById('bestLine').textContent = starSummary();
         overlay.hidden = false;
       }
 
@@ -672,7 +779,11 @@
         revealByEcho(exit, 0.05);
         if (Math.hypot(player.x - exit.x, player.y - exit.y) < exit.r * 0.75) {
           state = "won";
-          const score = energy / energyMax > 0.55 ? "★★★" : energy / energyMax > 0.28 ? "★★☆" : "★☆☆";
+          const stars = energy / energyMax > 0.55 ? 3 : energy / energyMax > 0.28 ? 2 : 1;
+          const record = !(bestStars[levelIndex] >= stars);
+          saveStars(levelIndex, stars);
+          recordText.textContent = starText(bestStars[levelIndex] || 0);
+          const score = starText(stars) + (record ? '  ' + t('uiNewRecord') : '');
           message(t('driftWonTitle'), t('driftWonText', { score, time: elapsed.toFixed(1), pulses }), levelIndex === levels.length - 1 ? t('driftAgain') : t('driftNext'));
         }
 

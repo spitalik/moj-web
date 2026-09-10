@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Wobble Tower · GamePad</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <style>
         #back-btn{
@@ -112,6 +113,131 @@
 @media (max-height:700px){
   #rules{display:none !important;}
 }
+
+/* ── zladenie s ostatnymi hrami zbierky ─────────────────────────────── */
+:root{
+  --fa:#fbbf24;--fb:#fb7185;--fgold:#ffd166;
+  --ftext:#eef3fc;--fmuted:rgba(238,243,252,0.44);--fdim:rgba(238,243,252,0.2);
+  --fbd:rgba(255,255,255,0.09);
+}
+body{
+  font-family:'DM Sans',system-ui,sans-serif !important;
+  background:radial-gradient(ellipse at 50% -8%, rgba(251,191,36,.14) 0%, transparent 58%), #070a12 !important;
+  color:var(--ftext) !important;
+}
+#back-btn{background:rgba(10,13,24,0.72) !important;border:1px solid var(--fbd) !important;color:var(--fmuted) !important;font-weight:500 !important;}
+#back-btn:hover,#back-btn:active{border-color:rgba(255,255,255,0.18) !important;color:#fff !important;}
+#game-container{
+  background:linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)) !important;
+  border:1px solid rgba(255,255,255,0.13) !important;border-radius:26px !important;
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+#header h1{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:19px !important;
+  letter-spacing:-.3px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#settings label{color:var(--fdim) !important;font-size:9px !important;font-weight:600 !important;
+  letter-spacing:1.1px !important;text-transform:uppercase !important;}
+#rules{color:var(--fmuted) !important;font-size:11px !important;line-height:1.6 !important;}
+.btn-group{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:100px !important;padding:3px !important;gap:2px !important;}
+.btn-group button{border-radius:100px !important;color:var(--fmuted) !important;
+  font-family:'DM Sans',sans-serif !important;font-size:11px !important;font-weight:600 !important;
+  padding:5px 12px !important;transition:color .16s,background .16s !important;}
+.btn-group button:hover{color:#fff !important;}
+.btn-group button.active{background:rgba(251,191,36,.16) !important;color:#fff !important;
+  box-shadow:inset 0 0 0 1px rgba(251,191,36,.42) !important;}
+.info-card{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:14px !important;}
+.info-card h3{font-size:8.5px !important;letter-spacing:1.3px !important;color:var(--fdim) !important;
+  font-weight:600 !important;text-transform:uppercase !important;}
+.info-card .value{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+  font-size:18px !important;letter-spacing:-.5px !important;font-variant-numeric:tabular-nums;
+  color:var(--fa) !important;}
+.high-score{border-color:rgba(255,209,102,.35) !important;}
+.high-score h3{color:rgba(255,209,102,.55) !important;}
+.high-score .value{color:var(--fgold) !important;}
+#canvas-wrapper{background:rgba(0,0,0,0.34) !important;border-radius:18px !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.07) !important;}
+#controls button,#padrow button,#controls>button{
+  background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)) !important;
+  border:1px solid var(--fbd) !important;color:var(--fmuted) !important;
+  border-radius:15px !important;box-shadow:none !important;
+  font-family:'DM Sans',sans-serif !important;
+}
+#controls button:active,#padrow button:active{background:rgba(251,191,36,.18) !important;
+  border-color:rgba(251,191,36,.45) !important;color:#fff !important;transform:scale(.95) !important;}
+#status-line{color:var(--fmuted) !important;font-weight:600 !important;}
+/* prekryvy: rodinna karta */
+#game-over-overlay,#win-overlay,#pause-overlay{
+  background:radial-gradient(ellipse at center,rgba(8,10,20,0.84) 0%,rgba(3,4,9,0.96) 78%) !important;
+  backdrop-filter:blur(6px) !important;border-radius:18px !important;
+}
+#game-over-overlay h2,#win-overlay h2,#pause-overlay span{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;letter-spacing:-.5px !important;
+}
+#game-over-overlay h2,#win-overlay h2{
+  font-size:24px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-shadow:none !important;
+}
+#game-over-overlay p,#win-overlay p{font-size:11.5px !important;color:var(--fmuted) !important;}
+#game-over-overlay p span:last-child,#win-overlay p span:last-child{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:20px !important;
+  color:var(--fa) !important;
+}
+#restartBtn,#nextBtn,#newMazeBtn,#newGameBtn,#playAgainBtn{
+  border-radius:100px !important;border:1px solid rgba(251,191,36,.5) !important;
+  background:linear-gradient(180deg,rgba(251,191,36,.24),rgba(251,191,36,.1)) !important;
+  color:#fff !important;font-family:'DM Sans',sans-serif !important;font-size:14px !important;
+  font-weight:600 !important;box-shadow:none !important;padding:12px 30px !important;
+  text-transform:none !important;
+}
+#restartBtn:hover,#nextBtn:hover,#newMazeBtn:hover,#newGameBtn:hover,#playAgainBtn:hover{
+  background:linear-gradient(180deg,rgba(251,191,36,.34),rgba(251,191,36,.16)) !important;
+  box-shadow:0 0 24px -6px rgba(251,191,36,.5) !important;transform:none !important;
+}
+#restartBtn:active,#nextBtn:active{transform:translateY(1px) !important;}
+
+/* velmi nizke obrazovky (telefon na sirku): pravidla dole, udaje kompaktne,
+   aby na hraciu plochu zostalo pouzitelne miesto */
+@media (max-height:520px){
+  #rules{display:none !important;}
+  #header h1{font-size:15px !important;}
+  #info-panel{gap:4px !important;padding:0 !important;}
+  .info-card{padding:4px 8px !important;min-width:46px !important;}
+  .info-card h3{font-size:8px !important;margin-bottom:0 !important;}
+  .info-card .value{font-size:14px !important;}
+  #controls button,#padrow button{padding:6px 12px !important;}
+}
+
+/* tlacidlo Spat nesmie sedet na hlavicke panelu */
+@media (max-width:560px){
+  #game-container{padding-top:46px !important;}
+}
+/* telefon na sirku: panel sa preklopi do riadku, hracia plocha dostane celu vysku */
+@media (max-height:520px) and (orientation:landscape){
+  body{padding:4px !important;align-items:center !important;}
+  #game-container{
+    flex-direction:row !important;flex-wrap:wrap !important;align-items:center !important;
+    justify-content:center !important;gap:8px !important;padding:8px 10px !important;
+    padding-top:8px !important;max-width:100% !important;max-height:100vh !important;
+  }
+  #header{flex:0 0 auto !important;flex-direction:column !important;align-items:flex-start !important;gap:6px !important;}
+  #settings{flex-direction:column !important;align-items:flex-start !important;gap:4px !important;}
+  #info-panel{flex:0 0 auto !important;flex-direction:column !important;gap:4px !important;}
+  #main{flex:1 1 auto !important;}
+  #canvas-wrapper{flex:0 1 auto !important;padding:5px !important;}
+  #controls{flex:0 0 auto !important;flex-direction:column !important;gap:6px !important;}
+  #padrow{flex-direction:column !important;}
+}
+
+/* pauza: len jemny zavoj a napis, bez ramovania */
+#pause-overlay span{background:none !important;border:none !important;box-shadow:none !important;
+  font-size:26px !important;color:#fff !important;letter-spacing:-.5px !important;padding:0 !important;}
 </style>
 </head>
 <body>
@@ -209,8 +335,31 @@
 
             // ----- KONFIGURACIA -----
             const CW = 320, CH = 480;
-            canvas.width = CW;
-            canvas.height = CH;
+            // ── plocha: logicky priestor 320 x 480 sa zmesti do okna a kresli
+            // sa v skutocnych bodoch displeja (ostro), logika zostava v logickych px
+            function fitCanvas(hintH) {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                const wrap = document.getElementById('canvas-wrapper');
+                const availW = Math.max(200, Math.min(430, (wrap.clientWidth || 340) - 14));
+                const availH = hintH || Math.max(240, window.innerHeight - 260);
+                const k = Math.max(0.4, Math.min(availW / CW, availH / CH));
+                canvas.style.width = Math.round(CW * k) + 'px';
+                canvas.style.height = Math.round(CH * k) + 'px';
+                canvas.width = Math.round(CW * k * dpr);
+                canvas.height = Math.round(CH * k * dpr);
+                ctx.setTransform(k * dpr, 0, 0, k * dpr, 0, 0);
+                if (!hintH) {
+                    // ak layout pridelil menej vysky (max-height), prepocitam na nu
+                    const got = canvas.getBoundingClientRect();
+                    if (got.height > 20 && CH * k - got.height > 2) fitCanvas(got.height);
+                }
+            }
+            let fitTimer = 0;
+            window.addEventListener('resize', () => {
+                clearTimeout(fitTimer);
+                fitTimer = setTimeout(fitCanvas, 120);
+            });
+
             const BLOCK_H = 30;
             const BASE_Y = CH - 50;
             const TRIGGER_Y = CH * 0.42;
@@ -230,7 +379,12 @@
             let cameraOffset = 0;
             let targetCameraOffset = 0;
             let score = 0, combo = 0;
-            let best = parseInt(localStorage.getItem('wobbleTowerBest') || '0', 10);
+            const bestKey = () => 'wobbletower_best_' + diffKey;
+            let best = 0;
+            function loadBest() {
+                best = parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0;
+                bestSpan.textContent = best;
+            }
             let paused = false, ended = false;
             let popups = [];
             let animId = null;
@@ -242,6 +396,7 @@
             }
 
             function resetGame() {
+                loadBest();       // rekord patri k aktualnej obtiaznosti
                 const cfg = DIFFS[diffKey];
                 stack = [{ left: (CW - cfg.baseWidth) / 2, width: cfg.baseWidth, color: '#475569' }];
                 moving = null;
@@ -343,7 +498,7 @@
                 if (score > best) {
                     best = score;
                     bestSpan.textContent = best;
-                    localStorage.setItem('wobbleTowerBest', String(best));
+                    localStorage.setItem(bestKey(), String(best));
                 }
 
                 updateCamera();
@@ -449,17 +604,24 @@
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, p.life);
                     ctx.fillStyle = '#fde68a';
-                    ctx.font = 'bold 15px Segoe UI, Roboto, sans-serif';
+                    ctx.font = '800 15px Syne, sans-serif';
                     ctx.textAlign = 'center';
                     ctx.fillText(p.text, CW / 2, p.absY + cameraOffset);
                     ctx.restore();
                 }
             }
 
-            function loop() {
-                update();
-                draw();
+            let lastTs = 0, acc = 0;
+            const STEP = 1 / 60;
+            function loop(ts) {
                 animId = requestAnimationFrame(loop);
+                const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0;
+                lastTs = ts;
+                acc += dt;
+                let n = 0;
+                // logika bezi vzdy 60x za sekundu, aj na 144 Hz displeji
+                while (acc >= STEP && n < 4) { acc -= STEP; update(); n++; }
+                draw();
             }
 
             function togglePause() {
@@ -480,6 +642,7 @@
             });
 
             pauseBtn.addEventListener('click', togglePause);
+            window.addEventListener('blur', () => { if (!ended && !paused) togglePause(); });
             pauseBtn.addEventListener('touchstart', (e) => { e.preventDefault(); togglePause(); }, { passive: false });
             restartBtn.addEventListener('click', resetGame);
 
@@ -496,6 +659,7 @@
                 });
             });
 
+            fitCanvas();
             resetGame();
             loop();
         })();

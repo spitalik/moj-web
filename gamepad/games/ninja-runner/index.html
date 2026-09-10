@@ -1,720 +1,682 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ninja Runner · GamePad</title>
-    <script src="../../i18n.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: linear-gradient(145deg, #0a0f1e, #1a1f2e);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-            touch-action: none;
-        }
-        .game-wrapper {
-            background: #0e141f;
-            padding: 15px 15px 20px;
-            border-radius: 40px 40px 28px 28px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 0 2px #3f4a5e inset;
-            max-width: 100vw;
-            margin: 10px;
-            margin-top: 48px;
-        }
-        #back-btn {
-            position: fixed;
-            top: 14px;
-            left: 14px;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            background: rgba(14, 20, 31, 0.85);
-            border: 1px solid #3d4a61;
-            color: #9aabca;
-            padding: 7px 14px;
-            border-radius: 100px;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 500;
-            backdrop-filter: blur(4px);
-            transition: all .18s;
-        }
-        #back-btn:hover, #back-btn:active {
-            border-color: #7b8ba8;
-            color: #f5f9ff;
-        }
-        canvas {
-            display: block;
-            width: 100%;
-            height: auto;
-            aspect-ratio: 800 / 400;
-            max-width: 800px;
-            background: radial-gradient(circle at 20% 30%, #2d3b4f, #141b26);
-            border-radius: 24px;
-            box-shadow: 0 0 0 3px #394451, 0 10px 30px rgba(0,0,0,0.7);
-            cursor: pointer;
-            touch-action: none;
-        }
-        .info-panel {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 14px;
-            padding: 0 8px;
-            color: #cdd9f0;
-            text-shadow: 0 2px 3px black;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .score-box {
-            background: #1d2738;
-            padding: 6px 18px;
-            border-radius: 60px;
-            font-size: 1.4rem;
-            box-shadow: 0 4px 0 #0b101a, 0 0 0 2px #4d5b72;
-            backdrop-filter: blur(2px);
-            color: #f5e97b;
-            min-width: 80px;
-            text-align: center;
-        }
-        .lives-box {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: #1d2738;
-            padding: 5px 16px;
-            border-radius: 60px;
-            box-shadow: 0 4px 0 #0b101a, 0 0 0 2px #4d5b72;
-            font-size: 1.5rem;
-            letter-spacing: 1px;
-        }
-        .lives-box span {
-            line-height: 1;
-        }
-        .controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .btn {
-            background: #262f42;
-            border: none;
-            color: white;
-            font-weight: bold;
-            font-size: 1rem;
-            padding: 6px 18px;
-            border-radius: 60px;
-            box-shadow: 0 5px 0 #0b101a, 0 0 0 2px #5c6c86;
-            transition: all 0.04s ease-in;
-            cursor: pointer;
-            background: #2b354a;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            touch-action: manipulation;
-            -webkit-touch-callout: none;
-        }
-        .btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 1px 0 #0b101a, 0 0 0 2px #7b8ba8;
-        }
-        .btn.reset {
-            background: #3f2c3a;
-            color: #ffbaba;
-        }
-        .btn.reset:active {
-            background: #5a3d4e;
-        }
-        .hint {
-            color: #9aabca;
-            font-size: 0.75rem;
-            padding: 3px 12px;
-            background: #1b2333;
-            border-radius: 30px;
-            border: 1px solid #3d4a61;
-            white-space: nowrap;
-        }
-        @media (max-width: 600px) {
-            .game-wrapper { padding: 10px; margin: 6px; border-radius: 28px; }
-            .score-box { font-size: 1.1rem; padding: 4px 14px; min-width: 60px; }
-            .lives-box { font-size: 1.2rem; padding: 4px 12px; }
-            .btn { font-size: 0.85rem; padding: 5px 14px; }
-            .hint { font-size: 0.65rem; padding: 2px 8px; }
-            .info-panel { gap: 4px; }
-        }
-        @media (max-width: 400px) {
-            .lives-box { font-size: 1rem; padding: 3px 10px; }
-            .score-box { font-size: 0.95rem; padding: 3px 10px; }
-            .btn { font-size: 0.75rem; padding: 4px 10px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ninja Runner · GamePad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="../../i18n.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#070b16;--text:#f2f6ff;--muted:rgba(242,246,255,0.42);--dim:rgba(242,246,255,0.18);
+  --border:rgba(255,255,255,0.09);--border-h:rgba(255,255,255,0.18);
+  --c:#f472b6;--c2:#818cf8;--gold:#ffd166;--good:#4ade80;
+}
+html,body{background:var(--bg);height:100%;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none;}
+button,a{touch-action:manipulation;font-family:'DM Sans',sans-serif;}
+
+#back-btn{position:fixed;top:14px;left:14px;z-index:60;display:flex;align-items:center;gap:7px;background:rgba(12,17,34,0.72);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:border-color .18s,color .18s;}
+#back-btn:hover,#back-btn:active{border-color:var(--border-h);color:var(--text);}
+@media(max-width:520px){#back-btn{top:9px;left:9px;padding:6px 11px;font-size:11px;}}
+
+#hud{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:12;display:none;align-items:center;gap:7px;pointer-events:none;}
+#hud.show{display:flex;}
+.pill{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:100px;background:rgba(12,17,34,0.62);backdrop-filter:blur(8px);border:1px solid var(--border);font-size:9px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.pill b{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--c);transition:transform .18s;}
+.pill.spd b{color:var(--c2);}
+.pill.best b{color:rgba(242,246,255,.72);}
+.pill.best.record{border-color:rgba(244,114,182,.45);}
+.pill b.bump{transform:scale(1.3);}
+.lifes{display:flex;gap:4px;}
+.life{width:10px;height:10px;background:var(--c);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);box-shadow:0 0 8px rgba(244,114,182,.8);}
+.life.gone{background:rgba(255,255,255,0.13);box-shadow:none;}
+@media(max-width:620px){#hud{left:auto;right:54px;transform:none;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 150px);}.pill span.txt{display:none;}.pill{padding:4px 10px;}.pill b{font-size:15px;}.pill.best{display:none;}}
+
+#pause-btn{position:fixed;top:14px;right:14px;z-index:60;display:none;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(12,17,34,0.7);backdrop-filter:blur(8px);border:1px solid var(--border);color:var(--muted);border-radius:50%;cursor:pointer;}
+#pause-btn.show{display:flex;}
+#pause-btn:hover{border-color:var(--border-h);color:var(--text);}
+
+#ctrl{position:fixed;bottom:20px;left:0;right:0;z-index:12;display:none;justify-content:center;padding:0 16px;pointer-events:none;}
+body.touch #ctrl.show{display:flex;}
+#btn-jump{pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:9px;padding:16px 40px;border-radius:100px;background:linear-gradient(180deg,rgba(244,114,182,.24),rgba(244,114,182,.1));border:1px solid rgba(244,114,182,.5);color:#ffd9ec;font-size:14px;font-weight:600;cursor:pointer;transition:transform .1s,background .1s;}
+#btn-jump svg{width:19px;height:19px;}
+#btn-jump:active,#btn-jump.on{background:rgba(244,114,182,.32);transform:scale(.95);}
+
+#overlay{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at center,rgba(12,17,34,0.8) 0%,rgba(4,6,14,0.95) 78%);backdrop-filter:blur(6px);}
+#overlay.hide{display:none;}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;width:100%;max-width:334px;padding:26px 24px 24px;border-radius:24px;background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));border:1px solid var(--border-h);box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);animation:pop .34s cubic-bezier(.2,1.4,.4,1);}
+@keyframes pop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+.card::before{content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;background:linear-gradient(120deg,rgba(244,114,182,.5),transparent 42%,transparent 58%,rgba(129,140,248,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.emoji{font-size:34px;line-height:1;filter:drop-shadow(0 6px 16px rgba(244,114,182,.4));}
+.ttl{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-.5px;text-align:center;background:linear-gradient(110deg,var(--c) 5%,#fff 52%,var(--c2) 95%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#result{display:none;flex-direction:column;align-items:center;gap:1px;}
+#result.show{display:flex;}
+#res-lbl{font-size:9px;letter-spacing:2.2px;text-transform:uppercase;color:var(--dim);}
+#res-score{font-family:'Syne',sans-serif;font-weight:800;font-size:50px;line-height:1.05;letter-spacing:-2px;color:var(--c);text-shadow:0 0 30px rgba(244,114,182,.45);}
+#res-note{font-size:11.5px;font-weight:600;color:var(--muted);}
+#res-note.record{color:var(--gold);}
+#ov-stats{display:none;width:100%;grid-template-columns:1fr 1fr;gap:7px;}
+#ov-stats.show{display:grid;}
+.stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);}
+.stat i{font-size:8px;font-style:normal;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim);text-align:center;}
+.stat b{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--c2);white-space:nowrap;}
+.seg{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px;border-radius:100px;}
+.seg button{background:transparent;border:none;color:var(--muted);padding:6px 15px;border-radius:100px;font-size:11.5px;font-weight:600;cursor:pointer;transition:color .16s,background .16s;}
+.seg button:hover{color:var(--text);}
+.seg button.active{background:rgba(244,114,182,0.16);color:#ffd9ec;box-shadow:inset 0 0 0 1px rgba(244,114,182,0.42);}
+.lbl{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
+.hint{font-size:11.5px;line-height:1.55;color:var(--muted);text-align:center;}
+.play-btn{margin-top:3px;width:100%;padding:13px 30px;border-radius:100px;border:1px solid rgba(244,114,182,.5);background:linear-gradient(180deg,rgba(244,114,182,.24),rgba(244,114,182,.1));color:#ffdcee;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;}
+.play-btn:hover{background:linear-gradient(180deg,rgba(244,114,182,.34),rgba(244,114,182,.16));color:#fff;box-shadow:0 0 24px -6px rgba(244,114,182,.5);}
+.play-btn:active{transform:translateY(1px);}
+@media(max-height:640px){.card{gap:8px;padding:18px 20px;}.emoji{display:none;}.ttl{font-size:20px;}#res-score{font-size:38px;}}
+@media (max-height:820px){#overlay{align-items:flex-start !important;overflow-y:auto !important;}}
+</style>
 </head>
 <body>
 <a href="../../index.html" id="back-btn">
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   <span id="lbl-back"></span>
 </a>
-<div class="game-wrapper">
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
-    <div class="info-panel">
-        <div class="score-box">🏆 <span id="scoreDisplay">0</span></div>
-        <div class="lives-box" id="livesDisplay">❤️ <span id="livesCount">3</span></div>
-        <div class="controls">
-            <span class="hint" id="lbl-hint"></span>
-            <button class="btn reset" id="resetButton"></button>
-        </div>
-    </div>
+
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div class="pill"><span class="txt" id="lbl-score"></span><b id="hud-score">0</b></div>
+  <div class="pill"><div class="lifes" id="lifes"></div></div>
+  <div class="pill spd"><span class="txt" id="lbl-speed"></span><b id="hud-speed">1.0</b></div>
+  <div class="pill best" id="best-pill"><span class="txt" id="lbl-best"></span><b id="hud-best">0</b></div>
 </div>
+
+<button id="pause-btn" aria-label="pause">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1.4"/><rect x="14" y="4" width="4" height="16" rx="1.4"/></svg>
+</button>
+
+<div id="ctrl">
+  <button id="btn-jump" aria-label="jump">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+    <span id="lbl-jump"></span>
+  </button>
+</div>
+
+<div id="overlay">
+  <div class="card">
+    <div id="brand"><div class="emoji">&#129399;</div></div>
+    <div class="ttl" id="ov-title"></div>
+    <div id="result">
+      <div id="res-lbl"></div>
+      <div id="res-score">0</div>
+      <div id="res-note"></div>
+    </div>
+    <div id="ov-stats">
+      <div class="stat"><i id="lbl-s-dist"></i><b id="st-dist">0</b></div>
+      <div class="stat"><i id="lbl-s-best"></i><b id="st-best">0</b></div>
+    </div>
+    <div class="lbl" id="lbl-diff"></div>
+    <div class="seg" id="diff-row"></div>
+    <div class="hint" id="ov-hint"></div>
+    <button class="play-btn" id="ov-play"></button>
+  </div>
+</div>
+
 <script>
-    (function() {
-        // ---------- NINJA RUNNER - 3 LIVES (Mobile friendly) ----------
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreSpan = document.getElementById('scoreDisplay');
-        const livesSpan = document.getElementById('livesCount');
+// ── nastavenia: vsetko v px/s, px/s2 ────────────────────────────────────
+const DIFFS = [
+  {key:'diffEasy',   lives:4, spd:260, ramp:15, gap:1.35, hearts:9},
+  {key:'diffMedium', lives:3, spd:320, ramp:22, gap:1.10, hearts:12},
+  {key:'diffHard',   lives:2, spd:380, ramp:30, gap:0.92, hearts:15},
+];
+let diffIdx = 1;
+const bestKey = () => 'ninjarunner_best_' + diffIdx;
+let best = 0;
 
-        document.getElementById('lbl-back').textContent = t('back');
-        document.getElementById('lbl-hint').textContent = t('ninjaHint');
-        document.getElementById('resetButton').textContent = '↺ ' + t('ninjaReset');
+const GRAV = 2100;          // px/s2 (x SCL)
+const JUMP_V = 760;         // px/s (x SCL)
+const HOLD_G = 0.42;        // pri drzani stupa vyssie (mensia gravitacia)
+const HOLD_MAX = 0.26;      // ako dlho sa da drzat, v sekundach
+const P_SEC = 12;           // body za sekundu behu
+const P_HEART = 25;
+const MAX_LIVES = 5;
 
-        // Cached so canvas redraw (60×/s) doesn't re-resolve translations every frame.
-        const txtGameOver = '☠️ ' + t('ninjaGameOver').toUpperCase() + ' ☠️';
-        const txtNoLives = '💔 ' + t('ninjaNoLives');
-        const txtTryAgain = t('ninjaTryAgain');
-        const txtWatermark = '⚡ ' + t('ninjaTitle').toUpperCase();
+const ST = {MENU:0, COUNT:1, PLAY:2, PAUSE:3, OVER:4};
+let state = ST.MENU;
 
-        // ---------- FIXED DIMENSIONS ----------
-        const W = 800, H = 400;
-        canvas.width = W; canvas.height = H;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, SCL = 1, GY = 0;
 
-        // ---------- GAME STATE ----------
-        let gameActive = true;
-        let score = 0;
-        let frame = 0;
+let ninja = {x:0, y:0, vy:0, grounded:true, inv:0, run:0, spin:0};
+let hazards = [], hearts = [], parts = [], pops = [], hills = [], lanterns = [];
+let score = 0, scoreAcc = 0, lives = 3, dist = 0, speed = 0;
+let nextHaz = 0, nextHeart = 0, holdT = 0, shake = 0, cdLeft = 0, goFlash = 0;
+let tSec = 0, tPrev = 0;
+const keys = {};
+const isTouch = window.matchMedia('(pointer: coarse)').matches;
 
-        // ---------- LIVES SYSTEM ----------
-        let lives = 3;
-        const MAX_LIVES = 3;
+function applyLang() {
+  document.getElementById('lbl-back').textContent   = t('back');
+  document.getElementById('lbl-score').textContent  = t('uiScore');
+  document.getElementById('lbl-speed').textContent  = t('ninjaSpeed');
+  document.getElementById('lbl-best').textContent   = t('uiBest');
+  document.getElementById('lbl-s-dist').textContent = t('ninjaDist');
+  document.getElementById('lbl-s-best').textContent = t('uiBest');
+  document.getElementById('res-lbl').textContent    = t('uiScore');
+  document.getElementById('lbl-diff').textContent   = t('uiDifficulty');
+  document.getElementById('lbl-jump').textContent   = t('ninjaJump');
+  document.title = t('ninjaTitle') + ' · GamePad';
+}
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+const D = () => DIFFS[diffIdx];
 
-        // ---------- NINJA ----------
-        const ninja = {
-            x: 70,
-            y: 300,
-            width: 28,
-            height: 38,
-            vy: 0,
-            gravity: 0.7,
-            jumpPower: -12,
-            grounded: true,
-            invincible: 0,
-        };
+// ── rozmery ─────────────────────────────────────────────────────────────
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth || 360;
+  H = window.innerHeight || 640;
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  SCL = clamp(Math.min(W, H * 1.5) / 460, 0.72, 1.7);
+  GY = H - Math.max(96 * SCL, isTouch ? 150 : 90);   // uroven zeme
+  ninja.x = Math.max(52 * SCL, W * 0.16);
+  if (ninja.grounded) ninja.y = GY;
+  makeScenery();
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 250));
 
-        // ---------- PREKÁŽKY (hviezdice) ----------
-        let obstacles = [];
-        const OBS_WIDTH = 28;
-        const OBS_HEIGHT = 28;
+function makeScenery() {
+  hills = [];
+  for (let layer = 0; layer < 2; layer++) {
+    const pts = [];
+    const n = 9;
+    for (let i = 0; i <= n; i++) pts.push(rnd(0.25, 1));
+    hills.push({pts, depth: layer === 0 ? 0.22 : 0.45, h: (layer === 0 ? 0.3 : 0.18) * H, off: 0});
+  }
+  lanterns = Array.from({length: 7}, (_, i) => ({x: i / 7, ph: rnd(0, 6.28)}));
+}
 
-        // ---------- ŠPECIÁLNE SYMBOLY (životy) ----------
-        let specials = [];
-        const SPECIAL_WIDTH = 26;
-        const SPECIAL_HEIGHT = 26;
-        let specialSpawnCounter = 0;
-        const SPECIAL_SPAWN_RATE = 180;
+// ── kolo ────────────────────────────────────────────────────────────────
+function loadBest() {
+  best = +(localStorage.getItem(bestKey()) || 0);
+  setHud('hud-best', best);
+  document.getElementById('best-pill').classList.remove('record');
+}
+function beginRound() {
+  score = 0; scoreAcc = 0; dist = 0; lives = D().lives; speed = D().spd;
+  hazards = []; hearts = []; parts = []; pops = [];
+  ninja = {x: Math.max(52 * SCL, W * 0.16), y: GY, vy: 0, grounded: true, inv: 0, run: 0, spin: 0};
+  nextHaz = 0.9; nextHeart = rnd(D().hearts * 0.6, D().hearts);
+  holdT = 0; shake = 0; goFlash = 0; cdLeft = 2.4;
+  for (const k in keys) keys[k] = false;
+  state = ST.COUNT;
+  document.getElementById('overlay').classList.add('hide');
+  document.getElementById('hud').classList.add('show');
+  document.getElementById('pause-btn').classList.add('show');
+  document.getElementById('ctrl').classList.add('show');
+  loadBest();
+  syncHud(true);
+}
+function endRound() {
+  state = ST.OVER;
+  const rec = score > best;
+  if (rec) { best = score; try { localStorage.setItem(bestKey(), best); } catch (e) {} }
+  document.getElementById('res-score').textContent = score;
+  const note = document.getElementById('res-note');
+  note.textContent = rec ? t('uiNewRecord') : t('uiBest') + ' ' + best;
+  note.classList.toggle('record', rec);
+  document.getElementById('st-dist').textContent = Math.round(dist) + ' m';
+  document.getElementById('st-best').textContent = best;
+  showCard('over');
+  setHud('hud-best', best);
+  document.getElementById('best-pill').classList.toggle('record', rec);
+}
+function showCard(mode) {
+  document.getElementById('ov-title').textContent = mode === 'over' ? t('ninjaGameOver') : t('ninjaTitle');
+  document.getElementById('brand').style.display = mode === 'over' ? 'none' : '';
+  document.getElementById('result').classList.toggle('show', mode === 'over');
+  document.getElementById('ov-stats').classList.toggle('show', mode === 'over');
+  document.getElementById('ov-hint').textContent = isTouch ? t('ninjaHint') : t('ninjaKeys');
+  document.getElementById('ov-play').textContent = mode === 'over' ? t('uiPlayAgain') : t('uiStart');
+  document.getElementById('overlay').classList.remove('hide');
+  document.getElementById('hud').classList.remove('show');
+  document.getElementById('pause-btn').classList.remove('show');
+  document.getElementById('ctrl').classList.remove('show');
+}
+function togglePause() {
+  if (state === ST.PLAY) state = ST.PAUSE;
+  else if (state === ST.PAUSE) { cdLeft = 1.2; state = ST.COUNT; }
+}
 
-        // ---------- GENEROVANIE PREKÁŽOK ----------
-        let spawnCounter = 0;
-        const BASE_SPAWN_RATE = 45;
+// ── HUD ─────────────────────────────────────────────────────────────────
+const hudVal = {};
+function setHud(id, v) {
+  if (hudVal[id] === v) return;
+  hudVal[id] = v;
+  const el = document.getElementById(id);
+  el.textContent = v;
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 180);
+}
+function syncHud(force) {
+  setHud('hud-score', score);
+  setHud('hud-speed', (speed / D().spd).toFixed(1) + '×');
+  const box = document.getElementById('lifes');
+  if (box.children.length !== MAX_LIVES) {
+    box.textContent = '';
+    for (let i = 0; i < MAX_LIVES; i++) { const d = document.createElement('div'); d.className = 'life'; box.appendChild(d); }
+  }
+  [...box.children].forEach((d, i) => {
+    d.classList.toggle('gone', i >= lives);
+    d.style.display = i < Math.max(lives, D().lives) ? '' : 'none';
+  });
+  if (force) setHud('hud-best', best);
+}
 
-        // ---------- RESET HRY ----------
-        function resetGame() {
-            gameActive = true;
-            score = 0;
-            frame = 0;
-            lives = MAX_LIVES;
-            ninja.y = 300;
-            ninja.vy = 0;
-            ninja.grounded = true;
-            ninja.invincible = 0;
-            obstacles = [];
-            specials = [];
-            spawnCounter = 0;
-            specialSpawnCounter = 0;
-            updateScore();
-            updateLives();
-        }
+// ── akcie ───────────────────────────────────────────────────────────────
+function jump() {
+  if (state === ST.COUNT || state === ST.MENU || state === ST.OVER) return;
+  if (state === ST.PAUSE) { cdLeft = 1.2; state = ST.COUNT; return; }
+  if (!ninja.grounded) return;
+  ninja.vy = -JUMP_V * SCL;
+  ninja.grounded = false;
+  holdT = HOLD_MAX;
+  for (let i = 0; i < 7; i++) {
+    parts.push({x: ninja.x, y: GY + 4 * SCL, vx: rnd(-120, -20) * SCL, vy: rnd(-60, 10) * SCL,
+      life: 0.3, max: 0.3, rgb: '148,163,184', sz: rnd(1.2, 2.6) * SCL});
+  }
+}
+function loseLife() {
+  if (ninja.inv > 0) return;
+  lives--;
+  shake = 1;
+  ninja.inv = 1.2;
+  ninja.vy = -320 * SCL;
+  ninja.grounded = false;
+  for (let i = 0; i < 20; i++) {
+    const a = rnd(0, 6.2832);
+    parts.push({x: ninja.x, y: ninja.y - 16 * SCL, vx: Math.cos(a) * rnd(60, 260) * SCL, vy: Math.sin(a) * rnd(60, 260) * SCL,
+      life: rnd(0.3, 0.6), max: 0.6, rgb: '244,114,182', sz: rnd(1.4, 3) * SCL});
+  }
+  syncHud();
+  if (lives <= 0) { lives = 0; syncHud(); endRound(); }
+}
 
-        // ---------- SKOK ----------
-        function jump() {
-            if (!gameActive) return;
-            if (ninja.grounded) {
-                ninja.vy = ninja.jumpPower;
-                ninja.grounded = false;
-            }
-        }
+// ── update ──────────────────────────────────────────────────────────────
+function update(dt) {
+  tSec += dt;
+  for (const p of parts) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 900 * SCL * dt; }
+  if (parts.length) parts = parts.filter(p => p.life > 0);
+  for (const p of pops) { p.life -= dt; p.y -= 40 * SCL * dt; }
+  if (pops.length) pops = pops.filter(p => p.life > 0);
+  if (shake > 0) shake = Math.max(0, shake - dt * 3.2);
+  if (goFlash > 0) goFlash = Math.max(0, goFlash - dt * 2);
 
-        // ---------- AKTUALIZÁCIA UI ----------
-        function updateScore() {
-            scoreSpan.textContent = Math.floor(score);
-        }
-        function updateLives() {
-            livesSpan.textContent = lives;
-        }
+  if (state === ST.COUNT) {
+    cdLeft -= dt;
+    if (cdLeft <= 0) { state = ST.PLAY; goFlash = 0.5; }
+    return;
+  }
+  if (state !== ST.PLAY) return;
 
-        // ---------- KOLÍZIA (AABB) ----------
-        function rectCollide(r1, r2) {
-            return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x ||
-                r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);
-        }
+  const d = D();
+  speed = d.spd + Math.min(360, dist * d.ramp / 100);
+  const vx = speed * SCL;
+  dist += speed * dt / 22;                 // "metre" pre statistiku
+  scoreAcc += dt * P_SEC * (speed / d.spd);
+  if (scoreAcc >= 1) { const g = Math.floor(scoreAcc); scoreAcc -= g; score += g; syncHud(); }
 
-        // ---------- ZNÍŽENIE ŽIVOTA ----------
-        function loseLife() {
-            if (ninja.invincible > 0) return;
-            lives--;
-            updateLives();
-            if (lives <= 0) {
-                lives = 0;
-                gameActive = false;
-                updateLives();
-            } else {
-                ninja.invincible = 60;
-                ninja.vy = -6;
-                ninja.y -= 10;
-            }
-        }
+  // ninja
+  ninja.run += dt * (6 + speed / 90);
+  if (ninja.inv > 0) ninja.inv = Math.max(0, ninja.inv - dt);
+  if (!ninja.grounded) {
+    let g = GRAV * SCL;
+    if (keys.jump && holdT > 0 && ninja.vy < 0) { g *= HOLD_G; holdT = Math.max(0, holdT - dt); }
+    ninja.vy += g * dt;
+    ninja.y += ninja.vy * dt;
+    ninja.spin += dt * 5;
+    if (ninja.y >= GY) { ninja.y = GY; ninja.vy = 0; ninja.grounded = true; holdT = 0; ninja.spin = 0; }
+    if (ninja.y < 20 * SCL) { ninja.y = 20 * SCL; ninja.vy = Math.max(0, ninja.vy); }
+  }
 
-        // ---------- UPDATE ----------
-        function update() {
-            if (!gameActive) return;
+  // kulisy
+  for (const h of hills) h.off = (h.off + vx * h.depth * dt) % W;
+  for (const l of lanterns) l.x -= vx * 0.55 * dt / W;
+  for (const l of lanterns) if (l.x < -0.08) { l.x += 1.16; l.ph = rnd(0, 6.28); }
 
-            // --- 1. Ninja fyzika ---
-            ninja.vy += ninja.gravity;
-            ninja.y += ninja.vy;
+  // prekazky
+  nextHaz -= dt;
+  if (nextHaz <= 0) {
+    const gapS = Math.max(0.52, d.gap * (d.spd / speed));
+    nextHaz = gapS * rnd(0.86, 1.35);
+    const hi = Math.random() < 0.28;       // niekedy leti vo vyske
+    const sz = rnd(24, 32) * SCL;
+    hazards.push({x: W + sz, y: hi ? GY - rnd(64, 88) * SCL : GY - rnd(2, 16) * SCL, r: sz / 2, rot: 0, hi});
+  }
+  for (let i = hazards.length - 1; i >= 0; i--) {
+    const o = hazards[i];
+    o.x -= vx * dt;
+    o.rot += dt * 9;
+    if (o.x + o.r < -20) { hazards.splice(i, 1); continue; }
+    // ninja je oval; hviezdica kruh
+    const dx = Math.abs(o.x - ninja.x), dy = Math.abs(o.y - (ninja.y - 19 * SCL));
+    if (dx < o.r + 11 * SCL && dy < o.r + 17 * SCL) {
+      hazards.splice(i, 1);
+      loseLife();
+      if (state !== ST.PLAY) return;
+    }
+  }
 
-            if (ninja.y >= 300) {
-                ninja.y = 300;
-                ninja.vy = 0;
-                ninja.grounded = true;
-            } else {
-                ninja.grounded = false;
-            }
-            if (ninja.y < 0) {
-                ninja.y = 0;
-                ninja.vy = 0;
-            }
+  // srdcia
+  nextHeart -= dt;
+  if (nextHeart <= 0) {
+    nextHeart = rnd(d.hearts * 0.8, d.hearts * 1.5);
+    hearts.push({x: W + 30 * SCL, y: GY - rnd(30, 96) * SCL, ph: rnd(0, 6.28)});
+  }
+  for (let i = hearts.length - 1; i >= 0; i--) {
+    const s = hearts[i];
+    s.x -= vx * dt;
+    s.ph += dt * 3;
+    if (s.x < -30) { hearts.splice(i, 1); continue; }
+    if (Math.abs(s.x - ninja.x) < 22 * SCL && Math.abs(s.y - (ninja.y - 19 * SCL)) < 26 * SCL) {
+      hearts.splice(i, 1);
+      score += P_HEART;
+      const gotLife = lives < MAX_LIVES;
+      if (gotLife) lives++;
+      pops.push({x: s.x, y: s.y, txt: gotLife ? '+' + P_HEART + ' ♥' : '+' + P_HEART, life: 1, rgb: '74,222,128'});
+      for (let k = 0; k < 12; k++) {
+        const a = rnd(0, 6.2832);
+        parts.push({x: s.x, y: s.y, vx: Math.cos(a) * rnd(40, 160) * SCL, vy: Math.sin(a) * rnd(40, 160) * SCL,
+          life: 0.4, max: 0.4, rgb: '74,222,128', sz: rnd(1.2, 2.6) * SCL});
+      }
+      syncHud();
+    }
+  }
+}
 
-            if (ninja.invincible > 0) {
-                ninja.invincible--;
-            }
+// ── kreslenie ───────────────────────────────────────────────────────────
+function hillPath(h) {
+  const n = h.pts.length - 1;
+  const seg = W / n;
+  ctx.beginPath();
+  ctx.moveTo(-h.off, GY + 4);
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i <= n; i++) {
+      const x = -h.off + pass * W + i * seg;
+      ctx.lineTo(x, GY + 4 - h.pts[i] * h.h);
+    }
+  }
+  ctx.lineTo(W * 2, H);
+  ctx.lineTo(-h.off, H);
+  ctx.closePath();
+}
 
-            // --- 2. Prekážky ---
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                const obs = obstacles[i];
-                obs.x -= 4.2;
-                obs.angle = (obs.angle || 0) + 0.08;
+function draw() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, '#080c1a');
+  sky.addColorStop(0.5, '#141a35');
+  sky.addColorStop(1, '#241a33');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
 
-                if (obs.x + obs.w < 0) {
-                    obstacles.splice(i, 1);
-                    continue;
-                }
+  // mesiac
+  const mr = Math.min(W, H) * 0.1;
+  const mg = ctx.createRadialGradient(W * 0.8, H * 0.2, mr * 0.4, W * 0.8, H * 0.2, mr * 3);
+  mg.addColorStop(0, 'rgba(255,240,200,0.22)');
+  mg.addColorStop(1, 'rgba(255,240,200,0)');
+  ctx.fillStyle = mg;
+  ctx.beginPath(); ctx.arc(W * 0.8, H * 0.2, mr * 3, 0, 6.2832); ctx.fill();
+  ctx.fillStyle = 'rgba(255,246,224,0.9)';
+  ctx.beginPath(); ctx.arc(W * 0.8, H * 0.2, mr, 0, 6.2832); ctx.fill();
 
-                const ninjaBox = {
-                    x: ninja.x,
-                    y: ninja.y,
-                    w: ninja.width,
-                    h: ninja.height
-                };
-                const obsBox = {
-                    x: obs.x + 4,
-                    y: obs.y + 4,
-                    w: obs.w - 8,
-                    h: obs.h - 8
-                };
-                if (rectCollide(ninjaBox, obsBox)) {
-                    loseLife();
-                    obstacles.splice(i, 1);
-                    if (!gameActive) break;
-                }
-            }
+  // kopce
+  const cols = ['rgba(60,52,110,0.55)', 'rgba(34,30,66,0.9)'];
+  hills.forEach((h, i) => { hillPath(h); ctx.fillStyle = cols[i]; ctx.fill(); });
 
-            // --- 3. Špeciálne symboly ---
-            for (let i = specials.length - 1; i >= 0; i--) {
-                const sp = specials[i];
-                sp.x -= 4.2;
-                sp.angle = (sp.angle || 0) + 0.06;
+  // lampiony
+  for (const l of lanterns) {
+    const x = l.x * W, y = GY - H * 0.24 + Math.sin(l.ph + tSec) * 8 * SCL;
+    ctx.globalAlpha = 0.8;
+    ctx.shadowColor = '#f472b6'; ctx.shadowBlur = 18 * SCL;
+    ctx.fillStyle = 'rgba(244,114,182,0.85)';
+    ctx.beginPath(); ctx.ellipse(x, y, 6 * SCL, 8 * SCL, 0, 0, 6.2832); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
 
-                if (sp.x + sp.w < 0) {
-                    specials.splice(i, 1);
-                    continue;
-                }
+  ctx.save();
+  if (shake > 0.02) {
+    const s = shake * shake * 12 * SCL;
+    ctx.translate(rnd(-s, s), rnd(-s, s));
+  }
 
-                const ninjaBox = {
-                    x: ninja.x,
-                    y: ninja.y,
-                    w: ninja.width,
-                    h: ninja.height
-                };
-                const spBox = {
-                    x: sp.x + 2,
-                    y: sp.y + 2,
-                    w: sp.w - 4,
-                    h: sp.h - 4
-                };
-                if (rectCollide(ninjaBox, spBox)) {
-                    if (lives < MAX_LIVES) {
-                        lives++;
-                        updateLives();
-                    }
-                    score += 5;
-                    updateScore();
-                    specials.splice(i, 1);
-                }
-            }
+  // zem
+  const gg = ctx.createLinearGradient(0, GY, 0, H);
+  gg.addColorStop(0, '#2b2144');
+  gg.addColorStop(1, '#120d20');
+  ctx.fillStyle = gg;
+  ctx.fillRect(0, GY + 4 * SCL, W, H - GY);
+  ctx.strokeStyle = 'rgba(244,114,182,0.5)';
+  ctx.lineWidth = 2 * SCL;
+  ctx.beginPath(); ctx.moveTo(0, GY + 4 * SCL); ctx.lineTo(W, GY + 4 * SCL); ctx.stroke();
+  // bezici pruh na zemi
+  const dash = 34 * SCL;
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 3 * SCL;
+  ctx.setLineDash([dash * 0.5, dash * 0.5]);
+  ctx.lineDashOffset = -(dist * 6) % (dash);
+  ctx.beginPath(); ctx.moveTo(0, GY + 22 * SCL); ctx.lineTo(W, GY + 22 * SCL); ctx.stroke();
+  ctx.setLineDash([]);
 
-            // --- 4. Spawn prekážok ---
-            spawnCounter++;
-            let dynamicRate = Math.max(22, BASE_SPAWN_RATE - Math.floor(score / 25));
-            if (dynamicRate < 18) dynamicRate = 18;
+  // srdcia
+  for (const s of hearts) {
+    const k = SCL * (1 + 0.08 * Math.sin(s.ph));
+    ctx.save(); ctx.translate(s.x, s.y);
+    ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 14 * SCL;
+    ctx.fillStyle = '#4ade80';
+    ctx.beginPath();
+    ctx.moveTo(0, 6 * k);
+    ctx.bezierCurveTo(-9 * k, -2 * k, -5 * k, -10 * k, 0, -5 * k);
+    ctx.bezierCurveTo(5 * k, -10 * k, 9 * k, -2 * k, 0, 6 * k);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
 
-            if (spawnCounter >= dynamicRate) {
-                spawnCounter = 0;
-                let canSpawn = true;
-                if (obstacles.length > 0) {
-                    const last = obstacles[obstacles.length - 1];
-                    if (last.x > W - 160) canSpawn = false;
-                    if (obstacles.length > 1) {
-                        const prev = obstacles[obstacles.length - 2];
-                        if (last.x - prev.x < 100) canSpawn = false;
-                    }
-                }
-                if (canSpawn) {
-                    const yPos = 270 + Math.floor(Math.random() * 50);
-                    obstacles.push({
-                        x: W,
-                        y: yPos,
-                        w: OBS_WIDTH,
-                        h: OBS_HEIGHT,
-                        angle: 0,
-                    });
-                }
-            }
+  // hviezdice
+  for (const o of hazards) {
+    ctx.save(); ctx.translate(o.x, o.y); ctx.rotate(o.rot);
+    ctx.shadowColor = '#818cf8'; ctx.shadowBlur = 12 * SCL;
+    const g = ctx.createRadialGradient(0, 0, o.r * 0.15, 0, 0, o.r);
+    g.addColorStop(0, '#e8ecff');
+    g.addColorStop(1, '#5b63c9');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const a = i / 8 * 6.2832;
+      const rr = i % 2 ? o.r * 0.42 : o.r;
+      const x = Math.cos(a) * rr, y = Math.sin(a) * rr;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#141a35';
+    ctx.beginPath(); ctx.arc(0, 0, o.r * 0.18, 0, 6.2832); ctx.fill();
+    ctx.restore();
+  }
 
-            // --- 5. Spawn špeciálnych symbolov ---
-            specialSpawnCounter++;
-            let specialRate = Math.max(120, SPECIAL_SPAWN_RATE - Math.floor(score / 15));
-            if (specialRate < 80) specialRate = 80;
+  // ninja
+  if (state !== ST.MENU) {
+    const k = SCL;
+    const blink = ninja.inv > 0 && Math.floor(ninja.inv * 12) % 2 === 1;
+    if (!blink) {
+      ctx.save();
+      ctx.translate(ninja.x, ninja.y);
+      const bob = ninja.grounded ? Math.abs(Math.sin(ninja.run)) * 2.4 * k : 0;
+      // salto pri skoku
+      if (!ninja.grounded) ctx.rotate(Math.sin(ninja.spin) * 0.22);
+      // noha vzad / vpred
+      ctx.strokeStyle = '#3a4272';
+      ctx.lineWidth = 4.4 * k;
+      ctx.lineCap = 'round';
+      const ph = ninja.grounded ? Math.sin(ninja.run) : 0.7;
+      ctx.beginPath();
+      ctx.moveTo(-1 * k, -8 * k); ctx.lineTo(-6 * k - ph * 5 * k, -1 * k);
+      ctx.moveTo(1 * k, -8 * k); ctx.lineTo(6 * k + ph * 5 * k, -1 * k);
+      ctx.stroke();
+      // telo
+      const bg = ctx.createLinearGradient(0, -34 * k, 0, -6 * k);
+      bg.addColorStop(0, '#7d87c8');
+      bg.addColorStop(1, '#2f3660');
+      ctx.fillStyle = bg;
+      ctx.shadowColor = 'rgba(129,140,248,0.95)';
+      ctx.shadowBlur = 12 * k;
+      ctx.beginPath();
+      ctx.moveTo(-8 * k, -8 * k - bob);
+      ctx.lineTo(-6 * k, -26 * k - bob);
+      ctx.lineTo(6 * k, -26 * k - bob);
+      ctx.lineTo(8 * k, -8 * k - bob);
+      ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(242,246,255,0.5)';
+      ctx.lineWidth = 1.3 * k;
+      ctx.stroke();
+      // sal
+      ctx.strokeStyle = '#f472b6';
+      ctx.lineWidth = 3.4 * k;
+      ctx.beginPath();
+      ctx.moveTo(-4 * k, -25 * k - bob);
+      ctx.quadraticCurveTo(-16 * k, -22 * k - bob + Math.sin(ninja.run * 1.6) * 4 * k, -22 * k, -27 * k - bob);
+      ctx.stroke();
+      // hlava
+      ctx.fillStyle = '#4a5490';
+      ctx.beginPath(); ctx.arc(0, -31 * k - bob, 7.4 * k, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = 'rgba(242,246,255,0.5)';
+      ctx.lineWidth = 1.3 * k;
+      ctx.stroke();
+      ctx.fillStyle = '#f2f6ff';
+      ctx.fillRect(-6.4 * k, -33 * k - bob, 12.8 * k, 3.4 * k);
+      ctx.fillStyle = '#f472b6';
+      ctx.fillRect(1 * k, -32.6 * k - bob, 3.4 * k, 2.6 * k);
+      ctx.restore();
+    }
+  }
 
-            if (specialSpawnCounter >= specialRate && specials.length < 2) {
-                specialSpawnCounter = 0;
-                if (obstacles.length < 6) {
-                    const yPos = 275 + Math.floor(Math.random() * 45);
-                    specials.push({
-                        x: W + 20,
-                        y: yPos,
-                        w: SPECIAL_WIDTH,
-                        h: SPECIAL_HEIGHT,
-                        angle: 0,
-                        type: 'heart',
-                    });
-                }
-            }
+  for (const p of parts) {
+    ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
+    ctx.fillStyle = 'rgb(' + p.rgb + ')';
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.sz, 0, 6.2832); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  for (const p of pops) {
+    ctx.globalAlpha = clamp(p.life, 0, 1);
+    ctx.fillStyle = 'rgb(' + p.rgb + ')';
+    ctx.font = '800 ' + Math.round(16 * SCL) + 'px Syne, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(p.txt, p.x, p.y);
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
 
-            // --- 6. Skóre ---
-            score += 0.13;
-            updateScore();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (state === ST.COUNT) {
+    const n = Math.ceil(cdLeft);
+    const frac = cdLeft - Math.floor(cdLeft);
+    ctx.globalAlpha = 0.35 + 0.55 * frac;
+    ctx.fillStyle = '#f2f6ff';
+    ctx.font = '800 ' + Math.round(Math.min(W, H) * 0.2) + 'px Syne, sans-serif';
+    ctx.fillText(n > 0 ? String(n) : '', W / 2, H * 0.42);
+    ctx.globalAlpha = 1;
+  }
+  if (goFlash > 0) {
+    ctx.globalAlpha = clamp(goFlash * 2, 0, 1);
+    ctx.fillStyle = '#f472b6';
+    ctx.font = '800 ' + Math.round(Math.min(W, H) * 0.13) + 'px Syne, sans-serif';
+    ctx.fillText(t('uiGo'), W / 2, H * 0.42);
+    ctx.globalAlpha = 1;
+  }
+  if (state === ST.PAUSE) {
+    ctx.fillStyle = 'rgba(6,9,20,0.68)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#f2f6ff';
+    ctx.font = '800 ' + Math.round(Math.min(W, H) * 0.07) + 'px Syne, sans-serif';
+    ctx.fillText(t('uiPaused'), W / 2, H / 2);
+    ctx.fillStyle = 'rgba(242,246,255,0.42)';
+    ctx.font = '600 12px "DM Sans", sans-serif';
+    ctx.fillText(t('uiResume'), W / 2, H / 2 + Math.min(W, H) * 0.06);
+  }
+}
 
-            // --- 7. Udržiavanie poriadku ---
-            if (obstacles.length > 2) {
-                for (let i = 1; i < obstacles.length; i++) {
-                    if (obstacles[i].x - obstacles[i-1].x < 70) {
-                        obstacles[i].x = obstacles[i-1].x + 90;
-                    }
-                }
-            }
+function frame(ts) {
+  requestAnimationFrame(frame);
+  const dt = tPrev ? Math.min(0.05, (ts - tPrev) / 1000) : 0;
+  tPrev = ts;
+  update(dt);
+  draw();
+}
 
-            frame++;
-        }
+// ── vstup ───────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.code === 'Escape' || e.code === 'KeyP') {
+    e.preventDefault();
+    if (state === ST.PLAY || state === ST.PAUSE) togglePause();
+    return;
+  }
+  if ((state === ST.MENU || state === ST.OVER) && (e.code === 'Enter' || e.code === 'Space')) {
+    e.preventDefault(); beginRound(); return;
+  }
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+    e.preventDefault();
+    if (!keys.jump) { keys.jump = true; jump(); }
+  }
+});
+document.addEventListener('keyup', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') keys.jump = false;
+});
+const jumpBtn = document.getElementById('btn-jump');
+const jOn = e => { e.preventDefault(); jumpBtn.classList.add('on'); keys.jump = true; jump(); };
+const jOff = e => { if (e) e.preventDefault(); jumpBtn.classList.remove('on'); keys.jump = false; };
+jumpBtn.addEventListener('pointerdown', jOn, {passive: false});
+jumpBtn.addEventListener('pointerup', jOff);
+jumpBtn.addEventListener('pointerleave', jOff);
+jumpBtn.addEventListener('pointercancel', jOff);
+cv.addEventListener('pointerdown', () => { keys.jump = true; jump(); });
+cv.addEventListener('pointerup', () => { keys.jump = false; });
+cv.addEventListener('pointercancel', () => { keys.jump = false; });
+document.getElementById('pause-btn').addEventListener('click', togglePause);
+window.addEventListener('blur', () => { if (state === ST.PLAY) state = ST.PAUSE; keys.jump = false; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && state === ST.PLAY) state = ST.PAUSE; });
 
-        // ---------- RENDER ----------
-        function draw() {
-            ctx.clearRect(0, 0, W, H);
+// ── obtiaznost ──────────────────────────────────────────────────────────
+const row = document.getElementById('diff-row');
+DIFFS.forEach((d, i) => {
+  const b = document.createElement('button');
+  b.textContent = t(d.key);
+  b.className = i === diffIdx ? 'active' : '';
+  b.addEventListener('click', () => {
+    diffIdx = i;
+    [...row.children].forEach((c, j) => c.className = j === i ? 'active' : '');
+    loadBest();
+    if (state === ST.OVER) document.getElementById('res-note').textContent = t('uiBest') + ' ' + best;
+  });
+  row.appendChild(b);
+});
+document.getElementById('ov-play').addEventListener('click', beginRound);
 
-            // ---- pozadie ----
-            ctx.fillStyle = '#6e7d9b';
-            ctx.globalAlpha = 0.2;
-            ctx.beginPath();
-            ctx.arc(680, 70, 50, 0, Math.PI*2);
-            ctx.fill();
-            ctx.globalAlpha = 0.4;
-            ctx.beginPath();
-            ctx.arc(120, 50, 30, 0, Math.PI*2);
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-
-            // ---- zem ----
-            ctx.fillStyle = '#2c3a4b';
-            ctx.fillRect(0, 340, W, 60);
-            ctx.fillStyle = '#3c4d62';
-            ctx.fillRect(0, 340, W, 8);
-            for (let i=0; i<20; i++) {
-                let x = (i*45 + frame*0.5) % 900 - 50;
-                ctx.fillStyle = '#4d6b4d';
-                ctx.beginPath();
-                ctx.moveTo(x, 340);
-                ctx.lineTo(x+8, 330);
-                ctx.lineTo(x+16, 340);
-                ctx.fill();
-            }
-
-            // ---- Ninja ----
-            const blink = ninja.invincible > 0 && Math.floor(ninja.invincible / 6) % 2 === 0;
-            if (!blink || ninja.invincible === 0) {
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 16;
-                ctx.shadowOffsetX = 4;
-                ctx.shadowOffsetY = 4;
-
-                ctx.fillStyle = '#1e283a';
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.roundRect(ninja.x, ninja.y, ninja.width, ninja.height, 6);
-                ctx.fill();
-
-                ctx.fillStyle = '#b84a4a';
-                ctx.shadowBlur = 6;
-                ctx.fillRect(ninja.x+4, ninja.y+18, ninja.width-8, 4);
-
-                ctx.fillStyle = '#1a2335';
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.arc(ninja.x+14, ninja.y-2, 16, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.fillStyle = '#f5f9ff';
-                ctx.shadowBlur = 4;
-                ctx.beginPath();
-                ctx.arc(ninja.x+8, ninja.y-6, 4, 0, Math.PI*2);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(ninja.x+20, ninja.y-6, 4, 0, Math.PI*2);
-                ctx.fill();
-                ctx.fillStyle = '#0b0f1a';
-                ctx.beginPath();
-                ctx.arc(ninja.x+6, ninja.y-8, 2, 0, Math.PI*2);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(ninja.x+18, ninja.y-8, 2, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.fillStyle = '#c0392b';
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.moveTo(ninja.x+4, ninja.y+4);
-                ctx.lineTo(ninja.x-6, ninja.y+14);
-                ctx.lineTo(ninja.x+4, ninja.y+10);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.moveTo(ninja.x+24, ninja.y+4);
-                ctx.lineTo(ninja.x+34, ninja.y+14);
-                ctx.lineTo(ninja.x+24, ninja.y+10);
-                ctx.fill();
-
-                ctx.shadowBlur = 12;
-                ctx.strokeStyle = '#b0c7e7';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(ninja.x+28, ninja.y-6);
-                ctx.lineTo(ninja.x+48, ninja.y-24);
-                ctx.stroke();
-                ctx.strokeStyle = '#f0e68c';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(ninja.x+28, ninja.y-4);
-                ctx.lineTo(ninja.x+44, ninja.y-22);
-                ctx.stroke();
-
-                ctx.shadowBlur = 0;
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 0;
-            }
-
-            // ---- Prekážky (rotujúce hviezdice) ----
-            for (let obs of obstacles) {
-                const cx = obs.x + obs.w/2;
-                const cy = obs.y + obs.h/2;
-                const rad = 16;
-                const angle = obs.angle || 0;
-
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(angle);
-
-                ctx.shadowColor = '#ffbb33';
-                ctx.shadowBlur = 22;
-                ctx.fillStyle = '#e6d3a3';
-                ctx.beginPath();
-                for (let i = 0; i < 8; i++) {
-                    const a = (i / 8) * Math.PI * 2;
-                    const r = (i % 2 === 0) ? rad : rad * 0.45;
-                    const x = Math.cos(a) * r;
-                    const y = Math.sin(a) * r;
-                    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-                }
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.fillStyle = '#b8860b';
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.arc(0, 0, 6, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.strokeStyle = '#8b6b3d';
-                ctx.lineWidth = 1.8;
-                ctx.shadowBlur = 6;
-                for (let i = 0; i < 4; i++) {
-                    const a = (i / 4) * Math.PI * 2 + Math.PI/4;
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(Math.cos(a) * rad * 0.9, Math.sin(a) * rad * 0.9);
-                    ctx.stroke();
-                }
-                ctx.restore();
-
-                ctx.shadowBlur = 8;
-                ctx.fillStyle = 'rgba(255, 240, 180, 0.3)';
-                ctx.beginPath();
-                ctx.arc(cx-4, cy-5, 4, 0, Math.PI*2);
-                ctx.fill();
-            }
-            ctx.shadowBlur = 0;
-
-            // ---- Špeciálne symboly (srdcia) ----
-            for (let sp of specials) {
-                const cx = sp.x + sp.w/2;
-                const cy = sp.y + sp.h/2;
-                const angle = sp.angle || 0;
-
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(angle);
-
-                ctx.shadowColor = '#ff3b3b';
-                ctx.shadowBlur = 30;
-                const s = 13;
-                ctx.fillStyle = '#ff2d2d';
-                ctx.beginPath();
-                ctx.moveTo(0, s * 0.3);
-                ctx.bezierCurveTo(-s * 0.6, -s * 0.3, -s * 1.2, s * 0.4, 0, s * 1.0);
-                ctx.bezierCurveTo(s * 1.2, s * 0.4, s * 0.6, -s * 0.3, 0, s * 0.3);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.shadowBlur = 8;
-                ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                ctx.beginPath();
-                ctx.arc(-4, -2, 4, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.restore();
-
-                ctx.shadowBlur = 15;
-                ctx.fillStyle = 'rgba(255, 100, 100, 0.15)';
-                ctx.beginPath();
-                ctx.arc(cx, cy, 22, 0, Math.PI*2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-
-            // ---- GAME OVER ----
-            if (!gameActive) {
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = 'rgba(10, 8, 20, 0.65)';
-                ctx.fillRect(0, 0, W, H);
-                ctx.font = 'bold 44px "Segoe UI", system-ui, sans-serif';
-                ctx.fillStyle = '#f0d6b0';
-                ctx.shadowColor = '#ff4d4d';
-                ctx.shadowBlur = 20;
-                ctx.textAlign = 'center';
-                ctx.fillText(txtGameOver, W/2, 160);
-                ctx.font = '26px sans-serif';
-                ctx.fillStyle = '#ffbaba';
-                ctx.fillText(txtNoLives, W/2, 210);
-                ctx.font = '22px sans-serif';
-                ctx.fillStyle = '#b0c7d9';
-                ctx.fillText(txtTryAgain, W/2, 260);
-                ctx.shadowBlur = 0;
-            }
-
-            ctx.font = '14px monospace';
-            ctx.fillStyle = '#7c8aa3';
-            ctx.fillText('❤️ ' + lives + ' | ' + txtWatermark, 20, 30);
-        }
-
-        // helper pre roundRect
-        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-            if (w < 2 * r) r = w / 2;
-            if (h < 2 * r) r = h / 2;
-            this.moveTo(x + r, y);
-            this.lineTo(x + w - r, y);
-            this.quadraticCurveTo(x + w, y, x + w, y + r);
-            this.lineTo(x + w, y + h - r);
-            this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-            this.lineTo(x + r, y + h);
-            this.quadraticCurveTo(x, y + h, x, y + h - r);
-            this.lineTo(x, y + r);
-            this.quadraticCurveTo(x, y, x + r, y);
-            return this;
-        };
-
-        // ---------- LOOP ----------
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // ---------- EVENTY (Mobile + Desktop) ----------
-        // Klik / ťuk na canvas = skok
-        canvas.addEventListener('click', (e) => {
-            e.preventDefault();
-            jump();
-        });
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            jump();
-        }, { passive: false });
-
-        // Klávesnica
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.key === ' ' || e.key === 'ArrowUp') {
-                e.preventDefault();
-                jump();
-            }
-        });
-
-        // Reset iba cez tlačidlo (dvojklik bol odstránený)
-        document.getElementById('resetButton').addEventListener('click', (e) => {
-            e.stopPropagation();
-            resetGame();
-        });
-
-        // ---------- ŠTART ----------
-        resetGame();
-        gameLoop();
-
-    })();
+applyLang();
+if (isTouch) document.body.classList.add('touch');
+resize();
+loadBest();
+lives = D().lives;
+speed = D().spd;
+showCard('menu');
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
