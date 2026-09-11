@@ -45,10 +45,12 @@ popularity**, most likely to be played first: genre demand first (the classics p
 for by name), then how quickly a card explains itself, then fit for a phone and a short
 session, then replayability. A new game goes where it belongs in that order, not at the end.
 Real numbers now exist per device: opening a game from its card increments a counter in
-`localStorage['gamepad_plays']` (`{id: count}`), and the first filter button — **Most played**
-— sorts by that count, falling back to the array order for everything not played yet. So the
-array order is what a fresh device sees, and it is replaced game by game with what that player
-actually opens. The other tag filters keep the curated order untouched.
+`localStorage['gamepad_plays']` (`{id: count}`). Two filter buttons show the whole collection
+and differ only in order — **Most played** (`data-tag="played"`, the default) sorts by that
+counter and falls back to the array order for everything not played yet, while **All**
+(`data-tag="all"`) always shows the array order and never reacts to the counter. The tag
+filters keep the array order too. So the array order is what every fresh device sees, and it
+stays available under **All** no matter how much the player has played.
 
 **Bump the `sw.js` `CACHE` version on essentially any change** to `index.html`, `i18n.js`, or a game — otherwise returning users may be served the previous cached version.
 

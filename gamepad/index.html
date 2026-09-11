@@ -140,7 +140,8 @@ header{padding:44px 0 0;display:flex;align-items:flex-start;justify-content:spac
       <input type="text" id="search" autocomplete="off" spellcheck="false">
     </div>
     <div class="filters" id="filters">
-      <button class="filter-btn active" data-tag="all"></button>
+      <button class="filter-btn active" data-tag="played"></button>
+      <button class="filter-btn" data-tag="all"></button>
       <button class="filter-btn" data-tag="arcade"></button>
       <button class="filter-btn" data-tag="puzzle"></button>
       <button class="filter-btn" data-tag="action"></button>
@@ -286,10 +287,10 @@ const GAMES = [
 ];
 
 const TAG_CLASS  = {arcade:'tag-arcade',puzzle:'tag-puzzle',action:'tag-action',strategy:'tag-strategy',memory:'tag-memory',word:'tag-word'};
-const TAG_FILTER = {all:'filterAll',arcade:'filterArcade',puzzle:'filterPuzzle',action:'filterAction',strategy:'filterStrategy',memory:'filterMemory',word:'filterWord'};
+const TAG_FILTER = {played:'filterPlayed',all:'filterAll',arcade:'filterArcade',puzzle:'filterPuzzle',action:'filterAction',strategy:'filterStrategy',memory:'filterMemory',word:'filterWord'};
 const TAG_LABEL  = {arcade:'tagArcade',puzzle:'tagPuzzle',action:'tagAction',strategy:'tagStrategy',memory:'tagMemory',word:'tagWord'};
 
-let activeTag='all', searchQuery='';
+let activeTag='played', searchQuery='';
 
 // ── Koľkokrát hráč ktorú hru otvoril ──────────────────────────────────────
 // Pod tlačidlom „Najhranejšie" sa zoznam radí podľa tohto počtu. Hry s nulou
@@ -359,12 +360,13 @@ function renderGames(){
   const grid=document.getElementById('games-grid');
   const q=searchQuery.toLowerCase().trim();
   const filtered=GAMES.filter(g=>{
-    const tagOk=activeTag==='all'||g.tags.includes(activeTag);
+    const tagOk=activeTag==='all'||activeTag==='played'||g.tags.includes(activeTag);
     const title=(g.title||t(g.titleKey)).toLowerCase(), desc=t(g.descKey).toLowerCase();
     return tagOk&&(!q||title.includes(q)||desc.includes(q));
   });
-  if(activeTag==='all'){
-    // stabilné radenie: pri rovnakom počte rozhoduje pôvodné poradie poľa
+  if(activeTag==='played'){
+    // stabilné radenie: pri rovnakom počte rozhoduje pôvodné poradie poľa,
+    // takže záložka „Všetky" a nezahrané hry si držia poradie zbierky
     const rank=new Map(GAMES.map((g,i)=>[g.id,i]));
     filtered.sort((a,b)=>playCount(b.id)-playCount(a.id)||rank.get(a.id)-rank.get(b.id));
   }
