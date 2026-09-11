@@ -815,3 +815,116 @@ What was fixed:
   ratio.
 
 * Six i18n keys became unused and were removed from all twelve languages.
+
+27. The last five - games/code-breaker/, games/fluxgall/,
+    games/number-flash/, games/survival-arena/, games/word-weave/
+------------------------------------------------------------------------------
+
+Reworked on 11 September 2026. Nothing was renamed, and all five already
+carried this project's own titles, ids and i18n prefixes (cdb*, flux*, nflash*,
+arena*, wwv*). Two of them re-implement mechanics that belong to marked board
+games, and both were named around them long ago; CLAUDE.md now records the two
+mappings alongside the others:
+
+    Mastermind -> Code Breaker      Boggle -> Word Weave
+
+Neither name, board, box art nor component appears anywhere in the code. Code
+Breaker scores a guess the way the pencil-and-paper game it descends from does
+- count the exact places, then the colours present but misplaced - which is the
+rule itself, not a published table, and its peg counts and attempt limits are
+this project's own. Word Weave draws its letters from this project's own
+frequency bag, not from any published set of dice faces, and its word list is
+the collection's own filtered selection described in section 7. Fluxgall,
+Number Flash and Survival Arena are this project's own designs throughout.
+
+What was fixed:
+
+* Three of the five asked for the collection's typefaces in their CSS but never
+  loaded them, so they had been rendering in the system face the whole time.
+  Survival Arena needed nothing else: it was already built in the collection's
+  design language. Number Flash gained the glass cards, the gradient-framed
+  panel and tabular figures; Code Breaker, Fluxgall and Word Weave moved to the
+  collection's look in full.
+
+* Fluxgall had no record of any kind. It now keeps the best star rating of each
+  level and shows the total on its cards, the same way EchoDrift and
+  Threadcatch do; a run through the store confirms a better result overwrites,
+  a worse one does not, and the summary counts four levels as twelve stars.
+
+* Word Weave kept one shared best score for all three board sizes; each size
+  now keeps its own. Its board was also a fixed fifty-six pixels a square, so
+  the six-by-six board ran past the bottom of a phone, and on any screen under
+  seven hundred pixels tall a rule shrank the board with a CSS transform while
+  the line drawn along the dragged word was still computed at the old size - so
+  the line no longer sat on the letters. The board is now sized from the
+  window, the transform is gone, and the line matches the board again. A grid
+  column also refused to shrink below the width of its letter, which pinned the
+  board at its widest; the letters now scale with the squares.
+
+* Code Breaker drew at one fixed size regardless of the display and, once it
+  scaled, its board could grow taller than the space left for it. It now
+  renders at the device pixel ratio and measures the space its board actually
+  has. Tapping a peg to clear it was re-checked on a doubled pixel ratio and
+  lands on the right peg.
+
+* Fitting. A web font arrives after the first layout and changes every height,
+  which left the board a little too large on a narrow phone; both panel games
+  now recompute once the font is ready. On a phone held sideways their controls
+  are trimmed. Everything fits at the seven sizes checked except Word Weave in
+  a 640 by 360 window, where the page scrolls rather than shrink its letters
+  below a size worth dragging across - the same trade-off the earlier sections
+  describe.
+
+With this section every one of the 110 games carries the collection's look.
+
+28. Gear Puzzle rebuilt - games/gear-puzzle/
+------------------------------------------------------------------------------
+
+Reworked on 11 September 2026. No licensing change: the game carries this
+project's own name, id and i18n prefix (gear*), and a train of meshing gears is
+a machine, not anyone's property. Nothing about the rebuild touches the
+collection's licensing position.
+
+Why it was rebuilt. The idea was sound and is the only one of its kind here -
+several cranks drive one machine, meshing gears turn opposite ways, and two
+cranks fighting over the same gear jam it. What failed was that everything
+explaining the puzzle was drawn at the edge of visibility while the decoration
+was not: the lines showing which gears meshed were drawn at four per cent
+opacity, the three roles were three shades of black, the symbols marking them
+were nine-pixel type inside gears nineteen pixels across, and a win had to be
+held for three seconds with nothing saying so. Worse, whether two gears meshed
+was a distance test with an eight-and-a-half per cent tolerance, so on a real
+board seven pairs out of thirty-six meshed and two more sat close enough to
+look identical. The player could not see the graph the puzzle asked them to
+reason about, so the only strategy left was clicking at random - and with three
+cranks, seven of the twenty-seven combinations won, which made random clicking
+work often enough to hide the problem.
+
+What it is now. The gears sit on a square lattice, so only orthogonal
+neighbours mesh and their teeth visibly interlock; the lattice is two-colourable
+and the board is tinted like a chessboard, which is the rule itself made
+visible - gears on the same colour turn the same way. Each machine on the board
+is a separate group drawn on its own tinted plate, each crank has its own
+colour, and a jam turns that whole machine red with a line naming the two
+cranks by their colours. Every target gear now says which way it must turn, and
+some machines carry a locked gear that must not turn at all, which gives the
+crank's "stop" position a purpose. Those two marks together make the puzzle
+solvable by reasoning - read the requirement, count the parity along the chain,
+set each crank - instead of by guessing.
+
+Generation is checked rather than hoped for. Every board is brute-forced over
+all crank combinations and only accepted if it has a solution, if a jam is
+possible somewhere, if it needs at least two moves, and if the share of winning
+combinations is small enough that random clicking is not a strategy: a third on
+easy, a seventh on medium, a tenth on hard. Across a hundred and twenty
+generated boards none was unsolvable, and thirty of them were then solved
+end-to-end through the real controls. The old code also had a silent failure
+here - when it could not build a valid board it fell back to an easier setting
+and, if that failed too, kept the last invalid attempt; the new one relaxes its
+own checks in a defined order and never hands over an unverified board.
+
+The board is also sized from the window and drawn at the device pixel ratio,
+where the old one fixed its size once at load and ignored the display, and the
+record is now the fewest moves per difficulty. Two i18n keys were added
+(gearJam, gearLock) and the rule line and description were rewritten in all
+twelve languages to state the new goal.

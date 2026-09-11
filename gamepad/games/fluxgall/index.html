@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Fluxgall · GamePad</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <script src="../../i18n.js"></script>
   <style>
     :root {
@@ -259,6 +260,89 @@
         font-size: 11px;
       }
     }
+
+    /* ── zladenie s ostatnymi hrami zbierky ────────────────────────── */
+    body { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif !important; }
+    .brand, .stats, .controls, #back-btn {
+      border: 1px solid rgba(255,255,255,0.09) !important;
+      background: rgba(6,12,20,0.62) !important;
+      box-shadow: none !important;
+      backdrop-filter: blur(8px) !important;
+    }
+    .brand { border-radius: 18px !important; padding: 10px 14px !important; }
+    .stats { border-radius: 18px !important; padding: 9px 13px !important; }
+    .controls { border-radius: 100px !important; padding: 5px !important; gap: 6px !important; }
+    .title {
+      font-family: 'Syne', sans-serif !important; font-weight: 800 !important;
+      font-size: 15px !important; letter-spacing: -.2px !important;
+    }
+    .hint { font-size: 11px !important; color: rgba(239,248,255,0.42) !important; }
+    .statline { font-size: 9px !important; letter-spacing: 1.1px; text-transform: uppercase;
+                color: rgba(239,248,255,0.2) !important; align-items: baseline; }
+    .statline strong { font-family: 'Syne', sans-serif !important; font-weight: 800 !important;
+                       font-size: 15px !important; color: #6ee7ff !important; letter-spacing: 0;
+                       font-variant-numeric: tabular-nums; }
+    .statline.rec strong { color: #ffc857 !important; }
+    .energy { height: 6px !important; border-radius: 4px !important; }
+    .controls button {
+      border-radius: 100px !important; width: 40px !important; height: 40px !important;
+      background: rgba(255,255,255,0.05) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      font-family: 'DM Sans', sans-serif !important; font-weight: 600 !important;
+    }
+    .controls button:hover { border-color: rgba(110,231,255,.5) !important; color: #fff !important; }
+    .overlay {
+      /* prekryv cez celu obrazovku, karta presne v strede */
+      position: fixed !important; inset: 0 !important; left: 0 !important; top: 0 !important;
+      width: auto !important; transform: none !important;
+      display: flex !important; align-items: center !important; justify-content: center !important;
+      border: none !important; border-radius: 0 !important;
+      background: radial-gradient(ellipse at center, rgba(6,12,20,0.8) 0%, rgba(1,4,7,0.95) 78%) !important;
+      backdrop-filter: blur(6px) !important; box-shadow: none !important;
+      padding: 18px !important; padding-top: 62px !important;
+    }
+    .overlay[hidden] { display: none !important; }
+    .fcard{
+      position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;
+      width:100%;max-width:334px;padding:26px 24px 24px;border-radius:24px;
+      background:linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015));
+      border:1px solid rgba(255,255,255,0.17);
+      box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);
+      animation:fpop .34s cubic-bezier(.2,1.4,.4,1);text-align:center;
+    }
+    @keyframes fpop{from{transform:scale(.9) translateY(8px);opacity:0;}to{transform:none;opacity:1;}}
+    .fcard::before{
+      content:'';position:absolute;inset:-1px;border-radius:24px;padding:1px;
+      background:linear-gradient(120deg,rgba(110,231,255,.5),transparent 42%,transparent 58%,rgba(255,209,102,.5));
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+    }
+    .overlay h1 {
+      font-family: 'Syne', sans-serif !important; font-weight: 800 !important;
+      font-size: 26px !important; letter-spacing: -.5px !important; margin: 0 !important;
+      background: linear-gradient(110deg, #6ee7ff 5%, #fff 52%, #ffd166 95%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .overlay p { font-size: 11.5px !important; line-height: 1.6 !important; margin: 0 !important;
+                 color: rgba(239,248,255,0.42) !important; }
+    #bestLine { font-size: 11.5px; font-weight: 600; color: #ffc857; letter-spacing: .4px; }
+    .overlay button.wide {
+      margin-top: 6px; width: 100%; max-width: 300px; height: auto;
+      padding: 13px 30px !important;
+      border-radius: 100px !important; border: 1px solid rgba(110,231,255,.5) !important;
+      background: linear-gradient(180deg, rgba(110,231,255,.24), rgba(110,231,255,.1)) !important;
+      color: #dcf6ff !important; font-family: 'DM Sans', sans-serif !important;
+      font-size: 14px !important; font-weight: 600 !important; box-shadow: none !important;
+    }
+    .overlay button.wide:hover {
+      background: linear-gradient(180deg, rgba(110,231,255,.34), rgba(110,231,255,.16)) !important;
+      color: #fff !important; box-shadow: 0 0 24px -6px rgba(110,231,255,.5) !important;
+    }
+    @media (max-height: 820px) {
+      /* prekryv scroluje po zvislej osi, nie do strany */
+      .overlay { align-items: flex-start !important; justify-content: center !important; overflow-y: auto !important; }
+    }
+    @media (max-height: 640px) { .fcard{gap:7px;padding:18px 20px;} .overlay h1{font-size:21px !important;} }
   </style>
 </head>
 <body>
@@ -278,6 +362,7 @@
       <div class="statline"><span id="lbl-level"></span><strong id="levelText">1</strong></div>
       <div class="statline"><span id="lbl-time"></span><strong id="timeText">0.0</strong></div>
       <div class="statline"><span id="lbl-moves"></span><strong id="moveText">0</strong></div>
+      <div class="statline rec"><span id="lbl-record"></span><strong id="recordText">-</strong></div>
       <div class="energy"><i id="energyBar"></i></div>
     </div>
   </section>
@@ -288,9 +373,12 @@
   </nav>
 
   <div id="overlay" class="overlay">
-    <h1 id="overlayTitle">Fluxgall</h1>
-    <p id="overlayText">Prepínaj červené a modré magnety. Červená odpudzuje, modrá priťahuje. Vyhni sa iskriacim hranám.</p>
-    <button id="startBtn" class="wide">Štart</button>
+   <div class="fcard">
+    <h1 id="overlayTitle"></h1>
+    <p id="overlayText"></p>
+    <div id="bestLine"></div>
+    <button id="startBtn" class="wide"></button>
+   </div>
   </div>
 
   <script>
@@ -300,6 +388,7 @@
       const canvas = document.getElementById("game");
       const ctx = canvas.getContext("2d");
       const levelText = document.getElementById("levelText");
+      const recordText = document.getElementById("recordText");
       const timeText = document.getElementById("timeText");
       const moveText = document.getElementById("moveText");
       const energyBar = document.getElementById("energyBar");
@@ -315,6 +404,7 @@
       document.getElementById('lbl-level').textContent = t('fluxLevel');
       document.getElementById('lbl-time').textContent = t('fluxTime');
       document.getElementById('lbl-moves').textContent = t('fluxMoves');
+      document.getElementById('lbl-record').textContent = t('uiBest');
       document.getElementById('lbl-controls-nav').setAttribute('aria-label', t('fluxControlsAria'));
       pauseBtn.title = t('fluxPauseTitle');
       pauseBtn.setAttribute('aria-label', t('fluxPauseTitle'));
@@ -407,6 +497,23 @@
       let dpr = 1;
       let bounds = { x: 0, y: 0, w: 1, h: 1, s: 1 };
       let levelIndex = 0;
+
+      // rekord: najlepsie hviezdy za kazdy level
+      const STARS_KEY = 'fluxgall_stars';
+      let bestStars = [];
+      try { bestStars = JSON.parse(localStorage.getItem(STARS_KEY) || '[]') || []; } catch (e) { bestStars = []; }
+      const starText = n => n > 0 ? '\u2605'.repeat(n) + '\u2606'.repeat(3 - n) : '-';
+      function saveStars(idx, n) {
+        if (!(bestStars[idx] >= n)) {
+          bestStars[idx] = n;
+          try { localStorage.setItem(STARS_KEY, JSON.stringify(bestStars)); } catch (e) {}
+        }
+      }
+      function starSummary() {
+        let got = 0;
+        for (let i = 0; i < levels.length; i++) got += bestStars[i] || 0;
+        return got ? '\u2605 ' + got + ' / ' + (levels.length * 3) : '';
+      }
       let ball;
       let magnets;
       let walls;
@@ -486,6 +593,7 @@
         moves = 0;
         elapsed = 0;
         levelText.textContent = String(levelIndex + 1);
+        recordText.textContent = starText(bestStars[levelIndex] || 0);
         updateHud();
         if (!keepState || state !== "intro") {
           state = "playing";
@@ -500,6 +608,7 @@
       }
 
       function setOverlay(title, text, button) {
+        document.getElementById('bestLine').textContent = starSummary();
         overlayTitle.textContent = title;
         overlayText.textContent = text;
         startBtn.textContent = button;
@@ -661,7 +770,11 @@
 
         if (Math.hypot(ball.x - goal.x, ball.y - goal.y) < goal.r * 0.72) {
           state = "won";
-          const stars = energy / energyMax > 0.58 ? "★★★" : energy / energyMax > 0.28 ? "★★☆" : "★☆☆";
+          const starCount = energy / energyMax > 0.58 ? 3 : energy / energyMax > 0.28 ? 2 : 1;
+          const record = !(bestStars[levelIndex] >= starCount);
+          saveStars(levelIndex, starCount);
+          recordText.textContent = starText(bestStars[levelIndex] || 0);
+          const stars = starText(starCount) + (record ? '  ' + t('uiNewRecord') : '');
           setOverlay(t('fluxWonTitle'), t('fluxWonText', { stars, time: elapsed.toFixed(1), moves }), levelIndex === levels.length - 1 ? t('fluxAgain') : t('fluxNext'));
         } else if (energy <= 0) {
           state = "lost";

@@ -2,535 +2,868 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Gear Puzzle · GamePad</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none;
+        -webkit-tap-highlight-color:transparent; }
+    body {
+        background:#0c0f16;
+        font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+        display:flex; justify-content:center; align-items:center;
+        min-height:100vh; padding:12px; touch-action:manipulation;
+    }
+    #back-btn{
+        position:fixed;top:14px;left:14px;z-index:60;
+        display:flex;align-items:center;gap:7px;
+        background:rgba(7,9,15,.88);border:1px solid #43391a;color:#a99871;
+        padding:7px 14px;border-radius:100px;text-decoration:none;
+        font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+    }
+    #back-btn:hover,#back-btn:active{border-color:#fbbf24;color:#fff8e6;}
+    @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+
+    #game-container {
+        background:#151d2b; border-radius:28px; padding:20px 20px 24px;
+        max-width:520px; width:100%;
+        box-shadow:0 12px 40px rgba(0,0,0,.7); border:1px solid #2e3a4e;
+        display:flex; flex-direction:column; gap:12px; position:relative;
+    }
+    #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+    #header h1 { font-size:21px; font-weight:700; display:flex; align-items:center; gap:8px; }
+    #rules { font-size:12px; color:#8291ab; line-height:1.5; text-align:center; }
+    #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+    .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+    .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px;
+                        border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+    .btn-group button.active { background:#fbbf24; color:#0c0f16; }
+    #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+    .info-card { flex:1 1 auto; min-width:58px; background:#111a28; border-radius:14px;
+                 padding:8px 10px; border:1px solid #29344a; text-align:center; }
+    .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px;
+                    font-weight:500; letter-spacing:.4px; }
+    .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+    .high-score { border-color:#fbbf24; }
+    .high-score h3 { color:#fbbf24 !important; }
+    .high-score .value { color:#fbbf24 !important; }
+    #status-line { text-align:center; font-size:12px; color:#ffd8a1; min-height:32px;
+                   font-weight:600; display:flex; align-items:center; justify-content:center; }
+    #status-line.jam { color:#fca5a5; }
+    #status-line.done { color:#86efac; }
+
+    #canvas-wrapper { background:#070b14; border-radius:18px; padding:10px; position:relative;
+                      align-self:center; max-width:100%;
+                      box-shadow:inset 0 0 0 1px #2a3446; }
+    #gameCanvas { display:block; border-radius:12px; touch-action:manipulation; cursor:pointer;
+                  max-width:100%; height:auto; }
+
+    #controls { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    #controls button { background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+                       border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
+    #controls button:active { transform:translateY(2px); }
+
+    #win-overlay {
+        position:absolute; inset:0; display:none; flex-direction:column;
+        align-items:center; justify-content:center; gap:9px; padding:26px;
+        border-radius:28px; z-index:20; text-align:center;
+        background:rgba(8,12,22,.93); backdrop-filter:blur(6px);
+    }
+    #win-overlay.visible { display:flex; }
+    #win-overlay h2 { font-size:25px; }
+    #win-overlay p { font-size:13px; color:#b0c4e0; }
+    #recordLine { font-size:12px; color:#ffd166; font-weight:700; letter-spacing:.4px; min-height:15px; }
+    #nextBtn {
+        background:#fbbf24; border:1px solid #fff1cf; border-radius:40px;
+        padding:12px 30px; font-size:15px; font-weight:700; color:#0c0f16;
+        box-shadow:0 6px 0 #b98d1f; cursor:pointer; margin-top:6px;
+    }
+    #nextBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #b98d1f; }
+
+    @media (max-height:900px){
+      body{padding:6px !important;}
+      #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+    }
+    @media (max-height:760px){
+      body{padding:3px !important;}
+      #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
+      #win-overlay{border-radius:18px !important;}
+    }
+    @media (max-height:640px){
+      #rules{display:none !important;}
+      #header h1{font-size:16px !important;}
+      .info-card{padding:5px 9px !important;min-width:50px !important;}
+      .info-card h3{font-size:8px !important;margin-bottom:0 !important;}
+      .info-card .value{font-size:15px !important;}
+    }
+    @media (max-width:560px){
+      #game-container{padding-top:44px !important;}
+    }
+    @media (max-height:520px) and (orientation:landscape){
+      body{padding:4px !important;align-items:flex-start !important;}
+      #game-container{max-width:100% !important;padding:8px 10px 8px !important;gap:4px !important;}
+      #header{padding-left:104px !important;}
+      #settings label{display:none !important;}
+      #info-panel{gap:4px !important;}
+      #status-line{font-size:10px !important;min-height:24px !important;}
+      #controls button{padding:6px 12px !important;font-size:11.5px !important;}
+      #canvas-wrapper{padding:5px !important;}
+    }
+    @media (min-width:700px){
+      #game-container{max-width:560px !important;}
+    }
+
+/* ── zladenie s ostatnymi hrami zbierky ─────────────────────────────── */
 :root{
-  --bg:#050507;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);
-  --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
-  --c:#f59e0b;--cdim:rgba(245,158,11,0.14);
+  --fa:#fbbf24;--fb:#6ee7ff;--fgold:#ffd166;
+  --ftext:#eef3fc;--fmuted:rgba(238,243,252,0.44);--fdim:rgba(238,243,252,0.2);
+  --fbd:rgba(255,255,255,0.09);
 }
-html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;}
-body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;right:-150px;background:radial-gradient(circle,rgba(245,158,11,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
-#back-btn{position:fixed;top:20px;left:20px;z-index:60;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
-#back-btn:hover{border-color:var(--border-h);color:var(--text);}
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 16px 20px;gap:12px;}
-.game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
-.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
-.stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;}
-.ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
-.ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
-.diff-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
-.diff-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
-.diff-btn.active{border-color:var(--c);color:var(--c);background:var(--cdim);}
-canvas{border-radius:14px;border:1px solid var(--border);cursor:pointer;display:block;touch-action:none;}
-.overlay{position:fixed;inset:0;background:rgba(5,5,7,0.88);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:20;}
-.ov-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px 28px;display:flex;flex-direction:column;align-items:center;gap:16px;max-width:300px;width:90%;text-align:center;}
-.ov-emoji{font-size:44px;}
-.ov-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
-.ov-sub{font-size:13px;color:var(--muted);line-height:1.5;}
-.ov-btn{background:var(--c);color:#000;border:none;border-radius:100px;padding:12px 30px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;}
-.ov-btn:hover{opacity:.85;}
-.ov-stat{font-size:20px;font-weight:700;color:var(--c);}
-@media (orientation: landscape) and (max-height: 560px) {
-  .page { padding: 46px 10px 8px; gap: 6px; }
-  #back-btn { top: 8px; left: 8px; padding: 5px 12px; font-size: 11px; }
-  .game-title { font-size: 17px; }
-  .stat-pill, .ctrl-btn { padding: 4px 10px; font-size: 11px; }
-  .diff-btn { padding: 3px 9px; font-size: 10px; }
+body{
+  font-family:'DM Sans',system-ui,sans-serif !important;
+  background:radial-gradient(ellipse at 50% -8%, rgba(251,191,36,.14) 0%, transparent 58%), #070a12 !important;
+  color:var(--ftext) !important;
 }
+#back-btn{background:rgba(10,13,24,0.72) !important;border:1px solid var(--fbd) !important;color:var(--fmuted) !important;font-weight:500 !important;}
+#back-btn:hover,#back-btn:active{border-color:rgba(255,255,255,0.18) !important;color:#fff !important;}
+#game-container{
+  background:linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)) !important;
+  border:1px solid rgba(255,255,255,0.13) !important;border-radius:26px !important;
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+#header h1{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:19px !important;
+  letter-spacing:-.3px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#settings label{color:var(--fdim) !important;font-size:9px !important;font-weight:600 !important;
+  letter-spacing:1.1px !important;text-transform:uppercase !important;}
+#rules{color:var(--fmuted) !important;font-size:11px !important;line-height:1.6 !important;}
+.btn-group{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:100px !important;padding:3px !important;gap:2px !important;}
+.btn-group button{border-radius:100px !important;color:var(--fmuted) !important;
+  font-family:'DM Sans',sans-serif !important;font-size:11px !important;font-weight:600 !important;
+  padding:5px 12px !important;transition:color .16s,background .16s !important;}
+.btn-group button:hover{color:#fff !important;}
+.btn-group button.active{background:rgba(251,191,36,.16) !important;color:#fff !important;
+  box-shadow:inset 0 0 0 1px rgba(251,191,36,.42) !important;}
+.info-card{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:14px !important;}
+.info-card h3{font-size:8.5px !important;letter-spacing:1.3px !important;color:var(--fdim) !important;
+  font-weight:600 !important;text-transform:uppercase !important;}
+.info-card .value{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+  font-size:18px !important;letter-spacing:-.5px !important;font-variant-numeric:tabular-nums;
+  color:var(--fa) !important;}
+.high-score{border-color:rgba(255,209,102,.35) !important;}
+.high-score h3{color:rgba(255,209,102,.55) !important;}
+.high-score .value{color:var(--fgold) !important;}
+#canvas-wrapper{background:rgba(0,0,0,0.34) !important;border-radius:18px !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.07) !important;}
+#controls button,#padrow button,#controls>button{
+  background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)) !important;
+  border:1px solid var(--fbd) !important;color:var(--fmuted) !important;
+  border-radius:15px !important;box-shadow:none !important;
+  font-family:'DM Sans',sans-serif !important;
+}
+#controls button:active,#padrow button:active{background:rgba(251,191,36,.18) !important;
+  border-color:rgba(251,191,36,.45) !important;color:#fff !important;transform:scale(.95) !important;}
+#status-line{color:var(--fmuted) !important;font-weight:600 !important;}
+/* prekryvy: rodinna karta */
+#game-over-overlay,#win-overlay,#pause-overlay{
+  background:radial-gradient(ellipse at center,rgba(8,10,20,0.84) 0%,rgba(3,4,9,0.96) 78%) !important;
+  backdrop-filter:blur(6px) !important;border-radius:18px !important;
+}
+#game-over-overlay h2,#win-overlay h2,#pause-overlay span{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;letter-spacing:-.5px !important;
+}
+#game-over-overlay h2,#win-overlay h2{
+  font-size:24px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-shadow:none !important;
+}
+#game-over-overlay p,#win-overlay p{font-size:11.5px !important;color:var(--fmuted) !important;}
+#game-over-overlay p span:last-child,#win-overlay p span:last-child{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:20px !important;
+  color:var(--fa) !important;
+}
+#restartBtn,#nextBtn,#newMazeBtn,#newGameBtn,#playAgainBtn{
+  border-radius:100px !important;border:1px solid rgba(251,191,36,.5) !important;
+  background:linear-gradient(180deg,rgba(251,191,36,.24),rgba(251,191,36,.1)) !important;
+  color:#fff !important;font-family:'DM Sans',sans-serif !important;font-size:14px !important;
+  font-weight:600 !important;box-shadow:none !important;padding:12px 30px !important;
+  text-transform:none !important;
+}
+#restartBtn:hover,#nextBtn:hover,#newMazeBtn:hover,#newGameBtn:hover,#playAgainBtn:hover{
+  background:linear-gradient(180deg,rgba(251,191,36,.34),rgba(251,191,36,.16)) !important;
+  box-shadow:0 0 24px -6px rgba(251,191,36,.5) !important;transform:none !important;
+}
+#restartBtn:active,#nextBtn:active{transform:translateY(1px) !important;}
+
 </style>
 </head>
 <body>
-<a id="back-btn" href="../../index.html">← <span id="lbl-back"></span></a>
-<div class="page">
-  <div class="game-title" id="lbl-title"></div>
-  <div class="hud">
-    <div class="stat-pill" id="pill-level"></div>
-    <div class="stat-pill" id="pill-moves"></div>
-    <button class="ctrl-btn" id="btn-new"></button>
-  </div>
-  <div class="diff-row" id="diff-row"></div>
-  <canvas id="c"></canvas>
+<a href="../../index.html" id="back-btn">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  <span id="lbl-back"></span>
+</a>
+
+<div id="game-container">
+    <div id="header">
+        <h1>⚙️ <span id="lbl-title"></span></h1>
+        <div id="settings">
+            <label id="lbl-diff"></label>
+            <div class="btn-group" id="diffGroup">
+                <button data-diff="easy"   id="lbl-easy"></button>
+                <button data-diff="medium" id="lbl-medium" class="active"></button>
+                <button data-diff="hard"   id="lbl-hard"></button>
+            </div>
+        </div>
+    </div>
+
+    <p id="rules"></p>
+
+    <div id="info-panel">
+        <div class="info-card"><h3 id="lbl-level"></h3><span class="value" id="levelValue">1</span></div>
+        <div class="info-card"><h3 id="lbl-moves"></h3><span class="value" id="movesValue">0</span></div>
+        <div class="info-card high-score"><h3 id="lbl-best"></h3><span class="value" id="bestValue">-</span></div>
+    </div>
+
+    <div id="status-line"></div>
+
+    <div id="canvas-wrapper">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div id="controls">
+        <button id="newBtn"></button>
+        <button id="resetBtn"></button>
+    </div>
+
+    <div id="win-overlay">
+        <h2 id="lbl-win"></h2>
+        <p id="winSub"></p>
+        <p><span id="lbl-win-moves"></span> <span id="finalMoves">0</span></p>
+        <div id="recordLine"></div>
+        <button id="nextBtn"></button>
+    </div>
 </div>
-<div class="overlay" id="overlay-intro">
-  <div class="ov-card">
-    <div class="ov-emoji">⚙️</div>
-    <div class="ov-title" id="ov-title"></div>
-    <div class="ov-sub" id="ov-hint"></div>
-    <button class="ov-btn" id="ov-btn"></button>
-  </div>
-</div>
-<div class="overlay" id="overlay-win" style="display:none">
-  <div class="ov-card">
-    <div class="ov-emoji">🏆</div>
-    <div class="ov-title" id="win-title"></div>
-    <div class="ov-stat" id="win-moves"></div>
-    <div class="ov-sub" id="win-sub"></div>
-    <button class="ov-btn" id="win-btn"></button>
-  </div>
-</div>
+
 <script>
-document.getElementById('lbl-back').textContent  = t('back');
-document.getElementById('lbl-title').textContent = t('gearTitle');
-document.getElementById('btn-new').textContent   = t('gearNew');
-document.getElementById('ov-title').textContent  = t('gearTitle');
-document.getElementById('ov-hint').textContent   = t('gearHint');
-document.getElementById('ov-btn').textContent    = t('gearPlay');
-document.getElementById('win-title').textContent = t('gearWin');
-document.getElementById('win-sub').textContent   = t('gearWinSub');
-document.getElementById('win-btn').textContent   = t('gearNext');
+(function () {
+    "use strict";
 
-// ── DIFFICULTY ─────────────────────────────────────────────────────────────
-// nClick: number of player-controlled gears (each is a separate "zone driver")
-// nTarget: number of ★ gears that must spin to win
-// Each click-gear drives its own zone; zones meet at shared passive gears
-// where direction conflicts create blocking → that's the puzzle!
-const DIFFS = [
-  { key:'easy',   nClick:2, nTarget:1, chainLen:[1,3] },
-  { key:'medium', nClick:3, nTarget:2, chainLen:[1,4] },
-  { key:'hard',   nClick:4, nTarget:3, chainLen:[2,5] },
-];
-let diffIdx=1;
-const diffRow=document.getElementById('diff-row');
-DIFFS.forEach((d,i)=>{
-  const btn=document.createElement('button');
-  btn.className='diff-btn'+(i===diffIdx?' active':'');
-  btn.textContent=t('diff'+d.key[0].toUpperCase()+d.key.slice(1));
-  btn.onclick=()=>{ diffIdx=i; diffRow.querySelectorAll('.diff-btn').forEach((b,j)=>b.classList.toggle('active',j===i)); newGame(); };
-  diffRow.appendChild(btn);
-});
+    const canvas    = document.getElementById('gameCanvas');
+    const ctx       = canvas.getContext('2d');
+    const wrapEl    = document.getElementById('canvas-wrapper');
+    const statusEl  = document.getElementById('status-line');
+    const levelSpan = document.getElementById('levelValue');
+    const movesSpan = document.getElementById('movesValue');
+    const bestSpan  = document.getElementById('bestValue');
+    const overlay   = document.getElementById('win-overlay');
+    const recordEl  = document.getElementById('recordLine');
+    const diffGroup = document.getElementById('diffGroup');
 
-const C=document.getElementById('c');
-const cx=C.getContext('2d');
-const SZ=Math.min(window.innerWidth-32,window.innerHeight-240,460);
-C.width=C.height=SZ;
+    // ── obtiaznost: kolko policok, kluciek a hviezd ─────────────────────
+    const DIFFS = {
+        easy:   { cols: 5, rows: 4, cells: 9,  cranks: 2, blobs: 1, maxWin: 0.34 },
+        medium: { cols: 6, rows: 5, cells: 13, cranks: 3, blobs: 2, maxWin: 0.15 },
+        hard:   { cols: 6, rows: 6, cells: 16, cranks: 4, blobs: 3, maxWin: 0.10 },
+    };
+    let diffKey = 'medium', D = DIFFS.medium;
 
-// Display-only scaling: keeps internal SZ-based gear coordinates intact,
-// just shrinks the rendered CSS size to fit the viewport (incl. landscape).
-function fitDisplaySize(){
-  const page = document.querySelector('.page');
-  const title = document.querySelector('.game-title');
-  const hud = document.querySelector('.hud');
-  const diffRow = document.getElementById('diff-row');
-  const pageCs = getComputedStyle(page);
-  const gap = parseFloat(pageCs.rowGap || pageCs.gap) || 12;
-  const padTop = parseFloat(pageCs.paddingTop) || 0;
-  const padBottom = parseFloat(pageCs.paddingBottom) || 0;
-  const reservedH = title.offsetHeight + hud.offsetHeight + diffRow.offsetHeight + padTop + padBottom + gap*3;
-  const availH = window.innerHeight - reservedH;
-  const availW = window.innerWidth - 32;
-  const size = Math.max(140, Math.floor(Math.min(availW, availH, SZ)));
-  C.style.width = size + 'px';
-  C.style.height = size + 'px';
-}
-window.addEventListener('resize', fitDisplaySize);
-window.addEventListener('orientationchange', () => setTimeout(fitDisplaySize, 250));
-fitDisplaySize();
+    const CRANK_COLOURS = ['#6ee7ff', '#fbbf24', '#a3e635', '#f472b6'];
+    const JAM = '#f87171';
 
-const TOOTH=0.18, TOL=0.085, SPD=2.4;
-let gears=[], moves=0, level=1, animId=null, lastTs=0, winTs=null;
+    let gears = [];           // {col,row,kind,colour,need,dir,jam,comp,parity,angle}
+    let comps = [];           // zoznam komponentov (polia indexov)
+    let level = 1, moves = 0, solved = false, best = 0, par = 0;
+    let cell = 60, originX = 0, originY = 0;
 
-function updateHUD(){
-  document.getElementById('pill-level').innerHTML=t('gearLevel')+' <span>'+level+'</span>';
-  document.getElementById('pill-moves').innerHTML=t('gearMoves')+' <span>'+moves+'</span>';
-}
-
-// ── MESH TEST ──────────────────────────────────────────────────────────────
-function meshed(a,b){
-  const d=Math.hypot(a.x-b.x,a.y-b.y),s=a.r+b.r;
-  return d>=s*(1-TOL)&&d<=s*(1+TOL);
-}
-
-// ── PROPAGATION ────────────────────────────────────────────────────────────
-// Click-gears act as BARRIERS: propagation stops at another click-gear boundary.
-// Each click-gear seeds BFS with its own assignedDir.
-// If two zones reach the same gear with conflicting directions → both gears blocked.
-function propagate(){
-  const n=gears.length;
-  const dir=new Array(n).fill(0);
-  const blk=new Array(n).fill(false);
-
-  // Seed click gears
-  const queue=[];
-  for(let i=0;i<n;i++){
-    if(gears[i].kind==='click'&&gears[i].assignedDir!==0){
-      dir[i]=gears[i].assignedDir;
-      queue.push(i);
+    // ── rekord: najmenej tahov na obtiaznost ────────────────────────────
+    const bestKey = () => 'gearpuzzle_best_' + diffKey;
+    function loadBest() {
+        best = parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0;
+        bestSpan.textContent = best ? best : '-';
     }
-  }
-
-  let h=0;
-  while(h<queue.length){
-    const i=queue[h++];
-    if(blk[i]) continue;
-    for(let j=0;j<n;j++){
-      if(i===j||!meshed(gears[i],gears[j])) continue;
-      // Propagation stops at other click-gears (they set their own dir)
-      if(gears[j].kind==='click') continue;
-      const need=-dir[i];
-      if(dir[j]===0){ dir[j]=need; queue.push(j); }
-      else if(dir[j]!==need){ blk[i]=true; blk[j]=true; }
-    }
-  }
-
-  // Also check click↔click conflicts directly
-  for(let i=0;i<n;i++){
-    if(gears[i].kind!=='click'||gears[i].assignedDir===0) continue;
-    for(let j=0;j<n;j++){
-      if(i===j||gears[j].kind!=='click'||gears[j].assignedDir===0) continue;
-      if(!meshed(gears[i],gears[j])) continue;
-      // Two adjacent click gears: they must be opposite
-      if(gears[i].assignedDir===gears[j].assignedDir){ blk[i]=true; blk[j]=true; }
-    }
-  }
-
-  for(let i=0;i<n;i++){
-    gears[i].blocked=blk[i];
-    gears[i].dir=(!blk[i]&&dir[i]!==0)?dir[i]:0;
-    // Click gears always spin at their assigned dir unless blocked
-    if(gears[i].kind==='click'&&gears[i].assignedDir!==0&&!blk[i])
-      gears[i].dir=gears[i].assignedDir;
-  }
-}
-
-// ── GENERATOR ──────────────────────────────────────────────────────────────
-// Build a puzzle by constructing explicit "zones":
-// Each zone = one click-gear + a chain of passive gears.
-// Zones are connected through shared junction gears (passive).
-// Target gears are placed at junctions or at zone ends.
-//
-// This guarantees:
-//  - Each click-gear independently drives its zone
-//  - Getting the wrong direction combo blocks the junction gear
-//  - There exists exactly one correct combo
-
-function makeGear(x,y,r){
-  const teeth=Math.round(6+(r/(SZ*0.12))*6);
-  return {x,y,r,teeth,angle:Math.random()*360,kind:'passive',assignedDir:0,dir:0,blocked:false};
-}
-
-function tryPlaceNear(existing,baseGear,minR,maxR,attempts){
-  // Place a gear meshing with baseGear, not overlapping others
-  for(let t=0;t<attempts;t++){
-    const r=minR+Math.random()*(maxR-minR);
-    const angle=Math.random()*Math.PI*2;
-    const dist=(baseGear.r+r)*( 1+TOL*0.5*(Math.random()*0.5+0.75) );
-    const x=baseGear.x+Math.cos(angle)*dist;
-    const y=baseGear.y+Math.sin(angle)*dist;
-    const pad=maxR+4;
-    if(x<pad||x>SZ-pad||y<pad||y>SZ-pad) continue;
-    let ok=true;
-    for(const g of existing){
-      const d=Math.hypot(x-g.x,y-g.y),s=r+g.r;
-      if(d<s*(1-TOL*2)){ok=false;break;}
-    }
-    if(ok) return makeGear(x,y,r);
-  }
-  return null;
-}
-
-function generateLevel(){
-  const diff=DIFFS[diffIdx];
-  const nC=diff.nClick, nT=diff.nTarget;
-  const maxR=SZ*0.11, minR=SZ*0.055;
-  const [minChain,maxChain]=diff.chainLen;
-
-  // Try many times
-  for(let attempt=0;attempt<300;attempt++){
-    const all=[];
-
-    // 1. Place nC click-gears spread across the canvas
-    const clickGears=[];
-    const sectors=nC;
-    let placed=true;
-    for(let s=0;s<sectors;s++){
-      const angle=(s/sectors)*Math.PI*2+Math.random()*0.5;
-      const dist=SZ*0.22+Math.random()*SZ*0.12;
-      const cx2=SZ/2+Math.cos(angle)*dist;
-      const cy2=SZ/2+Math.sin(angle)*dist;
-      const r=minR+Math.random()*(maxR-minR);
-      const pad=maxR+6;
-      if(cx2<pad||cx2>SZ-pad||cy2<pad||cy2>SZ-pad){placed=false;break;}
-      let ok=true;
-      for(const g of all){
-        const d=Math.hypot(cx2-g.x,cy2-g.y),sr=r+g.r;
-        if(d<sr*(1-TOL*2)){ok=false;break;}
-      }
-      if(!ok){placed=false;break;}
-      const cg=makeGear(cx2,cy2,r);
-      cg.kind='click';
-      clickGears.push(cg);
-      all.push(cg);
-    }
-    if(!placed) continue;
-
-    // 2. For each click-gear, grow a chain of passive gears
-    const chains=[]; // chains[i] = array of passive gears in zone i
-    let chainOk=true;
-    for(let s=0;s<nC;s++){
-      const chain=[];
-      const chainLen=minChain+Math.floor(Math.random()*(maxChain-minChain+1));
-      let base=clickGears[s];
-      for(let k=0;k<chainLen;k++){
-        const g=tryPlaceNear(all,base,minR,maxR,80);
-        if(!g){chainOk=false;break;}
-        chain.push(g);
-        all.push(g);
-        base=g;
-      }
-      if(!chainOk) break;
-      chains.push(chain);
-    }
-    if(!chainOk) continue;
-
-    // 3. Create junction gears that bridge two chains
-    // Each junction connects end of chain[i] to some gear in chain[j]
-    // This is where blocking can happen
-    const junctions=[];
-    // Attempt to connect pairs of chains
-    for(let i=0;i<nC-1;i++){
-      const endI=chains[i][chains[i].length-1];
-      // Try to place a junction gear near endI that also meshes near chain[(i+1)%nC]
-      const endJ=chains[(i+1)%nC][chains[(i+1)%nC].length-1];
-      // Place midpoint junction
-      const mx2=(endI.x+endJ.x)/2+(Math.random()-.5)*SZ*0.08;
-      const my2=(endI.y+endJ.y)/2+(Math.random()-.5)*SZ*0.08;
-      const r=minR+Math.random()*(maxR-minR);
-      const pad=maxR+4;
-      if(mx2<pad||mx2>SZ-pad||my2<pad||my2>SZ-pad) continue;
-      // Adjust position to actually mesh with endI
-      const dI=Math.hypot(mx2-endI.x,my2-endI.y);
-      const targetD=endI.r+r;
-      const jx=endI.x+(mx2-endI.x)/dI*targetD*(1+TOL*0.4);
-      const jy=endI.y+(my2-endI.y)/dI*targetD*(1+TOL*0.4);
-      if(jx<pad||jx>SZ-pad||jy<pad||jy>SZ-pad) continue;
-      let ok=true;
-      for(const g of all){
-        const d=Math.hypot(jx-g.x,jy-g.y),s=r+g.r;
-        if(d<s*(1-TOL*2)){ok=false;break;}
-      }
-      if(!ok) continue;
-      const jg=makeGear(jx,jy,r);
-      junctions.push(jg);
-      all.push(jg);
-    }
-
-    // 4. Place target gears — at the ends of chains or at junctions
-    // Targets should be reachable from multiple zones so they actually depend on correct combo
-    const targetCandidates=[];
-    // Junction gears are best targets
-    for(const j of junctions) targetCandidates.push(j);
-    // Chain ends as fallback
-    for(const ch of chains) if(ch.length>0) targetCandidates.push(ch[ch.length-1]);
-
-    if(targetCandidates.length<nT) continue;
-
-    // Pick nT targets
-    shuffle(targetCandidates);
-    for(let k=0;k<nT;k++) targetCandidates[k].kind='target';
-
-    // 5. Validate: brute-force all 2^nC direction combos,
-    //    check that at least one combo makes all targets spin,
-    //    AND at least one combo does NOT (otherwise trivial).
-    let goodCombos=0, badCombos=0;
-    const targets=all.filter(g=>g.kind==='target');
-
-    for(let mask=0;mask<(1<<nC);mask++){
-      clickGears.forEach((cg,b)=>cg.assignedDir=(mask>>b)&1?1:-1);
-      // Simulate
-      const n=all.length;
-      const dir=new Array(n).fill(0);
-      const blk=new Array(n).fill(false);
-      const q=[];
-      for(let i=0;i<n;i++){
-        if(all[i].kind==='click'){dir[i]=all[i].assignedDir;q.push(i);}
-      }
-      let h=0;
-      while(h<q.length){
-        const i=q[h++];
-        if(blk[i]) continue;
-        for(let j=0;j<n;j++){
-          if(i===j||!meshed(all[i],all[j])) continue;
-          if(all[j].kind==='click') continue;
-          const need=-dir[i];
-          if(dir[j]===0){dir[j]=need;q.push(j);}
-          else if(dir[j]!==need){blk[i]=true;blk[j]=true;}
+    function saveBest(m) {
+        if (!best || m < best) {
+            best = m;
+            try { localStorage.setItem(bestKey(), String(best)); } catch (e) {}
+            bestSpan.textContent = best;
+            return true;
         }
-      }
-      // click↔click direct conflict
-      for(let i=0;i<n;i++){
-        if(all[i].kind!=='click') continue;
-        for(let j=i+1;j<n;j++){
-          if(all[j].kind!=='click'||!meshed(all[i],all[j])) continue;
-          if(all[i].assignedDir===all[j].assignedDir){blk[i]=true;blk[j]=true;}
+        return false;
+    }
+
+    // ── susedia su len ortogonalni: mriezka je sachovnica ───────────────
+    const key = (c, r) => c + ',' + r;
+    function neighbours(g) {
+        const out = [];
+        for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const i = gears.findIndex(o => o.col === g.col + dc && o.row === g.row + dr);
+            if (i >= 0) out.push(i);
         }
-      }
-      const allTargetsSpin=targets.every(g=>{ const i=all.indexOf(g); return !blk[i]&&dir[i]!==0; });
-      if(allTargetsSpin) goodCombos++;
-      else badCombos++;
+        return out;
     }
 
-    // Must have at least one solution and at least one non-solution
-    if(goodCombos===0||badCombos===0) continue;
-
-    // Reset and return
-    all.forEach(g=>{g.assignedDir=0;g.dir=0;g.blocked=false;});
-    return all;
-  }
-  return null;
-}
-
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
-
-// ── NEW GAME ───────────────────────────────────────────────────────────────
-function newGame(){
-  if(animId){cancelAnimationFrame(animId);animId=null;}
-  document.getElementById('overlay-win').style.display='none';
-  let g=null; while(!g) g=generateLevel();
-  gears=g; moves=0; winTs=null;
-  propagate(); updateHUD();
-  lastTs=performance.now();
-  animId=requestAnimationFrame(loop);
-}
-
-// ── INPUT ──────────────────────────────────────────────────────────────────
-C.addEventListener('pointerdown',e=>{
-  const rect=C.getBoundingClientRect();
-  const mx=(e.clientX-rect.left)*(SZ/rect.width);
-  const my=(e.clientY-rect.top)*(SZ/rect.height);
-  for(const g of gears){
-    if(g.kind!=='click') continue;
-    if(Math.hypot(mx-g.x,my-g.y)>g.r*1.25) continue;
-    g.assignedDir=g.assignedDir===0?1:g.assignedDir===1?-1:0;
-    moves++; updateHUD(); propagate(); return;
-  }
-});
-
-// ── LOOP ───────────────────────────────────────────────────────────────────
-function loop(ts){
-  const dt=Math.min(ts-lastTs,50); lastTs=ts;
-  for(const g of gears){
-    if(g.dir!==0) g.angle+=g.dir*SPD*(dt/16.67)*(8/g.teeth);
-  }
-  draw(ts);
-  if(checkWin()){
-    if(!winTs) winTs=ts;
-    if(ts-winTs>=3000){cancelAnimationFrame(animId);animId=null;showWin();return;}
-  } else winTs=null;
-  animId=requestAnimationFrame(loop);
-}
-
-function checkWin(){
-  return gears.filter(g=>g.kind==='target').every(g=>g.dir!==0&&!g.blocked);
-}
-
-// ── DRAW ───────────────────────────────────────────────────────────────────
-function drawGear(g,ts){
-  const ir=g.r*(1-TOOTH), rad=g.angle*Math.PI/180;
-  cx.save();
-  cx.translate(g.x,g.y);
-  cx.rotate(rad);
-
-  if(g.blocked){cx.shadowColor='rgba(239,68,68,0.85)';cx.shadowBlur=16;}
-  else if(g.dir!==0){
-    cx.shadowColor=g.kind==='target'?'rgba(34,197,94,0.7)':'rgba(245,158,11,0.5)';
-    cx.shadowBlur=12;
-  }
-
-  // Teeth
-  cx.beginPath();
-  const step=(2*Math.PI)/g.teeth;
-  for(let i=0;i<g.teeth;i++){
-    const a0=i*step,a1=a0+step*.35,a3=a0+step*.65,a4=a0+step;
-    cx.arc(0,0,ir,a0,a1);
-    cx.lineTo(Math.cos(a1)*g.r,Math.sin(a1)*g.r);
-    cx.arc(0,0,g.r,a1,a3);
-    cx.lineTo(Math.cos(a3)*ir,Math.sin(a3)*ir);
-    cx.arc(0,0,ir,a3,a4);
-  }
-  cx.closePath();
-
-  let fill;
-  if(g.blocked){const grd=cx.createRadialGradient(0,0,0,0,0,g.r);grd.addColorStop(0,'#3f0808');grd.addColorStop(1,'#1a0303');fill=grd;}
-  else if(g.kind==='target'&&g.dir!==0){const grd=cx.createRadialGradient(0,0,0,0,0,g.r);grd.addColorStop(0,'#14532d');grd.addColorStop(1,'#052e16');fill=grd;}
-  else if(g.kind==='target'){fill='#1c0b00';}
-  else if(g.kind==='click'&&g.assignedDir!==0){const grd=cx.createRadialGradient(0,0,0,0,0,g.r);grd.addColorStop(0,'#292418');grd.addColorStop(1,'#1a1508');fill=grd;}
-  else if(g.kind==='click'){fill='#1e1e2a';}
-  else{fill='#0f0f13';}
-  cx.fillStyle=fill; cx.fill();
-
-  cx.strokeStyle=g.blocked?'rgba(239,68,68,0.9)':
-    g.kind==='target'&&g.dir!==0?'#22c55e':
-    g.kind==='target'?'rgba(245,158,11,0.45)':
-    g.kind==='click'&&g.assignedDir!==0?'rgba(245,158,11,0.8)':
-    g.kind==='click'?'rgba(255,255,255,0.28)':'rgba(255,255,255,0.07)';
-  cx.lineWidth=(g.kind==='target'||g.blocked)?1.5:1;
-  cx.stroke(); cx.shadowBlur=0;
-
-  cx.beginPath();cx.arc(0,0,ir*.25,0,Math.PI*2);
-  cx.fillStyle=g.blocked?'rgba(239,68,68,0.3)':
-    g.kind==='target'&&g.dir!==0?'rgba(34,197,94,0.35)':
-    g.kind==='click'?'rgba(245,158,11,0.15)':'rgba(255,255,255,0.05)';
-  cx.fill();
-
-  cx.rotate(-rad);
-  if(g.blocked){
-    cx.font='bold '+Math.max(9,ir*.5)+'px DM Sans';cx.textAlign='center';cx.textBaseline='middle';
-    cx.fillStyle='#ef4444';cx.fillText('✕',0,0);
-  } else if(g.kind==='target'){
-    cx.font='bold '+Math.max(9,ir*.52)+'px DM Sans';cx.textAlign='center';cx.textBaseline='middle';
-    cx.fillStyle=g.dir!==0?'#22c55e':'rgba(245,158,11,0.55)';cx.fillText('★',0,0);
-  } else if(g.kind==='click'){
-    cx.font='bold '+Math.max(9,ir*.45)+'px DM Sans';cx.textAlign='center';cx.textBaseline='middle';
-    if(g.assignedDir===1){cx.fillStyle='rgba(245,158,11,0.95)';cx.fillText('↻',0,0);}
-    else if(g.assignedDir===-1){cx.fillStyle='rgba(245,158,11,0.95)';cx.fillText('↺',0,0);}
-    else{cx.fillStyle='rgba(255,255,255,0.22)';cx.fillText('?',0,0);}
-  }
-  cx.restore();
-}
-
-function draw(ts){
-  cx.clearRect(0,0,SZ,SZ);
-  for(let i=0;i<gears.length;i++)
-    for(let j=i+1;j<gears.length;j++){
-      if(!meshed(gears[i],gears[j])) continue;
-      const ab=gears[i].blocked||gears[j].blocked;
-      const ok=gears[i].dir!==0&&gears[j].dir!==0&&!ab;
-      cx.save();
-      cx.setLineDash([3,5]);
-      cx.strokeStyle=ab?'rgba(239,68,68,0.15)':ok?'rgba(34,197,94,0.1)':'rgba(255,255,255,0.04)';
-      cx.lineWidth=1;
-      cx.beginPath();cx.moveTo(gears[i].x,gears[i].y);cx.lineTo(gears[j].x,gears[j].y);cx.stroke();
-      cx.restore();
+    // ── stav stroja: kazdy pohon ma svoj smer, alebo sa zasekne ─────────
+    // Kolesa v jednom pohone sa striedaju: parita policka urcuje smer.
+    function solve(state) {
+        // state: pole smerov kluciek (0 / 1 / -1) v poradi gears
+        const n = gears.length;
+        const dir = new Array(n).fill(0);
+        const jam = new Array(n).fill(false);
+        for (const comp of comps) {
+            let root = 0, conflict = null;
+            for (const i of comp) {
+                const d = state[i] || 0;
+                if (gears[i].kind !== 'crank' || d === 0) continue;
+                const implied = gears[i].parity ? -d : d;      // smer kolesa na parite 0
+                if (root === 0) root = implied;
+                else if (root !== implied) { conflict = i; break; }
+            }
+            if (conflict !== null) {
+                for (const i of comp) jam[i] = true;
+                continue;
+            }
+            if (root === 0) continue;                           // pohon stoji
+            for (const i of comp) dir[i] = gears[i].parity ? -root : root;
+        }
+        return { dir, jam };
     }
-  for(const g of gears) drawGear(g,ts);
 
-  const anySet=gears.some(g=>g.kind==='click'&&g.assignedDir!==0);
-  if(!anySet&&ts<5000){
-    const pulse=0.3+0.3*Math.sin(ts*.005);
-    for(const g of gears){
-      if(g.kind!=='click') continue;
-      cx.save();cx.beginPath();cx.arc(g.x,g.y,g.r*1.38,0,Math.PI*2);
-      cx.strokeStyle='rgba(245,158,11,'+pulse+')';cx.lineWidth=2;cx.stroke();cx.restore();
+    function applyState() {
+        const st = gears.map(g => g.kind === 'crank' ? g.set : 0);
+        const { dir, jam } = solve(st);
+        for (let i = 0; i < gears.length; i++) { gears[i].dir = dir[i]; gears[i].jam = jam[i]; }
+        return { dir, jam };
     }
-  }
-}
 
-function showWin(){
-  document.getElementById('win-moves').textContent=moves+' '+t('gearMoves').toLowerCase();
-  document.getElementById('overlay-win').style.display='flex';
-}
+    // vyhra: kazda hviezda sa toci svojim smerom, ziadny zamok sa netoci,
+    // a nic nie je zaseknute
+    function solvedWith(dir, jam) {
+        for (let i = 0; i < gears.length; i++) {
+            if (jam[i]) return false;
+            if (gears[i].kind === 'target' && dir[i] !== gears[i].need) return false;
+            if (gears[i].kind === 'lock' && dir[i] !== 0) return false;
+        }
+        return true;
+    }
 
-document.getElementById('win-btn').onclick=()=>{level++;newGame();};
-document.getElementById('btn-new').onclick=newGame;
-document.getElementById('ov-btn').onclick=()=>{document.getElementById('overlay-intro').style.display='none';newGame();};
+    // ── generator ───────────────────────────────────────────────────────
+    // Plocha je z niekolkych oddelenych pohonov. Kazdy ma bud hviezdu, alebo
+    // zamok, takze kazda klucka ma prave jednu spravnu polohu a hlavolam sa da
+    // dopocitat: parita policka urcuje smer, poziadavka hviezdy ho zafixuje.
+    const DIRS4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
-updateHUD(); draw(0);
+    function freeCell(taken, c, r, d, own) {
+        if (c < 0 || r < 0 || c >= d.cols || r >= d.rows) return false;
+        if (taken.has(key(c, r))) return false;
+        for (const [dc, dr] of DIRS4) {
+            const o = taken.get(key(c + dc, r + dr));
+            if (o !== undefined && o !== own) return false;   // nesmie sa dotykat ineho pohonu
+        }
+        return true;
+    }
+
+    // rozdelenie na oddelene pohony + parita policka (sachovnica)
+    function components() {
+        const seen = new Array(gears.length).fill(false);
+        const out = [];
+        for (let i = 0; i < gears.length; i++) {
+            if (seen[i]) continue;
+            const comp = [], q = [i];
+            seen[i] = true;
+            while (q.length) {
+                const a = q.pop();
+                comp.push(a);
+                gears[a].parity = (gears[a].col + gears[a].row) % 2;
+                for (const b of neighbours(gears[a])) {
+                    if (seen[b]) continue;
+                    seen[b] = true;
+                    q.push(b);
+                }
+            }
+            out.push(comp);
+        }
+        return out;
+    }
+
+    function grow(d) {
+        const taken = new Map();
+        const blobs = [];
+        const sizes = [];
+        let left = d.cells;
+        for (let b = 0; b < d.blobs; b++) {
+            const want = b === d.blobs - 1 ? left : Math.max(3, Math.round(d.cells / d.blobs));
+            sizes.push(Math.min(want, left - (d.blobs - 1 - b) * 3));
+            left -= sizes[b];
+            if (sizes[b] < 3) return null;
+        }
+        for (let b = 0; b < d.blobs; b++) {
+            let seed = null;
+            for (let t = 0; t < 260 && !seed; t++) {
+                const c = Math.floor(Math.random() * d.cols), r = Math.floor(Math.random() * d.rows);
+                if (freeCell(taken, c, r, d, b)) seed = [c, r];
+            }
+            if (!seed) return null;
+            const blob = [seed];
+            taken.set(key(seed[0], seed[1]), b);
+            let guard = 0;
+            while (blob.length < sizes[b] && guard++ < 700) {
+                const [bc, br] = blob[Math.floor(Math.random() * blob.length)];
+                const [dc, dr] = DIRS4[Math.floor(Math.random() * 4)];
+                const nc = bc + dc, nr = br + dr;
+                if (!freeCell(taken, nc, nr, d, b)) continue;
+                taken.set(key(nc, nr), b);
+                blob.push([nc, nr]);
+            }
+            if (blob.length < 3) return null;
+            blobs.push(blob);
+        }
+        return blobs;
+    }
+
+    function build(d) {
+        const blobs = grow(d);
+        if (!blobs) return false;
+        gears = [];
+        blobs.forEach(blob => blob.forEach(([c, r]) => gears.push({
+            col: c, row: r, kind: 'idle', colour: null, need: 0,
+            dir: 0, jam: false, set: 0, angle: Math.random() * Math.PI * 2,
+            parity: (c + r) % 2,
+        })));
+        comps = components();
+        if (comps.length !== d.blobs) return false;
+
+        // klucky: kazdy pohon aspon jednu, zvysok nahodne
+        const perComp = comps.map(() => []);
+        let k = 0;
+        for (let ci = 0; ci < comps.length && k < d.cranks; ci++) perComp[ci].push(k++);
+        while (k < d.cranks) perComp[Math.floor(Math.random() * comps.length)].push(k++);
+
+        for (let ci = 0; ci < comps.length; ci++) {
+            const spots = comps[ci].slice().sort(() => Math.random() - 0.5);
+            const used = [];
+            for (let n = 0; n < perComp[ci].length; n++) {
+                const spot = spots.find(i => gears[i].kind === 'idle' &&
+                    !used.some(u => Math.abs(gears[u].col - gears[i].col)
+                                  + Math.abs(gears[u].row - gears[i].row) < 2));
+                if (spot === undefined) return false;
+                used.push(spot);
+                gears[spot].kind = 'crank';
+                gears[spot].colour = CRANK_COLOURS[perComp[ci][n]];
+            }
+        }
+
+        // kazdy pohon dostane hviezdu alebo zamok; aspon jedna hviezda musi byt
+        const order = comps.map((c, i) => i).sort(() => Math.random() - 0.5);
+        let stars = 0;
+        for (let n = 0; n < order.length; n++) {
+            const comp = comps[order[n]];
+            const free = comp.filter(i => gears[i].kind === 'idle');
+            if (!free.length) return false;
+            const i = free[Math.floor(Math.random() * free.length)];
+            const mustStar = n === 0 || stars === 0;
+            if (mustStar || Math.random() < 0.5) {
+                gears[i].kind = 'target';
+                gears[i].need = Math.random() < 0.5 ? 1 : -1;
+                stars++;
+            } else {
+                gears[i].kind = 'lock';
+            }
+        }
+        return stars > 0;
+    }
+
+    // vsetky kombinacie kluciek: hra musi mat riesenie, nesmie vyjst nahodou
+    // a zasek musi byt mozny, nech sa hrac s nim stretne
+    function analyse(d) {
+        const crankIdx = gears.map((g, i) => g.kind === 'crank' ? i : -1).filter(i => i >= 0);
+        const total = Math.pow(3, crankIdx.length);
+        let wins = 0, jams = 0, bestPar = Infinity;
+        for (let m = 0; m < total; m++) {
+            const st = new Array(gears.length).fill(0);
+            let x = m, clicks = 0;
+            for (const i of crankIdx) {
+                const v = x % 3; x = Math.floor(x / 3);
+                st[i] = v === 0 ? 0 : (v === 1 ? 1 : -1);
+                clicks += v;                       // stop 0, ↻ 1 klik, ↺ 2 kliky
+            }
+            const { dir, jam } = solve(st);
+            if (jam.some(Boolean)) jams++;
+            let ok = true;
+            for (let i = 0; i < gears.length; i++) {
+                if (jam[i]) { ok = false; break; }
+                if (gears[i].kind === 'target' && dir[i] !== gears[i].need) { ok = false; break; }
+                if (gears[i].kind === 'lock' && dir[i] !== 0) { ok = false; break; }
+            }
+            if (ok) { wins++; if (clicks < bestPar) bestPar = clicks; }
+        }
+        return { total, wins, jams, par: bestPar };
+    }
+
+    // relax 0 = vsetky pravidla, 1 = zasek nemusi byt mozny, 2 = volnejsi podiel rieseni
+    function generate(relax) {
+        for (let attempt = 0; attempt < 500; attempt++) {
+            if (!build(D)) continue;
+            const a = analyse(D);
+            if (a.wins === 0) continue;                             // musi mat riesenie
+            if (a.wins / a.total > D.maxWin * (relax >= 2 ? 2 : 1)) continue;  // nesmie vyjst nahodou
+            if (relax < 1 && a.jams === 0) continue;                // zasek musi byt mozny
+            if (a.par < 2) continue;                                // aspon dva tahy
+            par = a.par;
+            return true;
+        }
+        return false;
+    }
+
+    // ── rozmery plochy ──────────────────────────────────────────────────
+    function bounds() {
+        let minC = 99, maxC = -99, minR = 99, maxR = -99;
+        for (const g of gears) {
+            minC = Math.min(minC, g.col); maxC = Math.max(maxC, g.col);
+            minR = Math.min(minR, g.row); maxR = Math.max(maxR, g.row);
+        }
+        return { w: maxC - minC + 1, h: maxR - minR + 1, minC, minR };
+    }
+
+    let DPR = 1;
+    function fitCanvas(hintH) {
+        const b = bounds();
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        const cont = document.getElementById('game-container');
+        const land = window.matchMedia('(max-height:520px) and (orientation:landscape)').matches;
+        const availW = Math.max(180, Math.min(470, (cont ? cont.clientWidth : 340) - 44));
+        const availH = hintH || Math.max(150, window.innerHeight - (land ? 170 : 340));
+        cell = Math.max(34, Math.min(availW / b.w, availH / b.h, 92));
+        const W = Math.round(cell * b.w), H = Math.round(cell * b.h);
+        originX = -b.minC * cell + cell / 2;
+        originY = -b.minR * cell + cell / 2;
+        canvas.width = Math.round(W * DPR);
+        canvas.height = Math.round(H * DPR);
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        if (!hintH) {
+            const spill = document.documentElement.scrollHeight - window.innerHeight;
+            if (spill > 2 && H - spill > 120) { fitCanvas(H - spill - 3); return; }
+        }
+        draw();
+    }
+    let fitTimer = 0;
+    window.addEventListener('resize', () => {
+        clearTimeout(fitTimer);
+        fitTimer = setTimeout(() => fitCanvas(), 120);
+    });
+    window.addEventListener('load', () => fitCanvas());
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitCanvas());
+
+    const px = g => originX + g.col * cell;
+    const py = g => originY + g.row * cell;
+
+    // ── kresba ──────────────────────────────────────────────────────────
+    function teeth(x, y, r, angle, n) {
+        const inner = r * 0.80;
+        ctx.beginPath();
+        const step = (Math.PI * 2) / n;
+        for (let i = 0; i < n; i++) {
+            const a0 = angle + i * step, a1 = a0 + step * 0.30,
+                  a2 = a0 + step * 0.70, a3 = a0 + step;
+            ctx.arc(x, y, inner, a0, a1);
+            ctx.lineTo(x + Math.cos(a1) * r, y + Math.sin(a1) * r);
+            ctx.arc(x, y, r, a1, a2);
+            ctx.lineTo(x + Math.cos(a2) * inner, y + Math.sin(a2) * inner);
+            ctx.arc(x, y, inner, a2, a3);
+        }
+        ctx.closePath();
+    }
+
+    // farba pohonu, ktoremu koleso patri (aj ked prave stoji)
+    function compColour(i) {
+        const comp = comps.find(c => c.includes(i));
+        if (!comp) return '#94a3b8';
+        const crank = comp.find(j => gears[j].kind === 'crank');
+        return crank === undefined ? '#94a3b8' : gears[crank].colour;
+    }
+
+    function draw() {
+        const b = bounds();
+        const W = cell * b.w, H = cell * b.h;
+        ctx.clearRect(0, 0, W, H);
+
+        // podklad kazdeho pohonu vo vlastnej farbe + sachovnica (parita = smer)
+        for (let i = 0; i < gears.length; i++) {
+            const g = gears[i];
+            const jam = g.jam;
+            ctx.fillStyle = jam ? 'rgba(248,113,113,0.14)' : hexA(compColour(i), g.parity ? 0.07 : 0.115);
+            ctx.fillRect(px(g) - cell / 2, py(g) - cell / 2, cell, cell);
+        }
+
+        for (const g of gears) drawGear(g);
+
+        // svetielko v mieste zaberu, ked sa dvojica toci
+        for (let i = 0; i < gears.length; i++) {
+            for (const j of neighbours(gears[i])) {
+                if (j < i) continue;
+                const a = gears[i], c = gears[j];
+                if (a.jam || c.jam) continue;
+                if (a.dir === 0 || c.dir === 0) continue;
+                const mx = (px(a) + px(c)) / 2, my = (py(a) + py(c)) / 2;
+                ctx.save();
+                ctx.fillStyle = compColour(i);
+                ctx.shadowColor = compColour(i);
+                ctx.shadowBlur = cell * 0.3;
+                ctx.beginPath();
+                ctx.arc(mx, my, Math.max(2, cell * 0.045), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+    }
+
+    function hexA(hex, a) {
+        const h = hex.replace('#', '');
+        const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
+
+    function drawGear(g) {
+        const i = gears.indexOf(g);
+        const x = px(g), y = py(g), r = cell * 0.5;
+        const spinning = g.dir !== 0 && !g.jam;
+        const badLock = g.kind === 'lock' && g.dir !== 0;
+        const okTarget = g.kind === 'target' && !g.jam && g.dir === g.need;
+
+        let edge;
+        if (g.jam || badLock) edge = JAM;
+        else if (g.kind === 'crank') edge = g.colour;
+        else if (okTarget) edge = '#4ade80';
+        else if (g.kind === 'target') edge = '#ffd166';
+        else if (g.kind === 'lock') edge = '#cbd5e1';
+        else edge = spinning ? hexA(compColour(i), 0.85) : 'rgba(255,255,255,0.22)';
+
+        ctx.save();
+        if (spinning || g.jam) { ctx.shadowColor = edge; ctx.shadowBlur = cell * 0.22; }
+        teeth(x, y, r, g.angle, 10);
+        ctx.fillStyle = g.jam || badLock ? 'rgba(248,113,113,0.20)'
+            : spinning ? 'rgba(255,255,255,0.11)' : 'rgba(255,255,255,0.05)';
+        ctx.fill();
+        ctx.lineWidth = g.kind === 'idle' ? 1.5 : Math.max(2, cell * 0.045);
+        ctx.strokeStyle = edge;
+        if (g.kind === 'target' && !okTarget) ctx.setLineDash([cell * 0.1, cell * 0.075]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.shadowBlur = 0;
+
+        // naboj
+        ctx.beginPath();
+        ctx.arc(x, y, r * 0.52, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(9,13,22,0.94)';
+        ctx.fill();
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = hexA(edge.startsWith('#') ? edge : '#94a3b8', 0.6);
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const big = '800 ' + Math.round(cell * 0.3) + 'px "Syne", system-ui, sans-serif';
+
+        if (g.jam) {
+            ctx.fillStyle = JAM; ctx.font = big; ctx.fillText('\u2715', x, y + 1);
+            // klucku musi byt vidno aj v zaseknutom stroji, inak hrac nevie, comu ustupit
+            if (g.kind === 'crank') {
+                ctx.save();
+                ctx.strokeStyle = g.colour;
+                ctx.globalAlpha = 0.95;
+                ctx.lineWidth = Math.max(2, cell * 0.04);
+                teeth(x, y, r * 0.99, g.angle, 10);
+                ctx.stroke();
+                ctx.translate(x, y);
+                ctx.rotate(g.angle);
+                ctx.fillStyle = g.colour;
+                ctx.beginPath();
+                ctx.arc(r * 0.72, 0, Math.max(2.4, cell * 0.055), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        } else if (g.kind === 'crank') {
+            ctx.fillStyle = g.set === 0 ? 'rgba(239,248,255,0.4)' : g.colour;
+            ctx.font = big;
+            ctx.fillText(g.set === 1 ? '\u21bb' : g.set === -1 ? '\u21ba' : '\u25cb', x, y + 1);
+            // rucka klucky na okraji kolesa, aby bolo jasne, ze sa s nim toci
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(g.angle);
+            ctx.fillStyle = g.colour;
+            ctx.beginPath();
+            ctx.arc(r * 0.72, 0, Math.max(2.4, cell * 0.055), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        } else if (g.kind === 'lock') {
+            ctx.fillStyle = badLock ? JAM : '#cbd5e1';
+            ctx.font = big;
+            ctx.fillText('\u2298', x, y + 1);
+        } else if (g.kind === 'target') {
+            ctx.fillStyle = okTarget ? '#86efac' : '#ffd166';
+            ctx.font = big;
+            ctx.fillText(g.need === 1 ? '\u21bb' : '\u21ba', x, y + 1);
+            // hviezdicka na venci kolesa, stale vo vnutri policka
+            ctx.fillStyle = okTarget ? '#4ade80' : '#ffd166';
+            ctx.font = '800 ' + Math.round(cell * 0.19) + 'px "Syne", system-ui, sans-serif';
+            ctx.fillText('\u2605', x, y - r * 0.74);
+        }
+        ctx.restore();
+    }
+
+    // ── stav v riadku pod plochou ───────────────────────────────────────
+    function updateStatus(dir, jam) {
+        const targets = gears.filter(g => g.kind === 'target');
+        const done = targets.filter(g => !g.jam && g.dir === g.need).length;
+        if (gears.some(g => g.jam)) {
+            const comp = comps.find(c => c.some(i => gears[i].jam));
+            const names = comp.filter(i => gears[i].kind === 'crank' && gears[i].set !== 0);
+            statusEl.className = 'jam';
+            statusEl.textContent = t('gearJam');
+            if (names.length >= 2) {
+                statusEl.innerHTML = '<span style="color:' + gears[names[0]].colour + '">\u25cf</span>&nbsp;'
+                    + '<span style="color:' + gears[names[1]].colour + '">\u25cf</span>&nbsp;' + t('gearJam');
+            }
+            return;
+        }
+        if (gears.some(g => g.kind === 'lock' && g.dir !== 0)) {
+            statusEl.className = 'jam';
+            statusEl.textContent = t('gearLock');
+            return;
+        }
+        statusEl.className = done === targets.length ? 'done' : '';
+        statusEl.textContent = '\u2605 ' + done + ' / ' + targets.length;
+    }
+
+    // ── tah ─────────────────────────────────────────────────────────────
+    function toggle(i) {
+        if (solved) return;
+        const g = gears[i];
+        g.set = g.set === 0 ? 1 : g.set === 1 ? -1 : 0;
+        moves++;
+        movesSpan.textContent = moves;
+        const { dir, jam } = applyState();
+        updateStatus(dir, jam);
+        draw();
+        if (solvedWith(dir, jam)) win();
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+        const rect = canvas.getBoundingClientRect();
+        const b = bounds();
+        const mx = (e.clientX - rect.left) / rect.width * (cell * b.w);
+        const my = (e.clientY - rect.top) / rect.height * (cell * b.h);
+        for (let i = 0; i < gears.length; i++) {
+            if (gears[i].kind !== 'crank') continue;
+            if (Math.hypot(mx - px(gears[i]), my - py(gears[i])) <= cell * 0.56) { toggle(i); return; }
+        }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key >= '1' && e.key <= '4') {
+            const cranks = gears.map((g, i) => g.kind === 'crank' ? i : -1).filter(i => i >= 0);
+            const i = cranks[parseInt(e.key, 10) - 1];
+            if (i !== undefined) { e.preventDefault(); toggle(i); }
+        }
+        if (e.key === 'n' || e.key === 'N') newPuzzle();
+        if (e.key === 'r' || e.key === 'R') resetCranks();
+    });
+
+    function win() {
+        solved = true;
+        document.getElementById('finalMoves').textContent = moves;
+        document.getElementById('winSub').textContent = t('gearWinSub');
+        recordEl.textContent = saveBest(moves) ? t('uiNewRecord') : '';
+        setTimeout(() => overlay.classList.add('visible'), 520);
+    }
+
+    function resetCranks() {
+        for (const g of gears) if (g.kind === 'crank') g.set = 0;
+        moves = 0;
+        movesSpan.textContent = '0';
+        const { dir, jam } = applyState();
+        updateStatus(dir, jam);
+        draw();
+    }
+
+    function newPuzzle() {
+        loadBest();
+        let ok = false;
+        for (let relax = 0; relax <= 2 && !ok; relax++) ok = generate(relax);
+        if (!ok) { console.warn('gear-puzzle: zadanie sa nepodarilo zostavit'); }
+        moves = 0; solved = false;
+        movesSpan.textContent = '0';
+        levelSpan.textContent = level;
+        overlay.classList.remove('visible');
+        recordEl.textContent = '';
+        const { dir, jam } = applyState();
+        updateStatus(dir, jam);
+        fitCanvas();
+    }
+
+    // ── animacia: tocia sa len kolesa, ktore maju smer ───────────────────
+    let last = 0;
+    function frame(ts) {
+        const now = ts || performance.now();
+        const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+        last = now;
+        let moving = false;
+        for (const g of gears) {
+            if (g.dir !== 0 && !g.jam) { g.angle += g.dir * dt * 1.5; moving = true; }
+        }
+        if (moving) draw();
+        requestAnimationFrame(frame);
+    }
+
+    document.getElementById('newBtn').addEventListener('click', () => { newPuzzle(); });
+    document.getElementById('resetBtn').addEventListener('click', resetCranks);
+    document.getElementById('nextBtn').addEventListener('click', () => { level++; newPuzzle(); });
+    diffGroup.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+            diffGroup.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            diffKey = b.dataset.diff;
+            D = DIFFS[diffKey];
+            level = 1;
+            newPuzzle();
+        });
+    });
+
+    // ── jazyk ───────────────────────────────────────────────────────────
+    function applyLang() {
+        document.getElementById('lbl-back').textContent   = t('back');
+        document.getElementById('lbl-title').textContent  = t('gearTitle');
+        document.getElementById('lbl-diff').textContent   = t('uiDifficulty');
+        document.getElementById('lbl-easy').textContent   = t('diffEasy');
+        document.getElementById('lbl-medium').textContent = t('diffMedium');
+        document.getElementById('lbl-hard').textContent   = t('diffHard');
+        document.getElementById('lbl-level').textContent  = t('gearLevel');
+        document.getElementById('lbl-moves').textContent  = t('gearMoves');
+        document.getElementById('lbl-best').textContent   = t('uiBest');
+        document.getElementById('rules').textContent      = t('gearHint');
+        document.getElementById('newBtn').textContent     = t('gearNew');
+        document.getElementById('resetBtn').textContent   = t('uiRestart');
+        document.getElementById('lbl-win').textContent    = t('gearWin');
+        document.getElementById('lbl-win-moves').textContent = t('gearMoves') + ':';
+        document.getElementById('nextBtn').textContent    = t('gearNext');
+        document.title = t('gearTitle') + ' \u00b7 GamePad';
+    }
+    window.addEventListener('storage', e => { if (e.key === 'gamepad_lang') applyLang(); });
+
+    applyLang();
+    newPuzzle();
+    requestAnimationFrame(() => fitCanvas());
+    requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>

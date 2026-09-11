@@ -33,8 +33,22 @@ Games do not communicate with the launcher at runtime — the launcher just link
 A game is only fully wired up when **all three** of these are done. Missing any one causes bugs (game not listed, missing offline support, or untranslated labels):
 
 1. **`index.html`** — add an entry to the `GAMES` array (there is a commented template line in the array). Use `titleKey`/`descKey` referencing i18n keys, or a literal `title` for names that aren't translated.
+   The card icon is an `emoji`, or an `iconSvg` with inline SVG markup (72x72 viewBox, attributes in double quotes so the single-quoted JS string needs no escaping), or an `iconImg` path. Inline SVG is preferred for anything an emoji cannot say on its own: it inherits the page's Syne font, stays sharp at any pixel ratio and adds no file to the offline cache. **No two games may share an icon** — a duplicate emoji makes two different games look like the same game in the grid.
 2. **`sw.js`** — add `'./games/<id>/index.html'` to the `ASSETS` array **and bump the `CACHE` version** (e.g. `gamepad-v85` → `gamepad-v86`). Bumping the version is what forces clients to re-cache; forgetting it means users keep the stale asset list.
 3. **`i18n.js`** — add the title/description keys (and any in-game string keys) **to every language block**, not just `en`. `t()` falls back to English for missing keys, so untranslated locales degrade gracefully but should still be filled in.
+
+### Order of the `GAMES` array
+
+The array order is the order the cards appear in (filters and search keep it), so it is a
+product decision, not a log of when things were added. It is sorted by **estimated
+popularity**, most likely to be played first: genre demand first (the classics people search
+for by name), then how quickly a card explains itself, then fit for a phone and a short
+session, then replayability. A new game goes where it belongs in that order, not at the end.
+Real numbers now exist per device: opening a game from its card increments a counter in
+`localStorage['gamepad_plays']` (`{id: count}`), and the first filter button — **Most played**
+— sorts by that count, falling back to the array order for everything not played yet. So the
+array order is what a fresh device sees, and it is replaced game by game with what that player
+actually opens. The other tag filters keep the curated order untouched.
 
 **Bump the `sw.js` `CACHE` version on essentially any change** to `index.html`, `i18n.js`, or a game — otherwise returning users may be served the previous cached version.
 
@@ -45,7 +59,7 @@ The collection ships `LICENSE` (project rights) and `NOTICE` (third-party materi
 Three rules, all of which the collection currently satisfies:
 
 1. **Nothing third-party gets bundled.** No copied SVG, sprite sheet, sound file, font file, word list, level set or library. If you need a shape, write the function that draws it. The only outbound requests in the whole project are Google Fonts stylesheets. When you catch yourself pasting a `<path d="…">` you did not compute, stop.
-2. **Never use another company's game name.** Re-implementing a commercial game's *mechanic* is fine — mechanics and rules are not protected. The name is. Give every game its own name, the way the collection already does (Tetris → Block Cascade, Pac-Man → Dot Muncher, Wordle → Five Letters, Yahtzee → Five Dice, Connect Four → Drop Four, Slitherlink → Loop Weaver, Pong → Paddle Duel, Asteroids → Rock Drift, Hill Climb Racing → Slope Rider, Kakuro → Sum Cross). This applies to the game **id / folder name and i18n key prefix** too, not just the displayed title — `games/paddle-duel/` with `pdl*` keys, never `games/pong/` with `pong*` keys. Traditional games with no rights holder — chess, go, backgammon, sudoku, mancala, gomoku — may keep their real names. The rule covers **descriptions too**: don't name a marked title to explain a genre ("a whack-a-mole game") — describe what the game's own pieces do instead.
+2. **Never use another company's game name.** Re-implementing a commercial game's *mechanic* is fine — mechanics and rules are not protected. The name is. Give every game its own name, the way the collection already does (Tetris → Block Cascade, Pac-Man → Dot Muncher, Wordle → Five Letters, Yahtzee → Five Dice, Connect Four → Drop Four, Slitherlink → Loop Weaver, Pong → Paddle Duel, Asteroids → Rock Drift, Hill Climb Racing → Slope Rider, Kakuro → Sum Cross, Mastermind → Code Breaker, Boggle → Word Weave). This applies to the game **id / folder name and i18n key prefix** too, not just the displayed title — `games/paddle-duel/` with `pdl*` keys, never `games/pong/` with `pong*` keys. Traditional games with no rights holder — chess, go, backgammon, sudoku, mancala, gomoku — may keep their real names. The rule covers **descriptions too**: don't name a marked title to explain a genre ("a whack-a-mole game") — describe what the game's own pieces do instead.
 3. **Draw your own look, not theirs.** Mechanics are free; the *visual expression* is not (*Tetris Holding v. Xio Interactive*, 2012). So: don't reproduce a character's silhouette, don't copy a game's colour-to-piece mapping or its scoring table, don't trace a maze or a level layout. Pick shapes and palettes that are yours — `dot-muncher`'s hexagonal drones and `block-cascade`'s piece colours are deliberately unlike the originals, and that is not an accident to be "fixed".
 
 ## Conventions for new games
