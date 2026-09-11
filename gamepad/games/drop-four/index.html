@@ -337,6 +337,15 @@ body{
 
         let diffKey = 'medium';
         let board = [], turn = HUMAN, score = 0, ended = false, busy = false;
+
+        // Zacinajuci sa strieda hru po hre; pamatam si ho aj medzi spustenami.
+        const STARTER_KEY = 'dropfour_starter';
+        let starter = HUMAN;
+        try { if (localStorage.getItem(STARTER_KEY) === AI) starter = AI; } catch (e) {}
+        function flipStarter() {
+            starter = starter === HUMAN ? AI : HUMAN;
+            try { localStorage.setItem(STARTER_KEY, starter); } catch (e) {}
+        }
         let winLine = null, hoverCol = -1, falling = null, wins = { h: 0, a: 0 };
         const bestKey = () => 'dropfour_best_' + diffKey;
         let best = 0;
@@ -422,6 +431,9 @@ body{
 
         function aiColumn() {
             const cols = validCols(board);
+            // prazdna plocha: stredny stlpec je znamy najlepsi zaciatok, netreba
+            // na to prehladavanie (a prvy tah tak nikdy nezdrzi)
+            if (cols.length === COLS && !board.some(row => row.some(v => v))) return Math.floor(COLS / 2);
             if (diffKey === 'easy' && Math.random() < 0.3) return cols[Math.floor(Math.random() * cols.length)];
             let bestVal = -Infinity, pool = [];
             for (const c of cols) {
@@ -479,6 +491,7 @@ body{
 
         function finish(result, win) {
             ended = true; busy = true;
+            flipStarter();   // dalsiu partiu zacina ten druhy
             winLine = win ? win.line : null;
             let placed = 0;
             for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (board[r][c]) placed++;
@@ -497,10 +510,24 @@ body{
 
         function newGame() {
             loadBest();   // rekord patri k aktualnej obtiaznosti
-            board = emptyBoard(); turn = HUMAN; score = 0; ended = false; busy = false;
+            board = emptyBoard(); turn = starter; score = 0; ended = false; busy = false;
             winLine = null; falling = null; hoverCol = -1;
             scoreSpan.textContent = '0';
             endOverlay.classList.remove('visible');
+            if (turn === AI) {
+                // tentoraz zacina pocitac
+                busy = true;
+                statusLine.textContent = t('uiOppTurn');
+                drawAll();
+                setTimeout(() => {
+                    play(aiColumn(), AI, () => {
+                        turn = HUMAN; busy = false;
+                        statusLine.textContent = t('uiYourTurn');
+                        drawAll();
+                    });
+                }, 420);
+                return;
+            }
             statusLine.textContent = t('uiYourTurn');
             drawAll();
         }
