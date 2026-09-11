@@ -158,6 +158,25 @@ const fmt = ms => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) +
 function rnd(a, b) { return a + Math.random() * (b - a); }
 
 // ── rozmery ─────────────────────────────────────────────────────────────
+// Tvar najvyssieho stlpca: kolko zakrytych a kolko odkrytych kariet je pod
+// poslednou. Podla toho sa urcuje, ako vysoka smie byt karta.
+function tallestPile() {
+  let nd = 0, nu = 0;
+  for (const p of tab) {
+    let d = 0, u = 0;
+    for (let i = 0; i < p.length - 1; i++) { if (p[i].up) u++; else d++; }
+    if (d * 0.16 + u * 0.30 > nd * 0.16 + nu * 0.30) { nd = d; nu = u; }
+  }
+  return { nd, nu };
+}
+let shapeKey = '';
+// Rozlozenie zavisi od vysky stlpcov, takze ho treba prepocitat vzdy, ked sa
+// tvar najvyssieho stlpca zmeni - nielen pri novej hre a kroku spat.
+function syncLayout() {
+  const { nd, nu } = tallestPile();
+  const k = nd + '/' + nu;
+  if (k !== shapeKey) resize();
+}
 function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth || 360;
@@ -168,19 +187,28 @@ function resize() {
   PAD = Math.round(Math.min(16, W * 0.022));
   GAP = Math.round(Math.min(12, W * 0.014));
   CW = Math.floor((W - PAD * 2 - GAP * 6) / 7);
+  // na sirokej obrazovke by sedmina sirky dala karty cez pol dlane a stlpce by
+  // zabrali celu vysku: karta ma strop podla vysky okna aj absolutny
+  CW = Math.min(CW, Math.round(H * 0.16), 140);
   CH = Math.round(CW * 1.42);
+  // uz zastropovanu plochu vycentrujem, nech nevisi pri lavom okraji
+  PAD = Math.max(PAD, Math.floor((W - (CW * 7 + GAP * 6)) / 2));
   TOP = W < 660 ? 52 : 50;
   const gapY = Math.round(GAP * 1.6);
   // najvyssi stoh urcuje, ci sa karty musia zmensit - posledna karta musi byt vzdy cela vidno
-  let nd = 0, nu = 0;
-  for (const p of tab) {
-    let d = 0, u = 0;
-    for (let i = 0; i < p.length - 1; i++) { if (p[i].up) u++; else d++; }
-    if (d * 0.16 + u * 0.30 > nd * 0.16 + nu * 0.30) { nd = d; nu = u; }
-  }
+  const { nd, nu } = tallestPile();
   const factor = 2 + nd * 0.16 + nu * 0.30;
   const maxCH = (H - 10 - TOP - gapY) / factor;
-  if (CH > maxCH) CH = Math.max(Math.round(CW * 0.95), Math.floor(maxCH));
+  if (CH > maxCH) {
+    CH = Math.max(Math.round(CW * 0.95), Math.floor(maxCH));
+    // nizka obrazovka uz karty stlacala do skoro stvorca: radsej uberiem aj
+    // sirku, nech karta zostane kartou
+    const wantW = Math.floor(CH / 1.42);
+    if (wantW < CW && wantW >= 26) {
+      CW = wantW;
+      PAD = Math.max(Math.round(Math.min(16, W * 0.022)), Math.floor((W - (CW * 7 + GAP * 6)) / 2));
+    }
+  }
   TABY = TOP + CH + gapY;
   UP = Math.round(CH * 0.30);
   DOWN = Math.round(CH * 0.16);
@@ -191,6 +219,7 @@ function resize() {
     UP = Math.max(6, Math.round(UP * k));
     DOWN = Math.max(4, Math.round(DOWN * k));
   }
+  shapeKey = nd + '/' + nu;
 }
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 250));
@@ -760,6 +789,7 @@ function render() {
 
 function frame(ts) {
   requestAnimationFrame(frame);
+  syncLayout();
   const dt = tPrev ? Math.min(0.05, (ts - tPrev) / 1000) : 0;
   tPrev = ts;
 
