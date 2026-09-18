@@ -1024,3 +1024,72 @@ starts below them at any width and refits when the window turns, when it
 resizes, and once the webfont has arrived and the title has settled at its final
 size. Checked at 375x812 and 1280x800: no overlap, no page scroll, and the
 simulation itself is untouched.
+
+
+31. Sound in every game - sfx.js, whole app
+------------------------------------------------------------------------------
+
+Added on 18 September 2026. Nothing was licensed, bought or downloaded for it:
+there is not a single audio file in the project. Every sound is computed at the
+moment it is heard, from oscillators and filtered noise, by sfx.js - the same
+rule the graphics have always followed, where a shape is a function rather than
+a picture. A synthesised tone has no author to credit and no sample to clear.
+
+Seven games had sound of their own before this (cosmic-voyager, gem-swap,
+gravity-shift, rhythm, ricochet, tower-defense, twin-drop) and they keep it;
+they only ask the shared switch whether they may play. The other 103 had none.
+
+What sfx.js provides is a palette of twenty-eight named sounds - click, place,
+flip, pop, coin, jump, hit, hurt, explode, shoot, whoosh, tick, type, shuffle,
+correct, error, warn, levelup, win, lose and the rest - built from two
+primitives, a tone with an envelope and a burst of filtered noise. A game asks
+for the meaning, not the waveform: SFX.play('place'). Games that need their own
+pitches use the primitives directly - the two memory games give every tile a
+note from a pentatonic scale, which is the only way a sequence can be
+remembered by ear rather than by position.
+
+The mute button mounts itself. Every game has a back link with the same id, and
+nothing else stands next to it in any of the 110, so sfx.js measures that link
+and places the speaker beside it - no game had to be edited for the button to
+appear, and a sweep of all 110 at phone width confirmed it lands on screen,
+uncovered, in every one. The main page carries the same button next to the
+language picker. The setting is one value in localStorage, shared by the whole
+collection and by every open tab, so switching sound off in one game switches it
+off everywhere. The two games that had their own emoji mute button lost it -
+one switch is enough.
+
+Browsers refuse to make noise before the reader has touched the page, so the
+audio context is created lazily and woken on the first pointer, touch or key.
+Nothing is heard on a page nobody has interacted with.
+
+One detail worth recording: a sound must never play before the game has decided
+that the move was legal. The first pass put each call at the top of its
+function, which meant a few games clicked at a move they then refused; a second
+pass moved every such call below the function's own guard clauses, and the
+drag-enders bound to document mouseup - which fire on any click anywhere,
+including on the mute button itself - now stay silent unless a drag was really
+in progress.
+
+
+32. Sokoban renamed - games/crate-push/
+------------------------------------------------------------------------------
+
+Renamed on 18 September 2026, and this one is a licensing fix rather than a
+design change.
+
+Sokoban is not a traditional game the way chess or sudoku are. It was written in
+1982 by Hiroyuki Imabayashi and published by Thinking Rabbit, and the name is a
+registered trademark. The mechanic - push crates onto marks, never pull - is
+free to re-implement, and this collection's implementation is its own code and
+its own levels. The name was the problem.
+
+The displayed title was already fine: every one of the twelve languages showed
+**Crate Push**, never Sokoban. What still carried the trademark was the inside
+of the project - the folder games/sokoban/, the game's id in the launcher, and
+the soko* prefix on its ten i18n keys - which is exactly what rule 2 in
+CLAUDE.md says the rule covers. So the folder moved to games/crate-push/ (with
+git mv, so the history follows), the id became crate-push, and the keys became
+crate*. Nothing a player sees has changed, and the game had no stored records to
+lose; only its play counter starts from zero, because the launcher counts plays
+by id.
+

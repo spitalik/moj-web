@@ -7,6 +7,7 @@
     <title>Word Ladder · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -466,6 +467,7 @@ body{
             }
 
             function newPuzzle() {
+                SFX.play('start');
                 const [s, e] = pickPuzzle(wordLen);
                 start = s;
                 target = e;
@@ -494,11 +496,13 @@ body{
             }
 
             function showFeedback(msg, ok) {
+                SFX.play(ok ? 'correct' : 'error');
                 feedback.textContent = msg;
                 feedback.className = ok ? 'ok' : 'error';
             }
 
             function finishPuzzle() {
+                SFX.play('win');
                 solved = true;
                 const penalty = Math.max(0, moves - par) * 10 + hintsUsed * 15;
                 const puzzleScore = Math.max(10, 100 - penalty);

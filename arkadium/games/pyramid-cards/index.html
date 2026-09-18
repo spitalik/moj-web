@@ -7,6 +7,7 @@
     <title>Pyramid Cards · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -412,6 +413,7 @@ body{
         }
 
         function take(a) {
+            SFX.play('place');
             if (a.where === 'py') removePyramid(a.at); else removeWaste();
         }
 
@@ -424,6 +426,7 @@ body{
 
         function flipStock() {
             if (stock.length) { push(); waste.push(stock.pop()); return true; }
+            SFX.play('flip');
             if (passes > 0 && waste.length) {
                 push();
                 stock = waste.reverse(); waste = [];
@@ -442,6 +445,7 @@ body{
         }
 
         function finish(win) {
+            SFX.play('win');
             solved = win; ended = true;
             clearInterval(timer);
             score = win ? Math.round(Math.max(60, 700 - elapsed * 2) * MULT[diffKey]) : 0;
@@ -465,6 +469,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('start');
             const deck = Array.from({ length: 52 }, (_, i) => i);
             for (let i = deck.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));

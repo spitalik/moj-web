@@ -7,6 +7,7 @@
     <title>Star Catcher · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; user-select:none;
             -webkit-tap-highlight-color:transparent; }
@@ -431,6 +432,7 @@ body{
 
     function loseLife() {
         if (invuln > 0) return;
+        SFX.play('hurt');
         lives--;
         livesSpan.textContent = lives;
         burst(basketX + BW / 2, H - BH / 2, '255,80,90', 16);
@@ -718,6 +720,7 @@ body{
     }
 
     function newGame() {
+        SFX.play('start');
         loadBest();
         stars = []; special = null; sparks = []; texts = [];
         score = 0; lives = D.lives; level = 1; caught = 0;

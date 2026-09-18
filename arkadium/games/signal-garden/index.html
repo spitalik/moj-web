@@ -7,6 +7,7 @@
 <title>Signal Garden · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -230,6 +231,7 @@ function spawnPulse(){
 function speed(){return 118 + wave * 7}
 
 function routePulse(pulse,node){
+  SFX.play('swap');
   const dir = DIRS[node.dir];
   pulse.x = node.x;
   pulse.y = node.y;
@@ -241,6 +243,7 @@ function routePulse(pulse,node){
 }
 
 function dockPulse(pulse,flower,index){
+  SFX.play('coin');
   pulse.dead = true;
   flower.hit = .45;
   if(index === pulse.target){
@@ -252,12 +255,14 @@ function dockPulse(pulse,flower,index){
 }
 
 function loseStability(){
+  SFX.play('hurt');
   lives--;
   flash(t('signalGardenOver'), '#ff6b6b');
   if(lives <= 0) gameOver();
 }
 
 function gameOver(){
+  SFX.play('lose');
   running = false;
   cancelAnimationFrame(frameId);
   ovTitle.textContent = t('signalGardenOver');

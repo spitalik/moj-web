@@ -7,6 +7,7 @@
     <title>Peg Escape · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -416,6 +417,7 @@ body{
             }
 
             function newGame() {
+                SFX.play('start');
                 loadBest();   // rekord patri k aktualnej obtiaznosti
                 pegs = new Set(VALID);
                 pegs.delete(CENTER);
@@ -498,6 +500,7 @@ body{
 
             function undo() {
                 if (ended || history.length === 0) return;
+                SFX.play('click');
                 const last = history.pop();
                 pegs = last.pegsBefore;
                 moves = Math.max(0, moves - 1);

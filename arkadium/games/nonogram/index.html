@@ -7,6 +7,7 @@
 <title>Nonogram · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#4dff91;--cdim:rgba(77,255,145,0.14);}
@@ -148,6 +149,7 @@ function showMenu(){
 }
 
 function gameOverScreen(){
+  SFX.play('lose');
   showOverlay({
     icon:'💥',
     title:tr('nonogramLose','Game over'),
@@ -163,6 +165,7 @@ function updateErrHud(){
 }
 
 function startGame(){
+  SFX.play('start');
   document.getElementById('overlay').style.display='none';
   SIZE=DIFFS[diffIdx].size;
   solution=genSolution(SIZE);
@@ -269,6 +272,7 @@ function isWrongMove(r,c,val){
 }
 
 function registerError(r,c){
+  SFX.play('error');
   const key=r+','+c;
   if(!penalized.has(key)){
     penalized.add(key);
@@ -295,6 +299,7 @@ function registerError(r,c){
 function applyDrag(r,c){
   if(!dragging||gameOver)return;
   if(isWrongMove(r,c,dragVal)){registerError(r,c);return;}
+  SFX.play('tick');
   state[r][c]=dragVal;
   paintCell(r,c);
   checkWin();
@@ -307,6 +312,7 @@ function checkWin(){
   if(gameOver)return;
   const solved=solution.every((row,r)=>row.every((v,c)=>(v===1)===(state[r][c]===1)));
   if(solved){
+    SFX.play('win');
     clearInterval(timerInt);
     gameOver=true;
     showOverlay({

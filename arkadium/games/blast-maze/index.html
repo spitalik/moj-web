@@ -7,6 +7,7 @@
 <title>Blast Maze · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -254,6 +255,7 @@ function drop() {
   if (bombs.length >= maxBombs) return;
   const r = Math.floor(hero.y), c = Math.floor(hero.x);
   if (bombAt(r, c)) return;
+  SFX.play('place');
   bombs.push({r, c, fuse: FUSE, range});
 }
 
@@ -405,6 +407,7 @@ function respawn() {
 }
 
 function nextLevel() {
+  SFX.play('levelup');
   const bonus = P_LEVEL + P_LEVEL_STEP * level;
   score += bonus;
   pops.push({x: COLS / 2, y: ROWS / 2, txt: '+' + bonus, life: 1.4, rgb: '251,191,36'});
@@ -453,6 +456,7 @@ function endRound() {
   document.getElementById('best-pill').classList.toggle('record', rec);
 }
 function showCard(mode) {
+  if (mode === 'over') SFX.play('lose');
   document.getElementById('ov-title').textContent = mode === 'over' ? t('uiGameOver') : t('blzTitle');
   document.getElementById('brand').style.display = mode === 'over' ? 'none' : '';
   document.getElementById('result').classList.toggle('show', mode === 'over');

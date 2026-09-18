@@ -7,6 +7,7 @@
 <title>Capital Quiz · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
   :root{
     --bg:#080c16;--bg-2:#0d1322;--panel:#121a2c;--line:#22304a;
@@ -407,6 +408,7 @@ button,a,[onclick]{touch-action:manipulation;}
   function capitalName(c){ return getLang() === 'sk' ? c.caps : c.cap; }
 
   function shuffle(arr){
+    SFX.play('shuffle');
     for(let i=arr.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
       [arr[i],arr[j]]=[arr[j],arr[i]];
@@ -554,6 +556,7 @@ button,a,[onclick]{touch-action:manipulation;}
     const correct = optId === current.n;
 
     if(correct){
+      SFX.play('correct');
       score++; streak++; totalCorrect++;
       btnEl.classList.add('correct');
       const msg = mode === 'c2cap'
@@ -592,6 +595,7 @@ button,a,[onclick]{touch-action:manipulation;}
   }
 
   function showGameOver(){
+    SFX.play('lose');
     finalScoreEl.textContent = score;
     finalAccEl.textContent   = t('capFinalAccuracy', { correct: totalCorrect, total: totalAnswered });
     finalBestEl.textContent  = '🏆 ' + t('capBestLabel') + ': ' + bestScore;

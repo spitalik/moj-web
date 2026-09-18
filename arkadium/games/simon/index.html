@@ -7,6 +7,7 @@
 <title>Color Recall · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{--bg:#050507;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);}
@@ -113,6 +114,7 @@ buildDiffRow('diff-row');
 let seq, playerSeq, round, best = 0, accepting;
 
 function startGame() {
+  SFX.play('start');
   document.getElementById('overlay').style.display = 'none';
   seq = []; round = 0;
   best = parseInt(document.getElementById('best-num').textContent) || 0;
@@ -120,6 +122,7 @@ function startGame() {
 }
 
 function nextRound() {
+  SFX.play('tick');
   round++;
   accepting = false;
   seq.push(Math.floor(Math.random() * 4));
@@ -147,6 +150,8 @@ function playSeq(i) {
 }
 
 function flashBtn(id, cb) {
+  // pentatonika: ktorykolvek pár tónov znie spolu dobre
+  SFX.tone({f: [392, 523, 659, 784][id % 4], type: 'triangle', dur: 0.26, vol: 0.13});
   const el = document.getElementById(`b${id}`);
   const d = DIFFS[diffIdx];
   el.classList.remove('dim');
@@ -176,6 +181,7 @@ function press(id) {
 }
 
 function wrong() {
+  SFX.play('error');
   accepting = false;
   [0,1,2,3].forEach(i => {
     const el = document.getElementById(`b${i}`);

@@ -7,6 +7,7 @@
   <title>Fluxgall · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
   <script src="../../i18n.js"></script>
+  <script src="../../sfx.js"></script>
   <style>
     :root {
       color-scheme: dark;
@@ -569,6 +570,7 @@
       }
 
       function loadLevel(index, keepState = false) {
+        SFX.play('start');
         levelIndex = (index + levels.length) % levels.length;
         const data = levels[levelIndex];
         const start = world(data.start);
@@ -617,6 +619,7 @@
       }
 
       function toggleMagnet(magnet) {
+        SFX.play('click');
         magnet.polarity *= -1;
         magnet.active = true;
         moves += 1;
@@ -669,6 +672,7 @@
       }
 
       function restart() {
+        SFX.play('start');
         loadLevel(levelIndex);
       }
 

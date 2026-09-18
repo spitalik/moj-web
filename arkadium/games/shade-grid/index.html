@@ -7,6 +7,7 @@
     <title>Shade Grid · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -450,6 +451,7 @@ body{
         }
 
         function win() {
+            SFX.play('win');
             solved = true;
             clearInterval(timer);
             score = Math.max(20, Math.round(SETUP[diffKey].base - elapsed * 2 - hints * 40));
@@ -496,6 +498,7 @@ body{
         const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 
         function newGame() {
+            SFX.play('start');
             const setup = SETUP[diffKey];
             N = setup.n; CELL = setup.cell;
             SIZE = MARGIN * 2 + N * CELL;

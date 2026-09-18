@@ -7,6 +7,7 @@
 <title>Tilt Maze · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -289,6 +290,7 @@ const cellCenter = (r, c) => ({x: c * cell + cell / 2, y: r * cell + cell / 2});
 
 // ── kolo ────────────────────────────────────────────────────────────────
 function newMaze() {
+  SFX.play('start');
   const cfg = D();
   N = cfg.n;
   cell = BS / N;
@@ -337,11 +339,13 @@ function loadBest() {
   document.getElementById('best-pill').classList.remove('record');
 }
 function respawn() {
+  SFX.play('hurt');
   const p = cellCenter(0, 0);
   ball.x = p.x; ball.y = p.y; ball.vx = 0; ball.vy = 0;
   trail = [];
 }
 function win() {
+  SFX.play('win');
   state = ST.WIN;
   const penalty = Math.round(elapsed * P_SEC) + falls * P_FALL;
   score = Math.max(P_MIN, P_BASE - penalty);

@@ -7,6 +7,7 @@
 <title>Block Cascade · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -306,7 +307,7 @@ function tryRotate() {
 }
 function move(dx) {
   if (state !== ST.PLAY || !piece) return;
-  if (!hits(piece.cells, piece.x + dx, piece.y)) piece.x += dx;
+  if (!hits(piece.cells, piece.x + dx, piece.y)) { piece.x += dx; SFX.play('tick'); }
 }
 function ghostY() {
   let y = piece.y;
@@ -314,6 +315,7 @@ function ghostY() {
   return y;
 }
 function lockPiece() {
+  SFX.play('place');
   for (const [cxx, cyy] of piece.cells) {
     const gy = piece.y + cyy, gx = piece.x + cxx;
     if (gy >= 0) grid[gy][gx] = piece.rgb;
@@ -329,6 +331,7 @@ function softDrop() {
 }
 function hardDrop() {
   if (state !== ST.PLAY || !piece) return;
+  SFX.play('drop');
   const gy = ghostY();
   score += (gy - piece.y) * HARD_PT;
   piece.y = gy;
@@ -347,6 +350,8 @@ function clearLines() {
   const full = [];
   for (let r = 0; r < ROWS; r++) if (grid[r].every(v => v)) full.push(r);
   if (!full.length) return;
+  // Štyri riadky naraz si zaslúžia iný zvuk než jeden.
+  SFX.play(full.length >= 4 ? 'levelup' : 'pop');
   for (const r of full) {
     clearFlash.push({row: r, life: 0.28});
     for (let c = 0; c < COLS; c++) {
@@ -366,6 +371,7 @@ function clearLines() {
   syncHud();
 }
 function finish() {
+  SFX.play('lose');
   state = ST.OVER;
   const rec = score > best;
   if (rec) { best = score; try { localStorage.setItem(bestKey(), best); } catch (e) {} }

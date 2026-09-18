@@ -7,6 +7,7 @@
 <title>Flag Quiz · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
   :root{
     --bg:#080c16;
@@ -758,6 +759,7 @@ button,a,[onclick]{touch-action:manipulation;}
   }
 
   function shuffle(arr){
+    SFX.play('shuffle');
     for(let i=arr.length-1;i>0;i--){
       const j = Math.floor(Math.random()*(i+1));
       const tmp = arr[i]; arr[i]=arr[j]; arr[j]=tmp;
@@ -767,6 +769,7 @@ button,a,[onclick]{touch-action:manipulation;}
 
   function nextRound(){
     if(lives <= 0) return;
+    SFX.play('tick');
     locked = false;
     feedbackMsg.textContent = '';
     feedbackMsg.className = 'feedback-msg';
@@ -850,6 +853,7 @@ button,a,[onclick]{touch-action:manipulation;}
   }
 
   function showGameOver(){
+    SFX.play('lose');
     finalScoreEl.textContent = score;
     document.getElementById('finalBest').textContent = '🏆 ' + t('flagBestLabel') + ': ' + bestScore;
     finalAccEl.textContent = t('flagFinalAccuracy', { correct: totalCorrect, total: totalAnswered });

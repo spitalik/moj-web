@@ -7,6 +7,7 @@
     <title>Five Letters · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -428,9 +429,11 @@ body{
 
         function submit() {
             if (over) return;
-            if (current.length < 5) { statusLine.textContent = t('fivTooShort'); return; }
-            if (!WORDSET.has(current)) { statusLine.textContent = t('fivUnknown'); return; }
+            if (current.length < 5) { SFX.play('error'); statusLine.textContent = t('fivTooShort'); return; }
+            if (!WORDSET.has(current)) { SFX.play('error'); statusLine.textContent = t('fivUnknown'); return; }
             const marks = scoreGuess(current, answer);
+            // hlbsi tón, ak je aspoň jedno písmeno na mieste
+            SFX.play(marks.indexOf('hit') >= 0 ? 'correct' : 'flip');
             guesses.push({ word: current, marks });
             marks.forEach((m, i) => {
                 const ch = current[i];
@@ -445,6 +448,7 @@ body{
         }
 
         function finish(win) {
+            SFX.play(win ? 'win' : 'lose');
             over = true; won = win;
             const elapsed = Math.floor((Date.now() - startedAt) / 1000);
             if (win) {
@@ -535,6 +539,7 @@ body{
             if (!/^[a-z]$/.test(action)) return;
             if (current.length >= 5) return;
             current += action;
+            SFX.play('type');
             statusLine.textContent = '';
             render();
         }

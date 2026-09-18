@@ -7,6 +7,7 @@
 <title>Circuit Bloom · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -302,6 +303,7 @@ function render(){
 
 function rotateCell(r,c){
   if(won) return;
+  SFX.play('rotate');
   const cell = grid[r][c];
   if(!cell.mask || cell.type === 'S' || cell.type === 'B') return;
   cell.mask = rot(cell.mask);
@@ -313,6 +315,7 @@ function rotateCell(r,c){
 
 function winLevel(){
   if(won) return;
+  SFX.play('win');
   won = true;
   saveBest();
   document.getElementById('ov-title').textContent = t('circuitBloomWin');
@@ -323,6 +326,7 @@ function winLevel(){
 }
 
 function nextLevel(){
+  SFX.play('levelup');
   levelIndex = (levelIndex + 1) % LEVELS.length;
   loadLevel(levelIndex);
 }

@@ -7,6 +7,7 @@
 <title>Brick Buster · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -299,6 +300,7 @@ function saveBest() {
 
 // ── prehra / postup ───────────────────────────────────────────────────────
 function loseLife() {
+  SFX.play('hurt');
   lives--; combo = 0; syncHud();
   floorFlash = 1; shake = 0.3;
   for (let i = 0; i < 20; i++) {
@@ -310,6 +312,7 @@ function loseLife() {
 }
 
 function gameOver() {
+  SFX.play('lose');
   state = ST.DEAD; deadT = 0;
   const rec = saveBest();
   setTimeout(() => {
@@ -320,6 +323,7 @@ function gameOver() {
 }
 
 function levelClear() {
+  SFX.play('levelup');
   state = ST.CLEAR;
   saveBest();
   bricks = [];
@@ -425,6 +429,7 @@ function physics(dt) {
 }
 
 function hitBrick(b) {
+  SFX.play('pop');
   b.hp--; b.hit = 1;
   const tier = TIER[b.max];
   const cx = b.x + BRICK_W / 2, cy = b.y + BRICK_H / 2;
@@ -662,6 +667,7 @@ function draw(ts) {
 // ── vstup ─────────────────────────────────────────────────────────────────
 function launch() {
   if (state !== ST.DOCK) return;
+  SFX.play('shoot');
   const ang = (Math.random() - 0.5) * 0.5;
   ball.vx = Math.sin(ang) * ball.spd;
   ball.vy = -Math.cos(ang) * ball.spd;

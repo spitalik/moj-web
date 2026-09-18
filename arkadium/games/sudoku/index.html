@@ -7,6 +7,7 @@
 <title>Sudoku · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -393,6 +394,7 @@ function renderCounts() {
 
 function select(i) {
   if (solved) return;
+  SFX.play('tick');
   sel = i;
   paintHighlights();
 }
@@ -415,10 +417,12 @@ function input(n) {
       grid[sel] = n;
       notes[sel].clear();
       if (n !== sol[sel]) {
+        SFX.play('error');
         errors++;
         document.getElementById('hud-err').textContent = errors;
         setStatus(t('sudokuWrong'), 'bad');
       } else {
+        SFX.play('click');
         clearPeerNotes(sel, n);
         setStatus('', '');
       }
@@ -469,6 +473,7 @@ function hint() {
   const wrong = opts.filter(i => grid[i] !== 0);
   const i = (wrong.length ? wrong : opts)[Math.floor(Math.random() * (wrong.length || opts.length))];
   pushUndo(i);
+  SFX.play('chime');
   grid[i] = sol[i];
   notes[i].clear();
   clearPeerNotes(i, sol[i]);
@@ -498,6 +503,7 @@ function tick() {
 }
 function checkWin() {
   for (let i = 0; i < 81; i++) if (grid[i] !== sol[i]) return;
+  SFX.play('win');
   // cas odcitam priamo z hodin, nie z posledneho snimku
   if (running) elapsed = performance.now() - startedAt;
   solved = true; running = false;

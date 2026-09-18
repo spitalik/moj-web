@@ -7,6 +7,7 @@
 <title>2048 · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -372,6 +373,8 @@ function move(dir) {
   }
 
   busy = true;
+  // Ťah znie inak než spojenie: spojenie je odmena, posun len pohyb.
+  SFX.play(merges.length ? 'pop' : 'move');
   let addScore = 0;
   for (const m of merges) addScore += m.v;
 
@@ -407,6 +410,7 @@ function canMove() {
 }
 
 function showCard(kind) {
+  SFX.play(kind === 'win' ? 'win' : 'lose');
   const rec = score >= best && score > 0;
   document.getElementById('ov-title').textContent = kind === 'win' ? t('g2048Win') : t('g2048Over');
   document.getElementById('res-lbl').textContent = t('g2048Score');

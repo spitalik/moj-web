@@ -7,6 +7,7 @@
     <title>🌌 Cosmic Voyager · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         /* Reset & základ */
         * {
@@ -776,6 +777,7 @@
             }
 
             function playTone(freq, duration, type = 'sine', volume = 0.12) {
+                if (!window.SFX || !SFX.on) return;
                 try {
                     if (!audioCtx) return;
                     const osc = audioCtx.createOscillator();

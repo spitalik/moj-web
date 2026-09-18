@@ -7,6 +7,7 @@
     <title>Word Weave · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -658,12 +659,14 @@ body{
                     comboSpan.textContent = '0';
                     cellsCopy.forEach(([r, c]) => flashCell(r, c, 'flash-bad'));
                 } else if (!wordSet.has(word)) {
+                    SFX.play('error');
                     feedback.textContent = t('wwvInvalid');
                     feedback.className = 'error';
                     combo = 0;
                     comboSpan.textContent = '0';
                     cellsCopy.forEach(([r, c]) => flashCell(r, c, 'flash-bad'));
                 } else {
+                    SFX.play('correct');
                     foundWords.add(word);
                     const gained = scoreForWord(word);
                     score += gained;
@@ -751,6 +754,7 @@ body{
             }
 
             function endRound() {
+                SFX.play('win');
                 ended = true;
                 clearInterval(timerId);
                 clearSelection();
@@ -770,6 +774,7 @@ body{
             }
 
             function newRound() {
+                SFX.play('shuffle');
                 loadBest();   // rekord patri k aktualnej velkosti plochy
                 clearInterval(timerId);
                 ended = false;

@@ -7,6 +7,7 @@
 <title>Dot Glider · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -174,6 +175,7 @@ function makeDust() {
 }
 
 function startGame() {
+  SFX.play('start');
   const d = DIFFS[diffIdx];
   GAP   = clamp(H * d.gap, DOT_R * 6, H - EDGE * 2 - 90);
   SPEED = d.speed * SCL; GRAV = d.grav * SCL; JUMP = d.jump * SCL;
@@ -191,6 +193,7 @@ function startGame() {
 }
 
 function flap() {
+  SFX.play('jump');
   if (state === ST.READY) state = ST.PLAY;
   else if (state !== ST.PLAY) return;
   dot.vy = JUMP;
@@ -205,6 +208,7 @@ function flap() {
 
 function die() {
   if (state === ST.DEAD) return;
+  SFX.play('lose');
   state = ST.DEAD; deadT = 0;
   shake = 0.38; flash = {a: 0.55};
   for (let i = 0; i < 34; i++) {

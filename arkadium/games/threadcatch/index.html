@@ -7,6 +7,7 @@
   <title>Threadcatch · Arkádium</title>
   <link href="../../fonts/fonts.css" rel="stylesheet">
   <script src="../../i18n.js"></script>
+  <script src="../../sfx.js"></script>
   <style>
     :root {
       color-scheme: dark;
@@ -591,6 +592,7 @@
       }
 
       function restart() {
+        SFX.play('start');
         loadLevel(levelIndex);
       }
 
@@ -606,6 +608,7 @@
 
       function undo() {
         if (state !== "playing" || !links.length) return;
+        SFX.play('click');
         const link = links.pop();
         sparks.push({ x: (link.a.x + link.b.x) / 2, y: (link.a.y + link.b.y) / 2, color: "#eff8ff", life: 0.35 });
         updateHud();

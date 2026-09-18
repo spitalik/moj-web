@@ -13,6 +13,7 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link href="fonts/fonts.css" rel="stylesheet">
 <script src="i18n.js"></script>
+<script src="sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -35,7 +36,8 @@ header{padding:44px 0 0;display:flex;align-items:flex-start;justify-content:spac
 .subtitle{margin-top:6px;font-size:13px;font-weight:300;color:var(--muted);}
 
 /* LANGUAGE PICKER */
-.lang-wrap{position:relative;flex-shrink:0;margin-top:4px;}
+.lang-wrap{position:relative;flex-shrink:0;}
+.head-right{display:flex;align-items:center;gap:10px;flex-shrink:0;margin-top:4px;}
 #lang-btn{display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:border-color .18s;white-space:nowrap;user-select:none;}
 #lang-btn:hover{border-color:var(--border-h);}
 #lang-btn .flag{font-size:16px;line-height:1;}
@@ -122,6 +124,8 @@ header{padding:44px 0 0;display:flex;align-items:flex-start;justify-content:spac
       <div class="wordmark">Arkádium</div>
       <div class="subtitle" id="subtitle"></div>
     </div>
+    <div class="head-right">
+      <span id="sfx-slot"></span>
     <div class="lang-wrap" id="lang-wrap">
       <button id="lang-btn" aria-label="Select language">
         <span class="flag" id="lang-flag">🇺🇸</span>
@@ -129,6 +133,7 @@ header{padding:44px 0 0;display:flex;align-items:flex-start;justify-content:spac
         <span class="chevron">▼</span>
       </button>
       <div id="lang-dropdown"></div>
+    </div>
     </div>
   </header>
 
@@ -210,7 +215,7 @@ const GAMES = [
   {id:'tower-defense',titleKey:'tdTitle',   descKey:'tdDesc',      emoji:'🏰', tags:['strategy'], heroColor:'#001a10', file:'games/tower-defense/index.html',  isNew:false},
   {id:'hanoi-towers',titleKey:'hanTitle',descKey:'hanDesc',emoji:'🗼', iconSvg:'<svg viewBox="0 0 72 72" width="72" height="72" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hanoi Towers"><path d="M8 58h56" stroke="#e2e8f0" stroke-width="3.4" stroke-linecap="round"/><path d="M20 22v36M36 22v36M52 22v36" stroke="#e2e8f0" stroke-width="2.2" opacity="0.45"/><rect x="6" y="49" width="28" height="8" rx="4" fill="#38e8c8"/><rect x="9" y="39" width="22" height="8" rx="4" fill="#4dc4ff"/><rect x="13" y="29" width="14" height="8" rx="4" fill="#8b7bff"/></svg>',tags:['puzzle'],heroColor:'#0b0705',file:'games/hanoi-towers/index.html',isNew:true},
   {id:'nonogram',      titleKey:'nonogramTitle', descKey:'nonogramDesc', emoji:'🖼️', tags:['puzzle'],   heroColor:'#071a0b', file:'games/nonogram/index.html',      isNew:true},
-  {id:'sokoban',  titleKey:'sokoTitle', descKey:'sokoDesc', emoji:'📦', tags:['puzzle'],  heroColor:'#0a0a14', file:'games/sokoban/index.html',  isNew:true},
+  {id:'crate-push', titleKey:'crateTitle', descKey:'crateDesc', emoji:'📦', tags:['puzzle'],  heroColor:'#0a0a14', file:'games/crate-push/index.html', isNew:true},
   {id:'piskvory', titleKey:'piskTitle', descKey:'piskDesc', emoji:'⚫', iconSvg:'<svg viewBox="0 0 72 72" width="72" height="72" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gomoku"><path d="M14 14h44M14 28h44M14 42h44M14 56h44M14 14v42M28 14v42M42 14v42M56 14v42" stroke="#94a3b8" stroke-width="1.6" opacity="0.5"/><circle cx="14" cy="28" r="6" fill="#0f1523" stroke="#e2e8f0" stroke-width="1.6"/><circle cx="28" cy="28" r="6" fill="#0f1523" stroke="#e2e8f0" stroke-width="1.6"/><circle cx="42" cy="28" r="6" fill="#0f1523" stroke="#e2e8f0" stroke-width="1.6"/><circle cx="28" cy="42" r="6" fill="#f2f6fc"/><circle cx="42" cy="14" r="6" fill="#f2f6fc"/></svg>', tags:['strategy'], heroColor:'#0a0a14', file:'games/piskvory/index.html', isNew:true},
   {id:'ninja-runner',titleKey:'ninjaTitle',descKey:'ninjaDesc',emoji:'🥷',tags:['arcade'],heroColor:'#0a0f1e',file:'games/ninja-runner/index.html',isNew:true},
   {id:'slope-rider',titleKey:'slrTitle',descKey:'slrDesc',emoji:'🚗', iconSvg:'<svg viewBox="0 0 72 72" width="72" height="72" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Slope Rider"><path d="M4 56 q16 -26 32 -14 q12 9 32 -12" stroke="#fbbf24" stroke-width="3.4" fill="none" stroke-linecap="round" opacity="0.85"/><g transform="rotate(-14 36 30)"><path d="M27 24 l4 -8 h11 l5 8 z" fill="#ffd166"/><rect x="21" y="24" width="30" height="11" rx="5" fill="#ff9f6b"/></g><circle cx="25" cy="41" r="7.5" fill="#14100a" stroke="#f2f6fc" stroke-width="3"/><circle cx="48" cy="35" r="7.5" fill="#14100a" stroke="#f2f6fc" stroke-width="3"/></svg>',tags:['arcade'],heroColor:'#05070c',file:'games/slope-rider/index.html',isNew:true},

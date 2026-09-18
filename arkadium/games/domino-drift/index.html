@@ -7,6 +7,7 @@
     <title>Domino Drift · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -369,6 +370,7 @@ body{
                 return tiles;
             }
             function shuffle(arr) {
+                SFX.play('shuffle');
                 const a = arr.slice();
                 for (let i = a.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -413,6 +415,7 @@ body{
             }
 
             function newGame() {
+                SFX.play('start');
                 loadBest();   // rekord patri k aktualnej obtiaznosti
                 deck = shuffle(makeDeck());
                 playerHand = deck.slice(0, 7);
@@ -601,6 +604,7 @@ body{
             }
 
             function endGame(winner, blocked) {
+                SFX.play('lose');
                 ended = true;
                 let scoreVal = 0;
                 if (winner === 'player') {

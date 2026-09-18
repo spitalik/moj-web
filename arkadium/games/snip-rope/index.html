@@ -7,6 +7,7 @@
     <title>Snip Rope · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -402,6 +403,7 @@ body{
             }
 
             function newLevel() {
+                SFX.play('start');
                 loadBest();       // rekord patri k aktualnej obtiaznosti
                 paused = false;
                 level = pickLevel(diffKey);
@@ -452,6 +454,7 @@ body{
             }
 
             function triggerFail() {
+                SFX.play('lose');
                 failed = true;
                 missFlash.classList.add('show');
                 setTimeout(() => {
@@ -463,6 +466,7 @@ body{
             }
 
             function triggerWin() {
+                SFX.play('win');
                 solved = true;
                 catchAnim = 1;
                 const penalty = Math.max(0, attempts - 1) * 30;
@@ -505,6 +509,7 @@ body{
 
             function tryCut(fromPt, toPt) {
                 if (cut || solved || failed || !level) return;
+                SFX.play('whoosh');
                 const anchorPt = { x: level.anchor.x, y: level.anchor.y };
                 const ballPt = { x: px, y: py };
                 if (segIntersect(fromPt, toPt, anchorPt, ballPt)) {

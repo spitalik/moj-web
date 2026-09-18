@@ -7,6 +7,7 @@
   <title>EchoDrift · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
   <script src="../../i18n.js"></script>
+  <script src="../../sfx.js"></script>
   <style>
     :root {
       color-scheme: dark;
@@ -544,6 +545,7 @@
       }
 
       function loadLevel(index, preserveIntro = false) {
+        SFX.play('start');
         levelIndex = (index + levels.length) % levels.length;
         level = levels[levelIndex];
         const start = pt(level.start);
@@ -596,6 +598,7 @@
       }
 
       function restart() {
+        SFX.play('start');
         loadLevel(levelIndex);
       }
 
@@ -611,6 +614,7 @@
 
       function ping() {
         if (state !== "playing" || pulseCooldown > 0 || energy < 4) return;
+        SFX.play('whoosh');
         pulses += 1;
         energy -= 4;
         pulseCooldown = 0.55;

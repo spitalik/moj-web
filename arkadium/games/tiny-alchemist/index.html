@@ -7,6 +7,7 @@
 <title>Tiny Alchemist · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -186,6 +187,7 @@ function render(){
 
 function pick(index){
   if(won || mixesLeft <= 0) return;
+  SFX.play('select');
   if(selected.includes(index)){
     selected = selected.filter(i => i !== index);
     render();
@@ -197,6 +199,7 @@ function pick(index){
 }
 
 function mixSelected(){
+  SFX.play('chime');
   const [aIndex,bIndex] = selected;
   const a = items[aIndex], b = items[bIndex];
   const key = recipeKey(a,b);
@@ -214,6 +217,7 @@ function mixSelected(){
 }
 
 function markNew(id){
+  SFX.play('coin');
   const nodes = [...essences.querySelectorAll('.essence')];
   const node = nodes.find(n => n.textContent.includes(label(id)));
   if(node) node.classList.add('new');
@@ -238,6 +242,7 @@ function checkState(){
 }
 
 function nextLevel(){
+  SFX.play('levelup');
   levelIndex = (levelIndex + 1) % LEVELS.length;
   loadLevel(levelIndex);
 }

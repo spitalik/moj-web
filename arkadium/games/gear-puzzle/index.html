@@ -7,6 +7,7 @@
 <title>Gear Puzzle · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; user-select:none;
         -webkit-tap-highlight-color:transparent; }
@@ -748,6 +749,7 @@ body{
     // ── tah ─────────────────────────────────────────────────────────────
     function toggle(i) {
         if (solved) return;
+        SFX.play('rotate');
         const g = gears[i];
         g.set = g.set === 0 ? 1 : g.set === 1 ? -1 : 0;
         moves++;
@@ -780,6 +782,7 @@ body{
     });
 
     function win() {
+        SFX.play('win');
         solved = true;
         document.getElementById('finalMoves').textContent = moves;
         document.getElementById('winSub').textContent = t('gearWinSub');
@@ -788,6 +791,7 @@ body{
     }
 
     function resetCranks() {
+        SFX.play('click');
         for (const g of gears) if (g.kind === 'crank') g.set = 0;
         moves = 0;
         movesSpan.textContent = '0';
@@ -797,6 +801,7 @@ body{
     }
 
     function newPuzzle() {
+        SFX.play('shuffle');
         loadBest();
         let ok = false;
         for (let relax = 0; relax <= 2 && !ok; relax++) ok = generate(relax);

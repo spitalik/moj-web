@@ -7,6 +7,7 @@
 <title>Minesweeper · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -357,6 +358,7 @@ function tapCell(r, c) {
   if (open_[r][c]) { chord(r, c); return; }
   if (firstMove) { firstMove = false; placeMines(r, c); }
   if (board[r][c] === -1) { boom(r, c); return; }
+  SFX.play('click');
   revealFrom(r, c);
   checkWin();
 }
@@ -385,6 +387,7 @@ function chord(r, c) {
 function toggleFlag(r, c) {
   if (state !== ST.PLAY || open_[r][c]) return;
   flag[r][c] = !flag[r][c];
+  SFX.play(flag[r][c] ? 'place' : 'tick');
   flagsUsed += flag[r][c] ? 1 : -1;
   const el = document.getElementById('mines-left');
   el.textContent = Math.max(0, mines - flagsUsed);
@@ -394,6 +397,7 @@ function toggleFlag(r, c) {
 }
 
 function boom(r, c) {
+  SFX.play('explode');
   state = ST.DONE;
   stopTimer();
   open_[r][c] = true;
@@ -415,6 +419,7 @@ function checkWin() {
   let opened = 0;
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) if (open_[r][c]) opened++;
   if (opened !== rows * cols - mines) return;
+  SFX.play('win');
   state = ST.DONE;
   stopTimer();
   // dourči zvyšné zástavky

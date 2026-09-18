@@ -7,6 +7,7 @@
 <title>Lap Racer · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{--bg:#050507;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);
@@ -260,6 +261,7 @@ let trackSeed=0;
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 function initRace(){
+  SFX.play('start');
   trackSeed=Date.now()&0x7fffffff;
   generateTrack(trackSeed);
   buildCamera();
@@ -572,6 +574,7 @@ function updateHUD(){
 }
 
 function showResults(){
+  SFX.play('win');
   const standings=getStandings();
   const pos=standings.findIndex(c=>c.isPlayer)+1;
   const medals=['🥇','🥈','🥉','😢'];

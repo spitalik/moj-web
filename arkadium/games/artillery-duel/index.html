@@ -7,6 +7,7 @@
     <title>Artillery Duel · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -456,6 +457,7 @@ body{
         function fire(shooter, dir, angleDeg, power) {
             busy = true;
             fireBtn.disabled = true;
+            SFX.play('shoot');
             shots++;
             const a = angleDeg * Math.PI / 180;
             const v = power * 0.168;
@@ -546,6 +548,7 @@ body{
         function finish() {
             ended = true; busy = true; fireBtn.disabled = true;
             const won = foe.hp <= 0 && me.hp > 0;
+            SFX.play(won ? 'win' : 'lose');
             score = won ? Math.round((90 + me.hp + Math.max(0, 60 - shots * 4)) * MULT[diffKey]) : 0;
             scoreSpan.textContent = score;
             if (score > best) { best = score; bestSpan.textContent = best; localStorage.setItem(bestKey(), String(best)); }

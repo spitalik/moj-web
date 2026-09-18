@@ -7,6 +7,7 @@
 <title>Endless Runner · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -172,6 +173,7 @@ function seedHills() {
 }
 
 function startGame() {
+  SFX.play('start');
   const d = difficulty();
   resize();
   player = {y: GROUND, vy: 0, jumps: 0, sq: 0, run: 0};
@@ -217,6 +219,7 @@ function jump() {
   if (state === ST.MENU) { document.getElementById('ov-play').click(); return; }
   if (state === ST.PAUSE) { state = ST.PLAY; return; }
   if (state !== ST.PLAY) return;
+  SFX.play('jump');
   const d = difficulty();
   if (player.jumps >= 2) return;
   player.vy = d.jump * SCL * (player.jumps === 0 ? 1 : 0.88);

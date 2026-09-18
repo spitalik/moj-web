@@ -7,6 +7,7 @@
     <title>Cube Twist · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -411,6 +412,7 @@ body{
             }
 
             function newLevel() {
+                SFX.play('shuffle');
                 loadBest();   // rekord patri k aktualnej obtiaznosti
                 grid = generatePuzzle();
                 moves = 0;
@@ -437,6 +439,7 @@ body{
 
             function doRowShift(r, dir) {
                 if (solved) return;
+                SFX.play('swap');
                 shiftRow(grid, r, dir);
                 moves++;
                 movesSpan.textContent = moves;
@@ -445,6 +448,7 @@ body{
             }
             function doColShift(c, dir) {
                 if (solved) return;
+                SFX.play('swap');
                 shiftCol(grid, c, dir);
                 moves++;
                 movesSpan.textContent = moves;
@@ -457,6 +461,7 @@ body{
             }
 
             function winGame() {
+                SFX.play('win');
                 solved = true;
                 const penalty = Math.max(0, moves - par) * 8;
                 score = Math.max(20, 120 - penalty);

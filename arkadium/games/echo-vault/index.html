@@ -7,6 +7,7 @@
 <title>Echo Vault · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -195,6 +196,9 @@ function showSequence(){
 function lightTile(idx, duration){
   const tile = tileAt(idx);
   if(!tile) return;
+  // sestnast poli, pentatonicka stupnica cez tri oktavy
+            SFX.tone({f: 262 * Math.pow(2, [0, 2, 4, 7, 9][idx % 5] / 12 + Math.floor(idx / 5) * 0.5),
+            type: 'triangle', dur: 0.24, vol: 0.12});
   tile.classList.add('lit');
   timers.push(setTimeout(() => tile.classList.remove('lit'), duration));
 }
@@ -235,6 +239,7 @@ function handleTile(idx){
 }
 
 function gameOver(){
+  SFX.play('lose');
   accepting = false;
   showing = false;
   saveBest();

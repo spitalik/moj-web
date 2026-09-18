@@ -7,6 +7,7 @@
 <title>Hanoi Towers · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -259,6 +260,7 @@ function loadBest() {
   return b;
 }
 function newGame() {
+  SFX.play('start');
   pegs = [[], [], []];
   for (let d = disks(); d >= 1; d--) pegs[0].push(d);
   moves = 0; hintsUsed = 0; optimal = Math.pow(2, disks()) - 1;
@@ -298,6 +300,7 @@ function doMove(from, to, animate) {
 }
 function undo() {
   if (solved || !history.length) return;
+  SFX.play('click');
   const m = history.pop();
   const d = pegs[m.to].pop();
   pegs[m.from].push(d);

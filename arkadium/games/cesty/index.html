@@ -7,6 +7,7 @@
     <title>Color Slide · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; user-select:none;
             -webkit-tap-highlight-color:transparent; }
@@ -436,6 +437,8 @@ body{
     }
 
     function win() {
+      SFX.play('win');
+        SFX.play('win');
         solved = true;
         stopClock();
         boardEl.classList.add('done');
@@ -448,6 +451,7 @@ body{
 
     // ----- start -----
     function newGame() {
+        SFX.play('start');
         const s = shuffled();
         startBoard = s.board.slice();
         start(startBoard);
@@ -456,6 +460,7 @@ body{
     }
 
     function restart() {
+        SFX.play('start');
         start(startBoard);
         statusEl.textContent = t('cestyStatusReset');
         setTimeout(() => { if (!solved && !moves) statusEl.textContent = t('cestyStatusReady'); }, 500);

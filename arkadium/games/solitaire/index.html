@@ -7,6 +7,7 @@
 <title>Solitaire · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -273,6 +274,7 @@ function pushHistory() {
 }
 function undo() {
   if (!history.length || state !== ST.PLAY) return;
+  SFX.play('click');
   const s = history.pop();
   stock = s.stock; waste = s.waste; found = s.found; tab = s.tab; moves = s.moves;
   sel = null; drag = null; flies = [];
@@ -291,6 +293,7 @@ function countMove() {
 
 // ── nova hra ────────────────────────────────────────────────────────────
 function deal() {
+  SFX.play('shuffle');
   const d = [];
   for (let s = 0; s < 4; s++) for (let r = 1; r <= 13; r++) d.push({s, r, up: false});
   for (let i = d.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = d[i]; d[i] = d[j]; d[j] = x; }
@@ -336,6 +339,7 @@ function showCard(kind) {
   document.getElementById('tools').classList.remove('show');
 }
 function win() {
+  SFX.play('win');
   state = ST.WIN;
   running = false;
   autoRun = false;
@@ -418,6 +422,7 @@ function canDrop(cards, target) {
   return false;
 }
 function doMove(cards, from, target) {
+  SFX.play('place');
   pushHistory();
   removeFrom(from, cards.length);
   const dest = target.type === 'found' ? found[target.idx] : tab[target.idx];
@@ -428,6 +433,7 @@ function doMove(cards, from, target) {
 }
 
 function drawStock() {
+  SFX.play('flip');
   pushHistory();
   if (stock.length) {
     const n = Math.min(drawN(), stock.length);
@@ -451,6 +457,7 @@ function anyAuto() {
   return false;
 }
 function flyToFound(card, from, fi) {
+  SFX.play('coin');
   const p0 = pileXY(from);
   flies.push({card, x: p0.x, y: p0.y, x1: colX(3 + fi), y1: TOP, t: 0, dur: 0.24, fi});
 }

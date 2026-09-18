@@ -7,6 +7,7 @@
     <title>Blackout Grid · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -420,6 +421,7 @@ body{
             }
 
             function newLevel() {
+                SFX.play('start');
                 loadBest();   // rekord patri k aktualnej obtiaznosti
                 grid = generatePuzzle();
                 initialGrid = cloneGrid(grid);
@@ -471,6 +473,7 @@ body{
 
             function onCellClick(r, c) {
                 if (solved) return;
+                SFX.play('click');
                 toggle(grid, r, c);
                 moves++;
                 movesSpan.textContent = moves;
@@ -479,6 +482,7 @@ body{
             }
 
             function winGame() {
+                SFX.play('win');
                 solved = true;
                 const penalty = Math.max(0, moves - par) * 12;
                 score = Math.max(20, 100 - penalty);

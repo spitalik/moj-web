@@ -7,6 +7,7 @@
     <title>Bubble Burst · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -755,6 +756,7 @@ body{
             function fire() {
                 if (flying || paused || gameOver) return;
                 const speed = 11 * PXK;
+                SFX.play('shoot');
                 flying = {
                     x: shooterX,
                     y: shooterY,
@@ -832,6 +834,7 @@ body{
             }
 
             function removeCluster(cells) {
+                SFX.play('pop');
                 for (const [r, c] of cells) {
                     const pos = cellPos(r, c);
                     spawnParticles(pos.x, pos.y, grid[r][c], 6);
@@ -938,6 +941,7 @@ body{
             }
 
             function addRow() {
+                SFX.play('warn');
                 for (let r = totalRows - 1; r > 0; r--) {
                     for (let c = 0; c < cols; c++) {
                         grid[r][c] = (c < maxColForRow(r)) ? grid[r - 1][c] : null;
@@ -952,6 +956,7 @@ body{
             }
 
             function endGame() {
+                SFX.play('lose');
                 gameOver = true;
                 finalScoreSpan.textContent = score;
                 finalHighScoreSpan.textContent = highScore;

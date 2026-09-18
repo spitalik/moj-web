@@ -7,6 +7,7 @@
 <title>Neon Lane · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -154,6 +155,7 @@ function applyLabels(){
 }
 
 function resetGame(){
+  SFX.play('start');
   cancelAnimationFrame(frameId);
   lane = 1; targetLane = 1;
   player = {x:lanes[lane], y:H-82, w:34, h:58};
@@ -230,10 +232,12 @@ function spawnTraffic(){
 
 function changeLane(dir){
   if(!running){resetGame();return;}
+  SFX.play('whoosh');
   targetLane = clamp(targetLane + dir, 0, lanes.length - 1);
 }
 
 function crash(){
+  SFX.play('explode');
   burst(player.x, player.y);
   const best = Number(localStorage.getItem(STORAGE) || 0);
   if(Math.floor(score) > best) localStorage.setItem(STORAGE, String(Math.floor(score)));

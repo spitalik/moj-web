@@ -7,6 +7,7 @@
     <title>Code Breaker · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -384,6 +385,7 @@ body{
         function submit() {
             if (over) return;
             if (current.some(v => v === null)) { statusLine.textContent = t('cdbIncomplete'); return; }
+            SFX.play('click');
             const res = scoreGuess(current, secret);
             guesses.push(current.slice());
             marks.push(res);
@@ -397,6 +399,7 @@ body{
         }
 
         function finish(win) {
+            SFX.play('win');
             over = true; won = win;
             clearInterval(timer);
             score = win ? Math.max(30, Math.round(SETUP[diffKey].base - (guesses.length - 1) * 28 - elapsed)) : 0;
@@ -439,6 +442,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('start');
             const setup = SETUP[diffKey];
             PEGS = setup.pegs; NCOL = setup.colours; TRIES = setup.tries;
             W = MARGIN * 2 + PEGS * STEP + FB;
@@ -512,6 +516,7 @@ body{
         // Tapping a peg in the row being built clears it again.
         function onTap(e) {
             if (over) return;
+            SFX.play('tick');
             const rect = canvas.getBoundingClientRect();
             const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * W;
             const y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / rect.height * H;

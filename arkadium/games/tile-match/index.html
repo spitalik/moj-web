@@ -7,6 +7,7 @@
 <title>Tile Match · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -224,6 +225,7 @@ function freeIn(live, t2) {
 // rozdavam odzadu: vzdy dve prave volne pozicie dostanu rovnaky znak,
 // takze zopakovanim toho poradia sa hra vzdy da dohrat
 function deal(cells) {
+  SFX.play('shuffle');
   for (let attempt = 0; attempt < 60; attempt++) {
     const live = new Set(cells.map(keyOf));
     const faces = new Map();
@@ -338,6 +340,7 @@ function afterRemoval() {
   if (!findPair()) setStatus(t('tmhNoMoves'), 'warn');
 }
 function win() {
+  SFX.play('win');
   solved = true; running = false;
   elapsed = (performance.now() - startedAt) / 1000;
   score = Math.max(40, Math.round(SETUP[diffId()].base - elapsed - hints * 30 - shuffles * 60));
@@ -389,11 +392,12 @@ function onTap(clientX, clientY) {
   const i = tileAt(x, y);
   if (i < 0) { selected = -1; draw(); return; }
   const live = liveSet();
-  if (!freeIn(live, tiles[i])) { setStatus(t('tmhBlocked'), 'warn'); draw(); return; }
+  if (!freeIn(live, tiles[i])) { SFX.play('error'); setStatus(t('tmhBlocked'), 'warn'); draw(); return; }
   hintPair = null;
   if (selected === i) { selected = -1; draw(); return; }
   if (selected >= 0 && tiles[selected].face === tiles[i].face) {
     const a = selected, b = i;
+    SFX.play('pop');
     tiles[a].gone = true; tiles[b].gone = true;
     history.push([a, b]);
     selected = -1;

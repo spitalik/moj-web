@@ -7,6 +7,7 @@
 <title>Ricochet · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -157,7 +158,6 @@ canvas{display:block;touch-action:manipulation;}
     <button class="ctrl-btn" id="btn-undo" title="Z">↩</button>
     <button class="ctrl-btn" id="btn-restart"></button>
     <button class="ctrl-btn" id="btn-levels"></button>
-    <button class="ctrl-btn" id="btn-sound">🔊</button>
   </div>
   <div class="tools" id="tools"></div>
   <div id="canvas-wrap"><canvas id="gameCanvas"></canvas></div>
@@ -901,7 +901,9 @@ $('w-levels').onclick   = function(){ showMenu(); };
 $('btn-restart').onclick= restart;
 $('btn-levels').onclick = showMenu;
 $('btn-undo').onclick   = undo;
-$('btn-sound').onclick  = function(){ muted = !muted; $('btn-sound').textContent = muted ? '🔇' : '🔊'; if (!muted) { ensureAudio(); sfx.place(); } };
+// Zvuk sa prepina spolocnym tlacidlom zbierky (sfx.js).
+muted = !(window.SFX && SFX.on);
+if (window.SFX) SFX.onChange(function(v){ muted = !v; if (v) ensureAudio(); });
 $('fire').onclick       = fire;
 
 const cv = $('gameCanvas');

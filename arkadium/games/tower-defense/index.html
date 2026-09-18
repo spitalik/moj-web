@@ -7,6 +7,7 @@
 <title>Tower Defense · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--bg3:#18181f;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#4dc9ff;--cdim:rgba(77,201,255,0.14);--gold:#ffd166;--danger:#ff6b6b;}
@@ -130,7 +131,6 @@ button,a,[onclick]{touch-action:manipulation;}
     <button class="hud-btn" id="btn-wave" onclick="sendWave()"></button>
     <button class="icon-btn" id="btn-pause" onclick="togglePause()">⏸</button>
     <button class="icon-btn" id="btn-speed" onclick="cycleSpeed()">1x</button>
-    <button class="icon-btn" id="btn-mute" onclick="toggleMute()">🔊</button>
   </div>
   <div id="canvas-wrap"><canvas id="c"></canvas><div id="toast"></div></div>
   <div class="tower-panel" id="tower-panel"></div>
@@ -347,7 +347,8 @@ let towers,enemies,projectiles,particles,floats,beams,gold,lives,score,wave,wave
     spawnQueue,spawnTimer,animId,running,paused,nextQueue,callTimer,livesLostThisWave,
     abilityCd,abilityAiming,bountyTimer,pendingGameOver,gemIncomeShown,comboShown;
 let selectedTower=null, selectedPlacedTower=null;
-let speedMult=1, muted=false;
+let speedMult=1, muted=!(window.SFX&&SFX.on);
+if(window.SFX) SFX.onChange(function(v){ muted=!v; if(v) ensureAudio(); });
 let shakeTimer=0, shakeMag=0, hurtFlash=0, dashOffset=0, frameNo=0;
 let endlessShown=false;
 
@@ -447,9 +448,10 @@ const sndGameOver=()=>{beep(300,.15,'sine',.06);beep(220,.18,'sine',.06,.14);bee
 const sndFreeze=()=>{beep(1200,.35,'sine',.05,0,300);noise(.3,.04,0,3000);};
 const sndCoin=()=>{beep(880,.07,'square',.035);beep(1320,.09,'square',.03,.06);};
 
+// Prepinac je spolocny pre celu zbierku (sfx.js); klavesa M ho len stlaci.
 function toggleMute(){
+  if(window.SFX){ SFX.toggle(); return; }
   muted=!muted;
-  document.getElementById('btn-mute').textContent=muted?'🔇':'🔊';
 }
 function togglePause(){
   if(!running) return;

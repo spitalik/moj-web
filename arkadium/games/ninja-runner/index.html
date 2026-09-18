@@ -7,6 +7,7 @@
 <title>Ninja Runner · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -284,6 +285,7 @@ function jump() {
   if (state === ST.COUNT || state === ST.MENU || state === ST.OVER) return;
   if (state === ST.PAUSE) { cdLeft = 1.2; state = ST.COUNT; return; }
   if (!ninja.grounded) return;
+  SFX.play('jump');
   ninja.vy = -JUMP_V * SCL;
   ninja.grounded = false;
   holdT = HOLD_MAX;
@@ -294,6 +296,7 @@ function jump() {
 }
 function loseLife() {
   if (ninja.inv > 0) return;
+  SFX.play('hurt');
   lives--;
   shake = 1;
   ninja.inv = 1.2;

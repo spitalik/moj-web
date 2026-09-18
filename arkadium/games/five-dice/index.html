@@ -7,6 +7,7 @@
     <title>Five Dice · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -437,6 +438,7 @@ body{
         // ----- HERNY TOK -----
         function roll() {
             if (ended || rollsLeft <= 0) return;
+            SFX.play('shuffle');
             for (let i = 0; i < DICE; i++) if (!held[i]) dice[i] = 1 + Math.floor(Math.random() * 6);
             rollsLeft--;
             rolledThisTurn = true;
@@ -446,6 +448,7 @@ body{
 
         function assign(cat) {
             if (ended || !rolledThisTurn || filled[cat] !== undefined) return;
+            SFX.play('place');
             filled[cat] = scoreFor(cat, dice);
             round++;
             if (round > 13) { finish(); return; }
@@ -458,6 +461,7 @@ body{
         }
 
         function finish() {
+            SFX.play('win');
             ended = true;
             const score = total();
             totalSpan.textContent = score;
@@ -503,6 +507,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('start');
             rollsLeft = ROLLS[diffKey];
             dice = new Array(DICE).fill(0);
             held = new Array(DICE).fill(false);

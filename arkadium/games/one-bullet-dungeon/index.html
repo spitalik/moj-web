@@ -7,6 +7,7 @@
 <title>One Bullet Dungeon · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -296,6 +297,7 @@ function syncHud(force) {
 // ── strela ──────────────────────────────────────────────────────────────
 function shoot(tx, ty) {
   if (state !== ST.PLAY || bullet.active) return false;
+  SFX.play('shoot');
   const dx = tx - player.x, dy = ty - player.y;
   const dist = Math.hypot(dx, dy);
   if (dist < 10 * SCL) return false;
@@ -340,6 +342,7 @@ function killEnemy(e, fromBullet) {
   }
 }
 function loseLife() {
+  SFX.play('hurt');
   lives--;
   syncHud();
   flash = 0.4;

@@ -7,6 +7,7 @@
 <title>Sand · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{--bg:#050507;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.22);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--s1:#e0b872;--s2:#4aa3d4;}
@@ -85,7 +86,7 @@ function resize(){
   grid=new Uint8Array(COLS*ROWS); colorGrid=new Uint8Array(COLS*ROWS);
 }
 
-function clearAll(){grid.fill(0);colorGrid.fill(0);}
+function clearAll(){SFX.play('whoosh');grid.fill(0);colorGrid.fill(0);}
 function idx(c,r){return r*COLS+c;}
 function get(c,r){if(c<0||c>=COLS||r<0||r>=ROWS)return -1;return grid[idx(c,r)];}
 function set(c,r,m,col){if(c<0||c>=COLS||r<0||r>=ROWS)return;grid[idx(c,r)]=m;if(col!==undefined)colorGrid[idx(c,r)]=col;}
@@ -178,6 +179,7 @@ function draw(){
 function loop(){update();draw();animId=requestAnimationFrame(loop);}
 
 function setBrush(s){
+  SFX.play('tick');
   brushSize=s;
   ['bs-2','bs-5','bs-9'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
   document.getElementById(`bs-${s}`)?.classList.add('active');
@@ -193,6 +195,7 @@ MATS.forEach(mat=>{
     ?`<span style="width:9px;height:9px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0"></span>${t(mat.nameKey)}`
     :`✕ ${t(mat.nameKey)}`;
   btn.onclick=()=>{
+    SFX.play('select');
     material=mat.id;
     toolbar.querySelectorAll('.mat-btn').forEach(b=>{b.classList.remove('active');b.style.borderColor='rgba(255,255,255,0.08)';});
     btn.classList.add('active');btn.style.borderColor=col;

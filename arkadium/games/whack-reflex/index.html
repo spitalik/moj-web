@@ -7,6 +7,7 @@
 <title>Whack Reflex · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -225,6 +226,7 @@ function loadBest() {
   document.getElementById('best-pill').classList.remove('record');
 }
 function beginRound() {
+  SFX.play('start');
   const d = D();
   G = d.grid;
   layout();
@@ -241,6 +243,7 @@ function beginRound() {
   syncHud(true);
 }
 function endRound() {
+  SFX.play('win');
   state = ST.OVER;
   const rec = score > best;
   if (rec) { best = score; try { localStorage.setItem(bestKey(diffIdx), best); } catch (e) {} }
@@ -325,7 +328,8 @@ function burst(x, y, rgb, n, pw) {
   }
 }
 function ring(x, y, rgb, max) { rings.push({x, y, r: max * 0.3, max, life: 0.4, rgb}); }
-function pop(x, y, txt, rgb, big) { pops.push({x, y: y - CS * 0.3, txt, rgb, life: 0.72, big: !!big}); }
+function pop(x, y, txt, rgb, big) {
+  SFX.play('pop'); pops.push({x, y: y - CS * 0.3, txt, rgb, life: 0.72, big: !!big}); }
 
 // ── tuknutie ────────────────────────────────────────────────────────────
 function at(px, py) {

@@ -7,6 +7,7 @@
 <title>Type Rush · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -322,6 +323,7 @@ function shatter(w) {
 function typeChar(ch) {
   if (state === ST.PAUSE) { cdLeft = 1.2; state = ST.COUNT; return; }
   if (state !== ST.PLAY) return;
+  SFX.play('type');
   ch = ch.toLowerCase();
   if (targetId !== null) {
     const w = words.find(x => x.id === targetId);
@@ -357,6 +359,7 @@ function dropTarget() {
   markNextKey();
 }
 function complete(w) {
+  SFX.play('coin');
   words = words.filter(x => x.id !== w.id);
   targetId = null;
   const mult = Math.min(5, 1 + Math.floor(combo / 3));
@@ -370,6 +373,7 @@ function complete(w) {
   syncHud();
 }
 function miss(w) {
+  SFX.play('error');
   words = words.filter(x => x.id !== w.id);
   if (targetId === w.id) targetId = null;
   combo = 0;
@@ -389,6 +393,7 @@ function loadBest() {
   document.getElementById('best-pill').classList.remove('record');
 }
 function beginRound() {
+  SFX.play('start');
   words = []; parts = []; pops = []; shards = []; recent = [];
   targetId = null;
   score = 0; combo = 0; maxCombo = 0; lives = LIVES;
@@ -405,6 +410,7 @@ function beginRound() {
   markNextKey();
 }
 function endRound() {
+  SFX.play('lose');
   state = ST.OVER;
   const rec = score > best;
   if (rec) { best = score; try { localStorage.setItem(bestKey(diffIdx), best); } catch (e) {} }

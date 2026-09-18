@@ -7,6 +7,7 @@
 <title>Light Trails · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -271,6 +272,7 @@ function burst(c, r, rgb) {
 function endRound() {
   state = ST.ROUND;
   roundWait = 1.5;
+  SFX.play(me.alive && !foe.alive ? 'win' : !me.alive && foe.alive ? 'hurt' : 'chime');
   if (me.alive && !foe.alive) { wins++; score += 150; banner = 1.4; bannerTxt = t('ltrWon'); bannerRgb = '34,211,238'; }
   else if (!me.alive && foe.alive) { losses++; banner = 1.4; bannerTxt = t('ltrLost'); bannerRgb = '255,122,217'; }
   else { banner = 1.4; bannerTxt = t('uiDraw'); bannerRgb = '255,209,102'; }
@@ -278,11 +280,13 @@ function endRound() {
 }
 function nextRound() {
   if (wins >= TARGET || losses >= TARGET) { finish(); return; }
+  SFX.play('start');
   round++;
   startRound();
   syncHud();
 }
 function finish() {
+  SFX.play('lose');
   state = ST.OVER;
   if (wins >= TARGET) score += 300;
   const rec = score > best;

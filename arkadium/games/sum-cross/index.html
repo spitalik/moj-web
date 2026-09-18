@@ -7,6 +7,7 @@
     <title>Sum Cross · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -410,6 +411,7 @@ body{
             }
 
             function newLevel() {
+                SFX.play('start');
                 loadBest();   // rekord patri k aktualnej obtiaznosti
                 level = pickLevel(diffKey);
                 rows = level.rows; cols = level.cols;
@@ -483,6 +485,7 @@ body{
 
             function selectCell(r, c) {
                 if (solved) return;
+                SFX.play('tick');
                 selected = key(r, c);
                 Object.entries(cellEls).forEach(([k, el]) => el.classList.toggle('selected', k === selected));
             }
@@ -521,6 +524,7 @@ body{
 
             function setDigit(n) {
                 if (!selected || solved) return;
+                SFX.play('click');
                 const hadConflictBefore = wouldConflict(selected, values[selected]);
                 if (n === 0) {
                     delete values[selected];
@@ -576,6 +580,7 @@ body{
             }
 
             function winGame() {
+                SFX.play('win');
                 solved = true;
                 const penalty = mistakes * 15;
                 score = Math.max(20, 120 - penalty);

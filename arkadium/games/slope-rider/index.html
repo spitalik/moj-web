@@ -7,6 +7,7 @@
 <title>Slope Rider · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -268,6 +269,7 @@ function loadBest() {
 
 // ── kolo ────────────────────────────────────────────────────────────────
 function startGame() {
+  SFX.play('start');
   resize();
   terrain = []; pickups = []; obstacles = []; floaters = [];
   terrSeed = (Date.now() & 0x7fffffff) | 1;
@@ -290,6 +292,7 @@ function startGame() {
   syncHud(true);
 }
 function endGame() {
+  SFX.play('lose');
   state = ST.OVER;
   keys.left = keys.right = keys.up = false;
   const rec = dist > bestDist;

@@ -7,6 +7,7 @@
 <title>Pexeso · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -230,6 +231,7 @@ function loadBest() {
   return b;
 }
 function shuffle(a) {
+  SFX.play('shuffle');
   const x = [...a];
   for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t2 = x[i]; x[i] = x[j]; x[j] = t2; }
   return x;
@@ -273,6 +275,7 @@ function flip(i) {
   if (c.done || c.el.classList.contains('flip')) return;
   if (!started) { started = true; running = true; startedAt = performance.now(); }
   c.el.classList.add('flip');
+  SFX.play('flip');
   flipped.push(i);
   if (flipped.length < 2) return;
   moves++;
@@ -280,6 +283,7 @@ function flip(i) {
   const [a, b] = flipped;
   if (cards[a].em === cards[b].em) {
     flipped = [];
+    SFX.play('correct');
     cards[a].done = true; cards[b].done = true;
     [a, b].forEach(k => { cards[k].el.classList.remove('flip'); cards[k].el.classList.add('done'); });
     done++;
@@ -288,6 +292,7 @@ function flip(i) {
     if (done === pairsN()) win();
   } else {
     lock = true;
+    SFX.play('error');
     setStatus(t('pexNoMatch'), 'bad');
     [a, b].forEach(k => cards[k].el.classList.add('shake'));
     setTimeout(() => {
@@ -298,6 +303,7 @@ function flip(i) {
   }
 }
 function win() {
+  SFX.play('win');
   solved = true; running = false;
   elapsed = performance.now() - startedAt;
   const prev = +(localStorage.getItem(bestKey()) || 0);

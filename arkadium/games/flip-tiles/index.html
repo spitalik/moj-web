@@ -7,6 +7,7 @@
     <title>Flip Tiles · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -436,6 +437,7 @@ body{
             function cloneBoard(bd) { return bd.map(row => row.slice()); }
 
             function newGame() {
+                SFX.play('start');
                 loadBest();   // rekord patri k aktualnej obtiaznosti
                 board = makeBoard();
                 turn = 'B';
@@ -522,6 +524,7 @@ body{
             }
 
             function endGame() {
+                SFX.play('lose');
                 ended = true;
                 busy = true;
                 const c = countDisks(board);

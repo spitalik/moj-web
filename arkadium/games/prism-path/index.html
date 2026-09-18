@@ -7,6 +7,7 @@
     <title>Prism Path · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -471,6 +472,7 @@ body{
                 else if (cur === '/') next = '\\';
                 else next = null;
                 if (next) mirrorMap[key] = next; else delete mirrorMap[key];
+                SFX.play(next ? 'rotate' : 'tick');
                 renderMirror(cellEls[r][c], next);
                 const usedCount = Object.keys(mirrorMap).length;
                 mirrorsSpan.textContent = usedCount;
@@ -487,6 +489,7 @@ body{
             }
 
             function explodeTarget() {
+                SFX.play('pop');
                 const gen = levelGen;
                 const tgtEl = cellEls[level.target.r][level.target.c];
                 tgtEl.classList.add('exploding');
@@ -539,6 +542,7 @@ body{
             }
 
             function winLevel() {
+                SFX.play('win');
                 solved = true;
                 const used = Object.keys(mirrorMap).length;
                 const par = level.mirrors.length;
@@ -608,6 +612,7 @@ body{
             }
 
             function newLevel() {
+                SFX.play('start');
                 loadBest();   // rekord patri k aktualnej obtiaznosti
                 levelGen++;
                 level = pickLevel(diffKey);

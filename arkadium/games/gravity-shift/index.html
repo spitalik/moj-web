@@ -7,6 +7,7 @@
     <title>Gravity Shift · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         * {
             margin: 0;
@@ -265,6 +266,7 @@
             }
 
             function playSound(freq, duration, type = 'square', vol = 0.08, glideTo = null) {
+                if (!window.SFX || !SFX.on) return;
                 if (!audioCtx) return;
                 const t = audioCtx.currentTime;
                 const osc = audioCtx.createOscillator();

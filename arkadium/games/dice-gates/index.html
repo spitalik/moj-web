@@ -7,6 +7,7 @@
     <title>Dice Gates · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -422,6 +423,7 @@ body{
         }
 
         function applySingle(s, p, mv) {
+            SFX.play('place');
             if (mv.from === -1) s.bar[p]--;
             else s.pts[mv.from] += p === HUMAN ? -1 : 1;
             if (mv.to === -1) { s.off[p]++; return; }
@@ -545,6 +547,7 @@ body{
         };
 
         function renderDice() {
+            SFX.play('shuffle');
             const usedCount = {};
             remaining.forEach(d => usedCount[d] = (usedCount[d] || 0) + 1);
             diceRow.innerHTML = dice.map(d => {
@@ -627,6 +630,7 @@ body{
         }
 
         function finish() {
+            SFX.play('win');
             ended = true; busy = true;
             const w = winner(S);
             let mult = 1, tag = 'dgtSingle';
@@ -656,6 +660,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('start');
             loadBest();       // rekord patri k aktualnej obtiaznosti
             token++;
             S = startPosition(); score = 0; ended = false; selected = null;

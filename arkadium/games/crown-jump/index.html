@@ -7,6 +7,7 @@
 <title>Crown Jump · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -225,6 +226,7 @@ function legalMoves(bd, player) {
   return jumps.length ? jumps : plain;   // branie je povinne
 }
 function applyMove(bd, mv) {
+  SFX.play('place');
   const [sr, sc] = mv.path[0];
   const [er, ec] = mv.path[mv.path.length - 1];
   const piece = bd[sr][sc];
@@ -319,6 +321,7 @@ function afterMove() {
 }
 
 function finish(forcedDraw) {
+  SFX.play('win');
   state = ST.OVER;
   busy = true;
   const mine = countPieces(board, HUMAN), theirs = countPieces(board, AI);
@@ -353,6 +356,7 @@ function loadBest() {
   document.getElementById('best-pill').classList.remove('record');
 }
 function newGame() {
+  SFX.play('start');
   board = makeBoard();
   turn = HUMAN; score = 0; busy = false; idleMoves = 0;
   selected = null; partial = []; candidates = []; lastMove = null; flash = 0;
@@ -400,6 +404,7 @@ function cellAt(e) {
   return [Math.floor((e.clientY - OY) / CELL), Math.floor((e.clientX - OX) / CELL)];
 }
 function selectPiece(r, c) {
+  SFX.play('select');
   const all = legalMoves(board, HUMAN);
   const mine = all.filter(m => m.path[0][0] === r && m.path[0][1] === c);
   if (!mine.length) return false;

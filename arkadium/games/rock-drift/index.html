@@ -7,6 +7,7 @@
 <title>Rock Drift · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -305,6 +306,7 @@ function syncHud(force) {
 // ── strelba a zrazky ────────────────────────────────────────────────────
 function fire() {
   if (state !== ST.PLAY || cd > 0) return;
+  SFX.play('shoot');
   cd = FIRE_CD;
   shots_fired++;
   shots.push({x: ship.x + Math.cos(ship.a) * 16 * SCL, y: ship.y + Math.sin(ship.a) * 16 * SCL,
@@ -332,6 +334,7 @@ function hitRock(j) {
   syncHud();
 }
 function loseLife() {
+  SFX.play('hurt');
   lives--;
   invuln = 2;
   shake = 1;

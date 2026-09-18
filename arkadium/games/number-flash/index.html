@@ -7,6 +7,7 @@
 <title>Number Flash · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
   :root{
     --bg0:#0b0f14;
@@ -370,6 +371,7 @@ button.action:hover{
   }
 
   function playRound(){
+    SFX.play('start');
     expected = 1;
     locked = true;
     statusEl.classList.add('live');
@@ -391,6 +393,7 @@ button.action:hover{
 
   function onCellClick(cell){
     if (locked || cell.classList.contains('correct')) return;
+    SFX.play('click');
     const value = parseInt(cell.dataset.value, 10);
 
     if (value === expected) {
@@ -432,6 +435,7 @@ button.action:hover{
   }
 
   function showGameOver(reachedLevel){
+    SFX.play('lose');
     overlay.classList.remove('hidden');
     ovTitle.textContent = t('nflashOverTitle');
     ovLead.textContent  = '';

@@ -7,6 +7,7 @@
 <title>Orbital Courier · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -281,12 +282,14 @@ function checkDebris(){
 }
 
 function loseLife(text){
+  SFX.play('hurt');
   lives--;
   flash(text, '#ff6b6b');
   if(lives <= 0) gameOver();
 }
 
 function gameOver(){
+  SFX.play('lose');
   running = false;
   cancelAnimationFrame(frameId);
   ovTitle.textContent = t('orbCourierOver');

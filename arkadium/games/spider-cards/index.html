@@ -7,6 +7,7 @@
     <title>Spider Cards · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -393,6 +394,7 @@ body{
 
         // A finished king-to-ace run of one suit leaves the table.
         function harvest() {
+            SFX.play('coin');
             let taken = false;
             for (const col of cols) {
                 if (col.length < 13) continue;
@@ -413,6 +415,7 @@ body{
 
         function moveRun(from, count, to) {
             if (from === to) return false;
+            SFX.play('place');
             const src = cols[from], dst = cols[to];
             const run = src.slice(src.length - count);
             if (dst.length) {
@@ -431,6 +434,7 @@ body{
         function dealRow() {
             if (!stock.length) { statusLine.textContent = t('spdNoStock'); return false; }
             if (cols.some(c => c.length === 0)) { statusLine.textContent = t('spdNoEmpty'); return false; }
+            SFX.play('flip');
             push();
             for (let i = 0; i < COLS; i++) {
                 const card = stock.pop();
@@ -449,6 +453,7 @@ body{
         }
 
         function win() {
+            SFX.play('win');
             solved = true;
             score = Math.round(Math.max(80, 1000 - moves * 4) * MULT[diffKey]);
             scoreSpan.textContent = score;
@@ -471,6 +476,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('shuffle');
             const suits = [];
             for (let i = 0; i < 8; i++) suits.push(i % NSUITS[diffKey]);
             const deck = [];

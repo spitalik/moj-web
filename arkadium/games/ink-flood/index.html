@@ -7,6 +7,7 @@
     <title>Ink Flood · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -453,6 +454,7 @@ body{
 
             function pickColor(color) {
                 if (ended || color === regionColor) return;
+                SFX.play('swap');
                 regionColor = color;
                 floodAbsorb();
                 movesUsed++;
@@ -468,6 +470,7 @@ body{
             }
 
             function winGame() {
+                SFX.play('win');
                 ended = true;
                 const leftover = Math.max(0, budget - movesUsed);
                 score = Math.max(20, (leftover + 3) * 15);
@@ -486,6 +489,7 @@ body{
             }
 
             function loseGame() {
+                SFX.play('lose');
                 ended = true;
                 score = 0;
                 scoreSpan.textContent = score;
@@ -498,6 +502,7 @@ body{
             }
 
             function newGame() {
+                SFX.play('start');
                 loadBest();   // rekord patri k aktualnej velkosti plochy
                 const cfg = SIZES[sizeKey];
                 N = cfg.n;

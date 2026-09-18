@@ -7,6 +7,7 @@
     <title>Mini Putt · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -480,6 +481,7 @@ body{
         }
 
         function sink() {
+            SFX.play('coin');
             ball.sunk = true; ball.vx = 0; ball.vy = 0;
             ball.x = cup.x; ball.y = cup.y;
             const diff = strokes - par;
@@ -496,6 +498,7 @@ body{
         }
 
         function nextHole() {
+            SFX.play('levelup');
             par = SETUP[diffKey].par + (hole > 6 ? 1 : 0);
             strokes = 0;
             buildHole();
@@ -505,6 +508,7 @@ body{
         }
 
         function finish() {
+            SFX.play('win');
             over = true;
             cancelAnimationFrame(raf);
             const parTotal = HOLES * SETUP[diffKey].par + 3;
@@ -538,6 +542,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('start');
             hole = 1; strokes = 0; total = 0; over = false;
             par = SETUP[diffKey].par;
             buildHole(); teeUp();
@@ -570,6 +575,7 @@ body{
         function moveAim(e) { if (aim) aim = pointer(e); }
         function releaseAim(e) {
             if (!aim) return;
+            SFX.play('shoot');
             const p = pointer(e);
             const dx = ball.x - p.x, dy = ball.y - p.y;      // pull back, release to shoot
             const len = Math.hypot(dx, dy);

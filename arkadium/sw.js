@@ -1,9 +1,10 @@
-const CACHE = 'arkadium-v4';
+const CACHE = 'arkadium-v6';
 
 const ASSETS = [
   './',
   './index.html',
   './i18n.js',
+  './sfx.js',
   './fonts/fonts.css',
   './fonts/dmmono-500-latin-ext.woff2',
   './fonts/dmmono-500-latin.woff2',
@@ -48,7 +49,7 @@ const ASSETS = [
   './games/signal-garden/index.html',
   './games/dead-grid/index.html',
   './games/neon-lane/index.html',
-  './games/sokoban/index.html',
+  './games/crate-push/index.html',
   './games/ricochet/index.html',
   './games/flow/index.html',
   './games/stars/index.html',

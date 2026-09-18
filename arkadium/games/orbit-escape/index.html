@@ -7,6 +7,7 @@
 <title>Orbit Escape · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -291,6 +292,7 @@ function loadBest() {
   document.getElementById('best-pill').classList.remove('record');
 }
 function beginRound() {
+  SFX.play('start');
   score = 0; scoreAcc = 0; level = 1; lives = D().lives; fuel = 100;
   invuln = 1.4; shake = 0; goFlash = 0; lvlFlash = 0; cdLeft = 2.4;
   ship = {x: W / 2, y: H / 2, a: -Math.PI / 2, vx: 0, vy: 0};
@@ -366,12 +368,14 @@ function syncHud(force) {
 
 // ── efekty ──────────────────────────────────────────────────────────────
 function boom(x, y, rgb, n, pw) {
+  SFX.play('explode');
   for (let i = 0; i < n; i++) {
     const a = rnd(0, 6.2832), sp = rnd(40, 250) * pw * SCL;
     parts.push({x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rnd(0.3, 0.66), max: 0.66, rgb, sz: rnd(1.4, 3.2) * SCL});
   }
 }
 function loseLife(dry) {
+  SFX.play('hurt');
   const why = dry ? t('orbitDry') : t('orbitCrash');
   lives--;
   invuln = 2.2;
@@ -386,6 +390,7 @@ function loseLife(dry) {
   if (lives <= 0) endRound();
 }
 function reachPortal() {
+  SFX.play('win');
   const bonus = PTS_PORTAL + PTS_PORTAL_LVL * level + Math.round(fuel) * PTS_FUEL;
   score += bonus;
   pops.push({x: portal.x, y: portal.y, txt: '+' + bonus, life: 1.2, rgb: '77,210,255'});

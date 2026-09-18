@@ -7,6 +7,7 @@
     <title>Hidden Word · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -379,6 +380,7 @@ body{
 
         function guess(ch) {
             if (over || picked.has(ch)) return;
+            SFX.play('click');
             picked.add(ch);
             if (!word.includes(ch)) {
                 misses++;
@@ -392,6 +394,7 @@ body{
         }
 
         function finish(win) {
+            SFX.play('win');
             over = true; won = win;
             const elapsed = Math.floor((Date.now() - startedAt) / 1000);
             if (win) {
@@ -419,6 +422,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('start');
             const setup = SETUP[diffKey];
             category = CATS[Math.floor(Math.random() * CATS.length)];
             const pool = BANK[category].filter(w => w.length >= setup.min && w.length <= setup.max);

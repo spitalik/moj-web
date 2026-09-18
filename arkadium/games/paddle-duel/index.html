@@ -7,6 +7,7 @@
 <title>Paddle Duel · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -204,6 +205,7 @@ function newPaddle(side) {
 }
 
 function serve(dir) {
+  SFX.play('tick');
   serveDir = dir;
   serveT = 0.75;
   ball = {x: W / 2, y: H / 2, vx: 0, vy: 0, spd: DIFFS[diffIdx].ball * 60 * SCL};
@@ -212,6 +214,7 @@ function serve(dir) {
 }
 
 function startGame() {
+  SFX.play('start');
   p1 = newPaddle('p1'); p2 = newPaddle('p2');
   score = {a:0, b:0}; updateHud();
   parts = []; ripples = []; flash = null; shake = 0;
@@ -380,6 +383,7 @@ function update(dt) {
 const hitCol = () => lastHit === 'p1' ? '34,224,255' : '255,86,200';
 
 function bounce(p, nx, ny, dir) {
+  SFX.play('bounce');
   const rel = clamp((ny - (p.y + PAD_H / 2)) / (PAD_H / 2), -1, 1);
   ball.spd = Math.min(ball.spd * 1.055, 1250 * SCL);
   // uhol držím do 57°, aby výmena nezastala v takmer svislom lete
@@ -394,6 +398,7 @@ function bounce(p, nx, ny, dir) {
 }
 
 function goal(who) {
+  SFX.play('coin');
   score[who]++; updateHud();
   const col = who === 'a' ? '34,224,255' : '255,86,200';
   flash = {a: 0.4, col};

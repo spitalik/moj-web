@@ -7,6 +7,7 @@
     <title>Box Claim · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -515,6 +516,7 @@ body{
             ended = true; busy = true;
             const me = S.boxes[HUMAN], them = S.boxes[AI];
             const result = me > them ? 'win' : (me < them ? 'lose' : 'draw');
+            SFX.play(result === 'win' ? 'win' : result === 'lose' ? 'lose' : 'chime');
             if (result === 'win') score = Math.round((100 + (me - them) * 14) * MULT[diffKey]);
             else if (result === 'draw') score = Math.round(40 * MULT[diffKey]);
             else score = 0;
@@ -533,6 +535,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('start');
             loadBest();   // rekord patri k aktualnej obtiaznosti
             S = newState(); score = 0; ended = false; busy = false; lastLine = null;
             scoreSpan.textContent = '0';

@@ -7,6 +7,7 @@
     <title>Nebula Strike · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         /* ===== RESET & BASE ===== */
         * {
@@ -678,6 +679,7 @@
             }
 
             function emitExplosion(x, y, color, count, speed, size) {
+                SFX.play('explode');
                 const colors = color ? [color, '#ffcc44', '#ff8844', '#ff4466'] : ['#66ddff', '#44aaff', '#ffdd44', '#ff8844'];
                 for (let i = 0; i < count; i++) {
                     const a = rand(0, Math.PI * 2);
@@ -1019,6 +1021,7 @@
                     this.shootCooldown -= dt;
                     const rate = this.rapidFire ? this.shootRate * 0.4 : this.shootRate;
                     if (this.shootCooldown <= 0 && input.active) {
+                        SFX.play('shoot');
                         this.shootCooldown = rate;
                         this.fire();
                     }
@@ -1298,6 +1301,7 @@
                     }
                     finalScore.textContent = this.score;
                     finalHighScore.textContent = this.highScore;
+                    SFX.play('lose');
                     gameOverOverlay.classList.add('active');
                     hudEl.classList.remove('active');
                     // big explosion

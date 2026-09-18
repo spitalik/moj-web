@@ -7,6 +7,7 @@
 <title>Moon Lander · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -247,6 +248,7 @@ function loadBest() {
   document.getElementById('best-pill').classList.remove('record');
 }
 function beginRound() {
+  SFX.play('start');
   padNo = 1; tries = D().tries; score = 0;
   shake = 0; goFlash = 0; msg = ''; msgT = 0; pops = [];
   cdLeft = 2.4;
@@ -326,6 +328,7 @@ function syncHud(force) {
 
 // ── pristatie a naraz ───────────────────────────────────────────────────
 function land() {
+  SFX.play('win');
   ship.landed = true;
   ship.burning = false;
   const gained = Math.round(P_LAND + ship.fuel * P_FUEL + (D().pad * SCL - (pad.x1 - pad.x0)) / SCL * P_NARROW);
@@ -341,6 +344,7 @@ function land() {
   holdT = 1.5;
 }
 function crash() {
+  SFX.play('explode');
   ship.alive = false;
   ship.burning = false;
   shake = 1;

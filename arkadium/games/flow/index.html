@@ -7,6 +7,7 @@
 <title>Color Flow · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#4dff91;--cdim:rgba(77,255,145,0.14);}
@@ -219,6 +220,7 @@ function startFromMenu() {
 }
 
 function startLevel(idx) {
+  SFX.play('start');
   document.getElementById('overlay').style.display = 'none';
   currentLevel = idx;
   moves = 0; dragging = -1;
@@ -307,11 +309,13 @@ function filledPercent() {
   return Math.round(filled/total*100);
 }
 
+
 function checkWin() {
   var lv = LEVELS[currentLevel];
   var allComplete = lv.pairs.every(function(_,i){ return isComplete(i); });
   if (!allComplete || filledPercent() !== 100) return;
 
+  SFX.play('win');
   completed[currentLevel] = true;
   var isLast = currentLevel === LEVELS.length-1;
 
@@ -371,6 +375,7 @@ function restartRun() {
 
 // ── DRAWING LOGIC ─────────────────────────────────────────────────────────
 function startDrag(clientX, clientY) {
+  SFX.play('select');
   var cell = getCell(clientX, clientY);
   if (!cell) return;
   var ep = getEndpoint(cell.r, cell.c);
@@ -421,7 +426,9 @@ function continueDrag(clientX, clientY) {
   if (ep === dragging) { dragging = -1; checkWin(); }
 }
 
-function endDrag() { dragging = -1; render(); }
+function endDrag() {
+  if (dragging !== -1) SFX.play('place');
+  dragging = -1; render(); }
 
 // ── EVENTS ────────────────────────────────────────────────────────────────
 var canvas = document.getElementById('gameCanvas');

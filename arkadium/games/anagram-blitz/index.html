@@ -7,6 +7,7 @@
     <title>Anagram Blitz · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -382,6 +383,7 @@ body{
             }
 
             function shuffleLetters(word) {
+                SFX.play('shuffle');
                 const letters = word.split('');
                 let attempts = 0;
                 let sh;
@@ -397,6 +399,7 @@ body{
             }
 
             function newWord() {
+                SFX.play('start');
                 currentPuzzle = pickPuzzle();
                 scrambled = shuffleLetters(currentPuzzle.word);
                 answerIdx = [];
@@ -435,6 +438,7 @@ body{
 
             function addToAnswer(idx) {
                 if (!running || answerIdx.includes(idx)) return;
+                SFX.play('type');
                 answerIdx.push(idx);
                 render();
                 if (answerIdx.length === scrambled.length) {
@@ -444,6 +448,7 @@ body{
 
             function removeFromAnswer(slotPos) {
                 if (!running) return;
+                SFX.play('tick');
                 answerIdx.splice(slotPos, 1);
                 render();
             }

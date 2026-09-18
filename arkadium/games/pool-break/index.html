@@ -7,6 +7,7 @@
     <title>Pool Break · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -433,6 +434,7 @@ body{
         let pottedThisShot = [];
 
         function pockets() {
+            SFX.play('pop');
             for (const b of balls) {
                 if (b.potted) continue;
                 for (const [px, py] of POCKETS) {
@@ -483,6 +485,7 @@ body{
         }
 
         function finish(win) {
+            SFX.play('win');
             over = true; won = win;
             cancelAnimationFrame(raf);
             const score = win ? Math.max(60, 700 - shots * 30 - fouls * 60) : 0;
@@ -516,6 +519,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('start');
             shots = 0; fouls = 0; over = false; won = false; aim = null;
             pottedThisShot = []; settling = false;
             rack();
@@ -548,6 +552,7 @@ body{
         function moveAim(e) { if (aim) aim = pointer(e); }
         function releaseAim(e) {
             if (!aim) return;
+            SFX.play('shoot');
             const p = pointer(e);
             const c = cue();
             const dx = c.x - p.x, dy = c.y - p.y;         // pull back from the cue ball

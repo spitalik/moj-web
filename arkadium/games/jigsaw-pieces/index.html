@@ -7,6 +7,7 @@
     <title>Jigsaw Pieces · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -489,6 +490,7 @@ body{
             }
 
             function newLevel() {
+                SFX.play('shuffle');
                 loadBest();   // rekord patri k aktualnej obtiaznosti
                 N = DIFFS[diffKey];
                 cellSize = BOARD / N;
@@ -578,6 +580,7 @@ body{
 
             function onDown(e) {
                 if (solved) return;
+                SFX.play('select');
                 const pt = canvasPoint(e);
                 const idx = pieceAt(pt.x, pt.y);
                 if (idx === -1) return;
@@ -602,6 +605,7 @@ body{
 
             function onUp() {
                 if (dragIdx === null) return;
+                SFX.play('place');
                 const p = pieces[dragIdx];
                 const dx = p.x - p.targetX, dy = p.y - p.targetY;
                 const dist = Math.hypot(dx, dy);
@@ -627,6 +631,7 @@ body{
             }
 
             function winGame() {
+                SFX.play('win');
                 solved = true;
                 score = Math.max(20, 150 - Math.max(0, moves - N * N) * 3);
                 scoreSpan.textContent = score;

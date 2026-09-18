@@ -7,6 +7,7 @@
     <title>Tangram Fit · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -371,6 +372,7 @@ body{
             }
 
             function newLevel() {
+                SFX.play('start');
                 loadBest();   // rekord patri k aktualnej obtiaznosti
                 const cfg = DIFFS[diffKey];
                 pieces = Object.keys(PIECES_DATA).map((name, i) => {
@@ -442,6 +444,7 @@ body{
 
             function onPointerDown(e, idx) {
                 if (solved) return;
+                SFX.play('select');
                 e.preventDefault();
                 selectedIdx = idx;
                 const p = pieces[idx];
@@ -466,6 +469,7 @@ body{
 
             function endDrag() {
                 if (!dragInfo) return;
+                SFX.play('place');
                 if (dragInfo.moved) {
                     moves++;
                     movesSpan.textContent = moves;
@@ -494,6 +498,7 @@ body{
             }
 
             function winGame() {
+                SFX.play('win');
                 solved = true;
                 score = Math.max(20, 150 - moves * 4);
                 scoreSpan.textContent = score;

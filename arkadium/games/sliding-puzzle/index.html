@@ -7,6 +7,7 @@
 <title>Sliding Puzzle · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{--bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,0.38);--dim:rgba(240,238,255,0.18);--border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);--c:#54a0ff;--cdim:rgba(84,160,255,0.14);}
@@ -89,6 +90,7 @@ DIFFS.forEach((d,i)=>{
 function showMenu(){clearInterval(timerInt);document.getElementById('overlay').style.display='flex';}
 
 function startGame(){
+  SFX.play('start');
   document.getElementById('overlay').style.display='none';
   SIZE=DIFFS[diffIdx].size;
   const n=SIZE*SIZE;
@@ -160,7 +162,8 @@ function clickTile(idx){
 
 function slideRow(idx,dir){swap(emptyIdx,idx);emptyIdx=idx;moves++;document.getElementById('hud-moves').textContent=moves;checkWin();renderBoard();}
 function slideCol(idx,dir){swap(emptyIdx,idx);emptyIdx=idx;moves++;document.getElementById('hud-moves').textContent=moves;checkWin();renderBoard();}
-function swap(a,b){[tiles[a],tiles[b]]=[tiles[b],tiles[a]];}
+function swap(a,b){
+  SFX.play('move');[tiles[a],tiles[b]]=[tiles[b],tiles[a]];}
 
 function swipeMove(dir){
   const er=Math.floor(emptyIdx/SIZE),ec=emptyIdx%SIZE;
@@ -175,6 +178,7 @@ function swipeMove(dir){
 
 function checkWin(){
   if(tiles.every((v,i)=>v===0?i===SIZE*SIZE-1:v===i+1)){
+    SFX.play('win');
     clearInterval(timerInt);
     const ov=document.getElementById('overlay');
     ov.innerHTML=`<div style="font-size:42px">🎉</div>

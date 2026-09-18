@@ -7,6 +7,7 @@
 <title>Dot Muncher · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
+<script src="../../sfx.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -310,6 +311,7 @@ function heroTick(d) {
   const v = dots[hero.r][hero.c];
   if (v) {
     dots[hero.r][hero.c] = 0;
+    SFX.play(v === 2 ? 'levelup' : 'tick');
     dotsLeft--;
     score += v === 2 ? P_PELLET : P_DOT;
     if (v === 2) {
@@ -354,6 +356,7 @@ function collisions() {
     if (Math.hypot(g.x - hero.x, g.y - hero.y) > 0.7) continue;
     if (fright > 0) {
       g.eaten = true;
+      SFX.play('coin');
       chain = Math.min(chain + 1, 4);
       const gain = P_HUNT * chain * chain;
       score += gain;
@@ -364,6 +367,7 @@ function collisions() {
       }
       syncHud();
     } else {
+      SFX.play('hurt');
       lives--;
       syncHud();
       for (let i = 0; i < 22; i++) {
@@ -379,6 +383,7 @@ function collisions() {
   }
 }
 function nextLevel() {
+  SFX.play('levelup');
   level++;
   score += P_LEVEL * (level - 1);
   buildMaze();
@@ -390,6 +395,7 @@ function nextLevel() {
   syncHud();
 }
 function finish() {
+  SFX.play('lose');
   state = ST.OVER;
   const rec = score > best;
   if (rec) { best = score; try { localStorage.setItem(bestKey(), best); } catch (e) {} }

@@ -7,6 +7,7 @@
     <title>Drop Four · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -449,6 +450,7 @@ body{
 
         // ----- HERNY TOK -----
         function play(col, player, then) {
+            SFX.play('drop');
             const row = dropRow(board, col);
             if (row < 0) return false;
             busy = true;
@@ -491,6 +493,7 @@ body{
         }
 
         function finish(result, win) {
+            SFX.play('win');
             ended = true; busy = true;
             flipStarter();   // dalsiu partiu zacina ten druhy
             winLine = win ? win.line : null;
@@ -510,6 +513,7 @@ body{
         }
 
         function newGame() {
+            SFX.play('start');
             loadBest();   // rekord patri k aktualnej obtiaznosti
             board = emptyBoard(); turn = starter; score = 0; ended = false; busy = false;
             winLine = null; falling = null; hoverCol = -1;

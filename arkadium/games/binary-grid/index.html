@@ -7,6 +7,7 @@
     <title>Binary Grid · Arkádium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -730,6 +731,7 @@ body{
         }
 
         function handleCellClick(index) {
+            SFX.play('click');
             if (gameOver) {
                 messageEl.textContent = t('binaryMsgGameOverClick');
                 messageEl.className = 'message';
@@ -809,6 +811,7 @@ body{
         }
 
         function resetGame() {
+            SFX.play('shuffle');
             initGame();
         }
 
@@ -831,6 +834,7 @@ body{
         }
 
         function giveHint() {
+            SFX.play('chime');
             if (gameOver) {
                 messageEl.textContent = t('binaryMsgAlreadyWon');
                 messageEl.className = 'message';

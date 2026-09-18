@@ -7,6 +7,7 @@
     <title>Wobble Tower · Arkádium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -397,6 +398,7 @@ body{
             }
 
             function resetGame() {
+                SFX.play('start');
                 loadBest();       // rekord patri k aktualnej obtiaznosti
                 const cfg = DIFFS[diffKey];
                 stack = [{ left: (CW - cfg.baseWidth) / 2, width: cfg.baseWidth, color: '#475569' }];
@@ -447,6 +449,7 @@ body{
 
             function drop() {
                 if (paused || ended || !moving) return;
+                SFX.play('drop');
                 const below = stack[stack.length - 1];
                 const newLeft = moving.left;
                 const newRight = moving.left + moving.width;
@@ -523,6 +526,7 @@ body{
             }
 
             function triggerGameOver(fallingBlock) {
+                SFX.play('lose');
                 ended = true;
                 spawnDebris(fallingBlock.left, fallingBlock.width, absoluteY(stack.length), fallingBlock.color);
                 setTimeout(() => {
