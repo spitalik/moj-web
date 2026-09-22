@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cube Twist · Jocadium</title>
+<link href="../../fonts/fonts.css" rel="stylesheet">
+    <script src="../../i18n.js"></script>
+    <script src="../../sfx.js"></script>
+    <style>
+        #back-btn{
+            position:fixed;top:14px;left:14px;z-index:60;
+            display:flex;align-items:center;gap:7px;
+            background:rgba(7,9,15,.88);border:1px solid #402049;color:#8291ab;
+            padding:7px 14px;border-radius:100px;text-decoration:none;
+            font-size:12px;font-weight:600;backdrop-filter:blur(4px);transition:all .18s;
+        }
+        #back-btn:hover,#back-btn:active{border-color:#e879f9;color:#f0f4fe;}
+        @media(max-width:480px){#back-btn{top:8px;left:8px;padding:5px 10px;font-size:11px;}}
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+        body {
+            background:#0c0f16;
+            font-family:'Segoe UI', Roboto, system-ui, sans-serif;
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh; margin:0; padding:12px;
+            touch-action: manipulation;
+        }
+        #game-container {
+            background:#151d2b;
+            border-radius:28px;
+            padding:20px 24px 24px;
+            max-width:460px;
+            width:100%;
+            box-shadow:0 12px 40px rgba(0,0,0,.7);
+            border:1px solid #2e3a4e;
+            display:flex; flex-direction:column; gap:14px;
+            position:relative;
+        }
+        #header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        #header h1 {
+            font-size:21px; font-weight:700;
+            background:linear-gradient(135deg,#f5d0fe,#e879f9);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin:0;
+        }
+        #rules { font-size:12px; color:#8291ab; line-height:1.5; }
+        #settings { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        #settings label { color:#b0c4e0; font-size:12px; font-weight:500; }
+        .btn-group { display:flex; gap:4px; background:#111a28; padding:4px; border-radius:10px; border:1px solid #29344a; }
+        .btn-group button { background:transparent; border:none; color:#7a8aa8; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+        .btn-group button.active { background:#e879f9; color:#0c0f16; }
+        #info-panel { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+        .info-card { flex:1 1 auto; min-width:60px; background:#111a28; border-radius:14px; padding:8px 10px; border:1px solid #29344a; text-align:center; }
+        .info-card h3 { font-size:10px; text-transform:uppercase; color:#7a8aa8; margin-bottom:4px; font-weight:500; }
+        .info-card .value { font-size:20px; font-weight:700; color:#eef3fc; display:block; }
+        .high-score { border-color:#fbbf24; }
+        .high-score h3 { color:#fbbf24 !important; }
+        .high-score .value { color:#fbbf24 !important; }
+        #canvas-wrapper {
+            background:#0f1622; border-radius:16px; padding:8px;
+            box-shadow: inset 0 0 0 1px #2a3446;
+            position:relative; align-self:center;
+        }
+        #gameCanvas { display:block; border-radius:10px; touch-action:none; cursor:pointer; }
+        #end-overlay {
+            position:absolute; inset:8px; background:rgba(8,12,22,.92); backdrop-filter:blur(6px);
+            border-radius:10px; display:none; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; padding:26px; z-index:10; color:#f0f4fe; text-align:center;
+        }
+        #end-overlay.visible { display:flex; }
+        #end-overlay h2 {
+            font-size:26px;
+            background:linear-gradient(135deg,#f5d0fe,#e879f9);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        #nextBtn {
+            background:#e879f9; border:1px solid #f5d0fe; border-radius:40px;
+            padding:12px 32px; font-size:17px; font-weight:700; color:#0c0f16;
+            box-shadow:0 6px 0 #a21caf; cursor:pointer; margin-top:6px;
+        }
+        #nextBtn:active { transform:translateY(6px); box-shadow:0 1px 0 #a21caf; }
+        #controls { display:flex; gap:10px; justify-content:center; }
+        #controls button {
+            background:#1e2a3e; border:1px solid #354460; color:#d0def0;
+            border-radius:12px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        #controls button:active { transform:translateY(2px); }
+    
+/* mobil/tablet: na nízkych obrazovkách stlačím rámce, aby ovládanie zostalo viditeľné */
+@media (max-height:900px){
+  body{padding:6px !important;}
+  #game-container{padding:12px 14px 14px !important;gap:9px !important;}
+}
+@media (max-height:760px){
+  body{padding:3px !important;}
+  #game-container{padding:8px 10px 10px !important;gap:6px !important;border-radius:18px !important;}
+}
+
+/* nízke obrazovky: hracia plocha sa zmenší do dostupného miesta namiesto pretečenia */
+@media (max-height:900px){
+  #game-container{max-height:calc(100vh - 10px);}
+  #canvas-wrapper{min-height:0;flex:0 1 auto;}
+  #gameCanvas{max-height:100%;max-width:100%;width:auto;height:auto;}
+}
+
+@media (max-height:700px){
+  #rules{display:none !important;}
+}
+
+/* ── zladenie s ostatnymi hrami zbierky ─────────────────────────────── */
+:root{
+  --fa:#22d3ee;--fb:#a78bfa;--fgold:#ffd166;
+  --ftext:#eef3fc;--fmuted:rgba(238,243,252,0.44);--fdim:rgba(238,243,252,0.2);
+  --fbd:rgba(255,255,255,0.09);
+}
+body{
+  font-family:'DM Sans',system-ui,sans-serif !important;
+  background:radial-gradient(ellipse at 50% -8%, rgba(34,211,238,.14) 0%, transparent 58%), #070a12 !important;
+  color:var(--ftext) !important;
+}
+#back-btn{background:rgba(10,13,24,0.72) !important;border:1px solid var(--fbd) !important;color:var(--fmuted) !important;font-weight:500 !important;}
+#back-btn:hover,#back-btn:active{border-color:rgba(255,255,255,0.18) !important;color:#fff !important;}
+#game-container{
+  background:linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012)) !important;
+  border:1px solid rgba(255,255,255,0.13) !important;border-radius:26px !important;
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+#header h1{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:19px !important;
+  letter-spacing:-.3px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#settings label{color:var(--fdim) !important;font-size:9px !important;font-weight:600 !important;
+  letter-spacing:1.1px !important;text-transform:uppercase !important;}
+#rules{color:var(--fmuted) !important;font-size:11px !important;line-height:1.6 !important;}
+.btn-group{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:100px !important;padding:3px !important;gap:2px !important;}
+.btn-group button{border-radius:100px !important;color:var(--fmuted) !important;
+  font-family:'DM Sans',sans-serif !important;font-size:11px !important;font-weight:600 !important;
+  padding:5px 12px !important;transition:color .16s,background .16s !important;}
+.btn-group button:hover{color:#fff !important;}
+.btn-group button.active{background:rgba(34,211,238,.16) !important;color:#fff !important;
+  box-shadow:inset 0 0 0 1px rgba(34,211,238,.42) !important;}
+.info-card{background:rgba(255,255,255,0.04) !important;border:1px solid var(--fbd) !important;
+  border-radius:14px !important;}
+.info-card h3{font-size:8.5px !important;letter-spacing:1.3px !important;color:var(--fdim) !important;
+  font-weight:600 !important;text-transform:uppercase !important;}
+.info-card .value{font-family:'Syne',sans-serif !important;font-weight:800 !important;
+  font-size:18px !important;letter-spacing:-.5px !important;font-variant-numeric:tabular-nums;
+  color:var(--fa) !important;}
+.high-score{border-color:rgba(255,209,102,.35) !important;}
+.high-score h3{color:rgba(255,209,102,.55) !important;}
+.high-score .value{color:var(--fgold) !important;}
+#canvas-wrapper{background:rgba(0,0,0,0.34) !important;border-radius:18px !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.07) !important;}
+#controls button,#padrow button,#controls>button{
+  background:linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)) !important;
+  border:1px solid var(--fbd) !important;color:var(--fmuted) !important;
+  border-radius:15px !important;box-shadow:none !important;
+  font-family:'DM Sans',sans-serif !important;
+}
+#controls button:active,#padrow button:active{background:rgba(34,211,238,.18) !important;
+  border-color:rgba(34,211,238,.45) !important;color:#fff !important;transform:scale(.95) !important;}
+#status-line{color:var(--fmuted) !important;font-weight:600 !important;}
+/* prekryvy: rodinna karta */
+#game-over-overlay,#win-overlay,#pause-overlay{
+  background:radial-gradient(ellipse at center,rgba(8,10,20,0.84) 0%,rgba(3,4,9,0.96) 78%) !important;
+  backdrop-filter:blur(6px) !important;border-radius:18px !important;
+}
+#game-over-overlay h2,#win-overlay h2,#pause-overlay span{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;letter-spacing:-.5px !important;
+}
+#game-over-overlay h2,#win-overlay h2{
+  font-size:24px !important;
+  background:linear-gradient(110deg,var(--fa) 5%,#fff 55%,var(--fb) 95%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-shadow:none !important;
+}
+#game-over-overlay p,#win-overlay p{font-size:11.5px !important;color:var(--fmuted) !important;}
+#game-over-overlay p span:last-child,#win-overlay p span:last-child{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:20px !important;
+  color:var(--fa) !important;
+}
+#restartBtn,#nextBtn,#newMazeBtn,#newGameBtn,#playAgainBtn{
+  border-radius:100px !important;border:1px solid rgba(34,211,238,.5) !important;
+  background:linear-gradient(180deg,rgba(34,211,238,.24),rgba(34,211,238,.1)) !important;
+  color:#fff !important;font-family:'DM Sans',sans-serif !important;font-size:14px !important;
+  font-weight:600 !important;box-shadow:none !important;padding:12px 30px !important;
+  text-transform:none !important;
+}
+#restartBtn:hover,#nextBtn:hover,#newMazeBtn:hover,#newGameBtn:hover,#playAgainBtn:hover{
+  background:linear-gradient(180deg,rgba(34,211,238,.34),rgba(34,211,238,.16)) !important;
+  box-shadow:0 0 24px -6px rgba(34,211,238,.5) !important;transform:none !important;
+}
+#restartBtn:active,#nextBtn:active{transform:translateY(1px) !important;}
+
+/* tlacidlo Spat nesmie sedet na hlavicke panelu */
+@media (max-width:560px){
+  #game-container{padding-top:46px !important;}
+}
+/* nizke telefony: menej chromu */
+@media (max-height:620px){
+  #rules{display:none !important;}
+  #header h1{font-size:15px !important;}
+  #info-panel{gap:5px !important;padding:0 !important;}
+  .info-card{padding:5px 9px !important;min-width:50px !important;}
+  .info-card h3{font-size:8px !important;margin-bottom:0 !important;}
+  .info-card .value{font-size:15px !important;}
+}
+/* telefon na sirku: panel v stlpci, plocha si vezme vysku okna */
+@media (max-height:520px) and (orientation:landscape){
+  body{padding:4px !important;align-items:flex-start !important;}
+  #game-container{max-width:100% !important;max-height:none !important;padding-top:46px !important;}
+  #gameCanvas{max-height:none !important;}
+  #header{gap:5px !important;}
+  #info-panel{gap:3px !important;}
+  #info-panel .info-card{padding:3px 7px !important;}
+}
+/* velmi uzke obrazovky */
+@media (max-width:380px){
+  body{padding:4px !important;}
+  #game-container{padding-left:8px !important;padding-right:8px !important;}
+}
+/* velke obrazovky: panel smie narast */
+@media (min-width:700px){
+  #game-container{max-width:660px !important;}
+}
+</style>
+</head>
+<body>
+
+    <a href="../../index.html" id="back-btn">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="lbl-back"></span>
+    </a>
+
+    <div id="game-container">
+        <div id="header">
+            <h1>🎲 CUBE TWIST</h1>
+            <div id="settings">
+                <label id="lbl-size">Obtiažnosť:</label>
+                <div class="btn-group" id="sizeGroup">
+                    <button data-diff="s" id="lbl-size-s">Ľahká</button>
+                    <button data-diff="m" class="active" id="lbl-size-m">Stredná</button>
+                    <button data-diff="l" id="lbl-size-l">Ťažká</button>
+                </div>
+            </div>
+        </div>
+
+        <p id="rules"></p>
+
+        <div id="info-panel">
+            <div class="info-card">
+                <h3 id="lbl-moves">Ťahy</h3>
+                <span class="value" id="movesValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-par">Par</h3>
+                <span class="value" id="parValue">0</span>
+            </div>
+            <div class="info-card">
+                <h3 id="lbl-score">Skóre</h3>
+                <span class="value" id="scoreValue">0</span>
+            </div>
+            <div class="info-card high-score">
+                <h3 id="lbl-best">Najlepšie</h3>
+                <span class="value" id="bestValue">0</span>
+            </div>
+        </div>
+
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="end-overlay">
+                <h2 id="lbl-win">Vyrovnané!</h2>
+                <p><span id="lbl-final-moves">Ťahy:</span> <span id="finalMoves">0</span> / <span id="finalPar">0</span></p>
+                <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
+                <button id="nextBtn">Nová hádanka</button>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="newLevelBtn"><span id="lbl-newlevel">Nová hádanka</span></button>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const movesSpan = document.getElementById('movesValue');
+            const parSpan = document.getElementById('parValue');
+            const scoreSpan = document.getElementById('scoreValue');
+            const bestSpan = document.getElementById('bestValue');
+            const endOverlay = document.getElementById('end-overlay');
+            const finalMoves = document.getElementById('finalMoves');
+            const finalPar = document.getElementById('finalPar');
+            const finalScore = document.getElementById('finalScore');
+            const nextBtn = document.getElementById('nextBtn');
+            const newLevelBtn = document.getElementById('newLevelBtn');
+            const sizeGroup = document.getElementById('sizeGroup');
+
+            // ----- PREKLADY -----
+            document.getElementById('lbl-back').textContent = t('back');
+            document.getElementById('lbl-size').textContent = t('cubDifficulty');
+            document.getElementById('lbl-size-s').textContent = t('cubEasy');
+            document.getElementById('lbl-size-m').textContent = t('cubMedium');
+            document.getElementById('lbl-size-l').textContent = t('cubHard');
+            document.getElementById('lbl-moves').textContent = t('cubMoves');
+            document.getElementById('lbl-score').textContent = t('cubScore');
+            document.getElementById('lbl-best').textContent = t('cubBest');
+            document.getElementById('lbl-win').textContent = t('cubWin');
+            document.getElementById('lbl-final-moves').textContent = t('cubMoves') + ':';
+            document.getElementById('lbl-final-score').textContent = t('cubScore') + ':';
+            document.getElementById('lbl-newlevel').textContent = t('cubNewLevel');
+            nextBtn.textContent = t('cubNewLevel');
+            document.getElementById('rules').textContent = t('cubRules');
+
+            // ----- KONFIGURACIA -----
+            const DIFFS = {
+                s: { n: 3, scramble: 8 },
+                m: { n: 4, scramble: 14 },
+                l: { n: 5, scramble: 20 }
+            };
+            const COLORS = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#a78bfa'];
+            const ARROW = 22;
+
+            let diffKey = 'm';
+            let N = 4;
+            let grid = [];
+            let cellSize = 40;
+            let moves = 0;
+            let par = 0;
+            let score = 0;
+            // ── ostra kresba: logicky priestor sa mapuje na skutocne body displeja
+            let DPR = 1;
+            function fitCanvas(hintH) {
+                DPR = Math.min(window.devicePixelRatio || 1, 2);
+                const cont = document.getElementById('game-container');
+                const land = window.matchMedia('(max-height:520px) and (orientation:landscape)').matches;
+                const availW = Math.max(200, Math.min(620, (cont ? cont.clientWidth : 340) - 28));
+                const availH = hintH || Math.max(180, window.innerHeight - (land ? 110 : 250));
+                const k = Math.max(0.28, Math.min(availW / LW, availH / LH, 1.8));
+                canvas.width = Math.round(LW * k * DPR);
+                canvas.height = Math.round(LH * k * DPR);
+                canvas.style.width = (canvas.width / DPR) + 'px';
+                canvas.style.height = (canvas.height / DPR) + 'px';
+                ctx.setTransform(k * DPR, 0, 0, k * DPR, 0, 0);
+                if (!hintH && !land) {
+                    const got = canvas.getBoundingClientRect();
+                    if (got.height > 20 && LH * k - got.height > 1.5) { fitCanvas(got.height); return; }
+                    if (got.width > 20 && LW * k - got.width > 1.5) { fitCanvas(got.width * LH / LW); return; }
+                }
+            }
+            let fitTimer = 0;
+            window.addEventListener('resize', () => {
+                clearTimeout(fitTimer);
+                fitTimer = setTimeout(() => { fitCanvas(); draw(); }, 120);
+            });
+            const bestKey = () => 'cubetwist_best_' + diffKey;
+            let best = 0;
+            function loadBest() { best = parseInt(localStorage.getItem(bestKey()) || '0', 10) || 0; bestSpan.textContent = best; }
+            let solved = false;
+            let gridOriginX = 0, gridOriginY = 0;
+
+            bestSpan.textContent = best;
+
+            function makeSolvedGrid(n) {
+                return Array.from({ length: n }, (_, r) => Array(n).fill(r));
+            }
+
+            function shiftRow(g, r, dir) {
+                const row = g[r];
+                const newRow = new Array(N);
+                for (let c = 0; c < N; c++) newRow[(c + dir + N) % N] = row[c];
+                g[r] = newRow;
+            }
+
+            function shiftCol(g, c, dir) {
+                const col = g.map(row => row[c]);
+                const newCol = new Array(N);
+                for (let r = 0; r < N; r++) newCol[(r + dir + N) % N] = col[r];
+                for (let r = 0; r < N; r++) g[r][c] = newCol[r];
+            }
+
+            function isSolved(g) {
+                for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (g[r][c] !== r) return false;
+                return true;
+            }
+
+            function generatePuzzle() {
+                const cfg = DIFFS[diffKey];
+                N = cfg.n;
+                par = cfg.scramble;
+                let g;
+                let attempts = 0;
+                do {
+                    g = makeSolvedGrid(N);
+                    const extra = attempts > 0 ? 4 : 0;
+                    for (let i = 0; i < cfg.scramble + extra; i++) {
+                        const isRow = Math.random() < 0.5;
+                        const idx = Math.floor(Math.random() * N);
+                        const dir = Math.random() < 0.5 ? 1 : -1;
+                        if (isRow) shiftRow(g, idx, dir); else shiftCol(g, idx, dir);
+                    }
+                    attempts++;
+                } while (isSolved(g) && attempts < 10);
+                return g;
+            }
+
+            function newLevel() {
+                SFX.play('shuffle');
+                loadBest();   // rekord patri k aktualnej obtiaznosti
+                grid = generatePuzzle();
+                moves = 0;
+                score = 0;
+                solved = false;
+                movesSpan.textContent = '0';
+                parSpan.textContent = par;
+                scoreSpan.textContent = '0';
+                endOverlay.classList.remove('visible');
+                layout();
+                draw();
+            }
+
+            let LW = 0, LH = 0;
+            function layout() {
+                cellSize = N <= 3 ? 60 : (N <= 4 ? 50 : 42);
+                const gridPx = N * cellSize;
+                LW = gridPx + ARROW * 2 + 16;
+                LH = gridPx + ARROW * 2 + 16;
+                gridOriginX = ARROW + 8;
+                gridOriginY = ARROW + 8;
+                fitCanvas();
+            }
+
+            function doRowShift(r, dir) {
+                if (solved) return;
+                SFX.play('swap');
+                shiftRow(grid, r, dir);
+                moves++;
+                movesSpan.textContent = moves;
+                draw();
+                checkWin();
+            }
+            function doColShift(c, dir) {
+                if (solved) return;
+                SFX.play('swap');
+                shiftCol(grid, c, dir);
+                moves++;
+                movesSpan.textContent = moves;
+                draw();
+                checkWin();
+            }
+
+            function checkWin() {
+                if (isSolved(grid)) winGame();
+            }
+
+            function winGame() {
+                SFX.play('win');
+                solved = true;
+                const penalty = Math.max(0, moves - par) * 8;
+                score = Math.max(20, 120 - penalty);
+                scoreSpan.textContent = score;
+                if (score > best) {
+                    best = score;
+                    bestSpan.textContent = best;
+                    localStorage.setItem(bestKey(), String(best));
+                }
+                finalMoves.textContent = moves;
+                finalPar.textContent = par;
+                finalScore.textContent = score;
+                setTimeout(() => endOverlay.classList.add('visible'), 200);
+            }
+
+            // ----- OVLADANIE -----
+            function canvasPoint(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = LW / rect.width;
+                const scaleY = LH / rect.height;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
+
+            function onTap(e) {
+                if (solved) return;
+                const pt = canvasPoint(e);
+                const gridPx = N * cellSize;
+
+                // left arrows (row shift left) at x < gridOriginX, y within row r
+                if (pt.x < gridOriginX) {
+                    const r = Math.floor((pt.y - gridOriginY) / cellSize);
+                    if (r >= 0 && r < N) { doRowShift(r, -1); return; }
+                }
+                // right arrows
+                if (pt.x > gridOriginX + gridPx) {
+                    const r = Math.floor((pt.y - gridOriginY) / cellSize);
+                    if (r >= 0 && r < N) { doRowShift(r, 1); return; }
+                }
+                // top arrows (col shift up)
+                if (pt.y < gridOriginY) {
+                    const c = Math.floor((pt.x - gridOriginX) / cellSize);
+                    if (c >= 0 && c < N) { doColShift(c, -1); return; }
+                }
+                // bottom arrows
+                if (pt.y > gridOriginY + gridPx) {
+                    const c = Math.floor((pt.x - gridOriginX) / cellSize);
+                    if (c >= 0 && c < N) { doColShift(c, 1); return; }
+                }
+            }
+
+            canvas.addEventListener('mousedown', onTap);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onTap(e); }, { passive: false });
+
+            newLevelBtn.addEventListener('click', newLevel);
+            nextBtn.addEventListener('click', newLevel);
+
+            sizeGroup.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    diffKey = btn.dataset.diff;
+                    newLevel();
+                });
+            });
+
+            // ----- VYKRESLENIE -----
+            function drawArrow(cx, cy, dx, dy, size) {
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(Math.atan2(dy, dx));
+                ctx.beginPath();
+                ctx.moveTo(size, 0);
+                ctx.lineTo(-size * 0.6, size * 0.7);
+                ctx.lineTo(-size * 0.6, -size * 0.7);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(232,121,249,0.75)';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function draw() {
+                const CW = LW, CH = LH;
+                ctx.clearRect(0, 0, CW, CH);
+                const grad = ctx.createLinearGradient(0, 0, 0, CH);
+                grad.addColorStop(0, '#0b111e');
+                grad.addColorStop(1, '#0f1a2b');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, CW, CH);
+
+                for (let r = 0; r < N; r++) {
+                    for (let c = 0; c < N; c++) {
+                        const x = gridOriginX + c * cellSize, y = gridOriginY + r * cellSize;
+                        ctx.fillStyle = COLORS[grid[r][c] % COLORS.length];
+                        ctx.fillRect(x + 1.5, y + 1.5, cellSize - 3, cellSize - 3);
+                        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x + 1.5, y + 1.5, cellSize - 3, cellSize - 3);
+                    }
+                }
+
+                for (let r = 0; r < N; r++) {
+                    const cy = gridOriginY + r * cellSize + cellSize / 2;
+                    drawArrow(gridOriginX - ARROW / 2 - 2, cy, -1, 0, 8);
+                    drawArrow(gridOriginX + N * cellSize + ARROW / 2 + 2, cy, 1, 0, 8);
+                }
+                for (let c = 0; c < N; c++) {
+                    const cx = gridOriginX + c * cellSize + cellSize / 2;
+                    drawArrow(cx, gridOriginY - ARROW / 2 - 2, 0, -1, 8);
+                    drawArrow(cx, gridOriginY + N * cellSize + ARROW / 2 + 2, 0, 1, 8);
+                }
+            }
+
+            newLevel();
+        })();
+    </script>
+</body>
+</html>
