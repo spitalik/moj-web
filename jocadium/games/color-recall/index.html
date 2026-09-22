@@ -82,12 +82,12 @@ button,a,[onclick]{touch-action:manipulation;}
 </div>
 <script>
 document.getElementById('lbl-back').textContent     = t('back');
-document.getElementById('lbl-title').textContent    = t('simonTitle');
-document.getElementById('ov-title').textContent     = t('simonTitle');
-document.getElementById('ov-hint').textContent      = t('simonHint');
-document.getElementById('ov-play').textContent      = t('simonPlay');
-document.getElementById('lbl-round-txt').textContent= t('simonRound');
-document.getElementById('lbl-best-txt').textContent = t('simonBest');
+document.getElementById('lbl-title').textContent    = t('recallTitle');
+document.getElementById('ov-title').textContent     = t('recallTitle');
+document.getElementById('ov-hint').textContent      = t('recallHint');
+document.getElementById('ov-play').textContent      = t('recallPlay');
+document.getElementById('lbl-round-txt').textContent= t('recallRound');
+document.getElementById('lbl-best-txt').textContent = t('recallBest');
 
 const DIFFS = [
   { label:'diffEasy',   flashMs:500, gapMs:300 },
@@ -128,7 +128,7 @@ function nextRound() {
   seq.push(Math.floor(Math.random() * 4));
   document.getElementById('round-num').textContent = round;
   document.getElementById('center-icon').textContent = '👁';
-  setStatus(t('simonWatch'));
+  setStatus(t('recallWatch'));
   [0,1,2,3].forEach(i => document.getElementById(`b${i}`).className = 'btn-seg dim');
   setTimeout(() => playSeq(0), 600);
 }
@@ -140,7 +140,7 @@ function playSeq(i) {
       playerSeq = [];
       [0,1,2,3].forEach(j => document.getElementById(`b${j}`).className = 'btn-seg');
       document.getElementById('center-icon').textContent = '✋';
-      setStatus(t('simonRepeat'));
+      setStatus(t('recallRepeat'));
     }, 300);
     return;
   }
@@ -175,7 +175,7 @@ function press(id) {
     accepting = false;
     [0,1,2,3].forEach(j => document.getElementById(`b${j}`).className = 'btn-seg dim');
     document.getElementById('center-icon').textContent = '✅';
-    setStatus(t('simonGood'));
+    setStatus(t('recallGood'));
     setTimeout(nextRound, 900);
   }
 }
@@ -194,10 +194,10 @@ function wrong() {
     const ov = document.getElementById('overlay');
     ov.innerHTML = `
       <div style="font-size:44px">❌</div>
-      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px">${t('simonOver')}</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px">${t('recallOver')}</h2>
       <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:#a78bfa;letter-spacing:-2px">${finalRound}</div>
-      <div style="font-size:12px;color:var(--muted)">${t('simonBest')}: ${best}</div>
-      <button class="play-btn" onclick="startGame()" style="margin-top:8px">${t('simonAgain')}</button>`;
+      <div style="font-size:12px;color:var(--muted)">${t('recallBest')}: ${best}</div>
+      <button class="play-btn" onclick="startGame()" style="margin-top:8px">${t('recallAgain')}</button>`;
     ov.style.display = 'flex';
   }, 600);
 }

@@ -1,4 +1,4 @@
-const CACHE = 'jocadium-v1';
+const CACHE = 'jocadium-v3';
 
 const ASSETS = [
   './',
@@ -22,7 +22,7 @@ const ASSETS = [
   './games/rock-drift/index.html',
   './games/dot-glider/index.html',
   './games/paddle-duel/index.html',
-  './games/simon/index.html',
+  './games/color-recall/index.html',
   './games/tower-defense/index.html',
   './games/platformer/index.html',
   './games/pexeso/index.html',

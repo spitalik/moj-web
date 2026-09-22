@@ -1214,3 +1214,71 @@ change: the gamepad_* keys in localStorage. They hold players' language,
 records, play counts and the sound setting; renaming them would wipe all of it,
 and nobody ever sees them.
 
+
+35. Licensing audit before production - whole app
+------------------------------------------------------------------------------
+
+Done on 22 September 2026: every one of the 110 games checked for anything that
+could draw a complaint once the collection is public - names, ids, folders, key
+prefixes, artwork, data and shipped comments. Four things needed doing.
+
+**The word lists had no provenance.** Four games carried English dictionaries -
+word-weave 15,002 words, word-ladder 7,667, anagram-blitz 860, five-letters 799 -
+all starting on the same alphabetical run (abaci, aback, abaft, abase) and so
+all cut from one source that nobody could name. Individual words are not
+protected, but a compiled list is: in the EU the sui generis database right
+(Directive 96/9/EC) covers the investment in assembling one, quite apart from
+copyright, and taking a substantial part of someone's list infringes it even
+though the words themselves are free. One of them also carried "crayola",
+which is a trademark, not a word.
+
+They are now built from scratch by tools/build-wordlists.py out of two sources
+that are demonstrably free, with the selection rules written in the script
+rather than inherited:
+
+    ENABLE1                 public domain (Alan Beale, M. Cooper) - decides
+                            what counts as a word at all
+    14 Project Gutenberg    public domain - decides which of those words are
+    books                   actually used, from 1.46 million words of text
+
+A word must be in the lexicon *and* used in the books. The guessing games ask
+for more: the word has to appear in at least six of the fourteen books and to be
+written in lower case most of the time, which keeps out vocabulary belonging to
+a single book (Moby Dick's "avast") and characters' names that happen to exist
+as common nouns ("jones"). Word Ladder is the exception and takes the whole
+lexicon by length, because the path from "pen" to "ink" runs through words no
+novel uses, and without them the puzzle cannot be walked at all.
+
+The new lists: word-weave 15,944, word-ladder 13,492, five-letters 800,
+anagram-blitz 360 puzzles. All eighteen of Word Ladder's authored pairs were
+re-checked and every one is solvable; the games were then played through to
+confirm the data works (Word Ladder: COLD-CORD-WORD-WARD-WARM, par 4).
+Three entries look like trademarks but are ordinary English: "windows" (the
+plural), "scrabble" (the verb, older than the board game) and "xerox" (in the
+lexicon as a verb). A word list containing them is not trademark use.
+
+**Simon became Color Recall inside as well.** Simon is a registered trademark of
+Hasbro. The displayed title was already Color Recall, but the folder was
+games/simon/, the id was simon and the keys were simon* - the same oversight
+that section 32 describes for Sokoban, and the same fix: git mv, new id,
+recall* keys.
+
+**Two shipped comments named other people's games.** i18n.js labelled two blocks
+of keys "// Asteroids" and "// Simon". They were the only two places in the
+whole project where the code named someone else's title, and they are exactly
+what an opposing lawyer would quote. They now read "// Rock Drift" and
+"// Color Recall". For the same reason the difficulty property in dot-muncher,
+which was called `ghost`, is now `chaser`.
+
+**LICENSE still said GamePad.** The file has no extension, so both renames
+missed it. It is the one file where the name carries legal weight, since it is
+the notice asserting the owner's rights; it now says Jocadium.
+
+Checked and found clean: no imported artwork anywhere (no long literal SVG path
+data and no embedded base64 in any of the 110 games), no audio files, fonts
+bundled under OFL with the licence text and the reserved names untouched, the
+map data public domain, the flags drawn by the project's own code, and the
+piece colours of block-cascade deliberately unlike the canonical set - which is
+the layer that decided Tetris Holding v. Xio. Nothing leaves the browser, so
+there is no personal data to account for.
+

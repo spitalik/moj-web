@@ -203,9 +203,9 @@ const HUNT_RGB = ['168,85,247', '251,191,36', '14,165,233', '244,63,94'];
 const P_DOT = 12, P_PELLET = 60, P_HUNT = 120, P_LEVEL = 250;
 
 const DIFFS = [
-  {id:'easy',   key:'diffEasy',   lives:4, ghost:0.72, fright:7.0},
-  {id:'medium', key:'diffMedium', lives:3, ghost:0.86, fright:6.0},
-  {id:'hard',   key:'diffHard',   lives:2, ghost:1.00, fright:4.6},
+  {id:'easy',   key:'diffEasy',   lives:4, chaser:0.72, fright:7.0},
+  {id:'medium', key:'diffMedium', lives:3, chaser:0.86, fright:6.0},
+  {id:'hard',   key:'diffHard',   lives:2, chaser:1.00, fright:4.6},
 ];
 let diffIdx = 1;
 const D = () => DIFFS[diffIdx];
@@ -478,7 +478,7 @@ function update(dt) {
   if (frozen > 0) { frozen = Math.max(0, frozen - dt); return; }
   if (fright > 0) fright = Math.max(0, fright - dt);
   heroTick(HERO_SPD * dt);
-  const gs = D().ghost * (fright > 0 ? 0.62 : 1) * 4.6;
+  const gs = D().chaser * (fright > 0 ? 0.62 : 1) * 4.6;
   for (const g of hunts) huntTick(g, (g.eaten ? gs * 1.7 : gs) * dt);
   collisions();
 }
