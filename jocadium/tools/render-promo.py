@@ -86,7 +86,7 @@ def main():
     ap.add_argument('--width', type=int, default=0)
     ap.add_argument('--height', type=int, default=0)
     ap.add_argument('--vertical', action='store_true', help='formát 9:16 pre reels')
-    ap.add_argument('--lang', default='sk', choices=['sk', 'en'])
+    ap.add_argument('--lang', default='en', choices=['sk', 'en'])
     ap.add_argument('--out', default='')
     ap.add_argument('--jobs', type=int, default=8, help='koľko snímkov naraz')
     ap.add_argument('--browser', default='')
