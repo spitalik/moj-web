@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; form-action 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Gravity Shift · Jocadium</title>
+    <title>Gravlash · Jocadium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <script src="../../sfx.js"></script>
@@ -223,7 +223,7 @@
     <div class="ui-overlay active" id="startOverlay">
       <div class="fcard">
         <div class="femoji">🌌</div>
-        <div class="fttl" id="lbl-start-title">Gravity Shift</div>
+        <div class="fttl" id="lbl-start-title">Gravlash</div>
         <div class="fsub" id="lbl-start-sub"></div>
         <button class="fbtn" id="startBtnHtml"></button>
       </div>
@@ -981,8 +981,8 @@
                 ctx.fillStyle = 'rgba(255,255,255,0.28)';
                 ctx.font = '600 10px "DM Sans", system-ui, sans-serif';
                 ctx.textAlign = 'left';
-                const orientText = isLandscape ? '\u2194 ' + t('gravityLandscape') : '\u2195 ' + t('gravityPortrait');
-                ctx.fillText(t('gravityMode') + ': ' + orientText + '  \u00b7  ' + t('gravitySpeed') + ' ' + scrollSpeed.toFixed(1), 18, H - 16);
+                const orientText = isLandscape ? '\u2194 ' + t('grvlLandscape') : '\u2195 ' + t('grvlPortrait');
+                ctx.fillText(t('grvlMode') + ': ' + orientText + '  \u00b7  ' + t('grvlSpeed') + ' ' + scrollSpeed.toFixed(1), 18, H - 16);
             }
 
             function render() {
@@ -1159,9 +1159,9 @@
 
             // ==================== INIT ====================
             document.getElementById('lbl-back').textContent = t('back');
-            hint.textContent = '🔄 ' + t('gravityOrientHint');
-            document.getElementById('lbl-start-title').textContent = t('gravityTitle');
-            document.getElementById('lbl-start-sub').textContent = t('gravityStartSub');
+            hint.textContent = '🔄 ' + t('grvlOrientHint');
+            document.getElementById('lbl-start-title').textContent = t('grvlTitle');
+            document.getElementById('lbl-start-sub').textContent = t('grvlStartSub');
             startBtnHtml.textContent = t('uiStart');
             document.getElementById('lbl-over-title').textContent = t('uiGameOver');
             document.getElementById('lbl-final-score').textContent = t('uiScore');

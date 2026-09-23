@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; form-action 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Word Weave · Jocadium</title>
+    <title>Spellweft · Jocadium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <script src="../../sfx.js"></script>
@@ -435,24 +435,24 @@ body{
 
             // ----- PREKLADY -----
             backLbl.textContent = t('back');
-            document.getElementById('lbl-size').textContent = t('wwvSize');
-            document.getElementById('lbl-size-s').textContent = t('wwvSizeS');
-            document.getElementById('lbl-size-m').textContent = t('wwvSizeM');
-            document.getElementById('lbl-size-l').textContent = t('wwvSizeL');
-            document.getElementById('lbl-time').textContent = t('wwvTime');
-            document.getElementById('lbl-score').textContent = t('wwvScore');
-            document.getElementById('lbl-best').textContent = t('wwvBest');
-            document.getElementById('lbl-combo').textContent = t('wwvCombo');
-            document.getElementById('lbl-found').textContent = t('wwvFound');
-            document.getElementById('lbl-found-panel').textContent = t('wwvFound');
-            document.getElementById('lbl-pause').textContent = t('wwvPause');
-            document.getElementById('lbl-timeup').textContent = t('wwvTimeUp');
-            document.getElementById('lbl-final-score').textContent = t('wwvFinalScore');
-            document.getElementById('lbl-final-found').textContent = t('wwvFinalFound');
-            document.getElementById('lbl-missed').textContent = t('wwvMissedTitle');
-            replayBtn.textContent = t('wwvReplay');
-            pauseBtn.title = t('wwvPauseTooltip');
-            rulesP.textContent = t('wwvRules');
+            document.getElementById('lbl-size').textContent = t('swftSize');
+            document.getElementById('lbl-size-s').textContent = t('swftSizeS');
+            document.getElementById('lbl-size-m').textContent = t('swftSizeM');
+            document.getElementById('lbl-size-l').textContent = t('swftSizeL');
+            document.getElementById('lbl-time').textContent = t('swftTime');
+            document.getElementById('lbl-score').textContent = t('swftScore');
+            document.getElementById('lbl-best').textContent = t('swftBest');
+            document.getElementById('lbl-combo').textContent = t('swftCombo');
+            document.getElementById('lbl-found').textContent = t('swftFound');
+            document.getElementById('lbl-found-panel').textContent = t('swftFound');
+            document.getElementById('lbl-pause').textContent = t('swftPause');
+            document.getElementById('lbl-timeup').textContent = t('swftTimeUp');
+            document.getElementById('lbl-final-score').textContent = t('swftFinalScore');
+            document.getElementById('lbl-final-found').textContent = t('swftFinalFound');
+            document.getElementById('lbl-missed').textContent = t('swftMissedTitle');
+            replayBtn.textContent = t('swftReplay');
+            pauseBtn.title = t('swftPauseTooltip');
+            rulesP.textContent = t('swftRules');
 
             // ----- KONFIGURACIA -----
             const SIZES = {
@@ -648,19 +648,19 @@ body{
                 const cellsCopy = selectedPath.slice();
 
                 if (word.length < 3) {
-                    feedback.textContent = t('wwvTooShort');
+                    feedback.textContent = t('swftTooShort');
                     feedback.className = 'error';
                     combo = 0;
                     comboSpan.textContent = '0';
                 } else if (foundWords.has(word)) {
-                    feedback.textContent = t('wwvAlready');
+                    feedback.textContent = t('swftAlready');
                     feedback.className = 'error';
                     combo = 0;
                     comboSpan.textContent = '0';
                     cellsCopy.forEach(([r, c]) => flashCell(r, c, 'flash-bad'));
                 } else if (!wordSet.has(word)) {
                     SFX.play('error');
-                    feedback.textContent = t('wwvInvalid');
+                    feedback.textContent = t('swftInvalid');
                     feedback.className = 'error';
                     combo = 0;
                     comboSpan.textContent = '0';

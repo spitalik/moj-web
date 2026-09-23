@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Ricochet · Jocadium</title>
+<title>Skipshot · Jocadium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <script src="../../sfx.js"></script>
@@ -170,7 +170,7 @@ canvas{display:block;touch-action:manipulation;}
 /* ===== RICOCHET ENGINE ===== */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.RicochetEngine = factory();
+  else root.SkipshotEngine = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
 
   var DIRV  = { R:[1,0], L:[-1,0], U:[0,-1], D:[0,1] };
@@ -345,7 +345,7 @@ const LEVELS = [{"W":7,"H":6,"emitters":[{"x":0,"y":2,"dir":"R","color":7}],"tar
 
 /* ---------- i18n (falls back to a built-in dictionary) ---------- */
 const DICT = {
-sk:{back:'Späť',ricoTitle:'Ricochet',menuHint:'Naklоň lúč zrkadlami tak, aby zasiahol všetky ciele. Kliknutím do mriežky položíš zrkadlo, ďalším kliknutím ho otočíš alebo odstrániš.',
+sk:{back:'Späť',ricoTitle:'Skipshot',menuHint:'Naklоň lúč zrkadlami tak, aby zasiahol všetky ciele. Kliknutím do mriežky položíš zrkadlo, ďalším kliknutím ho otočíš alebo odstrániš.',
  play:'Hrať',level:'Level',shots:'Výstrely',par:'Par',mirrors:'Zrkadlá',restart:'Reštart',levels:'Levely',fire:'VYSTRELIŤ',
  next:'Ďalší level',replay:'Znova',win:'Level splnený!',allDone:'Všetky levely hotové!',allDoneSub:'Zvládol si celú kampaň. Skús získať 3 hviezdy všade.',
  ready:'Všetky ciele v zásahu — vystreľ!',aim:'Zasiahnuté ciele',shotsLeftPar:'zásah na par',
@@ -353,7 +353,7 @@ sk:{back:'Späť',ricoTitle:'Ricochet',menuHint:'Naklоň lúč zrkadlami tak, a
  lgEmit:'zdroj',lgTarget:'cieľ',lgMirror:'tvoje zrkadlo',lgFixed:'pevné zrkadlo',lgRotor:'otočné (klikni)',lgSpin:'samootočné',
  lgWall:'stena',lgToggle:'blikajúca stena',lgBomb:'bomba',lgVoid:'čierna diera',lgFilter:'farebný filter',lgPrism:'prizma',lgPortal:'portál',
  noMirrors:'Žiadne zrkadlá nezostali — použi ↩ alebo Reštart.',locked:'Najprv dokonči predchádzajúci level.'},
-en:{back:'Back',ricoTitle:'Ricochet',menuHint:'Bend the beam with mirrors until every target lights up. Click a cell to place a mirror, click again to rotate or remove it.',
+en:{back:'Back',ricoTitle:'Skipshot',menuHint:'Bend the beam with mirrors until every target lights up. Click a cell to place a mirror, click again to rotate or remove it.',
  play:'Play',level:'Level',shots:'Shots',par:'Par',mirrors:'Mirrors',restart:'Restart',levels:'Levels',fire:'FIRE',
  next:'Next level',replay:'Replay',win:'Level cleared!',allDone:'All levels done!',allDoneSub:'You finished the campaign. Now go for three stars everywhere.',
  ready:'All targets in line — fire!',aim:'Targets hit',shotsLeftPar:'shot par',
@@ -386,7 +386,7 @@ function T(k){
 function tip(lv){ return (lv.tip && (lv.tip[LANG] || lv.tip.en)) || ''; }
 
 /* ---------- constants ---------- */
-const E = RicochetEngine;
+const E = SkipshotEngine;
 const COL = {1:'#ff5470',2:'#4dff91',4:'#4db8ff',3:'#ffd166',5:'#e06bff',6:'#57f5e0',7:'#ffffff'};
 const PORTAL_COL = ['#a78bfa','#57f5e0','#ffb454'];
 const GLYPH = {'/':'/','\\':'\\','X':'✕'};

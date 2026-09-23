@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Orbital Courier · Jocadium</title>
+<title>Orbhaul · Jocadium</title>
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <script src="../../sfx.js"></script>
@@ -137,16 +137,16 @@ let messageTimer = 0;
 
 function applyLabels(){
   document.getElementById('lbl-back').textContent = t('back');
-  document.getElementById('lbl-title').textContent = t('orbCourierTitle');
-  document.getElementById('lbl-score').textContent = t('orbCourierScore');
-  document.getElementById('lbl-lives').textContent = t('orbCourierLives');
-  document.getElementById('lbl-wave').textContent = t('orbCourierWave');
-  document.getElementById('lbl-cargo').textContent = t('orbCourierCargo');
-  btnPause.textContent = t('orbCourierPause');
-  btnReset.textContent = t('orbCourierReset');
-  ovTitle.textContent = t('orbCourierTitle');
-  ovHint.textContent = t('orbCourierHint');
-  ovBtn.textContent = t('orbCourierStart');
+  document.getElementById('lbl-title').textContent = t('orbhTitle');
+  document.getElementById('lbl-score').textContent = t('orbhScore');
+  document.getElementById('lbl-lives').textContent = t('orbhLives');
+  document.getElementById('lbl-wave').textContent = t('orbhWave');
+  document.getElementById('lbl-cargo').textContent = t('orbhCargo');
+  btnPause.textContent = t('orbhPause');
+  btnReset.textContent = t('orbhReset');
+  ovTitle.textContent = t('orbhTitle');
+  ovHint.textContent = t('orbhHint');
+  ovBtn.textContent = t('orbhStart');
 }
 
 function resetGame(){
@@ -162,7 +162,7 @@ function resetGame(){
   ship = {angle:-Math.PI/2, radius:122, radialVel:0, angularVel:1.28};
   buildWave();
   updateHud();
-  btnPause.textContent = t('orbCourierPause');
+  btnPause.textContent = t('orbhPause');
   overlay.classList.add('hidden');
   lastTime = performance.now();
   frameId = requestAnimationFrame(loop);
@@ -238,7 +238,7 @@ function checkPickups(){
     if(distanceTo(item) < 23){
       item.taken = true;
       cargo = item.color;
-      flash(t('orbCourierCargo'), item.color.fill);
+      flash(t('orbhCargo'), item.color.fill);
       return;
     }
   }
@@ -250,11 +250,11 @@ function checkStations(){
     if(distanceTo(station) > 26) continue;
     if(station.color.id === cargo.id){
       score++;
-      flash(t('orbCourierDelivered'), cargo.fill);
+      flash(t('orbhDelivered'), cargo.fill);
       cargo = null;
       maybeAdvanceWave();
     } else {
-      loseLife(t('orbCourierMissed'));
+      loseLife(t('orbhMissed'));
       cargo = null;
       maybeAdvanceWave();
     }
@@ -272,7 +272,7 @@ function maybeAdvanceWave(){
 function checkDebris(){
   for(const rock of debris){
     if(distanceTo(rock) < rock.size + 12){
-      loseLife(t('orbCourierMissed'));
+      loseLife(t('orbhMissed'));
       ship.angle = wrapAngle(ship.angle + .42);
       ship.radius = 118;
       ship.radialVel = 0;
@@ -292,9 +292,9 @@ function gameOver(){
   SFX.play('lose');
   running = false;
   cancelAnimationFrame(frameId);
-  ovTitle.textContent = t('orbCourierOver');
-  ovHint.textContent = `${t('orbCourierScore')}: ${score}`;
-  ovBtn.textContent = t('orbCourierStart');
+  ovTitle.textContent = t('orbhOver');
+  ovHint.textContent = `${t('orbhScore')}: ${score}`;
+  ovBtn.textContent = t('orbhStart');
   overlay.classList.remove('hidden');
 }
 
@@ -463,7 +463,7 @@ btnReset.addEventListener('click', resetGame);
 btnPause.addEventListener('click', () => {
   if(!running) return;
   paused = !paused;
-  btnPause.textContent = paused ? t('orbCourierResume') : t('orbCourierPause');
+  btnPause.textContent = paused ? t('orbhResume') : t('orbhPause');
   draw();
 });
 ovBtn.addEventListener('click', resetGame);

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; form-action 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Star Catcher · Jocadium</title>
+    <title>Glimmerdrift · Jocadium</title>
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <script src="../../sfx.js"></script>
@@ -456,7 +456,7 @@ body{
             nextMilestone += MILESTONE_STEP;
             if (!special && milestones.length % 2 === 0) {
                 special = makeSpecial();
-                text(W / 2, 70, t('starsSpecialBonus'), '255,90,110');
+                text(W / 2, 70, t('glimSpecialBonus'), '255,90,110');
             }
         }
     }
@@ -482,7 +482,7 @@ body{
         if (!special && specialIn <= 0) {
             special = makeSpecial();
             specialIn = SPECIAL_EVERY;
-            text(W / 2, 70, t('starsSpecialAppear'), '255,90,110');
+            text(W / 2, 70, t('glimSpecialAppear'), '255,90,110');
         }
 
         spawnIn -= dt;
@@ -503,12 +503,12 @@ body{
                 lives = MAX_LIVES;
                 livesSpan.textContent = lives;
                 burst(special.x + 25, special.y + 25, '255,90,110', 26);
-                text(W / 2, H / 2, t('starsFullLives'), '255,209,102');
+                text(W / 2, H / 2, t('glimFullLives'), '255,209,102');
                 special = null;
                 setLevel(); checkMilestone();
             } else if (special.y > H + 60) {
                 special = null;
-                text(W / 2, H / 2, t('starsMissed'), '255,90,110');
+                text(W / 2, H / 2, t('glimMissed'), '255,90,110');
             }
         }
 
@@ -548,12 +548,12 @@ body{
 
     function updateStatus() {
         if (invuln > 0) {
-            statusEl.textContent = t('starsInvulnerable') + ': ' + invuln.toFixed(1) + 's';
+            statusEl.textContent = t('glimInvulnerable') + ': ' + invuln.toFixed(1) + 's';
         } else if (special) {
-            statusEl.textContent = t('starsSpecialOn');
+            statusEl.textContent = t('glimSpecialOn');
         } else {
-            statusEl.textContent = t('starsSpecialIn') + ': ' + Math.max(0, Math.ceil(specialIn)) + 's'
-                + '  \u00b7  ' + t('starsNextLife') + ': ' + (STARS_FOR_LIFE - caught) + ' \u2b50';
+            statusEl.textContent = t('glimSpecialIn') + ': ' + Math.max(0, Math.ceil(specialIn)) + 's'
+                + '  \u00b7  ' + t('glimNextLife') + ': ' + (STARS_FOR_LIFE - caught) + ' \u2b50';
         }
     }
 
@@ -712,7 +712,7 @@ body{
         running = false;
         document.getElementById('finalScore').textContent = score;
         milesEl.textContent = milestones.length
-            ? t('starsMilestones') + ': ' + milestones.join(', ')
+            ? t('glimMilestones') + ': ' + milestones.join(', ')
             : '';
         recordEl.textContent = saveBest() ? t('uiNewRecord') : '';
         overEl.classList.add('visible');
@@ -756,22 +756,22 @@ body{
     // ── jazyk
     function applyLang() {
         document.getElementById('lbl-back').textContent   = t('back');
-        document.getElementById('lbl-title').textContent  = t('starsTitle');
+        document.getElementById('lbl-title').textContent  = t('glimTitle');
         document.getElementById('lbl-diff').textContent   = t('uiDifficulty');
         document.getElementById('lbl-easy').textContent   = t('diffEasy');
         document.getElementById('lbl-medium').textContent = t('diffMedium');
         document.getElementById('lbl-hard').textContent   = t('diffHard');
-        document.getElementById('lbl-score').textContent  = t('starsScore');
-        document.getElementById('lbl-lives').textContent  = t('starsLives');
-        document.getElementById('lbl-level').textContent  = t('starsLevel');
+        document.getElementById('lbl-score').textContent  = t('glimScore');
+        document.getElementById('lbl-lives').textContent  = t('glimLives');
+        document.getElementById('lbl-level').textContent  = t('glimLevel');
         document.getElementById('lbl-best').textContent   = t('uiBest');
-        document.getElementById('rules').textContent      = t('starsControls');
-        document.getElementById('lbl-over').textContent   = t('starsOver');
-        document.getElementById('lbl-final').textContent  = t('starsFinal') + ':';
-        document.getElementById('restartBtn').textContent = t('starsRestart');
+        document.getElementById('rules').textContent      = t('glimControls');
+        document.getElementById('lbl-over').textContent   = t('glimOver');
+        document.getElementById('lbl-final').textContent  = t('glimFinal') + ':';
+        document.getElementById('restartBtn').textContent = t('glimRestart');
         document.getElementById('newGameBtn').textContent = t('uiNewGame');
         pauseBtnLabel();
-        document.title = t('starsTitle') + ' \u00b7 Jocadium';
+        document.title = t('glimTitle') + ' \u00b7 Jocadium';
     }
     window.addEventListener('storage', e => { if (e.key === 'gamepad_lang') applyLang(); });
 

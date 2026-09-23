@@ -1253,6 +1253,15 @@ The new lists: word-weave 15,944, word-ladder 13,492, five-letters 800,
 anagram-blitz 360 puzzles. All eighteen of Word Ladder's authored pairs were
 re-checked and every one is solvable; the games were then played through to
 confirm the data works (Word Ladder: COLD-CORD-WORD-WARD-WARM, par 4).
+One more thing had to be filtered out. The lexicon is complete and the corpus
+is nineteenth-century fiction, so between them they carry every racial slur and
+obscenity in the language - Huckleberry Finn alone accounts for most of them.
+The first build let 23 such words into word-weave and 43 into word-ladder, where
+the game would have accepted them as valid answers. The script now blocks them
+by stem, including inflected forms, and the block list is written out in the
+source so it can be read and argued with. After the rebuild all four lists scan
+clean.
+
 Three entries look like trademarks but are ordinary English: "windows" (the
 plural), "scrabble" (the verb, older than the board game) and "xerox" (in the
 lexicon as a verb). A word list containing them is not trademark use.
@@ -1281,4 +1290,56 @@ map data public domain, the flags drawn by the project's own code, and the
 piece colours of block-cascade deliberately unlike the canonical set - which is
 the layer that decided Tetris Holding v. Xio. Nothing leaves the browser, so
 there is no personal data to account for.
+
+
+36. Fourteen games renamed - names already in use
+------------------------------------------------------------------------------
+
+Done on 23 September 2026, after checking every one of the 109 game titles
+against the Apple App Store, Steam and itch.io, asking one question: does a game
+with exactly this name already exist? Forty-one names came back free. Thirty-two
+matched only on itch.io, where thousands of jam entries share obvious names and
+nobody holds a mark. Thirty-three matched a game in a commercial store, and for
+most of those it means nothing - Solitaire, Chess, Sudoku, Blackjack, Minesweeper
+and Snake are shared by dozens of apps precisely because nobody can own them.
+
+What was worth changing is the overlap of two things: a name distinctive enough
+to function as a brand, and a commercial product already using it. Fourteen
+names qualified, and they are now:
+
+    Gravity Shift      Gravlash
+    Star Catcher       Glimmerdrift
+    Ricochet           Skipshot
+    Code Breaker       Hueclue
+    Nebula Strike      Voidlance
+    Dead Grid          Husklands
+    Circuit Bloom      Voltbloom
+    Orbital Courier    Orbhaul
+    Blackout Grid      Duskgrid
+    Cosmic Voyager     Farhaul
+    Gridlock Escape    Snarlpark
+    Word Weave         Spellweft
+    Gem Swap           Gleamfall
+    GeoKlik            Terrapick
+
+Ricochet is also a Valve title; Gravity Shift was the most contested name in the
+collection, held by an App Store app, two Steam games and forty entries on
+itch.io. Gem Swap and GeoKlik came from a separate web search - the store check
+cannot see Google Play or the browser-game portals, and those two live there
+(Gem Swap II on WildTangent and Coolmath, a GeoKlik app on Google Play). That
+blind spot is worth remembering: it is exactly the segment this collection
+belongs to.
+
+The lesson is in the three names that had to be renamed twice. Code Breaker,
+Word Weave and Gridlock Escape were themselves invented here to escape
+Mastermind, Boggle and Rush Hour - and all three turned out to be taken as well.
+Every ordinary two-word English combination is somebody's game already. The
+coined words in the collection - Fluxgall, Threadcatch, EchoDrift, and the app's
+own name - all came back clean, and so did every one of the fourteen new names,
+which were checked in the three stores and in a search engine before being
+applied. Two candidates were discarded at that last step: Gravfold turned out to
+be a band and Lumefall an app the store search had missed.
+
+Earlier sections of this file use the names that were current when they were
+written; this section is the key to reading them.
 
