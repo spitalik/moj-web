@@ -1,7 +1,12 @@
-/* Syne a DM Sans nesie aplikacia so sebou — nic sa nestahuje z
-   cudzieho servera. Subory aj tento zoznam vyrobil tools/fetch-fonts.py
-   z Google Fonts; obe pisma su pod licenciou SIL Open Font License 1.1,
-   jej text je v tomto priecinku (OFL.txt). */
+/* Pisma nesie aplikacia so sebou — nic sa nestahuje z cudzieho servera.
+   Subory aj tento zoznam vyrobil tools/fetch-fonts.py z Google Fonts.
+
+   Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts)
+   Copyright 2019 The Syne Project Authors (https://gitlab.com/bonjour-monde/fonderie/syne-typeface)
+   Copyright 2020 The DM Mono Project Authors (https://www.github.com/googlefonts/dm-mono)
+
+   Vsetky su pod licenciou SIL Open Font License 1.1; jej text aj tieto
+   copyright notice su v tomto priecinku v subore OFL.txt. */
 
 @font-face {
   font-family: 'DM Mono';

@@ -22,6 +22,7 @@ Použitie:  python tools/build-wordlists.py
 """
 import argparse
 import collections
+import importlib.util
 import io
 import json
 import os
@@ -214,30 +215,55 @@ def main():
                         queue.append(nxt)
         return False
 
-    src = io.open(ROOT / 'games/word-ladder/index.html', encoding='utf-8').read()
-    pairs = re.search(r'const PUZZLES = \{(.*?)\n            \};', src, re.S).group(1)
-    bad = []
-    for m in re.finditer(r'\["([a-z]+)", "([a-z]+)"\]', pairs):
-        a, b = m.group(1), m.group(2)
-        if not solvable(a, b, ladder[str(len(a))]):
-            bad.append(a + '->' + b)
-    print('\nrebríky v word-ladder: %s' % ('všetky riešiteľné'
-                                           if not bad else 'NERIEŠITEĽNÉ: ' + ', '.join(bad)))
-    if bad and not args.dry_run:
+    def ladder_pairs():
+        src = io.open(ROOT / 'games/word-ladder/index.html', encoding='utf-8').read()
+        block = re.search(r'const PUZZLES = \{(.*?)\n            \};', src, re.S).group(1)
+        return re.findall(r'\["([a-z]+)", "([a-z]+)"\]', block)
+
+    def check_ladders(sets, label):
+        bad = [a + '->' + b for a, b in ladder_pairs()
+               if not solvable(a, b, sets[str(len(a))])]
+        print('rebríky v word-ladder (%s): %s'
+              % (label, 'všetky riešiteľné' if not bad
+                 else 'NERIEŠITEĽNÉ: ' + ', '.join(bad)))
+        return bad
+
+    print()
+    if check_ladders(ladder, 'pred zápisom') and not args.dry_run:
         sys.exit('zastavujem — najprv treba opraviť dvojice')
 
     if args.dry_run:
         return
 
     print('\nzapisujem:')
-    replace('games/word-weave/index.html',
-            r'const WORDS = (\[[^;]*\]);', json.dumps(weave), 'word-weave WORDS')
+    replace('games/spellweft/index.html',
+            r'const WORDS = (\[[^;]*\]);', json.dumps(weave), 'spellweft WORDS')
     replace('games/word-ladder/index.html',
             r'const WORD_SETS = (\{[^;]*\});', json.dumps(ladder), 'word-ladder WORD_SETS')
     replace('games/five-letters/index.html',
             r'const WORDS = ([^;]*)\.split', "'" + ' '.join(five) + "'", 'five-letters WORDS')
     replace('games/anagram-blitz/index.html',
             r'const PUZZLES = (\{[^;]*\});', json.dumps(puzzles), 'anagram-blitz PUZZLES')
+
+    # ── druhý krok: čistenie na holé anglické heslá ──────────────────
+    # Beží tu, a nie ako samostatný príkaz, aby jedno spustenie vyrobilo
+    # presne to, čo sa distribuuje — inak by regenerácia dala iné súbory,
+    # než aké sú v repozitári, a dokumentácia by prestala sedieť.
+    print()
+    spec = importlib.util.spec_from_file_location(
+        'filter_wordlists', Path(__file__).resolve().parent / 'filter-wordlists.py')
+    flt = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(flt)
+    if flt.main():
+        sys.exit('filter hlási chýbajúce koncové slová rebríkov')
+
+    # Filter mohol nejaké slovo odstrániť, takže riešiteľnosť overujem
+    # ešte raz — na tom, čo naozaj zostalo v hre.
+    final = io.open(ROOT / 'games/word-ladder/index.html', encoding='utf-8').read()
+    sets = json.loads(re.search(r'const WORD_SETS = (\{[^;]*\});', final).group(1))
+    print()
+    if check_ladders(sets, 'po filtri'):
+        sys.exit('po filtri prestala byť niektorá dvojica riešiteľná')
     print('\nhotovo')
 
 

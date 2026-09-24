@@ -11,6 +11,10 @@ are open-licensed and section 1 records the terms.
 
 The items below are the only third-party material the project touches.
 
+Games are referred to throughout by the names they carry today. Fourteen of
+them were renamed on 23 September 2026; section 36 lists what each was called
+before, and is the key to any older screenshot or commit message.
+
 
 1. Web fonts — bundled in fonts/
 --------------------------------
@@ -29,10 +33,20 @@ of the collection was open, and the first offline start had no webfont at all.
     Licence text: fonts/OFL.txt, also at https://openfontlicense.org/
 
 The OFL allows the fonts to be bundled and redistributed with a work, including
-commercially, on three conditions, all of which are met here: the licence text
-travels with them (fonts/OFL.txt), the fonts are not sold on their own, and the
-Reserved Font Names are untouched — the files are the originals, unmodified and
-unrenamed as typefaces. The files themselves are the woff2 subsets Google Fonts
+commercially, provided the copyright notice and the licence travel with them and
+the fonts are not sold on their own. fonts/OFL.txt carries both: the licence
+text, and above it the three copyright notices exactly as they are written inside
+the font files themselves —
+
+    Copyright 2014 The DM Sans Project Authors
+    Copyright 2019 The Syne Project Authors
+    Copyright 2020 The DM Mono Project Authors
+
+None of the three declares a Reserved Font Name, so that clause does not bite;
+the files are in any case the originals, unmodified and unrenamed. Until
+24 September 2026 this paragraph claimed the notices were in place while OFL.txt
+still held SIL's blank template — the licence text without a single real notice,
+which is the one thing the licence actually asks for. The files themselves are the woff2 subsets Google Fonts
 serves (latin and latin-extended; DM Sans and Syne are variable fonts, so one
 file covers every weight the collection uses). tools/fetch-fonts.py rebuilds the
 folder from scratch and is the only place the download is described.
@@ -41,10 +55,10 @@ Three fonts listed here before — DM Serif Display, Space Mono and Bebas Neue �
 were no longer referenced by any page and are gone from the project entirely.
 
 
-2. World map geometry — games/geoklik/
+2. World map geometry — games/terrapick/
 --------------------------------------
 
-The country outlines in the `DATA` array of games/geoklik/index.html are derived
+The country outlines in the `DATA` array of games/terrapick/index.html are derived
 from Natural Earth, 1:110m Admin 0 – Countries, re-projected into the game's
 1000x520 coordinate box. Antarctica and the French Southern and Antarctic Lands
 are omitted; the English country names come from the same dataset.
@@ -74,7 +88,7 @@ straight rays. Flag designs themselves are national symbols and are not
 licensed material.
 
 
-4. Word lists — games/word-weave/, word-ladder/, type-rush/, anagram-blitz/,
+4. Word lists — games/spellweft/, word-ladder/, type-rush/, anagram-blitz/,
    five-letters/, hidden-word/
 ----------------------------------------------------------------------------
 
@@ -231,7 +245,7 @@ Cascade, Pac-Man -> Dot Muncher, Frogger -> Road Hopper, Space Invaders ->
 Alien Wave, Hill Climb Racing -> Slope Rider. Every one of those is renamed all
 the way through - displayed title, game id, folder name and i18n prefix.
 
-13. Description matched to the game - games/dead-grid/
+13. Description matched to the game - games/husklands/
 -----------------------------------------------------
 
 The zombie-wave game's description promised an "evacuation zone", and a green
@@ -322,16 +336,16 @@ its own starting square is found - the old code left the piece there and
 silently blocked that move. Promotion in the middle of a jump still ends the
 move, as English draughts requires, and capture stays mandatory.
 
-17. Look, physics and records - games/tilt-maze/, games/cosmic-voyager/,
+17. Look, physics and records - games/tilt-maze/, games/farhaul/,
     games/echodrift/
 ------------------------------------------------------------------------------
 
 Reworked on 10 September 2026. None of the three needed a licensing change:
-the names "Tilt Maze", "Cosmic Voyager" and "EchoDrift", the folder names, the
+the names "Tilt Maze", "Farhaul" and "EchoDrift", the folder names, the
 ids, the i18n prefixes (tlt*, voyager*, drift*), the mazes, the asteroid field,
 the sonar levels and every drawn shape are this project's own, generated or
 drawn at runtime. No third-party art, audio file, font file or code is used;
-Cosmic Voyager's sounds are synthesised by the Web Audio API at runtime.
+Farhaul's sounds are synthesised by the Web Audio API at runtime.
 
 games/tilt-maze/ was rebuilt. Its description called it a tilt-controlled
 marble maze, but the old version had no tilt at all - only a joystick. The
@@ -348,7 +362,7 @@ collection. Six i18n keys that only duplicated shared ones (tltDifficulty,
 tltEasy, tltMedium, tltHard, tltScore, tltBest) were removed from all twelve
 language blocks.
 
-games/cosmic-voyager/ kept its own engine and art. Its loop ran one update per
+games/farhaul/ kept its own engine and art. Its loop ran one update per
 animation frame, so the game ran roughly twice as fast on a 120 Hz phone; it
 now runs a fixed 60 Hz accumulator, so the logic ticks sixty times a second
 whatever the display does. The canvas is device-pixel-ratio aware and its
@@ -368,18 +382,18 @@ now a full-screen backdrop with the card centred in it, which fixes a card
 that sat off-centre on wide screens and one that slid to the left edge on
 short ones.
 
-18. Sharpness, fixed step and records - games/twin-drop/, games/gem-swap/,
+18. Sharpness, fixed step and records - games/twin-drop/, games/gleamfall/,
     games/bubble-burst/, games/snip-rope/, games/wobble-tower/
 ------------------------------------------------------------------------------
 
 Reworked on 10 September 2026. None of the five needed a licensing change and
-none was renamed: "Twin Drop", "Gem Swap", "Bubble Burst", "Snip Rope" and
+none was renamed: "Twin Drop", "Gleamfall", "Bubble Burst", "Snip Rope" and
 "Wobble Tower" are this project's own titles, as are the folder names, the ids
 and the i18n prefixes (twd*, gsw*, bub*, snp*, wob*). Every board, gem, bubble,
 rope and block is drawn at runtime by this project's own code, and each game's
 scoring was invented here, not taken from the commercial games of the same
 genres - twelve points per cleared block plus fifty per chain step in Twin
-Drop, base points plus fifty per chain in Gem Swap, twelve per popped bubble
+Drop, base points plus fifty per chain in Gleamfall, twelve per popped bubble
 and eighteen per dropped one in Bubble Burst, a hundred and fifty minus thirty
 per extra attempt in Snip Rope, and twenty-five plus three per combo for a
 perfect landing in Wobble Tower.
@@ -388,7 +402,7 @@ What was fixed in all five:
 
 * Sharpness. Every one of them drew into a fixed-size canvas that CSS then
   stretched, so the picture was soft on any phone. The grid games (Twin Drop,
-  Gem Swap) now size their cell in real device pixels, and the fixed-space
+  Gleamfall) now size their cell in real device pixels, and the fixed-space
   games (Bubble Burst, Snip Rope, Wobble Tower) keep their logical coordinate
   space and scale it onto a device-pixel-ratio canvas. Pointer mapping was
   rewritten to match, and the displayed size is now exactly the drawn size, so
@@ -396,7 +410,7 @@ What was fixed in all five:
 
 * Frame rate. Bubble Burst and Wobble Tower advanced their physics once per
   animation frame, so they ran about twice as fast on a 120 Hz phone. Both now
-  run a fixed 60 Hz accumulator. Twin Drop and Gem Swap were already
+  run a fixed 60 Hz accumulator. Twin Drop and Gleamfall were already
   time-based, and Snip Rope's physics is a fixed 1/60 step that had to stay
   untouched: its levels are pre-verified by a solver, and the cut window is
   stored per level, so any change to the step would invalidate them.
@@ -509,7 +523,7 @@ What was fixed:
   to the five card and dice games of the previous batch).
 
 21. Logic grids - games/sum-cross/ (renamed), games/shade-grid/,
-    games/sign-grid/, games/binary-grid/, games/blackout-grid/
+    games/sign-grid/, games/binary-grid/, games/duskgrid/
 ------------------------------------------------------------------------------
 
 Reworked on 10 September 2026.
@@ -526,7 +540,7 @@ generated and solver-checked by this project's own tools. The rename list in
 CLAUDE.md now records Kakuro -> Sum Cross as well.
 
 The other four needed no licensing change: "Shade Grid", "Sign Grid", "Binary
-Grid" and "Blackout Grid" are this project's own titles for the shading, the
+Grid" and "Duskgrid" are this project's own titles for the shading, the
 inequality, the binary-balance and the light-up grid ideas, and none of them
 names a marked title anywhere - in the title, the id, the prefix or the
 description.
@@ -553,7 +567,7 @@ cell counters.
 The rest of the batch: the two canvas games (Shade Grid, Sign Grid) keep their
 logical coordinate space and scale it onto a device-pixel-ratio canvas - the
 board grew from 278 to 333 pixels on a 375-pixel phone and to about 580 on a
-tablet; Sum Cross and Blackout Grid now keep a best score per difficulty
+tablet; Sum Cross and Duskgrid now keep a best score per difficulty
 instead of one shared number, Sum Cross sizes its cells from the panel width
 and the window height instead of a fixed 46 pixels (it used to push the panel
 104 pixels past the bottom of a small phone, now 6), and all five moved to the
@@ -644,20 +658,20 @@ What was fixed:
   so every tap has to be converted through the logical size instead. In this
   batch and the two before it I had converted the horizontal axis but left the
   vertical one reading the canvas element in three games (Jigsaw Pieces, Cube
-  Twist, Flip Tiles), and in Cosmic Voyager both axes were left that way, which
+  Twist, Flip Tiles), and in Farhaul both axes were left that way, which
   on a phone with a doubled pixel ratio aimed the ship at twice the distance
   and pinned it to the edge. All four are corrected, and each was re-checked on
   a simulated phone with a doubled pixel ratio: a tap on a legal square in Flip
   Tiles plays the move, a tray piece in Jigsaw Pieces can be dragged, an arrow
-  in Cube Twist shifts its row, and the ship in Cosmic Voyager now heads for
-  the middle of the screen when the pointer is there. Gem Swap, Bubble Burst
-  and Gridlock Escape were checked too and are correct as they stand, because
+  in Cube Twist shifts its row, and the ship in Farhaul now heads for
+  the middle of the screen when the pointer is there. Gleamfall, Bubble Burst
+  and Snarlpark were checked too and are correct as they stand, because
   in those three the canvas pixels are the coordinate space the game draws in.
 
 * Look. All five moved to the collection's typography, glass cards, segmented
   controls and pill buttons.
 
-24. Word games and sliding - games/gridlock-escape/, games/hidden-word/,
+24. Word games and sliding - games/snarlpark/, games/hidden-word/,
     games/five-letters/, games/anagram-blitz/, games/word-ladder/
 ------------------------------------------------------------------------------
 
@@ -673,7 +687,7 @@ this project's own tools.
 
 What was fixed:
 
-* games/gridlock-escape/ moved to a device-pixel-ratio canvas, and its tap
+* games/snarlpark/ moved to a device-pixel-ratio canvas, and its tap
   mapping was converted to the logical board at the same time - it read both
   axes from the canvas element, which the change would otherwise have thrown
   off. Verified on a simulated phone with a doubled pixel ratio: dragging a car
@@ -683,7 +697,7 @@ What was fixed:
   that was soft on any phone; it now renders at the device pixel ratio and
   reads its drawing size from a constant rather than from the canvas element.
 
-* Records. Anagram Blitz and Gridlock Escape kept one shared best score for all
+* Records. Anagram Blitz and Snarlpark kept one shared best score for all
   difficulties; each now keeps a separate record per difficulty. Hidden Word
   and Five Letters already stored a record per difficulty, and their run streak
   stays shared on purpose - it is a streak of the current run, not of a
@@ -752,8 +766,8 @@ What was fixed:
   controls and pill buttons, and Threadcatch's start and result card became a
   centred card on a full-screen backdrop like the rest of the collection.
 
-26. Quizzes, sliding tiles and the star catcher - games/capital-quiz/,
-    games/flag-quiz/, games/geoklik/, games/cesty/, games/stars/
+26. Quizzes, sliding tiles and the Glimmerdrift - games/capital-quiz/,
+    games/flag-quiz/, games/terrapick/, games/cesty/, games/glimmerdrift/
 ------------------------------------------------------------------------------
 
 Reworked on 10 September 2026. No licensing change was needed and nothing was
@@ -761,17 +775,17 @@ renamed. All five carry this project's own titles, ids and i18n prefixes (cap*,
 flag*, geo*, cesty*, stars*). The three quizzes ask about countries, capitals
 and flags - facts, which nobody owns - and the flags are drawn by this
 project's own code from plain coloured bands and shapes, not taken from any
-image set. The world outline in GeoKlik comes from Natural Earth and is public
+image set. The world outline in Terrapick comes from Natural Earth and is public
 domain, as section 2 of this file already records. Color Slide is a sliding
 puzzle, a nineteenth-century pastime in the public domain; its board carries no
-numbers and no artwork, only this project's own colours. Star Catcher is a
+numbers and no artwork, only this project's own colours. Glimmerdrift is a
 plain catcher: a basket, falling stars and a bonus star, all drawn by this
 project's own code, and its scoring (ten points a star, fifty for the bonus
 star, times a difficulty multiplier) is this project's own.
 
 What was fixed:
 
-* Star Catcher was the oldest game in the collection and had the most to
+* Glimmerdrift was the oldest game in the collection and had the most to
   answer for. It advanced everything once per drawn frame, so on a 120 Hz
   phone the stars fell twice as fast as on a 60 Hz one; it now measures
   elapsed time, and a test copy stepped at 30, 60, 120 and 144 frames a second
@@ -805,7 +819,7 @@ What was fixed:
   readers. Its description and its in-game hint were rewritten in all twelve
   languages to say so.
 
-* GeoKlik left a scrollbar on a tablet and a desktop screen: its panel asked
+* Terrapick left a scrollbar on a tablet and a desktop screen: its panel asked
   for the full window height and also carried a top margin, so the page was
   always taller than the window, and on a wide screen the map itself did not
   leave room for the rest. The margin no longer adds to the height and the map
@@ -819,7 +833,7 @@ What was fixed:
   and, below 360 pixels, steps aside for the score.
 
 * Checks after the change. Answering in Capital Quiz still scores, loses a
-  heart and ends the round; clicking a country in GeoKlik still scores and its
+  heart and ends the round; clicking a country in Terrapick still scores and its
   zoom buttons still work, so the new gradient frame does not swallow taps.
   Catching, missing, the extra life every ten stars, the bonus star, the
   per-difficulty record and the pause run-in were all exercised in Star
@@ -828,8 +842,8 @@ What was fixed:
 
 * Six i18n keys became unused and were removed from all twelve languages.
 
-27. The last five - games/code-breaker/, games/fluxgall/,
-    games/number-flash/, games/survival-arena/, games/word-weave/
+27. The last five - games/hueclue/, games/fluxgall/,
+    games/number-flash/, games/survival-arena/, games/spellweft/
 ------------------------------------------------------------------------------
 
 Reworked on 11 September 2026. Nothing was renamed, and all five already
@@ -838,13 +852,13 @@ arena*, wwv*). Two of them re-implement mechanics that belong to marked board
 games, and both were named around them long ago; CLAUDE.md now records the two
 mappings alongside the others:
 
-    Mastermind -> Code Breaker      Boggle -> Word Weave
+    Mastermind -> Hueclue      Boggle -> Spellweft
 
 Neither name, board, box art nor component appears anywhere in the code. Code
 Breaker scores a guess the way the pencil-and-paper game it descends from does
 - count the exact places, then the colours present but misplaced - which is the
 rule itself, not a published table, and its peg counts and attempt limits are
-this project's own. Word Weave draws its letters from this project's own
+this project's own. Spellweft draws its letters from this project's own
 frequency bag, not from any published set of dice faces, and its word list is
 the collection's own filtered selection described in section 7. Fluxgall,
 Number Flash and Survival Arena are this project's own designs throughout.
@@ -855,7 +869,7 @@ What was fixed:
   loaded them, so they had been rendering in the system face the whole time.
   Survival Arena needed nothing else: it was already built in the collection's
   design language. Number Flash gained the glass cards, the gradient-framed
-  panel and tabular figures; Code Breaker, Fluxgall and Word Weave moved to the
+  panel and tabular figures; Hueclue, Fluxgall and Spellweft moved to the
   collection's look in full.
 
 * Fluxgall had no record of any kind. It now keeps the best star rating of each
@@ -863,7 +877,7 @@ What was fixed:
   Threadcatch do; a run through the store confirms a better result overwrites,
   a worse one does not, and the summary counts four levels as twelve stars.
 
-* Word Weave kept one shared best score for all three board sizes; each size
+* Spellweft kept one shared best score for all three board sizes; each size
   now keeps its own. Its board was also a fixed fifty-six pixels a square, so
   the six-by-six board ran past the bottom of a phone, and on any screen under
   seven hundred pixels tall a rule shrank the board with a CSS transform while
@@ -873,7 +887,7 @@ What was fixed:
   column also refused to shrink below the width of its letter, which pinned the
   board at its widest; the letters now scale with the squares.
 
-* Code Breaker drew at one fixed size regardless of the display and, once it
+* Hueclue drew at one fixed size regardless of the display and, once it
   scaled, its board could grow taller than the space left for it. It now
   renders at the device pixel ratio and measures the space its board actually
   has. Tapping a peg to clear it was re-checked on a doubled pixel ratio and
@@ -882,7 +896,7 @@ What was fixed:
 * Fitting. A web font arrives after the first layout and changes every height,
   which left the board a little too large on a narrow phone; both panel games
   now recompute once the font is ready. On a phone held sideways their controls
-  are trimmed. Everything fits at the seven sizes checked except Word Weave in
+  are trimmed. Everything fits at the seven sizes checked except Spellweft in
   a 640 by 360 window, where the page scrolls rather than shrink its letters
   below a size worth dragging across - the same trade-off the earlier sections
   describe.
@@ -1035,8 +1049,8 @@ moment it is heard, from oscillators and filtered noise, by sfx.js - the same
 rule the graphics have always followed, where a shape is a function rather than
 a picture. A synthesised tone has no author to credit and no sample to clear.
 
-Seven games had sound of their own before this (cosmic-voyager, gem-swap,
-gravity-shift, rhythm, ricochet, tower-defense, twin-drop) and they keep it;
+Seven games had sound of their own before this (farhaul, gleamfall,
+gravlash, rhythm, Skipshot, tower-defense, twin-drop) and they keep it;
 they only ask the shared switch whether they may play. The other 103 had none.
 
 What sfx.js provides is a palette of twenty-eight named sounds - click, place,
@@ -1094,7 +1108,7 @@ lose; only its play counter starts from zero, because the launcher counts plays
 by id.
 
 
-33. GeoKlik rebuilt for small screens - games/geoklik/
+33. Terrapick rebuilt for small screens - games/terrapick/
 ------------------------------------------------------------------------------
 
 Reworked on 21 September 2026. No licensing change: the outlines are still the
@@ -1223,7 +1237,7 @@ could draw a complaint once the collection is public - names, ids, folders, key
 prefixes, artwork, data and shipped comments. Four things needed doing.
 
 **The word lists had no provenance.** Four games carried English dictionaries -
-word-weave 15,002 words, word-ladder 7,667, anagram-blitz 860, five-letters 799 -
+spellweft 15,002 words, word-ladder 7,667, anagram-blitz 860, five-letters 799 -
 all starting on the same alphabetical run (abaci, aback, abaft, abase) and so
 all cut from one source that nobody could name. Individual words are not
 protected, but a compiled list is: in the EU the sui generis database right
@@ -1249,14 +1263,14 @@ as common nouns ("jones"). Word Ladder is the exception and takes the whole
 lexicon by length, because the path from "pen" to "ink" runs through words no
 novel uses, and without them the puzzle cannot be walked at all.
 
-The new lists: word-weave 15,944, word-ladder 13,492, five-letters 800,
+The new lists: spellweft 15,944, word-ladder 13,492, five-letters 800,
 anagram-blitz 360 puzzles. All eighteen of Word Ladder's authored pairs were
 re-checked and every one is solvable; the games were then played through to
 confirm the data works (Word Ladder: COLD-CORD-WORD-WARD-WARM, par 4).
 One more thing had to be filtered out. The lexicon is complete and the corpus
 is nineteenth-century fiction, so between them they carry every racial slur and
 obscenity in the language - Huckleberry Finn alone accounts for most of them.
-The first build let 23 such words into word-weave and 43 into word-ladder, where
+The first build let 23 such words into spellweft and 43 into word-ladder, where
 the game would have accepted them as valid answers. The script now blocks them
 by stem, including inflected forms, and the block list is written out in the
 source so it can be read and argued with. After the rebuild all four lists scan
@@ -1265,6 +1279,26 @@ clean.
 Three entries look like trademarks but are ordinary English: "windows" (the
 plural), "scrabble" (the verb, older than the board game) and "xerox" (in the
 lexicon as a verb). A word list containing them is not trademark use.
+
+Two tools, one command. tools/build-wordlists.py generates the lists and then
+runs tools/filter-wordlists.py itself, because the second step is what makes the
+result reproducible: the filter strips entries that are not plain English
+headwords -- accented loanwords, Roman numerals used as dictionary entries,
+vowel-less strings and abbreviations with no reading as a word -- and takes 21
+more entries out. Running the generator alone would therefore produce files that
+differ from the ones in the repository, which is exactly the kind of gap this
+section exists to close. The word-ladder solvability check now runs twice, once
+before the lists are written and once on what actually survived the filter,
+because a removed word can break a path. The filter is idempotent and the whole
+chain is deterministic: two consecutive runs leave every file byte-identical.
+
+One flaw in that tooling was fixed at the same time: the filter aimed at a
+declaration called WORD_POOLS in type-rush, which does not exist -- the game
+calls it POOLS and stores it as ('word word ...').split(' '), not as a JSON
+literal, so it cannot be rewritten in place. It crashed there every time, after
+having already modified two other files. Those three pools are hand-written and
+need no filtering; they are now verified against the same rules instead, and all
+348 words pass.
 
 **Simon became Color Recall inside as well.** Simon is a registered trademark of
 Hasbro. The displayed title was already Color Recall, but the folder was

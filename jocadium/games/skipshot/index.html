@@ -167,7 +167,7 @@ canvas{display:block;touch-action:manipulation;}
 <button id="fire"></button>
 
 <script>
-/* ===== RICOCHET ENGINE ===== */
+/* ===== SKIPSHOT ENGINE ===== */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.SkipshotEngine = factory();
@@ -371,7 +371,7 @@ function probe(k){
   try { const v = t(k); return (typeof v === 'string' && v && v !== k) ? v : null; } catch(e){ return null; }
 }
 const LANG = (function(){
-  if (typeof window.RICOCHET_LANG === 'string') return /^(sk|cs)/i.test(window.RICOCHET_LANG) ? 'sk' : 'en';
+  if (typeof window.SKIPSHOT_LANG === 'string') return /^(sk|cs)/i.test(window.SKIPSHOT_LANG) ? 'sk' : 'en';
   const p = probe('back');                       // infer from the site's own translation
   if (p) { if (/^(späť|spat|zpět|zpet)$/i.test(p.trim())) return 'sk'; if (/^back$/i.test(p.trim())) return 'en'; }
   const cands = [window.currentLang, window.lang, window.LANG, document.documentElement.lang, navigator.language];

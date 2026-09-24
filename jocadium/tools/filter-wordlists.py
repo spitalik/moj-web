@@ -134,13 +134,27 @@ def check_split_string(rel: str, decl: str, terminator: str):
           f"{'clean' if not bad else 'CHECK: ' + ', '.join(bad[:12])}")
 
 
+def check_pools(rel: str, decl: str = "POOLS"):
+    """type-rush keeps three hand-written themed pools, each a JS expression
+    ('word word …').split(' ') rather than a JSON literal, so it cannot be
+    rewritten the way the generated lists are. It does not need to be — the
+    words were chosen by hand — but it is still checked against the same rules."""
+    text = (ROOT / rel).read_text(encoding="utf-8")
+    start = text.index(f"const {decl} = ")
+    region = text[start:text.index("];", start)]
+    words = [w for pool in re.findall(r"\('([a-z ]+)'\)\.split", region) for w in pool.split()]
+    bad = sorted({w for w in words if not keep(w)})
+    print(f"  {rel:44s} {decl:12s} {len(words):>6d} words  "
+          f"{'clean' if not bad else 'CHECK: ' + ', '.join(bad[:12])}")
+
+
 def main():
     print("Filtering embedded word lists\n")
     removed = 0
-    removed += patch("games/word-weave/index.html", "WORDS", flat)
+    removed += patch("games/spellweft/index.html", "WORDS", flat)
     removed += patch("games/word-ladder/index.html", "WORD_SETS", buckets)
-    removed += patch("games/type-rush/index.html", "WORD_POOLS", buckets)
     removed += patch("games/anagram-blitz/index.html", "PUZZLES", anagrams)
+    check_pools("games/type-rush/index.html")
     check_split_string("games/five-letters/index.html", "WORDS", ".split(' ')")
     check_split_string("games/hidden-word/index.html", "BANK", "\n        };")
 
