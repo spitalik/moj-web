@@ -28,7 +28,7 @@ body::after{content:"";position:fixed;left:-190px;bottom:-240px;width:570px;heig
 .ctrl-btn{color:var(--muted);padding:0 13px;cursor:pointer;transition:all .18s}
 .ctrl-btn:hover,.ctrl-btn:focus-visible{border-color:var(--border-h);color:var(--text);outline:none}
 #game-wrap{position:relative;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--bg2),var(--bg1));padding:8px;box-shadow:0 22px 80px rgba(0,0,0,.35)}
-canvas{display:block;width:min(92vw,620px);height:auto;border-radius:11px;background:#07090d}
+canvas{display:block;margin:0 auto;border-radius:11px;background:#07090d;touch-action:none}
 #overlay{position:absolute;z-index:20;inset:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;background:rgba(5,5,7,.91);backdrop-filter:blur(14px);border-radius:12px;text-align:center;padding:18px}
 #overlay.hidden{display:none}
 .ov-icon{font-size:42px;line-height:1}
@@ -75,32 +75,58 @@ canvas{display:block;width:min(92vw,620px);height:auto;border-radius:11px;backgr
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-const W = canvas.width;
-const H = canvas.height;
+// Svet je logicky stvorec 420x420 a kresli sa don bez ohladu na to, aku
+// velkost ma platno naozaj; o prepocet sa stara jedina transformacia nizsie.
+// Predtym mal svet 620x420, hoci dej sa deje v kruhu s polomerom 190 —
+// stvrtina sirky bola prazdna a na telefone to stlacilo vsetko na 56 %.
+const W = 420;
+const H = 420;
 const cx = W / 2;
 const cy = H / 2;
 
 function fitCanvas(){
+  // Pri prepinani rozlozenia vie okno na chvilu hlasit nulu. Keby som z toho
+  // pocital, platno by zamrzlo na minime — radsej to skusim v dalsom snimku.
+  if(!window.innerWidth || !window.innerHeight){
+    requestAnimationFrame(fitCanvas);
+    return;
+  }
   const page = document.querySelector('.page');
   const title = document.querySelector('.game-title');
   const hud = document.querySelector('.hud');
   const wrap = document.getElementById('game-wrap');
   const pageCs = getComputedStyle(page);
-  const gap = parseFloat(pageCs.rowGap || pageCs.gap) || 13;
-  const padTop = parseFloat(pageCs.paddingTop) || 0;
-  const padBottom = parseFloat(pageCs.paddingBottom) || 0;
   const wrapCs = getComputedStyle(wrap);
-  const wrapExtra = (parseFloat(wrapCs.paddingTop)||0) + (parseFloat(wrapCs.paddingBottom)||0)
-                   + (parseFloat(wrapCs.borderTopWidth)||0) + (parseFloat(wrapCs.borderBottomWidth)||0);
-  const reservedH = title.offsetHeight + hud.offsetHeight + padTop + padBottom + gap*2 + wrapExtra;
-  const availH = window.innerHeight - reservedH;
-  const availW = Math.min(window.innerWidth * 0.92, 620);
-  const ratio = W / H;
-  const targetW = Math.max(160, Math.min(availW, availH * ratio));
-  canvas.style.width = Math.floor(targetW) + 'px';
+  const gap = parseFloat(pageCs.rowGap || pageCs.gap) || 13;
+  const padY = (parseFloat(pageCs.paddingTop)||0) + (parseFloat(pageCs.paddingBottom)||0);
+  const wrapY = (parseFloat(wrapCs.paddingTop)||0) + (parseFloat(wrapCs.paddingBottom)||0)
+              + (parseFloat(wrapCs.borderTopWidth)||0) + (parseFloat(wrapCs.borderBottomWidth)||0);
+  const wrapX = (parseFloat(wrapCs.paddingLeft)||0) + (parseFloat(wrapCs.paddingRight)||0)
+              + (parseFloat(wrapCs.borderLeftWidth)||0) + (parseFloat(wrapCs.borderRightWidth)||0);
+  const reservedH = title.offsetHeight + hud.offsetHeight + padY + gap * 2 + wrapY;
+
+  // Rozmer sa berie z okna, nie z obalu: obal sa roztiahne podla platna, takze
+  // by si prvu hodnotu uz navzdy drzal a hra by sa neprisposobila.
+  const availW = Math.min(window.innerWidth * 0.94, 720) - wrapX;
+  const availH = window.innerHeight - reservedH - 8;
+
+  // Dej sa odohrava v kruhu, takze najlepsie miesto vyuzije stvorec.
+  const side = Math.max(220, Math.min(availW, availH, 720));
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.style.width = Math.floor(side) + 'px';
+  canvas.style.height = Math.floor(side) + 'px';
+  canvas.width = Math.round(side * dpr);
+  canvas.height = Math.round(side * dpr);
+  ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+  if(typeof draw === 'function') draw();
 }
 window.addEventListener('resize', fitCanvas);
 window.addEventListener('orientationchange', () => setTimeout(fitCanvas, 250));
+// Rozmer sa ustali az po rozlozeni stranky aj po prichode pisma, a v aplikacii
+// sa da okno zmenit aj bez udalosti resize — preto este pozorovatel.
+if(window.ResizeObserver) new ResizeObserver(fitCanvas).observe(document.querySelector('.page'));
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitCanvas);
+requestAnimationFrame(fitCanvas);
 
 const overlay = document.getElementById('overlay');
 const ovTitle = document.getElementById('ov-title');
@@ -120,6 +146,7 @@ const palette = [
 ];
 
 let ship = {angle:-Math.PI/2, radius:122, radialVel:0, angularVel:1.28};
+let invuln = 0;
 let cargo = null;
 let score = 0;
 let lives = 3;
@@ -160,6 +187,8 @@ function resetGame(){
   message = '';
   messageTimer = 0;
   ship = {angle:-Math.PI/2, radius:122, radialVel:0, angularVel:1.28};
+  invuln = 0;
+  thrusting = false;
   buildWave();
   updateHud();
   btnPause.textContent = t('orbhPause');
@@ -183,11 +212,11 @@ function buildWave(){
     });
     stations.push({
       angle: Math.PI * .85 - i * (Math.PI * 1.7 / count) - wave * .17,
-      radius: 178,
+      radius: 150 + (i % 2) * 32,
       color
     });
   }
-  const debrisCount = Math.min(7, 2 + wave);
+  const debrisCount = Math.min(6, 1 + wave);
   for(let i=0;i<debrisCount;i++){
     debris.push({
       angle: i * (Math.PI * 2 / debrisCount) + wave * .31,
@@ -208,9 +237,13 @@ function loop(now){
 }
 
 function update(dt){
-  ship.angularVel = 1.22 + wave * .055;
+  // Pomalsie kolo: pri povodnych 1,22 rad/s trvalo obehnutie 4,9 s a stanica
+  // sirokou 17 stupnov preletela za 0,23 s.
+  ship.angularVel = .92 + wave * .03;
   ship.angle = wrapAngle(ship.angle + ship.angularVel * dt);
+  if(thrusting) ship.radialVel = Math.min(VEL_CAP, ship.radialVel + THRUST_ACC * dt);
   ship.radialVel -= 62 * dt;
+  if(invuln > 0) invuln = Math.max(0, invuln - dt);
   ship.radius += ship.radialVel * dt;
   if(ship.radius < 66){ship.radius = 66; ship.radialVel = Math.max(0, ship.radialVel * -.2)}
   if(ship.radius > 190){ship.radius = 190; ship.radialVel = Math.min(0, ship.radialVel * -.35)}
@@ -222,20 +255,33 @@ function update(dt){
   updateHud();
 }
 
+// Krátke ťuknutie dá malý kop, podržanie drží motor zapnutý. Pôvodne bol
+// k dispozícii len jeden impulz +116 px/s: loď potom už len padala a hráč
+// nemal ako nič opraviť.
+const KICK = 34;        // okamzity kop pri stlaceni
+const THRUST_ACC = 168; // zrychlenie, kym je motor drzany
+const VEL_CAP = 124;
+let thrusting = false;
+
 function thrust(){
   if(!running){
     resetGame();
     return;
   }
   if(paused) return;
-  ship.radialVel = Math.min(142, ship.radialVel + 116);
+  thrusting = true;
+  ship.radialVel = Math.min(VEL_CAP, ship.radialVel + KICK);
+}
+
+function endThrust(){
+  thrusting = false;
 }
 
 function checkPickups(){
   if(cargo) return;
   for(const item of pickups){
     if(item.taken) continue;
-    if(distanceTo(item) < 23){
+    if(distanceTo(item) < 30){
       item.taken = true;
       cargo = item.color;
       flash(t('orbhCargo'), item.color.fill);
@@ -247,7 +293,7 @@ function checkPickups(){
 function checkStations(){
   if(!cargo) return;
   for(const station of stations){
-    if(distanceTo(station) > 26) continue;
+    if(distanceTo(station) > 34) continue;
     if(station.color.id === cargo.id){
       score++;
       flash(t('orbhDelivered'), cargo.fill);
@@ -271,7 +317,9 @@ function maybeAdvanceWave(){
 
 function checkDebris(){
   for(const rock of debris){
-    if(distanceTo(rock) < rock.size + 12){
+    if(invuln > 0) continue;
+    if(distanceTo(rock) < rock.size + 9){
+      invuln = 1.6;   // chvila nedotknutelnosti, inak sa zomiera v serii
       loseLife(t('orbhMissed'));
       ship.angle = wrapAngle(ship.angle + .42);
       ship.radius = 118;
@@ -339,6 +387,7 @@ function draw(){
   drawStations();
   drawPickups();
   drawDebris();
+  drawPreview();
   drawShip();
   drawMessage();
 }
@@ -412,6 +461,30 @@ function drawDebris(){
   }
 }
 
+// Kam loď doletí, ak hráč nič neurobí. Bez tohto musel odhadovať dráhu,
+// ktorá trvá skoro dve sekundy, naslepo.
+function drawPreview(){
+  if(!running || paused) return;
+  let r = ship.radius, v = ship.radialVel, a = ship.angle;
+  const step = .06;
+  ctx.save();
+  for(let i = 0; i < 34; i++){
+    if(thrusting) v = Math.min(VEL_CAP, v + THRUST_ACC * step);
+    v -= 62 * step;
+    r += v * step;
+    a = wrapAngle(a + ship.angularVel * step);
+    if(r < 66){ r = 66; v = Math.max(0, v * -.2); }
+    if(r > 190){ r = 190; v = Math.min(0, v * -.35); }
+    const p = polar(a, r);
+    ctx.globalAlpha = .34 * (1 - i / 34);
+    ctx.fillStyle = '#65d6ff';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2.1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawShip(){
   const p = polar(ship.angle, ship.radius);
   ctx.save();
@@ -459,6 +532,9 @@ canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
   thrust();
 });
+['pointerup','pointercancel','pointerleave'].forEach(ev =>
+  canvas.addEventListener(ev, endThrust));
+window.addEventListener('blur', endThrust);
 btnReset.addEventListener('click', resetGame);
 btnPause.addEventListener('click', () => {
   if(!running) return;
@@ -468,10 +544,14 @@ btnPause.addEventListener('click', () => {
 });
 ovBtn.addEventListener('click', resetGame);
 window.addEventListener('keydown', e => {
-  if(e.code === 'Space'){
+  if(e.code === 'Space' || e.code === 'ArrowUp'){
     e.preventDefault();
-    thrust();
+    if(!e.repeat) thrust();
+    else thrusting = running && !paused;
   }
+});
+window.addEventListener('keyup', e => {
+  if(e.code === 'Space' || e.code === 'ArrowUp') endThrust();
 });
 
 applyLabels();

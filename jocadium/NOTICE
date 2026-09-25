@@ -1377,3 +1377,50 @@ be a band and Lumefall an app the store search had missed.
 Earlier sections of this file use the names that were current when they were
 written; this section is the key to reading them.
 
+
+37. Orbhaul made playable - games/orbhaul/
+------------------------------------------------------------------------------
+
+Reworked on 25 September 2026 after the game was reported as hard on a desktop
+and close to impossible on a phone. No licensing change: an orbital delivery run
+is a mechanic, and every pixel of it is drawn by this project's own code.
+
+Three things were wrong, and the measurements say which mattered.
+
+**The playfield wasted most of the screen.** The world was 620 by 420, but the
+action happens inside a circle of radius 190 - a 380 by 380 square. A quarter of
+the width was empty space, and because the canvas kept that 3:2 shape it could
+only grow as wide as the phone allowed: on a 375-pixel screen it ended up 345 by
+234, using 234 of about 580 available pixels of height, with the orbit drawn at a
+radius of 106 px and the ship 5.6 px across. The world is now a 420 by 420
+square, the canvas takes the smaller of the free width and the free height, and
+it carries a device-pixel-ratio backing store so it is sharp. The same phone now
+gets a 334-pixel canvas with the orbit at 151 px; a 1280 by 800 window gets 589
+and 266. Nothing overflows at any of the three sizes tested.
+
+**One impulse was the whole control.** A tap added 116 px/s of outward speed
+against 62 px/s of gravity, which arcs 109 px and takes 1.9 seconds to reach its
+peak - and nothing could be corrected on the way. Meanwhile the ship swept round
+the circle every 4.9 seconds and a station covered 17 degrees of it, so the
+window for arriving at the right radius was 0.23 seconds, aimed nearly two
+seconds in advance. Holding now fires the thruster continuously (168 px/s² while
+held, a small 34 px/s kick on press) so the ship can be flown rather than lobbed,
+and a dotted arc shows where it will be over the next two seconds. The orbit was
+slowed to 0.92 rad/s, which is 6.8 seconds a lap.
+
+**The rest was fairness.** Pickup range went from 23 to 30 and docking range from
+26 to 34; stations no longer all sit on the outer wall at radius 178 but
+alternate between 150 and 182; the first wave carries two rocks instead of three
+and the collision radius is 9 px past the rock rather than 12; and a hit now
+grants 1.6 seconds of immunity, because the ship used to be able to lose two or
+three lives to the same rock in a second. The hint text was rewritten in all
+twelve languages to say hold rather than tap.
+
+Two bugs surfaced while fixing the sizing and are worth recording, because both
+are traps this collection could fall into again. The first: sizing a canvas from
+the box it lives in, when that box is sized by its content, is a ratchet - the
+canvas grows, the box grows with it, and it never shrinks back. The size is now
+taken from the window. The second: during a layout change the window can briefly
+report zero, and computing from that pinned the canvas to its 220-pixel minimum;
+it now defers to the next frame instead.
+
