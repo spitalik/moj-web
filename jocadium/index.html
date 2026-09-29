@@ -145,8 +145,8 @@ header{padding:44px 0 0;display:flex;align-items:flex-start;justify-content:spac
       <input type="text" id="search" autocomplete="off" spellcheck="false">
     </div>
     <div class="filters" id="filters">
-      <button class="filter-btn active" data-tag="played"></button>
-      <button class="filter-btn" data-tag="all"></button>
+      <button class="filter-btn active" data-tag="all"></button>
+      <button class="filter-btn" data-tag="played"></button>
       <button class="filter-btn" data-tag="arcade"></button>
       <button class="filter-btn" data-tag="puzzle"></button>
       <button class="filter-btn" data-tag="action"></button>
@@ -292,10 +292,10 @@ const GAMES = [
 ];
 
 const TAG_CLASS  = {arcade:'tag-arcade',puzzle:'tag-puzzle',action:'tag-action',strategy:'tag-strategy',memory:'tag-memory',word:'tag-word'};
-const TAG_FILTER = {played:'filterPlayed',all:'filterAll',arcade:'filterArcade',puzzle:'filterPuzzle',action:'filterAction',strategy:'filterStrategy',memory:'filterMemory',word:'filterWord'};
+const TAG_FILTER = {all:'filterAll',played:'filterPlayed',arcade:'filterArcade',puzzle:'filterPuzzle',action:'filterAction',strategy:'filterStrategy',memory:'filterMemory',word:'filterWord'};
 const TAG_LABEL  = {arcade:'tagArcade',puzzle:'tagPuzzle',action:'tagAction',strategy:'tagStrategy',memory:'tagMemory',word:'tagWord'};
 
-let activeTag='played', searchQuery='';
+let activeTag='all', searchQuery='';
 
 // ── Koľkokrát hráč ktorú hru otvoril ──────────────────────────────────────
 // Pod tlačidlom „Najhranejšie" sa zoznam radí podľa tohto počtu. Hry s nulou
