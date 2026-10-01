@@ -23,10 +23,36 @@ body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;left:
 .ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
 .ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
 .ctrl-btn.active{border-color:var(--c);color:var(--c);background:var(--cdim);}
-#board-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:10px;display:inline-flex;}
+#board-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:10px;display:inline-flex;position:relative;}
+
+/* ── hotový obrazec ──────────────────────────────────────────────────
+   Po vyriešení sa pomôcky stiahnu do pozadia a zostane len to, čo hráč
+   vykreslil; políčka sa rozsvietia po diagonálach, aby bolo vidieť, že
+   je to jeden obraz, nie mriežka. */
+#grid-table.solved .clue-cell{opacity:.18;transition:opacity .5s ease;}
+#grid-table.solved .grid-cell{border-color:transparent;transition:background .35s ease,box-shadow .35s ease,transform .35s ease;}
+#grid-table.solved .grid-cell.marked::after{opacity:0;transition:opacity .3s ease;}
+#grid-table.solved .grid-cell.filled{
+  background:linear-gradient(145deg,#8affc0,#39d7ff);
+  box-shadow:0 0 14px rgba(77,255,200,.45);
+  transform:scale(1.06);
+}
+#solved-banner{
+  position:absolute;left:50%;top:2px;transform:translate(-50%,0) scale(.92);
+  display:flex;align-items:center;gap:10px;white-space:nowrap;
+  padding:7px 16px;border-radius:100px;z-index:4;
+  background:rgba(8,14,12,.92);border:1px solid rgba(138,255,192,.55);
+  box-shadow:0 10px 30px -12px rgba(0,0,0,.9);
+  font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#8affc0;
+  opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;
+}
+#solved-banner.show{opacity:1;transform:translate(-50%,0) scale(1);}
+#solved-banner .pic{font-size:20px;line-height:1;}
+#solved-banner small{font-family:'DM Sans',sans-serif;font-weight:500;font-size:11.5px;color:rgba(239,248,255,.55);}
 table{border-collapse:collapse;}
 .clue-cell{padding:2px 4px;text-align:center;font-size:clamp(9px,2vw,12px);color:var(--muted);font-weight:500;min-width:20px;}
-.clue-cell.done{color:var(--dim);}
+.clue-cell.done{color:var(--dim);opacity:.4;text-decoration:line-through;
+  text-decoration-thickness:1px;transition:opacity .18s ease,color .18s ease;}
 .grid-cell{width:clamp(22px,6vw,32px);height:clamp(22px,6vw,32px);border:1px solid rgba(255,255,255,0.07);cursor:pointer;transition:background .1s;-webkit-tap-highlight-color:transparent;position:relative;}
 .grid-cell.filled{background:var(--c);box-shadow:0 0 6px rgba(77,255,145,0.4);}
 .grid-cell.marked{background:transparent;}
@@ -73,7 +99,7 @@ button,a,[onclick]{touch-action:manipulation;}
     <button class="ctrl-btn" id="btn-mode-mark" onclick="setMode('mark')"></button>
     <button class="ctrl-btn" id="btn-new" onclick="showMenu()"></button>
   </div>
-  <div id="board-wrap"><table id="grid-table"></table></div>
+  <div id="board-wrap"><table id="grid-table"></table><div id="solved-banner"></div></div>
   <div style="font-size:12px;color:var(--dim);text-align:center;max-width:340px" id="status-txt"></div>
 </div>
 <script>
@@ -89,6 +115,7 @@ const MAX_ERRORS=3;        // toľko chýb a hra končí
 let diffIdx=0;
 
 let solution,state,SIZE,mode='fill',errors=0,timerVal=0,timerInt,dragging=false,dragVal=null;
+let rowClues=[],colClues=[];   // nápovedy, aby sa dalo odškrtávať
 let penalized=new Set();   // políčka, za ktoré už chyba bola pripísaná (aby ťahanie nenafúklo počítadlo)
 let errFlashTO=null;
 let gameOver=false;
@@ -107,8 +134,56 @@ function setMode(m){
   document.getElementById('btn-mode-mark').classList.toggle('active',m==='mark');
 }
 
+// ── predlohy ────────────────────────────────────────────────────────
+// Náhodná mriežka vyzerá ako šum a navyše sa v nej často nedá dôjsť k cieľu
+// úvahou – na ťažkej úrovni skoro v štyroch z desiatich prípadov nastane bod,
+// kde už hráčovi neostáva nič iné, len hádať. A hádanie tu stojí chybu.
+// Preto sú to kreslené obrázky; každý prešiel riešiteľom (tools/check-nonograms.py),
+// ktorý overil, že sa dá dokončiť čistou úvahou – a teda má jediné riešenie.
+// Prvý prvok je emodži, ktoré sa ukáže až po vyriešení.
+const PICTURES={
+ 5:[
+  ['💗','.#.#.','#####','#####','.###.','..#..'],
+  ['➕','..#..','..#..','#####','..#..','..#..'],
+  ['🌲','..#..','.###.','#####','..#..','.###.'],
+  ['🏠','..#..','.###.','#####','#.#.#','#.#.#'],
+  ['☕','#####','#...#','#...#','.###.','#####'],
+  ['⭐','..#..','#####','.###.','.#.#.','#...#'],
+  ['⚓','..#..','.###.','..#..','#.#.#','.###.'],
+  ['🔑','.###.','.#.#.','.###.','..#..','..##.'],
+  ['⛵','...#.','..##.','.###.','#####','.###.'],
+  ['🐟','..#..','.####','#####','.####','..#..'],
+ ],
+ 10:[
+  ['🐱','.#......#.','.##....##.','.########.','.#.##.##.#','.########.','.##.##.##.','.########.','..######..','...####...','....##....'],
+  ['⛵','....#.....','....##....','....###...','....####..','....#####.','....#.....','..#######.','.#########','..#######.','...#####..'],
+  ['🚀','....##....','...####...','...#..#...','...####...','..######..','..#.##.#..','..######..','...####...','...#..#...','...#..#...'],
+  ['🌼','...####...','..######..','.###..###.','.###..###.','..######..','...####...','....##....','...###....','....##....','...####...'],
+  ['🍄','...####...','..######..','.########.','##########','.########.','....##....','....##....','....##....','...####...','..######..'],
+  ['💧','....#.....','....##....','...####...','...####...','..######..','..######..','.########.','..######..','..######..','...####...'],
+  ['☕','..#..#....','..#..#....','..........','.########.','.########.','.######.##','.######..#','.######.##','.########.','..######..'],
+  ['🏠','....##....','...####...','..######..','.########.','##########','.#......#.','.#.####.#.','.#.####.#.','.#.####.#.','.########.'],
+ ],
+ 15:[
+  ['⛵','.......#.......','.......##......','.......###.....','.......####....','.......#####...','.......######..','.......#######.','.......#.......','.......#.......','...#########...','..###########..','.#############.','..###########..','...#########...','.....#####.....'],
+  ['💗','...###...###...','..#####.#####..','.#############.','###############','###############','###############','.#############.','..###########..','...#########...','....#######....','.....#####.....','......###......','.......#.......','...............','...............'],
+  ['🌲','.......#.......','......###......','.....#####.....','....#######....','......###......','.....#####.....','....#######....','...#########...','.....#####.....','....#######....','...#########...','..###########..','.......#.......','.......#.......','.....#####.....'],
+  ['🔑','.....#####.....','....##...##....','....#.....#....','....#.....#....','....##...##....','.....#####.....','.......#.......','.......#.......','.......#.......','.......###.....','.......#.......','.......###.....','.......#.......','.......##......','.......#.......'],
+  ['🐱','.##.........##.','.###.......###.','.####.....####.','.#############.','.#############.','.##...###...##.','.##...###...##.','.#############.','.######.######.','.#####.#.#####.','.#############.','.#############.','..###########..','...#########...','.....#####.....'],
+  ['🍄','....#######....','..###########..','.#############.','###############','###.#######.###','###.#######.###','.#############.','..###########..','.....#####.....','.....#####.....','.....#####.....','.....#####.....','....#######....','...#########...','...#########...'],
+ ],
+};
+
+let picEmoji='🎉';
+let lastPic={};
+
 function genSolution(sz){
-  return Array.from({length:sz},()=>Array.from({length:sz},()=>Math.random()<0.55?1:0));
+  const set=PICTURES[sz];
+  let i=Math.floor(Math.random()*set.length);
+  if(set.length>1&&i===lastPic[sz])i=(i+1+Math.floor(Math.random()*(set.length-1)))%set.length;
+  lastPic[sz]=i;
+  picEmoji=set[i][0];
+  return set[i].slice(1).map(row=>[...row].map(ch=>ch==='#'?1:0));
 }
 
 function clues(arr){
@@ -165,6 +240,11 @@ function updateErrHud(){
 }
 
 function startGame(){
+  clearTimeout(revealTO);
+  const tbl0=document.getElementById('grid-table');
+  if(tbl0) tbl0.classList.remove('solved');
+  const ban=document.getElementById('solved-banner');
+  if(ban) ban.classList.remove('show');
   SFX.play('start');
   document.getElementById('overlay').style.display='none';
   SIZE=DIFFS[diffIdx].size;
@@ -185,8 +265,8 @@ function startGame(){
 function renderGrid(){
   const tbl=document.getElementById('grid-table');
   tbl.innerHTML='';
-  const rowClues=solution.map(row=>clues(row));
-  const colClues=solution[0].map((_,c)=>clues(solution.map(r=>r[c])));
+  rowClues=solution.map(row=>clues(row));
+  colClues=solution[0].map((_,c)=>clues(solution.map(r=>r[c])));
   const maxRowClue=Math.max(...rowClues.map(c=>c.length));
   const maxColClue=Math.max(...colClues.map(c=>c.length));
 
@@ -200,6 +280,7 @@ function renderGrid(){
       td.className='clue-cell';
       const idx=colClues[c].length-(maxColClue-hRow);
       td.textContent=idx>=0?colClues[c][idx]:'';
+      if(idx>=0)td.dataset.col=c;
       tr.appendChild(td);
     }
     tbl.appendChild(tr);
@@ -214,6 +295,7 @@ function renderGrid(){
       td.className='clue-cell';
       const idx=rowClues[r].length-(maxRowClue-i);
       td.textContent=idx>=0?rowClues[r][idx]:'';
+      if(idx>=0)td.dataset.row=r;
       tr.appendChild(td);
     }
     // grid cells
@@ -238,6 +320,24 @@ function renderGrid(){
     }
     tbl.appendChild(tr);
   }
+  for(let i=0;i<SIZE;i++){markDone('row',i);markDone('col',i);}
+}
+
+// ── odškrtávanie hotových nápovied ──────────────────────────────────
+// Keď sa riadok (stĺpec) zhoduje so svojou nápoveďou, čísla zblednú a
+// preškrtnú sa. Pri 15×15 je to hlavná úľava: hráč nemusí po každom ťahu
+// prechádzať celý okraj a kontrolovať, čo už má za sebou.
+// Zle vyfarbené políčko hra nikdy nenechá stáť, takže vyfarbené políčka sú
+// vždy podmnožinou riešenia – ak teda nápoveď sedí, riadok je naozaj hotový.
+function sameClue(a,b){return a.length===b.length&&a.every((v,i)=>v===b[i]);}
+
+function markDone(kind,idx){
+  const line=kind==='row'
+    ? state[idx].map(v=>v===1?1:0)
+    : state.map(row=>row[idx]===1?1:0);
+  const done=sameClue(clues(line),kind==='row'?rowClues[idx]:colClues[idx]);
+  document.querySelectorAll(`.clue-cell[data-${kind==='row'?'row':'col'}="${idx}"]`)
+    .forEach(td=>td.classList.toggle('done',done));
 }
 
 function startDrag(r,c){
@@ -285,6 +385,7 @@ function registerError(r,c){
   }
   state[r][c]=0;              // ťah sa zruší
   const td=paintCell(r,c);
+  markDone('row',r);markDone('col',c);
   if(td){
     td.classList.add('wrong');
     setTimeout(()=>td.classList.remove('wrong'),280);
@@ -302,6 +403,7 @@ function applyDrag(r,c){
   SFX.play('tick');
   state[r][c]=dragVal;
   paintCell(r,c);
+  markDone('row',r);markDone('col',c);
   checkWin();
 }
 
@@ -311,18 +413,43 @@ document.addEventListener('touchend',()=>dragging=false);
 function checkWin(){
   if(gameOver)return;
   const solved=solution.every((row,r)=>row.every((v,c)=>(v===1)===(state[r][c]===1)));
-  if(solved){
-    SFX.play('win');
-    clearInterval(timerInt);
-    gameOver=true;
-    showOverlay({
-      icon:'🎉',
-      title:t('nonogramWin'),
-      big:`${timerVal}s`,
-      sub:`${t('nonogramErrors')}: ${errors} / ${MAX_ERRORS}`,
-      btn:t('nonogramAgain')
-    });
-  }
+  if(!solved)return;
+  SFX.play('win');
+  clearInterval(timerInt);
+  gameOver=true;
+  revealSolved();
+}
+
+// Okno s vysledkom az po tom, co si hrac stihne pozriet, co vyriesil.
+const REVEAL_MS=2600;
+let revealTO=null;
+
+function revealSolved(){
+  const tbl=document.getElementById('grid-table');
+  tbl.classList.add('solved');
+  // policka sa rozsvecuju po diagonalach, nie naraz
+  tbl.querySelectorAll('.grid-cell').forEach(td=>{
+    const r=+td.dataset.r, c=+td.dataset.c;
+    td.style.transitionDelay=((r+c)*0.035)+'s';
+  });
+  const banner=document.getElementById('solved-banner');
+  banner.innerHTML=`<span class="pic">${picEmoji}</span> ${t('nonogramWin')} `
+    +`<small>${timerVal}s · ${t('nonogramErrors')} ${errors}/${MAX_ERRORS}</small>`;
+  banner.classList.add('show');
+  // ťuknutie preskoci cakanie
+  const skip=()=>{clearTimeout(revealTO);finishReveal();};
+  document.addEventListener('pointerdown',skip,{once:true});
+  revealTO=setTimeout(()=>{document.removeEventListener('pointerdown',skip);finishReveal();},REVEAL_MS);
+}
+
+function finishReveal(){
+  showOverlay({
+    icon:picEmoji,
+    title:t('nonogramWin'),
+    big:`${timerVal}s`,
+    sub:`${t('nonogramErrors')}: ${errors} / ${MAX_ERRORS}`,
+    btn:t('nonogramAgain')
+  });
 }
 
 showMenu();   // úvodné menu

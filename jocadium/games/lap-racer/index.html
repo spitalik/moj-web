@@ -24,8 +24,18 @@ canvas{position:fixed;inset:0;width:100%;height:100%;}
 .hpill{background:rgba(11,11,16,0.88);border:1px solid var(--border);border-radius:100px;
   padding:5px 14px;font-size:12px;font-weight:500;color:var(--muted);backdrop-filter:blur(6px);white-space:nowrap;}
 .hpill span{color:var(--c);font-variant-numeric:tabular-nums;}
+#h-pos{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:.4px;color:#fff;
+  background:rgba(245,158,11,.16);border-color:rgba(245,158,11,.4);}
+#h-pos span{color:var(--c);}
+/* Mapka patri nad tlacidla vlavo dole - hore vpravo su pilulky a vlavo hore poradie. */
+/* top/right sa musia zrusit: pravidlo canvas{inset:0} ich inak drzi na nule
+   a mapka by zostala vlavo hore na tlacidlach. */
+#mini{position:fixed;left:16px;bottom:104px;top:auto;right:auto;z-index:20;width:96px;height:96px;border-radius:14px;
+  background:rgba(11,11,16,.78);border:1px solid var(--border);backdrop-filter:blur(6px);}
+@media (max-height:520px){#mini{width:72px;height:72px}}
 /* Leaderboard */
-#lb{position:fixed;top:16px;left:60px;z-index:20;display:flex;flex-direction:column;gap:3px;}
+/* Poradie patri pod tlacidla Spat a zvuk - predtym mu lezali na prvom riadku. */
+#lb{position:fixed;top:54px;left:16px;z-index:20;display:flex;flex-direction:column;gap:3px;}
 .lb-row{background:rgba(11,11,16,0.82);border:1px solid var(--border);border-radius:8px;
   padding:3px 10px;font-size:11px;display:flex;gap:8px;align-items:center;backdrop-filter:blur(4px);}
 .lb-pos{color:var(--c);font-weight:700;width:14px;}
@@ -65,6 +75,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;}
 <body>
 <a id="back-btn" href="../../index.html">← <span id="lbl-back"></span></a>
 <div id="hud">
+  <div class="hpill" id="h-pos"></div>
   <div class="hpill" id="h-lap"></div>
   <div class="hpill" id="h-time"></div>
   <div class="hpill" id="h-best"></div>
@@ -72,13 +83,14 @@ canvas{position:fixed;inset:0;width:100%;height:100%;}
 </div>
 <div id="lb"></div>
 <canvas id="c"></canvas>
+<canvas id="mini" width="192" height="192"></canvas>
 <div id="ctrl">
   <div style="display:flex;gap:8px;">
     <div class="cBtn" id="cb-left">◀</div>
     <div class="cBtn" id="cb-right">▶</div>
   </div>
   <div style="display:flex;gap:8px;">
-    <div class="cBtn" id="cb-down">⬛ brz</div>
+    <div class="cBtn" id="cb-down">▼</div>
     <div class="cBtn" id="cb-up" style="font-size:30px;">▲</div>
   </div>
 </div>
@@ -101,8 +113,9 @@ document.getElementById('lbl-back').textContent = t('back');
 const C=document.getElementById('c'), cx=C.getContext('2d');
 let W,H;
 function resize(){W=C.width=window.innerWidth;H=C.height=window.innerHeight;}
-resize(); window.addEventListener('resize',()=>{resize();if(gameState==='playing')buildCamera();});
-window.addEventListener('orientationchange', () => setTimeout(()=>{resize();if(gameState==='playing')buildCamera();}, 250));
+resize();
+window.addEventListener('resize',()=>{resize();if(gameState==='intro')fitWholeTrack();});
+window.addEventListener('orientationchange', () => setTimeout(()=>{resize();if(gameState==='intro')fitWholeTrack();}, 250));
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────
 const TOTAL_LAPS = 3;
@@ -123,6 +136,8 @@ const PLAYER_COL = '#22c55e';
 // Track = array of {x,y} centre-line waypoints, closed loop
 // We generate a random smooth closed polygon then subdivide + smooth it.
 let trackPts=[];   // centre-line points (world coords)
+let trackBBox={minX:0,maxX:0,minY:0,maxY:0};
+let scenery=[];    // stromy a kry vedla trate — raz vygenerovane, nie nahodne kazdy snimok
 let trackSegs=[];  // {cx,cy,nx,ny,dx,dy,len,cumLen} — normalized segment data
 let totalLen=0;
 
@@ -160,6 +175,13 @@ function generateTrack(seed){
 
   trackPts=pts;
 
+  // Obalka trate — pre mapku aj pre rozsyp stromov.
+  trackBBox={minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity};
+  for(const p of pts){
+    if(p.x<trackBBox.minX)trackBBox.minX=p.x; if(p.x>trackBBox.maxX)trackBBox.maxX=p.x;
+    if(p.y<trackBBox.minY)trackBBox.minY=p.y; if(p.y>trackBBox.maxY)trackBBox.maxY=p.y;
+  }
+
   // 3. Build segment data
   trackSegs=[];
   totalLen=0;
@@ -170,6 +192,24 @@ function generateTrack(seed){
     const len=Math.hypot(dx,dy);
     trackSegs.push({cx:a.x,cy:a.y,nx:b.x,ny:b.y,dx:dx/len,dy:dy/len,len,cumLen:totalLen});
     totalLen+=len;
+  }
+}
+
+// Okolie trate. Je odvodene zo seedu, takze na tej istej trati stoji vzdy
+// rovnako — inak by stromy pri kazdom snimku poskakovali.
+function buildScenery(seed){
+  scenery=[];
+  let s=seed;
+  const pad=260;
+  const x0=trackBBox.minX-pad, x1=trackBBox.maxX+pad;
+  const y0=trackBBox.minY-pad, y1=trackBBox.maxY+pad;
+  for(let i=0;i<260;i++){
+    s=lcg(s); const rx=((s&0xffff)/0xffff);
+    s=lcg(s); const ry=((s&0xffff)/0xffff);
+    s=lcg(s); const rr=((s&0xffff)/0xffff);
+    const x=x0+rx*(x1-x0), y=y0+ry*(y1-y0);
+    if(distToTrack(x,y) < TRACK_W+58) continue;   // nie na ceste ani tesne pri nej
+    scenery.push({x,y,r:13+rr*16,kind:rr<0.3?1:0});
   }
 }
 
@@ -218,19 +258,34 @@ function distToTrack(wx,wy){
 }
 
 // ── CAMERA ────────────────────────────────────────────────────────────────
-let camX=0,camY=0,camScale=1;
-function buildCamera(){
-  // Find bounding box of track
-  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
-  for(const p of trackPts){
-    if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x;
-    if(p.y<minY)minY=p.y; if(p.y>maxY)maxY=p.y;
-  }
-  const tw=maxX-minX+TRACK_W*4, th=maxY-minY+TRACK_W*4;
-  camScale=Math.min(W/tw, H/th)*0.92;
-  camX=(minX-TRACK_W*2)*camScale - (W-(tw*camScale))/2;
-  camY=(minY-TRACK_W*2)*camScale - (H-(th*camScale))/2;
+// Doteraz sa do obrazu vtesnala cela trat, takze auto malo pat bodov a z jazdy
+// nebolo vidiet nic. Kamera teraz ide za autom, pozera kusok dopredu a pri
+// vyssej rychlosti sa trochu oddiali. Prehlad o trati dava mapka v rohu.
+let camX=0,camY=0,camScale=1,camInit=false;
+
+function baseScale(){
+  return Math.max(0.8, Math.min(2.3, 0.44*Math.min(W,H)/(TRACK_W*2)));
 }
+
+function fitWholeTrack(){
+  const tw=trackBBox.maxX-trackBBox.minX+TRACK_W*4, th=trackBBox.maxY-trackBBox.minY+TRACK_W*4;
+  camScale=Math.min(W/tw, H/th)*0.92;
+  camX=(trackBBox.minX-TRACK_W*2)*camScale - (W-(tw*camScale))/2;
+  camY=(trackBBox.minY-TRACK_W*2)*camScale - (H-(th*camScale))/2;
+}
+
+function updateCamera(dt){
+  if(!player){ fitWholeTrack(); return; }
+  const target = baseScale()*(1 - 0.16*(player.speed/MAX_SPEED));
+  camScale += (target-camScale)*Math.min(1, dt*2.5);
+  const lead = 0.24*player.speed;
+  const tx = player.x + Math.cos(player.angle)*lead;
+  const ty = player.y + Math.sin(player.angle)*lead;
+  const dx = tx*camScale - W/2, dy = ty*camScale - H/2;
+  if(!camInit){ camX=dx; camY=dy; camInit=true; }
+  else { const k=Math.min(1, dt*6); camX+=(dx-camX)*k; camY+=(dy-camY)*k; }
+}
+
 function toScreen(wx,wy){return{sx:wx*camScale-camX, sy:wy*camScale-camY};}
 
 // ── CAR ───────────────────────────────────────────────────────────────────
@@ -264,7 +319,10 @@ function initRace(){
   SFX.play('start');
   trackSeed=Date.now()&0x7fffffff;
   generateTrack(trackSeed);
-  buildCamera();
+  buildScenery(trackSeed);
+  fitWholeTrack();
+  camInit=false;
+  skids=[]; dust=[]; lapFlash=0; lapFlashTxt='';
 
   // Start positions: staggered on track
   const startOffsets=[-TRACK_W*0.55, TRACK_W*0.55, -TRACK_W*0.55, TRACK_W*0.55];
@@ -280,7 +338,7 @@ function initRace(){
   player=allCars[0];
   aiCars=allCars.slice(1);
 
-  raceTime=0; countdownT=3;
+  raceTime=0; countdownT=3; lastShownLap=0;
   gameState='countdown';
   document.getElementById('ov').style.display='none';
   document.getElementById('ctrl').style.display='flex';
@@ -341,6 +399,8 @@ const AI_DIFF=[0.82, 0.90, 0.96]; // per AI
 
 function updateCar(car, steer, throttle, brake, dt){
   if(car.finished) return;
+  car.steerAmt = steer;        // pre stopy pneumatík
+  car.braking = !!brake;
 
   // Steering — works even at low speed (min factor 0.25)
   const speedFactor = Math.max(0.25, car.speed/MAX_SPEED);
@@ -408,94 +468,177 @@ function fmtTime(s){
 function drawTrack(){
   const n=trackPts.length;
 
-  // --- Grass background ---
-  cx.fillStyle='#0d1f0d';
+  // ── tráva ──────────────────────────────────────────────────────────────
+  // Kosené pruhy namiesto jednoliatej zelenej: pri rýchlosti je práve z nich
+  // vidieť, že sa svet hýbe.
+  cx.fillStyle='#16301a';
   cx.fillRect(0,0,W,H);
+  const band=46*camScale;
+  if(band>3){
+    cx.fillStyle='#193620';
+    const off=(-camY)%(band*2);
+    for(let y=off-band*2;y<H+band*2;y+=band*2) cx.fillRect(0,y,W,band);
+  }
 
-  // --- Road surface (thick polyline) ---
-  // Draw as filled polygon: outer then inner edge
+  // stromy a kry — len tie, čo sú v obraze
+  for(const o of scenery){
+    const {sx,sy}=toScreen(o.x,o.y);
+    const r=o.r*camScale;
+    if(sx<-r-20||sx>W+r+20||sy<-r-20||sy>H+r+20) continue;
+    cx.fillStyle='rgba(0,0,0,.33)';
+    cx.beginPath(); cx.ellipse(sx+r*0.3, sy+r*0.34, r*0.95, r*0.6, 0, 0, Math.PI*2); cx.fill();
+    cx.fillStyle=o.kind?'#2f6b35':'#27592c';
+    cx.beginPath(); cx.arc(sx,sy,r,0,Math.PI*2); cx.fill();
+    cx.fillStyle=o.kind?'rgba(120,200,120,.3)':'rgba(110,180,110,.22)';
+    cx.beginPath(); cx.arc(sx-r*0.3,sy-r*0.3,r*0.5,0,Math.PI*2); cx.fill();
+  }
+
   cx.save();
   cx.lineJoin='round';
   cx.lineCap='round';
 
-  // Road base (asphalt)
-  cx.beginPath();
-  for(let i=0;i<n;i++){
-    const p=trackPts[i];
-    const {sx,sy}=toScreen(p.x,p.y);
-    i===0?cx.moveTo(sx,sy):cx.lineTo(sx,sy);
-  }
-  cx.closePath();
-  cx.strokeStyle='#1c1c22';
-  cx.lineWidth=(TRACK_W*2+16)*camScale;
-  cx.stroke();
-
-  // Road colour
-  cx.beginPath();
-  for(let i=0;i<n;i++){
-    const p=trackPts[i];
-    const {sx,sy}=toScreen(p.x,p.y);
-    i===0?cx.moveTo(sx,sy):cx.lineTo(sx,sy);
-  }
-  cx.closePath();
-  cx.strokeStyle='#2a2a32';
-  cx.lineWidth=(TRACK_W*2)*camScale;
-  cx.stroke();
-
-  // --- Lane markings (dashed centre line) ---
-  cx.setLineDash([18*camScale, 14*camScale]);
-  cx.beginPath();
-  for(let i=0;i<n;i++){
-    const p=trackPts[i];
-    const {sx,sy}=toScreen(p.x,p.y);
-    i===0?cx.moveTo(sx,sy):cx.lineTo(sx,sy);
-  }
-  cx.closePath();
-  cx.strokeStyle='rgba(255,255,255,0.12)';
-  cx.lineWidth=2*camScale;
-  cx.stroke();
-  cx.setLineDash([]);
-
-  // --- Kerbs (red/white stripes on edges) ---
-  const kerbW=(TRACK_W+2)*camScale;
-  for(let side=-1;side<=1;side+=2){
+  // ── asfalt ─────────────────────────────────────────────────────────────
+  function lay(width, style){
+    cx.beginPath();
     for(let i=0;i<n;i++){
-      const a=trackPts[i], b=trackPts[(i+1)%n];
-      const ang=Math.atan2(b.y-a.y,b.x-a.x);
+      const p=trackPts[i];
+      const {sx,sy}=toScreen(p.x,p.y);
+      i===0?cx.moveTo(sx,sy):cx.lineTo(sx,sy);
+    }
+    cx.closePath();
+    cx.strokeStyle=style; cx.lineWidth=width; cx.stroke();
+  }
+  lay((TRACK_W*2+26)*camScale, '#0f2413');          // okraj do trávy
+  lay((TRACK_W*2+10)*camScale, 'rgba(255,255,255,.5)'); // biela čiara po stranách
+  lay((TRACK_W*2)*camScale,   '#2b2b33');           // povrch
+
+  // ── obrubníky ──────────────────────────────────────────────────────────
+  for(let side=-1;side<=1;side+=2){
+    for(let i=1;i<n;i++){
+      const a=trackPts[i], pa=trackPts[i-1];
+      const ang=Math.atan2(trackPts[(i+1)%n].y-pa.y, trackPts[(i+1)%n].x-pa.x);
       const perp=ang+Math.PI/2;
-      const kx=a.x+Math.cos(perp)*TRACK_W*side;
-      const ky=a.y+Math.sin(perp)*TRACK_W*side;
-      const {sx,sy}=toScreen(kx,ky);
-      const stripeIdx=Math.floor(i/2)%2;
-      if(i===0) continue;
-      const pa=trackPts[i-1];
-      const ka2x=pa.x+Math.cos(perp)*TRACK_W*side;
-      const ka2y=pa.y+Math.sin(perp)*TRACK_W*side;
-      const {sx:sx2,sy:sy2}=toScreen(ka2x,ka2y);
-      cx.beginPath();cx.moveTo(sx2,sy2);cx.lineTo(sx,sy);
-      cx.strokeStyle=stripeIdx===0?'rgba(239,68,68,0.7)':'rgba(255,255,255,0.5)';
-      cx.lineWidth=6*camScale;
+      const k1=toScreen(pa.x+Math.cos(perp)*TRACK_W*side, pa.y+Math.sin(perp)*TRACK_W*side);
+      const k2=toScreen(a.x +Math.cos(perp)*TRACK_W*side, a.y +Math.sin(perp)*TRACK_W*side);
+      cx.beginPath(); cx.moveTo(k1.sx,k1.sy); cx.lineTo(k2.sx,k2.sy);
+      cx.strokeStyle=Math.floor(i/2)%2===0?'rgba(226,60,60,.85)':'rgba(255,255,255,.8)';
+      cx.lineWidth=7*camScale;
       cx.stroke();
     }
   }
 
-  // --- Start/finish line ---
+  // ── stredová prerušovaná ───────────────────────────────────────────────
+  cx.setLineDash([20*camScale, 16*camScale]);
+  lay(2.5*camScale, 'rgba(255,255,255,.2)');
+  cx.setLineDash([]);
+  cx.restore();
+
+  // ── štart a cieľ ───────────────────────────────────────────────────────
   const sfP=trackPos(0);
   const {sx:sfx,sy:sfy}=toScreen(sfP.x,sfP.y);
   const perpA=sfP.angle+Math.PI/2;
-  const ex=Math.cos(perpA)*TRACK_W*camScale;
-  const ey=Math.sin(perpA)*TRACK_W*camScale;
+  const ex=Math.cos(perpA)*TRACK_W*camScale, ey=Math.sin(perpA)*TRACK_W*camScale;
   cx.save();
-  for(let k=-3;k<=3;k++){
-    const kk=k/3;
-    cx.strokeStyle=Math.abs(k)%2===0?'#fff':'#000';
-    cx.lineWidth=7*camScale;
+  for(let k=-4;k<=4;k++){
+    const kk=k/4;
+    cx.strokeStyle=Math.abs(k)%2===0?'rgba(255,255,255,.92)':'rgba(10,10,12,.92)';
+    cx.lineWidth=8*camScale;
     cx.beginPath();
-    cx.moveTo(sfx+ex*kk-ex/3,sfy+ey*kk-ey/3);
-    cx.lineTo(sfx+ex*kk+ex/3,sfy+ey*kk+ey/3);
+    cx.moveTo(sfx+ex*kk-ex/4, sfy+ey*kk-ey/4);
+    cx.lineTo(sfx+ex*kk+ex/4, sfy+ey*kk+ey/4);
     cx.stroke();
   }
   cx.restore();
+}
+
+// ── stopy a prach ─────────────────────────────────────────────────────────
+// Pneumatiky nechávajú čierne čiary a mimo trate sa práši. Je to jediné, čo po
+// jazde zostane na ceste — a práve preto je zrazu vidieť, kde kto preháňal.
+let skids=[], dust=[], lapFlash=0, lapFlashTxt='';
+
+function addEffects(car, dt){
+  const sliding = Math.abs(car.steerAmt||0) > 0.55 && car.speed > MAX_SPEED*0.42;
+  const braking = car.braking && car.speed > MAX_SPEED*0.3;
+  if((sliding||braking) && !car.offTrack){
+    const perp=car.angle+Math.PI/2;
+    for(const sgn of [-1,1]){
+      skids.push({x:car.x+Math.cos(perp)*CAR_WID*0.42*sgn,
+                  y:car.y+Math.sin(perp)*CAR_WID*0.42*sgn,
+                  a:car.angle, life:1});
+    }
+    if(skids.length>420) skids.splice(0, skids.length-420);
+  }
+  if(car.offTrack && car.speed>40){
+    dust.push({x:car.x, y:car.y, vx:(Math.random()-.5)*60-Math.cos(car.angle)*car.speed*.2,
+               vy:(Math.random()-.5)*60-Math.sin(car.angle)*car.speed*.2,
+               r:4+Math.random()*7, life:.5+Math.random()*.4});
+    if(dust.length>160) dust.splice(0, dust.length-160);
+  }
+}
+
+function stepEffects(dt){
+  for(const sk of skids) sk.life -= dt*0.06;
+  skids = skids.filter(sk => sk.life > 0);
+  for(const d of dust){ d.x+=d.vx*dt; d.y+=d.vy*dt; d.vx*=.94; d.vy*=.94; d.life-=dt; }
+  dust = dust.filter(d => d.life > 0);
+  if(lapFlash>0) lapFlash-=dt;
+}
+
+function drawSkids(){
+  cx.save();
+  cx.lineCap='round';
+  for(const sk of skids){
+    const {sx,sy}=toScreen(sk.x,sk.y);
+    if(sx<-20||sx>W+20||sy<-20||sy>H+20) continue;
+    cx.globalAlpha=Math.min(.5, sk.life*0.5);
+    cx.strokeStyle='#07070a';
+    cx.lineWidth=3.2*camScale;
+    const l=5*camScale;
+    cx.beginPath();
+    cx.moveTo(sx-Math.cos(sk.a)*l, sy-Math.sin(sk.a)*l);
+    cx.lineTo(sx+Math.cos(sk.a)*l, sy+Math.sin(sk.a)*l);
+    cx.stroke();
+  }
+  cx.restore();
+}
+
+function drawDust(){
+  cx.save();
+  for(const d of dust){
+    const {sx,sy}=toScreen(d.x,d.y);
+    cx.globalAlpha=Math.max(0, d.life*0.5);
+    cx.fillStyle='#6b6048';
+    cx.beginPath(); cx.arc(sx,sy,d.r*camScale,0,Math.PI*2); cx.fill();
+  }
+  cx.restore();
+}
+
+// ── mapka ─────────────────────────────────────────────────────────────────
+const mini=document.getElementById('mini'), mcx=mini.getContext('2d');
+function drawMini(){
+  const m=mini.width, pad=14;
+  mcx.clearRect(0,0,m,m);
+  if(!trackPts.length) return;
+  const tw=trackBBox.maxX-trackBBox.minX, th=trackBBox.maxY-trackBBox.minY;
+  const k=Math.min((m-pad*2)/tw, (m-pad*2)/th);
+  const ox=(m-tw*k)/2-trackBBox.minX*k, oy=(m-th*k)/2-trackBBox.minY*k;
+  mcx.beginPath();
+  for(let i=0;i<trackPts.length;i+=3){
+    const p=trackPts[i];
+    const x=p.x*k+ox, y=p.y*k+oy;
+    i===0?mcx.moveTo(x,y):mcx.lineTo(x,y);
+  }
+  mcx.closePath();
+  mcx.strokeStyle='rgba(255,255,255,.22)'; mcx.lineWidth=TRACK_W*2*k; mcx.stroke();
+  mcx.strokeStyle='rgba(255,255,255,.10)'; mcx.lineWidth=1.5; mcx.stroke();
+  if(!allCars) return;
+  for(const car of allCars){
+    mcx.fillStyle=car.color;
+    mcx.beginPath(); mcx.arc(car.x*k+ox, car.y*k+oy, car.isPlayer?5:3.6, 0, Math.PI*2); mcx.fill();
+    if(car.isPlayer){
+      mcx.strokeStyle='#fff'; mcx.lineWidth=1.6; mcx.stroke();
+    }
+  }
 }
 
 function drawCar(car){
@@ -503,9 +646,28 @@ function drawCar(car){
   const l=Math.max(CAR_LEN*camScale, 18);
   const w=Math.max(CAR_WID*camScale, 9);
 
+  // tieň na ceste — bez neho auto na asfalte len leží
+  cx.save();
+  cx.translate(sx+l*0.06, sy+l*0.1);
+  cx.rotate(car.angle);
+  cx.fillStyle='rgba(0,0,0,.42)';
+  cx.beginPath(); cx.rect(-l*0.5, -w*0.5, l, w); cx.fill();
+  cx.restore();
+
   cx.save();
   cx.translate(sx,sy);
   cx.rotate(car.angle);
+
+  // kužele svetiel dopredu
+  if(camScale>0.9){
+    const g=cx.createLinearGradient(l*0.5,0,l*2.4,0);
+    g.addColorStop(0,'rgba(255,245,200,.22)'); g.addColorStop(1,'rgba(255,245,200,0)');
+    cx.fillStyle=g;
+    cx.beginPath();
+    cx.moveTo(l*0.48,-w*0.34); cx.lineTo(l*2.4,-w*1.5);
+    cx.lineTo(l*2.4, w*1.5);   cx.lineTo(l*0.48, w*0.34);
+    cx.closePath(); cx.fill();
+  }
 
   // Body — simple filled rect, no roundRect
   cx.fillStyle = car.offTrack ? '#ff5020' : car.color;
@@ -530,6 +692,10 @@ function drawCar(car){
   cx.beginPath(); cx.arc(l*0.46, -w*0.28, Math.max(1.5, l*0.08), 0, Math.PI*2); cx.fill();
   cx.beginPath(); cx.arc(l*0.46,  w*0.28, Math.max(1.5, l*0.08), 0, Math.PI*2); cx.fill();
 
+  // odlesk na streche
+  cx.fillStyle='rgba(255,255,255,.14)';
+  cx.beginPath(); cx.rect(-l*0.5, -w*0.5, l, w*0.22); cx.fill();
+
   // Player indicator — white dot on roof
   if(car.isPlayer){
     cx.fillStyle = '#fff';
@@ -547,8 +713,16 @@ function drawCar(car){
 }
 
 // ── HUD ───────────────────────────────────────────────────────────────────
+let lastShownLap=0;
 function updateHUD(){
   const lap=Math.min(player.lap+1,TOTAL_LAPS);
+  if(lap>lastShownLap && gameState==='playing'){
+    if(lastShownLap>0){ lapFlash=1.4; lapFlashTxt=t('raceLap')+' '+lap+'/'+TOTAL_LAPS; SFX.play('levelup'); }
+    lastShownLap=lap;
+  }
+  const standings=getStandings();
+  const pos=standings.findIndex(c=>c.isPlayer)+1;
+  document.getElementById('h-pos').innerHTML='P<span>'+pos+'</span>/'+allCars.length;
   document.getElementById('h-lap').innerHTML=
     t('raceLap')+' <span>'+lap+'/'+TOTAL_LAPS+'</span>';
   document.getElementById('h-time').innerHTML=
@@ -560,7 +734,6 @@ function updateHUD(){
 
   // Leaderboard
   const lb=document.getElementById('lb');
-  const standings=getStandings();
   lb.innerHTML='';
   standings.forEach((car,i)=>{
     const row=document.createElement('div');
@@ -602,11 +775,17 @@ function showResults(){
 // ── LOOP ──────────────────────────────────────────────────────────────────
 let lastTs=0;
 function loop(ts){
-  const dt=Math.min((ts-lastTs)/1000,0.05); lastTs=ts;
+  // dt musí byť aj zdola obmedzené: záporný krok by hre otočil čas, časy kôl
+  // by vyšli záporné a kolá by sa odpočítavali.
+  const dt=Math.max(0, Math.min((ts-lastTs)/1000, 0.05)); lastTs=ts;
 
   if(gameState==='countdown'){
     countdownT-=dt;
-    if(countdownT<=0){ gameState='playing'; countdownT=0; }
+    if(countdownT<=0){
+      gameState='playing'; countdownT=0;
+      SFX.play('start');
+      lapFlash=1; lapFlashTxt='GO!';
+    }
   }
 
   if(gameState==='playing'){
@@ -620,6 +799,8 @@ function loop(ts){
     // AI
     aiCars.forEach((car,i)=>{ updateAI(car,dt,AI_DIFF[i]); updateCar(car,car.aiSteer,true,false,dt); });
 
+    allCars.forEach(c=>addEffects(c,dt));
+
     // Check all finished
     if(allCars.every(c=>c.finished)){ gameState='finished'; showResults(); }
     else if(player.finished&&!allCars.some(c=>!c.finished)){
@@ -630,16 +811,34 @@ function loop(ts){
     updateHUD();
   }
 
+  if(gameState!=='intro') updateCamera(dt);
+  stepEffects(dt);
+
   // Draw
   if(trackPts.length>0){
     drawTrack();
+    drawSkids();
+    drawDust();
     // Draw all cars (player last = on top)
     if(allCars){
       allCars.filter(c=>!c.isPlayer).forEach(drawCar);
       drawCar(player);
     }
+    drawMini();
   } else {
     cx.fillStyle='#050507'; cx.fillRect(0,0,W,H);
+  }
+
+  // hláška pri prejdení cieľovej čiary
+  if(lapFlash>0){
+    cx.save();
+    cx.globalAlpha=Math.min(1, lapFlash*1.6);
+    cx.textAlign='center'; cx.textBaseline='middle';
+    cx.font='800 '+Math.round(Math.min(W,H)*0.09)+'px Syne';
+    cx.fillStyle='#f59e0b';
+    cx.shadowColor='rgba(0,0,0,.8)'; cx.shadowBlur=18;
+    cx.fillText(lapFlashTxt, W/2, H*0.3);
+    cx.restore();
   }
 
   // Countdown overlay on canvas
@@ -648,10 +847,13 @@ function loop(ts){
     cx.textAlign='center'; cx.textBaseline='middle';
     cx.fillStyle='rgba(0,0,0,0.45)';
     cx.fillRect(0,0,W,H);
-    cx.font=`bold ${Math.min(W,H)*0.22}px Syne`;
+    const n=Math.ceil(countdownT);
+    const k=1-(countdownT-(n-1));            // 0..1 v rámci sekundy
+    cx.font=`bold ${Math.min(W,H)*0.22*(1+ (1-k)*0.25)}px Syne`;
     cx.fillStyle='#f59e0b';
+    cx.globalAlpha=Math.min(1, 0.4+k*1.2);
     cx.shadowColor='rgba(245,158,11,0.6)'; cx.shadowBlur=40;
-    cx.fillText(Math.ceil(countdownT), W/2, H/2);
+    cx.fillText(n, W/2, H/2);
     cx.restore();
   }
 
@@ -669,7 +871,7 @@ document.getElementById('ov-btn').textContent=t('racePlay');
 document.getElementById('ctrl').style.display='none';
 
 // Generate preview track
-generateTrack(54321); buildCamera();
+generateTrack(54321); buildScenery(54321); fitWholeTrack();
 
 requestAnimationFrame(loop);
 </script>

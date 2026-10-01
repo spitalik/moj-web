@@ -14,45 +14,99 @@
   --bg:#050507;--bg1:#0c0c10;--bg2:#111116;--text:#f0eeff;--muted:rgba(240,238,255,.42);
   --border:rgba(255,255,255,.08);--border-h:rgba(255,255,255,.16);--gold:#ffd166;--green:#55f0a0;--violet:#a78bfa;
 }
-html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button,a,[onclick]{touch-action:manipulation}
 body::before{content:"";position:fixed;right:-180px;top:-220px;width:540px;height:540px;border-radius:50%;background:radial-gradient(circle,rgba(255,209,102,.09),transparent 66%);pointer-events:none}
 body::after{content:"";position:fixed;left:-200px;bottom:-250px;width:580px;height:580px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.07),transparent 66%);pointer-events:none}
 #back-btn{position:fixed;top:20px;left:20px;z-index:10;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s}
 #back-btn:hover{border-color:var(--border-h);color:var(--text)}
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:64px 14px 18px}
-.game-title{font-family:'Syne',sans-serif;font-size:clamp(25px,7vw,38px);font-weight:800;letter-spacing:0;background:linear-gradient(135deg,#fff 25%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hud{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;max-width:760px}
-.pill,.ctrl-btn{height:32px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500}
-.pill{display:flex;align-items:center;gap:6px;color:var(--muted);padding:0 12px;white-space:nowrap}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:62px 14px 16px}
+.game-title{font-family:'Syne',sans-serif;font-size:clamp(23px,6.5vw,34px);font-weight:800;background:linear-gradient(135deg,#fff 25%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hud{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;max-width:760px}
+.pill,.ctrl-btn{height:31px;border-radius:100px;border:1px solid var(--border);background:var(--bg2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500}
+.pill{display:flex;align-items:center;gap:5px;color:var(--muted);padding:0 12px;white-space:nowrap}
 .pill span{color:var(--gold);font-variant-numeric:tabular-nums}
-.ctrl-btn{color:var(--muted);padding:0 13px;cursor:pointer;transition:all .18s}
+.pill.low span{color:#ff8585}
+.ctrl-btn{color:var(--muted);padding:0 13px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:5px}
 .ctrl-btn:hover,.ctrl-btn:focus-visible{border-color:var(--border-h);color:var(--text);outline:none}
-#lab-wrap{position:relative;width:min(92vw,660px);border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,var(--bg2),var(--bg1));padding:12px;box-shadow:0 22px 80px rgba(0,0,0,.35)}
-.target{display:flex;align-items:center;justify-content:center;gap:10px;min-height:42px;margin-bottom:10px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.035);font-size:13px;color:var(--muted)}
-.target strong{color:var(--text);font-family:'Syne',sans-serif;font-size:17px}
-#essences{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
-.essence{position:relative;min-height:78px;border-radius:12px;border:1px solid var(--border);background:linear-gradient(135deg,#17130d,#0e0c09);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:transform .12s,border-color .16s,background .16s}
-.essence:active{transform:scale(.98)}
-.essence.selected{border-color:var(--gold);background:radial-gradient(circle,rgba(255,209,102,.18),#151006 65%);box-shadow:0 0 20px rgba(255,209,102,.2)}
-.sigil{font-size:25px;line-height:1}
-.name{font-size:12px;font-weight:500;text-align:center}
-.new{animation:pop .28s ease both}
-@keyframes pop{from{transform:scale(.92);opacity:.4}to{transform:scale(1);opacity:1}}
-.book{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
-.book-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:7px}
-#recipes{display:flex;gap:6px;flex-wrap:wrap;max-height:70px;overflow:auto}
-.recipe{font-size:11px;color:var(--muted);border:1px solid rgba(255,255,255,.07);border-radius:100px;padding:4px 9px;background:rgba(255,255,255,.03)}
-#overlay{position:absolute;z-index:20;inset:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;background:rgba(5,5,7,.91);backdrop-filter:blur(14px);border-radius:12px;text-align:center;padding:18px}
-#overlay.hidden{display:none}
-.ov-icon{font-size:42px;line-height:1}
-#overlay h2{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:0}
+.ctrl-btn:disabled{opacity:.34;cursor:default}
+#lab-wrap{position:relative;width:min(94vw,640px);border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,var(--bg2),var(--bg1));padding:13px;box-shadow:0 22px 80px rgba(0,0,0,.4)}
+
+.target{display:flex;align-items:center;justify-content:center;gap:9px;min-height:40px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.035);font-size:12.5px;color:var(--muted)}
+.target strong{color:var(--text);font-family:'Syne',sans-serif;font-size:16px}
+
+/* ── kotlík ───────────────────────────────────────────────────────────────
+   Doteraz sa dve suroviny ťukli a výsledok sa bez slova objavil v mriežke —
+   celý zmysel hry sa odohral mimo obraz. Teraz majú kam padnúť a vidno, čo sa
+   z nich stalo. */
+#cauldron{position:relative;margin:11px auto 12px;width:132px;height:132px;border-radius:50%;
+  background:radial-gradient(circle at 50% 36%,rgba(255,209,102,.1),rgba(10,9,14,.9) 68%);
+  border:1px solid rgba(255,209,102,.22);
+  box-shadow:inset 0 -12px 28px rgba(0,0,0,.75),inset 0 6px 18px rgba(255,209,102,.07),0 14px 38px -18px rgba(255,209,102,.5);
+  display:flex;align-items:center;justify-content:center;transition:box-shadow .3s,border-color .3s}
+#cauldron.hot{border-color:rgba(255,209,102,.6);box-shadow:inset 0 -12px 28px rgba(0,0,0,.7),0 0 34px rgba(255,209,102,.3),0 14px 44px -16px rgba(255,209,102,.8)}
+#cauldron.bad{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}45%{transform:translateX(5px)}70%{transform:translateX(-3px)}}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:50%}
+.slots{display:flex;align-items:center;gap:7px;font-size:27px;line-height:1;z-index:2}
+.slot{width:40px;height:40px;border-radius:12px;border:1px dashed rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;transition:transform .25s,opacity .25s,border-color .2s}
+.slot.full{border-style:solid;border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.07)}
+.slot.merge{transform:translateX(var(--mx,0)) scale(.25);opacity:0}
+.plus{color:var(--muted);font-size:14px;font-weight:600}
+#result{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:46px;opacity:0;transform:scale(.4);transition:opacity .3s,transform .45s cubic-bezier(.2,1.6,.4,1);pointer-events:none;z-index:3}
+#result.show{opacity:1;transform:scale(1)}
+#cauldron-msg{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);white-space:nowrap;font-size:11.5px;font-weight:600;letter-spacing:.3px;color:var(--muted);opacity:0;transition:opacity .25s}
+#cauldron-msg.show{opacity:1}
+
+/* ── suroviny ─────────────────────────────────────────────────────────── */
+#essences{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}
+.essence{position:relative;min-height:74px;border-radius:13px;border:1px solid var(--line,var(--border));
+  background:var(--fill,linear-gradient(135deg,#17130d,#0e0c09));color:var(--text);font-family:'DM Sans',sans-serif;
+  cursor:pointer;padding:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  transition:transform .12s,border-color .16s,box-shadow .2s,opacity .2s;overflow:hidden}
+.essence::after{content:"";position:absolute;inset:0;background:var(--sheen,transparent);opacity:.5;pointer-events:none}
+.essence:active{transform:scale(.97)}
+.essence.selected{box-shadow:0 0 0 1px var(--line),0 0 22px -4px var(--glow,rgba(255,209,102,.6));transform:translateY(-2px)}
+.essence.hintpair{animation:hintpulse 1s ease 3}
+@keyframes hintpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,209,102,0)}50%{box-shadow:0 0 0 2px rgba(255,209,102,.75),0 0 26px -4px rgba(255,209,102,.9)}}
+.sigil{font-size:25px;line-height:1;z-index:1}
+.name{font-size:11.5px;font-weight:500;text-align:center;z-index:1}
+.essence.new{animation:pop .5s cubic-bezier(.2,1.7,.4,1) both}
+@keyframes pop{0%{transform:scale(.4) rotate(-8deg);opacity:0}60%{transform:scale(1.08) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+
+/* lietajúca kópia suroviny cestou do kotlíka */
+.ghost{position:fixed;z-index:60;pointer-events:none;display:flex;align-items:center;justify-content:center;
+  font-size:26px;transition:transform .36s cubic-bezier(.3,.8,.2,1),opacity .36s}
+
+#overlay,#book-panel{position:absolute;z-index:20;inset:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(5,5,7,.93);backdrop-filter:blur(14px);border-radius:13px;text-align:center;padding:18px}
+#overlay.hidden,#book-panel.hidden{display:none}
+.ov-icon{font-size:40px;line-height:1}
+#overlay h2,#book-panel h2{font-family:'Syne',sans-serif;font-size:24px;font-weight:800}
 .hint{max-width:360px;color:var(--muted);font-size:12px;line-height:1.5}
 .play-btn{min-width:118px;height:40px;border-radius:100px;border:1px solid rgba(255,209,102,.46);background:rgba(255,209,102,.15);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:0 28px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.34)}
-@media (max-height:710px){.page{gap:9px}.game-title{font-size:24px}.pill,.ctrl-btn{height:29px}.essence{min-height:64px}.book{display:none}}
 
-/* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
-html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-button,a,[onclick]{touch-action:manipulation;}
+/* ── zbierka ──────────────────────────────────────────────────────────── */
+#book-panel{justify-content:flex-start;gap:7px;padding:14px}
+#book-panel h2{font-size:17px;letter-spacing:.2px}
+#book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px;width:100%;overflow:auto;padding:2px;flex:1 1 auto;min-height:0;align-content:start}
+.book-sub{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);flex:0 0 auto}
+.coin{aspect-ratio:1;border-radius:12px;border:1px solid var(--line,var(--border));background:var(--fill,rgba(255,255,255,.03));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:20px}
+.coin small{font-size:8.5px;color:var(--muted);line-height:1.1;text-align:center;padding:0 2px}
+.coin.locked{opacity:.3}
+#book-recipes{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;max-height:68px;overflow:auto;width:100%;flex:0 0 auto}
+#book-close{flex:0 0 auto}
+.recipe{font-size:10.5px;color:var(--muted);border:1px solid rgba(255,255,255,.07);border-radius:100px;padding:3px 8px;background:rgba(255,255,255,.03)}
+
+@media (max-height:720px){
+  .page{gap:8px;padding-top:54px}
+  .game-title{font-size:22px}
+  .pill,.ctrl-btn{height:28px;font-size:11.5px}
+  #cauldron{width:108px;height:108px;margin:8px auto 10px}
+  .slots{font-size:23px}.slot{width:34px;height:34px}
+  #result{font-size:38px}
+  .essence{min-height:62px;padding:7px}
+  .sigil{font-size:22px}
+}
 </style>
 </head>
 <body>
@@ -65,20 +119,39 @@ button,a,[onclick]{touch-action:manipulation;}
   <h1 class="game-title" id="lbl-title"></h1>
   <div class="hud">
     <div class="pill"><span id="lbl-level"></span>&nbsp;<span id="hud-level">1</span></div>
-    <div class="pill"><span id="lbl-mixes"></span>&nbsp;<span id="hud-mixes">0</span></div>
-    <div class="pill"><span id="lbl-discovered"></span>&nbsp;<span id="hud-discovered">0</span></div>
+    <div class="pill" id="pill-mixes"><span id="lbl-mixes"></span>&nbsp;<span id="hud-mixes">0</span></div>
+    <button class="ctrl-btn" id="btn-book">📖&nbsp;<span id="hud-discovered">0</span></button>
+    <button class="ctrl-btn" id="btn-hint">💡&nbsp;<span id="lbl-hint-btn"></span></button>
     <button class="ctrl-btn" id="btn-reset"></button>
     <button class="ctrl-btn" id="btn-next"></button>
   </div>
+
   <div id="lab-wrap">
     <div class="target"><span id="lbl-target"></span><strong id="target-name"></strong></div>
-    <div id="essences"></div>
-    <div class="book">
-      <div class="book-title" id="book-title"></div>
-      <div id="recipes"></div>
+
+    <div id="cauldron">
+      <canvas id="fx"></canvas>
+      <div class="slots">
+        <div class="slot" id="slot-a"></div>
+        <div class="plus">+</div>
+        <div class="slot" id="slot-b"></div>
+      </div>
+      <div id="result"></div>
+      <div id="cauldron-msg"></div>
     </div>
+
+    <div id="essences"></div>
+
+    <div id="book-panel" class="hidden">
+      <h2 id="book-title"></h2>
+      <div id="book-grid"></div>
+      <div class="book-sub" id="book-sub"></div>
+      <div id="book-recipes"></div>
+      <button class="play-btn" id="book-close"></button>
+    </div>
+
     <div id="overlay">
-      <div class="ov-icon">⚗️</div>
+      <div class="ov-icon" id="ov-icon">⚗️</div>
       <h2 id="ov-title"></h2>
       <p class="hint" id="ov-hint"></p>
       <button class="play-btn" id="ov-btn"></button>
@@ -87,20 +160,32 @@ button,a,[onclick]{touch-action:manipulation;}
 </main>
 
 <script>
+// Každá esencia má svoju farbu — karty, žiara kotlíka aj iskry ju preberajú,
+// takže sa dvadsať dlaždíc dá rozoznať pohľadom a nie až čítaním názvu.
 const ELEMENTS = {
-  fire:['🔥','Fire'], water:['💧','Water'], earth:['🪨','Earth'], air:['💨','Air'],
-  steam:['♨️','Steam'], clay:['🧱','Clay'], dust:['🌫️','Dust'], spark:['✨','Spark'],
-  mud:['🟤','Mud'], glass:['🔷','Glass'], moss:['🌱','Moss'], crystal:['💎','Crystal'],
-  storm:['⛈️','Storm'], ember:['🟠','Ember'], glow:['🟢','Glow Moss'], prism:['🔮','Prism'],
-  bloom:['🌸','Bloom'], lantern:['🏮','Lantern'], alloy:['⚙️','Alloy'], aurora:['🌌','Aurora']
+  fire:['🔥','Fire','#ff7a3d'],      water:['💧','Water','#4aa3d4'],
+  earth:['🪨','Earth','#a98156'],    air:['💨','Air','#9fb8c9'],
+  steam:['♨️','Steam','#cfe6f2'],    clay:['🧱','Clay','#c08457'],
+  dust:['🌫️','Dust','#b9ad9a'],      spark:['✨','Spark','#ffd166'],
+  mud:['🟤','Mud','#7a5a3a'],        glass:['🔷','Glass','#7fd8e8'],
+  moss:['🌱','Moss','#5ec46a'],      crystal:['💎','Crystal','#9ad7ff'],
+  storm:['⛈️','Storm','#8f9bff'],    ember:['🟠','Ember','#ff9a3c'],
+  glow:['🟢','Glow Moss','#8cff9e'], prism:['🔮','Prism','#d08cff'],
+  bloom:['🌸','Bloom','#ff9ec7'],    lantern:['🏮','Lantern','#ffb765'],
+  alloy:['⚙️','Alloy','#c9ccd4'],    aurora:['🌌','Aurora','#7affd1']
 };
+
+// 'fire+sand' tu bol recept na sklo, lenže piesok medzi esenciami nikdy nebol —
+// nedal sa použiť. Nahradili ho hlina v ohni a ďalšie dve cesty, aby sa k cieľu
+// dalo dôjsť viac ako jedným spôsobom.
 const RECIPES = {
   'air+fire':'spark','air+water':'steam','fire+water':'steam','earth+water':'mud','air+earth':'dust',
-  'earth+fire':'ember','fire+sand':'glass','dust+fire':'glass','earth+mud':'clay',
+  'earth+fire':'ember','dust+fire':'glass','clay+fire':'glass','earth+mud':'clay',
   'earth+spark':'crystal','moss+spark':'glow','mud+water':'moss','air+spark':'storm',
-  'crystal+glass':'prism','glow+water':'bloom','ember+glass':'lantern','crystal+fire':'alloy',
-  'prism+storm':'aurora','bloom+spark':'aurora'
+  'ember+water':'steam','crystal+glass':'prism','glow+water':'bloom','ember+glass':'lantern',
+  'crystal+fire':'alloy','alloy+spark':'lantern','prism+storm':'aurora','bloom+spark':'aurora'
 };
+
 const LEVELS = [
   {target:'steam', mixes:3, start:['fire','water','earth','air']},
   {target:'clay', mixes:4, start:['earth','water','air','fire']},
@@ -113,31 +198,54 @@ const LEVELS = [
   {target:'lantern', mixes:6, start:['earth','fire','ember','dust','water']},
   {target:'aurora', mixes:7, start:['crystal','glass','prism','air','spark','water']}
 ];
+
 const STORAGE = 'tiny_alchemist_discovered';
-let levelIndex = 0;
-let items = [];
-let selected = [];
-let mixesLeft = 0;
-let discovered = new Set();
-let won = false;
+const STORAGE_EL = 'tiny_alchemist_elements';
+
+let levelIndex = 0, items = [], selected = [], mixesLeft = 0;
+let discovered = new Set();      // objavené recepty
+let foundEls = new Set();        // objavené esencie — kvôli zbierke
+let tried = new Set();           // dvojice vyskúšané v tomto kole
+let hintsLeft = 1, won = false, busy = false;
 
 const essences = document.getElementById('essences');
-const recipesEl = document.getElementById('recipes');
 const overlay = document.getElementById('overlay');
+const bookPanel = document.getElementById('book-panel');
 const ovTitle = document.getElementById('ov-title');
 const ovHint = document.getElementById('ov-hint');
+const ovIcon = document.getElementById('ov-icon');
 const ovBtn = document.getElementById('ov-btn');
 const btnReset = document.getElementById('btn-reset');
 const btnNext = document.getElementById('btn-next');
+const btnHint = document.getElementById('btn-hint');
+const btnBook = document.getElementById('btn-book');
+const cauldron = document.getElementById('cauldron');
+const slotA = document.getElementById('slot-a');
+const slotB = document.getElementById('slot-b');
+const resultEl = document.getElementById('result');
+const msgEl = document.getElementById('cauldron-msg');
+
+function tr(key, fallback){
+  try{ const v = t(key); return (!v || v === key) ? fallback : v; }catch(e){ return fallback; }
+}
+function label(id){ return ELEMENTS[id] ? ELEMENTS[id][1] : id }
+function icon(id){ return ELEMENTS[id] ? ELEMENTS[id][0] : '•' }
+function color(id){ return ELEMENTS[id] ? ELEMENTS[id][2] : '#ffd166' }
+function rgba(hex, a){
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+}
+function recipeKey(a,b){ return [a,b].sort().join('+') }
 
 function applyLabels(){
   document.getElementById('lbl-back').textContent = t('back');
   document.getElementById('lbl-title').textContent = t('tinyAlchTitle');
   document.getElementById('lbl-level').textContent = t('tinyAlchLevel');
   document.getElementById('lbl-mixes').textContent = t('tinyAlchMixes');
-  document.getElementById('lbl-discovered').textContent = t('tinyAlchDiscovered');
   document.getElementById('lbl-target').textContent = t('tinyAlchTarget') + ':';
-  document.getElementById('book-title').textContent = t('tinyAlchKnown');
+  document.getElementById('book-sub').textContent = t('tinyAlchKnown');
+  document.getElementById('lbl-hint-btn').textContent = tr('tinyAlchHintBtn','Hint');
+  document.getElementById('book-close').textContent = tr('tinyAlchClose','Close');
   btnReset.textContent = t('tinyAlchReset');
   btnNext.textContent = t('tinyAlchNext');
   ovTitle.textContent = t('tinyAlchTitle');
@@ -145,99 +253,277 @@ function applyLabels(){
   ovBtn.textContent = t('tinyAlchStart');
 }
 
-function loadDiscovered(){
-  try{discovered = new Set(JSON.parse(localStorage.getItem(STORAGE) || '[]'))}
-  catch{discovered = new Set()}
+// ── uložený postup ────────────────────────────────────────────────────────
+function loadProgress(){
+  try{ discovered = new Set(JSON.parse(localStorage.getItem(STORAGE) || '[]')) }catch(e){ discovered = new Set() }
+  try{ foundEls = new Set(JSON.parse(localStorage.getItem(STORAGE_EL) || '[]')) }catch(e){ foundEls = new Set() }
+  // Zbierka je nová, postup starý: čo kto kedy namiešal, sa dá dopočítať
+  // z už objavených receptov, takže o nič neprišiel.
+  discovered.forEach(k => { if (RECIPES[k]) foundEls.add(RECIPES[k]); });
+  LEVELS[0].start.forEach(id => foundEls.add(id));
 }
-function saveDiscovered(){localStorage.setItem(STORAGE, JSON.stringify([...discovered]))}
-function recipeKey(a,b){return [a,b].sort().join('+')}
-function label(id){return ELEMENTS[id] ? ELEMENTS[id][1] : id}
-function icon(id){return ELEMENTS[id] ? ELEMENTS[id][0] : '•'}
+function saveProgress(){
+  try{
+    localStorage.setItem(STORAGE, JSON.stringify([...discovered]));
+    localStorage.setItem(STORAGE_EL, JSON.stringify([...foundEls]));
+  }catch(e){}
+}
 
+// ── iskry v kotlíku ───────────────────────────────────────────────────────
+const fx = document.getElementById('fx');
+const fctx = fx.getContext('2d');
+let parts = [], fxRAF = null;
+
+function fxResize(){
+  const r = cauldron.getBoundingClientRect();
+  if (!r.width) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  fx.width = Math.round(r.width * dpr); fx.height = Math.round(r.height * dpr);
+  fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function burst(hex, n, power){
+  const r = cauldron.getBoundingClientRect();
+  if (!r.width) return;
+  const cx = r.width / 2, cy = r.height / 2;
+  for (let i = 0; i < n; i++){
+    const a = Math.random() * 6.2832, v = (0.6 + Math.random()) * power;
+    parts.push({x:cx, y:cy, vx:Math.cos(a)*v, vy:Math.sin(a)*v - 0.5,
+                life:1, dec:0.016 + Math.random()*0.02, r:1 + Math.random()*2.2, c:hex});
+  }
+  if (!fxRAF) fxRAF = requestAnimationFrame(fxLoop);
+}
+function fxLoop(){
+  const w = fx.width, h = fx.height;
+  fctx.clearRect(0, 0, w, h);
+  for (let i = parts.length - 1; i >= 0; i--){
+    const p = parts[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.045; p.vx *= 0.985; p.life -= p.dec;
+    if (p.life <= 0){ parts.splice(i, 1); continue; }
+    fctx.globalAlpha = Math.max(0, p.life);
+    fctx.fillStyle = p.c;
+    fctx.beginPath(); fctx.arc(p.x, p.y, p.r * p.life, 0, 6.2832); fctx.fill();
+  }
+  fctx.globalAlpha = 1;
+  if (parts.length) fxRAF = requestAnimationFrame(fxLoop);
+  else { fxRAF = null; fctx.clearRect(0, 0, w, h); }
+}
+
+// ── kolo ──────────────────────────────────────────────────────────────────
 function loadLevel(index){
   const level = LEVELS[index];
   items = [...level.start];
-  selected = [];
+  // Suroviny kola sa rátajú do zbierky — hráč ich má pred sebou. Naraz
+  // odomknúť všetky z celej hry by ju ale pripravilo o zmysel.
+  items.forEach(id => foundEls.add(id));
+  saveProgress();
+  selected = []; tried = new Set();
   mixesLeft = level.mixes;
-  won = false;
-  document.getElementById('target-name').textContent = `${icon(level.target)} ${label(level.target)}`;
+  hintsLeft = 1; won = false; busy = false;
+  clearSlots();
+  document.getElementById('target-name').textContent = icon(level.target) + ' ' + label(level.target);
   overlay.classList.add('hidden');
+  bookPanel.classList.add('hidden');
   render();
 }
 
+function clearSlots(){
+  [slotA, slotB].forEach(s => { s.textContent = ''; s.className = 'slot'; s.style.removeProperty('--mx'); });
+  resultEl.classList.remove('show'); resultEl.textContent = '';
+  cauldron.classList.remove('hot');
+  msgEl.classList.remove('show');
+}
+
 function render(){
-  document.getElementById('hud-level').textContent = `${levelIndex + 1}/${LEVELS.length}`;
+  document.getElementById('hud-level').textContent = (levelIndex + 1) + '/' + LEVELS.length;
   document.getElementById('hud-mixes').textContent = mixesLeft;
-  document.getElementById('hud-discovered').textContent = discovered.size;
+  document.getElementById('pill-mixes').classList.toggle('low', mixesLeft <= 1);
+  document.getElementById('hud-discovered').textContent = foundEls.size + '/' + Object.keys(ELEMENTS).length;
+  btnHint.disabled = hintsLeft <= 0 || won || mixesLeft <= 0;
+
   essences.innerHTML = '';
   items.forEach((id, index) => {
+    const c = color(id);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'essence' + (selected.includes(index) ? ' selected' : '');
     btn.dataset.index = index;
-    btn.innerHTML = `<span class="sigil">${icon(id)}</span><span class="name">${label(id)}</span>`;
+    btn.dataset.id = id;
+    btn.style.setProperty('--line', rgba(c, .34));
+    btn.style.setProperty('--glow', rgba(c, .75));
+    btn.style.setProperty('--fill', 'linear-gradient(145deg,' + rgba(c, .14) + ',rgba(12,11,16,.92) 70%)');
+    btn.style.setProperty('--sheen', 'radial-gradient(120% 90% at 50% -20%,' + rgba(c, .16) + ',transparent 62%)');
+    btn.innerHTML = '<span class="sigil">' + icon(id) + '</span><span class="name">' + label(id) + '</span>';
     essences.appendChild(btn);
   });
-  recipesEl.innerHTML = [...discovered].sort().map(key => {
-    const result = RECIPES[key];
-    const parts = key.split('+').map(label).join(' + ');
-    return `<span class="recipe">${parts} → ${label(result)}</span>`;
-  }).join('');
+}
+
+// Kópia suroviny doletí do kotlíka — bez toho sa nedá povedať, čo je vnútri.
+function flyTo(fromEl, toEl, html){
+  const a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
+  if (!a.width || !b.width) return;
+  const g = document.createElement('div');
+  g.className = 'ghost';
+  g.innerHTML = html;
+  g.style.left = a.left + 'px'; g.style.top = a.top + 'px';
+  g.style.width = a.width + 'px'; g.style.height = a.height + 'px';
+  document.body.appendChild(g);
+  requestAnimationFrame(() => {
+    g.style.transform = 'translate(' + ((b.left + b.width/2) - (a.left + a.width/2)) + 'px,'
+      + ((b.top + b.height/2) - (a.top + a.height/2)) + 'px) scale(' + (b.width / a.width) + ')';
+    g.style.opacity = '.85';
+  });
+  setTimeout(() => g.remove(), 400);
+}
+
+function showMsg(text, col){
+  msgEl.textContent = text;
+  msgEl.style.color = col || 'var(--muted)';
+  msgEl.classList.add('show');
+  clearTimeout(showMsg.to);
+  showMsg.to = setTimeout(() => msgEl.classList.remove('show'), 1600);
 }
 
 function pick(index){
-  if(won || mixesLeft <= 0) return;
-  SFX.play('select');
-  if(selected.includes(index)){
+  if (won || busy || mixesLeft <= 0) return;
+  if (selected.includes(index)){
     selected = selected.filter(i => i !== index);
+    clearSlots();
+    if (selected.length){
+      slotA.textContent = icon(items[selected[0]]);
+      slotA.classList.add('full');
+    }
     render();
     return;
   }
+  SFX.play('select');
   selected.push(index);
-  if(selected.length === 2) mixSelected();
-  else render();
+  const node = essences.querySelector('.essence[data-index="' + index + '"]');
+  const slot = selected.length === 1 ? slotA : slotB;
+  const id = items[index];
+  if (node) flyTo(node.querySelector('.sigil'), slot, icon(id));
+  setTimeout(() => { slot.textContent = icon(id); slot.classList.add('full'); }, 320);
+  render();
+  if (selected.length === 2){
+    busy = true;
+    setTimeout(mixSelected, 380);
+  }
 }
 
 function mixSelected(){
-  SFX.play('chime');
-  const [aIndex,bIndex] = selected;
-  const a = items[aIndex], b = items[bIndex];
-  const key = recipeKey(a,b);
+  const a = items[selected[0]], b = items[selected[1]];
+  const key = recipeKey(a, b);
   const result = RECIPES[key];
-  mixesLeft--;
-  selected = [];
-  if(result && !items.includes(result)){
-    items.push(result);
-    discovered.add(key);
-    saveDiscovered();
+
+  // Dvojica, ktorá už v tomto kole nevyšla, nestojí ďalší pokus. Trestať
+  // hráča za to, že si nepamätá vlastné omyly, nie je na tom to zaujímavé.
+  if (!result && tried.has(key)){
+    cauldron.classList.add('bad');
+    showMsg(tr('tinyAlchTried','Already tried'), 'rgba(240,238,255,.55)');
+    setTimeout(() => { cauldron.classList.remove('bad'); selected = []; clearSlots(); busy = false; render(); }, 460);
+    return;
   }
-  render();
-  if(result) markNew(result);
-  checkState();
+
+  mixesLeft--;
+  tried.add(key);
+
+  if (result){
+    const c = color(result);
+    cauldron.classList.add('hot');
+    slotA.style.setProperty('--mx', '20px'); slotB.style.setProperty('--mx', '-20px');
+    slotA.classList.add('merge'); slotB.classList.add('merge');
+    SFX.play('chime');
+    setTimeout(() => {
+      burst(c, 34, 2.4);
+      resultEl.textContent = icon(result);
+      resultEl.classList.add('show');
+      const isNew = !foundEls.has(result);
+      SFX.play(isNew ? 'coin' : 'tick');
+      showMsg((isNew ? '✦ ' : '') + label(result), c);
+      if (!items.includes(result)) items.push(result);
+      discovered.add(key); foundEls.add(result);
+      saveProgress();
+    }, 260);
+    setTimeout(() => {
+      selected = []; clearSlots(); busy = false;
+      render();
+      const node = [...essences.querySelectorAll('.essence')].find(n => n.dataset.id === result);
+      if (node) node.classList.add('new');
+      checkState();
+    }, 980);
+  } else {
+    SFX.play('error');
+    cauldron.classList.add('bad');
+    burst('#8a8a93', 14, 1.1);
+    showMsg(tr('tinyAlchNothing','Nothing happens'), 'rgba(240,238,255,.5)');
+    setTimeout(() => {
+      cauldron.classList.remove('bad');
+      selected = []; clearSlots(); busy = false;
+      render();
+      checkState();
+    }, 660);
+  }
 }
 
-function markNew(id){
-  SFX.play('coin');
-  const nodes = [...essences.querySelectorAll('.essence')];
-  const node = nodes.find(n => n.textContent.includes(label(id)));
-  if(node) node.classList.add('new');
+// ── nápoveda ──────────────────────────────────────────────────────────────
+// Prejdem všetko, čo sa z aktuálnych surovín dá vyrobiť, a vrátim prvý krok
+// na ceste k cieľu. Hádať sa tu dá donekonečna — raz za kolo to neuškodí.
+function nextStep(target){
+  const have = new Set(items);
+  const from = new Map();
+  let changed = true;
+  while (changed){
+    changed = false;
+    for (const key in RECIPES){
+      const parts2 = key.split('+'), a = parts2[0], b = parts2[1];
+      const res = RECIPES[key];
+      if (have.has(a) && have.has(b) && !have.has(res)){
+        have.add(res); from.set(res, [a, b]); changed = true;
+      }
+    }
+  }
+  if (!have.has(target)) return null;
+  function step(el){
+    const pair = from.get(el);
+    if (!pair) return null;
+    const a = pair[0], b = pair[1];
+    if (!items.includes(a)){ const s = step(a); if (s) return s; }
+    if (!items.includes(b)){ const s = step(b); if (s) return s; }
+    return [a, b];
+  }
+  return step(target);
+}
+
+function useHint(){
+  if (hintsLeft <= 0 || won || busy) return;
+  const pair = nextStep(LEVELS[levelIndex].target);
+  if (!pair){ showMsg(tr('tinyAlchNothing','Nothing happens')); return; }
+  hintsLeft--;
+  SFX.play('select');
+  render();
+  pair.forEach(id => {
+    const node = [...essences.querySelectorAll('.essence')].find(n => n.dataset.id === id);
+    if (node){ node.classList.add('hintpair'); setTimeout(() => node.classList.remove('hintpair'), 3100); }
+  });
 }
 
 function checkState(){
   const target = LEVELS[levelIndex].target;
-  if(items.includes(target)){
+  if (items.includes(target)){
     won = true;
+    SFX.play('win');
+    ovIcon.textContent = icon(target);
     ovTitle.textContent = t('tinyAlchWin');
-    ovHint.textContent = `${t('tinyAlchTarget')}: ${icon(target)} ${label(target)}`;
+    ovHint.textContent = t('tinyAlchTarget') + ': ' + icon(target) + ' ' + label(target);
     ovBtn.textContent = levelIndex < LEVELS.length - 1 ? t('tinyAlchNext') : t('tinyAlchAgain');
-    setTimeout(() => overlay.classList.remove('hidden'), 260);
+    setTimeout(() => overlay.classList.remove('hidden'), 320);
     return;
   }
-  if(mixesLeft <= 0){
+  if (mixesLeft <= 0){
+    ovIcon.textContent = '💨';
     ovTitle.textContent = t('tinyAlchOver');
     ovHint.textContent = t('tinyAlchHint');
     ovBtn.textContent = t('tinyAlchAgain');
-    setTimeout(() => overlay.classList.remove('hidden'), 260);
+    setTimeout(() => overlay.classList.remove('hidden'), 320);
   }
 }
 
@@ -247,18 +533,44 @@ function nextLevel(){
   loadLevel(levelIndex);
 }
 
+// ── zbierka ───────────────────────────────────────────────────────────────
+// Z „objavených: 7“ sa stala vitrína: dvadsať miest, z toho sedem zaplnených.
+// To je na tomto druhu hry to hlavné — vidieť, čo ešte chýba.
+function openBook(){
+  SFX.play('select');
+  document.getElementById('book-title').textContent =
+    t('tinyAlchDiscovered') + ' ' + foundEls.size + '/' + Object.keys(ELEMENTS).length;
+  const grid = document.getElementById('book-grid');
+  grid.innerHTML = Object.keys(ELEMENTS).map(id => {
+    const got = foundEls.has(id), c = color(id);
+    return '<div class="coin ' + (got ? 'got' : 'locked') + '"'
+      + (got ? ' style="--line:' + rgba(c,.4) + ';--fill:' + rgba(c,.1) + '"' : '')
+      + '>' + (got ? icon(id) : '❔') + '<small>' + (got ? label(id) : '???') + '</small></div>';
+  }).join('');
+  document.getElementById('book-recipes').innerHTML = [...discovered].sort().map(key => {
+    const result = RECIPES[key];
+    if (!result) return '';
+    return '<span class="recipe">' + key.split('+').map(label).join(' + ') + ' → ' + label(result) + '</span>';
+  }).join('');
+  bookPanel.classList.remove('hidden');
+}
+
 essences.addEventListener('click', e => {
   const btn = e.target.closest('.essence');
-  if(!btn) return;
-  pick(Number(btn.dataset.index));
+  if (btn) pick(Number(btn.dataset.index));
 });
-btnReset.addEventListener('click', () => loadLevel(levelIndex));
+btnReset.addEventListener('click', () => { SFX.play('tick'); loadLevel(levelIndex); });
 btnNext.addEventListener('click', nextLevel);
+btnHint.addEventListener('click', useHint);
+btnBook.addEventListener('click', openBook);
+document.getElementById('book-close').addEventListener('click', () => bookPanel.classList.add('hidden'));
 ovBtn.addEventListener('click', () => won ? nextLevel() : loadLevel(levelIndex));
+window.addEventListener('resize', fxResize);
 
 applyLabels();
-loadDiscovered();
+loadProgress();
 loadLevel(0);
+fxResize();
 overlay.classList.remove('hidden');
 </script>
 </body>

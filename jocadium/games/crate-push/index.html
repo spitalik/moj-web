@@ -15,16 +15,20 @@ html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif
 body::before{content:'';position:fixed;width:500px;height:500px;top:-150px;right:-100px;background:radial-gradient(circle,rgba(255,209,102,0.07) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0;}
 #back-btn{position:fixed;top:20px;left:20px;z-index:60;display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:100px;text-decoration:none;font-size:12px;font-weight:500;transition:all .18s;}
 #back-btn:hover{border-color:var(--border-h);color:var(--text);}
-.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 12px 100px;gap:10px;}
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 12px 136px;gap:10px;}
 .game-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(135deg,#fff 30%,var(--c) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.side{display:flex;flex-direction:column;align-items:center;gap:10px;}
 .hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
 .stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;}
 .stat-pill span{color:var(--c);font-variant-numeric:tabular-nums;}
 .ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
 .ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
 #canvas-wrap{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg1);}
-canvas{display:block;}
-#dpad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,54px);gap:5px;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);}
+/* Prst po doske kresli smer, nie posuva stranku. */
+canvas{display:block;touch-action:none;}
+/* Stranka ma z-index 1, sipky nemali ziadny - cize lezali pod nou a ziadny tuk
+   sa k nim nedostal. Patria nad stranku, ale pod prekryv s ponukou (z-index 20). */
+#dpad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,54px);gap:5px;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;touch-action:manipulation;}
 .d{background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s;}
 .d:active{background:var(--cdim);border-color:rgba(255,209,102,.3);color:var(--c);}
 #d-up{grid-column:2;grid-row:1;}#d-left{grid-column:1;grid-row:2;}#d-down{grid-column:2;grid-row:2;}#d-right{grid-column:3;grid-row:2;}
@@ -40,8 +44,21 @@ canvas{display:block;}
 .lev-btn.current{background:var(--cdim);border-color:rgba(255,209,102,.4);color:var(--c);}
 
 /* mobil: žiadna 300 ms odozva ťuknutia, žiadne priblíženie dvojťukom */
-html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;}
 button,a,[onclick]{touch-action:manipulation;}
+
+/* Naležato nie je vysky ani na polovicu dosky a sipky dole by na nu sadli.
+   Preto idu nabok, nadpis s HUD do stlpca vlavo a doska dostane celu vysku. */
+@media (orientation:landscape) and (max-height:560px){
+  .page{flex-direction:row;justify-content:center;align-items:center;gap:16px;padding:10px 178px 10px 12px;}
+  .side{gap:7px;max-width:190px;}
+  .hud{flex-direction:column;align-items:stretch;gap:6px;}
+  .game-title{font-size:18px;}
+  .stat-pill,.ctrl-btn{font-size:11px;padding:4px 11px;text-align:center;justify-content:center;}
+  #dpad{bottom:auto;top:50%;left:auto;right:16px;transform:translateY(-50%);
+        grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,48px);}
+  #back-btn{top:10px;left:10px;padding:5px 11px;font-size:11px;}
+}
 
 /* prekryv: ak sa obsah nezmestí, nesmie zmiznúť mimo obrazovky (flex centrovanie ho odreže) */
 @media (max-height:820px){
@@ -62,6 +79,7 @@ button,a,[onclick]{touch-action:manipulation;}
   <button class="play-btn" id="ov-btn" onclick="startLevel(currentLevel)"></button>
 </div>
 <div class="page">
+ <div class="side">
   <div class="game-title" id="lbl-title"></div>
   <div class="hud">
     <div class="stat-pill"><span id="lbl-lev-txt"></span>&nbsp;<span id="hud-lev">1</span></div>
@@ -70,6 +88,7 @@ button,a,[onclick]{touch-action:manipulation;}
     <button class="ctrl-btn" id="btn-restart" onclick="restartLevel()"></button>
     <button class="ctrl-btn" id="btn-levels" onclick="showMenu()"></button>
   </div>
+ </div>
   <div id="canvas-wrap"><canvas id="gameCanvas"></canvas></div>
 </div>
 <div id="dpad">
@@ -252,7 +271,6 @@ const LEVELS = [
    '########'],
 ];
 
-const CELL = 44;
 let currentLevel = 0;
 let grid, player, moves, history, solved;
 let completed = new Array(LEVELS.length).fill(false);
@@ -313,12 +331,41 @@ function restartLevel() {
   SFX.play('shuffle'); startLevel(currentLevel); }
 
 function resizeCanvas() {
+  const winW = window.innerWidth || document.documentElement.clientWidth || 0;
+  const winH = window.innerHeight || document.documentElement.clientHeight || 0;
+  if (!winW || !winH) { requestAnimationFrame(resizeCanvas); return; }
+
   const parsed = parseLevel(LEVELS[currentLevel]);
-  const W = parsed.w * CELL;
-  const H = parsed.h * CELL;
   const canvas = document.getElementById('gameCanvas');
-  canvas.width = Math.min(W, window.innerWidth - 24);
-  canvas.height = H * (canvas.width / W);
+  const page = document.querySelector('.page');
+  const wrap = document.getElementById('canvas-wrap');
+  const pcs = getComputedStyle(page);
+  const gap = parseFloat(pcs.rowGap || pcs.gap) || 10;
+  const padX = (parseFloat(pcs.paddingLeft) || 0) + (parseFloat(pcs.paddingRight) || 0);
+  const padY = (parseFloat(pcs.paddingTop) || 0) + (parseFloat(pcs.paddingBottom) || 0);
+  const row = pcs.flexDirection === 'row';
+
+  // Miesto pre sipky je uz v odsadeni stranky (dole nastojato, vpravo naležato).
+  // Zvysok meriam na surodencoch dosky - z vysky stranky by to bola spatna vazba,
+  // lebo doska je jej sucastou a stranka ma min-height 100vh.
+  let others = 0, gaps = 0;
+  for (const el of page.children) {
+    if (el === wrap || !el.offsetHeight) continue;
+    others += row ? el.offsetWidth : el.offsetHeight;
+    gaps++;
+  }
+  const availW = winW - padX - 4 - (row ? others + gap * gaps : 0);
+  const availH = winH - padY - 4 - (row ? 0 : others + gap * gaps);
+
+  // Policko doteraz nikdy neprekrocilo 44 px, takze na telefone zostavala
+  // polovica sirky nevyuzita. Teraz sa roztiahne, kolko miesta naozaj je.
+  const cell = Math.max(16, Math.min(72, Math.floor(Math.min(availW / parsed.w, availH / parsed.h))));
+  const cssW = cell * parsed.w, cssH = cell * parsed.h;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
   render();
 }
 
@@ -494,16 +541,61 @@ document.addEventListener('keydown', function(e) {
   if (e.code === 'KeyR') restartLevel();
 });
 
-// Swipe
-let tx=0, ty=0;
-document.getElementById('gameCanvas').addEventListener('touchstart', function(e) {
+// ── ŤAHANIE PO DOSKE ──────────────────────────────────────────────────────
+// Prst po doske posuva panacika. Prehliadac by to inak bral ako rolovanie
+// stranky - preto touch-action:none na platne a preventDefault tu; bez toho
+// sa pri kazdom tahu hybala cela plocha hore-dole.
+// Krok sa spusti hned po prekroceni prahu a ked prst pokracuje dalej, pokracuje
+// aj panacik - nie je treba zdvihnut prst po kazdom policku.
+const STEP = 26;
+let tx = 0, ty = 0, tracking = false, stepped = false;
+const cvEl = document.getElementById('gameCanvas');
+
+cvEl.addEventListener('touchstart', function(e) {
   tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+  tracking = true; stepped = false;
 }, {passive:true});
-document.getElementById('gameCanvas').addEventListener('touchend', function(e) {
-  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
-  if(Math.abs(dx)>Math.abs(dy)){if(Math.abs(dx)>20)move(dx>0?1:-1,0);}
-  else{if(Math.abs(dy)>20)move(0,dy>0?1:-1);}
+
+cvEl.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  if (!tracking) return;
+  const x = e.touches[0].clientX, y = e.touches[0].clientY;
+  // Jedna sprava moze pokryt aj viac policok - pri rychlom tahu ich prehliadac
+  // posle menej, nez kolko prst presiel.
+  for (let n = 0; n < 8; n++) {
+    const dx = x - tx, dy = y - ty;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (Math.abs(dx) < STEP) break;
+      move(dx > 0 ? 1 : -1, 0); tx += (dx > 0 ? STEP : -STEP); ty = y; stepped = true;
+    } else {
+      if (Math.abs(dy) < STEP) break;
+      move(0, dy > 0 ? 1 : -1); ty += (dy > 0 ? STEP : -STEP); tx = x; stepped = true;
+    }
+  }
+}, {passive:false});
+
+cvEl.addEventListener('touchend', function(e) {
+  // Rychle sibnutie, pri ktorom neprisla ziadna sprava o pohybe, nesmie vyjst
+  // naprazdno - vtedy staci kratsi posun na jeden krok.
+  if (tracking && !stepped) {
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > Math.abs(dy)) { if (Math.abs(dx) > 12) move(dx > 0 ? 1 : -1, 0); }
+    else { if (Math.abs(dy) > 12) move(0, dy > 0 ? 1 : -1); }
+  }
+  tracking = false;
 }, {passive:true});
+cvEl.addEventListener('touchcancel', function() { tracking = false; }, {passive:true});
+
+// Otocenie telefonu alebo zmena okna musi doske prepocitat rozmer - doteraz sa
+// nic take nedialo a doska zostala taka, aka bola pri starte levelu.
+let rzT;
+window.addEventListener('resize', function() {
+  clearTimeout(rzT);
+  rzT = setTimeout(function(){ if (grid && grid.length) resizeCanvas(); }, 120);
+});
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(function(){ if (grid && grid.length) resizeCanvas(); });
+}
 
 // Init
 showMenu();

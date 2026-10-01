@@ -30,6 +30,7 @@ body::after{width:680px;height:680px;bottom:-320px;right:-190px;background:radia
 @media(max-width:520px){#back-btn{top:10px;left:10px;padding:6px 11px;font-size:11px;}}
 
 .page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:58px 14px 26px;gap:13px;}
+.panel{display:flex;flex-direction:column;align-items:center;gap:13px;width:100%;max-width:520px;}   /* bez sirky by si karty hracov zobrali len tolko, kolko ma najsirsi susedny prvok */
 
 /* ── hlavička ─────────────────────────────────────────────── */
 .head{display:flex;flex-direction:column;align-items:center;gap:3px;}
@@ -79,7 +80,7 @@ body::after{width:680px;height:680px;bottom:-320px;right:-190px;background:radia
 
 /* ── doska ────────────────────────────────────────────────── */
 #board-wrap{position:relative;padding:8px;border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,0.075),rgba(255,255,255,0.015));box-shadow:0 28px 64px -30px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07);}
-canvas{display:block;border-radius:15px;cursor:pointer;touch-action:manipulation;}
+canvas{display:block;border-radius:15px;cursor:pointer;touch-action:none;}
 #overlay{position:absolute;inset:8px;border-radius:15px;display:none;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(5,5,8,0.62) 0%,rgba(5,5,8,0.34) 70%);text-align:center;padding:20px;z-index:5;}
 #overlay.show{display:flex;animation:fadein .3s ease;}
 @keyframes fadein{from{opacity:0;}to{opacity:1;}}
@@ -98,7 +99,49 @@ canvas{display:block;border-radius:15px;cursor:pointer;touch-action:manipulation
 .ctrl-btn:active:not(:disabled){transform:translateY(1px);}
 .ctrl-btn:disabled{opacity:.32;cursor:default;}
 .ctrl-btn svg{opacity:.75;}
-@media(max-width:400px){.game-title{font-size:22px;}.pscore{font-size:20px;}.ctrl-btn{padding:8px 14px;}}
+/* Na telefone je sirka dosky to jedine, co sa rata - vsetko ostatne sa stiahne,
+   aby sa doska zmestila cela a este pod nou ostalo na palec. */
+@media(max-width:520px){
+  .page{padding:50px 9px 16px;gap:9px;justify-content:center;}
+  .game-title{font-size:22px;}
+  .game-sub{font-size:9px;letter-spacing:2px;}
+  .seg button{padding:5px 13px;font-size:11px;}
+  .seg.small button{padding:5px 11px;}
+  .players{gap:8px;}
+  .pcard{padding:7px 10px;gap:8px;border-radius:13px;}
+  .stone{width:21px;height:21px;flex:0 0 21px;}
+  .pscore{font-size:19px;}
+  .pname{font-size:10px;max-width:84px;}
+  #status{font-size:10.5px;letter-spacing:1.1px;}
+  .ctrl-btn{padding:8px 13px;font-size:11.5px;}
+  #board-wrap{padding:6px;border-radius:17px;}
+  #overlay{inset:6px;}
+  .panel{gap:9px;}
+}
+
+/* Nalezato na telefone nie je vysky ani na polovicu dosky, zato je sirky dost.
+   Doska teda ide doprostred a vsetko ostatne vedla nej. */
+@media (orientation:landscape) and (max-height:560px){
+  .page{flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:center;
+        padding:10px 12px;gap:14px;}
+  .panel{order:1;gap:7px;flex:0 1 auto;min-width:0;width:auto;max-width:250px;}
+  #board-wrap{order:2;flex:0 0 auto;padding:6px;border-radius:17px;}
+  #overlay{inset:6px;}
+  .ctrl-row{order:3;flex-direction:column;flex:0 0 auto;gap:6px;}
+  .ctrl-btn{width:100%;justify-content:center;padding:8px 14px;font-size:11.5px;}
+  .game-title{font-size:20px;}
+  .game-sub{display:none;}
+  .players{flex-direction:column;gap:6px;max-width:220px;}
+  .pcard{padding:6px 10px;gap:8px;border-radius:12px;}
+  .pcard.o{flex-direction:row;}
+  .pcard.o .pmeta{align-items:flex-start;}
+  .vs{display:none;}
+  .stone{width:20px;height:20px;flex:0 0 20px;}
+  .pscore{font-size:17px;}
+  #status{font-size:10px;letter-spacing:1px;}
+  #back-btn{top:8px;left:8px;padding:5px 10px;font-size:10.5px;}
+}
+@media(max-width:400px){.pscore{font-size:18px;}.ctrl-btn{padding:7px 11px;}}
 </style>
 </head>
 <body>
@@ -108,6 +151,7 @@ canvas{display:block;border-radius:15px;cursor:pointer;touch-action:manipulation
 </a>
 
 <div class="page">
+ <div class="panel">
   <div class="head">
     <div class="game-title" id="lbl-title"></div>
     <div class="game-sub">15 × 15</div>
@@ -143,6 +187,7 @@ canvas{display:block;border-radius:15px;cursor:pointer;touch-action:manipulation
   </div>
 
   <div id="status"><span class="dot"></span><span id="status-txt"></span></div>
+ </div>
 
   <div id="board-wrap">
     <canvas id="c"></canvas>
@@ -208,18 +253,44 @@ const py = r => PAD + r * CELL;
 // ── rozmery a DPI ─────────────────────────────────────────────────────────
 let vw = -1, vh = -1;   // naposledy videný viewport (aj 0, kým sa stránka nerozloží)
 function layout() {
+  // Pri prepinani rozlozenia vie okno na chvilu hlasit nulu. Vtedy sa este
+  // spytam dokumentu, a ked ani ten nic nevie, skusim to v dalsom snimku -
+  // pocitat z nuly by dosku pribilo na minimum.
+  const winW = window.innerWidth || document.documentElement.clientWidth || 0;
+  const winH = window.innerHeight || document.documentElement.clientHeight || 0;
+  if (!winW || !winH) { requestAnimationFrame(layout); return; }
   vw = window.innerWidth; vh = window.innerHeight;
-  const winW = vw || document.documentElement.clientWidth || 360;
-  const winH = vh || document.documentElement.clientHeight || 640;
-  const maxW = Math.min(462, winW - 30);
-  // výšku ostatných prvkov meriam, nie hádam — inak doska pretečie na nízkych displejoch
-  let chrome = 320;
-  const page = document.querySelector('.page'), bw = document.getElementById('board-wrap');
-  if (page && bw && bw.offsetHeight) chrome = page.scrollHeight - bw.offsetHeight + 10;
-  const maxH = winH - Math.max(220, chrome);
-  const avail = Math.max(250, Math.min(maxW, Math.max(268, maxH)));
-  CELL = Math.max(15, Math.floor(avail / (N + 1)));
-  PAD  = CELL;
+
+  const page = document.querySelector('.page');
+  const wrap = document.getElementById('board-wrap');
+  const pcs = getComputedStyle(page), wcs = getComputedStyle(wrap);
+  const gap  = parseFloat(pcs.rowGap || pcs.gap) || 13;
+  const padX = (parseFloat(pcs.paddingLeft) || 0) + (parseFloat(pcs.paddingRight) || 0);
+  const padY = (parseFloat(pcs.paddingTop)  || 0) + (parseFloat(pcs.paddingBottom) || 0);
+  const wrapPad = (parseFloat(wcs.paddingLeft) || 0) + (parseFloat(wcs.paddingRight) || 0);
+
+  // Vysku vsetkeho ostatneho meriam na surodencoch dosky. Z vysky stranky sa to
+  // ratat neda: stranka ma min-height 100vh a doska je jej sucastou, takze
+  // "zvysok = stranka - doska" je spatna vazba - doska sa raz zmensi, zvysok tym
+  // narastie, a uz nikdy nema kam vyrast. Presne na tom zamrzla na 256 px.
+  let others = 0, gaps = 0;
+  const row = pcs.flexDirection === 'row';
+  for (const el of page.children) {
+    if (el === wrap) continue;
+    if (!el.offsetHeight) continue;
+    others += row ? el.offsetWidth : el.offsetHeight;
+    gaps++;
+  }
+  // Nalezato stoja susedia vedla dosky, takze beru sirku a nie vysku.
+  const availW = Math.min(560, winW - padX - wrapPad - (row ? others + gap * gaps : 0));
+  const availH = winH - padY - wrapPad - 4 - (row ? 0 : others + gap * gaps);
+  const avail = Math.max(238, Math.min(availW, availH));
+
+  // Okraj okolo mriezky staci na polomer kamena a trochu vzduchu; cele policko
+  // navyse po kazdej strane bola zbytocna dan - tie dve tretiny su teraz v hre.
+  const PADR = 0.66;
+  CELL = Math.max(14, Math.floor(avail / (N - 1 + PADR * 2)));
+  PAD  = Math.round(CELL * PADR);
   SIZE = CELL * (N - 1) + PAD * 2;
   RAD  = CELL * 0.42;
   DPR  = Math.min(window.devicePixelRatio || 1, 2.5);
@@ -323,6 +394,9 @@ function render(ts) {
   ctx.clearRect(0, 0, SIZE, SIZE);
   ctx.drawImage(layer, 0, 0, SIZE, SIZE);
 
+  // kam padne kamen pri dotyku - na doske aj v lupe nad prstom
+  if (touching && pending >= 0) drawPending(pending);
+
   // náhľad ťahu pod kurzorom
   if (hover >= 0 && !over && !thinking && !board[hover]) {
     ctx.save();
@@ -406,6 +480,48 @@ function render(ts) {
   }
 }
 
+// Prst zakryva prave to miesto, na ktore mieri, takze okolie krizenia sa
+// zobrazi este raz zvacsene nad nim. Vidiet tam aj susedne kamene - bez toho sa
+// neda povedat, ci piatka sedi.
+function drawPending(i) {
+  const occupied = !!board[i];
+  const cx = px(i % N), cy = py(Math.floor(i / N));
+  const col = occupied ? '#ff5d73' : COL[cur].glow;
+
+  // ghost priamo na doske
+  ctx.save();
+  ctx.globalAlpha = occupied ? 0.22 : 0.4;
+  if (!occupied) drawStone(ctx, cx, cy, RAD * 0.9, cur, 1, 0);
+  ctx.globalAlpha = 0.5;
+  ctx.strokeStyle = col; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.moveTo(PAD * 0.3, cy); ctx.lineTo(SIZE - PAD * 0.3, cy);
+  ctx.moveTo(cx, PAD * 0.3); ctx.lineTo(cx, SIZE - PAD * 0.3); ctx.stroke();
+  ctx.restore();
+
+  // lupa
+  const Z = 2.2, LR = Math.max(38, CELL * 2.3);
+  const lx = Math.min(SIZE - LR - 3, Math.max(LR + 3, cx));
+  let ly = cy - LR - CELL * 1.5;
+  if (ly - LR < 3) ly = cy + LR + CELL * 1.5;
+  ly = Math.min(SIZE - LR - 3, Math.max(LR + 3, ly));
+  const k = layer.width / SIZE;          // vrstva je v zariadeniových pixeloch
+  const sw = (LR * 2) / Z;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(lx, ly, LR, 0, 6.2832); ctx.clip();
+  ctx.fillStyle = '#0a0a0f'; ctx.fillRect(lx - LR, ly - LR, LR * 2, LR * 2);
+  ctx.drawImage(layer, (cx - sw / 2) * k, (cy - sw / 2) * k, sw * k, sw * k,
+                lx - LR, ly - LR, LR * 2, LR * 2);
+  if (!occupied) drawStone(ctx, lx, ly, RAD * Z * 0.9, cur, 0.92, 0);
+  ctx.restore();
+  ctx.save();
+  // tien pod obrysom, inak lupa splyva s doskou pod nou
+  ctx.shadowColor = 'rgba(0,0,0,0.85)'; ctx.shadowBlur = 16;
+  ctx.globalAlpha = 0.9; ctx.strokeStyle = col; ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.arc(lx, ly, LR, 0, 6.2832); ctx.stroke();
+  ctx.stroke();
+  ctx.restore();
+}
+
 // ── vstup ─────────────────────────────────────────────────────────────────
 function cellAt(e) {
   const rect = canvas.getBoundingClientRect();
@@ -417,8 +533,29 @@ function cellAt(e) {
   return r * N + c;
 }
 
-canvas.addEventListener('pointerdown', e => { const i = cellAt(e); if (i >= 0) play(i); });
-canvas.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') hover = cellAt(e); });
+// Policko ma na telefone okolo 21 px, prst zakryje dve. Mysou sa teda klada
+// kamen rovno, ale pri dotyku sa najprv ukaze, kam padne - a kym je prst dole,
+// da sa to posuvat. Kamen sadne az po zdvihnuti prsta.
+let pending = -1, touching = false;
+
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse') { const i = cellAt(e); if (i >= 0) play(i); return; }
+  if (over || thinking || (mode === 'ai' && cur === 'O')) return;
+  e.preventDefault();
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}   // nie kazdy prehliadac ho da
+  touching = true; pending = cellAt(e);
+});
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerType === 'mouse') { hover = cellAt(e); return; }
+  if (touching) { e.preventDefault(); pending = cellAt(e); }
+});
+canvas.addEventListener('pointerup', e => {
+  if (e.pointerType === 'mouse') return;
+  const i = pending;
+  touching = false; pending = -1;
+  if (i >= 0 && !board[i]) play(i);
+});
+canvas.addEventListener('pointercancel', () => { touching = false; pending = -1; });
 canvas.addEventListener('pointerleave', () => { hover = -1; });
 
 // ── logika ────────────────────────────────────────────────────────────────
@@ -662,10 +799,16 @@ document.querySelectorAll('#diff-row button').forEach(b => { b.onclick = () => s
 let rzT;
 window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(layout, 120); });
 
-layout();
+// Poradie je dolezite: layout() meria vysku vsetkeho nad doskou a pod nou, a
+// kym applyLang() nevlozi texty, su tie prvky skoro nulove - doska by si vzala
+// vysku, ktoru v skutocnosti nema.
 applyLang();
+layout();
 resetGame();
 requestAnimationFrame(render);
+
+// Pisma dobehnu az po starte a texty nad doskou tym narastu; prepocitam.
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
 </script>
 </body>
 </html>

@@ -226,7 +226,7 @@ const GAMES = [
   {id:'math-blitz',titleKey:'mathTitle',descKey:'mathDesc',emoji:'🧮',tags:['puzzle'],heroColor:'#06090f',file:'games/math-blitz/index.html',isNew:true},
   {id:'color-recall',titleKey:'recallTitle',descKey:'recallDesc',   emoji:'🧠', tags:['memory'],   heroColor:'#0e0b1f', file:'games/color-recall/index.html',          isNew:false},
   {id:'neon-lane',titleKey:'neonLaneTitle',descKey:'neonLaneDesc',emoji:'🏎️',tags:['arcade','action'],heroColor:'#07121a',file:'games/neon-lane/index.html',isNew:true},
-  {id:'top-racer',titleKey:'raceTitle',descKey:'raceDesc',emoji:'🏁',tags:['arcade'],heroColor:'#0a0a1a',file:'games/top-racer/index.html',isNew:true},
+  {id:'lap-racer',titleKey:'raceTitle',descKey:'raceDesc',emoji:'🏁',tags:['arcade'],heroColor:'#0a0a1a',file:'games/lap-racer/index.html',isNew:true},
   {id:'gravlash',titleKey:'grvlTitle',descKey:'grvlDesc',emoji:'🌌', iconSvg:'<svg viewBox="0 0 72 72" width="72" height="72" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gravlash"><circle cx="36" cy="44" r="14" fill="rgba(110,231,255,0.22)" stroke="#6ee7ff" stroke-width="2.6"/><path d="M20 26 v-14 m-5 5 5 -5 5 5" stroke="#ffd166" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M52 12 v14 m-5 -5 5 5 5 -5" stroke="#f472b6" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',tags:['action','arcade'],heroColor:'#000818',file:'games/gravlash/index.html',isNew:true},
   {id:'rock-drift', titleKey:'rdrTitle',    descKey:'rdrDesc',     emoji:'🚀', tags:['action'],   heroColor:'#06040c', file:'games/rock-drift/index.html',     isNew:false},
   {id:'domino-drift',titleKey:'domTitle',descKey:'domDesc',emoji:'🁢',tags:['strategy'],heroColor:'#0a141c',file:'games/domino-drift/index.html',isNew:true},
@@ -304,6 +304,29 @@ let activeTag='all', searchQuery='';
 const PLAYS_KEY='gamepad_plays';
 let plays={};
 try{ plays=JSON.parse(localStorage.getItem(PLAYS_KEY)||'{}')||{}; }catch(e){ plays={}; }
+// Premenovanie hry by jej počet otvorení zahodilo — leží pod starým id a nové
+// začína od nuly. Prenesiem ho; staré kľúče, ktoré hráč nikdy nemal, sa len
+// preskočia. Doplnené aj za štrnásť premenovaní z predchádzajúcej dávky.
+const RENAMED={
+  'top-racer':'lap-racer',
+  'gravity-shift':'gravlash','star-catcher':'glimmerdrift','ricochet':'skipshot',
+  'code-breaker':'hueclue','nebula-strike':'voidlance','dead-grid':'husklands',
+  'circuit-bloom':'voltbloom','orbital-courier':'orbhaul','blackout-grid':'duskgrid',
+  'cosmic-voyager':'farhaul','gridlock-escape':'snarlpark','word-weave':'spellweft',
+  'gem-swap':'gleamfall','geoklik':'terrapick'
+};
+(function migratePlays(){
+  let moved=false;
+  for(const oldId in RENAMED){
+    if(plays[oldId]==null) continue;
+    const newId=RENAMED[oldId];
+    plays[newId]=(plays[newId]|0)+(plays[oldId]|0);
+    delete plays[oldId];
+    moved=true;
+  }
+  if(moved){ try{ localStorage.setItem(PLAYS_KEY,JSON.stringify(plays)); }catch(e){} }
+})();
+
 function playCount(id){ return plays[id]|0; }
 function countPlay(id){
   plays[id]=playCount(id)+1;

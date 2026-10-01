@@ -1,4 +1,4 @@
-const CACHE = 'jocadium-v9';
+const CACHE = 'jocadium-v18';
 
 const ASSETS = [
   './',
@@ -55,7 +55,7 @@ const ASSETS = [
   './games/glimmerdrift/index.html',
   './games/gear-puzzle/index.html',
   './games/slope-rider/index.html',
-  './games/top-racer/index.html',
+  './games/lap-racer/index.html',
   './games/voidlance/index.html',
   './games/gravlash/index.html',
   './games/cesty/index.html',

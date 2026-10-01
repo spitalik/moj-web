@@ -1424,3 +1424,398 @@ taken from the window. The second: during a layout change the window can briefly
 report zero, and computing from that pinned the canvas to its 220-pixel minimum;
 it now defers to the next frame instead.
 
+
+
+38. Filter order on the front page - index.html
+------------------------------------------------------------------------------
+
+Changed on 1 October 2026 at the owner's request. The row of filters above the
+grid now opens with "All" and the collection shows everything at startup; "Most
+played" moved to second place. Previously the first button was the played
+filter, which meant a first-time visitor landed on a view built from an empty
+play count. No licensing effect - this is layout.
+
+
+39. Nonogram: the finished picture, real pictures, and crossed-off clues
+    - games/nonogram/, tools/check-nonograms.py
+------------------------------------------------------------------------------
+
+Three changes made on 1 October 2026. None of them touches licensing: nonogram
+is a puzzle form, and a form is an idea, not an expression - Non Ishida and
+Tetsuya Nishio arrived at it independently in 1987, the word nonogram is the
+generic name for it, and nothing of theirs is reproduced here. The drawings below
+and the verifier are this project's own.
+
+**The player never saw what they had drawn.** The moment the last cell was
+filled, the result panel covered the board, so the picture the whole puzzle was
+about appeared and disappeared in the same frame. Now solving fades the clues and
+the crosses out, lights the filled cells along diagonals (35 ms per step away
+from the top-left corner), and floats a "Solved!" badge above the board with the
+time and the error count. The result panel follows after 2.6 seconds, or
+immediately on the next tap for anyone who does not want to wait.
+
+**The puzzles were noise, and often unfair.** genSolution filled the grid at
+random with a 55 % chance per cell. Two things are wrong with that. The first is
+cosmetic - a random grid is not a picture, so the reveal above would have had
+nothing to reveal. The second is not: a nonogram generated at random frequently
+cannot be finished by reasoning. Running the standard line-propagation solver
+(for every row and column, enumerate the placements consistent with the clue and
+with what is known, keep the cells they all agree on, repeat until nothing
+changes) over random grids, the share that can be completed without guessing was
+86 % at 5x5, 73 % at 10x10 and 62 % at 15x15. On the hard setting almost four
+grids in ten reached a point where the player had no move left to deduce - and
+with three mistakes ending the game, a guess there is a real cost for a fault in
+the puzzle, not in the player.
+
+The grids are now 24 drawings made for this collection: ten at 5x5, eight at
+10x10 and six at 15x15 - a heart, a tree, a house, a cup, a star, an anchor, a
+key, a boat, a fish, a cat, a rocket, a flower, a mushroom, a drop. Each one was
+put through the same solver, and only pictures it could finish are in the game;
+being deducible also means the solution is the only one, so the clues can never
+mislead. The check ships as tools/check-nonograms.py, which reads the drawings
+straight out of games/nonogram/index.html and exits non-zero if any of them
+fails, so a new drawing cannot enter the game unverified. The same picture is
+never served twice in a row at one size, and its emoji is kept back until the
+puzzle is solved - showing it earlier would give the answer away.
+
+**Finished clues now cross themselves off.** When a row or column matches its
+clue, its numbers fade and get a line through them. This is only a reading aid,
+not information the player did not have: a wrong fill is already reverted on the
+spot, so the filled cells are always part of the solution and a matching clue
+really does mean that line is done. At 15x15 there are 30 lines to keep track of,
+and without this the player re-reads the whole margin after every move.
+
+
+40. Gomoku on a phone - games/piskvory/
+------------------------------------------------------------------------------
+
+Reworked on 1 October 2026 after the board was reported as too small to play on
+a phone. No licensing change: five in a row is a traditional game with no owner,
+and the board, the stones and the opponent are all this project's own code.
+
+**The board had sized itself down and could not get back up.** layout() worked
+out how much height was left for the board as "page height minus the board",
+measured on the page element. But the page is at least 100vh tall and the board
+is inside it, so that subtraction feeds itself: the board shrinks, the rest of
+the page appears to grow by exactly as much, and the next pass offers even less
+room. It settles at the floor and stays there. On a 375 by 812 phone the board
+came out 256 px with 16-pixel cells, about two thirds of the width, while a
+quarter of the screen below it stayed empty. The height is now worked out from
+the window minus the measured height of the board's siblings, which cannot
+depend on the board. The same phone now gets 338 px and 22-pixel cells.
+
+Two smaller things were taking width as well. The margin around the grid was a
+full cell on every side - it only has to clear the radius of a stone, so it is
+now two thirds of a cell. And layout() ran before applyLang() had put any text
+on the page, so it measured a title, two buttons and a status line that were all
+still empty; it now runs after, and again when the fonts have loaded, since the
+text grows when they arrive. That ordering bug was also why the desktop page
+overflowed its own viewport by 51 px.
+
+**A 22-pixel cell is smaller than a fingertip.** Tapping was placing stones a
+line or two away from where the player was looking, and in this game that is the
+whole move. A mouse still places on click, but touch now works the way it does
+on a map: the finger puts up a marker, a crosshair shows the row and column, and
+a magnifier opens above the finger showing that corner of the board at 2.2x -
+including the neighbouring stones, without which there is no way to tell whether
+a line of five is there. The stone is placed when the finger lifts, so the whole
+move can be corrected by sliding, and lifting over an occupied point does
+nothing. The board no longer scrolls the page under a drag.
+
+**Landscape got its own layout.** Turned sideways, a phone has 375 px of height
+and the panels above the board need 345 of them - the board was pushed 216 px
+past the bottom of the screen. Below 560 px of height the page now puts the
+board in the middle, the title, mode, players and status in a column on the
+left, and the three buttons in a column on the right. The board gets the full
+height: 338 px at 812 by 375, the same as in portrait.
+
+Measured after the change, with nothing overflowing at any of them: 320x568 →
+260 px board, 375x812 → 338, 812x375 → 338, 1280x800 → 428.
+
+
+41. Crate Push: the arrows did nothing - games/crate-push/
+------------------------------------------------------------------------------
+
+Fixed on 1 October 2026 after the on-screen arrows were reported as dead and the
+whole page as moving up and down under a swipe. No licensing change: pushing
+crates onto marks is a puzzle idea, the twenty levels are this project's own
+layouts, and so is the code.
+
+**The arrows could not be pressed.** The page element carries z-index 1 and the
+d-pad, positioned fixed, carried none - so the page was painted over the four
+buttons and every tap landed on it instead. The buttons were visible the whole
+time, which is why this read as "the arrows do not work" rather than as a layout
+fault. The d-pad now sits at z-index 10: above the page, still below the level
+menu at 20, so it does not show through the overlay.
+
+**A swipe scrolled the page.** The board listened for touches passively, which
+leaves the browser free to treat the same movement as a scroll - so the player
+dragged to move one square and the entire screen slid instead. The canvas now
+declares touch-action:none, the move handler cancels the default, and the body
+refuses overscroll. The gesture also got better: it used to need a lift of the
+finger per square, and it now keeps stepping as the finger travels (one square
+per 26 px, several per message when the drag is quick), while a flick too fast
+to produce a move event still gives one square.
+
+**The board was half the size it could be.** Cells were fixed at 44 px and the
+canvas was capped at that, so on a 375-px phone the five-wide first level drew
+220 px across a 350-px space, with a quarter of the screen below it empty. The
+cell now takes whatever room there is between 16 and 72 px, measured from the
+window and from the board's siblings - never from the page height, which
+contains the board and would feed itself. The canvas also carries a
+device-pixel-ratio backing store, so it is no longer soft on a phone, and it
+re-measures on rotation and when the fonts arrive; neither happened before.
+
+**Landscape got its own layout**, as in gomoku: the arrows move to the right
+edge, the title and the buttons form a column on the left, and the board takes
+the height. It was 128 px and sitting under the d-pad; it is now 344.
+
+Measured, nothing overflowing: 320x568 → 256 px board, 375x812 → 345 (first
+level 69 px per cell, largest level 43), 812x375 → 344, 1280x800 → 520.
+
+
+42. Sand rebuilt - games/sand/, i18n.js
+------------------------------------------------------------------------------
+
+Rewritten on 1 October 2026 at the owner's request: the sandbox worked, but it
+looked like flat coloured squares on black. No licensing change - a falling-sand
+toy is a mechanic, every rule, colour and line of code here is this project's
+own, and nothing was taken from any existing sand game.
+
+**The picture.** Every frame used to allocate a full-size ImageData and fill it
+cell by cell, four pixels at a time, in flat colour. Now the simulation is drawn
+into a small canvas, one pixel per cell, and scaled up with smoothing off: the
+blocks are crisper, and the whole frame costs a fraction of what it did. On top
+of that:
+
+  * Fire, lava and acid write into a second small canvas, which is blurred at
+    that small size - cheap - and then stretched over the picture additively.
+    They light their surroundings instead of being orange squares.
+  * Smoke, steam and dying flames carry a life counter and are drawn with it as
+    their opacity, so smoke thins out as it climbs instead of vanishing at full
+    strength.
+  * A cell whose top is open is drawn 22 % lighter and one hanging over nothing
+    15 % darker, which is enough to make a heap read as a heap.
+  * The background is no longer black: a gradient down the page with a vignette,
+    computed once per resize.
+  * The canvas carries a device-pixel-ratio backing store, so edges are sharp on
+    a phone.
+
+**Three new materials, and liquids that differ.** Plant falls like a seed, drinks
+the water it touches and creeps along it, but only where it still has room, so
+it grows tendrils rather than filling a pool solid. Acid eats what it touches
+and is used up doing it, slowly even through stone. Steam rises faster than
+smoke and condenses back to water. Water meeting fire makes steam, and lava
+meeting water now makes stone and steam rather than smoke. Liquids also got a
+flow probability: water runs at once, acid nearly so, oil at 0.55 and lava at
+0.22, which is what makes lava read as molten rock and not blue water in red.
+Sand, which was oddly flammable, no longer burns; plant and oil do. Heavy grains
+now sink through water and oil instead of resting on the surface.
+
+**The brush.** It paints only into empty space, as before, with one exception:
+fire may be painted straight onto something flammable. Without that, oil could
+only be lit from the side and nobody found it. A stroke is interpolated between
+pointer events, so a fast drag leaves a line and not a dotted trail; holding
+still keeps pouring, which it never did; and a ring under the cursor shows how
+wide the brush is before anything is spilled.
+
+**Two faults found while testing.** Any resize rebuilt the grid and wiped the
+whole picture - on a phone, just scrolling the address bar away is enough to
+trigger that. The contents are now carried across, anchored to the floor. And
+resize did work even when nothing had changed; it now returns early.
+
+The controls moved to the bottom, under the thumb: eleven materials in a row
+that scrolls sideways and fades at its edges, brush size as three dots, and a
+pause button - space bar, with C to clear and 1-9 for the materials. Five new
+strings (plant, acid, steam, pause, resume) were translated into all twelve
+languages.
+
+Measured at 1100x760, 275x153 cells, a full scene of sand, water, stone, plants,
+oil, fire and lava: 3.6 ms per frame for simulation and drawing together.
+
+
+43. Tiny Alchemist: the mixing made visible - games/tiny-alchemist/, i18n.js
+------------------------------------------------------------------------------
+
+Reworked on 1 October 2026 at the owner's request. No licensing change: combining
+elements into new ones is an idea, not an expression; the twenty essences, their
+colours, the recipe tree and the levels are this project's own, and the icons are
+Unicode emoji, drawn by whatever font the reader's system supplies.
+
+**The one moment the game is about had no picture.** Two cards were tapped and
+the result simply appeared somewhere in the grid - the player could miss their
+own discovery. There is now a cauldron: a copy of each chosen essence flies into
+it, the two halves merge, sparks burst in the colour of what came out, the result
+rises in the middle, and only then does it take its place among the ingredients.
+A failed mix shakes the cauldron, puffs grey and says so. The whole sequence
+takes 1.4 seconds.
+
+**Twenty essences that look alike no longer do.** Each carries its own colour,
+used for its card's tint, border, selection glow and its sparks, so the grid can
+be read at a glance instead of word by word.
+
+**"Discovered: 7" became a cabinet.** The book now shows all twenty essences as
+tiles, the ones never made still locked behind a question mark, with the known
+recipes listed under them. Collecting them is the point of this kind of game and
+there was nothing to collect before. Progress carries over: anyone who had
+recipes saved gets the matching essences unlocked, derived from them on load.
+A level's own ingredients unlock as the level is reached, not all at once.
+
+**Two things that were simply unfair.** Repeating a pair that already failed in
+this round cost another mix - punishing the player for not keeping notes, which
+is not the interesting part; it is now free and says "already tried". And one
+hint per level highlights a pair that actually leads to the target: the game
+works out everything reachable from the current ingredients and returns the
+first step on the path, so the hint is never a guess.
+
+**A recipe that could never fire.** 'fire+sand' made glass, but sand is not one
+of the essences and never was - the entry was dead. It was replaced by clay in
+fire, and three more routes were added (ember and water to steam, alloy and
+spark to lantern), so most targets can now be reached more than one way.
+
+Four new strings (hint, close, already tried, nothing happens) were translated
+into all twelve languages. Checked in Slovak and at 375x812 and 1280x800, with
+nothing overflowing and the console clean.
+
+
+44. Neon Lane: three lives, and some neon - games/neon-lane/, i18n.js
+------------------------------------------------------------------------------
+
+Reworked on 1 October 2026 at the owner's request: more attractive, and no
+longer over at the first crash. No licensing change: dodging traffic down a
+lane road is a mechanic, and the road, the cars, the city and the code are this
+project's own drawing.
+
+**One mistake used to end the run.** The race now starts with three lives, shown
+as hearts in the HUD. A crash costs one, throws sparks, shakes the screen, drops
+the speed and gives 2.2 seconds of immunity during which the car blinks - and
+clears the traffic directly ahead, because without that the player would be hit
+again the moment the immunity ran out. The race ends only at zero. Hearts also
+drift down the road every 16 to 26 seconds and give a life back, up to five;
+they stop appearing while the player is full, so they never become one more
+obstacle in a lane.
+
+One bug was found doing this: two cars touching in the same frame called the
+crash twice, which took two lives at once and could push the count below zero.
+The check now also tests that the race is still running.
+
+**The name promised neon and the screen delivered grey.** A city scrolls past on
+both sides at 42 % of the road speed, its blocks outlined in cyan and pink with
+lit windows, so there is depth and a sense of travel where there used to be
+black. The road edges glow, the lane dashes stretch from 26 to 72 px as the
+speed climbs, light streaks appear above 220 and lengthen with it, and the car
+drags a tail that turns gold while boosting and has headlights throwing light
+ahead. Traffic carries tail lights. The canvas also got a device-pixel-ratio
+backing store - it was a fixed 560x520 stretched to whatever width was
+available, which on a phone meant a soft picture - and it may now reach 640 px
+on a desktop rather than 560.
+
+**Something to chase besides survival.** Passing a car within 95 px pays 25
+points and says so. Dodging was previously worth nothing by itself; the score
+only counted distance, so there was no reason to cut it fine.
+
+The boost gauge became a bar instead of a number, the speed pill is hidden below
+520 px of width to keep the HUD at two rows, and the hint now mentions the
+lives. Two new strings (near miss, extra life) and a rewritten hint were
+translated into all twelve languages.
+
+Checked at 375x812, 812x375 and 1280x800 with nothing overflowing, and the
+mechanics driven step by step: crash, immunity, heart pickup, near miss, and the
+end at zero lives.
+
+
+45. Lap Racer: the folder matches the name, and the camera follows the car
+    - games/lap-racer/ (was games/top-racer/), index.html, sw.js
+------------------------------------------------------------------------------
+
+Done on 1 October 2026 at the owner's request. No licensing change: the title
+Lap Racer was checked with the other 109 in the September name audit and is this
+project's own, as are the track generator, the cars and the opponents.
+
+**The folder said top-racer while the game said Lap Racer.** The link in the
+collection, the path on disk and the entry in the service worker all carried the
+old word; they now read lap-racer. Nothing inside the game referred to it. The
+i18n keys stay on the race prefix, which describes the game and never carried
+the old name.
+
+A rename has a cost that is easy to miss: the play count on the front page is
+stored per game id, so the number would have stayed under the old key and the
+game would have restarted from zero in "Most played". The counts are now carried
+across on load - for this rename and for the fourteen from section 36, which had
+the same problem and nobody noticed. Old keys the player never had are simply
+skipped.
+
+**The camera showed the whole track.** Everything was scaled to fit the full
+circuit on screen, which left the cars about five pixels long on a phone: there
+was nothing to see and nothing to judge a corner by. The camera now follows the
+player, looks ahead along the direction of travel, and eases out by 16 % at top
+speed; the road fills about 44 % of the shorter screen edge. The overview did not
+disappear - it moved to a minimap in the bottom-left corner, with a dot per car.
+
+With a close camera there was room for a road worth looking at: grass in mown
+bands, trees and bushes scattered from the track seed so they stand still
+between frames, red and white kerbs, a white line along each edge, a dashed
+centre line, and a chequered start line. Cars got a shadow, a roof highlight and
+headlight cones. Tyres leave black marks when the car slides or brakes and the
+marks fade over about fifteen seconds, and driving onto the grass throws dust -
+which is the first thing in this game that shows where someone has been
+pushing it.
+
+The HUD gained a position pill (P1/4), the lap counter now flashes across the
+screen when the line is crossed, and the countdown pulses. Two layout faults
+were fixed: the leaderboard was sitting on top of the back and sound buttons,
+and the brake button showed the text "⬛ brz" - a stray label - instead of a
+glyph. The minimap needed top:auto;right:auto because the blanket canvas rule
+sets inset:0 and would otherwise have pinned it over those same buttons.
+
+One piece of hardening: the frame time was clamped from above but not below, so
+a negative step would have run the race backwards - lap times included. It is
+now clamped to zero as well.
+
+
+46. Gravlash: three difficulties and eight stages - games/gravlash/
+------------------------------------------------------------------------------
+
+Reworked on 1 October 2026 at the owner's request: more attractive, more
+difficulty settings, more levels. No licensing change: dodging rocks down a
+corridor is a mechanic, and the ship, the rocks, the stages and the code are
+this project's own.
+
+**It had one difficulty and no levels.** The game ramped a counter every five
+seconds and spawned the same grey asteroid faster and faster; the "level" in the
+HUD was that counter and meant nothing else. There are now three settings -
+easy, normal, hard - differing in starting speed (1.8 / 2.2 / 2.9), how fast it
+climbs, the ceiling (7 / 9 / 11.5) and how often rocks and shields arrive. The
+choice sits on the start screen, is remembered, and each setting keeps its own
+record, because one shared number would have been set on easy and never touched
+again. Normal keeps the original storage key, so existing records survive.
+
+**Eight stages, each with its own hazard and its own sky.** A stage lasts
+fifteen seconds; eight of them make a cycle, after which it starts over faster,
+so the game stays endless but now has shape. A banner announces each one and the
+HUD carries a bar showing how far the current stage has run.
+
+  1  rocks      the plain field it has always been
+  2  drift      rocks slide sideways and bounce off the walls
+  3  ice        a wall of rock across the screen with a single gap
+  4  flare      every few seconds the screen whites out and everything speeds up by a third
+  5  magnet     a slow pull to one side the player has to fly against
+  6  comets     small rocks at nearly twice the speed
+  7  wreck yard occasional giants moving slower than everything else
+  8  deep void  the view closes to a circle around the ship
+
+Each stage also has its own sky gradient and rock colour, so the change is
+visible before the banner is read.
+
+Three things needed care. Two walls arriving back to back cannot be passed at
+all, so a wall now waits at least eighty frames after the previous one. A comet
+at 1.95x speed in the fourth cycle would move seventeen pixels a frame and could
+step straight over the ship between frames, so object speed is capped. And the
+difficulty pill in the HUD was being set as a value in 16 px Syne, which pushed
+the whole row over the back button; it is a label and is now styled like one,
+and it hides below 620 px where the player has just chosen it anyway.
+
+One real bug surfaced: the first race of a session did not go through the reset
+path at all - it only hid the overlay - so the chosen difficulty and the stage
+setup applied from the second attempt onwards. Starting now runs the same
+initialisation as a restart.
