@@ -1819,3 +1819,47 @@ One real bug surfaced: the first race of a session did not go through the reset
 path at all - it only hid the overlay - so the chosen difficulty and the stage
 setup applied from the second attempt onwards. Starting now runs the same
 initialisation as a restart.
+
+
+47. 2048: undo, three board sizes, milestones and merge feel - games/2048/
+------------------------------------------------------------------------------
+
+Four changes made on 5 October 2026, picked by the owner from a list of options.
+No licensing change: the doubling-tile mechanic is an idea, the colour scale and
+every line of code here are this project's own, and nothing of the original
+game's presentation is reproduced.
+
+**One mis-swipe used to cost the whole game.** There is now a step back - five
+per game, with the counter on the button, so it is relief without turning the
+record into a formality. A snapshot is taken before each move and only kept if
+the board actually moved. It also works from the game-over card: the button is
+refreshed before the card appears, so the fatal move can be taken back and the
+game continues. Z or Backspace does the same from a keyboard.
+
+**Three board sizes.** 3x3, 4x4 and 5x5, remembered between visits, each with
+its own record - 5x5 is a calm game and 3x3 a sharp little puzzle, so one shared
+number would have said nothing. The 4x4 record keeps the original storage key, so
+existing bests survive. The winning tile follows the size: 512, 2048 and 4096.
+N stopped being a constant, which is the whole of the change in the move logic.
+
+**A target to climb towards.** A bar above the board fills toward the next
+milestone on the ladder 64, 128, 256 ... 32768, and the next one is named at its
+centre. It fills by the sum of the values on the board, not by score - that sum
+is exactly the material that has to be gathered before the next milestone can
+exist at all, so the bar means something. Reaching one flashes the number across
+the board, pulses the bar and plays a sound; before this, nothing happened
+between the start and 2048.
+
+**Merging got its reward.** The new tile throws a ring and seven to ten sparks in
+its own colour, anything from 256 up shakes the board, and the pitch of the merge
+tone rises with the value - merging 1024 no longer sounds like merging 4
+(SFX.tone is a public part of the shared sound module, so the mute button still
+governs it). Three or more merges in one move are called out as a combo, without
+a score bonus, so records stay comparable with older ones.
+
+The extra row and the bar cost height, which on a phone held sideways pushed the
+board 54 px past the bottom edge. Below 470 px of height everything above the
+board shrinks and the board's own floor drops from 220 to 180 px; measured at
+812x375 all three sizes now fit with nothing overflowing, and at 375x812 the
+board is unchanged at 340 px. No new translated strings were needed - the shared
+keys for undo and combo were already there.
