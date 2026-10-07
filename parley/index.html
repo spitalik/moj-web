@@ -1,3 +1,6 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Parley</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,6 +45,7 @@
 html, body { height: 100%; }
 [hidden] { display: none !important; }
 body {
+  margin: 0;
   background: var(--bg); color: var(--ink);
   font: 16px/1.5 var(--font-body);
   display: flex; flex-direction: column;
@@ -156,6 +160,14 @@ dialog::backdrop { background: rgb(0 0 0 / 0.4); }
 .dlg-head h2 { font-family: var(--font-display); margin: 0; font-size: 1.2rem; }
 .dlg-body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
 .empty { color: var(--muted); }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; }
+.field input, .field select { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 10px; width: 100%; }
+.prov { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.prov h3 { margin: 0; font-size: 1rem; }
+.note { font-size: 0.82rem; color: var(--muted); margin: 0; }
+.note code { font-size: 0.9em; overflow-wrap: anywhere; }
+.now { font-size: 0.88rem; background: var(--bg); border-radius: 8px; padding: 6px 10px; margin: 0; }
+.send.wide { align-self: flex-start; }
 .range { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
 @media (prefers-reduced-motion: no-preference) { .msg { animation: pop .18s ease-out; } }
 @keyframes pop { from { transform: translateY(4px); opacity: .6; } to { transform: none; opacity: 1; } }
@@ -175,6 +187,7 @@ dialog::backdrop { background: rgb(0 0 0 / 0.4); }
       </select>
     </label>
     <button class="ghost" id="ttsBtn" aria-pressed="true" title="Čítať odpovede nahlas">Nahlas</button>
+    <button class="ghost" id="setBtn" title="Pripojenie k AI (Claude, DeepSeek, OpenAI)">Nastavenia</button>
     <button class="ghost" id="mistakesBtn">Moje chyby<span class="badge" id="mCount" hidden>0</span></button>
     <button class="ghost" id="resetBtn" title="Začať rozhovor odznova">Nový</button>
   </div>
@@ -250,6 +263,36 @@ dialog::backdrop { background: rgb(0 0 0 / 0.4); }
   <p class="hint" id="hint">Tip: na Androide ťuknite na mikrofón na klávesnici a hovorte – text sa prepíše sám.</p>
 </footer>
 
+<dialog id="setDlg">
+  <div class="dlg-head"><h2>Pripojenie k AI</h2><button class="ghost" id="setClose" type="button">Zavrieť</button></div>
+  <form class="dlg-body" id="setForm">
+    <p class="now" id="aiNow">Zisťujem…</p>
+    <p class="note"><a href="napoveda.html" target="_blank" rel="noopener">Ako získať API kľúč? Návod krok za krokom</a></p>
+    <label class="field"><span>Ktorá AI má odpovedať</span>
+      <select id="aiProv">
+        <option value="auto">Automaticky: Claude na claude.ai, inde DeepSeek alebo OpenAI</option>
+        <option value="claude">Len Claude (funguje iba na claude.ai)</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="openai">OpenAI (ChatGPT)</option>
+      </select>
+    </label>
+    <div class="prov">
+      <h3>DeepSeek</h3>
+      <label class="field"><span>API kľúč</span><input id="keyDeepseek" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…"></label>
+      <label class="field"><span>Model</span><input id="modelDeepseek" type="text" spellcheck="false"></label>
+      <p class="note">Kľúč vytvoríte na <code>platform.deepseek.com</code> v časti API keys. Platí sa vopred malým kreditom.</p>
+    </div>
+    <div class="prov">
+      <h3>OpenAI (ChatGPT)</h3>
+      <label class="field"><span>API kľúč</span><input id="keyOpenai" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…"></label>
+      <label class="field"><span>Model</span><input id="modelOpenai" type="text" spellcheck="false"></label>
+      <p class="note">Kľúč vytvoríte na <code>platform.openai.com/api-keys</code>. Predplatné ChatGPT Plus sa na API nevzťahuje, API sa platí zvlášť.</p>
+    </div>
+    <p class="note">Kľúče sa ukladajú len v tomto prehliadači a posielajú sa iba priamo zvolenej službe. Nikdy ich nevkladajte do kódu stránky. Na claude.ai môže stránka volať len Claude, iné služby tam blokuje.</p>
+    <button class="send wide" type="submit">Uložiť</button>
+  </form>
+</dialog>
+
 <dialog id="dlg">
   <div class="dlg-head"><h2>Moje chyby</h2><button class="ghost" id="dlgClose">Zavrieť</button></div>
   <div class="dlg-body">
@@ -305,10 +348,73 @@ const sampleReady = (async () => {
   try { return (await window.claude?.use?.("sample")) || null; } catch { return null; }
 })();
 async function getSample() { return sample || (sample = await sampleReady); }
-function noSampleText() {
+/* ---------- AI backends: Claude inside claude.ai, DeepSeek or OpenAI with the viewer's own key elsewhere ---------- */
+const PROVIDERS = {
+  deepseek: { label: "DeepSeek", url: "https://api.deepseek.com/chat/completions", model: "deepseek-chat" },
+  openai:   { label: "OpenAI",   url: "https://api.openai.com/v1/chat/completions", model: "gpt-4o-mini" }
+};
+const aiCfg = Object.assign({ provider: "auto", keys: {}, models: {} }, store.get("ai", {}));
+async function backend() {
+  const want = aiCfg.provider;
+  if (want === "auto" || want === "claude") {
+    if (await getSample()) return { kind: "claude" };
+    if (want === "claude") return null;
+  }
+  const order = want === "auto" ? ["deepseek", "openai"] : [want];
+  for (const id of order) {
+    const key = (aiCfg.keys[id] || "").trim();
+    if (key) return { kind: "api", id, key, model: (aiCfg.models[id] || "").trim() || PROVIDERS[id].model };
+  }
+  return null;
+}
+function backendLabel(b) {
+  return !b ? "Nie je nastavená žiadna AI." : b.kind === "claude" ? "Odpovedá Claude (cez claude.ai)." : `Odpovedá ${PROVIDERS[b.id].label}, model ${b.model}.`;
+}
+function noBackendText() {
   return window.claude
-    ? "Toto zobrazenie nepovoľuje stránke volať Claude (napr. mobilná aplikácia Claude alebo vložený náhľad). Otvorte odkaz v prehliadači na claude.ai."
-    : "Stránka je otvorená mimo claude.ai (napr. ako súbor z disku). Tutor odpovedá len na odkaze claude.ai/artifact/…";
+    ? "Toto zobrazenie nepovoľuje stránke volať Claude. Otvorte odkaz v prehliadači na claude.ai."
+    : "Mimo claude.ai treba zadať API kľúč DeepSeek alebo OpenAI. Otvorte Nastavenia.";
+}
+function parseJSON(text) {
+  try { return JSON.parse(text); } catch {}
+  const f = text.match(/```(?:json)?\s*([\s\S]*?)```/); if (f) try { return JSON.parse(f[1]); } catch {}
+  const i = text.search(/[\[{]/), j = Math.max(text.lastIndexOf("}"), text.lastIndexOf("]"));
+  if (i >= 0 && j > i) try { return JSON.parse(text.slice(i, j + 1)); } catch {}
+  throw { code: "invalid_json" };
+}
+async function callApi(b, messages, json, signal) {
+  let res;
+  try {
+    res = await fetch(PROVIDERS[b.id].url, {
+      method: "POST", signal,
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + b.key },
+      body: JSON.stringify({ model: b.model, messages, ...(json ? { response_format: { type: "json_object" } } : {}) })
+    });
+  } catch (e) { throw { code: e?.name === "AbortError" ? "cancelled" : "network" }; }
+  if (!res.ok) {
+    let detail = ""; try { detail = (await res.json())?.error?.message || ""; } catch {}
+    const code = res.status === 401 || res.status === 403 ? "bad_key" : res.status === 402 ? "no_credit"
+      : res.status === 429 ? (/quota|balance|billing/i.test(detail) ? "no_credit" : "rate_limited")
+      : res.status === 404 || /model/i.test(detail) ? "bad_model" : "upstream_error";
+    throw { code, detail };
+  }
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content || "";
+  if (!text.trim()) throw { code: "empty_completion" };
+  return text;
+}
+// turns: [{role:"user", content: RULES}, ...conversation]; for the APIs the leading rules turn becomes a system message.
+async function askJSON(turns, signal) {
+  const b = await backend(); if (!b) throw { code: "no_backend" };
+  if (b.kind === "claude") return sample.json(turns, { modelTier: "quick", cache: false, signal });
+  const [first, ...rest] = turns;
+  const messages = rest.length ? [{ role: "system", content: first.content }, ...rest] : [{ role: "user", content: first.content }];
+  return parseJSON(await callApi(b, messages, true, signal));
+}
+async function askText(prompt) {
+  const b = await backend(); if (!b) throw { code: "no_backend" };
+  if (b.kind === "claude") return (await sample(prompt, { modelTier: "quick" })).text;
+  return callApi(b, [{ role: "user", content: prompt }], false);
 }
 
 /* ---------- tutor avatar ---------- */
@@ -578,7 +684,12 @@ function errCopy(code) {
     rate_limited: "Príliš veľa správ naraz alebo ste dosiahli limit. Skúste to o chvíľu.",
     session_expired: "Prihlásenie vypršalo. Prihláste sa znova do claude.ai.",
     refused: "Na túto správu tutor neodpovie. Skúste to povedať inak.",
-    invalid_json: "Odpoveď sa nepodarilo spracovať. Pošlite správu znova."
+    invalid_json: "Odpoveď sa nepodarilo spracovať. Pošlite správu znova.",
+    no_backend: noBackendText(),
+    bad_key: "API kľúč nebol prijatý. Skontrolujte ho v Nastaveniach.",
+    no_credit: "Na účte poskytovateľa AI došiel kredit. Dobite ho na jeho stránke.",
+    bad_model: "Zvolený model neexistuje alebo k nemu nemáte prístup. Opravte ho v Nastaveniach.",
+    network: "Nepodarilo sa spojiť so službou AI. Skontrolujte internet."
   })[code] || "Spojenie zlyhalo. Skúste správu poslať znova.";
 }
 
@@ -612,9 +723,9 @@ async function send(text) {
   text = text.trim();
   if (!text || busy) return;
   busy = true; sendBtn.disabled = true;
-  const ok = await getSample();
+  const ok = await backend();
   busy = false; sendBtn.disabled = false;
-  if (!ok) { showError(noSampleText()); return; }
+  if (!ok) { showError(noBackendText()); if (!window.claude) openSettings(); return; }
   busy = true; sendBtn.disabled = true; $("ideas").textContent = "";
   input.value = ""; autosize();
   const mine = renderMe(text);
@@ -625,7 +736,7 @@ async function send(text) {
   setStatus("thinking");
   ctl = new AbortController();
   try {
-    const out = await sample.json(apiTurns(), { modelTier: "quick", cache: false, signal: ctl.signal });
+    const out = await askJSON(apiTurns(), ctl.signal);
     wait.remove();
     const reply = String(out?.reply || "").trim() || "Sorry, could you say that again?";
     const corr = Array.isArray(out?.corrections) ? out.corrections.filter(c => c && c.better).map(c => ({
@@ -637,27 +748,26 @@ async function send(text) {
     if (state.tts) speak(reply); else silentTalk(reply);
   } catch (e) {
     wait.remove(); setStatus("idle");
-    if (e?.code !== "cancelled") { state.turns.pop(); showError(errCopy(e?.code)); input.value = text; autosize(); }
+    if (e?.code !== "cancelled") { state.turns.pop(); mine.remove(); showError(errCopy(e?.code)); input.value = text; autosize(); }
   } finally { busy = false; sendBtn.disabled = false; }
 }
 
 async function translate(text, m, btn) {
-  if (!(await getSample())) { showError(noSampleText()); return; }
   btn.disabled = true; btn.textContent = "Prekladám…";
   try {
-    const { text: sk } = await sample("Prelož do prirodzenej slovenčiny. Odpovedz iba prekladom:\n\n" + text, { modelTier: "quick" });
+    const sk = await askText("Prelož do prirodzenej slovenčiny. Odpovedz iba prekladom:\n\n" + text);
     const p = el("div", "fix"); p.append(el("span", "why", sk.trim())); m.append(p); btn.remove(); scrollDown();
   } catch (e) { btn.disabled = false; btn.textContent = "Preložiť"; if (e?.code !== "cancelled") showError(errCopy(e?.code)); }
 }
 
 async function ideas() {
   if (busy) return;
-  if (!(await getSample())) { showError(noSampleText()); return; }
   const box = $("ideas"); box.textContent = ""; box.append(el("span", "hint", "Hľadám nápady…"));
   const last = state.turns.filter(t => t.role === "assistant").pop()?.content || "";
   try {
-    const arr = await sample.json(`A ${state.level} English learner is in this situation: ${SCENARIOS[state.scenario].role}. The other person just said: "${last}"
-Suggest 3 different natural replies the learner could say, suitable for level ${state.level}. Reply ONLY with a JSON array of 3 strings.`, { modelTier: "quick", cache: false });
+    const out = await askJSON([{ role: "user", content: `A ${state.level} English learner is in this situation: ${SCENARIOS[state.scenario].role}. The other person just said: "${last}"
+Suggest 3 different natural replies the learner could say, suitable for level ${state.level}. Reply ONLY with JSON: {"replies": ["...", "...", "..."]}` }]);
+    const arr = Array.isArray(out) ? out : out?.replies;
     box.textContent = "";
     for (const s of (Array.isArray(arr) ? arr : []).slice(0, 3)) {
       const b = el("button", null, String(s)); b.type = "button";
@@ -709,7 +819,28 @@ $("tutorSel").value = state.tutor;
 $("tutorSel").onchange = e => { if (busy) { e.target.value = state.tutor; return; } state.tutor = e.target.value; store.set("tutor", state.tutor); paintTutor(); startChat(); };
 paintTutor(); setMouth(0); requestAnimationFrame(talkLoop);
 renderScenarios(); renderMistakes(); startChat();
+async function refreshAiNow() { const b = await backend(); $("aiNow").textContent = backendLabel(b); return b; }
+function openSettings() {
+  $("aiProv").value = aiCfg.provider;
+  $("keyDeepseek").value = aiCfg.keys.deepseek || ""; $("keyOpenai").value = aiCfg.keys.openai || "";
+  $("modelDeepseek").value = aiCfg.models.deepseek || PROVIDERS.deepseek.model;
+  $("modelOpenai").value = aiCfg.models.openai || PROVIDERS.openai.model;
+  refreshAiNow();
+  if (!$("setDlg").open) $("setDlg").showModal();
+}
+$("setBtn").onclick = openSettings;
+$("setClose").onclick = () => $("setDlg").close();
+$("setForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  aiCfg.provider = $("aiProv").value;
+  aiCfg.keys = { deepseek: $("keyDeepseek").value.trim(), openai: $("keyOpenai").value.trim() };
+  aiCfg.models = { deepseek: $("modelDeepseek").value.trim(), openai: $("modelOpenai").value.trim() };
+  store.set("ai", aiCfg);
+  const b = await refreshAiNow();
+  $("hint").textContent = b ? backendLabel(b) : noBackendText();
+  if (b) setTimeout(() => $("setDlg").close(), 700);
+});
 (async () => {
-  if (!(await getSample())) $("hint").textContent = noSampleText();
+  if (!(await backend())) $("hint").textContent = noBackendText();
 })();
 </script>

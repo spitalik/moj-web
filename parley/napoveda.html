@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Parley – API kľúč</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: single reading column, provider sections with numbered steps (they are a real sequence). */
+:root {
+  --bg: #eef2f4; --surface: #ffffff; --ink: #17242b; --muted: #5b6b73; --line: #d5dee2;
+  --accent: #0f6e78; --accent-ink: #ffffff; --warn-bg: #fff4c2; --warn-ink: #4a3d00;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171b; --surface: #172227; --ink: #e3ecef; --muted: #93a6ae; --line: #2a3a41;
+    --accent: #4fc1cc; --accent-ink: #062126; --warn-bg: #3a3312; --warn-ink: #f3e3a0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171b; --surface: #172227; --ink: #e3ecef; --muted: #93a6ae; --line: #2a3a41;
+  --accent: #4fc1cc; --accent-ink: #062126; --warn-bg: #3a3312; --warn-ink: #f3e3a0; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--font-body); }
+.wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 22px; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.back { font-size: 0.95rem; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.8rem, 6vw, 2.4rem); line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.02em; }
+h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 65ch; }
+.lead { color: var(--muted); }
+section { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.tag { display: inline-block; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+ol { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 8px; }
+ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+code { font-size: 0.92em; background: var(--bg); border-radius: 5px; padding: 1px 5px; overflow-wrap: anywhere; }
+.warn { background: var(--warn-bg); color: var(--warn-ink); border-radius: 10px; padding: 10px 14px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+.tbl { overflow-x: auto; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 700; }
+td:first-child { white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← Späť do Parley</a>
+
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>Ako získať API kľúč pre Parley</h1>
+    <p class="lead">Na claude.ai odpovedá tutor cez Claude a nič nastavovať netreba. Ak Parley otvoríte inde, napríklad na vlastnom webe alebo v Chrome na telefóne, potrebuje vlastný API kľúč od DeepSeek alebo OpenAI. Kľúč je ako heslo, ktorým Parley platí za odpovede z vášho účtu.</p>
+  </header>
+
+  <section>
+    <span class="tag">Ktorú službu vybrať</span>
+    <h2>DeepSeek alebo OpenAI?</h2>
+    <ul>
+      <li><strong>DeepSeek</strong> je výrazne lacnejší. Na precvičovanie konverzácie úplne stačí a jeden rozhovor stojí zlomok centu.</li>
+      <li><strong>OpenAI</strong> (firma za ChatGPT) je drahší, ale známejší a často trochu prirodzenejší v angličtine.</li>
+    </ul>
+    <p>Obe služby sa platia vopred kreditom. Ceny sa menia, aktuálne nájdete na stránke poskytovateľa v časti Pricing.</p>
+  </section>
+
+  <section id="deepseek">
+    <span class="tag">Možnosť 1</span>
+    <h2>DeepSeek</h2>
+    <ol>
+      <li>Otvorte <a href="https://platform.deepseek.com" target="_blank" rel="noopener">platform.deepseek.com</a> a zaregistrujte sa e-mailom alebo účtom Google.</li>
+      <li>V menu vľavo otvorte <strong>Top up</strong> a dobite malý kredit, napríklad 2 až 5 USD. Bez kreditu kľúč nefunguje.</li>
+      <li>Otvorte <strong>API keys</strong> a kliknite na <strong>Create new API key</strong>. Pomenujte ho napríklad „Parley“.</li>
+      <li>Kľúč začína na <code>sk-</code>. Hneď ho skopírujte, celý sa zobrazí len raz.</li>
+      <li>V Parley kliknite na <strong>Nastavenia</strong>, vložte kľúč do poľa <strong>DeepSeek → API kľúč</strong> a kliknite na <strong>Uložiť</strong>. Model nechajte <code>deepseek-chat</code>.</li>
+    </ol>
+  </section>
+
+  <section id="openai">
+    <span class="tag">Možnosť 2</span>
+    <h2>OpenAI (ChatGPT)</h2>
+    <p class="warn">Predplatné ChatGPT Plus sa na API nevzťahuje. API je samostatná služba s vlastným kreditom.</p>
+    <ol>
+      <li>Otvorte <a href="https://platform.openai.com" target="_blank" rel="noopener">platform.openai.com</a> a prihláste sa. Funguje aj rovnaký účet ako pre ChatGPT.</li>
+      <li>V nastaveniach otvorte <strong>Billing</strong>, pridajte platobnú kartu a kúpte kredit. Najmenšia suma býva 5 USD.</li>
+      <li>Odporúčam v časti <strong>Limits</strong> nastaviť mesačný limit míňania, napríklad 5 USD.</li>
+      <li>Otvorte <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a> a kliknite na <strong>Create new secret key</strong>.</li>
+      <li>Kľúč začína na <code>sk-</code>. Skopírujte ho hneď, druhýkrát sa už nezobrazí.</li>
+      <li>V Parley kliknite na <strong>Nastavenia</strong>, vložte kľúč do poľa <strong>OpenAI → API kľúč</strong> a kliknite na <strong>Uložiť</strong>. Model môžete nechať predvolený. Ak ho OpenAI už neponúka, zadajte názov aktuálneho lacného modelu z ich stránky Models.</li>
+    </ol>
+  </section>
+
+  <section>
+    <span class="tag">Na telefóne</span>
+    <h2>Postup na Androide</h2>
+    <ol>
+      <li>Stránku poskytovateľa otvorte v Chrome a vytvorte kľúč podľa návodu vyššie.</li>
+      <li>Kľúč skopírujte podržaním prsta na ňom alebo tlačidlom Copy.</li>
+      <li>Otvorte Parley v Chrome, ťuknite na <strong>Nastavenia</strong>, podržte prst v poli API kľúč a zvoľte <strong>Prilepiť</strong>.</li>
+      <li>Cez ponuku Chrome ⋮ → <strong>Pridať na plochu</strong> si môžete Parley otvárať ako aplikáciu.</li>
+    </ol>
+  </section>
+
+  <section>
+    <span class="tag">Bezpečnosť</span>
+    <h2>Ako s kľúčom zaobchádzať</h2>
+    <ul>
+      <li>Parley si kľúč uloží len v prehliadači na tomto zariadení. Posiela ho iba priamo službe DeepSeek alebo OpenAI, nikam inam.</li>
+      <li>Kľúč nikomu neposielajte a nevkladajte ho do kódu stránky ani na GitHub. Ktokoľvek s kľúčom by mohol míňať váš kredit.</li>
+      <li>Na cudzom alebo zdieľanom počítači kľúč po použití vymažte v Nastaveniach.</li>
+      <li>Ak kľúč unikne, zmažte ho na stránke poskytovateľa a vytvorte nový.</li>
+    </ul>
+  </section>
+
+  <section>
+    <span class="tag">Keď niečo nejde</span>
+    <h2>Časté chybové hlášky</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Hláška</th><th>Čo urobiť</th></tr></thead>
+        <tbody>
+          <tr><td>API kľúč nebol prijatý</td><td>Kľúč je skopírovaný neúplne alebo bol zmazaný. Vytvorte nový a vložte ho celý.</td></tr>
+          <tr><td>Došiel kredit</td><td>Dobite kredit na stránke poskytovateľa (Top up alebo Billing).</td></tr>
+          <tr><td>Model neexistuje</td><td>V Nastaveniach opravte názov modelu podľa stránky poskytovateľa.</td></tr>
+          <tr><td>Nepodarilo sa spojiť</td><td>Skontrolujte internet. Na claude.ai iné služby nefungujú, tam použite Claude.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <a class="back" href="index.html">← Späť do Parley</a>
+</div>
+</body>
+</html>
