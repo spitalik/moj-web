@@ -1863,3 +1863,30 @@ board shrinks and the board's own floor drops from 220 to 180 px; measured at
 812x375 all three sizes now fit with nothing overflowing, and at 375x812 the
 board is unchanged at 340 px. No new translated strings were needed - the shared
 keys for undo and combo were already there.
+
+
+48. 2048: a moment to see the loss - games/2048/
+------------------------------------------------------------------------------
+
+Changed on 6 October 2026 at the owner's request, as a follow-up to section 47.
+No licensing effect.
+
+The result card used to cover the board in the same frame the game ended, so the
+player never saw the position that beat them - only a number. The board now
+stays for 2.4 seconds first: it dims and takes a red frame, the tile that landed
+last keeps its colour and pulses, because that is the one that closed the board,
+and a badge above the board names the ending and the score. The card follows
+afterwards, or immediately on a tap anywhere on the board for anyone who does
+not want to wait.
+
+The pause is also where the step back belongs, so the undo button pulses during
+it while a step is still available. Taking it cancels the pending card, clears
+the dimming and the marker, and the game carries on - and the pending timer is
+cancelled with it, so the card cannot pop up a second later on a board that is
+alive again. The losing sound moved into the reveal so it plays once, at the
+moment of the loss, rather than with the card.
+
+Checked by playing 3x3 to a natural finish: at the end the card is hidden, the
+board carries the dead state, the badge reads the score and the last tile is
+marked; the card appears 2.4 s later, a tap brings it at once, and an undo in
+between leaves a playable board with no card appearing afterwards.
