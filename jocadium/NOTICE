@@ -1890,3 +1890,66 @@ Checked by playing 3x3 to a natural finish: at the end the card is hidden, the
 board carries the dead state, the badge reads the score and the last tile is
 marked; the card appears 2.4 s later, a tap brings it at once, and an undo in
 between leaves a playable board with no card appearing afterwards.
+
+
+49. The same pause in twenty-nine more games - endcard.js, games/*, sw.js
+------------------------------------------------------------------------------
+
+Done on 9 October 2026 at the owner's request, after the same change in nonogram
+(section 39) and 2048 (section 48): check the rest of the collection and fix
+what has the same fault. No licensing effect.
+
+The fault is one line of habit repeated across the collection: the game ends and
+the result card is revealed in the same frame. Two things are lost by it. In the
+arcade games a death animation is drawn and then covered before anyone can see
+it - voidlance was the clearest case, where five explosions are fired off with
+100 ms between them *after* the overlay is already up, so not one of them was
+ever visible. On the boards, the answer is in the final position - which mine it
+was, where the winning four ran, what the secret code or the hidden word was -
+and the card put a number over it.
+
+The waiting is now one shared file, endcard.js, so every game does it the same
+way: EndCard.after(ms, show) reveals the card after the pause, a tap or a key
+skips the wait for anyone who does not want it, and the tap that skipped is
+swallowed for 380 ms so it cannot land on the button underneath and restart the
+game before it has been looked at.
+
+Twenty-nine games were wired up: 1.2 s where there is a death to watch
+(artillery-duel, blast-maze, block-cascade, bubble-burst, bug-column, farhaul,
+gleamfall, gravlash, husklands, moon-lander, neon-lane, ninja-runner,
+one-bullet-dungeon, orbhaul, rock-drift, seed-sow, signal-garden, sky-shield,
+tilt-maze, type-rush, voidlance at 1.4 s for its five explosions, skipshot at
+1.1 s), and 1.5-1.8 s where the answer is on the board (minesweeper, drop-four,
+hueclue, five-letters, nine-mills, box-claim). Chess had a pause of its own, but
+400 ms is not enough to read a mate position, so it went to 1.6 s and became
+skippable like the rest.
+
+Six games were left alone after being patched by mistake: snake, alien-wave,
+dot-glider, endless-runner, platformer and road-hopper already wait on their own
+before showing the card, and the first scan missed it because their setTimeout
+sits further from the reveal than the search window reached. Adding a second
+pause on top made snake wait over two seconds. The scan was rerun with the
+nesting checked properly - walking the braces back from the call to see which
+block opens it - and those six were reverted.
+
+The quizzes and word games were deliberately not touched: when the round ends
+there is nothing on the screen worth a second look, and the result is the point.
+
+Checked by loading all twenty-nine in turn: every one reports the module present
+and a clean console. The behaviour was driven in blast-maze, tilt-maze,
+minesweeper and neon-lane - with the game running, the end triggered, the card
+still hidden a quarter of a second later and showing after the pause - and the
+skip was confirmed by dispatching a tap during the wait.
+
+
+50. Gleamfall: the time bonus halved - games/gleamfall/
+------------------------------------------------------------------------------
+
+Changed on 9 October 2026 at the owner's request. No licensing effect.
+
+Every 500 points returned 30 seconds to a clock that starts at 60. A player who
+keeps scoring therefore gains time faster than it runs out and the round stops
+ending at all - the limit stops being a limit. The bonus is now 15 seconds,
+which still rewards a good run without making the clock meaningless. The static
+"+30s" in the markup was corrected too; the popup is rewritten by the code at
+every bonus, but the markup should not say something the game does not do.

@@ -8,6 +8,7 @@
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <script src="../../sfx.js"></script>
+<script src="../../endcard.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -548,7 +549,7 @@ body{
             finalYou.textContent = S.onBoard[HUMAN]; finalOpp.textContent = S.onBoard[AI];
             finalScore.textContent = score;
             statusLine.textContent = '';
-            endOverlay.classList.add('visible');
+            EndCard.after(1500, () => endOverlay.classList.add('visible'));
         }
 
         function updateCounts() {

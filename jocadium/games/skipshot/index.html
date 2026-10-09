@@ -8,6 +8,7 @@
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <script src="../../sfx.js"></script>
+<script src="../../endcard.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -603,7 +604,7 @@ function showWin(st){
   const last = lvIdx === LEVELS.length - 1;
   $('panel-menu').style.display = 'none';
   $('panel-win').style.display = 'flex';
-  $('overlay').style.display = 'flex';
+  EndCard.after(1100, () => { $('overlay').style.display = 'flex'; });
   $('w-emoji').textContent = last ? '🏆' : '🎯';
   $('w-title').textContent = last ? T('allDone') : T('win');
   $('w-shots').textContent = shots;

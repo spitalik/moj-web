@@ -8,6 +8,7 @@
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <script src="../../sfx.js"></script>
+<script src="../../endcard.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -284,7 +285,10 @@ function showCard(mode) {
   document.getElementById('ov-stats').classList.toggle('show', mode === 'over');
   document.getElementById('ov-hint').textContent = isTouch ? t('mlnRules') : t('mlnHint');
   document.getElementById('ov-play').textContent = mode === 'over' ? t('uiPlayAgain') : t('uiStart');
-  document.getElementById('overlay').classList.remove('hide');
+  // Koniec hry nesmie prikryť plochu v tom istom okamihu — chvíľu nech je
+  // vidieť, ako to dopadlo. Ťuknutie čakanie preskočí.
+  const reveal = () => document.getElementById('overlay').classList.remove('hide');
+  if (mode === 'over') EndCard.after(1200, reveal); else reveal();
   document.getElementById('hud').classList.remove('show');
   document.getElementById('pause-btn').classList.remove('show');
   document.getElementById('ctrl').classList.remove('show');

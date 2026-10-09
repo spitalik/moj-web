@@ -8,6 +8,7 @@
 <link href="../../fonts/fonts.css" rel="stylesheet">
 <script src="../../i18n.js"></script>
 <script src="../../sfx.js"></script>
+<script src="../../endcard.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -343,7 +344,7 @@ function gameOver(){
   ovTitle.textContent = t('orbhOver');
   ovHint.textContent = `${t('orbhScore')}: ${score}`;
   ovBtn.textContent = t('orbhStart');
-  overlay.classList.remove('hidden');
+  EndCard.after(1200, () => overlay.classList.remove('hidden'));
 }
 
 function flash(text, color){

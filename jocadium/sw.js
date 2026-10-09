@@ -1,10 +1,11 @@
-const CACHE = 'jocadium-v20';
+const CACHE = 'jocadium-v22';
 
 const ASSETS = [
   './',
   './index.html',
   './i18n.js',
   './sfx.js',
+  './endcard.js',
   './fonts/fonts.css',
   './fonts/dmmono-500-latin-ext.woff2',
   './fonts/dmmono-500-latin.woff2',

@@ -8,6 +8,7 @@
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <script src="../../sfx.js"></script>
+<script src="../../endcard.js"></script>
     <style>
         #back-btn{
             position:fixed;top:14px;left:14px;z-index:60;
@@ -519,7 +520,7 @@ body{
             <div id="canvas-wrapper">
                 <canvas id="gameCanvas"></canvas>
                 <div id="pause-overlay"><span>⏸ <span id="lbl-pause"></span></span></div>
-                <div id="bonus-popup">+30s 🎉</div>
+                <div id="bonus-popup">+15s 🎉</div>
             </div>
             <div id="info-panel">
                 <div class="info-card time-card">
@@ -569,7 +570,7 @@ body{
             const GEM_SYMBOLS = ['◆', '★', '●', '▲', '♥', '♦'];
             const storageKey = () => 'gemswap_best_' + COLS + 'x' + ROWS;
             const INITIAL_TIME = 60;
-            const TIME_BONUS = 30;
+            const TIME_BONUS = 15;   // za kazdych 500 bodov; 30 s hru prakticky nekoncilo
             const TARGET_INTERVAL = 500;
 
             // ----- DOM -----
@@ -1129,7 +1130,7 @@ body{
             function showGameOver() {
                 finalScoreSpan.textContent = score;
                 finalHighScoreSpan.textContent = highScore;
-                overlay.classList.add('visible');
+                EndCard.after(1200, () => overlay.classList.add('visible'));
                 saveHighScore(score);
                 if (paused) togglePause();
                 stopTimer();

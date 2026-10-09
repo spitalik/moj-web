@@ -8,6 +8,7 @@
 <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <script src="../../sfx.js"></script>
+<script src="../../endcard.js"></script>
     <style>
         /* Reset & základ */
         * {
@@ -998,7 +999,7 @@
                 finalScore.textContent = score;
                 finalHigh.textContent = highScore;
                 highScoreText.textContent = highScore;
-                gameOverScreen.style.display = 'flex';
+                EndCard.after(1200, () => { gameOverScreen.style.display = 'flex'; });
             }
 
             // --- Update skóre ---

@@ -8,6 +8,7 @@
     <link href="../../fonts/fonts.css" rel="stylesheet">
     <script src="../../i18n.js"></script>
     <script src="../../sfx.js"></script>
+<script src="../../endcard.js"></script>
     <style>
         /* ===== RESET & BASE ===== */
         * {
@@ -1302,7 +1303,7 @@
                     finalScore.textContent = this.score;
                     finalHighScore.textContent = this.highScore;
                     SFX.play('lose');
-                    gameOverOverlay.classList.add('active');
+                    EndCard.after(1400, () => gameOverOverlay.classList.add('active'));
                     hudEl.classList.remove('active');
                     // big explosion
                     for (let i = 0; i < 5; i++) {
