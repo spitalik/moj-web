@@ -1953,3 +1953,61 @@ ending at all - the limit stops being a limit. The bonus is now 15 seconds,
 which still rewards a good run without making the clock meaningless. The static
 "+30s" in the markup was corrected too; the popup is rewritten by the code at
 every bonus, but the markup should not say something the game does not do.
+
+
+51. Chess: a visible opponent, a real board, four levels - games/chess/, i18n.js
+------------------------------------------------------------------------------
+
+Reworked on 14 October 2026 at the owner's request, on three points. No
+licensing change: chess is chess, the pieces are Unicode characters drawn by the
+reader's own system font, and the board, the search and the code are this
+project's own.
+
+**The opponent moved before anyone could see it.** The reply came 300 ms after
+the player's move and appeared instantly in place - no trace of which piece had
+gone where. Now the turn pill blinks while the opponent thinks, for at least
+620 ms even when the search finishes sooner, the piece then slides across the
+board over 420 ms, and the two squares it came from and went to stay marked in
+gold until the next move. The player's own move leaves the same mark, which is
+how every chess interface in the world does it; the CSS for it was already in
+the file and had never been used. The board ignores clicks while the opponent is
+thinking, so a move cannot be made into the middle of the search.
+
+**Four levels instead of one fixed depth.** The search had to be rebuilt first:
+it checked the legality of every move at every node by generating all of the
+opponent's replies, which cost 0.6 s at depth 2 and 4.2 s at depth 3 - there was
+no room to add anything. Inside the search the moves are now pseudo-legal and
+the end is recognised by the king being taken, and they are ordered with
+captures first so the alpha-beta cut-off does its work. The move that is
+actually played is still checked for legality where it is chosen. Measured from
+the player's move to the opponent's, including the deliberate pause and the
+slide: 1.1 s at the first two levels, 1.2 s at the third, 2.2 s at the fourth -
+where the bare search at depth 4 is now faster than depth 3 used to be.
+
+The levels are novice, easy, medium and hard, at depths 1 to 4; the two lower
+ones also play a random legal move now and then (35 % and 12 %), because an
+opponent that never errs is no opponent for a beginner. The choice is remembered
+and shown in the HUD. The evaluation gained piece-square tables, so the stronger
+levels do something with their depth: a knight belongs in the middle, a pawn
+pushes forward, a king keeps to the corner early on - with material alone, depth
+only makes a greedier player.
+
+**The board looked like two flat purple tints.** It now has a frame, shading,
+coordinates in the corners of the squares, and squares in cream and walnut. Both
+colours use the solid piece glyphs, with white filled light over a dark outline
+and black the other way round - mixing the outlined (king) and solid (black
+king) characters is exactly what makes most browser chessboards look cheap. The
+outline is set in em, so it stays proportional on a phone. A quiet move is
+marked by a dot and a capture by a ring, as it is everywhere else.
+
+Two faults were found on the way. The board size reserved a fixed 240 px for
+everything else, which left 135 px and seventeen-pixel squares when a phone was
+held sideways; it is measured now - 213 px there, 325 px upright, 460 px on a
+desktop, nothing overflowing. And the default level came out as novice rather
+than easy, because an absent setting read as +null, which is zero, which is a
+valid index.
+
+The opponent's move was also scheduled on an animation frame, which a hidden tab
+does not deliver: switching away mid-game would have left it frozen. It runs on
+a timer now. Two new strings (novice, thinking) were translated into all twelve
+languages.

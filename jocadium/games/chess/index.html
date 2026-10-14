@@ -22,16 +22,51 @@ html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif
 .stat-pill span{color:var(--c);}
 .ctrl-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
 .ctrl-btn:hover{border-color:var(--border-h);color:var(--text);}
-#board-wrap{position:relative;}
-#board{display:grid;grid-template-columns:repeat(8,1fr);border:1px solid rgba(255,255,255,0.15);border-radius:8px;overflow:hidden;}
-.sq{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:clamp(20px,5vw,36px);cursor:pointer;position:relative;transition:background .1s;-webkit-tap-highlight-color:transparent;}
-.sq.light{background:#2a2438;}
-.sq.dark{background:#1a1520;}
-.sq.selected{background:rgba(255,209,102,0.35)!important;}
-.sq.move{background:rgba(77,255,145,0.25)!important;}
-.sq.last{background:rgba(255,209,102,0.15)!important;}
-.sq.check{background:rgba(255,107,107,0.4)!important;}
-.sq.capture::after{content:'';position:absolute;inset:6px;border-radius:50%;border:3px solid rgba(77,255,145,0.5);pointer-events:none;}
+/* ── doska ─────────────────────────────────────────────────────────────
+   Doska bola dve ploché fialové farby a figúrky obrysové znaky, ktoré na
+   tmavom pozadí skoro zanikali. Teraz má rám, tiene a súradnice, biele
+   figúrky sú plné s tmavým obrysom a čierne naopak — rozdiel je vidieť aj
+   kútikom oka. */
+#board-wrap{position:relative;padding:11px;border-radius:16px;
+  background:linear-gradient(160deg,#241d2e,#15101d);
+  box-shadow:0 26px 60px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07),
+             inset 0 0 0 1px rgba(255,255,255,.05);}
+#board{display:grid;grid-template-columns:repeat(8,1fr);border-radius:9px;overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,.55);position:relative;}
+.sq{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(22px,5.6vw,42px);line-height:1;cursor:pointer;position:relative;
+  transition:background .14s;-webkit-tap-highlight-color:transparent;}
+.sq.light{background:linear-gradient(150deg,#e9ddc7,#d8c7aa);}
+.sq.dark{background:linear-gradient(150deg,#7d6248,#5e4733);}
+.sq .p{position:relative;z-index:2;line-height:1;transform:translateY(-2%);}
+.sq .p.w{color:#fdfaf4;-webkit-text-stroke:0.035em rgba(26,16,10,.85);
+  text-shadow:0 2px 3px rgba(0,0,0,.45);}
+.sq .p.b{color:#20171a;-webkit-text-stroke:0.028em rgba(255,255,255,.3);
+  text-shadow:0 2px 3px rgba(0,0,0,.4);}
+.sq.moving .p{visibility:hidden;}
+.ghost-piece{position:absolute;z-index:6;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;line-height:1;transition:transform .42s cubic-bezier(.3,.85,.3,1);}
+.ghost-piece.w{color:#fdfaf4;-webkit-text-stroke:0.035em rgba(26,16,10,.85);text-shadow:0 4px 10px rgba(0,0,0,.6);}
+.ghost-piece.b{color:#20171a;-webkit-text-stroke:0.028em rgba(255,255,255,.3);text-shadow:0 4px 10px rgba(0,0,0,.6);}
+
+/* súradnice v rohoch políčok, ako na skutočnej doske */
+.sq .co{position:absolute;font-family:'DM Sans',sans-serif;font-size:8.5px;font-weight:700;
+  letter-spacing:.4px;opacity:.5;z-index:1;pointer-events:none;}
+.sq.light .co{color:#6b5035;} .sq.dark .co{color:#e4d6bd;}
+.sq .co.f{right:3px;bottom:1px;} .sq .co.r{left:3px;top:1px;}
+
+.sq.selected{box-shadow:inset 0 0 0 3px rgba(255,209,102,.9);}
+.sq.last::before{content:'';position:absolute;inset:0;background:rgba(255,209,102,.28);z-index:0;}
+.sq.check{background:linear-gradient(150deg,#e0564f,#9d2b26)!important;}
+/* ticho ťah = bodka, branie = prsteň — tak to má šach po celom svete */
+.sq.move::after{content:'';position:absolute;left:50%;top:50%;width:26%;height:26%;
+  transform:translate(-50%,-50%);border-radius:50%;background:rgba(32,24,16,.38);
+  z-index:1;pointer-events:none;}
+.sq.light.move::after{background:rgba(60,45,28,.34);}
+.sq.capture::after{content:'';position:absolute;inset:5%;border-radius:50%;
+  border:4px solid rgba(40,28,18,.42);z-index:1;pointer-events:none;}
+#turn-pill.think span{animation:think 1s ease-in-out infinite;}
+@keyframes think{0%,100%{opacity:1;}50%{opacity:.35;}}
 #status-bar{font-size:12px;color:var(--muted);text-align:center;min-height:18px;}
 .mode-row{display:flex;gap:6px;}
 .mode-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
@@ -71,6 +106,13 @@ button,a,[onclick]{touch-action:manipulation;}
     <button class="mode-btn active" id="m-ai"  onclick="setMode('ai',this)"></button>
     <button class="mode-btn"        id="m-2p"   onclick="setMode('2p',this)"></button>
   </div>
+  <div class="hint" id="level-lbl" style="letter-spacing:1.6px;text-transform:uppercase;font-size:10px"></div>
+  <div class="mode-row" id="level-row">
+    <button class="mode-btn" onclick="setLevel(0)"></button>
+    <button class="mode-btn active" onclick="setLevel(1)"></button>
+    <button class="mode-btn" onclick="setLevel(2)"></button>
+    <button class="mode-btn" onclick="setLevel(3)"></button>
+  </div>
   <div class="hint" id="ov-hint"></div>
   <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
 </div>
@@ -79,6 +121,7 @@ button,a,[onclick]{touch-action:manipulation;}
   <div class="hud">
     <div class="stat-pill"><span id="lbl-moves-txt"></span>&nbsp;<span id="hud-moves">0</span></div>
     <div class="stat-pill" id="turn-pill"><span id="hud-turn"></span></div>
+    <div class="stat-pill" id="level-pill"><span id="hud-level"></span></div>
     <button class="ctrl-btn" id="btn-new"  onclick="showMenu()"></button>
     <button class="ctrl-btn" id="btn-undo" onclick="undoMove()">↩</button>
   </div>
@@ -108,7 +151,10 @@ const INIT=[
   ['P','P','P','P','P','P','P','P'],
   ['R','N','B','Q','K','B','N','R'],
 ];
-const SYMBOLS={K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+// Obe strany používajú plné znaky; bielu od čiernej odlíši výplň a obrys v CSS.
+// Miešanie obrysových (♔) a plných (♚) znakov je presne to, čím väčšina
+// šachovníc v prehliadači vyzerá lacno.
+const SYMBOLS={K:'♚',Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
 const W_PIECES=new Set(['K','Q','R','B','N','P']);
 const B_PIECES=new Set(['k','q','r','b','n','p']);
 function isWhite(p){return p&&W_PIECES.has(p);}
@@ -117,12 +163,48 @@ function color(p){return isWhite(p)?'w':isBlack(p)?'b':null;}
 function enemy(p,turn){return turn==='w'?isBlack(p):isWhite(p);}
 function friendly(p,turn){return turn==='w'?isWhite(p):isBlack(p);}
 
-let board,turn,selected,legalMoves,history,moveCount,gameMode='ai',aiDepth=2;
+// Štyri úrovne namiesto jednej pevnej hĺbky. `slip` je šanca, že súper zahrá
+// náhodný ťah namiesto najlepšieho — bez nej je aj plytké hľadanie pre
+// začiatočníka nepríjemne presné.
+const LEVELS=[
+  {key:'chessNovice', depth:1, slip:0.35},
+  {key:'diffEasy',    depth:2, slip:0.12},
+  {key:'diffMedium',  depth:3, slip:0},
+  {key:'diffHard',    depth:4, slip:0},
+];
+const LEVEL_KEY='chess_level';
+let levelIdx=1;
+// Pozor na +null === 0: bez ulozenej hodnoty by sa vybrala prva uroven,
+// nie predvolena.
+try{const raw=localStorage.getItem(LEVEL_KEY);
+    const n=raw==null?NaN:+raw;
+    if(LEVELS[n])levelIdx=n;}catch(_){}
+
+let board,turn,selected,legalMoves,history,moveCount,gameMode='ai';
+let lastMove=null,thinking=false;
+
+// Popisy úrovní až tu: hore v bloku s prekladmi by LEVELS ešte neexistovalo.
+document.getElementById('level-lbl').textContent = t('uiDifficulty');
+document.querySelectorAll('#level-row .mode-btn').forEach((b,i)=>{
+  b.textContent = t(LEVELS[i].key);
+  b.classList.toggle('active', i===levelIdx);
+});
+document.getElementById('hud-level').textContent = t(LEVELS[levelIdx].key);
 
 function setMode(m,el){
   gameMode=m;
   document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
+  document.getElementById('level-row').style.display=m==='ai'?'flex':'none';
+  document.getElementById('level-lbl').style.display=m==='ai'?'block':'none';
+}
+
+function setLevel(i){
+  levelIdx=i;
+  try{localStorage.setItem(LEVEL_KEY,String(i));}catch(_){}
+  document.querySelectorAll('#level-row .mode-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  document.getElementById('hud-level').textContent=t(LEVELS[i].key);
+  SFX.play('select');
 }
 function showMenu(){document.getElementById('overlay').style.display='flex';}
 
@@ -130,6 +212,9 @@ function startGame(){
   document.getElementById('overlay').style.display='none';
   board=INIT.map(r=>r.map(c=>c));
   turn='w';selected=null;legalMoves=[];history=[];moveCount=0;
+  lastMove=null;thinking=false;
+  EndCard.cancel();
+  document.getElementById('level-pill').style.display=gameMode==='ai'?'flex':'none';
   document.getElementById('hud-moves').textContent='0';
   updateTurnPill();renderBoard();setStatus('');
 }
@@ -194,58 +279,191 @@ function legalMovesFor(b,r,c,t2){
   return getMoves(b,r,c,t2).filter(([nr,nc])=>!inCheck(applyMove(b,r,c,nr,nc),t2));
 }
 
-// ── AI (minimax depth 2) ────────────────────────────────────────────────────
-const PIECE_VAL={p:1,n:3,b:3,r:5,q:9,k:100};
+// ── SÚPER ──────────────────────────────────────────────────────────────────
+// Pôvodné hľadanie bolo pomalé z jedinej príčiny: pri každom uzle si pre každý
+// ťah overovalo šach tak, že nageneroval všetky ťahy súpera. Hĺbka 2 tým stála
+// 0,6 s a hĺbka 3 vyše štyroch sekúnd — na viac úrovní to nestačilo.
+// Vnútri hľadania teraz beží pseudolegálne generovanie a koniec sa pozná podľa
+// zobratia kráľa; ťahy sa zoraďujú (braním napred), takže rezanie zaberie.
+// Ťah, ktorý sa naozaj zahrá, sa stále preveruje na legalitu v aiMove().
+const VAL={p:100,n:320,b:330,r:500,q:900,k:20000};
+
+// Bonusy za políčko (pohľad bieleho; pre čierneho sa tabuľka preklopí).
+// Dávajú partii tvar — jazdec patrí do stredu, pešiak sa tlačí dopredu,
+// kráľ v otvorení do rohu — bez nich hrá súper len s hodnotou materiálu.
+const PST={
+ p:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],
+    [5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],
+    [5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],
+ n:[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],
+    [-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],
+    [-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],
+    [-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]],
+ b:[[-20,-10,-10,-10,-10,-10,-10,-20],[-10,0,0,0,0,0,0,-10],
+    [-10,0,5,10,10,5,0,-10],[-10,5,5,10,10,5,5,-10],
+    [-10,0,10,10,10,10,0,-10],[-10,10,10,10,10,10,10,-10],
+    [-10,5,0,0,0,0,5,-10],[-20,-10,-10,-10,-10,-10,-10,-20]],
+ r:[[0,0,0,0,0,0,0,0],[5,10,10,10,10,10,10,5],[-5,0,0,0,0,0,0,-5],
+    [-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],
+    [-5,0,0,0,0,0,0,-5],[0,0,0,5,5,0,0,0]],
+ q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],
+    [-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],
+    [-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],
+    [-20,-10,-10,-5,-5,-10,-10,-20]],
+ k:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],
+    [-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],
+    [-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],
+    [20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]],
+};
+
+// kladné = dobré pre čierneho, teda pre súpera
 function evaluate(b){
   let score=0;
   for(let r=0;r<8;r++)for(let c=0;c<8;c++){
     const p=b[r][c];if(!p)continue;
-    const v=PIECE_VAL[p.toLowerCase()];
+    const t=p.toLowerCase();
+    const v=VAL[t]+PST[t][isWhite(p)?r:7-r][c];
     score+=isWhite(p)?-v:v;
   }
   return score;
 }
 
-function minimax(b,depth,alpha,beta,maximizing){
-  if(depth===0)return evaluate(b);
-  const t2=maximizing?'b':'w';
-  const moves=allMoves(b,t2).filter(([r,c,nr,nc])=>!inCheck(applyMove(b,r,c,nr,nc),t2));
-  if(!moves.length)return inCheck(b,t2)?(maximizing?-999:999):0;
-  if(maximizing){
-    let best=-Infinity;
-    for(const[r,c,nr,nc]of moves){best=Math.max(best,minimax(applyMove(b,r,c,nr,nc),depth-1,alpha,beta,false));alpha=Math.max(alpha,best);if(beta<=alpha)break;}
-    return best;
-  }else{
-    let best=Infinity;
-    for(const[r,c,nr,nc]of moves){best=Math.min(best,minimax(applyMove(b,r,c,nr,nc),depth-1,alpha,beta,true));beta=Math.min(beta,best);if(beta<=alpha)break;}
-    return best;
+// braním napred: prvé skúšané ťahy orežú najviac
+function orderedMoves(b,t2){
+  const moves=allMoves(b,t2);
+  const out=[];
+  for(const m of moves){
+    const victim=b[m[2]][m[3]];
+    out.push([m,victim?VAL[victim.toLowerCase()]-VAL[b[m[0]][m[1]].toLowerCase()]/10:-1000]);
   }
+  out.sort((a,b2)=>b2[1]-a[1]);
+  return out.map(x=>x[0]);
 }
 
-function aiMove(){
-  const moves=allMoves(board,'b').filter(([r,c,nr,nc])=>!inCheck(applyMove(board,r,c,nr,nc),'b'));
-  if(!moves.length)return;
-  let best=-Infinity,bestMove=moves[0];
-  for(const m of moves){
-    const[r,c,nr,nc]=m;
-    const score=minimax(applyMove(board,r,c,nr,nc),aiDepth,-Infinity,Infinity,false);
-    if(score>best){best=score;bestMove=m;}
+function hasKing(b,t2){
+  const kp=t2==='w'?'K':'k';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]===kp)return true;
+  return false;
+}
+
+function minimax(b,depth,alpha,beta,maximizing){
+  // Zobratý kráľ je koniec. Skorší mat má byť lepší ako neskorší, preto hĺbka.
+  if(!hasKing(b,'b'))return -90000-depth;
+  if(!hasKing(b,'w'))return 90000+depth;
+  if(depth===0)return evaluate(b);
+  const t2=maximizing?'b':'w';
+  const moves=orderedMoves(b,t2);
+  if(!moves.length)return evaluate(b);
+  if(maximizing){
+    let best=-Infinity;
+    for(const[r,c,nr,nc]of moves){
+      best=Math.max(best,minimax(applyMove(b,r,c,nr,nc),depth-1,alpha,beta,false));
+      alpha=Math.max(alpha,best);if(beta<=alpha)break;
+    }
+    return best;
   }
-  const[r,c,nr,nc]=bestMove;
-  history.push({board:board.map(row=>[...row]),turn});
-  SFX.play(board[nr][nc]?'hit':'place');
-  board=applyMove(board,r,c,nr,nc);
-  turn='w';moveCount++;
-  document.getElementById('hud-moves').textContent=moveCount;
-  selected=null;legalMoves=[];
-  renderBoard();updateTurnPill();
-  checkEnd();
+  let best=Infinity;
+  for(const[r,c,nr,nc]of moves){
+    best=Math.min(best,minimax(applyMove(b,r,c,nr,nc),depth-1,alpha,beta,true));
+    beta=Math.min(beta,best);if(beta<=alpha)break;
+  }
+  return best;
+}
+
+// Vyberie ťah. Na nižších úrovniach sa občas zahrá niečo iné než najlepšie —
+// súper, ktorý nikdy nespraví chybu, nie je pre začiatočníka súper.
+function pickMove(){
+  const moves=allMoves(board,'b').filter(([r,c,nr,nc])=>!inCheck(applyMove(board,r,c,nr,nc),'b'));
+  if(!moves.length)return null;
+  const lv=LEVELS[levelIdx];
+  if(lv.slip&&Math.random()<lv.slip)return moves[Math.floor(Math.random()*moves.length)];
+  const ordered=orderedMoves(board,'b').filter(m=>moves.some(x=>x[0]===m[0]&&x[1]===m[1]&&x[2]===m[2]&&x[3]===m[3]));
+  let best=-Infinity,pick=[],list=ordered.length?ordered:moves;
+  for(const m of list){
+    const sc=minimax(applyMove(board,m[0],m[1],m[2],m[3]),lv.depth,-Infinity,Infinity,false);
+    if(sc>best){best=sc;pick=[m];}
+    else if(sc===best)pick.push(m);
+  }
+  return pick[Math.floor(Math.random()*pick.length)];   // rovnocenné ťahy strieda
+}
+
+// Súperov ťah bol hotový skôr, než si ho hráč stihol všimnúť. Teraz sa najprv
+// ohlási premýšľanie, potom figúrka viditeľne prejde po doske a políčka, odkiaľ
+// a kam ťahala, zostanú zvýraznené až do ďalšieho ťahu.
+const THINK_MIN=620;      // aj keď je výpočet hotový skôr
+const SLIDE_MS=420;
+
+function aiMove(){
+  if(thinking)return;
+  thinking=true;
+  setStatus(t('chessThinking'));
+  document.getElementById('turn-pill').classList.add('think');
+  // Krátke odloženie, nech sa stihne vykresliť hláška skôr, než výpočet zamrazí
+  // vlákno. Zámerne nie requestAnimationFrame: na skrytej karte sa snímky
+  // nekreslia a súper by sa už nikdy nepohol.
+  setTimeout(()=>{
+    const t0=performance.now();
+    const m=pickMove();
+    const rest=Math.max(0,THINK_MIN-(performance.now()-t0));
+    setTimeout(()=>{
+      document.getElementById('turn-pill').classList.remove('think');
+      if(!m){thinking=false;setStatus('');checkEnd();return;}
+      slidePiece(m,()=>{
+        const[r,c,nr,nc]=m;
+        history.push({board:board.map(row=>[...row]),turn,lastMove});
+        SFX.play(board[nr][nc]?'hit':'place');
+        board=applyMove(board,r,c,nr,nc);
+        lastMove=[r,c,nr,nc];
+        turn='w';moveCount++;
+        document.getElementById('hud-moves').textContent=moveCount;
+        selected=null;legalMoves=[];thinking=false;
+        setStatus('');
+        renderBoard();updateTurnPill();
+        checkEnd();
+      });
+    },rest);
+  },30);
+}
+
+// Figúrka prejde z políčka na políčko; dovtedy je na pôvodnom mieste skrytá,
+// aby nebola dvakrát.
+function slidePiece(m,done){
+  const[r,c,nr,nc]=m;
+  const el=document.getElementById('board');
+  const sq=el.querySelector('.sq[data-rc="'+r+'-'+c+'"]');
+  const dst=el.querySelector('.sq[data-rc="'+nr+'-'+nc+'"]');
+  if(!sq||!dst){done();return;}
+  const a=sq.getBoundingClientRect(),b2=dst.getBoundingClientRect(),w=el.getBoundingClientRect();
+  const ghost=document.createElement('div');
+  ghost.className='ghost-piece '+(isWhite(board[r][c])?'w':'b');
+  ghost.textContent=SYMBOLS[board[r][c]]||'';
+  ghost.style.width=a.width+'px';ghost.style.height=a.height+'px';
+  ghost.style.left=(a.left-w.left)+'px';ghost.style.top=(a.top-w.top)+'px';
+  ghost.style.fontSize=getComputedStyle(sq).fontSize;
+  el.appendChild(ghost);
+  sq.classList.add('moving');
+  requestAnimationFrame(()=>{
+    ghost.style.transform='translate('+(b2.left-a.left)+'px,'+(b2.top-a.top)+'px)';
+  });
+  setTimeout(()=>{ghost.remove();sq.classList.remove('moving');done();},SLIDE_MS);
 }
 
 // ── UI ──────────────────────────────────────────────────────────────────────
 function renderBoard(){
+  if(!board)return;          // kým sa nezačalo, nie je čo kresliť (resize na menu)
   const el=document.getElementById('board');
-  const sz=Math.min(window.innerWidth-24,window.innerHeight-240,420);
+  // Rezerva výšky bola pevných 240 px. Naležato z toho vyšla doska 135 px so
+  // sedemnásťbodovými políčkami — meriam, čo nad doskou a pod ňou naozaj je.
+  const page=document.querySelector('.page'), wrap=document.getElementById('board-wrap');
+  const pcs=getComputedStyle(page), wcs=getComputedStyle(wrap);
+  const gap=parseFloat(pcs.rowGap||pcs.gap)||10;
+  const padY=(parseFloat(pcs.paddingTop)||0)+(parseFloat(pcs.paddingBottom)||0);
+  const wpad=((parseFloat(wcs.paddingTop)||0)+(parseFloat(wcs.paddingBottom)||0));
+  let others=0,gaps=0;
+  for(const ch of page.children){ if(ch===wrap||!ch.offsetHeight)continue; others+=ch.offsetHeight; gaps++; }
+  const availH=window.innerHeight-padY-others-gap*gaps-wpad-6;
+  const availW=window.innerWidth-28-wpad;
+  const sz=Math.max(180,Math.min(availW,availH,460));
   el.style.width=sz+'px';el.style.height=sz+'px';
   el.innerHTML='';
   // Find kings in check
@@ -263,24 +481,35 @@ function renderBoard(){
       if(board[r][c])sq.classList.add('capture');
       else sq.classList.add('move');
     }
-    if(board[r][c])sq.textContent=SYMBOLS[board[r][c]]||'';
+    if(lastMove&&((lastMove[0]===r&&lastMove[1]===c)||(lastMove[2]===r&&lastMove[3]===c)))sq.classList.add('last');
+    sq.dataset.rc=r+'-'+c;
+    if(board[r][c]){
+      const pe=document.createElement('span');
+      pe.className='p '+(isWhite(board[r][c])?'w':'b');
+      pe.textContent=SYMBOLS[board[r][c]]||'';
+      sq.appendChild(pe);
+    }
+    if(c===0){const co=document.createElement('span');co.className='co r';co.textContent=8-r;sq.appendChild(co);}
+    if(r===7){const co=document.createElement('span');co.className='co f';co.textContent='abcdefgh'[c];sq.appendChild(co);}
     sq.onclick=()=>clickSquare(r,c);
     el.appendChild(sq);
   }
 }
 
 function clickSquare(r,c){
+  if(thinking)return;
   if(gameMode==='ai'&&turn==='b')return;
   if(selected){
     if(legalMoves.some(([nr,nc])=>nr===r&&nc===c)){
-      history.push({board:board.map(row=>[...row]),turn});
+      history.push({board:board.map(row=>[...row]),turn,lastMove});
       SFX.play(board[r][c]?'hit':'place');
+      lastMove=[selected[0],selected[1],r,c];
       board=applyMove(board,selected[0],selected[1],r,c);
       moveCount++;document.getElementById('hud-moves').textContent=moveCount;
       turn=turn==='w'?'b':'w';selected=null;legalMoves=[];
       renderBoard();updateTurnPill();
       if(checkEnd())return;
-      if(gameMode==='ai'&&turn==='b')setTimeout(aiMove,300);
+      if(gameMode==='ai'&&turn==='b')aiMove();
       return;
     }
     selected=null;legalMoves=[];
@@ -314,9 +543,9 @@ function checkEnd(){
 }
 
 function undoMove(){
-  if(!history.length)return;
+  if(thinking||!history.length)return;
   const s=history.pop();
-  board=s.board;turn=s.turn;
+  board=s.board;turn=s.turn;lastMove=s.lastMove||null;
   if(gameMode==='ai'&&history.length)history.pop(); // undo AI move too
   selected=null;legalMoves=[];moveCount=Math.max(0,moveCount-1);
   document.getElementById('hud-moves').textContent=moveCount;
