@@ -139,6 +139,10 @@ These are deliberate calls, not oversights. If either should be renamed the way
 the titles above were, the change is mechanical: the game id and folder, the
 i18n key prefix, the ASSETS entry and a CACHE bump.
 
+    Later note: the minesweeper half of this section no longer holds. The game
+    was renamed to Cinderfield on 15 October 2026 - see section 54. Snake is
+    unchanged.
+
 7. Genre wording removed - games/whack-reflex/
 ----------------------------------------------
 
@@ -2108,3 +2112,49 @@ possibly switching to an open-source licence. It is not part of a rights
 notice and should not ship; the notice itself is unchanged.
 
 The service worker cache moved to jocadium-v26.
+
+
+54. Two names checked in the trademark registers - games/cinderfield/
+------------------------------------------------------------------------------
+
+Done on 15 October 2026 at the owner's request. The search was run in TMview,
+which queries the Slovak office (SKIPO), the Czech office (IPOCZ), the EUIPO and
+others at once. TMview states of itself that it is not an official register and
+that its contents have no legal effect; what follows is what it showed, not
+legal advice.
+
+**Pexeso - kept.** Thirteen records contain the word. Every registration of the
+bare word is dead: SKIPO 1997 in classes 9, 16, 24, 28, 35, 36, 38, 39, 40, 41
+and 42 (ended), SKIPO 1999 class 35 (expired), SKIPO 2002 class 30 (expired),
+IPOCZ 1993 class 35 (expired), IPOCZ 1999 classes 16 and 28 (ended), IPOCZ 2014
+class 9 (expired). What is live is only compounds, where the distinctive part is
+the addition and not the word itself: Tipos Pexeso (SKIPO 2023, classes 9, 28,
+35, 41), pexeso pro uši (IPOCZ 2015) and PEXESO AKIM HLEDEJ PÁR (IPOCZ 2023).
+That pattern is what a generic term looks like in a register - the standalone
+marks lapse because the word describes the goods. The condition set for this
+check, that the name be registered for games, is not met, so the game keeps its
+name. Renaming it to Pary remains a one-line decision if zero residual exposure
+is preferred to the familiar word.
+
+**Minesweeper - renamed to Cinderfield.** Here too the bare word is dead in the
+games classes: USPTO 2016 in classes 28 and 41 and USPTO 2001 in class 9 have
+both ended, and nothing stands in SKIPO, IPOCZ or the EUIPO. But what is live is
+MICROSOFT MINESWEEPER (CNIPA, classes 9 and 41), alongside MINESWEEPER ROULETTE
+(EUIPO 2025, classes 9, 28, 41), PAPER MINESWEEPER (Portugal, classes 28 and 41)
+and TOTAL MINESWEEPER (USPTO, class 9). The word is generic for the puzzle, but
+the association with one company's product is strong enough that the owner
+preferred not to rely on it. Section 6 of this file argued the opposite and is
+now annotated.
+
+The new name was checked the way the fourteen in section 36 were: no rows in
+TMview, nothing on Steam, no project of that name on itch.io, and no match in
+the App Store search.
+
+Renamed: the folder, the id in the collection, the path in the service worker,
+the page title and the displayed name in all twelve languages - a coined name is
+not translated, so Buscaminas, Démineur, Сапёр, 扫雷 and Míny are gone with it.
+Two things deliberately did not change: the i18n keys keep the mine prefix,
+which describes the game and never carried the trademark, and the records stay
+under minesweeper_best_*, because renaming that key would throw away every time
+a player has set. The play counts on the front page are carried over to the new
+id by the table added in section 45.

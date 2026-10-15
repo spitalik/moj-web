@@ -19,7 +19,7 @@ const ASSETS = [
   './games/snake/index.html',
   './games/brick-buster/index.html',
   './games/2048/index.html',
-  './games/minesweeper/index.html',
+  './games/cinderfield/index.html',
   './games/rock-drift/index.html',
   './games/dot-glider/index.html',
   './games/paddle-duel/index.html',
