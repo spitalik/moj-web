@@ -1,7 +1,7 @@
 Jocadium — Third-party notices
 =============================
 
-Last reviewed: 17 September 2026
+Last reviewed: 15 October 2026
 
 Jocadium bundles no third-party source code, images, audio or video. Every game
 is hand-written vanilla HTML/CSS/JS; all graphics are drawn at runtime with
@@ -2076,3 +2076,35 @@ reliably for a screenshot, the fix was checked by measuring the silhouette
 instead - sampling the filled area across eight heights with isPointInFill. The
 pawn now measures 24 units across at the head, 14 at the neck and 44 at the
 skirt, which is the shape it should have.
+
+
+54. Licence-check follow-ups - games/snip-rope/, games/pexeso/, LICENSE
+------------------------------------------------------------------------------
+
+Done on 15 October 2026 after a read-through of the whole collection looking for
+anything that could draw a complaint. No code or art was brought in; three small
+things were tidied.
+
+**Snip Rope no longer talks about candy.** Cutting a rope so that a sweet swings
+into a basket is, in the way it was described, close to the premise of a
+well-known commercial title. The mechanic is free to re-implement and the
+game's own art (a plain glowing sphere, a basket, spikes) never resembled
+anything of theirs, but the description and rules text named the same object.
+snpDesc and snpRules now speak of a glowing orb in all twelve languages. No
+other string, key or line of code changed.
+
+**Pexeso's two PNG icons are gone.** games/pexeso/icon-192.png and icon-512.png
+were left over from the time the game was a standalone app. Their origin was not
+recorded here, which sat awkwardly next to the opening claim of this file that
+no image is bundled. They are simple geometric shapes, but the claim is now
+true again without having to rely on that: the launcher card uses an inline SVG
+(four rounded tiles, one turned face up) drawn for this project, and the
+512-pixel file, which nothing referenced, is deleted along with the other.
+The only PNG files left in the project are the application icon in icons/,
+rendered by tools/render-icon.py.
+
+**LICENSE lost its maintainer note.** The file carried an internal remark about
+possibly switching to an open-source licence. It is not part of a rights
+notice and should not ship; the notice itself is unchanged.
+
+The service worker cache moved to jocadium-v26.
