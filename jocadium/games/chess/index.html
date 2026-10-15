@@ -38,16 +38,21 @@ html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif
   transition:background .14s;-webkit-tap-highlight-color:transparent;}
 .sq.light{background:linear-gradient(150deg,#e9ddc7,#d8c7aa);}
 .sq.dark{background:linear-gradient(150deg,#7d6248,#5e4733);}
-.sq .p{position:relative;z-index:2;line-height:1;transform:translateY(-2%);}
-.sq .p.w{color:#fdfaf4;-webkit-text-stroke:0.035em rgba(26,16,10,.85);
-  text-shadow:0 2px 3px rgba(0,0,0,.45);}
-.sq .p.b{color:#20171a;-webkit-text-stroke:0.028em rgba(255,255,255,.3);
-  text-shadow:0 2px 3px rgba(0,0,0,.4);}
+/* Figúrka vyplní políčko; tieň pod ňou ju oddelí od dreva. */
+.sq .p{position:relative;z-index:2;display:block;width:86%;height:86%;}
+.pc{display:block;width:100%;height:100%;overflow:visible;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));}
+.pc path,.pc circle{stroke-linejoin:round;stroke-linecap:round;}
+/* Biela je takmer biela s tmavým obrysom, čierna hlboko tmavá so svetlým —
+   rozdiel musí byť vidieť kútikom oka, nielen po zaostrení. */
+.pc.w path{fill:url(#pw);stroke:#1d1620;stroke-width:3.4;}
+.pc.b path{fill:url(#pb);stroke:#efe8d8;stroke-width:2.6;}
+.pc.w circle{fill:#1d1620;}
+.pc.b circle{fill:#efe8d8;}
 .sq.moving .p{visibility:hidden;}
 .ghost-piece{position:absolute;z-index:6;display:flex;align-items:center;justify-content:center;
-  pointer-events:none;line-height:1;transition:transform .42s cubic-bezier(.3,.85,.3,1);}
-.ghost-piece.w{color:#fdfaf4;-webkit-text-stroke:0.035em rgba(26,16,10,.85);text-shadow:0 4px 10px rgba(0,0,0,.6);}
-.ghost-piece.b{color:#20171a;-webkit-text-stroke:0.028em rgba(255,255,255,.3);text-shadow:0 4px 10px rgba(0,0,0,.6);}
+  pointer-events:none;transition:transform .42s cubic-bezier(.3,.85,.3,1);}
+.ghost-piece .pc{width:86%;height:86%;filter:drop-shadow(0 5px 8px rgba(0,0,0,.55));}
 
 /* súradnice v rohoch políčok, ako na skutočnej doske */
 .sq .co{position:absolute;font-family:'DM Sans',sans-serif;font-size:8.5px;font-weight:700;
@@ -116,6 +121,14 @@ button,a,[onclick]{touch-action:manipulation;}
   <div class="hint" id="ov-hint"></div>
   <button class="play-btn" id="ov-btn" onclick="startGame()"></button>
 </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="pw" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f3ece0"/><stop offset="1" stop-color="#cdc2ac"/>
+  </linearGradient>
+  <linearGradient id="pb" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4b4357"/><stop offset=".5" stop-color="#2a2433"/><stop offset="1" stop-color="#110e18"/>
+  </linearGradient>
+</defs></svg>
 <div class="page">
   <div class="game-title" id="lbl-title"></div>
   <div class="hud">
@@ -151,10 +164,43 @@ const INIT=[
   ['P','P','P','P','P','P','P','P'],
   ['R','N','B','Q','K','B','N','R'],
 ];
-// Obe strany používajú plné znaky; bielu od čiernej odlíši výplň a obrys v CSS.
-// Miešanie obrysových (♔) a plných (♚) znakov je presne to, čím väčšina
-// šachovníc v prehliadači vyzerá lacno.
-const SYMBOLS={K:'♚',Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+// Figúrky sú kreslené tu, nie prebraté zo systémového fontu. Znaky ♚♛♜ vyzerajú
+// na každom systéme inak, bývajú tenké a prefarbiť sa dá len výplň s obrysom.
+// Vlastné tvary sú na každom zariadení rovnaké, ostré v akejkoľvek veľkosti a
+// biela od čiernej sa dá odlíšiť naozaj výrazne.
+// Súradnice sú v štvorci 100×100, podstavec má každá figúrka rovnaký.
+const BASE='M22 82h56c3 0 5 2 5 5v7H17v-7c0-3 2-5 5-5z';
+const SKIRT='M29 68h42l7 16H22z';
+const SHAPES={
+  // pešiak: hlava, krk, zvon a podstavec — diely sa prekrývajú, aby figúrka
+  // držala pokope a nerozpadla sa na plávajúce kusy
+  p:'<circle cx="50" cy="27" r="12.5"/>'
+    +'<path d="M43 37h14l2 12c9 8 13 20 14 33H27c1-13 5-25 14-33z"/>'
+    +'<path d="'+BASE+'"/>',
+  // veža: cimburie, driek, prstenec
+  r:'<path d="M26 15h12v9h9v-9h6v9h9v-9h12v23l-7 6 4 38H29l4-38-7-6z"/>'
+    +'<path d="'+SKIRT+'"/><path d="'+BASE+'"/>',
+  // jazdec: hlava koňa z profilu, hriva dozadu
+  n:'<path d="M36 84c-2-15 1-25 9-32-7 1-12 5-15 12-6-4-7-11-4-17 5-10 14-17 25-20l3-11 8 8c14 5 22 16 23 32 1 11 1 21 0 28z"/>'
+    +'<circle cx="44" cy="34" r="2.8"/>'
+    +'<path d="'+BASE+'"/>',
+  // strelec: mitra so zárezom a prstencom
+  b:'<path d="M50 11c4 5 6 8 6 11 0 2-1 4-3 6 9 6 14 15 14 24 0 8-5 15-12 18l2 14H43l2-14c-7-3-12-10-12-18 0-9 5-18 14-24-2-2-3-4-3-6 0-3 2-6 6-11z"/>'
+    +'<path d="M47.5 29h5v13h-5z" opacity=".35"/>'
+    +'<path d="'+SKIRT+'"/><path d="'+BASE+'"/>',
+  // dáma: päť hrotov s guľôčkami a zvon
+  q:'<path d="M24 26a4.6 4.6 0 1 1 .2 0l5 16 6.4-18a4.6 4.6 0 1 1 5.2.3l4.2 17 4.6-19a4.6 4.6 0 1 1 .8 0l4.6 19 4.2-17a4.6 4.6 0 1 1 5.2-.3l6.4 18 5-16a4.6 4.6 0 1 1 .2 0l-5.6 44H29.6z"/>'
+    +'<path d="'+SKIRT+'"/><path d="'+BASE+'"/>',
+  // kráľ: kríž, koruna, zvon
+  k:'<path d="M45.5 7h9v7.5h7.5v9h-7.5V31h-9v-7.5H38v-9h7.5z"/>'
+    +'<path d="M50 29c13 0 22 9 22 20 0 9-5 14-6 21H34c-1-7-6-12-6-21 0-11 9-20 22-20z"/>'
+    +'<path d="'+SKIRT+'"/><path d="'+BASE+'"/>',
+};
+function pieceSVG(code){
+  const t=code.toLowerCase();
+  if(!SHAPES[t])return '';
+  return '<svg class="pc '+(isWhite(code)?'w':'b')+'" viewBox="0 0 100 100" aria-hidden="true">'+SHAPES[t]+'</svg>';
+}
 const W_PIECES=new Set(['K','Q','R','B','N','P']);
 const B_PIECES=new Set(['k','q','r','b','n','p']);
 function isWhite(p){return p&&W_PIECES.has(p);}
@@ -436,7 +482,7 @@ function slidePiece(m,done){
   const a=sq.getBoundingClientRect(),b2=dst.getBoundingClientRect(),w=el.getBoundingClientRect();
   const ghost=document.createElement('div');
   ghost.className='ghost-piece '+(isWhite(board[r][c])?'w':'b');
-  ghost.textContent=SYMBOLS[board[r][c]]||'';
+  ghost.innerHTML=pieceSVG(board[r][c]);
   ghost.style.width=a.width+'px';ghost.style.height=a.height+'px';
   ghost.style.left=(a.left-w.left)+'px';ghost.style.top=(a.top-w.top)+'px';
   ghost.style.fontSize=getComputedStyle(sq).fontSize;
@@ -486,7 +532,7 @@ function renderBoard(){
     if(board[r][c]){
       const pe=document.createElement('span');
       pe.className='p '+(isWhite(board[r][c])?'w':'b');
-      pe.textContent=SYMBOLS[board[r][c]]||'';
+      pe.innerHTML=pieceSVG(board[r][c]);
       sq.appendChild(pe);
     }
     if(c===0){const co=document.createElement('span');co.className='co r';co.textContent=8-r;sq.appendChild(co);}
@@ -544,11 +590,17 @@ function checkEnd(){
 
 function undoMove(){
   if(thinking||!history.length)return;
-  const s=history.pop();
+  // Proti súperovi sa musí vrátiť celá dvojica ťahov, inak zostane na ťahu
+  // čierny — a toho nikto nezahrá, takže sa hra zasekne. Druhá snímka sa
+  // doteraz zo zásobníka vybrala, ale nenasadila sa.
+  let s=history.pop(), back=1;
+  if(gameMode==='ai'&&s.turn==='b'&&history.length){ s=history.pop(); back=2; }
   board=s.board;turn=s.turn;lastMove=s.lastMove||null;
-  if(gameMode==='ai'&&history.length)history.pop(); // undo AI move too
-  selected=null;legalMoves=[];moveCount=Math.max(0,moveCount-1);
+  selected=null;legalMoves=[];moveCount=Math.max(0,moveCount-back);
   document.getElementById('hud-moves').textContent=moveCount;
+  // ak sa vraciame z konca partie, karta s výsledkom sa zruší
+  EndCard.cancel();
+  document.getElementById('overlay').style.display='none';
   renderBoard();updateTurnPill();setStatus('');
 }
 

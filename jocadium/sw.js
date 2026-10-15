@@ -1,4 +1,4 @@
-const CACHE = 'jocadium-v23';
+const CACHE = 'jocadium-v25';
 
 const ASSETS = [
   './',

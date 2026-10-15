@@ -2011,3 +2011,68 @@ The opponent's move was also scheduled on an animation frame, which a hidden tab
 does not deliver: switching away mid-game would have left it frozen. It runs on
 a timer now. Two new strings (novice, thinking) were translated into all twelve
 languages.
+
+
+52. Chess: the game froze after taking a move back - games/chess/
+------------------------------------------------------------------------------
+
+Fixed on 15 October 2026. No licensing effect.
+
+Against the computer, taking a move back left the game unable to continue. The
+undo popped the opponent's position off the stack and restored it, then popped
+the player's own position as well - and threw it away. What stayed on the board
+was the position before the opponent's reply, with black to move: the player's
+clicks were refused because it was not their turn, and nothing was ever going to
+play black. The game was simply stuck.
+
+The second snapshot is now the one that gets restored, and only when the first
+would hand the move to the opponent, so in the two-player game a single
+half-move is still taken back. The move counter drops by the number of
+half-moves actually undone rather than always by one. This fault was in the file
+before this month's rework; the rework only made it easier to reach, by letting
+the undo button be pressed at any point.
+
+Taking a move back now also cancels a pending result card and closes one that is
+already up, so a game can be resumed from a checkmate.
+
+Checked: a move and the reply, undo, and the next move goes through and the
+opponent answers; two undos in a row return to the starting position and the
+game continues; in two-player mode one undo takes back exactly one half-move;
+and after a real Fool's mate the undo closes the card and white is on move
+again.
+
+
+53. Chess: pieces drawn here, and a colour difference worth the name
+    - games/chess/
+------------------------------------------------------------------------------
+
+Changed on 15 October 2026 at the owner's request: nicer pieces, and a sharper
+difference between white and black.
+
+The pieces were Unicode characters - the black set for both colours, recoloured
+by CSS. That has a ceiling: the shapes belong to whatever font the reader's
+system supplies, they differ from one device to the next, they tend to be thin,
+and the only thing that can be changed is the fill and the outline.
+
+They are now six silhouettes drawn in this file as SVG paths in a 100x100 box,
+the same on every device and sharp at any size. On the licensing: they were
+drawn here from scratch, deliberately not adapted from any existing set - the
+one most people reach for, Cburnett's, is CC-BY-SA and would have put a
+share-alike obligation on this project. A king is a cross on a bell, a queen a
+crown of five points, a rook a tower with battlements; nobody owns that, but the
+particular curves have to be one's own.
+
+The colours are now far apart: white is a near-white gradient with a dark
+outline, black a deep charcoal gradient with a light one, and both carry a soft
+shadow that lifts them off the wood. At a glance, across the board, there is no
+mistaking one for the other.
+
+Two faults were caught while drawing. The first version left each piece in
+pieces - body, collar and base were separate shapes with gaps between them, so a
+pawn read as a lollipop floating over a bar; the parts now overlap. The second
+was the pawn itself: its outline was widest at the top and pinched in the
+middle, which drew an hourglass. Because the browser pane would not render
+reliably for a screenshot, the fix was checked by measuring the silhouette
+instead - sampling the filled area across eight heights with isPointInFill. The
+pawn now measures 24 units across at the head, 14 at the neck and 44 at the
+skirt, which is the shape it should have.
