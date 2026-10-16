@@ -76,6 +76,33 @@ html,body{background:var(--bg);min-height:100vh;font-family:'DM Sans',sans-serif
 .mode-row{display:flex;gap:6px;}
 .mode-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .18s;}
 .mode-btn:hover,.mode-btn.active{border-color:rgba(255,209,102,.4);color:var(--c);background:var(--cdim);}
+/* ── výsledok partie ───────────────────────────────────────────────────
+   Prekryv cez celú obrazovku zakryl dosku presne vo chvíli, keď je na nej to
+   najzaujímavejšie — matová pozícia. Výsledok preto príde ako lišta pod
+   doskou; šachovnica zostane vidieť, kým si ju hráč chce pozerať. Prekryv
+   ostáva už len pre úvodné menu. */
+#endbar{display:none;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+  margin-top:2px;padding:9px 14px;border-radius:100px;
+  background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  border:1px solid rgba(255,209,102,.4);box-shadow:0 14px 34px -20px rgba(0,0,0,.95);
+  animation:endpop .34s cubic-bezier(.2,1.4,.4,1);}
+#endbar.show{display:flex;}
+/* Po skončení partie je stavový riadok zbytočný — výsledok je v lište a
+   naležato je každý jeho pixel na doske lepšie využitý. */
+.page.ended #status-bar{display:none;}
+@keyframes endpop{from{transform:translateY(8px) scale(.94);opacity:0;}to{transform:none;opacity:1;}}
+#endbar .em{font-size:22px;line-height:1;}
+#endbar .msg{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:-.2px;color:var(--c);}
+#endbar .sub{font-size:11px;color:var(--muted);}
+#endbar button{background:var(--cdim);border:1px solid rgba(255,209,102,.45);color:var(--c);
+  padding:7px 18px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:12px;
+  font-weight:600;cursor:pointer;transition:all .18s;}
+#endbar button:hover{background:rgba(255,209,102,.24);color:#fff;}
+@media (orientation: landscape) and (max-height: 560px){
+  #endbar{padding:5px 11px;gap:7px;}
+  #endbar .em{font-size:17px;} #endbar .msg{font-size:13px;}
+  #endbar button{padding:5px 13px;font-size:11px;}
+}
 #overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(5,5,7,.9);backdrop-filter:blur(10px);z-index:20;}
 #overlay h2{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;}
 .score-big{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--c);}
@@ -140,6 +167,12 @@ button,a,[onclick]{touch-action:manipulation;}
   </div>
   <div id="board-wrap"><div id="board"></div></div>
   <div id="status-bar"></div>
+  <div id="endbar">
+    <span class="em" id="end-em"></span>
+    <span class="msg" id="end-msg"></span>
+    <span class="sub" id="end-sub"></span>
+    <button id="end-again" onclick="startGame()"></button>
+  </div>
 </div>
 <script>
 document.getElementById('lbl-back').textContent      = t('back');
@@ -260,6 +293,8 @@ function startGame(){
   turn='w';selected=null;legalMoves=[];history=[];moveCount=0;
   lastMove=null;thinking=false;
   EndCard.cancel();
+  document.getElementById('endbar').classList.remove('show');
+  document.querySelector('.page').classList.remove('ended');
   document.getElementById('level-pill').style.display=gameMode==='ai'?'flex':'none';
   document.getElementById('hud-moves').textContent='0';
   updateTurnPill();renderBoard();setStatus('');
@@ -571,15 +606,20 @@ function checkEnd(){
   const opp=turn;
   const moves=allMoves(board,opp).filter(([r,c,nr,nc])=>!inCheck(applyMove(board,r,c,nr,nc),opp));
   if(!moves.length){
-    const msg=inCheck(board,opp)?t('chessCheckmate'):t('chessDraw');
-    SFX.play(inCheck(board,opp)?'win':'chime');
-    EndCard.after(1600, ()=>{
-      const ov=document.getElementById('overlay');
-      ov.innerHTML=`<div style="font-size:44px">${inCheck(board,opp)?'🏆':'🤝'}</div>
-        <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px">${msg}</h2>
-        <div style="font-size:13px;color:var(--muted)">${t('chessMoves')}: ${moveCount}</div>
-        <button class="play-btn" onclick="startGame();document.getElementById('overlay').style.display='none'" style="margin-top:8px">${t('chessAgain')}</button>`;
-      ov.style.display='flex';
+    const mat=inCheck(board,opp);
+    const msg=mat?t('chessCheckmate'):t('chessDraw');
+    SFX.play(mat?'win':'chime');
+    // Krátko po doznení ťahu — doska zostáva odkrytá, matový kráľ je na nej
+    // červený, takže je aj vidieť, čím sa to skončilo.
+    EndCard.after(700, ()=>{
+      document.getElementById('end-em').textContent=mat?'🏆':'🤝';
+      document.getElementById('end-msg').textContent=msg;
+      document.getElementById('end-sub').textContent=t('chessMoves')+': '+moveCount;
+      document.getElementById('end-again').textContent=t('chessAgain');
+      document.getElementById('endbar').classList.add('show');
+      document.querySelector('.page').classList.add('ended');
+      // Lišta zaberie kus výšky; naležato by bez prepočtu doska pretiekla.
+      renderBoard();
     });
     return true;
   }
@@ -598,8 +638,10 @@ function undoMove(){
   board=s.board;turn=s.turn;lastMove=s.lastMove||null;
   selected=null;legalMoves=[];moveCount=Math.max(0,moveCount-back);
   document.getElementById('hud-moves').textContent=moveCount;
-  // ak sa vraciame z konca partie, karta s výsledkom sa zruší
+  // ak sa vraciame z konca partie, výsledok sa zruší
   EndCard.cancel();
+  document.getElementById('endbar').classList.remove('show');
+  document.querySelector('.page').classList.remove('ended');
   document.getElementById('overlay').style.display='none';
   renderBoard();updateTurnPill();setStatus('');
 }

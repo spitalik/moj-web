@@ -2158,3 +2158,33 @@ which describes the game and never carried the trademark, and the records stay
 under minesweeper_best_*, because renaming that key would throw away every time
 a player has set. The play counts on the front page are carried over to the new
 id by the table added in section 45.
+
+
+55. Chess: the board stays visible after the game ends - games/chess/
+------------------------------------------------------------------------------
+
+Changed on 16 October 2026 at the owner's request. No licensing effect.
+
+Section 51 gave the end of the game a pause so the last move could be seen, and
+section 48 did the same for 2048, but chess still ended by covering everything:
+its result card was the same full-screen overlay as the start menu, fixed to all
+four edges with a blur behind it. After the pause the board disappeared anyway -
+and a mate position is the one thing in chess worth looking at.
+
+The result is now a bar below the board: the medal, the word (checkmate or
+draw), the move count and a play-again button. The board is left alone, so the
+final position stays on screen for as long as the player wants it, with the
+mated king's square red and the move that delivered it still marked in gold. The
+full-screen overlay is back to doing only what it is good at - the start menu.
+The pause before the bar appears is down from 1.6 s to 0.7 s, because nothing is
+being hidden any more; it only waits for the piece to finish sliding.
+
+Taking a move back clears the bar and resumes the game, as it already did for
+the card.
+
+The bar costs height, which a phone held sideways does not have: it pushed the
+page 40 px past the bottom. The board is re-measured when the bar appears, and
+since the status line underneath has nothing left to say once the game is over,
+it is hidden at the same time. Measured: upright the board stays 325 px with
+nothing overflowing, sideways it goes from 213 to 189 px and the bar ends 5 px
+above the bottom edge. Undo puts both back.
