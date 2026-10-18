@@ -288,7 +288,7 @@ summary { cursor: pointer; color: var(--primary); font-weight: 600; }
 .f-axis { stroke: var(--muted); stroke-width: 1.2; }
 .f-line { stroke: var(--text); stroke-width: 2; fill: none; }
 .f-thin { stroke: var(--text); stroke-width: 1.2; fill: none; }
-.f-dash { stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.f-dash { stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
 .f-accent { stroke: var(--primary); stroke-width: 3; fill: none; }
 .f-ok { stroke: var(--ok); stroke-width: 3; fill: none; }
 .f-warn { stroke: var(--warn); stroke-width: 2.5; fill: none; }
@@ -309,6 +309,7 @@ summary { cursor: pointer; color: var(--primary); font-weight: 600; }
 .f-math { fill: var(--text); font: italic 18px "Times New Roman", Georgia, serif; }
 .c-accent { color: var(--primary); fill: var(--primary); }
 .c-ok { color: var(--ok); fill: var(--ok); }
+.c-warn { color: var(--warn); fill: var(--warn); }
 
 @media (max-width: 480px) {
   h1 { font-size: 1.5rem; }

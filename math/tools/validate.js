@@ -42,6 +42,8 @@ function checkText(where, s) {
 }
 
 const levelIds = new Set(LEVELS.map((l) => l.id));
+const SS_TOPICS = ['cisla', 'vyrazy', 'rovnice', 'nerovnice', 'sustavy', 'funkcie', 'planimetria', 'stereometria',
+  'analyticka', 'goniometria', 'postupnosti', 'financna', 'kombinatorika', 'statistika', 'analyza', 'prakticke', 'maturita'];
 const seen = new Set();
 for (const L of LESSONS) {
   const w = `lekcia ${L.id}`;
@@ -49,6 +51,11 @@ for (const L of LESSONS) {
   seen.add(L.id);
   if (!levelIds.has(L.level)) err(w, `neznáma úroveň ${L.level}`);
   for (const k of ['title', 'summary']) if (!L[k]) err(w, `chýba ${k}`);
+  // stredná škola: témy pre maturitné opakovanie (náhodný výber úloh podľa tém)
+  if (/^s\d$/.test(L.level)) {
+    if (!Array.isArray(L.topics) || !L.topics.length) err(w, 'chýba pole topics');
+    else L.topics.forEach((t) => { if (!SS_TOPICS.includes(t)) err(w, `neznáma téma ${t}`); });
+  }
   if (!Array.isArray(L.theory) || !L.theory.length) err(w, 'chýba teória');
   (L.theory || []).forEach((t, i) => {
     if (typeof t === 'string') return checkText(`${w} teória[${i}]`, t);

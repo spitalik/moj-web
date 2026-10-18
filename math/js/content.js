@@ -21,7 +21,10 @@ window.LEVELS = [
   { id: 's2', group: 'ss', title: '2. ročník SŠ', desc: 'Kvadratické rovnice, funkcie, planimetria, stereometria, logaritmy.' },
   { id: 's3', group: 'ss', title: '3. ročník SŠ', desc: 'Goniometria, analytická geometria, postupnosti, kombinatorika.' },
   { id: 's4', group: 'ss', title: '4. ročník SŠ', desc: 'Derivácie a integrály, štatistika, opakovanie na maturitu.' },
-  { id: 'v', group: 'vs', title: 'Vysoká škola', desc: 'Matice a lineárna algebra.' }
+  { id: 'v1', group: 'vs', title: 'Lineárna algebra', desc: 'Vektory, matice, determinanty, sústavy rovníc, vlastné čísla.' },
+  { id: 'v2', group: 'vs', title: 'Matematická analýza', desc: 'Postupnosti a rady, limity, integrály, funkcie viac premenných.' },
+  { id: 'v3', group: 'vs', title: 'Diferenciálne rovnice', desc: 'Rovnice 1. a 2. rádu, sústavy, aplikácie.' },
+  { id: 'v4', group: 'vs', title: 'Pravdepodobnosť a štatistika', desc: 'Náhodné veličiny, rozdelenia, odhady, testy hypotéz, regresia.' }
 ];
 
 window.LESSONS = [
@@ -194,7 +197,7 @@ window.LESSONS = [
 
   /* ---------- VYSOKÁ ŠKOLA ---------- */
   {
-    id: 'matice', level: 'v', title: 'Matice a determinant',
+    id: 'matice', level: 'v1', order: 30, title: 'Determinant a inverzná matica 2×2',
     summary: 'Maticový zápis, determinant 2×2 a inverzná matica.',
     theory: [
       `<p>Matica typu $m\\times n$ je tabuľka čísel s $m$ riadkami a $n$ stĺpcami. Prvok v $i$-tom riadku a $j$-tom stĺpci označujeme $a_{ij}$.</p>`,
@@ -208,7 +211,7 @@ window.LESSONS = [
     ]
   },
   {
-    id: 'sucin', level: 'v', title: 'Súčin matíc',
+    id: 'sucin', level: 'v1', order: 20, title: 'Súčin matíc',
     summary: 'Ako sa násobia matice a prečo záleží na poradí.',
     theory: [
       `<p>Súčin $C=AB$ existuje, ak počet stĺpcov $A$ je rovný počtu riadkov $B$. Prvok v $i$-tom riadku a $j$-tom stĺpci je $c_{ij}=\\sum_k a_{ik}b_{kj}$: riadok matice $A$ vynásobíme so stĺpcom matice $B$ a sčítame.</p>`,

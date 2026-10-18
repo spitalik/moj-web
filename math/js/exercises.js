@@ -278,7 +278,15 @@
         got.sort((x, y) => x - y);
         want.sort((x, y) => x - y);
       }
-      return got.length === want.length && want.every((v, i) => Math.abs(v - got[i]) <= tol);
+      if (got.length !== want.length) return false;
+      // proportional: uzná aj nenulový násobok (napr. koeficienty všeobecnej rovnice priamky)
+      if (ex.proportional) {
+        const k = want.findIndex((v) => v !== 0);
+        if (k < 0 || got[k] === 0) return false;
+        const f = got[k] / want[k];
+        return want.every((v, i) => Math.abs(v * f - got[i]) <= tol * Math.max(1, Math.abs(f)));
+      }
+      return want.every((v, i) => Math.abs(v - got[i]) <= tol);
     }
     const v = parseNum(input);
     if (Number.isNaN(v)) return null;
