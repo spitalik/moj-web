@@ -78,9 +78,12 @@ I18N.add('pt', {
     s3: ['Ensino médio – 3º ano', 'Trigonometria, geometria analítica, sequências, combinatória.'],
     s4: ['Ensino médio – 4º ano', 'Derivadas e integrais, estatística, revisão para o exame final.'],
     v1: ['Álgebra linear', 'Vetores, matrizes, determinantes, sistemas lineares, autovalores.'],
-    v2: ['Análise matemática', 'Sequências e séries, limites, integrais, funções de várias variáveis.'],
+    v2: ['Análise matemática', 'Números complexos, limites, derivadas e integrais, séries, integrais múltiplas, cálculo vetorial, equações diferenciais.'],
     v3: ['Equações diferenciais', 'Equações de primeira e segunda ordem, sistemas, aplicações.'],
-    v4: ['Probabilidade e estatística', 'Variáveis aleatórias, distribuições, estimação, testes de hipóteses, regressão.']
+    v4: ['Probabilidade e estatística', 'Variáveis aleatórias, distribuições, estimação, testes de hipóteses, regressão.'],
+    v5: ['Lógica matemática e teoria dos conjuntos', 'Proposições e quantificadores, demonstrações, conjuntos, relações, indução e sistemas formais.'],
+    v6: ['Álgebra abstrata', 'Grupos, anéis e corpos, homomorfismos, polinômios, congruências, teoria dos números e teoria de Galois.'],
+    v7: ['Matemática numérica', 'Erros, resolução de equações, interpolação, derivação e integração numéricas, equações diferenciais, matrizes.']
   },
   topics: {
     cisla: ['Números e aritmética', 'Da contagem até 20, passando por números grandes, inteiros e racionais, até sistemas de numeração e conjuntos.'],
@@ -101,6 +104,9 @@ I18N.add('pt', {
     analyza: ['Cálculo diferencial e integral', 'Limites, derivadas, máximos e mínimos, integrais e funções de várias variáveis.'],
     linalg: ['Álgebra linear', 'Vetores, matrizes, determinantes, sistemas de equações lineares, autovalores.'],
     difrovnice: ['Equações diferenciais', 'Equações de primeira e segunda ordem, aplicações, oscilações, sistemas e transformada de Laplace.'],
+    logika: ['Lógica, demonstrações e conjuntos', 'Lógica proposicional e de predicados, métodos de demonstração, conjuntos, relações, indução e sistemas formais.'],
+    algebra: ['Álgebra abstrata e teoria dos números', 'Grupos, anéis e corpos, homomorfismos, polinômios, congruências, teoria dos números e teoria de Galois.'],
+    numerika: ['Matemática numérica', 'Erros e precisão, resolução aproximada de equações, interpolação, derivação e integração numéricas, EDO e matrizes.'],
     maturita: ['Revisão para o exame final', 'Exercícios variados de todas as áreas da matemática do ensino médio e questões típicas de prova.']
   }
 });

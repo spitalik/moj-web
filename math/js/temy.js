@@ -8,7 +8,7 @@ window.THEMES = [
     lessons: ['r1-cisla20', 'r1-scitanie', 'r1-rozklad', 'r2-cisla100', 'r2-scitanie', 'r2-nasobenie', 'r2-nasobilka',
       'r3-cisla1000', 'r3-scitanie', 'r3-nasobilka', 'r3-zatvorky', 'r4-cisla10000', 'r4-scitanie', 'r4-nasobenie', 'cisla',
       'r4-rimske', 'r5-prirodzene', 'r5-zaokruhlovanie', 'r5-rimske', 'r5-operacie', 'r6-cele', 'r7-racionalne', 'r8-cisla',
-      'r9-cisla', 'mnoziny', 's1-obory', 's1-absolutna']
+      'r9-cisla', 'mnoziny', 's1-obory', 's1-absolutna', 'v2-komplexne']
   },
   {
     id: 'delitelnost', icon: '🧩', title: 'Deliteľnosť a prvočísla',
@@ -89,9 +89,9 @@ window.THEMES = [
   },
   {
     id: 'analyza', icon: '∫', title: 'Diferenciálny a integrálny počet',
-    desc: 'Limity, derivácie, extrémy, integrály a funkcie viac premenných.',
+    desc: 'Limity, derivácie, extrémy, integrály, funkcie viac premenných, viacnásobné integrály a vektorová analýza.',
     lessons: ['s4-limita', 'derivacie', 's4-derivacie-funkcii', 's4-extremy', 's4-priebeh', 'integraly', 's4-plocha',
-      'v2-limita-funkcie', 'v2-per-partes', 'v2-racionalne', 'v2-urcity', 'v2-viac-premennych', 'v2-parcialne', 'v2-extremy', 'v2-dvojny']
+      'v2-limita-funkcie', 'v2-per-partes', 'v2-racionalne', 'v2-urcity', 'v2-viac-premennych', 'v2-parcialne', 'v2-extremy', 'v2-dvojny', 'v2-viacnasobne', 'v2-vektorova']
   },
   {
     id: 'linalg', icon: '🔲', title: 'Lineárna algebra',
@@ -104,6 +104,21 @@ window.THEMES = [
     desc: 'Rovnice 1. a 2. rádu, aplikácie, kmitanie, sústavy a Laplaceova transformácia.',
     lessons: ['v3-pojem', 'v3-separovatelne', 'v3-homogenne', 'v3-linearne', 'v3-exaktne', 'v3-aplikacie',
       'v3-charakteristicka', 'v3-nehomogenne', 'v3-kmitanie', 'v3-sustavy', 'v3-laplace']
+  },
+  {
+    id: 'logika', icon: '🧠', title: 'Logika, dôkazy a množiny',
+    desc: 'Výroková a predikátová logika, metódy dôkazov, množiny, relácie, indukcia a formálne systémy.',
+    lessons: ['v5-vyrokova', 'v5-predikatova', 'v5-dokazy', 'v5-mnoziny', 'v5-relacie', 'v5-indukcia', 'v5-formalne']
+  },
+  {
+    id: 'algebra', icon: '🔗', title: 'Abstraktná algebra a teória čísel',
+    desc: 'Grupy, okruhy a polia, homomorfizmy, polynómy, kongruencie, teória čísel a Galoisova teória.',
+    lessons: ['v6-grupy', 'v6-okruhy', 'v6-homomorfizmy', 'v6-polynomy', 'v6-kongruencie', 'v6-cisla', 'v6-galois']
+  },
+  {
+    id: 'numerika', icon: '🖩', title: 'Numerická matematika',
+    desc: 'Chyby a presnosť, približné riešenie rovníc, interpolácia, numerické derivovanie a integrovanie, ODR a matice.',
+    lessons: ['v7-chyby', 'v7-rovnice', 'v7-interpolacia', 'v7-derivacia-integracia', 'v7-ode', 'v7-matice']
   },
   {
     id: 'maturita', icon: '🎓', title: 'Opakovanie na maturitu',

@@ -78,9 +78,12 @@ I18N.add('it', {
     s3: ['Superiori – 3º anno', 'Trigonometria, geometria analitica, successioni, calcolo combinatorio.'],
     s4: ['Superiori – 4º anno', 'Derivate e integrali, statistica, ripasso per l’esame di maturità.'],
     v1: ['Algebra lineare', 'Vettori, matrici, determinanti, sistemi lineari, autovalori.'],
-    v2: ['Analisi matematica', 'Successioni e serie, limiti, integrali, funzioni di più variabili.'],
+    v2: ['Analisi matematica', 'Numeri complessi, limiti, derivate e integrali, serie, integrali multipli, analisi vettoriale, equazioni differenziali.'],
     v3: ['Equazioni differenziali', 'Equazioni del primo e del secondo ordine, sistemi, applicazioni.'],
-    v4: ['Probabilità e statistica', 'Variabili aleatorie, distribuzioni, stima, test di ipotesi, regressione.']
+    v4: ['Probabilità e statistica', 'Variabili aleatorie, distribuzioni, stima, test di ipotesi, regressione.'],
+    v5: ['Logica matematica e teoria degli insiemi', 'Proposizioni e quantificatori, dimostrazioni, insiemi, relazioni, induzione e sistemi formali.'],
+    v6: ['Algebra astratta', 'Gruppi, anelli e campi, omomorfismi, polinomi, congruenze, teoria dei numeri e teoria di Galois.'],
+    v7: ['Analisi numerica', 'Errori, risoluzione di equazioni, interpolazione, derivazione e integrazione numerica, equazioni differenziali, matrici.']
   },
   topics: {
     cisla: ['Numeri e aritmetica', 'Dal contare fino a 20, passando per i grandi numeri, gli interi e i razionali, fino ai sistemi di numerazione e agli insiemi.'],
@@ -101,6 +104,9 @@ I18N.add('it', {
     analyza: ['Calcolo differenziale e integrale', 'Limiti, derivate, massimi e minimi, integrali e funzioni di più variabili.'],
     linalg: ['Algebra lineare', 'Vettori, matrici, determinanti, sistemi di equazioni lineari, autovalori.'],
     difrovnice: ['Equazioni differenziali', 'Equazioni del primo e del secondo ordine, applicazioni, oscillazioni, sistemi e trasformata di Laplace.'],
+    logika: ['Logica, dimostrazioni e insiemi', 'Logica proposizionale e dei predicati, metodi di dimostrazione, insiemi, relazioni, induzione e sistemi formali.'],
+    algebra: ['Algebra astratta e teoria dei numeri', 'Gruppi, anelli e campi, omomorfismi, polinomi, congruenze, teoria dei numeri e teoria di Galois.'],
+    numerika: ['Analisi numerica', 'Errori e precisione, soluzione approssimata di equazioni, interpolazione, derivazione e integrazione numerica, EDO e matrici.'],
     maturita: ['Ripasso per la maturità', 'Esercizi misti da tutte le aree della matematica delle superiori e domande tipiche d’esame.']
   }
 });

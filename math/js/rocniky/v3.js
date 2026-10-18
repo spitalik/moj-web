@@ -6,7 +6,8 @@
 
   const { rnd, pick, gcd, fmt, term, shuffle } = EXERCISES.util;
   const { plane, axes, curvePath, svg, n1, sk } = FIGURES.util;
-  const lesson = (l) => LESSONS.push(Object.assign({ level: 'v3' }, l));
+  // diferenciálne rovnice patria do oblasti Matematická analýza (v2), zaradené za ostatné lekcie analýzy
+  const lesson = (l) => LESSONS.push(Object.assign({ level: 'v2' }, l, { order: 300 + l.order }));
   const gen = EXERCISES.register;
   const fig = FIGURES.register;
 

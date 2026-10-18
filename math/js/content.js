@@ -21,10 +21,12 @@ window.LEVELS = [
   { id: 's2', group: 'ss', title: '2. ročník SŠ', desc: 'Kvadratické rovnice, funkcie, planimetria, stereometria, logaritmy.' },
   { id: 's3', group: 'ss', title: '3. ročník SŠ', desc: 'Goniometria, analytická geometria, postupnosti, kombinatorika.' },
   { id: 's4', group: 'ss', title: '4. ročník SŠ', desc: 'Derivácie a integrály, štatistika, opakovanie na maturitu.' },
-  { id: 'v1', group: 'vs', title: 'Lineárna algebra', desc: 'Vektory, matice, determinanty, sústavy rovníc, vlastné čísla.' },
-  { id: 'v2', group: 'vs', title: 'Matematická analýza', desc: 'Postupnosti a rady, limity, integrály, funkcie viac premenných.' },
-  { id: 'v3', group: 'vs', title: 'Diferenciálne rovnice', desc: 'Rovnice 1. a 2. rádu, sústavy, aplikácie.' },
-  { id: 'v4', group: 'vs', title: 'Pravdepodobnosť a štatistika', desc: 'Náhodné veličiny, rozdelenia, odhady, testy hypotéz, regresia.' }
+  { id: 'v2', group: 'vs', title: 'Matematická analýza', desc: 'Komplexné čísla, limity, derivácie a integrály, rady, viacnásobné integrály, vektorová analýza, diferenciálne rovnice.' },
+  { id: 'v1', group: 'vs', title: 'Lineárna algebra', desc: 'Vektorové priestory, matice a determinanty, sústavy, lineárne zobrazenia, vlastné čísla, ortogonalita.' },
+  { id: 'v5', group: 'vs', title: 'Matematická logika a teória množín', desc: 'Výroky a kvantifikátory, dôkazy, množiny, relácie, indukcia a formálne systémy.' },
+  { id: 'v6', group: 'vs', title: 'Abstraktná algebra', desc: 'Grupy, okruhy a polia, homomorfizmy, polynómy, kongruencie, teória čísel a Galoisova teória.' },
+  { id: 'v4', group: 'vs', title: 'Pravdepodobnosť a štatistika', desc: 'Náhodné veličiny, rozdelenia, zákon veľkých čísel, CLV, odhady, testy hypotéz, regresia.' },
+  { id: 'v7', group: 'vs', title: 'Numerická matematika', desc: 'Chyby výpočtov, riešenie rovníc, interpolácia, numerické derivovanie a integrovanie, diferenciálne rovnice, matice.' }
 ];
 
 window.LESSONS = [

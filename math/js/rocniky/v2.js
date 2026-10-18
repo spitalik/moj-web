@@ -1,6 +1,6 @@
-/* Vysoká škola – Matematická analýza (úroveň v2): postupnosti, limita a spojitosť funkcie, L'Hospitalovo pravidlo,
+/* Vysoká škola – Matematická analýza (úroveň v2): reálne a komplexné čísla, postupnosti, limita a spojitosť funkcie, L'Hospitalovo pravidlo,
    metódy integrovania, určitý a nevlastný integrál, číselné a mocninové rady, Taylorov rad,
-   funkcie viac premenných, parciálne derivácie, extrémy a dvojný integrál.
+   funkcie viac premenných, parciálne derivácie, extrémy, dvojný a viacnásobné integrály, vektorová analýza.
    Nadväzuje na gymnaziálne lekcie (s4.js, „derivacie“ a „integraly“ v content.js) a neopakuje ich. */
 (function () {
   'use strict';
@@ -76,6 +76,250 @@
     return `<line class="${cls}" x1="${n1(X1)}" y1="${n1(Y1)}" x2="${n1(bx)}" y2="${n1(by)}"/>
       <polygon class="${head}" points="${n1(X2)},${n1(Y2)} ${n1(bx - 5 * uy)},${n1(by + 5 * ux)} ${n1(bx + 5 * uy)},${n1(by - 5 * ux)}"/>`;
   }
+
+  /* ======================= 0. REÁLNE A KOMPLEXNÉ ČÍSLA ======================= */
+
+  // komplexné číslo a + bi v algebraickom tvare: cTex(3,-4) = "3-4\mathrm{i}", cTex(0,1) = "\mathrm{i}"
+  const cTex = (a, b) => {
+    if (b === 0) return String(a);
+    const im = Math.abs(b) === 1 ? '\\mathrm{i}' : `${Math.abs(b)}\\mathrm{i}`;
+    if (a === 0) return (b < 0 ? '-' : '') + im;
+    return `${a}${b < 0 ? '-' : '+'}${im}`;
+  };
+  const cMul = (u, v) => [u[0] * v[0] - u[1] * v[1], u[0] * v[1] + u[1] * v[0]];
+  const degT = (x) => String(round(x, 1)).replace('.', '{,}'); // stupne v KaTeX
+  const SUP = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶'];
+
+  fig('v2-gauss', {
+    controls: [
+      { id: 'r', label: '|z|', min: 0.6, max: 1.25, step: 0.05, value: 1.1 },
+      { id: 'phi', label: 'arg z (°)', min: 0, max: 360, step: 5, value: 40 },
+      { id: 'n', label: 'n', min: 1, max: 6, step: 1, value: 3 }
+    ],
+    draw: (v) => {
+      const p = plane(-4, 4, -4, 4, 340, 340);
+      const R = (r) => p.X(r) - p.X(0);
+      const f = v.phi * Math.PI / 180, a = v.r * Math.cos(f), b = v.r * Math.sin(f);
+      const rn = Math.pow(v.r, v.n), fn = v.n * f, an = rn * Math.cos(fn), bn = rn * Math.sin(fn);
+      const circ = (r, cls) => `<circle class="${cls}" cx="${n1(p.X(0))}" cy="${n1(p.Y(0))}" r="${n1(R(r))}"/>`;
+      const ang = Math.min(v.phi, 359.9) * Math.PI / 180, rho = 0.6;
+      const arc = v.phi > 0 ? `<path class="f-warn" d="M${n1(p.X(rho))} ${n1(p.Y(0))} A${n1(R(rho))} ${n1(R(rho))} 0 ${v.phi > 180 ? 1 : 0} 0 ${n1(p.X(rho * Math.cos(ang)))} ${n1(p.Y(rho * Math.sin(ang)))}"/>` : '';
+      const clipped = circ(1, 'f-dash') + circ(rn, 'f-thin')
+        + `<line class="f-dash" x1="${n1(p.X(a))}" y1="${n1(p.Y(0))}" x2="${n1(p.X(a))}" y2="${n1(p.Y(b))}"/>` + arc
+        + arrow(p, 0, 0, an, bn, 'f-ok', 'c-ok') + arrow(p, 0, 0, a, b);
+      const lab = (x, y, t, cls) => {
+        const L = Math.hypot(x, y) || 1;
+        return `<text class="f-math ${cls}" x="${n1(p.X(x + 0.35 * x / L))}" y="${n1(p.Y(y + 0.35 * y / L) + 5)}" text-anchor="middle">${t}</text>`;
+      };
+      const front = lab(a, b, 'z', 'c-accent') + (v.n > 1 ? lab(an, bn, 'z' + SUP[v.n], 'c-ok') : '')
+        + `<text class="f-small" x="${n1(p.X(3.9))}" y="${n1(p.Y(0) - 6)}" text-anchor="end">Re</text>
+        <text class="f-small" x="${n1(p.X(0) + 6)}" y="${n1(p.Y(3.8))}">Im</text>`;
+      const sg = (x) => (x < 0 ? '−' : '+');
+      const deg = ((v.n * v.phi) % 360 + 360) % 360;
+      return {
+        svg: svg(p, axes(p, 1), clipped, front, 'Komplexné číslo a jeho mocnina v Gaussovej rovine'),
+        readout: `<span class="c-accent">z ≈ ${sk(a)} ${sg(b)} ${sk(Math.abs(b))}i</span> = ${sk(v.r)}·(cos ${v.phi}° + i sin ${v.phi}°) · `
+          + `<span class="c-ok">z${SUP[v.n]} = ${sk(rn, 3)}·(cos ${deg}° + i sin ${deg}°) ≈ ${sk(an)} ${sg(bn)} ${sk(Math.abs(bn))}i</span>`
+      };
+    }
+  });
+
+  lesson({
+    id: 'v2-komplexne', order: 5, title: 'Reálne a komplexné čísla',
+    summary: 'Axióma úplnosti, supremum a infimum, komplexné čísla v algebraickom a goniometrickom tvare, Moivreova veta a n-té odmocniny.',
+    theory: [
+      `<p><strong>Reálne čísla axiomaticky.</strong> Množina $\\mathbb{R}$ s operáciami $+$, $\\cdot$ a usporiadaním $\\le$ spĺňa tri skupiny axióm: <em>axiómy poľa</em> (komutatívnosť, asociatívnosť, distributívnosť, existencia $0$ a $1$, opačného prvku a pre $x\\neq 0$ aj prevráteného prvku),
+       <em>axiómy usporiadania</em> (z $x\\le y$ vyplýva $x+z\\le y+z$; z $0\\le x$ a $0\\le y$ vyplýva $0\\le xy$) a <em>axiómu úplnosti</em>. Prvé dve skupiny spĺňajú aj racionálne čísla – až úplnosť odlišuje $\\mathbb{R}$ od $\\mathbb{Q}$.</p>
+       <p>Číslo $K$ je <strong>horné ohraničenie</strong> množiny $A\\subset\\mathbb{R}$, ak $a\\le K$ pre všetky $a\\in A$. Najmenšie horné ohraničenie sa nazýva <strong>supremum</strong> $\\sup A$, najväčšie dolné ohraničenie <strong>infimum</strong> $\\inf A$.
+       <strong>Axióma úplnosti:</strong> každá neprázdna zhora ohraničená množina reálnych čísel má v $\\mathbb{R}$ supremum.</p>`,
+      `<p>Číslo $s$ je supremom množiny $A$ práve vtedy, keď (1) $a\\le s$ pre všetky $a\\in A$ a (2) ku každému $\\varepsilon\\gt 0$ existuje $a\\in A$ také, že $a\\gt s-\\varepsilon$.
+       Supremum nemusí patriť do množiny: $A=\\left\\{1-\\frac{1}{n}:\\ n\\in\\mathbb{N}\\right\\}$ má $\\sup A=1$, ale maximum nemá, kým $\\inf A=\\min A=0$. Ak $\\sup A\\in A$, je supremum zároveň maximom.</p>
+       <ul><li>V $\\mathbb{Q}$ úplnosť neplatí: množina $\\{x\\in\\mathbb{Q}:\\ x^2\\lt 2\\}$ je ohraničená, no jej „kandidát na supremum“ $\\sqrt{2}$ nie je racionálny.</li>
+       <li>Z úplnosti vyplýva <em>Archimedova vlastnosť</em> (ku každému $x\\in\\mathbb{R}$ existuje $n\\in\\mathbb{N}$, $n\\gt x$), existencia $n$-tých odmocnín kladných čísel aj veta o monotónnej ohraničenej postupnosti.</li></ul>`,
+      `<p><strong>Komplexné čísla</strong> sú usporiadané dvojice reálnych čísel, ktoré zapisujeme v <em>algebraickom tvare</em> $z=a+b\\mathrm{i}$, kde $\\mathrm{i}^2=-1$. Číslo $a=\\operatorname{Re} z$ je reálna a $b=\\operatorname{Im} z$ imaginárna časť. Počítame ako s dvojčlenmi a $\\mathrm{i}^2$ nahradíme číslom $-1$:</p>
+       <p style="text-align:center">$(a+b\\mathrm{i})(c+d\\mathrm{i})=(ac-bd)+(ad+bc)\\mathrm{i} .$</p>
+       <p><strong>Komplexne združené</strong> číslo je $\\bar z=a-b\\mathrm{i}$, <strong>absolútna hodnota</strong> $|z|=\\sqrt{a^2+b^2}$ a platí $z\\bar z=|z|^2$. Delíme rozšírením číslom združeným k menovateľu: $\\dfrac{z}{w}=\\dfrac{z\\bar w}{|w|^2}$.
+       Množina $\\mathbb{C}$ je pole, ktoré sa však nedá usporiadať v súlade s operáciami – nerovnosť medzi dvoma komplexnými číslami nemá zmysel.</p>`,
+      `<p><strong>Gaussova rovina.</strong> Číslo $a+b\\mathrm{i}$ zobrazíme ako bod $[a;b]$. Absolútna hodnota $|z|$ je jeho vzdialenosť od počiatku a <strong>argument</strong> $\\arg z$ je orientovaný uhol od kladnej reálnej poloosi. Z $a=|z|\\cos\\varphi$, $b=|z|\\sin\\varphi$ dostaneme <em>goniometrický</em> a pomocou Eulerovho vzorca $\\mathrm{e}^{\\mathrm{i}\\varphi}=\\cos\\varphi+\\mathrm{i}\\sin\\varphi$ aj <em>exponenciálny tvar</em></p>
+       <p style="text-align:center">$z=r(\\cos\\varphi+\\mathrm{i}\\sin\\varphi)=r\\,\\mathrm{e}^{\\mathrm{i}\\varphi},\\qquad r=|z| .$</p>
+       <p>Argument je určený až na násobok $2\\pi$, <em>hlavná hodnota</em> leží v intervale $(-\\pi;\\pi\\rangle$. Pozor na kvadrant: rovnica $\\operatorname{tg}\\varphi=\\frac{b}{a}$ sama nestačí, napr. $\\arg(-1-\\mathrm{i})=-\\frac{3\\pi}{4}$, nie $\\frac{\\pi}{4}$.
+       Pri násobení sa absolútne hodnoty násobia a argumenty sčítajú: $r_1\\mathrm{e}^{\\mathrm{i}\\varphi_1}\\cdot r_2\\mathrm{e}^{\\mathrm{i}\\varphi_2}=r_1r_2\\,\\mathrm{e}^{\\mathrm{i}(\\varphi_1+\\varphi_2)}$.</p>`,
+      { fig: 'v2-gauss', caption: 'Číslo $z=r(\\cos\\varphi+\\mathrm{i}\\sin\\varphi)$ (modré) a jeho mocnina $z^n$ (zelená). Mocnina má absolútnu hodnotu $r^n$ a argument $n\\varphi$: pre $r\\gt 1$ sa vzďaľuje od jednotkovej kružnice (čiarkovaná), pre $r\\lt 1$ sa k počiatku približuje.' },
+      `<p><strong>Moivreova veta.</strong> Opakovaným násobením dostaneme pre každé celé $n$</p>
+       <p style="text-align:center">$\\left[r(\\cos\\varphi+\\mathrm{i}\\sin\\varphi)\\right]^n=r^n(\\cos n\\varphi+\\mathrm{i}\\sin n\\varphi) .$</p>
+       <p><strong>$n$-té odmocniny.</strong> Rovnica $z^n=w$, kde $w=R\\,\\mathrm{e}^{\\mathrm{i}\\psi}\\neq 0$, má práve $n$ rôznych komplexných riešení</p>
+       <p style="text-align:center">$z_k=\\sqrt[n]{R}\\;\\mathrm{e}^{\\mathrm{i}\\frac{\\psi+2k\\pi}{n}},\\qquad k=0,1,\\dots,n-1 .$</p>
+       <p>Ležia na kružnici s polomerom $\\sqrt[n]{R}$ vo vrcholoch pravidelného $n$-uholníka, susedné sa líšia o uhol $\\frac{2\\pi}{n}$. Je to špeciálny prípad <em>základnej vety algebry</em>: každý polynóm stupňa $n\\ge 1$ s komplexnými koeficientmi má v $\\mathbb{C}$ práve $n$ koreňov, ak ich rátame aj s násobnosťou.</p>`
+    ],
+    examples: [
+      { task: 'Urči supremum a infimum množiny $A=\\left\\{\\dfrac{2n+3}{n+1}:\\ n\\in\\mathbb{N}\\right\\}$ a rozhodni, či ide o maximum a minimum.',
+        steps: ['Upravíme: $\\dfrac{2n+3}{n+1}=2+\\dfrac{1}{n+1}$. Zlomok $\\frac{1}{n+1}$ s rastúcim $n$ klesá k nule, prvky množiny teda tvoria klesajúcu postupnosť.',
+          'Najväčší prvok je pre $n=1$: $\\frac{5}{2}$. Preto $\\sup A=\\max A=\\frac{5}{2}$.',
+          'Všetky prvky sú väčšie ako $2$, teda $2$ je dolné ohraničenie. Ku každému $\\varepsilon\\gt 0$ existuje $n$ s $\\frac{1}{n+1}\\lt\\varepsilon$, t. j. prvok menší ako $2+\\varepsilon$ – väčšie dolné ohraničenie neexistuje.',
+          '<strong>Výsledok: $\\sup A=\\max A=\\frac{5}{2}$, $\\inf A=2$, minimum neexistuje</strong>'] },
+      { task: 'Vypočítaj $(1-\\mathrm{i})^{10}$ a výsledok zapíš v algebraickom tvare.',
+        steps: ['$|1-\\mathrm{i}|=\\sqrt{2}$ a bod $[1;-1]$ leží vo 4. kvadrante, preto $\\arg(1-\\mathrm{i})=-\\frac{\\pi}{4}$ a $1-\\mathrm{i}=\\sqrt{2}\\,\\mathrm{e}^{-\\mathrm{i}\\pi/4}$.',
+          'Podľa Moivreovej vety $(1-\\mathrm{i})^{10}=(\\sqrt{2})^{10}\\,\\mathrm{e}^{-\\mathrm{i}\\cdot 10\\pi/4}=32\\,\\mathrm{e}^{-\\mathrm{i}\\cdot 5\\pi/2}$.',
+          'Uhol $-\\frac{5\\pi}{2}$ sa od $-\\frac{\\pi}{2}$ líši o $-2\\pi$, takže $\\mathrm{e}^{-\\mathrm{i}\\cdot 5\\pi/2}=\\cos\\left(-\\frac{\\pi}{2}\\right)+\\mathrm{i}\\sin\\left(-\\frac{\\pi}{2}\\right)=-\\mathrm{i}$.',
+          '<strong>Výsledok: $(1-\\mathrm{i})^{10}=-32\\mathrm{i}$</strong>'] },
+      { task: 'Nájdi všetky riešenia rovnice $z^3=-8$ v $\\mathbb{C}$.',
+        steps: ['$-8=8\\,\\mathrm{e}^{\\mathrm{i}\\pi}$, teda $R=8$, $\\psi=\\pi$ a $\\sqrt[3]{8}=2$.',
+          'Riešenia sú $z_k=2\\,\\mathrm{e}^{\\mathrm{i}\\frac{\\pi+2k\\pi}{3}}$ pre $k=0,1,2$, t. j. s argumentmi $\\frac{\\pi}{3}$, $\\pi$ a $\\frac{5\\pi}{3}$.',
+          '$z_0=2\\left(\\frac{1}{2}+\\frac{\\sqrt{3}}{2}\\mathrm{i}\\right)=1+\\sqrt{3}\\,\\mathrm{i}$, $z_1=-2$, $z_2=1-\\sqrt{3}\\,\\mathrm{i}$.',
+          '<strong>Výsledok: $z\\in\\{1+\\sqrt{3}\\,\\mathrm{i};\\ -2;\\ 1-\\sqrt{3}\\,\\mathrm{i}\\}$</strong> – vrcholy rovnostranného trojuholníka na kružnici s polomerom $2$.'] }
+    ]
+  });
+
+  gen('v2-komplexne', () => {
+    const t = Math.random();
+    if (t < 0.16) {
+      const u = Math.random();
+      if (u < 0.45) {
+        const [p, q, c] = pick([[3, 4, 5], [5, 12, 13], [8, 15, 17], [6, 8, 10], [7, 24, 25]]);
+        const sw = Math.random() < 0.5, a = (sw ? q : p) * pick([1, -1]), b = (sw ? p : q) * pick([1, -1]);
+        return {
+          answer: c,
+          q: `Vypočítaj absolútnu hodnotu komplexného čísla $z=${cTex(a, b)}$.`,
+          solution: `$|z|=\\sqrt{(\\operatorname{Re} z)^2+(\\operatorname{Im} z)^2}=\\sqrt{${par(a)}^2+${par(b)}^2}=\\sqrt{${a * a + b * b}}=${c}$.`,
+          hint: 'Absolútna hodnota čísla $a+b\\mathrm{i}$ je vzdialenosť bodu $[a;b]$ od počiatku: $\\sqrt{a^2+b^2}$.'
+        };
+      }
+      if (u < 0.75) {
+        let a, b;
+        do { a = nz(-6, 6); b = nz(-6, 6); } while (Number.isInteger(Math.hypot(a, b)));
+        const val = Math.hypot(a, b);
+        return {
+          answer: round(val, 3), tol: TOL3, show: dt(val),
+          q: `Vypočítaj $|z|$ pre $z=${cTex(a, b)}$. ${ROUND3}`,
+          solution: `$|z|=\\sqrt{${par(a)}^2+${par(b)}^2}=\\sqrt{${a * a + b * b}}\\approx ${dd(val)}$.`,
+          hint: 'Použi $|a+b\\mathrm{i}|=\\sqrt{a^2+b^2}$.'
+        };
+      }
+      const a = nz(-3, 3), b = nz(-3, 3), n = pick([2, 4, 6]), m = a * a + b * b, val = Math.pow(m, n / 2);
+      return {
+        answer: val,
+        q: `Vypočítaj $\\left|\\left(${cTex(a, b)}\\right)^{${n}}\\right|$.`,
+        solution: `Absolútna hodnota súčinu je súčinom absolútnych hodnôt, preto $|z^{${n}}|=|z|^{${n}}=\\left(\\sqrt{${m}}\\right)^{${n}}=${m}^{${n / 2}}=${val}$. Umocňovať v algebraickom tvare netreba.`,
+        hint: 'Využi $|z^n|=|z|^n$.'
+      };
+    }
+    if (t < 0.31) {
+      const a = nz(-5, 5), b = nz(-5, 5), deg = Math.atan2(b, a) * 180 / Math.PI;
+      const al = Math.atan(Math.abs(b) / Math.abs(a)) * 180 / Math.PI;
+      const quad = a > 0 ? (b > 0 ? 1 : 4) : (b > 0 ? 2 : 3);
+      const how = ['\\varphi=\\alpha', '\\varphi=180^\\circ-\\alpha', '\\varphi=-180^\\circ+\\alpha', '\\varphi=-\\alpha'][quad - 1];
+      return {
+        signed: true, answer: round(deg, 1), tol: 0.06, show: dt(deg, 1),
+        q: `Urči hlavnú hodnotu argumentu čísla $z=${cTex(a, b)}$ v stupňoch, t. j. $\\arg z\\in(-180^\\circ;180^\\circ\\rangle$. Zaokrúhli na 1 desatinné miesto.`,
+        solution: `Bod $[${a};${b}]$ leží v ${quad}. kvadrante. Pomocný ostrý uhol je $\\alpha=\\operatorname{arctg}\\frac{${Math.abs(b)}}{${Math.abs(a)}}\\approx ${degT(al)}^\\circ$, a preto $${how}\\approx ${degT(deg)}^\\circ$.`,
+        hint: 'Najprv urči kvadrant bodu $[a;b]$, potom pomocný uhol $\\alpha=\\operatorname{arctg}\\left|\\frac{b}{a}\\right|$ a podľa kvadrantu z neho argument.'
+      };
+    }
+    if (t < 0.5) {
+      const u = Math.random();
+      if (u < 0.4) {
+        const z = [nz(-5, 5), rnd(-5, 5)], w = [rnd(-4, 4), nz(-4, 4)], r = cMul(z, w);
+        return {
+          type: 'tuple', signed: true, answer: r,
+          q: `Vypočítaj súčin $(${cTex(...z)})(${cTex(...w)})$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+          solution: `Roznásobíme a použijeme $\\mathrm{i}^2=-1$: $(${cTex(...z)})(${cTex(...w)})=\\bigl(${z[0]}\\cdot ${par(w[0])}-${par(z[1])}\\cdot ${par(w[1])}\\bigr)+\\bigl(${z[0]}\\cdot ${par(w[1])}+${par(z[1])}\\cdot ${par(w[0])}\\bigr)\\mathrm{i}=${cTex(...r)}$. Odpoveď: $${r[0]};\\ ${r[1]}$.`,
+          hint: 'Platí $(a+b\\mathrm{i})(c+d\\mathrm{i})=(ac-bd)+(ad+bc)\\mathrm{i}$.'
+        };
+      }
+      if (u < 0.75) {
+        const w = [nz(-4, 4), nz(-3, 3)], q = [rnd(-4, 4), nz(-4, 4)], z = cMul(q, w), m = w[0] * w[0] + w[1] * w[1], num = cMul(z, [w[0], -w[1]]);
+        return {
+          type: 'tuple', signed: true, answer: q,
+          q: `Vypočítaj podiel $\\dfrac{${cTex(...z)}}{${cTex(...w)}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+          solution: `Rozšírime číslom združeným k menovateľu: $\\dfrac{${cTex(...z)}}{${cTex(...w)}}=\\dfrac{(${cTex(...z)})(${cTex(w[0], -w[1])})}{${par(w[0])}^2+${par(w[1])}^2}=\\dfrac{${cTex(...num)}}{${m}}=${cTex(...q)}$. Odpoveď: $${q[0]};\\ ${q[1]}$.`,
+          hint: 'Čitateľa aj menovateľa vynásob číslom $\\bar w$ – v menovateli vznikne reálne číslo $|w|^2$.'
+        };
+      }
+      const n = rnd(5, 2030), k = n % 4, r = [[1, 0], [0, 1], [-1, 0], [0, -1]][k];
+      return {
+        type: 'tuple', signed: true, answer: r,
+        q: `Vypočítaj $\\mathrm{i}^{${n}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+        solution: `Mocniny čísla $\\mathrm{i}$ sa opakujú s periódou 4: $\\mathrm{i}^1=\\mathrm{i}$, $\\mathrm{i}^2=-1$, $\\mathrm{i}^3=-\\mathrm{i}$, $\\mathrm{i}^4=1$. Keďže $${n}=4\\cdot ${Math.floor(n / 4)}+${k}$, je $\\mathrm{i}^{${n}}=\\mathrm{i}^{${k}}=${cTex(...r)}$. Odpoveď: $${r[0]};\\ ${r[1]}$.`,
+        hint: 'Vydeľ exponent štyrmi so zvyškom; $\\mathrm{i}^4=1$.'
+      };
+    }
+    if (t < 0.68) {
+      if (Math.random() < 0.6) {
+        const s = [pick([1, -1]), pick([1, -1])], n = rnd(2, 12);
+        let r = [1, 0];
+        for (let i = 0; i < n; i++) r = cMul(r, s);
+        const th = Math.round(Math.atan2(s[1], s[0]) * 180 / Math.PI), N = th * n, Nm = ((N % 360) + 360) % 360;
+        const mod = n % 2 ? `${Math.pow(2, (n - 1) / 2)}\\sqrt{2}` : String(Math.pow(2, n / 2));
+        return {
+          type: 'tuple', signed: true, answer: r,
+          q: `Pomocou Moivreovej vety vypočítaj $(${cTex(...s)})^{${n}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+          solution: `$|z|=\\sqrt{2}$ a $\\arg z=${th}^\\circ$, teda $z=\\sqrt{2}\\,\\bigl(\\cos(${th}^\\circ)+\\mathrm{i}\\sin(${th}^\\circ)\\bigr)$. Podľa Moivreovej vety
+            $z^{${n}}=(\\sqrt{2})^{${n}}\\bigl(\\cos(${N}^\\circ)+\\mathrm{i}\\sin(${N}^\\circ)\\bigr)$, kde $(\\sqrt{2})^{${n}}=${mod}$ a uhol $${N}^\\circ$ má rovnakú polohu ako $${Nm}^\\circ$. Výsledok: $z^{${n}}=${cTex(...r)}$, odpoveď $${r[0]};\\ ${r[1]}$.`,
+          hint: 'Preveď číslo do goniometrického tvaru ($|z|=\\sqrt{2}$, argument je násobok $45^\\circ$), umocni absolútnu hodnotu a argument vynásob exponentom.'
+        };
+      }
+      const th = pick([60, 120, -60, -120]), n = pick([3, 6]);
+      const s = { 60: '1+\\sqrt{3}\\,\\mathrm{i}', 120: '-1+\\sqrt{3}\\,\\mathrm{i}', '-60': '1-\\sqrt{3}\\,\\mathrm{i}', '-120': '-1-\\sqrt{3}\\,\\mathrm{i}' }[th];
+      const N = th * n, cs = Math.round(Math.cos(N * Math.PI / 180)), re = Math.pow(2, n) * cs;
+      return {
+        type: 'tuple', signed: true, answer: [re, 0],
+        q: `Vypočítaj $\\left(${s}\\right)^{${n}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+        solution: `$|z|=\\sqrt{1+3}=2$ a $\\arg z=${th}^\\circ$. Podľa Moivreovej vety $z^{${n}}=2^{${n}}\\bigl(\\cos(${N}^\\circ)+\\mathrm{i}\\sin(${N}^\\circ)\\bigr)=${Math.pow(2, n)}\\cdot(${cs})=${re}$, imaginárna časť je $0$. Odpoveď: $${re};\\ 0$.`,
+        hint: 'Absolútna hodnota je $2$ a argument je násobok $60^\\circ$; použi Moivreovu vetu.'
+      };
+    }
+    if (t < 0.84) {
+      const psi = pick([0, 90, 180, 270]), n = rnd(2, 6), m = pick([1, 1, 2]), M = Math.pow(m, n);
+      const w = psi === 0 ? [M, 0] : psi === 90 ? [0, M] : psi === 180 ? [-M, 0] : [0, -M];
+      const args = [];
+      for (let k = 0; k < n; k++) args.push((psi + 360 * k) / n);
+      const argsT = args.map((x) => degT(x) + '^\\circ').join(',\\ ');
+      const intro = `$${cTex(...w)}=${M}\\,\\mathrm{e}^{\\mathrm{i}\\cdot ${psi}^\\circ}$, takže rovnica má ${n} ${pl(n, ['riešenie', 'riešenia', 'riešení'])} s absolútnou hodnotou $\\sqrt[${n}]{${M}}=${m}$ a s argumentmi $\\frac{${psi}^\\circ+k\\cdot 360^\\circ}{${n}}$, $k=0,\\dots,${n - 1}$: $${argsT}$.`;
+      if (Math.random() < 0.5) {
+        const cnt = args.filter((x) => x > 1e-9 && x < 90 - 1e-9).length;
+        return {
+          answer: cnt,
+          q: `Koľko riešení rovnice $z^{${n}}=${cTex(...w)}$ leží v otvorenom prvom kvadrante Gaussovej roviny (t. j. $\\operatorname{Re} z\\gt 0$ a $\\operatorname{Im} z\\gt 0$)?`,
+          solution: `${intro} Do intervalu $(0^\\circ;90^\\circ)$ patrí ${cnt} z nich, odpoveď je <strong>${cnt}</strong>.`,
+          hint: 'Riešenia sú vrcholy pravidelného $n$-uholníka: argumenty $\\frac{\\psi+k\\cdot 360^\\circ}{n}$. Spočítaj, koľko z nich leží medzi $0^\\circ$ a $90^\\circ$.'
+        };
+      }
+      const val = psi > 0 ? psi / n : 360 / n;
+      return {
+        answer: round(val, 1), tol: 0.06, show: dt(val, 1).replace(/,0$/, ''),
+        q: `Aký najmenší kladný argument (v stupňoch, z intervalu $(0^\\circ;360^\\circ)$) má niektoré riešenie rovnice $z^{${n}}=${cTex(...w)}$?`,
+        solution: `${intro} Najmenší kladný z nich je $${degT(val)}^\\circ$.`,
+        hint: 'Použi vzorec pre $n$-té odmocniny: argumenty $\\frac{\\psi+2k\\pi}{n}$, $k=0,\\dots,n-1$.'
+      };
+    }
+    if (Math.random() < 0.55) {
+      const a = rnd(1, 5), c = rnd(0, 4);
+      let b;
+      do { b = rnd(-6, 9); } while (b === a * c);
+      const d = b - a * c, askSup = Math.random() < 0.5, dec = d > 0, isFirst = askSup === dec;
+      const den = lin([[1, 'n'], [c, '']]), a1 = fTex(a + b, 1 + c);
+      return {
+        signed: true, answer: isFirst ? (a + b) / (1 + c) : a, show: isFirst ? fTxt(a + b, 1 + c) : String(a),
+        q: `Urči ${askSup ? 'supremum' : 'infimum'} množiny $A=\\left\\{\\dfrac{${lin([[a, 'n'], [b, '']])}}{${den}}:\\ n\\in\\mathbb{N}\\right\\}$, kde $\\mathbb{N}=\\{1,2,3,\\dots\\}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: `Upravíme: $\\dfrac{${lin([[a, 'n'], [b, '']])}}{${den}}=${a}${dec ? '+' : '-'}\\dfrac{${Math.abs(d)}}{${den}}$. Zlomok $\\frac{${Math.abs(d)}}{${den}}$ s rastúcim $n$ klesá k nule, prvky preto tvoria ${dec ? 'klesajúcu' : 'rastúcu'} postupnosť s limitou $${a}$.
+          ${dec ? `Najväčší prvok je pre $n=1$, teda $\\sup A=\\max A=${a1}$. Všetky prvky sú väčšie ako $${a}$ a ku každému $\\varepsilon\\gt 0$ existuje prvok menší ako $${a}+\\varepsilon$, preto $\\inf A=${a}$ (minimum neexistuje).`
+    : `Najmenší prvok je pre $n=1$, teda $\\inf A=\\min A=${a1}$. Všetky prvky sú menšie ako $${a}$ a ku každému $\\varepsilon\\gt 0$ existuje prvok väčší ako $${a}-\\varepsilon$, preto $\\sup A=${a}$ (maximum neexistuje).`}
+          Hľadané ${askSup ? 'supremum' : 'infimum'} je $${isFirst ? a1 : a}$.`,
+        hint: 'Vydeľ čitateľa menovateľom, zisti monotónnosť prvkov. Jedna z hraníc je prvý prvok, druhá je limita.'
+      };
+    }
+    const a = rnd(1, 4), b = rnd(1, 6), askSup = Math.random() < 0.5;
+    const evenMax = 4 * a >= b; // a + b/2 ≥ b − a
+    const supP = evenMax ? 2 * a + b : 2 * (b - a), supT = fTex(supP, 2);
+    return {
+      signed: true, answer: askSup ? supP / 2 : -a, show: askSup ? fTxt(supP, 2) : String(-a),
+      q: `Urči ${askSup ? 'supremum' : 'infimum'} množiny $A=\\left\\{(-1)^n${a === 1 ? '' : '\\cdot ' + a}+\\dfrac{${b}}{n}:\\ n\\in\\mathbb{N}\\right\\}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+      solution: `Pre párne $n$ sú prvky $${a}+\\frac{${b}}{n}$ – klesajú, najväčší je pre $n=2$: $${fTex(2 * a + b, 2)}$, a všetky sú väčšie ako $${a}$.
+        Pre nepárne $n$ sú prvky $-${a}+\\frac{${b}}{n}$ – klesajú k $-${a}$, najväčší je pre $n=1$: $${b - a}$.
+        Preto $\\sup A=\\max\\left\\{${fTex(2 * a + b, 2)};\\ ${b - a}\\right\\}=${supT}$ a $\\inf A=-${a}$ (nenadobúda sa: prvky s nepárnym $n$ sú väčšie ako $-${a}$, ale ľubovoľne blízko). Hľadaná hodnota: $${askSup ? supT : -a}$.`,
+      hint: 'Rozdeľ prvky na tie s párnym a nepárnym $n$ a každú skupinu vyšetri zvlášť.'
+    };
+  });
 
   /* ======================= 1. POSTUPNOSTI ======================= */
 
@@ -1845,6 +2089,472 @@
       q: `Zameň poradie integrovania: $\\displaystyle ${given}=\\;?$`,
       solution: `Oblasť integrovania je ${desc}. Preto $\\displaystyle ${given}=${ok}$.`,
       hint: 'Nakresli si oblasť. Potom urči rozsah $y$ a pre pevné $y$ zisti, medzi ktorými krivkami leží $x$.'
+    };
+  });
+
+  /* ---------- polynómy viac premenných (pre viacnásobné integrály a vektorovú analýzu) ----------
+     polynóm = pole jednočlenov { c: koeficient, e: [mocnina x, mocnina y, mocnina z] } */
+  const VARS = ['x', 'y', 'z'];
+  const mStr = (e) => e.map((k, i) => (k === 0 ? '' : k === 1 ? VARS[i] : `${VARS[i]}^{${k}}`)).join('');
+  const pNorm = (ms) => {
+    const m = new Map();
+    ms.forEach(({ c, e }) => { const k = e.join(','); m.set(k, (m.get(k) || 0) + c); });
+    return [...m].filter(([, c]) => c !== 0).map(([k, c]) => ({ c, e: k.split(',').map(Number) }));
+  };
+  const pTex = (ms) => lin(pNorm(ms).map(({ c, e }) => [c, mStr(e)]));
+  const pKey = (ms) => pNorm(ms).map(({ c, e }) => e.join(',') + ':' + c).sort().join('|');
+  const pD = (ms, q) => pNorm(ms.filter((m) => m.e[q] > 0).map(({ c, e }) => ({ c: c * e[q], e: e.map((k, i) => (i === q ? k - 1 : k)) })));
+  const pEval = (ms, pt) => ms.reduce((s, { c, e }) => s + c * e.reduce((p, k, i) => p * Math.pow(pt[i], k), 1), 0);
+  const rMono = (dim, maxDeg, minDeg = 0) => {
+    let e, s;
+    do { e = [0, 1, 2].map((i) => (i < dim ? rnd(0, 2) : 0)); s = e[0] + e[1] + e[2]; } while (s > maxDeg || s < minDeg);
+    return { c: nz(-4, 4), e };
+  };
+  const rPoly = (dim, maxDeg, minDeg = 0, kmax = 2) => {
+    let r;
+    do { r = pNorm(Array.from({ length: rnd(1, kmax) }, () => rMono(dim, maxDeg, minDeg))); } while (!r.length);
+    return r;
+  };
+  // polynómy jednej premennej t (pole koeficientov od absolútneho člena)
+  const tAdd = (p, q) => Array.from({ length: Math.max(p.length, q.length) }, (_, i) => (p[i] || 0) + (q[i] || 0));
+  const tMul = (p, q) => { const r = new Array(p.length + q.length - 1).fill(0); p.forEach((a, i) => q.forEach((b, j) => { r[i + j] += a * b; })); return r; };
+  const tPow = (p, k) => { let r = [1]; for (let i = 0; i < k; i++) r = tMul(r, p); return r; };
+  const tSub = (ms, xs) => ms.reduce((acc, { c, e }) => tAdd(acc, tMul([c], e.reduce((r, k, i) => tMul(r, tPow(xs[i], k)), [1]))), [0]);
+  const tTex = (p) => lin(p.map((c, k) => [c, k === 0 ? '' : k === 1 ? 't' : `t^{${k}}`]).reverse());
+  const tInt60 = (p) => p.reduce((s, c, k) => s + c * 60 / (k + 1), 0); // 60·∫₀¹ p(t) dt, presne pre stupeň ≤ 5
+  const TRI = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 6, 10], [4, 3, 5]];
+
+  /* ======================= 10. VIACNÁSOBNÉ INTEGRÁLY ======================= */
+
+  fig('v2-kardioida', {
+    controls: [{ id: 'phi', label: 'φ (°)', min: 0, max: 360, step: 5, value: 50 }],
+    draw: (v) => {
+      const p = plane(-0.7, 2.4, -1.55, 1.55, 340, 340);
+      const rf = (f) => 1 + Math.cos(f);
+      let d = '';
+      for (let i = 0; i <= 120; i++) {
+        const f = 2 * Math.PI * i / 120, r = rf(f);
+        d += `${i ? 'L' : 'M'}${n1(p.X(r * Math.cos(f)))} ${n1(p.Y(r * Math.sin(f)))}`;
+      }
+      const f = v.phi * Math.PI / 180, r = rf(f), ex = r * Math.cos(f), ey = r * Math.sin(f);
+      const far = 2.6;
+      const clipped = `<path class="f-fill f-outline" d="${d}Z"/>
+        <line class="f-dash" x1="${n1(p.X(0))}" y1="${n1(p.Y(0))}" x2="${n1(p.X(far * Math.cos(f)))}" y2="${n1(p.Y(far * Math.sin(f)))}"/>
+        <line class="f-ok" x1="${n1(p.X(0))}" y1="${n1(p.Y(0))}" x2="${n1(p.X(ex))}" y2="${n1(p.Y(ey))}"/>
+        <circle class="f-dot" cx="${n1(p.X(ex))}" cy="${n1(p.Y(ey))}" r="4"/>`;
+      const front = `<text class="f-small" x="${n1(p.X(2.3))}" y="${n1(p.Y(1.35))}" text-anchor="end">r = 1 + cos φ</text>`;
+      return {
+        svg: svg(p, axes(p), clipped, front, 'Kardioida v polárnych súradniciach a polpriamka s pevným uhlom'),
+        readout: `φ = ${v.phi}° · <span class="c-ok">r prebieha od 0 po 1 + cos φ ≈ ${sk(r)}</span> · S = ½∫(1 + cos φ)² dφ = 3π/2 ≈ ${sk(1.5 * Math.PI)}`
+      };
+    }
+  });
+
+  lesson({
+    id: 'v2-viacnasobne', order: 150, title: 'Viacnásobné integrály',
+    summary: 'Transformácia dvojného integrálu a jakobián, trojný integrál a Fubiniho veta, cylindrické a sférické súradnice, objem a hmotnosť telesa.',
+    theory: [
+      `<p><strong>Transformácia dvojného integrálu.</strong> Nech zobrazenie $x=x(u,v)$, $y=y(u,v)$ so spojitými parciálnymi deriváciami prevádza oblasť $D'$ vzájomne jednoznačne na $D$. Potom</p>
+       <p style="text-align:center">$\\displaystyle\\iint_D f(x,y)\\,dx\\,dy=\\iint_{D'} f\\bigl(x(u,v),y(u,v)\\bigr)\\,|J(u,v)|\\,du\\,dv,\\qquad J=\\det\\begin{pmatrix}x_u & x_v\\\\ y_u & y_v\\end{pmatrix} .$</p>
+       <p>Pre polárne súradnice je $J=\\cos\\varphi\\cdot r\\cos\\varphi-(-r\\sin\\varphi)\\cdot\\sin\\varphi=r$. Z lekcie o dvojnom integráli poznáme kruh a medzikružie; všeobecnejšia oblasť $D'=\\{\\alpha\\le\\varphi\\le\\beta,\\ r_1(\\varphi)\\le r\\le r_2(\\varphi)\\}$ dáva</p>
+       <p style="text-align:center">$\\displaystyle\\iint_D f\\,dS=\\int_\\alpha^\\beta\\int_{r_1(\\varphi)}^{r_2(\\varphi)} f(r\\cos\\varphi,r\\sin\\varphi)\\,r\\,dr\\,d\\varphi,\\qquad S=\\frac{1}{2}\\int_\\alpha^\\beta r_2(\\varphi)^2\\,d\\varphi\\ \\text{ pre } r_1=0 .$</p>
+       <p>Pre elipsu $\\frac{x^2}{a^2}+\\frac{y^2}{b^2}\\le 1$ sa hodia <em>zovšeobecnené polárne súradnice</em> $x=ar\\cos\\varphi$, $y=br\\sin\\varphi$ s jakobiánom $abr$; obsah elipsy vyjde $\\pi ab$.</p>`,
+      { fig: 'v2-kardioida', caption: 'Kardioida $r=1+\\cos\\varphi$. Pri pevnom uhle $\\varphi$ prebieha $r$ od $0$ po $1+\\cos\\varphi$ (zelená úsečka), uhol prebieha $\\langle 0;2\\pi\\rangle$. Obsah: $S=\\frac{1}{2}\\int_0^{2\\pi}(1+\\cos\\varphi)^2\\,d\\varphi=\\frac{3\\pi}{2}$.' },
+      `<p><strong>Trojný integrál</strong> funkcie $f(x,y,z)$ cez ohraničenú oblasť $V\\subset\\mathbb{R}^3$ zavedieme rovnako ako dvojný – rozdelíme $V$ na malé kvádre s objemami $\\Delta V$ a urobíme limitu súčtov $\\sum f(\\xi)\\,\\Delta V$. Integrál $\\iiint_V 1\\,dV$ je objem telesa, a ak $f$ je hustota, $\\iiint_V f\\,dV$ je jeho hmotnosť.</p>
+       <p><strong>Fubiniho veta.</strong> Na kvádri $\\langle a_1;b_1\\rangle\\times\\langle a_2;b_2\\rangle\\times\\langle a_3;b_3\\rangle$ je $\\iiint_V f\\,dV=\\int_{a_1}^{b_1}\\int_{a_2}^{b_2}\\int_{a_3}^{b_3} f\\,dz\\,dy\\,dx$ a poradie integrovania môžeme ľubovoľne meniť. Pre teleso „medzi dvoma plochami“ $V=\\{(x,y)\\in D,\\ \\psi_1(x,y)\\le z\\le\\psi_2(x,y)\\}$ platí</p>
+       <p style="text-align:center">$\\displaystyle\\iiint_V f\\,dV=\\iint_D\\left(\\int_{\\psi_1(x,y)}^{\\psi_2(x,y)} f(x,y,z)\\,dz\\right)dx\\,dy ,$</p>
+       <p>najprv teda integrujeme pozdĺž zvislej úsečky a potom cez priemet $D$ telesa do roviny $xy$. Objem takého telesa je $\\iint_D(\\psi_2-\\psi_1)\\,dx\\,dy$.</p>`,
+      `<p><strong>Cylindrické súradnice</strong> $x=r\\cos\\varphi$, $y=r\\sin\\varphi$, $z=z$ sú polárne súradnice v rovine $xy$ doplnené výškou. Jakobián je $r$, teda $dV=r\\,dr\\,d\\varphi\\,dz$. Hodia sa pre valce, kužele a rotačné paraboloidy s osou $z$.</p>
+       <p><strong>Sférické súradnice</strong> $x=\\rho\\sin\\theta\\cos\\varphi$, $y=\\rho\\sin\\theta\\sin\\varphi$, $z=\\rho\\cos\\theta$, kde $\\rho\\ge 0$ je vzdialenosť od počiatku, $\\theta\\in\\langle 0;\\pi\\rangle$ uhol od kladnej osi $z$ a $\\varphi\\in\\langle 0;2\\pi)$ je uhol ako v polárnych súradniciach. Jakobián je $\\rho^2\\sin\\theta$, takže</p>
+       <p style="text-align:center">$dV=\\rho^2\\sin\\theta\\,d\\rho\\,d\\theta\\,d\\varphi,\\qquad V_{\\text{guľa}}=\\int_0^{2\\pi}\\int_0^{\\pi}\\int_0^{R}\\rho^2\\sin\\theta\\,d\\rho\\,d\\theta\\,d\\varphi=2\\pi\\cdot 2\\cdot\\frac{R^3}{3}=\\frac{4}{3}\\pi R^3 .$</p>`,
+      `<p><strong>Hmotnosť, ťažisko, moment zotrvačnosti.</strong> Teleso $V$ s hustotou $\\mu(x,y,z)$ má hmotnosť $m=\\iiint_V\\mu\\,dV$ a ťažisko $T=[x_T;y_T;z_T]$, kde $x_T=\\frac{1}{m}\\iiint_V x\\,\\mu\\,dV$ (podobne $y_T$ a $z_T$).
+       Moment zotrvačnosti vzhľadom na os $z$ je $I_z=\\iiint_V (x^2+y^2)\\,\\mu\\,dV$. V rovine analogicky: doska $D$ s plošnou hustotou $\\sigma$ má hmotnosť $\\iint_D\\sigma\\,dS$.</p>
+       <ul><li>Súradnice volíme podľa tvaru oblasti, nie integrandu: guľa → sférické, valec a paraboloid → cylindrické, kváder → kartézske.</li>
+       <li>Ak je oblasť v nových súradniciach „kváder“ a integrand súčinom funkcií jednotlivých premenných, integrál sa rozpadne na súčin jednoduchých integrálov.</li></ul>`
+    ],
+    examples: [
+      { task: 'Vypočítaj objem telesa ohraničeného paraboloidom $z=4-x^2-y^2$ a rovinou $z=0$.',
+        steps: ['Paraboloid pretína rovinu $z=0$ v kružnici $x^2+y^2=4$; priemet telesa do roviny $xy$ je kruh s polomerom $2$ a nad bodom priemetu je $0\\le z\\le 4-r^2$.',
+          'V cylindrických súradniciach: $\\displaystyle V=\\int_0^{2\\pi}\\int_0^{2}\\int_0^{4-r^2} r\\,dz\\,dr\\,d\\varphi=\\int_0^{2\\pi}\\int_0^{2}(4r-r^3)\\,dr\\,d\\varphi$.',
+          '$\\int_0^2(4r-r^3)\\,dr=\\left[2r^2-\\frac{r^4}{4}\\right]_0^2=8-4=4$ a vonkajší integrál pridá násobok $2\\pi$.',
+          '<strong>Výsledok: $V=8\\pi\\approx 25{,}13$</strong>'] },
+      { task: 'Vypočítaj hmotnosť gule $x^2+y^2+z^2\\le 4$ s hustotou $\\mu(x,y,z)=x^2+y^2+z^2$.',
+        steps: ['V sférických súradniciach je hustota $\\mu=\\rho^2$ a guľa je $0\\le\\rho\\le 2$, $0\\le\\theta\\le\\pi$, $0\\le\\varphi\\le 2\\pi$.',
+          '$\\displaystyle m=\\int_0^{2\\pi}\\int_0^{\\pi}\\int_0^{2}\\rho^2\\cdot\\rho^2\\sin\\theta\\,d\\rho\\,d\\theta\\,d\\varphi$ – integrand je súčinom funkcií jednotlivých premenných.',
+          '$\\int_0^{2\\pi}d\\varphi=2\\pi$, $\\int_0^{\\pi}\\sin\\theta\\,d\\theta=2$ a $\\int_0^2\\rho^4\\,d\\rho=\\frac{32}{5}$.',
+          '<strong>Výsledok: $m=\\frac{128}{5}\\pi\\approx 80{,}42$</strong>'] }
+    ]
+  });
+
+  gen('v2-viacnasobne', () => {
+    const t = Math.random();
+    const KPI = 'Výsledok má tvar $k\\pi$; zadaj $k$ (celé číslo alebo zlomok).';
+    if (t < 0.18) {
+      const c = rnd(1, 4), A = [rnd(1, 3), rnd(1, 3), rnd(1, 3)];
+      let e;
+      do { e = [rnd(0, 2), rnd(0, 2), rnd(0, 2)]; } while (e[0] + e[1] + e[2] === 0);
+      const P = c * A.reduce((s, a, i) => s * Math.pow(a, e[i] + 1), 1), Q = e.reduce((s, k) => s * (k + 1), 1);
+      const ints = VARS.map((v, i) => `\\int_0^{${A[i]}} ${e[i] === 0 ? '1' : e[i] === 1 ? v : v + '^2'}\\,d${v}`).join('\\cdot ');
+      const vals = VARS.map((v, i) => `\\frac{${A[i]}^{${e[i] + 1}}}{${e[i] + 1}}`).join('\\cdot ');
+      return {
+        answer: P / Q, show: fTxt(P, Q),
+        q: `Vypočítaj $\\displaystyle\\iiint_V ${c === 1 ? '' : c}${mStr(e)}\\,dx\\,dy\\,dz$, kde $V=\\langle 0;${A[0]}\\rangle\\times\\langle 0;${A[1]}\\rangle\\times\\langle 0;${A[2]}\\rangle$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: `Oblasť je kváder a integrand je súčinom funkcií jednotlivých premenných, podľa Fubiniho vety sa integrál rozpadne na súčin:
+          $\\displaystyle ${c === 1 ? '' : c + '\\cdot '}${ints}=${c === 1 ? '' : c + '\\cdot '}${vals}=${fTex(P, Q)}$.`,
+        hint: 'Na kvádri a pre integrand $g(x)h(y)k(z)$ je trojný integrál súčinom troch jednoduchých integrálov.'
+      };
+    }
+    if (t < 0.4) {
+      const u = Math.random();
+      if (u < 0.5) {
+        const [bp, bq, where, bT] = pick([[1, 2, ' v prvom kvadrante ($x\\ge 0$, $y\\ge 0$)', '\\frac{\\pi}{2}'], [1, 1, ' v hornej polrovine ($y\\ge 0$)', '\\pi'], [2, 1, '', '2\\pi']]);
+        const R1 = rnd(1, 2), R2 = rnd(R1 + 1, 4);
+        const [f, fr, ex] = pick([['1', '', 2], ['(x^2+y^2)', 'r^2\\cdot ', 4], ['\\sqrt{x^2+y^2}', 'r\\cdot ', 3]]);
+        const num = bp * (Math.pow(R2, ex) - Math.pow(R1, ex)), den = bq * ex;
+        return {
+          answer: num / den, show: fTxt(num, den),
+          q: `Vypočítaj $\\displaystyle\\iint_D ${f}\\,dx\\,dy$, kde $D$ je ${where ? 'časť medzikružia' : 'medzikružie'} $${R1 * R1}\\le x^2+y^2\\le ${R2 * R2}$${where}. ${KPI}`,
+          solution: `V polárnych súradniciach je $D'=\\{${R1}\\le r\\le ${R2},\\ 0\\le\\varphi\\le ${bT}\\}$ a $dx\\,dy=r\\,dr\\,d\\varphi$:
+            $\\displaystyle\\int_0^{${bT}}\\int_{${R1}}^{${R2}} ${fr}r\\,dr\\,d\\varphi=${bT}\\cdot\\left[\\frac{r^{${ex}}}{${ex}}\\right]_{${R1}}^{${R2}}=${bT}\\cdot\\frac{${R2}^{${ex}}-${R1}^{${ex}}}{${ex}}=${fTex(num, den)}\\,\\pi$, teda $k=${fTex(num, den)}$.`,
+          hint: 'Medzikružie je v polárnych súradniciach obdĺžnik $r_1\\le r\\le r_2$, $\\alpha\\le\\varphi\\le\\beta$. Nezabudni na jakobián $r$.'
+        };
+      }
+      if (u < 0.75) {
+        const a = rnd(1, 4);
+        return {
+          answer: 3 * a * a / 2, show: fTxt(3 * a * a, 2),
+          q: `Vypočítaj obsah oblasti ohraničenej kardioidou $r=${a === 1 ? '' : a}(1+\\cos\\varphi)$, $\\varphi\\in\\langle 0;2\\pi\\rangle$ (polárne súradnice). ${KPI}`,
+          solution: `$\\displaystyle S=\\int_0^{2\\pi}\\int_0^{${a === 1 ? '' : a}(1+\\cos\\varphi)} r\\,dr\\,d\\varphi=\\frac{${a * a}}{2}\\int_0^{2\\pi}\\left(1+2\\cos\\varphi+\\cos^2\\varphi\\right)d\\varphi$.
+            Keďže $\\int_0^{2\\pi}\\cos\\varphi\\,d\\varphi=0$ a $\\int_0^{2\\pi}\\cos^2\\varphi\\,d\\varphi=\\pi$, je $S=\\frac{${a * a}}{2}(2\\pi+\\pi)=${fTex(3 * a * a, 2)}\\,\\pi$, teda $k=${fTex(3 * a * a, 2)}$.`,
+          hint: 'Obsah oblasti $0\\le r\\le r(\\varphi)$ je $\\frac{1}{2}\\int r(\\varphi)^2\\,d\\varphi$; použi $\\cos^2\\varphi=\\frac{1+\\cos 2\\varphi}{2}$.'
+        };
+      }
+      const R = rnd(1, 4), kind = rnd(0, 2);
+      const [f, where, P, Q, sol] = [
+        ['y', 'polkruh $x^2+y^2\\le ' + R * R + '$, $y\\ge 0$', 2 * Math.pow(R, 3), 3, `\\int_0^{\\pi}\\sin\\varphi\\,d\\varphi\\cdot\\int_0^{${R}} r^2\\,dr=2\\cdot\\frac{${R}^3}{3}`],
+        ['x', 'štvrťkruh $x^2+y^2\\le ' + R * R + '$, $x\\ge 0$, $y\\ge 0$', Math.pow(R, 3), 3, `\\int_0^{\\pi/2}\\cos\\varphi\\,d\\varphi\\cdot\\int_0^{${R}} r^2\\,dr=1\\cdot\\frac{${R}^3}{3}`],
+        ['xy', 'štvrťkruh $x^2+y^2\\le ' + R * R + '$, $x\\ge 0$, $y\\ge 0$', Math.pow(R, 4), 8, `\\int_0^{\\pi/2}\\sin\\varphi\\cos\\varphi\\,d\\varphi\\cdot\\int_0^{${R}} r^3\\,dr=\\frac{1}{2}\\cdot\\frac{${R}^4}{4}`]
+      ][kind];
+      return {
+        answer: P / Q, show: fTxt(P, Q),
+        q: `Vypočítaj $\\displaystyle\\iint_D ${f}\\,dx\\,dy$, kde $D$ je ${where}. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: `V polárnych súradniciach je $x=r\\cos\\varphi$, $y=r\\sin\\varphi$, $dx\\,dy=r\\,dr\\,d\\varphi$ a oblasť je obdĺžnik v premenných $r$, $\\varphi$; integrál sa rozpadne na súčin:
+          $\\displaystyle ${sol}=${fTex(P, Q)}$.`,
+        hint: 'Prejdi do polárnych súradníc; integrand aj s jakobiánom $r$ je súčinom funkcie $r$ a funkcie $\\varphi$.'
+      };
+    }
+    if (t < 0.6) {
+      const u = Math.random();
+      if (u < 0.4) {
+        const h = rnd(1, 6);
+        return {
+          answer: h * h / 2, show: fTxt(h * h, 2),
+          q: `Vypočítaj objem telesa ohraničeného paraboloidom $z=x^2+y^2$ a rovinou $z=${h}$. ${KPI}`,
+          solution: `Priemet telesa do roviny $xy$ je kruh $x^2+y^2\\le ${h}$. V cylindrických súradniciach $0\\le\\varphi\\le 2\\pi$, $0\\le r\\le\\sqrt{${h}}$, $r^2\\le z\\le ${h}$ a $dV=r\\,dz\\,dr\\,d\\varphi$:
+            $\\displaystyle V=\\int_0^{2\\pi}\\int_0^{\\sqrt{${h}}}(${h}-r^2)\\,r\\,dr\\,d\\varphi=2\\pi\\left[\\frac{${h}r^2}{2}-\\frac{r^4}{4}\\right]_0^{\\sqrt{${h}}}=2\\pi\\cdot\\frac{${h * h}}{4}=${fTex(h * h, 2)}\\,\\pi$, teda $k=${fTex(h * h, 2)}$.`,
+          hint: 'Použi cylindrické súradnice: pri pevnom $r$ prebieha $z$ od paraboloidu $r^2$ po rovinu.'
+        };
+      }
+      if (u < 0.7) {
+        const k = rnd(1, 3), R = rnd(1, 3), h = k * R;
+        return {
+          answer: k * Math.pow(R, 3) / 3, show: fTxt(k * Math.pow(R, 3), 3),
+          q: `Vypočítaj objem telesa ohraničeného kužeľovou plochou $z=${k === 1 ? '' : k}\\sqrt{x^2+y^2}$ a rovinou $z=${h}$. ${KPI}`,
+          solution: `V cylindrických súradniciach je kužeľová plocha $z=${cx(k, 'r')}$, ktorá pretína rovinu $z=${h}$ pre $r=${R}$. Teda $0\\le r\\le ${R}$, $${cx(k, 'r')}\\le z\\le ${h}$:
+            $\\displaystyle V=\\int_0^{2\\pi}\\int_0^{${R}}(${h}-${cx(k, 'r')})\\,r\\,dr\\,d\\varphi=2\\pi\\left(\\frac{${h}\\cdot ${R}^2}{2}-\\frac{${k}\\cdot ${R}^3}{3}\\right)=${fTex(k * Math.pow(R, 3), 3)}\\,\\pi$, teda $k=${fTex(k * Math.pow(R, 3), 3)}$
+            (súhlasí so vzorcom $\\frac{1}{3}\\pi R^2 v$ pre kužeľ).`,
+          hint: 'V cylindrických súradniciach je $\\sqrt{x^2+y^2}=r$; zisti, pre aké $r$ sa plochy pretínajú.'
+        };
+      }
+      const R = rnd(1, 3), H = rnd(1, 4), P = Math.pow(R, 4) * H;
+      return {
+        answer: P / 2, show: fTxt(P, 2),
+        q: `Vypočítaj hmotnosť valca $x^2+y^2\\le ${R * R}$, $0\\le z\\le ${H}$ s hustotou $\\mu(x,y,z)=x^2+y^2$. ${KPI}`,
+        solution: `V cylindrických súradniciach je $\\mu=r^2$, $dV=r\\,dr\\,d\\varphi\\,dz$ a valec je „kváder“ $0\\le r\\le ${R}$, $0\\le\\varphi\\le 2\\pi$, $0\\le z\\le ${H}$:
+          $\\displaystyle m=\\int_0^{2\\pi}d\\varphi\\int_0^{${H}}dz\\int_0^{${R}} r^3\\,dr=2\\pi\\cdot ${H}\\cdot\\frac{${R}^4}{4}=${fTex(P, 2)}\\,\\pi$, teda $k=${fTex(P, 2)}$.`,
+        hint: 'Hmotnosť je $\\iiint_V\\mu\\,dV$; v cylindrických súradniciach je $x^2+y^2=r^2$ a $dV=r\\,dr\\,d\\varphi\\,dz$.'
+      };
+    }
+    if (t < 0.8) {
+      if (Math.random() < 0.3) {
+        const R1 = rnd(1, 3), R2 = rnd(R1 + 1, 4), P = 4 * (Math.pow(R2, 3) - Math.pow(R1, 3));
+        return {
+          answer: P / 3, show: fTxt(P, 3),
+          q: `Vypočítaj objem guľovej vrstvy $${R1 * R1}\\le x^2+y^2+z^2\\le ${R2 * R2}$. ${KPI}`,
+          solution: `Sférické súradnice: $${R1}\\le\\rho\\le ${R2}$, $0\\le\\theta\\le\\pi$, $0\\le\\varphi\\le 2\\pi$, $dV=\\rho^2\\sin\\theta\\,d\\rho\\,d\\theta\\,d\\varphi$:
+            $\\displaystyle V=2\\pi\\cdot 2\\cdot\\int_{${R1}}^{${R2}}\\rho^2\\,d\\rho=4\\pi\\cdot\\frac{${R2}^3-${R1}^3}{3}=${fTex(P, 3)}\\,\\pi$, teda $k=${fTex(P, 3)}$.`,
+          hint: 'V sférických súradniciach je guľová vrstva „kváder“ v premenných $\\rho$, $\\theta$, $\\varphi$.'
+        };
+      }
+      const s = rnd(0, 2), R = rnd(1, 3), c = s === 0 ? rnd(1, 3) : 1;
+      const P = 4 * c * Math.pow(R, s + 3), Q = s + 3;
+      const dens = ['$\\mu=' + c + '$ (konštantná)', '$\\mu(x,y,z)=\\sqrt{x^2+y^2+z^2}$', '$\\mu(x,y,z)=x^2+y^2+z^2$'][s];
+      const mu = [String(c), '\\rho', '\\rho^2'][s];
+      return {
+        answer: P / Q, show: fTxt(P, Q),
+        q: `Vypočítaj hmotnosť gule $x^2+y^2+z^2\\le ${R * R}$ s hustotou ${dens}. ${KPI}`,
+        solution: `V sférických súradniciach je $\\mu=${mu}$, $dV=\\rho^2\\sin\\theta\\,d\\rho\\,d\\theta\\,d\\varphi$ a guľa je $0\\le\\rho\\le ${R}$, $0\\le\\theta\\le\\pi$, $0\\le\\varphi\\le 2\\pi$:
+          $\\displaystyle m=\\int_0^{2\\pi}d\\varphi\\int_0^{\\pi}\\sin\\theta\\,d\\theta\\int_0^{${R}} ${s === 0 ? c + '\\rho^2' : s === 1 ? '\\rho^3' : '\\rho^4'}\\,d\\rho=2\\pi\\cdot 2\\cdot\\frac{${c === 1 ? '' : c + '\\cdot '}${R}^{${s + 3}}}{${s + 3}}=${fTex(P, Q)}\\,\\pi$, teda $k=${fTex(P, Q)}$.`,
+        hint: 'Prejdi do sférických súradníc: $x^2+y^2+z^2=\\rho^2$, jakobián $\\rho^2\\sin\\theta$.'
+      };
+    }
+    if (t < 0.9) {
+      const A = [rnd(1, 3), rnd(1, 3), rnd(1, 3)];
+      let w;
+      do { w = [rnd(0, 3), rnd(0, 3), rnd(0, 3)]; } while (w[0] + w[1] + w[2] === 0);
+      const vol = A[0] * A[1] * A[2], S = w[0] * A[0] + w[1] * A[1] + w[2] * A[2];
+      const dens = lin(w.map((c, i) => [c, VARS[i]]));
+      return {
+        answer: vol * S / 2, show: fTxt(vol * S, 2),
+        q: `Kváder $V=\\langle 0;${A[0]}\\rangle\\times\\langle 0;${A[1]}\\rangle\\times\\langle 0;${A[2]}\\rangle$ má hustotu $\\mu(x,y,z)=${dens}$. Vypočítaj jeho hmotnosť (celé číslo alebo zlomok).`,
+        solution: `$m=\\iiint_V (${dens})\\,dV$. Pre každý člen použijeme Fubiniho vetu, napr. $\\iiint_V x\\,dV=\\frac{${A[0]}^2}{2}\\cdot ${A[1]}\\cdot ${A[2]}$; spolu
+          $m=\\dfrac{${A[0]}\\cdot ${A[1]}\\cdot ${A[2]}}{2}\\,(${w.map((c, i) => (c ? `${c}\\cdot ${A[i]}` : '')).filter(Boolean).join('+')})=\\frac{${vol}\\cdot ${S}}{2}=${fTex(vol * S, 2)}$.`,
+        hint: 'Integrál súčtu je súčet integrálov; $\\iiint_V x\\,dV$ na kvádri je $\\frac{a^2}{2}\\cdot b\\cdot c$.'
+      };
+    }
+    const a = rnd(2, 4);
+    let b;
+    do { b = rnd(2, 5); } while (b === a);
+    const items = [
+      ['polárnych súradníc $x=r\\cos\\varphi$, $y=r\\sin\\varphi$', 'r', '$J=\\det\\begin{pmatrix}\\cos\\varphi & -r\\sin\\varphi\\\\ \\sin\\varphi & r\\cos\\varphi\\end{pmatrix}=r\\cos^2\\varphi+r\\sin^2\\varphi=r$'],
+      ['cylindrických súradníc $x=r\\cos\\varphi$, $y=r\\sin\\varphi$, $z=z$', 'r', 'súradnica $z$ sa nemení, determinant sa zredukuje na polárny prípad, teda $J=r$'],
+      ['sférických súradníc $x=\\rho\\sin\\theta\\cos\\varphi$, $y=\\rho\\sin\\theta\\sin\\varphi$, $z=\\rho\\cos\\theta$', '\\rho^2\\sin\\theta', 'výpočtom determinantu $3\\times 3$ dostaneme $|J|=\\rho^2\\sin\\theta$ (na $\\theta\\in\\langle 0;\\pi\\rangle$ je $\\sin\\theta\\ge 0$)'],
+      [`zovšeobecnených polárnych súradníc $x=${a}r\\cos\\varphi$, $y=${b}r\\sin\\varphi$`, `${a * b}r`, `$J=\\det\\begin{pmatrix}${a}\\cos\\varphi & -${a}r\\sin\\varphi\\\\ ${b}\\sin\\varphi & ${b}r\\cos\\varphi\\end{pmatrix}=${a * b}r$`],
+      [`posunutia $x=u+${a}$, $y=v-${b}$`, '1', 'parciálne derivácie tvoria jednotkovú maticu, $J=1$ – posunutie nemení obsah'],
+      [`zmeny mierky $x=${a}u$, $y=${b}v$`, String(a * b), `$J=\\det\\begin{pmatrix}${a} & 0\\\\ 0 & ${b}\\end{pmatrix}=${a * b}$`]
+    ];
+    const [what, ok, why] = pick(items);
+    const pool = ['r', 'r^2', '\\rho^2\\sin\\theta', '\\rho\\sin\\theta', '1', `${a * b}r`, `${a + b}r`, String(a * b)].filter((x) => x !== ok);
+    const opts = shuffle([ok, ...shuffle(pool).slice(0, 3)]).map((x) => `$${x}$`);
+    return {
+      type: 'choice', options: opts, answer: `$${ok}$`,
+      q: `Aká je absolútna hodnota jakobiánu $|J|$ transformácie ${what}?`,
+      solution: `Jakobián je determinant matice parciálnych derivácií starých premenných podľa nových: ${why}. Preto $|J|=${ok}$.`,
+      hint: 'Zostav maticu parciálnych derivácií $x$, $y$ (prípadne $z$) podľa nových premenných a vypočítaj jej determinant.'
+    };
+  });
+
+  /* ======================= 11. VEKTOROVÁ ANALÝZA ======================= */
+
+  fig('v2-pole', {
+    controls: [{ id: 'k', label: 'k', min: 0, max: 1, step: 0.05, value: 0.3 }],
+    draw: (v) => {
+      const p = plane(-2.4, 2.4, -2.4, 2.4, 340, 340);
+      const k = v.k, F = (x, y) => [k * x - (1 - k) * y, k * y + (1 - k) * x];
+      let s = '';
+      for (let i = -4; i <= 4; i++) {
+        for (let j = -4; j <= 4; j++) {
+          const x = i / 2, y = j / 2, [u, w] = F(x, y), L = Math.hypot(u, w);
+          if (L < 1e-9) continue;
+          const len = 0.36 * Math.min(1, 0.35 + L / 2.5), ex = x + len * u / L, ey = y + len * w / L;
+          const X1 = p.X(x), Y1 = p.Y(y), X2 = p.X(ex), Y2 = p.Y(ey), dx = X2 - X1, dy = Y2 - Y1, l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+          const bx = X2 - 5 * ux, by = Y2 - 5 * uy;
+          s += `<line class="f-thin" x1="${n1(X1)}" y1="${n1(Y1)}" x2="${n1(bx)}" y2="${n1(by)}"/>
+            <polygon class="c-accent" points="${n1(X2)},${n1(Y2)} ${n1(bx - 3 * uy)},${n1(by + 3 * ux)} ${n1(bx + 3 * uy)},${n1(by - 3 * ux)}"/>`;
+        }
+      }
+      const c = (x) => sk(x, 2);
+      return {
+        svg: svg(p, axes(p), s, '', 'Šípkový graf vektorového poľa – kombinácia zdroja a víru'),
+        readout: `F(x, y) = (${c(k)}x − ${c(1 - k)}y; ${c(1 - k)}x + ${c(k)}y) · <span class="c-accent">div F = ${c(2 * k)}</span> · <span class="c-ok">rot F = (0; 0; ${c(2 * (1 - k))})</span>`
+      };
+    }
+  });
+
+  lesson({
+    id: 'v2-vektorova', order: 160, title: 'Vektorová analýza',
+    summary: 'Vektorové pole, gradient, divergencia a rotácia, krivkové integrály 1. a 2. druhu, potenciálové pole, Greenova veta a prehľad Gaussovej a Stokesovej vety.',
+    theory: [
+      `<p><strong>Vektorové pole</strong> na oblasti $\\Omega\\subset\\mathbb{R}^3$ priraďuje každému bodu vektor $\\mathbf{F}(x,y,z)=(P;\\,Q;\\,R)$ – napríklad rýchlosť prúdiacej kvapaliny alebo silu. Pomocou operátora $\\nabla=\\left(\\frac{\\partial}{\\partial x};\\ \\frac{\\partial}{\\partial y};\\ \\frac{\\partial}{\\partial z}\\right)$ zapíšeme tri základné operácie:</p>
+       <ul><li><strong>gradient</strong> skalárneho poľa: $\\operatorname{grad} U=\\nabla U=(U_x;\\,U_y;\\,U_z)$ – smer najrýchlejšieho rastu $U$;</li>
+       <li><strong>divergencia</strong>: $\\operatorname{div}\\mathbf{F}=\\nabla\\cdot\\mathbf{F}=\\frac{\\partial P}{\\partial x}+\\frac{\\partial Q}{\\partial y}+\\frac{\\partial R}{\\partial z}$ – skalár, výdatnosť zdrojov (kladná: pole z okolia bodu vyteká, záporná: vteká);</li>
+       <li><strong>rotácia</strong>: $\\operatorname{rot}\\mathbf{F}=\\nabla\\times\\mathbf{F}=\\left(\\frac{\\partial R}{\\partial y}-\\frac{\\partial Q}{\\partial z};\\ \\frac{\\partial P}{\\partial z}-\\frac{\\partial R}{\\partial x};\\ \\frac{\\partial Q}{\\partial x}-\\frac{\\partial P}{\\partial y}\\right)$ – vektor, ktorého smer je os a veľkosť intenzita víru.</li></ul>
+       <p>Pre dostatočne hladké polia platí $\\operatorname{rot}\\operatorname{grad} U=\\mathbf{0}$ a $\\operatorname{div}\\operatorname{rot}\\mathbf{F}=0$. Rovinné pole $(P;\\,Q)$ chápeme ako $(P;\\,Q;\\,0)$ nezávislé od $z$; jeho rotácia má jedinú nenulovú zložku $Q_x-P_y$.</p>`,
+      { fig: 'v2-pole', caption: 'Pole $\\mathbf{F}=(kx-(1-k)y;\\ (1-k)x+ky)$. Pre $k=1$ je to čistý zdroj ($\\operatorname{div}\\mathbf{F}=2$, rotácia nulová), pre $k=0$ čistý vír okolo počiatku (divergencia nulová, $\\operatorname{rot}\\mathbf{F}=(0;0;2)$). Medzi tým sa šípky stáčajú do špirál.' },
+      `<p><strong>Krivkový integrál 1. druhu</strong> (zo skalárnej funkcie). Nech má krivka $k$ parametrizáciu $\\mathbf{r}(t)=(x(t);\\,y(t);\\,z(t))$, $t\\in\\langle a;b\\rangle$, so spojitou nenulovou deriváciou. Potom</p>
+       <p style="text-align:center">$\\displaystyle\\int_k f\\,ds=\\int_a^b f\\bigl(\\mathbf{r}(t)\\bigr)\\,|\\mathbf{r}'(t)|\\,dt,\\qquad |\\mathbf{r}'(t)|=\\sqrt{x'(t)^2+y'(t)^2+z'(t)^2} .$</p>
+       <p>Pre $f=1$ dostaneme dĺžku krivky, pre dĺžkovú hustotu $f$ hmotnosť drôtu. Výsledok nezávisí od orientácie krivky.</p>
+       <p><strong>Krivkový integrál 2. druhu</strong> (z vektorového poľa) vyjadruje prácu sily $\\mathbf{F}$ pozdĺž orientovanej krivky:</p>
+       <p style="text-align:center">$\\displaystyle\\int_k \\mathbf{F}\\cdot d\\mathbf{r}=\\int_k P\\,dx+Q\\,dy+R\\,dz=\\int_a^b \\mathbf{F}\\bigl(\\mathbf{r}(t)\\bigr)\\cdot\\mathbf{r}'(t)\\,dt .$</p>
+       <p>Zmenou orientácie sa zmení znamienko. Integrál po uzavretej krivke označujeme $\\oint_k$ a nazývame cirkulácia.</p>`,
+      `<p><strong>Potenciálové pole.</strong> Pole $\\mathbf{F}$ je potenciálové, ak existuje funkcia $U$ (potenciál) taká, že $\\mathbf{F}=\\nabla U$. Vtedy pre každú krivku z bodu $A$ do bodu $B$</p>
+       <p style="text-align:center">$\\displaystyle\\int_k \\mathbf{F}\\cdot d\\mathbf{r}=U(B)-U(A) ,$</p>
+       <p>integrál teda nezávisí od cesty a po každej uzavretej krivke je nulový. Na jednoducho súvislej oblasti (napr. v celom $\\mathbb{R}^2$ alebo $\\mathbb{R}^3$) je pole potenciálové práve vtedy, keď $\\operatorname{rot}\\mathbf{F}=\\mathbf{0}$; v rovine stačí overiť $\\frac{\\partial P}{\\partial y}=\\frac{\\partial Q}{\\partial x}$.
+       Potenciál nájdeme integrovaním: $U=\\int P\\,dx+C(y)$ a funkciu $C(y)$ určíme z podmienky $U_y=Q$.</p>`,
+      `<p><strong>Greenova veta.</strong> Nech je rovinná oblasť $D$ ohraničená po častiach hladkou jednoduchou uzavretou krivkou $\\partial D$ orientovanou kladne (oblasť ostáva vľavo, t. j. proti smeru hodinových ručičiek) a $P$, $Q$ majú spojité parciálne derivácie. Potom</p>
+       <p style="text-align:center">$\\displaystyle\\oint_{\\partial D} P\\,dx+Q\\,dy=\\iint_D\\left(\\frac{\\partial Q}{\\partial x}-\\frac{\\partial P}{\\partial y}\\right)dx\\,dy .$</p>
+       <p>Pre $P=-\\frac{y}{2}$, $Q=\\frac{x}{2}$ je integrand $1$, preto obsah $S(D)=\\frac{1}{2}\\oint_{\\partial D}x\\,dy-y\\,dx$.</p>
+       <p><strong>Prehľad viet v priestore.</strong> <em>Gaussova (Gaussova–Ostrogradského) veta:</em> tok poľa uzavretou plochou $\\partial V$ s vonkajšou normálou $\\mathbf{n}$ sa rovná integrálu divergencie cez teleso, $\\iint_{\\partial V}\\mathbf{F}\\cdot\\mathbf{n}\\,dS=\\iiint_V\\operatorname{div}\\mathbf{F}\\,dV$.
+       <em>Stokesova veta:</em> cirkulácia poľa po okraji plochy $\\Sigma$ sa rovná toku rotácie touto plochou, $\\oint_{\\partial\\Sigma}\\mathbf{F}\\cdot d\\mathbf{r}=\\iint_\\Sigma\\operatorname{rot}\\mathbf{F}\\cdot\\mathbf{n}\\,dS$ (orientácia okraja a normály podľa pravidla pravej ruky). Greenova veta je Stokesova veta pre rovinnú plochu.</p>`
+    ],
+    examples: [
+      { task: 'Pre pole $\\mathbf{F}=(x^2y;\\ yz^2;\\ xyz)$ vypočítaj $\\operatorname{div}\\mathbf{F}$ a $\\operatorname{rot}\\mathbf{F}$ v bode $A=[1;2;-1]$.',
+        steps: ['$P=x^2y$, $Q=yz^2$, $R=xyz$. Divergencia: $P_x+Q_y+R_z=2xy+z^2+xy$, v bode $A$: $4+1+2=7$.',
+          'Prvá zložka rotácie: $R_y-Q_z=xz-2yz$, v bode $A$: $-1+4=3$.',
+          'Druhá zložka: $P_z-R_x=0-yz$, v bode $A$: $2$. Tretia zložka: $Q_x-P_y=0-x^2$, v bode $A$: $-1$.',
+          '<strong>Výsledok: $\\operatorname{div}\\mathbf{F}(A)=7$, $\\operatorname{rot}\\mathbf{F}(A)=(3;\\ 2;\\ -1)$</strong>'] },
+      { task: 'Pomocou Greenovej vety vypočítaj $\\oint_k (x-y)\\,dx+(x+y)\\,dy$, kde $k$ je kladne orientovaná kružnica $x^2+y^2=4$.',
+        steps: ['$P=x-y$, $Q=x+y$, teda $\\frac{\\partial Q}{\\partial x}-\\frac{\\partial P}{\\partial y}=1-(-1)=2$.',
+          'Podľa Greenovej vety je integrál rovný $\\iint_D 2\\,dx\\,dy=2\\cdot S(D)=2\\cdot 4\\pi$.',
+          'Kontrola priamym výpočtom: pre $x=2\\cos t$, $y=2\\sin t$ je integrand $(x-y)(-2\\sin t)+(x+y)\\,2\\cos t=4\\sin^2 t+4\\cos^2 t=4$ a $\\int_0^{2\\pi}4\\,dt=8\\pi$.',
+          '<strong>Výsledok: $8\\pi\\approx 25{,}13$</strong>'] }
+    ]
+  });
+
+  gen('v2-vektorova', () => {
+    const t = Math.random();
+    const vec = (cs) => `\\left(${cs.join(';\\ ')}\\right)`;
+    const NAMES = ['P', 'Q', 'R'];
+    const VPI = 'Výsledok je násobkom čísla $\\pi$; zadaj len koeficient pri $\\pi$ (celé číslo).';
+    const dName = (i, q) => `\\frac{\\partial ${NAMES[i]}}{\\partial ${VARS[q]}}`;
+    if (t < 0.14) {
+      const F = [0, 1, 2].map(() => rPoly(3, 3, 1));
+      const pt = [rnd(-2, 2), rnd(-2, 2), rnd(-2, 2)];
+      const D = [0, 1, 2].map((i) => pD(F[i], i)), vals = D.map((d) => pEval(d, pt)), div = vals[0] + vals[1] + vals[2];
+      return {
+        signed: true, answer: div,
+        q: `Vypočítaj divergenciu poľa $\\mathbf{F}=${vec(F.map(pTex))}$ v bode $A=[${pt.join(';')}]$.`,
+        solution: `$\\operatorname{div}\\mathbf{F}=${dName(0, 0)}+${dName(1, 1)}+${dName(2, 2)}=(${pTex(D[0])})+(${pTex(D[1])})+(${pTex(D[2])})$. V bode $A$: $${vals.map(par).join('+')}=${div}$.`,
+        hint: 'Prvú zložku derivuj podľa $x$, druhú podľa $y$, tretiu podľa $z$ a výsledky sčítaj.'
+      };
+    }
+    if (t < 0.27) {
+      const F = [0, 1, 2].map(() => rPoly(3, 3, 1));
+      const pt = [rnd(-2, 2), rnd(-2, 2), rnd(-2, 2)];
+      const parts = [[2, 1, 1, 2], [0, 2, 2, 0], [1, 0, 0, 1]].map(([i, q, j, s]) => {
+        const A = pD(F[i], q), B = pD(F[j], s), val = pEval(A, pt) - pEval(B, pt);
+        return { val, tex: `${dName(i, q)}-${dName(j, s)}=(${pTex(A)})-(${pTex(B)})`, };
+      });
+      const r = parts.map((x) => x.val);
+      return {
+        type: 'tuple', signed: true, answer: r,
+        q: `Vypočítaj rotáciu poľa $\\mathbf{F}=${vec(F.map(pTex))}$ v bode $A=[${pt.join(';')}]$. Zadaj tri zložky oddelené bodkočiarkou.`,
+        solution: `Zložky rotácie: $${parts[0].tex}$, $${parts[1].tex}$, $${parts[2].tex}$. Po dosadení bodu $A$: $\\operatorname{rot}\\mathbf{F}(A)=(${r.join(';\\ ')})$.`,
+        hint: 'Použi $\\operatorname{rot}\\mathbf{F}=(R_y-Q_z;\\ P_z-R_x;\\ Q_x-P_y)$, napr. ako symbolický determinant s riadkom $\\nabla$.'
+      };
+    }
+    if (t < 0.44) {
+      const P = rPoly(2, 2), Q = rPoly(2, 2);
+      let xs, dx, dy, desc, prm;
+      if (Math.random() < 0.55) {
+        const A = [rnd(-2, 2), rnd(-2, 2)];
+        let B;
+        do { B = [rnd(-2, 3), rnd(-2, 3)]; } while (B[0] === A[0] && B[1] === A[1]);
+        const d = [B[0] - A[0], B[1] - A[1]];
+        xs = [[A[0], d[0]], [A[1], d[1]]]; dx = [d[0]]; dy = [d[1]];
+        desc = `orientovaná úsečka z bodu $[${A[0]};${A[1]}]$ do bodu $[${B[0]};${B[1]}]$`;
+        prm = `$x=${lin([[A[0], ''], [d[0], 't']])}$, $y=${lin([[A[1], ''], [d[1], 't']])}$`;
+      } else {
+        xs = [[0, 1], [0, 0, 1]]; dx = [1]; dy = [0, 2];
+        desc = 'oblúk paraboly $y=x^2$ z bodu $[0;0]$ do bodu $[1;1]$';
+        prm = '$x=t$, $y=t^2$';
+      }
+      const g = tAdd(tMul(tSub(P, xs), dx), tMul(tSub(Q, xs), dy)), N = tInt60(g);
+      return {
+        signed: true, answer: N / 60, show: fTxt(N, 60),
+        q: `Vypočítaj krivkový integrál $\\displaystyle\\int_k (${pTex(P)})\\,dx+(${pTex(Q)})\\,dy$, kde $k$ je ${desc}. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: `Parametrizácia: ${prm}, $t\\in\\langle 0;1\\rangle$, teda $dx=${tTex(dx)}\\,dt$ a $dy=${tTex(dy)}\\,dt$. Po dosadení
+          $\\displaystyle\\int_k P\\,dx+Q\\,dy=\\int_0^1\\left(${tTex(g)}\\right)dt=${fTex(N, 60)}$.`,
+        hint: 'Parametrizuj krivku, dosaď $x(t)$, $y(t)$ do $P$ a $Q$, vynásob deriváciami $x\'(t)$, $y\'(t)$ a integruj podľa $t$.'
+      };
+    }
+    if (t < 0.54) {
+      const a = nz(-4, 4), b = nz(-4, 4), R = rnd(1, 3), k = (b - a) * R * R;
+      return {
+        signed: true, answer: k,
+        q: `Vypočítaj $\\displaystyle\\oint_k ${cx(a, 'y')}\\,dx${b > 0 ? '+' : '-'}${cx(Math.abs(b), 'x')}\\,dy$, kde $k$ je kružnica $x^2+y^2=${R * R}$ orientovaná proti smeru hodinových ručičiek. ${VPI}`,
+        solution: `Parametrizácia $x=${R === 1 ? '' : R}\\cos t$, $y=${R === 1 ? '' : R}\\sin t$, $t\\in\\langle 0;2\\pi\\rangle$, $dx=-${R === 1 ? '' : R}\\sin t\\,dt$, $dy=${R === 1 ? '' : R}\\cos t\\,dt$. Integrand je
+          $${par(a)}\\cdot ${R * R}\\cdot(-\\sin^2 t)+${par(b)}\\cdot ${R * R}\\cos^2 t$ a keďže $\\int_0^{2\\pi}\\sin^2 t\\,dt=\\int_0^{2\\pi}\\cos^2 t\\,dt=\\pi$, výsledok je $(${b}-${par(a)})\\cdot ${R * R}\\,\\pi=${k}\\pi$
+          (rovnako podľa Greenovej vety: $(Q_x-P_y)\\cdot S=(${b}-${par(a)})\\cdot ${R * R}\\pi$). Koeficient pri $\\pi$ je $${k}$.`,
+        hint: 'Parametrizuj kružnicu $x=R\\cos t$, $y=R\\sin t$ alebo použi Greenovu vetu.'
+      };
+    }
+    if (t < 0.7) {
+      let U, P, Q;
+      do { U = rPoly(2, 3, 1, 3); P = pD(U, 0); Q = pD(U, 1); } while (!P.length || !Q.length);
+      const bad = Math.random() < 0.45;
+      if (bad && Math.random() < 0.55) {
+        P = pNorm([...P, { c: nz(-3, 3), e: [rnd(0, 1), rnd(1, 2), 0] }]);
+        const same = pKey(pD(P, 1)) === pKey(pD(Q, 0));
+        const ans = same ? 'áno, je potenciálové' : 'nie, nie je potenciálové';
+        return {
+          type: 'choice', options: ['áno, je potenciálové', 'nie, nie je potenciálové'], answer: ans,
+          q: `Je pole $\\mathbf{F}=${vec([pTex(P), pTex(Q)])}$ potenciálové v $\\mathbb{R}^2$?`,
+          solution: `$\\mathbb{R}^2$ je jednoducho súvislá oblasť, stačí porovnať $\\frac{\\partial P}{\\partial y}=${pTex(pD(P, 1))}$ a $\\frac{\\partial Q}{\\partial x}=${pTex(pD(Q, 0))}$. ${same ? 'Derivácie sa rovnajú, pole <strong>je</strong> potenciálové.' : 'Derivácie sa líšia, pole <strong>nie je</strong> potenciálové (rot F ≠ 0).'}`,
+          hint: 'Rovinné pole $(P;\\,Q)$ na $\\mathbb{R}^2$ je potenciálové práve vtedy, keď $P_y=Q_x$.'
+        };
+      }
+      if (bad) {
+        return {
+          type: 'choice', options: ['áno, je potenciálové', 'nie, nie je potenciálové'], answer: 'áno, je potenciálové',
+          q: `Je pole $\\mathbf{F}=${vec([pTex(P), pTex(Q)])}$ potenciálové v $\\mathbb{R}^2$?`,
+          solution: `$\\frac{\\partial P}{\\partial y}=${pTex(pD(P, 1))}=\\frac{\\partial Q}{\\partial x}$, takže pole <strong>je</strong> potenciálové; potenciál je napr. $U=${pTex(U)}$.`,
+          hint: 'Rovinné pole $(P;\\,Q)$ na $\\mathbb{R}^2$ je potenciálové práve vtedy, keď $P_y=Q_x$.'
+        };
+      }
+      const A = [rnd(-2, 2), rnd(-2, 2)];
+      let B;
+      do { B = [rnd(-2, 2), rnd(-2, 2)]; } while (B[0] === A[0] && B[1] === A[1]);
+      const uA = pEval(U, A), uB = pEval(U, B);
+      return {
+        signed: true, answer: uB - uA,
+        q: `Pole $\\mathbf{F}=${vec([pTex(P), pTex(Q)])}$ je potenciálové. Vypočítaj $\\displaystyle\\int_k \\mathbf{F}\\cdot d\\mathbf{r}$ pozdĺž ľubovoľnej krivky $k$ z bodu $A=[${A.join(';')}]$ do bodu $B=[${B.join(';')}]$.`,
+        solution: `Overenie: $\\frac{\\partial P}{\\partial y}=${pTex(pD(P, 1))}=\\frac{\\partial Q}{\\partial x}$. Integrovaním $P$ podľa $x$ a doplnením členov závislých len od $y$ dostaneme potenciál $U(x,y)=${pTex(U)}$ (platí $U_x=P$, $U_y=Q$).
+          Integrál nezávisí od cesty: $U(B)-U(A)=${uB}-${par(uA)}=${uB - uA}$.`,
+        hint: 'Nájdi potenciál $U$ s $\\nabla U=\\mathbf{F}$; integrál sa rovná $U(B)-U(A)$.'
+      };
+    }
+    if (t < 0.86) {
+      if (Math.random() < 0.3) {
+        const a = rnd(1, 5), b = rnd(1, 5);
+        return {
+          answer: a * b,
+          q: `Pomocou vzorca $S=\\frac{1}{2}\\oint_k x\\,dy-y\\,dx$ vypočítaj obsah elipsy $\\dfrac{x^2}{${a * a}}+\\dfrac{y^2}{${b * b}}=1$. ${VPI}`,
+          solution: `Parametrizácia $x=${a === 1 ? '' : a}\\cos t$, $y=${b === 1 ? '' : b}\\sin t$, $t\\in\\langle 0;2\\pi\\rangle$ (kladná orientácia): $x\\,dy-y\\,dx=${a * b}(\\cos^2 t+\\sin^2 t)\\,dt=${a * b}\\,dt$.
+            Preto $S=\\frac{1}{2}\\int_0^{2\\pi}${a * b}\\,dt=${a * b}\\pi$, koeficient pri $\\pi$ je $${a * b}$ (všeobecne $S=\\pi ab$).`,
+          hint: 'Elipsu parametrizuj $x=a\\cos t$, $y=b\\sin t$.'
+        };
+      }
+      const c1 = rnd(-4, 4);
+      let c2;
+      do { c2 = rnd(-4, 4); } while (c2 === c1);
+      const gx = pick(['x^2', 'x^3', '\\sin x', '\\mathrm{e}^{x}']), hy = pick(['y^2', 'y^3', '\\cos y', '\\mathrm{e}^{y}']);
+      const Pt = c1 === 0 ? gx : `${cx(c1, 'y')}+${gx}`, Qt = c2 === 0 ? hy : `${cx(c2, 'x')}+${hy}`;
+      const reg = rnd(0, 2), a = rnd(1, 4), b = rnd(1, 4), R = rnd(1, 3);
+      const [desc, Sn, Sd, Stex, isPi] = [
+        [`obdĺžnika s vrcholmi $[0;0]$, $[${a};0]$, $[${a};${b}]$, $[0;${b}]$`, a * b, 1, `${a}\\cdot ${b}`, false],
+        [`trojuholníka s vrcholmi $[0;0]$, $[${a};0]$, $[0;${b}]$`, a * b, 2, `\\frac{${a}\\cdot ${b}}{2}`, false],
+        [`kruhu $x^2+y^2\\le ${R * R}$`, R * R, 1, `${R * R}\\pi`, true]
+      ][reg];
+      const d = c2 - c1;
+      return {
+        signed: true, answer: d * Sn / Sd, show: fTxt(d * Sn, Sd),
+        q: `Pomocou Greenovej vety vypočítaj $\\displaystyle\\oint_k (${Pt})\\,dx+(${Qt})\\,dy$, kde $k$ je kladne orientovaná hranica ${desc}. ${isPi ? VPI : 'Výsledok zadaj ako celé číslo alebo zlomok.'}`,
+        solution: `$\\frac{\\partial Q}{\\partial x}-\\frac{\\partial P}{\\partial y}=${c2}-${par(c1)}=${d}$ (členy $${gx}$ a $${hy}$ k rozdielu neprispejú). Podľa Greenovej vety je integrál rovný $${d}\\cdot S(D)=${d}\\cdot ${Stex}=${isPi ? (d * Sn) + '\\pi' : fTex(d * Sn, Sd)}$${isPi ? `, koeficient pri $\\pi$ je $${d * Sn}$` : ''}.`,
+        hint: 'Vypočítaj $Q_x-P_y$ – vyjde konštanta, takže dvojný integrál je jej násobok obsahu oblasti.'
+      };
+    }
+    if (Math.random() < 0.6) {
+      const [p, q, L] = pick(TRI);
+      const A = [rnd(-2, 2), rnd(-2, 2)], B = [A[0] + p * pick([1, -1]), A[1] + q * pick([1, -1])];
+      const al = nz(-3, 3), be = nz(-3, 3), ga = rnd(-3, 3);
+      const f = lin([[al, 'x'], [be, 'y'], [ga, '']]), fv = (P) => al * P[0] + be * P[1] + ga;
+      const fA = fv(A), fB = fv(B);
+      return {
+        signed: true, answer: L * (fA + fB) / 2, show: fTxt(L * (fA + fB), 2),
+        q: `Vypočítaj krivkový integrál 1. druhu $\\displaystyle\\int_k (${f})\\,ds$, kde $k$ je úsečka s krajnými bodmi $A=[${A.join(';')}]$ a $B=[${B.join(';')}]$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: `Parametrizácia $\\mathbf{r}(t)=A+t(B-A)$, $t\\in\\langle 0;1\\rangle$, má $|\\mathbf{r}'(t)|=|B-A|=\\sqrt{${(B[0] - A[0]) ** 2}+${(B[1] - A[1]) ** 2}}=${L}$. Funkcia je lineárna, preto $\\int_0^1 f(\\mathbf{r}(t))\\,dt$ je aritmetický priemer hodnôt v krajných bodoch:
+          $\\displaystyle\\int_k f\\,ds=${L}\\cdot\\frac{f(A)+f(B)}{2}=${L}\\cdot\\frac{${fA}+${par(fB)}}{2}=${fTex(L * (fA + fB), 2)}$.`,
+        hint: 'Pri parametrizácii úsečky je $ds=|B-A|\\,dt$.'
+      };
+    }
+    const [R, c, L] = pick(TRI);
+    return {
+      answer: 2 * L,
+      q: `Vypočítaj dĺžku jedného závitu skrutkovice $x=${R}\\cos t$, $y=${R}\\sin t$, $z=${c}t$, $t\\in\\langle 0;2\\pi\\rangle$. ${VPI}`,
+      solution: `$\\mathbf{r}'(t)=(-${R}\\sin t;\\ ${R}\\cos t;\\ ${c})$, teda $|\\mathbf{r}'(t)|=\\sqrt{${R * R}\\sin^2 t+${R * R}\\cos^2 t+${c * c}}=\\sqrt{${R * R + c * c}}=${L}$.
+        Dĺžka je $\\int_0^{2\\pi}${L}\\,dt=${2 * L}\\pi$, koeficient pri $\\pi$ je $${2 * L}$.`,
+      hint: 'Dĺžka krivky je $\\int_a^b|\\mathbf{r}\'(t)|\\,dt$; využi $\\sin^2 t+\\cos^2 t=1$.'
     };
   });
 })();

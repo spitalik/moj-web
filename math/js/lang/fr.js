@@ -78,9 +78,12 @@ I18N.add('fr', {
     s3: ['Lycée – 3e année', 'Trigonométrie, géométrie analytique, suites, dénombrement.'],
     s4: ['Lycée – 4e année', 'Dérivées et intégrales, statistiques, révisions pour l’examen final.'],
     v1: ['Algèbre linéaire', 'Vecteurs, matrices, déterminants, systèmes linéaires, valeurs propres.'],
-    v2: ['Analyse', 'Suites et séries, limites, intégrales, fonctions de plusieurs variables.'],
+    v2: ['Analyse mathématique', 'Nombres complexes, limites, dérivées et intégrales, séries, intégrales multiples, analyse vectorielle, équations différentielles.'],
     v3: ['Équations différentielles', 'Équations du premier et du second ordre, systèmes, applications.'],
-    v4: ['Probabilités et statistiques', 'Variables aléatoires, lois, estimation, tests d’hypothèses, régression.']
+    v4: ['Probabilités et statistiques', 'Variables aléatoires, lois, estimation, tests d’hypothèses, régression.'],
+    v5: ['Logique mathématique et théorie des ensembles', 'Propositions et quantificateurs, démonstrations, ensembles, relations, récurrence et systèmes formels.'],
+    v6: ['Algèbre abstraite', 'Groupes, anneaux et corps, morphismes, polynômes, congruences, théorie des nombres et théorie de Galois.'],
+    v7: ['Analyse numérique', 'Erreurs, résolution d’équations, interpolation, dérivation et intégration numériques, équations différentielles, matrices.']
   },
   topics: {
     cisla: ['Nombres et arithmétique', 'Du comptage jusqu’à 20 aux grands nombres, entiers et rationnels, jusqu’aux systèmes de numération et aux ensembles.'],
@@ -101,6 +104,9 @@ I18N.add('fr', {
     analyza: ['Calcul différentiel et intégral', 'Limites, dérivées, extremums, intégrales et fonctions de plusieurs variables.'],
     linalg: ['Algèbre linéaire', 'Vecteurs, matrices, déterminants, systèmes d’équations linéaires, valeurs propres.'],
     difrovnice: ['Équations différentielles', 'Équations du premier et du second ordre, applications, oscillations, systèmes et transformée de Laplace.'],
+    logika: ['Logique, démonstrations et ensembles', 'Logique propositionnelle et des prédicats, méthodes de démonstration, ensembles, relations, récurrence et systèmes formels.'],
+    algebra: ['Algèbre abstraite et théorie des nombres', 'Groupes, anneaux et corps, morphismes, polynômes, congruences, théorie des nombres et théorie de Galois.'],
+    numerika: ['Analyse numérique', 'Erreurs et précision, résolution approchée d’équations, interpolation, dérivation et intégration numériques, EDO et matrices.'],
     maturita: ['Révisions pour l’examen final', 'Exercices variés de tous les domaines des mathématiques du lycée et questions d’examen typiques.']
   }
 });

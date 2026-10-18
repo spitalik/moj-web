@@ -78,9 +78,12 @@ I18N.add('de', {
     s3: ['Oberstufe – 3. Jahr', 'Trigonometrie, analytische Geometrie, Folgen, Kombinatorik.'],
     s4: ['Oberstufe – 4. Jahr', 'Ableitungen und Integrale, Statistik, Abiturvorbereitung.'],
     v1: ['Lineare Algebra', 'Vektoren, Matrizen, Determinanten, lineare Gleichungssysteme, Eigenwerte.'],
-    v2: ['Analysis', 'Folgen und Reihen, Grenzwerte, Integrale, Funktionen mehrerer Veränderlicher.'],
+    v2: ['Mathematische Analysis', 'Komplexe Zahlen, Grenzwerte, Ableitungen und Integrale, Reihen, Mehrfachintegrale, Vektoranalysis, Differentialgleichungen.'],
     v3: ['Differentialgleichungen', 'Gleichungen erster und zweiter Ordnung, Systeme, Anwendungen.'],
-    v4: ['Wahrscheinlichkeit und Statistik', 'Zufallsvariablen, Verteilungen, Schätzung, Hypothesentests, Regression.']
+    v4: ['Wahrscheinlichkeit und Statistik', 'Zufallsvariablen, Verteilungen, Schätzung, Hypothesentests, Regression.'],
+    v5: ['Mathematische Logik und Mengenlehre', 'Aussagen und Quantoren, Beweise, Mengen, Relationen, Induktion und formale Systeme.'],
+    v6: ['Abstrakte Algebra', 'Gruppen, Ringe und Körper, Homomorphismen, Polynome, Kongruenzen, Zahlentheorie und Galoistheorie.'],
+    v7: ['Numerische Mathematik', 'Fehler, Lösen von Gleichungen, Interpolation, numerisches Differenzieren und Integrieren, Differentialgleichungen, Matrizen.']
   },
   topics: {
     cisla: ['Zahlen und Arithmetik', 'Vom Zählen bis 20 über große Zahlen, ganze und rationale Zahlen bis zu Zahlensystemen und Mengen.'],
@@ -101,6 +104,9 @@ I18N.add('de', {
     analyza: ['Differential- und Integralrechnung', 'Grenzwerte, Ableitungen, Extremwerte, Integrale und Funktionen mehrerer Veränderlicher.'],
     linalg: ['Lineare Algebra', 'Vektoren, Matrizen, Determinanten, lineare Gleichungssysteme, Eigenwerte.'],
     difrovnice: ['Differentialgleichungen', 'Gleichungen erster und zweiter Ordnung, Anwendungen, Schwingungen, Systeme und Laplace-Transformation.'],
+    logika: ['Logik, Beweise und Mengen', 'Aussagen- und Prädikatenlogik, Beweismethoden, Mengen, Relationen, Induktion und formale Systeme.'],
+    algebra: ['Abstrakte Algebra und Zahlentheorie', 'Gruppen, Ringe und Körper, Homomorphismen, Polynome, Kongruenzen, Zahlentheorie und Galoistheorie.'],
+    numerika: ['Numerische Mathematik', 'Fehler und Genauigkeit, Näherungslösung von Gleichungen, Interpolation, numerisches Differenzieren und Integrieren, Differentialgleichungen und Matrizen.'],
     maturita: ['Abiturvorbereitung', 'Gemischte Aufgaben aus allen Bereichen der Schulmathematik und typische Prüfungsfragen.']
   }
 });

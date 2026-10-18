@@ -78,9 +78,12 @@ I18N.add('es', {
     s3: ['Secundaria superior, 3.er año', 'Trigonometría, geometría analítica, sucesiones, combinatoria.'],
     s4: ['Secundaria superior, 4.º año', 'Derivadas e integrales, estadística, repaso para el examen final.'],
     v1: ['Álgebra lineal', 'Vectores, matrices, determinantes, sistemas lineales, valores propios.'],
-    v2: ['Análisis matemático', 'Sucesiones y series, límites, integrales, funciones de varias variables.'],
+    v2: ['Análisis matemático', 'Números complejos, límites, derivadas e integrales, series, integrales múltiples, cálculo vectorial, ecuaciones diferenciales.'],
     v3: ['Ecuaciones diferenciales', 'Ecuaciones de primer y segundo orden, sistemas, aplicaciones.'],
-    v4: ['Probabilidad y estadística', 'Variables aleatorias, distribuciones, estimación, contraste de hipótesis, regresión.']
+    v4: ['Probabilidad y estadística', 'Variables aleatorias, distribuciones, estimación, contraste de hipótesis, regresión.'],
+    v5: ['Lógica matemática y teoría de conjuntos', 'Proposiciones y cuantificadores, demostraciones, conjuntos, relaciones, inducción y sistemas formales.'],
+    v6: ['Álgebra abstracta', 'Grupos, anillos y cuerpos, homomorfismos, polinomios, congruencias, teoría de números y teoría de Galois.'],
+    v7: ['Matemática numérica', 'Errores, resolución de ecuaciones, interpolación, derivación e integración numéricas, ecuaciones diferenciales, matrices.']
   },
   topics: {
     cisla: ['Números y aritmética', 'Desde contar hasta 20, pasando por números grandes, enteros y racionales, hasta los sistemas de numeración y los conjuntos.'],
@@ -101,6 +104,9 @@ I18N.add('es', {
     analyza: ['Cálculo diferencial e integral', 'Límites, derivadas, extremos, integrales y funciones de varias variables.'],
     linalg: ['Álgebra lineal', 'Vectores, matrices, determinantes, sistemas de ecuaciones lineales, valores propios.'],
     difrovnice: ['Ecuaciones diferenciales', 'Ecuaciones de primer y segundo orden, aplicaciones, oscilaciones, sistemas y transformada de Laplace.'],
+    logika: ['Lógica, demostraciones y conjuntos', 'Lógica proposicional y de predicados, métodos de demostración, conjuntos, relaciones, inducción y sistemas formales.'],
+    algebra: ['Álgebra abstracta y teoría de números', 'Grupos, anillos y cuerpos, homomorfismos, polinomios, congruencias, teoría de números y teoría de Galois.'],
+    numerika: ['Matemática numérica', 'Errores y precisión, resolución aproximada de ecuaciones, interpolación, derivación e integración numéricas, EDO y matrices.'],
     maturita: ['Repaso para el examen final', 'Ejercicios variados de todas las áreas de las matemáticas de secundaria y preguntas típicas de examen.']
   }
 });

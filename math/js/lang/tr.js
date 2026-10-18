@@ -78,9 +78,12 @@ I18N.add('tr', {
     s3: ['Lise 3. yıl', 'Trigonometri, analitik geometri, diziler, kombinatorik.'],
     s4: ['Lise 4. yıl', 'Türev ve integral, istatistik, bitirme sınavı tekrarı.'],
     v1: ['Lineer Cebir', 'Vektörler, matrisler, determinantlar, lineer sistemler, özdeğerler.'],
-    v2: ['Matematiksel Analiz', 'Diziler ve seriler, limitler, integraller, çok değişkenli fonksiyonlar.'],
+    v2: ['Matematiksel Analiz', 'Karmaşık sayılar, limitler, türev ve integraller, seriler, katlı integraller, vektör analizi, diferansiyel denklemler.'],
     v3: ['Diferansiyel Denklemler', 'Birinci ve ikinci mertebeden denklemler, sistemler, uygulamalar.'],
-    v4: ['Olasılık ve İstatistik', 'Rastgele değişkenler, dağılımlar, kestirim, hipotez testleri, regresyon.']
+    v4: ['Olasılık ve İstatistik', 'Rastgele değişkenler, dağılımlar, kestirim, hipotez testleri, regresyon.'],
+    v5: ['Matematiksel Mantık ve Kümeler Kuramı', 'Önermeler ve niceleyiciler, ispatlar, kümeler, bağıntılar, tümevarım ve biçimsel sistemler.'],
+    v6: ['Soyut Cebir', 'Gruplar, halkalar ve cisimler, homomorfizmalar, polinomlar, denklikler, sayılar kuramı ve Galois kuramı.'],
+    v7: ['Sayısal Analiz', 'Hatalar, denklem çözümü, interpolasyon, sayısal türev ve integral, diferansiyel denklemler, matrisler.']
   },
   topics: {
     cisla: ['Sayılar ve aritmetik', '20’ye kadar saymaktan büyük sayılara, tam ve rasyonel sayılardan sayı sistemlerine ve kümelere.'],
@@ -101,6 +104,9 @@ I18N.add('tr', {
     analyza: ['Diferansiyel ve integral hesap', 'Limitler, türevler, ekstremumlar, integraller ve çok değişkenli fonksiyonlar.'],
     linalg: ['Lineer cebir', 'Vektörler, matrisler, determinantlar, lineer denklem sistemleri, özdeğerler.'],
     difrovnice: ['Diferansiyel denklemler', 'Birinci ve ikinci mertebeden denklemler, uygulamalar, salınımlar, sistemler ve Laplace dönüşümü.'],
+    logika: ['Mantık, ispatlar ve kümeler', 'Önermeler ve yüklemler mantığı, ispat yöntemleri, kümeler, bağıntılar, tümevarım ve biçimsel sistemler.'],
+    algebra: ['Soyut cebir ve sayılar kuramı', 'Gruplar, halkalar ve cisimler, homomorfizmalar, polinomlar, denklikler, sayılar kuramı ve Galois kuramı.'],
+    numerika: ['Sayısal analiz', 'Hata ve hassasiyet, denklemlerin yaklaşık çözümü, interpolasyon, sayısal türev ve integral, ADD ve matrisler.'],
     maturita: ['Bitirme sınavı tekrarı', 'Lise matematiğinin tüm alanlarından karışık sorular ve tipik sınav soruları.']
   }
 });

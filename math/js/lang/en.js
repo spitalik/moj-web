@@ -78,9 +78,12 @@ I18N.add('en', {
     s3: ['Secondary year 3', 'Trigonometry, analytic geometry, sequences, combinatorics.'],
     s4: ['Secondary year 4', 'Derivatives and integrals, statistics, final exam revision.'],
     v1: ['Linear Algebra', 'Vectors, matrices, determinants, linear systems, eigenvalues.'],
-    v2: ['Mathematical Analysis', 'Sequences and series, limits, integrals, functions of several variables.'],
+    v2: ['Mathematical Analysis', 'Complex numbers, limits, derivatives and integrals, series, multiple integrals, vector calculus, differential equations.'],
     v3: ['Differential Equations', 'First- and second-order equations, systems, applications.'],
-    v4: ['Probability and Statistics', 'Random variables, distributions, estimation, hypothesis tests, regression.']
+    v4: ['Probability and Statistics', 'Random variables, distributions, estimation, hypothesis tests, regression.'],
+    v5: ['Mathematical Logic and Set Theory', 'Propositions and quantifiers, proofs, sets, relations, induction and formal systems.'],
+    v6: ['Abstract Algebra', 'Groups, rings and fields, homomorphisms, polynomials, congruences, number theory and Galois theory.'],
+    v7: ['Numerical Mathematics', 'Errors, solving equations, interpolation, numerical differentiation and integration, differential equations, matrices.']
   },
   topics: {
     cisla: ['Numbers and arithmetic', 'From counting to 20 through large numbers, integers and rationals to number systems and sets.'],
@@ -101,6 +104,9 @@ I18N.add('en', {
     analyza: ['Differential and integral calculus', 'Limits, derivatives, extrema, integrals and functions of several variables.'],
     linalg: ['Linear algebra', 'Vectors, matrices, determinants, systems of linear equations, eigenvalues.'],
     difrovnice: ['Differential equations', 'First- and second-order equations, applications, oscillations, systems and the Laplace transform.'],
+    logika: ['Logic, proofs and sets', 'Propositional and predicate logic, methods of proof, sets, relations, induction and formal systems.'],
+    algebra: ['Abstract algebra and number theory', 'Groups, rings and fields, homomorphisms, polynomials, congruences, number theory and Galois theory.'],
+    numerika: ['Numerical mathematics', 'Errors and precision, approximate solution of equations, interpolation, numerical differentiation and integration, ODEs and matrices.'],
     maturita: ['Final exam revision', 'Mixed problems from all areas of secondary-school mathematics and typical exam questions.']
   }
 });
