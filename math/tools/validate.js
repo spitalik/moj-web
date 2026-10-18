@@ -1,6 +1,7 @@
 /* Kontrola obsahu bez prehliadača: node tools/validate.js
-   Načíta skripty v poradí z index.html (okrem app.js), skontroluje lekcie, obrázky a generátory úloh.
-   Chýbajúci súbor ročníka je len upozornenie (súbory môžu vznikať postupne). Návratový kód 1 = chyby. */
+   Načíta skripty v poradí z index.html (okrem app.js), skontroluje lekcie, obrázky, generátory úloh a preklady.
+   Chýbajúci súbor ročníka je len upozornenie (súbory môžu vznikať postupne). Návratový kód 1 = chyby.
+   node tools/validate.js --missing en  vypíše texty bez anglického prekladu (kostra slovníka). */
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -12,6 +13,8 @@ global.window = global;
 const errors = [];
 const warnings = [];
 const err = (where, msg) => errors.push(`${where}: ${msg}`);
+// --missing <jazyk>: vypíše chýbajúce preklady textov (generátory bežia všetkých 400 behov)
+const missingFor = (() => { const k = process.argv.indexOf('--missing'); return k > 0 ? process.argv[k + 1] : null; })();
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const scripts = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map((m) => m[1]).filter((s) => s !== 'js/app.js');
@@ -38,6 +41,50 @@ function checkText(where, s) {
     if (/<[a-zA-Z\/!]/.test(m[1])) err(where, `HTML značka alebo '<' pred písmenom v matematike (použi &lt;): $${m[1].slice(0, 80)}$`);
     // KaTeX nevie dať exponent na medzeru: \,^\circ spadne, správne je \,{}^\circ
     if (/\\[,;:! ]\s*[\^_]/.test(m[1])) err(where, `exponent/index za medzerou (použi {}^): $${m[1].slice(0, 80)}$`);
+  }
+}
+
+// Generátor: 400 behov, každá správna odpoveď musí prejsť kontrolou. lang = jazyk obsahu,
+// extra(ex, gw) = ďalšia kontrola výstupu (napr. úniky slovenčiny v preklade).
+function checkGenerator(L, lang, w, extra) {
+  const RUNS = 400;
+  for (let r = 0; r < RUNS; r++) {
+    let ex;
+    try { ex = EXERCISES.make(L.id, lang); } catch (e) { err(w, `generátor spadol: ${e.message}`); break; }
+    const gw = `${w} generátor`;
+    const before = errors.length;
+    checkText(`${gw} zadanie`, ex.q);
+    checkText(`${gw} riešenie`, ex.solution);
+    checkText(`${gw} nápoveda`, ex.hint);
+    let canonical;
+    switch (ex.type) {
+      case 'num':
+        if (typeof ex.answer !== 'number' || !Number.isFinite(ex.answer)) err(gw, `odpoveď nie je konečné číslo: ${ex.answer}`);
+        canonical = String(ex.answer);
+        break;
+      case 'set': case 'tuple':
+        if (!Array.isArray(ex.answer) || ex.answer.some((v) => !Number.isFinite(v))) err(gw, `odpoveď nie je pole čísel: ${ex.answer}`);
+        canonical = (ex.answer || []).join('; ');
+        break;
+      case 'text':
+        if (typeof ex.answer !== 'string' || !ex.answer.trim()) err(gw, 'textová odpoveď je prázdna');
+        canonical = ex.answer;
+        break;
+      case 'choice':
+        if (!Array.isArray(ex.options) || ex.options.length < 2) err(gw, 'výber potrebuje aspoň 2 možnosti');
+        else if (new Set(ex.options).size !== ex.options.length) err(gw, `duplicitné možnosti: ${ex.options.join(' | ')}`);
+        if (!(ex.options || []).includes(ex.answer)) err(gw, `odpoveď „${ex.answer}“ nie je medzi možnosťami`);
+        (ex.options || []).forEach((o) => checkText(`${gw} možnosť`, String(o)));
+        canonical = ex.answer;
+        break;
+      default:
+        err(gw, `neznámy typ ${ex.type}`);
+    }
+    if (canonical !== undefined && EXERCISES.check(ex, canonical) !== true) {
+      err(gw, `správna odpoveď „${canonical}“ neprejde kontrolou (zadanie: ${String(ex.q).slice(0, 100)})`);
+    }
+    if (extra) extra(ex, gw);
+    if (errors.length > before && !missingFor) break; // jedna chyba na generátor stačí
   }
 }
 
@@ -86,43 +133,148 @@ for (const L of LESSONS) {
   });
 
   if (!EXERCISES.has(L.id)) { err(w, 'chýba generátor úloh'); continue; }
-  const RUNS = 400;
-  for (let r = 0; r < RUNS; r++) {
-    let ex;
-    try { ex = EXERCISES.make(L.id); } catch (e) { err(w, `generátor spadol: ${e.message}`); break; }
-    const gw = `${w} generátor`;
-    const before = errors.length;
-    checkText(`${gw} zadanie`, ex.q);
-    checkText(`${gw} riešenie`, ex.solution);
-    checkText(`${gw} nápoveda`, ex.hint);
-    let canonical;
-    switch (ex.type) {
-      case 'num':
-        if (typeof ex.answer !== 'number' || !Number.isFinite(ex.answer)) err(gw, `odpoveď nie je konečné číslo: ${ex.answer}`);
-        canonical = String(ex.answer);
-        break;
-      case 'set': case 'tuple':
-        if (!Array.isArray(ex.answer) || ex.answer.some((v) => !Number.isFinite(v))) err(gw, `odpoveď nie je pole čísel: ${ex.answer}`);
-        canonical = (ex.answer || []).join('; ');
-        break;
-      case 'text':
-        if (typeof ex.answer !== 'string' || !ex.answer.trim()) err(gw, 'textová odpoveď je prázdna');
-        canonical = ex.answer;
-        break;
-      case 'choice':
-        if (!Array.isArray(ex.options) || ex.options.length < 2) err(gw, 'výber potrebuje aspoň 2 možnosti');
-        else if (new Set(ex.options).size !== ex.options.length) err(gw, `duplicitné možnosti: ${ex.options.join(' | ')}`);
-        if (!(ex.options || []).includes(ex.answer)) err(gw, `odpoveď „${ex.answer}“ nie je medzi možnosťami`);
-        (ex.options || []).forEach((o) => checkText(`${gw} možnosť`, String(o)));
-        canonical = ex.answer;
-        break;
-      default:
-        err(gw, `neznámy typ ${ex.type}`);
+  checkGenerator(L, 'sk', w);
+}
+
+// Témy: každá lekcia práve v jednej téme, žiadne neexistujúce id.
+if (global.THEMES) {
+  const owner = new Map();
+  for (const th of THEMES) {
+    for (const id of th.lessons) {
+      if (!seen.has(id)) err(`téma ${th.id}`, `neexistujúca lekcia ${id}`);
+      if (owner.has(id)) err(`téma ${th.id}`, `lekcia ${id} je už v téme ${owner.get(id)}`);
+      owner.set(id, th.id);
     }
-    if (canonical !== undefined && EXERCISES.check(ex, canonical) !== true) {
-      err(gw, `správna odpoveď „${canonical}“ neprejde kontrolou (zadanie: ${String(ex.q).slice(0, 100)})`);
+  }
+  for (const L of LESSONS) if (!owner.has(L.id)) err(`lekcia ${L.id}`, 'nie je zaradená do žiadnej témy (js/temy.js)');
+} else {
+  warnings.push('chýba js/temy.js');
+}
+
+// Preklady obsahu (js/content-i18n/<jazyk>/*.js): rovnaká štruktúra ako zdroj (bloky teórie, obrázky s rovnakým fig
+// na rovnakých miestach, počet príkladov a krokov), parita $, žiadna slovenčina vo výstupe a generátory v preklade
+// opäť 400 behov s kontrolou odpovede. Chýbajúce preklady textov (T`…`, T.s, popisy v SVG) sú chyby.
+// node tools/validate.js --missing en  vypíše chýbajúce kľúče ako kostru slovníka.
+const CI = global.CONTENT_I18N;
+const missingDump = new Map(); // lekcia → Set kľúčov
+if (CI) {
+  const lessonIds = new Set(LESSONS.map((l) => l.id));
+  for (const lang of CI.languages()) {
+    const pack = CI.pack(lang);
+    // angličtina nesmie obsahovať žiadne slovenské písmená s diakritikou, iné jazyky aspoň mäkčene
+    const LEAK = lang === 'en' ? /[áäčďéíĺľňóôŕšťúýž]/i : /[čďĺľňŕšťž]/i;
+    const leak = (where, s) => {
+      const m = String(s).replace(/<[^>]*>/g, ' ').match(LEAK);
+      if (m) err(where, `slovenský text v preklade („${m[0]}“): ${String(s).replace(/<svg[\s\S]*?<\/svg>/g, '[svg]').slice(0, 120)}`);
+    };
+    const txt = (where, s) => { checkText(where, s); leak(where, s); };
+    for (const [id, t] of Object.entries(pack.lessons)) {
+      const w = `preklad ${lang} ${id}`;
+      if (!lessonIds.has(id)) { err(w, 'neexistujúca lekcia'); continue; }
+      const L = LESSONS.find((l) => l.id === id);
+      for (const k of ['title', 'summary']) { if (!t[k]) err(w, `chýba ${k}`); else txt(`${w} ${k}`, t[k]); }
+      if (!Array.isArray(t.theory) || t.theory.length !== L.theory.length) {
+        err(w, `teória má ${(t.theory || []).length} blokov, zdroj ${L.theory.length}`);
+      } else {
+        t.theory.forEach((x, i) => {
+          const s = L.theory[i];
+          if (typeof s === 'string') {
+            if (typeof x !== 'string') err(w, `teória[${i}] má byť text`); else txt(`${w} teória[${i}]`, x);
+          } else if (!x || typeof x !== 'object' || x.fig !== s.fig) {
+            err(w, `teória[${i}] má byť obrázok ${s.fig}`);
+          } else if (!!x.caption !== !!s.caption) {
+            err(w, `obrázok ${s.fig}: popis ${s.caption ? 'chýba' : 'je navyše'}`);
+          } else if (x.caption) txt(`${w} popis obrázka ${s.fig}`, x.caption);
+        });
+      }
+      if (!Array.isArray(t.examples) || t.examples.length !== L.examples.length) {
+        err(w, `príkladov je ${(t.examples || []).length}, zdroj ${L.examples.length}`);
+      } else {
+        t.examples.forEach((ex, i) => {
+          const src = L.examples[i];
+          txt(`${w} príklad ${i + 1}`, ex.task);
+          if (!Array.isArray(ex.steps) || ex.steps.length !== src.steps.length) err(w, `príklad ${i + 1} má ${(ex.steps || []).length} krokov, zdroj ${src.steps.length}`);
+          else ex.steps.forEach((s, j) => txt(`${w} príklad ${i + 1} krok ${j + 1}`, s));
+        });
+      }
+      const m0 = CI.misses.length;
+      // obrázky v preklade: popisy v SVG a dynamické texty (readout) pri krajných hodnotách posuvníkov
+      L.theory.filter((x) => typeof x !== 'string').forEach((x) => {
+        const def = FIGURES.get(x.fig);
+        if (!def) return;
+        CI.run(lang, null, () => {
+          const outs = [];
+          if (def.controls) {
+            const vals = {};
+            def.controls.forEach((c) => { vals[c.id] = c.value; outs.push(CI.text(c.label)); });
+            for (const c of def.controls) {
+              for (const v of [c.min, c.max, c.value]) {
+                const r = def.draw(Object.assign({}, vals, { [c.id]: v }));
+                outs.push(CI.markup(r.svg), r.readout);
+              }
+            }
+          } else outs.push(CI.markup(def.draw()));
+          outs.forEach((o) => leak(`${w} obrázok ${x.fig}`, o));
+        });
+      });
+      if (EXERCISES.has(id)) {
+        checkGenerator(L, lang, w, (ex, gw) => {
+          for (const k of ['q', 'solution', 'hint', 'placeholder', 'show']) if (ex[k] !== undefined) leak(`${gw} ${k}`, ex[k]);
+          if (ex.type === 'choice') ex.options.forEach((o) => leak(`${gw} možnosť`, o));
+          if (ex.lang !== lang) err(gw, `generátor nebeží v jazyku ${lang}`);
+        });
+      }
+      const miss = CI.misses.slice(m0);
+      if (miss.length) {
+        if (lang === missingFor) {
+          if (!missingDump.has(id)) missingDump.set(id, new Set());
+          miss.forEach((m) => missingDump.get(id).add(m.key));
+        } else {
+          err(w, `${miss.length} textov bez prekladu, napr.: ${miss.slice(0, 3).map((m) => `„${m.key.slice(0, 70)}“`).join(', ')} (vypíš: --missing ${lang})`);
+        }
+      }
     }
-    if (errors.length > before) break; // jedna chyba na generátor stačí
+    // preklad nesmie odkazovať na dieru, ktorú kľúč nemá
+    const holes = (s) => [...String(s).matchAll(/\{@(\d+)\}/g)].map((m) => +m[1]);
+    const checkDict = (where, dict) => Object.entries(dict).forEach(([k, v]) => {
+      if (typeof v === 'function') return;
+      if (typeof v !== 'string') return err(where, `preklad „${k.slice(0, 60)}“ nie je text ani funkcia`);
+      const n = holes(k).length ? Math.max(...holes(k)) + 1 : 0;
+      if (holes(v).some((h) => h >= n)) err(where, `preklad „${v.slice(0, 60)}“ používa dieru, ktorú kľúč nemá`);
+    });
+    checkDict(`preklad ${lang} strings`, pack.strings);
+    Object.entries(pack.lessons).forEach(([id, t]) => checkDict(`preklad ${lang} ${id} strings`, t.strings || {}));
+  }
+}
+if (missingFor) {
+  if (!missingDump.size) console.log(`// ${missingFor}: všetky texty majú preklad`);
+  for (const [id, keys] of missingDump) {
+    console.log(`  // ${id}`);
+    for (const k of keys) console.log(`  ${JSON.stringify(k)}: '',`);
+  }
+}
+
+// Preklady rozhrania: každý jazyk má všetky kľúče zo slovenčiny, rovnaké {premenné},
+// a (okrem slovenčiny) preklad všetkých skupín, úrovní a tém.
+if (global.I18N) {
+  const src = I18N.dict('sk');
+  const vars = (s) => (String(s).match(/\{\w+\}/g) || []).sort().join(',');
+  const textOf = (v) => (typeof v === 'object' ? Object.values(v).join(' ') : v);
+  for (const code of I18N.languages()) {
+    const d = I18N.dict(code), w = `jazyk ${code}`;
+    for (const k of ['_flag', '_name', '_htmlLang']) if (!d[k]) err(w, `chýba ${k}`);
+    for (const [k, v] of Object.entries(src)) {
+      if (k.startsWith('_')) continue;
+      if (d[k] === undefined) { err(w, `chýba kľúč ${k}`); continue; }
+      if (typeof v === 'object') {
+        if (typeof d[k] !== 'object' || d[k].other === undefined) err(w, `kľúč ${k} musí mať tvary množného čísla s „other“`);
+        else Object.values(d[k]).forEach((f) => { if (!/\{n\}/.test(f)) err(w, `tvar ${k} nemá {n}`); });
+      } else if (vars(textOf(d[k])) !== vars(v)) err(w, `kľúč ${k}: iné premenné (${vars(textOf(d[k]))} ≠ ${vars(v)})`);
+    }
+    if (code === 'sk') continue;
+    for (const g of GROUPS) if (!(d.groups && d.groups[g.id])) err(w, `chýba preklad skupiny ${g.id}`);
+    for (const lv of LEVELS) if (!(d.levels && Array.isArray(d.levels[lv.id]) && d.levels[lv.id].length === 2)) err(w, `chýba preklad úrovne ${lv.id} [názov, opis]`);
+    for (const th of (global.THEMES || [])) if (!(d.topics && Array.isArray(d.topics[th.id]) && d.topics[th.id].length === 2)) err(w, `chýba preklad témy ${th.id} [názov, opis]`);
   }
 }
 

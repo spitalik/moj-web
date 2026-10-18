@@ -4,7 +4,8 @@
   'use strict';
 
   const n1 = (v) => Math.round(v * 10) / 10;
-  const sk = (v, d = 2) => (Math.abs(v) < 1e-9 ? 0 : v).toFixed(d).replace('.', ',');
+  // číslo s desatinným oddeľovačom jazyka obsahu (slovenčina čiarka)
+  const sk = (v, d = 2) => (Math.abs(v) < 1e-9 ? 0 : v).toFixed(d).replace('.', CONTENT_I18N.decimal());
   const decimals = (step) => (String(step).split('.')[1] || '').length;
   // člen polynómu pre popis: " + 3x", " − x", " + 5"
   const term = (c, v) => (c === 0 ? '' : ` ${c > 0 ? '+' : '−'} ${Math.abs(c) === 1 && v ? '' : Math.abs(c)}${v}`);
@@ -276,33 +277,37 @@
     }
   };
 
+  // Jazyk obrázka je lang najbližšieho predka (obsah lekcie); popisy v SVG sa preložia (CONTENT_I18N.markup).
   function mount(el) {
     const def = DEFS[el.dataset.fig];
     const body = el.querySelector('.fig-body');
     if (!def || !body) return;
+    const holder = el.closest('[lang]');
+    const lang = holder ? holder.getAttribute('lang') : CONTENT_I18N.SOURCE;
+    const inLang = (fn) => CONTENT_I18N.run(lang, null, fn);
     if (!def.controls) {
-      body.innerHTML = def.draw();
+      body.innerHTML = inLang(() => CONTENT_I18N.markup(def.draw()));
       return;
     }
     const vals = {};
     let html = '<div class="fig-svg"></div><div class="fig-readout" aria-live="polite"></div><div class="fig-controls">';
     def.controls.forEach((c) => {
       vals[c.id] = c.value;
-      html += `<label><span>${c.label} = <output data-out="${c.id}">${sk(c.value, decimals(c.step))}</output></span>
+      html += `<label><span>${inLang(() => CONTENT_I18N.text(c.label))} = <output data-out="${c.id}">${inLang(() => sk(c.value, decimals(c.step)))}</output></span>
         <input type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.value}" data-ctl="${c.id}"></label>`;
     });
     body.innerHTML = html + '</div>';
 
-    const update = () => {
+    const update = () => inLang(() => {
       const r = def.draw(vals);
-      body.querySelector('.fig-svg').innerHTML = r.svg;
+      body.querySelector('.fig-svg').innerHTML = CONTENT_I18N.markup(r.svg);
       body.querySelector('.fig-readout').innerHTML = r.readout;
-    };
+    });
     def.controls.forEach((c) => {
       const input = body.querySelector(`[data-ctl="${c.id}"]`);
       input.addEventListener('input', () => {
         vals[c.id] = Number(input.value);
-        body.querySelector(`[data-out="${c.id}"]`).textContent = sk(vals[c.id], decimals(c.step));
+        body.querySelector(`[data-out="${c.id}"]`).textContent = inLang(() => sk(vals[c.id], decimals(c.step)));
         update();
       });
     });

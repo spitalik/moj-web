@@ -1,13 +1,16 @@
 /* Generátory úloh na precvičovanie a kontrola odpovedí.
    Každý generátor vráti: q (zadanie, LaTeX), answer (číslo, alebo pole čísel pri type 'set'),
-   type ('num' | 'set'), tol (tolerancia), solution (HTML), hint (text). */
+   type ('num' | 'set'), tol (tolerancia), solution (HTML), hint (text).
+   Texty sa označujú značkou T (js/content-i18n.js): make(id, jazyk) spustí generátor v kontexte jazyka. */
 (function () {
   'use strict';
 
   const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
-  const fmt = (x) => (Number.isInteger(x) ? String(x) : String(Math.round(x * 1000) / 1000).replace('.', ','));
+  const { T } = CONTENT_I18N;
+  // desatinný oddeľovač podľa jazyka obsahu (slovenčina čiarka, angličtina bodka)
+  const fmt = (x) => (Number.isInteger(x) ? String(x) : String(Math.round(x * 1000) / 1000).replace('.', CONTENT_I18N.decimal()));
 
   // Člen polynómu: " + 3x", " - x", " + 5"; pri nulovom koeficiente prázdny reťazec.
   const term = (c, v = '') => {
@@ -55,10 +58,10 @@
   G.mnoziny = () => {
     const c = rnd(0, 5), a = rnd(c, c + 8), b = rnd(c, c + 8);
     return {
-      q: `Množina $A$ má $${a}$ prvkov, množina $B$ má $${b}$ prvkov a ich prienik má $${c}$ prvkov. Koľko prvkov má $A\\cup B$?`,
+      q: T`Množina $A$ má $${a}$ prvkov, množina $B$ má $${b}$ prvkov a ich prienik má $${c}$ prvkov. Koľko prvkov má $A\\cup B$?`,
       answer: a + b - c,
       solution: `$|A\\cup B|=|A|+|B|-|A\\cap B|=${a}+${b}-${c}=${a + b - c}$.`,
-      hint: 'Prvky prieniku sa rátajú dvakrát, preto ich odčítaj.'
+      hint: T`Prvky prieniku sa rátajú dvakrát, preto ich odčítaj.`
     };
   };
 
@@ -114,10 +117,10 @@
     const a = rnd(2, 9) * pick([1, -1]), x = rnd(-10, 10), b = pick([-1, 1]) * rnd(1, 20), c = a * x + b;
     return {
       signed: true,
-      q: `Vyrieš rovnicu $${a}x${term(b)} = ${c}$.`,
+      q: T`Vyrieš rovnicu $${a}x${term(b)} = ${c}$.`,
       answer: x,
-      solution: `$${a}x=${c}${term(-b)}=${a * x}$, teda $x=${x}$.`,
-      hint: 'Najprv odčítaj konštantu na oboch stranách, potom vydeľ koeficientom pri $x$.'
+      solution: T`$${a}x=${c}${term(-b)}=${a * x}$, teda $x=${x}$.`,
+      hint: T`Najprv odčítaj konštantu na oboch stranách, potom vydeľ koeficientom pri $x$.`
     };
   };
 
@@ -137,17 +140,17 @@
     const a = rnd(2, 5), m = rnd(1, 3), n = rnd(1, 3);
     if (Math.random() < 0.5) {
       return {
-        q: `Vypočítaj $${a}^{${m}}\\cdot ${a}^{${n}}$.`,
+        q: T`Vypočítaj $${a}^{${m}}\\cdot ${a}^{${n}}$.`,
         answer: Math.pow(a, m + n),
         solution: `$${a}^{${m}}\\cdot ${a}^{${n}}=${a}^{${m + n}}=${Math.pow(a, m + n)}$.`,
-        hint: 'Pri násobení mocnín rovnakého základu sa exponenty sčítajú.'
+        hint: T`Pri násobení mocnín rovnakého základu sa exponenty sčítajú.`
       };
     }
     return {
-      q: `Vypočítaj $(${a}^{${m}})^{${n}}$.`,
+      q: T`Vypočítaj $(${a}^{${m}})^{${n}}$.`,
       answer: Math.pow(a, m * n),
       solution: `$(${a}^{${m}})^{${n}}=${a}^{${m * n}}=${Math.pow(a, m * n)}$.`,
-      hint: 'Pri umocňovaní mocniny sa exponenty násobia.'
+      hint: T`Pri umocňovaní mocniny sa exponenty násobia.`
     };
   };
 
@@ -245,12 +248,18 @@
     return NaN;
   }
 
-  function make(id) {
+  // lang = jazyk obsahu lekcie (CONTENT_I18N.langFor); bez neho slovenčina
+  function make(id, lang) {
     const gen = G[id];
     if (!gen) throw new Error('Neznáma téma: ' + id);
-    const ex = gen();
-    ex.type = ex.type || 'num';
-    return ex;
+    return CONTENT_I18N.run(lang, id, () => {
+      const ex = gen();
+      ex.type = ex.type || 'num';
+      ex.lang = CONTENT_I18N.lang();
+      // obrázky v zadaní: popisy v SVG podľa slovníka
+      ex.q = CONTENT_I18N.markup(ex.q);
+      return ex;
+    });
   }
 
   // medzery nehrajú rolu: „3 / 4“ = „3/4“, „xiv“ = „XIV“
@@ -294,6 +303,9 @@
   }
 
   function formatAnswer(ex) {
+    return CONTENT_I18N.run(ex.lang, null, () => formatIn(ex));
+  }
+  function formatIn(ex) {
     if (ex.show) return ex.show;
     if (ex.type === 'set') return [...ex.answer].sort((x, y) => x - y).map(fmt).join('; ');
     if (ex.type === 'tuple') return ex.answer.map(fmt).join('; ');

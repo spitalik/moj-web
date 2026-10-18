@@ -8,6 +8,7 @@
 
   const { rnd, pick, gcd, fmt, term, shuffle } = EXERCISES.util;
   const { plane, axes, curvePath, svg, n1, sk } = FIGURES.util;
+  const { T } = CONTENT_I18N;
   const lesson = (l) => LESSONS.push(Object.assign({ level: 's1' }, l));
   const gen = EXERCISES.register;
   const fig = FIGURES.register;
@@ -20,7 +21,8 @@
 
   const nz = (a, b) => { let v = 0; while (v === 0) v = rnd(a, b); return v; };
   const par = (v) => (v < 0 ? `(${v})` : String(v));
-  const dc = (x) => fmt(x).replace(',', '{,}');                  // desatinná čiarka v KaTeXe
+  const dc = (x) => fmt(x).replace(',', '{,}');                  // desatinná čiarka v KaTeXe (v angličtine bodka)
+  const dsep = () => (CONTENT_I18N.decimal() === ',' ? '{,}' : '.'); // oddeľovač v KaTeXe pre čísla mimo fmt
   const uni = (v) => (v < 0 ? '−' : '') + fmt(Math.abs(v));      // číslo v SVG a v popisoch (unicode mínus)
   const lcm = (a, b) => a / gcd(a, b) * b;
   const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
@@ -44,7 +46,7 @@
   const fac1 = (p) => (p === 0 ? 'x' : `(${lin(1, -p)})`);
   const mul = (m) => (m === 1 ? ' + ' : m === -1 ? ' - ' : term(m));
   // posledný krok lineárnej rovnice kx = rhs (pri k = 1 netreba deliť)
-  const solveX = (k, rhs, x) => (k === 1 ? `$x=${x}$` : `$${lin(k, 0)}=${rhs}$ a $x=${x}$`);
+  const solveX = (k, rhs, x) => (k === 1 ? `$x=${x}$` : T`$${lin(k, 0)}=${rhs}$ a $x=${x}$`);
 
   // rozklad na prvočinitele: 360 → [[2,3],[3,2],[5,1]]
   const factorize = (n) => {
@@ -187,7 +189,7 @@
       const ab = a === 0 ? '|x|' : `|x ${a > 0 ? '−' : '+'} ${Math.abs(a)}|`;
       const readout = r === 0
         ? `${ab} = 0 ⇔ x = ${uni(a)} · ${ab} ≤ 0 ⇔ x = ${uni(a)}`
-        : `${ab} = ${uni(r)} ⇔ x = ${uni(lo)} alebo x = ${uni(hi)} · <span class="c-accent">${ab} ≤ ${uni(r)} ⇔ x ∈ ⟨${uni(lo)}; ${uni(hi)}⟩</span>`;
+        : T`${ab} = ${uni(r)} ⇔ x = ${uni(lo)} alebo x = ${uni(hi)} · <span class="c-accent">${ab} ≤ ${uni(r)} ⇔ x ∈ ⟨${uni(lo)}; ${uni(hi)}⟩</span>`;
       return { svg: s, readout };
     }
   });
@@ -330,7 +332,7 @@
         <circle class="f-dot f-dot-ok" cx="${n1(p.X(2))}" cy="${n1(p.Y(k / 2))}" r="5"/>`;
       return {
         svg: svg(p, axes(p), clipped, '', 'Grafy priamej a nepriamej úmernosti'),
-        readout: `<span class="c-accent">priama: y = ${sk(k, 1)}·x</span> · <span class="c-ok">nepriama: y = ${sk(k, 1)}/x</span> · pre x = 2: y = ${sk(2 * k, 1)} a y = ${sk(k / 2, 2)}`
+        readout: T`<span class="c-accent">priama: y = ${sk(k, 1)}·x</span> · <span class="c-ok">nepriama: y = ${sk(k, 1)}/x</span> · pre x = 2: y = ${sk(2 * k, 1)} a y = ${sk(k / 2, 2)}`
       };
     }
   });
@@ -375,30 +377,30 @@
 
   const OBOR = ['$\\mathbb{N}$', '$\\mathbb{Z}$', '$\\mathbb{Q}$', '$\\mathbb{R}$'];
   const OBOR_NUMS = [
-    () => { const n = rnd(2, 60); return [String(n), 0, `$${n}$ je kladné celé číslo, teda prirodzené.`]; },
-    () => { const n = rnd(1, 40); return [`-${n}`, 1, `$-${n}$ je záporné celé číslo, do $\\mathbb{N}$ nepatrí.`]; },
-    () => ['0', 1, 'Nula je celé číslo, do $\\mathbb{N}=\\{1, 2, 3, \\dots\\}$ však nepatrí.'],
+    () => { const n = rnd(2, 60); return [String(n), 0, T`$${n}$ je kladné celé číslo, teda prirodzené.`]; },
+    () => { const n = rnd(1, 40); return [`-${n}`, 1, T`$-${n}$ je záporné celé číslo, do $\\mathbb{N}$ nepatrí.`]; },
+    () => ['0', 1, T`Nula je celé číslo, do $\\mathbb{N}=\\{1, 2, 3, \\dots\\}$ však nepatrí.`],
     () => {
       const k = rnd(2, 6), m = rnd(2, 9), neg = rb();
-      return [`${neg ? '-' : ''}\\frac{${k * m}}{${k}}`, neg ? 1 : 0, `Zlomok sa dá vykrátiť: $${neg ? '-' : ''}\\frac{${k * m}}{${k}}=${neg ? -m : m}$.`];
+      return [`${neg ? '-' : ''}\\frac{${k * m}}{${k}}`, neg ? 1 : 0, T`Zlomok sa dá vykrátiť: $${neg ? '-' : ''}\\frac{${k * m}}{${k}}=${neg ? -m : m}$.`];
     },
     () => {
       let p, q;
       do { q = rnd(3, 9); p = rnd(1, 20); } while (gcd(p, q) !== 1);
-      return [`${rb() ? '-' : ''}\\frac{${p}}{${q}}`, 2, 'Je to podiel dvoch celých čísel, ktorý po krátení nie je celým číslom.'];
+      return [`${rb() ? '-' : ''}\\frac{${p}}{${q}}`, 2, T`Je to podiel dvoch celých čísel, ktorý po krátení nie je celým číslom.`];
     },
     () => {
       const v = (rnd(0, 30) + pick([0.25, 0.5, 0.75, 0.125, 0.2, 0.6])) * pick([1, -1]);
-      return [dc(v), 2, 'Konečný desatinný rozvoj má racionálne číslo: je to zlomok s menovateľom 10, 100, 1000, …'];
+      return [dc(v), 2, T`Konečný desatinný rozvoj má racionálne číslo: je to zlomok s menovateľom 10, 100, 1000, …`];
     },
-    () => { const d = rnd(1, 8); return [`0{,}\\overline{${d}}`, 2, `Periodický rozvoj má racionálne číslo: $0{,}\\overline{${d}}=${fTex(d, 9)}$.`]; },
+    () => { const d = rnd(1, 8); return [`0${dsep()}\\overline{${d}}`, 2, T`Periodický rozvoj má racionálne číslo: $0{,}\\overline{${d}}=${fTex(d, 9)}$.`]; },
     () => { const m = rnd(2, 12); return [`\\sqrt{${m * m}}`, 0, `$\\sqrt{${m * m}}=${m}$.`]; },
     () => {
       let n;
       do { n = rnd(2, 50); } while (Number.isInteger(Math.sqrt(n)));
-      return [`\\sqrt{${n}}`, 3, `$${n}$ nie je druhou mocninou celého čísla, preto je $\\sqrt{${n}}$ iracionálne.`];
+      return [`\\sqrt{${n}}`, 3, T`$${n}$ nie je druhou mocninou celého čísla, preto je $\\sqrt{${n}}$ iracionálne.`];
     },
-    () => [pick(['\\pi', '2\\pi', '\\frac{\\pi}{2}']), 3, 'Číslo $\\pi$ je iracionálne, a teda aj každý jeho nenulový racionálny násobok.'],
+    () => [pick(['\\pi', '2\\pi', '\\frac{\\pi}{2}']), 3, T`Číslo $\\pi$ je iracionálne, a teda aj každý jeho nenulový racionálny násobok.`],
     () => {
       const a = pick([2, 3, 5]), k = rnd(2, 4);
       return [`\\sqrt{${a}}\\cdot\\sqrt{${a * k * k}}`, 0, `$\\sqrt{${a}}\\cdot\\sqrt{${a * k * k}}=\\sqrt{${a * a * k * k}}=${a * k}$.`];
@@ -408,7 +410,7 @@
       const b = pick([9, 25, 36, 49, 64, 81].filter((x) => x !== a && gcd(Math.sqrt(x), Math.sqrt(a)) === 1));
       return [`\\sqrt{\\frac{${a}}{${b}}}`, 2, `$\\sqrt{\\frac{${a}}{${b}}}=\\frac{${Math.sqrt(a)}}{${Math.sqrt(b)}}$.`];
     },
-    () => { const n = pick([2, 3, 5, 7]); return [`1 - \\sqrt{${n}}`, 3, 'Ak by bolo racionálne, aj $\\sqrt{' + n + '}$ by bola racionálna. Súčet racionálneho a iracionálneho čísla je iracionálny.']; },
+    () => { const n = pick([2, 3, 5, 7]); return [`1 - \\sqrt{${n}}`, 3, T`Ak by bolo racionálne, aj $\\sqrt{${n}}$ by bola racionálna. Súčet racionálneho a iracionálneho čísla je iracionálny.`]; },
     () => { const n = pick([2, 3, 5, 6, 7]); return [`(\\sqrt{${n}})^2`, 0, `$(\\sqrt{${n}})^2=${n}$.`]; }
   ];
 
@@ -418,9 +420,9 @@
       const [x, k, why] = pick(OBOR_NUMS)();
       return {
         type: 'choice', options: [...OBOR], answer: OBOR[k],
-        q: `Ktorá je najmenšia z množín $\\mathbb{N}\\subset\\mathbb{Z}\\subset\\mathbb{Q}\\subset\\mathbb{R}$, do ktorej patrí číslo $${x}$?`,
-        solution: `${why} Najmenšia vyhovujúca množina je ${OBOR[k]}.`,
-        hint: 'Číslo najprv zjednoduš (vykráť, odmocni). Zlomok, ktorý nie je celým číslom, patrí do $\\mathbb{Q}$; odmocnina z čísla, ktoré nie je štvorcom, je iracionálna.'
+        q: T`Ktorá je najmenšia z množín $\\mathbb{N}\\subset\\mathbb{Z}\\subset\\mathbb{Q}\\subset\\mathbb{R}$, do ktorej patrí číslo $${x}$?`,
+        solution: T`${why} Najmenšia vyhovujúca množina je ${OBOR[k]}.`,
+        hint: T`Číslo najprv zjednoduš (vykráť, odmocni). Zlomok, ktorý nie je celým číslom, patrí do $\\mathbb{Q}$; odmocnina z čísla, ktoré nie je štvorcom, je iracionálna.`
       };
     }
     if (t < 0.5) {
@@ -430,21 +432,21 @@
         do { a = rnd(0, 9); b = rnd(0, 9); } while (a === b);
         const n = 10 * a + b;
         [p, q] = red(n, 99);
-        x = `0{,}\\overline{${a}${b}}`;
-        sol = `Označme $x=${x}$. Perióda má dve cifry, preto $100x=${n}{,}\\overline{${a}${b}}$. Odčítaním $100x-x=${n}$, teda $99x=${n}$ a $x=\\frac{${n}}{99}${q !== 99 ? `=${fTex(p, q)}` : ''}$.`;
+        x = `0${dsep()}\\overline{${a}${b}}`;
+        sol = T`Označme $x=${x}$. Perióda má dve cifry, preto $100x=${n}{,}\\overline{${a}${b}}$. Odčítaním $100x-x=${n}$, teda $99x=${n}$ a $x=\\frac{${n}}{99}${q !== 99 ? `=${fTex(p, q)}` : ''}$.`;
       } else {
         let a, b;
         do { a = rnd(1, 9); b = rnd(1, 8); } while (a === b);
-        x = `0{,}${a}\\overline{${b}}`;
+        x = `0${dsep()}${a}\\overline{${b}}`;
         const n = 9 * a + b;
         [p, q] = red(n, 90);
-        sol = `Označme $x=${x}$. Potom $10x=${a}{,}\\overline{${b}}$ a $100x=${a}${b}{,}\\overline{${b}}$. Odčítaním $100x-10x=${10 * a + b}-${a}$, teda $90x=${n}$ a $x=\\frac{${n}}{90}${q !== 90 ? `=${fTex(p, q)}` : ''}$.`;
+        sol = T`Označme $x=${x}$. Potom $10x=${a}{,}\\overline{${b}}$ a $100x=${a}${b}{,}\\overline{${b}}$. Odčítaním $100x-10x=${10 * a + b}-${a}$, teda $90x=${n}$ a $x=\\frac{${n}}{90}${q !== 90 ? `=${fTex(p, q)}` : ''}$.`;
       }
       return {
-        type: 'tuple', answer: [p, q], placeholder: 'čitateľ; menovateľ', show: `${p}/${q}`,
-        q: `Zapíš periodické číslo $${x}$ ako zlomok v základnom tvare. Zadaj čitateľa a menovateľa oddelené bodkočiarkou.`,
+        type: 'tuple', answer: [p, q], placeholder: T`čitateľ; menovateľ`, show: `${p}/${q}`,
+        q: T`Zapíš periodické číslo $${x}$ ako zlomok v základnom tvare. Zadaj čitateľa a menovateľa oddelené bodkočiarkou.`,
         solution: sol,
-        hint: 'Číslo označ $x$ a vynásob ho takou mocninou 10, aby sa perióda posunula pred desatinnú čiarku. Potom odčítaj, aby perióda zmizla.'
+        hint: T`Číslo označ $x$ a vynásob ho takou mocninou 10, aby sa perióda posunula pred desatinnú čiarku. Potom odčítaj, aby perióda zmizla.`
       };
     }
     if (t < 0.78) {
@@ -460,18 +462,18 @@
       const OPS = { cap: 'A\\cap B', cup: 'A\\cup B', ab: 'A\\setminus B', ba: 'B\\setminus A' };
       const op = pick(Object.keys(res)), I = res[op];
       const cands = [{ ...I, L: !I.L }, { ...I, R: !I.R }, { ...I, L: !I.L, R: !I.R }, ...Object.values(res)].map((x) => optT([x]));
-      const pat = (inB, v) => (inB ? `bod $${v}$ do neho patrí` : `bod $${v}$ do neho nepatrí`);
+      const pat = (inB, v) => (inB ? T`bod $${v}$ do neho patrí` : T`bod $${v}$ do neho nepatrí`);
       const why = {
-        cap: `Prienik tvoria čísla, ktoré ležia v oboch intervaloch. Začína sa v $${s[1]}$ (ľavý krajný bod $B$, ${pat(B.L, s[1])}) a končí v $${s[2]}$ (pravý krajný bod $A$, ${pat(A.R, s[2])}).`,
-        cup: `Intervaly sa prekrývajú, zjednotenie je preto jediný interval od ľavého konca $A$ po pravý koniec $B$.`,
-        ab: `Z intervalu $A$ odoberieme čísla, ktoré ležia v $B$. Zostane časť od $${s[0]}$ po $${s[1]}$; bod $${s[1]}$ ${B.L ? 'patrí do $B$, preto ho odoberieme' : 'do $B$ nepatrí, preto v rozdiele zostáva'}.`,
-        ba: `Z intervalu $B$ odoberieme čísla, ktoré ležia v $A$. Zostane časť od $${s[2]}$ ďalej; bod $${s[2]}$ ${A.R ? 'patrí do $A$, preto ho odoberieme' : 'do $A$ nepatrí, preto v rozdiele zostáva'}.`
+        cap: T`Prienik tvoria čísla, ktoré ležia v oboch intervaloch. Začína sa v $${s[1]}$ (ľavý krajný bod $B$, ${pat(B.L, s[1])}) a končí v $${s[2]}$ (pravý krajný bod $A$, ${pat(A.R, s[2])}).`,
+        cup: T`Intervaly sa prekrývajú, zjednotenie je preto jediný interval od ľavého konca $A$ po pravý koniec $B$.`,
+        ab: T`Z intervalu $A$ odoberieme čísla, ktoré ležia v $B$. Zostane časť od $${s[0]}$ po $${s[1]}$; bod $${s[1]}$ ${B.L ? T`patrí do $B$, preto ho odoberieme` : T`do $B$ nepatrí, preto v rozdiele zostáva`}.`,
+        ba: T`Z intervalu $B$ odoberieme čísla, ktoré ležia v $A$. Zostane časť od $${s[2]}$ ďalej; bod $${s[2]}$ ${A.R ? T`patrí do $A$, preto ho odoberieme` : T`do $A$ nepatrí, preto v rozdiele zostáva`}.`
       }[op];
       return {
         type: 'choice', answer: optT([I]), options: choose(optT([I]), cands),
-        q: `Dané sú intervaly $A=${ivT(A)}$ a $B=${ivT(B)}$. Urči $${OPS[op]}$.`,
-        solution: `${why} Teda $${OPS[op]}=${ivT(I)}$.`,
-        hint: 'Nakresli oba intervaly nad jednu číselnú os. Pri každom krajnom bode zisti, či do výsledku patrí.'
+        q: T`Dané sú intervaly $A=${ivT(A)}$ a $B=${ivT(B)}$. Urči $${OPS[op]}$.`,
+        solution: T`${why} Teda $${OPS[op]}=${ivT(I)}$.`,
+        hint: T`Nakresli oba intervaly nad jednu číselnú os. Pri každom krajnom bode zisti, či do výsledku patrí.`
       };
     }
     const a = rnd(-8, 3) + pick([0, 0, 0.5]), b = a + rnd(3, 9) + pick([0, 0.5]);
@@ -480,13 +482,13 @@
     if (lo === a && !I.L) lo++;
     if (hi === b && !I.R) hi--;
     const cnt = hi - lo + 1;
-    const desc = rb() ? `interval $${ivT(I)}$`
-      : `množina $\\{x\\in\\mathbb{R};\\ ${dc(a)} ${I.L ? '\\le' : '&lt;'} x ${I.R ? '\\le' : '&lt;'} ${dc(b)}\\}$`;
+    const desc = rb() ? T`interval $${ivT(I)}$`
+      : T`množina $\\{x\\in\\mathbb{R};\\ ${dc(a)} ${I.L ? '\\le' : '&lt;'} x ${I.R ? '\\le' : '&lt;'} ${dc(b)}\\}$`;
     return {
       answer: cnt,
-      q: `Koľko celých čísel obsahuje ${desc}?`,
-      solution: `Najmenšie celé číslo, ktoré do intervalu patrí, je $${lo}$, najväčšie $${hi}$. Spolu je to $${hi}-${par(lo)}+1=${cnt}$ ${pl(cnt, CISLO)}.`,
-      hint: 'Nájdi najmenšie a najväčšie celé číslo v intervale. Pozor na krajné body, ktoré do intervalu nepatria.'
+      q: T`Koľko celých čísel obsahuje ${desc}?`,
+      solution: T`Najmenšie celé číslo, ktoré do intervalu patrí, je $${lo}$, najväčšie $${hi}$. Spolu je to $${hi}-${par(lo)}+1=${cnt}$ ${T.s(pl(cnt, CISLO))}.`,
+      hint: T`Nájdi najmenšie a najväčšie celé číslo v intervale. Pozor na krajné body, ktoré do intervalu nepatria.`
     };
   });
 
@@ -527,18 +529,18 @@
         const u = Math.abs(a - b), w = Math.abs(c - d);
         return {
           signed: true, answer: u - w,
-          q: `Vypočítaj $|${a}-${par(b)}|-|${c}-${par(d)}|$.`,
-          solution: `$|${a}-${par(b)}|=|${a - b}|=${u}$ a $|${c}-${par(d)}|=|${c - d}|=${w}$, teda výsledok je $${u}-${w}=${u - w}$.`,
-          hint: 'Najprv vypočítaj výrazy vnútri absolútnych hodnôt, potom vezmi ich absolútne hodnoty.'
+          q: T`Vypočítaj $|${a}-${par(b)}|-|${c}-${par(d)}|$.`,
+          solution: T`$|${a}-${par(b)}|=|${a - b}|=${u}$ a $|${c}-${par(d)}|=|${c - d}|=${w}$, teda výsledok je $${u}-${w}=${u - w}$.`,
+          hint: T`Najprv vypočítaj výrazy vnútri absolútnych hodnôt, potom vezmi ich absolútne hodnoty.`
         };
       }
       const a = nz(-12, 12), b = nz(-12, 12), k = rnd(2, 4);
       const inner = Math.abs(a) - k * Math.abs(b), res = Math.abs(inner);
       return {
         answer: res,
-        q: `Vypočítaj $\\big||${a}|-${k}\\cdot|${b}|\\big|$.`,
-        solution: `$|${a}|=${Math.abs(a)}$ a $|${b}|=${Math.abs(b)}$. Vnútri: $${Math.abs(a)}-${k}\\cdot ${Math.abs(b)}=${inner}$, a $|${inner}|=${res}$.`,
-        hint: 'Postupuj zvnútra von. Výsledok absolútnej hodnoty nikdy nie je záporný.'
+        q: T`Vypočítaj $\\big||${a}|-${k}\\cdot|${b}|\\big|$.`,
+        solution: T`$|${a}|=${Math.abs(a)}$ a $|${b}|=${Math.abs(b)}$. Vnútri: $${Math.abs(a)}-${k}\\cdot ${Math.abs(b)}=${inner}$, a $|${inner}|=${res}$.`,
+        hint: T`Postupuj zvnútra von. Výsledok absolútnej hodnoty nikdy nie je záporný.`
       };
     }
     if (t < 0.5) {
@@ -546,10 +548,10 @@
       const d = p % 2 ? 2 * rnd(1, 4) : rnd(1, 6);
       const x1 = rnd(-5, 8), x2 = x1 - d, r = p * d / 2, q = r - p * x1;
       return {
-        type: 'set', signed: true, answer: [x1, x2], placeholder: 'napr. -2; 5',
-        q: `Vyrieš rovnicu $|${lin(p, q)}|=${r}$. Zadaj obe riešenia oddelené bodkočiarkou.`,
-        solution: `Výraz v absolútnej hodnote sa rovná $${r}$ alebo $${-r}$. Z $${lin(p, q)}=${r}$ dostaneme $x=${x1}$, z $${lin(p, q)}=${-r}$ dostaneme $x=${x2}$.`,
-        hint: 'Rovnica $|V|=r$ s $r&gt;0$ sa rozpadne na dve lineárne rovnice $V=r$ a $V=-r$.'
+        type: 'set', signed: true, answer: [x1, x2], placeholder: T`napr. -2; 5`,
+        q: T`Vyrieš rovnicu $|${lin(p, q)}|=${r}$. Zadaj obe riešenia oddelené bodkočiarkou.`,
+        solution: T`Výraz v absolútnej hodnote sa rovná $${r}$ alebo $${-r}$. Z $${lin(p, q)}=${r}$ dostaneme $x=${x1}$, z $${lin(p, q)}=${-r}$ dostaneme $x=${x2}$.`,
+        hint: T`Rovnica $|V|=r$ s $r&gt;0$ sa rozpadne na dve lineárne rovnice $V=r$ a $V=-r$.`
       };
     }
     if (t < 0.78) {
@@ -565,20 +567,20 @@
       return {
         type: 'choice', answer: ans,
         options: choose(ans, [optT(inside(!cl)), optT(outside(!cl)), optT(inside(cl)), optT(outside(cl)), wrongSign]),
-        q: `Vyrieš nerovnicu $${lhs} ${REL[rel]} ${m * r}$ v $\\mathbb{R}$.`,
-        solution: `${m === 1 ? '' : `Vyberieme ${m} pred absolútnu hodnotu a vydelíme: $${absT(a)} ${REL[rel]} ${r}$. `}`
-          + `Výraz $${absT(a)}$ je vzdialenosť čísla $x$ od $${a}$. Vzdialenosť ${inn ? 'menšia' : 'väčšia'} ako ${cl ? 'alebo rovná ' : ''}$${r}$ majú čísla `
-          + `${inn ? `medzi $${lo}$ a $${hi}$` : `naľavo od $${lo}$ a napravo od $${hi}$`}${cl ? ' vrátane krajných bodov' : ' bez krajných bodov'}. Riešenie: ${ans}.`,
-        hint: '$|x-a|$ je vzdialenosť $x$ od $a$. Nájdi body vo vzdialenosti $r$ od $a$ a rozhodni, či hľadáš čísla bližšie alebo ďalej.'
+        q: T`Vyrieš nerovnicu $${lhs} ${REL[rel]} ${m * r}$ v $\\mathbb{R}$.`,
+        solution: `${m === 1 ? '' : T`Vyberieme ${m} pred absolútnu hodnotu a vydelíme: $${absT(a)} ${REL[rel]} ${r}$. `}`
+          + T`Výraz $${absT(a)}$ je vzdialenosť čísla $x$ od $${a}$. Vzdialenosť ${inn ? T`menšia` : T`väčšia`} ako ${cl ? T`alebo rovná ` : ''}$${r}$ majú čísla `
+          + T`${inn ? T`medzi $${lo}$ a $${hi}$` : T`naľavo od $${lo}$ a napravo od $${hi}$`}${cl ? T` vrátane krajných bodov` : T` bez krajných bodov`}. Riešenie: ${ans}.`,
+        hint: T`$|x-a|$ je vzdialenosť $x$ od $a$. Nájdi body vo vzdialenosti $r$ od $a$ a rozhodni, či hľadáš čísla bližšie alebo ďalej.`
       };
     }
     const a = nz(-7, 7), r = rnd(2, 7), strict = rb();
     const cnt = strict ? 2 * r - 1 : 2 * r + 1;
     return {
       answer: cnt,
-      q: `Koľko celých čísel $x$ spĺňa nerovnicu $${absT(a)} ${strict ? '&lt;' : '\\le'} ${r}$?`,
-      solution: `Riešením je interval $${ivT({ a: a - r, b: a + r, L: !strict, R: !strict })}$. Celé čísla v ňom sú od $${strict ? a - r + 1 : a - r}$ po $${strict ? a + r - 1 : a + r}$, spolu ${cnt}.`,
-      hint: 'Prepíš nerovnicu na interval okolo stredu $a$ a spočítaj celé čísla v ňom.'
+      q: T`Koľko celých čísel $x$ spĺňa nerovnicu $${absT(a)} ${strict ? '&lt;' : '\\le'} ${r}$?`,
+      solution: T`Riešením je interval $${ivT({ a: a - r, b: a + r, L: !strict, R: !strict })}$. Celé čísla v ňom sú od $${strict ? a - r + 1 : a - r}$ po $${strict ? a + r - 1 : a + r}$, spolu ${cnt}.`,
+      hint: T`Prepíš nerovnicu na interval okolo stredu $a$ a spočítaj celé čísla v ňom.`
     };
   });
 
@@ -625,18 +627,18 @@
       if (rb()) {
         return {
           type: 'tuple', answer: [e2, e3, e5], placeholder: 'a; b; c',
-          q: `Rozlož číslo $${n}$ na súčin prvočísel v tvare $2^a\\cdot 3^b\\cdot 5^c$. Zadaj exponenty $a; b; c$ (ak prvočíslo v rozklade nie je, jeho exponent je 0).`,
-          solution: `Postupne delíme: $${n}=${facTex(n)}$, teda $a=${e2}$, $b=${e3}$, $c=${e5}$.`,
-          hint: 'Deľ číslom 2, kým sa dá, potom číslom 3, potom 5. Počítaj, koľkokrát si delil.'
+          q: T`Rozlož číslo $${n}$ na súčin prvočísel v tvare $2^a\\cdot 3^b\\cdot 5^c$. Zadaj exponenty $a; b; c$ (ak prvočíslo v rozklade nie je, jeho exponent je 0).`,
+          solution: T`Postupne delíme: $${n}=${facTex(n)}$, teda $a=${e2}$, $b=${e3}$, $c=${e5}$.`,
+          hint: T`Deľ číslom 2, kým sa dá, potom číslom 3, potom 5. Počítaj, koľkokrát si delil.`
         };
       }
       const e7 = rnd(0, 1), m = n * 7 ** e7, cnt = (e2 + 1) * (e3 + 1) * (e5 + 1) * (e7 + 1);
       const fs = factorize(m);
       return {
         answer: cnt,
-        q: `Koľko deliteľov (vrátane čísla 1 a samotného čísla) má číslo $${m}$?`,
-        solution: `$${m}=${facTex(m)}$. Každý deliteľ vznikne voľbou exponentu každého prvočísla od 0 po jeho exponent v rozklade, preto je deliteľov $${fs.map(([, e]) => `(${e}+1)`).join('\\cdot ')}=${cnt}$.`,
-        hint: 'Rozlož číslo na prvočinitele. Ak $n=p^a\\cdot q^b\\cdots$, má $(a+1)(b+1)\\cdots$ deliteľov.'
+        q: T`Koľko deliteľov (vrátane čísla 1 a samotného čísla) má číslo $${m}$?`,
+        solution: T`$${m}=${facTex(m)}$. Každý deliteľ vznikne voľbou exponentu každého prvočísla od 0 po jeho exponent v rozklade, preto je deliteľov $${fs.map(([, e]) => `(${e}+1)`).join('\\cdot ')}=${cnt}$.`,
+        hint: T`Rozlož číslo na prvočinitele. Ak $n=p^a\\cdot q^b\\cdots$, má $(a+1)(b+1)\\cdots$ deliteľov.`
       };
     }
     if (t < 0.5) {
@@ -644,11 +646,11 @@
       do { g = rnd(2, 15); m = rnd(2, 12); n = rnd(2, 12); } while (m === n || gcd(m, n) !== 1 || g * Math.max(m, n) > 300);
       const a = g * m, b = g * n, L = g * m * n;
       return {
-        type: 'tuple', answer: [g, L], placeholder: 'NSD; nsn',
-        q: `Urči najväčší spoločný deliteľ a najmenší spoločný násobok čísel $${a}$ a $${b}$. Zadaj ich v poradí NSD; nsn.`,
-        solution: `$${a}=${facTex(a)}$ a $${b}=${facTex(b)}$. $\\mathrm{NSD}(${a}, ${b})=${facTex(g)}${factorize(g).length > 1 || factorize(g)[0][1] > 1 ? `=${g}` : ''}$ (spoločné prvočinitele s menšími exponentmi), `
-          + `$\\mathrm{nsn}(${a}, ${b})=\\frac{${a}\\cdot ${b}}{${g}}=${L}$.`,
-        hint: 'Rozlož obe čísla na prvočinitele. Pre nsn môžeš použiť vzťah $\\mathrm{nsn}(a, b)=\\frac{a\\cdot b}{\\mathrm{NSD}(a, b)}$.'
+        type: 'tuple', answer: [g, L], placeholder: T`NSD; nsn`,
+        q: T`Urči najväčší spoločný deliteľ a najmenší spoločný násobok čísel $${a}$ a $${b}$. Zadaj ich v poradí NSD; nsn.`,
+        solution: T`$${a}=${facTex(a)}$ a $${b}=${facTex(b)}$. $\\mathrm{NSD}(${a}, ${b})=${facTex(g)}${factorize(g).length > 1 || factorize(g)[0][1] > 1 ? `=${g}` : ''}$ (spoločné prvočinitele s menšími exponentmi), `
+          + T`$\\mathrm{nsn}(${a}, ${b})=\\frac{${a}\\cdot ${b}}{${g}}=${L}$.`,
+        hint: T`Rozlož obe čísla na prvočinitele. Pre nsn môžeš použiť vzťah $\\mathrm{nsn}(a, b)=\\frac{a\\cdot b}{\\mathrm{NSD}(a, b)}$.`
       };
     }
     if (t < 0.75) {
@@ -665,9 +667,9 @@
         const rest = dg.reduce((s, v) => s + v, 0) - need;
         return {
           answer: need,
-          q: `Ktorú cifru treba napísať namiesto $\\ast$, aby číslo $${shown}$ bolo deliteľné deviatimi?`,
-          solution: `Ciferný súčet známych cifier je $${rest}$. Najbližší násobok 9, ktorý vieme dosiahnuť pridaním jednej cifry, je $${rest + need}$, preto chýba cifra $${need}$. Číslo $${dg.join('')}$ je deliteľné deviatimi.`,
-          hint: 'Číslo je deliteľné 9 práve vtedy, keď je 9 deliteľný jeho ciferný súčet.'
+          q: T`Ktorú cifru treba napísať namiesto $\\ast$, aby číslo $${shown}$ bolo deliteľné deviatimi?`,
+          solution: T`Ciferný súčet známych cifier je $${rest}$. Najbližší násobok 9, ktorý vieme dosiahnuť pridaním jednej cifry, je $${rest + need}$, preto chýba cifra $${need}$. Číslo $${dg.join('')}$ je deliteľné deviatimi.`,
+          hint: T`Číslo je deliteľné 9 práve vtedy, keď je 9 deliteľný jeho ciferný súčet.`
         };
       }
       let dg, pos, need;
@@ -683,9 +685,9 @@
       const alt = dg.reduce((s, v, i) => s + (i % 2 ? -v : v), 0);
       return {
         answer: need,
-        q: `Ktorú cifru treba napísať namiesto $\\ast$, aby číslo $${shown}$ bolo deliteľné jedenástimi?`,
-        solution: `Striedavý súčet cifier (zľava so znamienkami $+,-,+,-,+$) musí byť deliteľný 11. Pre cifru $${need}$ je to $${dg.map((v, i) => (i ? (i % 2 ? `-${v}` : `+${v}`) : v)).join('')}=${alt}$, čo je násobok 11. Iná cifra 0 až 9 nevyhovuje.`,
-        hint: 'Číslo je deliteľné 11 práve vtedy, keď je 11 deliteľný striedavý súčet jeho cifier.'
+        q: T`Ktorú cifru treba napísať namiesto $\\ast$, aby číslo $${shown}$ bolo deliteľné jedenástimi?`,
+        solution: T`Striedavý súčet cifier (zľava so znamienkami $+,-,+,-,+$) musí byť deliteľný 11. Pre cifru $${need}$ je to $${dg.map((v, i) => (i ? (i % 2 ? `-${v}` : `+${v}`) : v)).join('')}=${alt}$, čo je násobok 11. Iná cifra 0 až 9 nevyhovuje.`,
+        hint: T`Číslo je deliteľné 11 práve vtedy, keď je 11 deliteľný striedavý súčet jeho cifier.`
       };
     }
     const k = rnd(0, 2);
@@ -699,9 +701,9 @@
       const sg = pick([1, -1]), L = lcm(b, d), num = a * (L / b) + sg * c * (L / d);
       return {
         signed: true, answer: num / L, show: fTxt(num, L),
-        q: `Vypočítaj $\\frac{${a}}{${b}} ${sg > 0 ? '+' : '-'} \\frac{${c}}{${d}}$. Výsledok zadaj ako zlomok v základnom tvare (napr. 7/12).`,
-        solution: `Spoločný menovateľ je $\\mathrm{nsn}(${b}, ${d})=${L}$: $\\frac{${a * L / b}}{${L}} ${sg > 0 ? '+' : '-'} \\frac{${c * L / d}}{${L}}=\\frac{${num}}{${L}}${red(num, L)[1] !== L ? `=${fTex(num, L)}` : ''}$.`,
-        hint: 'Ako spoločného menovateľa použi najmenší spoločný násobok menovateľov, nie ich súčin.'
+        q: T`Vypočítaj $\\frac{${a}}{${b}} ${sg > 0 ? '+' : '-'} \\frac{${c}}{${d}}$. Výsledok zadaj ako zlomok v základnom tvare (napr. 7/12).`,
+        solution: T`Spoločný menovateľ je $\\mathrm{nsn}(${b}, ${d})=${L}$: $\\frac{${a * L / b}}{${L}} ${sg > 0 ? '+' : '-'} \\frac{${c * L / d}}{${L}}=\\frac{${num}}{${L}}${red(num, L)[1] !== L ? `=${fTex(num, L)}` : ''}$.`,
+        hint: T`Ako spoločného menovateľa použi najmenší spoločný násobok menovateľov, nie ich súčin.`
       };
     }
     if (k === 1) {
@@ -712,9 +714,9 @@
       } while (a === b || L > 180 || L === Math.max(a, b));
       return {
         answer: L,
-        q: `Z autobusovej stanice odchádza linka A každých ${a} minút a linka B každých ${b} minút. O 6.00 odišli oba autobusy naraz. Najskôr o koľko minút odídu opäť súčasne?`,
-        solution: `Hľadáme najmenší spoločný násobok: $${a}=${facTex(a)}$, $${b}=${facTex(b)}$, $\\mathrm{nsn}(${a}, ${b})=${L}$. Opäť odídu spolu o ${L} minút.`,
-        hint: 'Časy odchodov linky A sú násobky jej intervalu. Hľadáme najmenší čas, ktorý je násobkom oboch intervalov.'
+        q: T`Z autobusovej stanice odchádza linka A každých ${a} minút a linka B každých ${b} minút. O 6.00 odišli oba autobusy naraz. Najskôr o koľko minút odídu opäť súčasne?`,
+        solution: T`Hľadáme najmenší spoločný násobok: $${a}=${facTex(a)}$, $${b}=${facTex(b)}$, $\\mathrm{nsn}(${a}, ${b})=${L}$. Opäť odídu spolu o ${L} minút.`,
+        hint: T`Časy odchodov linky A sú násobky jej intervalu. Hľadáme najmenší čas, ktorý je násobkom oboch intervalov.`
       };
     }
     let g, m, n;
@@ -722,9 +724,9 @@
     const askCount = rb();
     return {
       answer: askCount ? m + n : g,
-      q: `Dve laty dlhé ${g * m} cm a ${g * n} cm chceme bez zvyšku rozrezať na čo najdlhšie kúsky rovnakej dĺžky (v celých centimetroch). ${askCount ? 'Koľko kúskov dostaneme spolu?' : 'Aký dlhý bude jeden kúsok (v cm)?'}`,
-      solution: `Dĺžka kúska musí deliť obe dĺžky a má byť čo najväčšia: $\\mathrm{NSD}(${g * m}, ${g * n})=${g}$ cm.${askCount ? ` Kúskov bude $${g * m}:${g}+${g * n}:${g}=${m}+${n}=${m + n}$.` : ''}`,
-      hint: 'Dĺžka kúska je spoločný deliteľ oboch dĺžok. Ktorý je najväčší?'
+      q: T`Dve laty dlhé ${g * m} cm a ${g * n} cm chceme bez zvyšku rozrezať na čo najdlhšie kúsky rovnakej dĺžky (v celých centimetroch). ${askCount ? T`Koľko kúskov dostaneme spolu?` : T`Aký dlhý bude jeden kúsok (v cm)?`}`,
+      solution: T`Dĺžka kúska musí deliť obe dĺžky a má byť čo najväčšia: $\\mathrm{NSD}(${g * m}, ${g * n})=${g}$ cm.${askCount ? T` Kúskov bude $${g * m}:${g}+${g * n}:${g}=${m}+${n}=${m + n}$.` : ''}`,
+      hint: T`Dĺžka kúska je spoločný deliteľ oboch dĺžok. Ktorý je najväčší?`
     };
   });
 
@@ -767,18 +769,18 @@
       if (rb()) {
         A = p * p - r * r; B = 2 * p * q; C = q * q + s * s;
         E = `(${lin(p, q)})^2-(${lin(r, s)})(${lin(r, -s)})`;
-        sol = `$(${lin(p, q)})^2=${poly([p * p, 2 * p * q, q * q])}$ a $(${lin(r, s)})(${lin(r, -s)})=${poly([r * r, 0, -s * s])}$. Po odčítaní: $${poly([A, B, C])}$.`;
+        sol = T`$(${lin(p, q)})^2=${poly([p * p, 2 * p * q, q * q])}$ a $(${lin(r, s)})(${lin(r, -s)})=${poly([r * r, 0, -s * s])}$. Po odčítaní: $${poly([A, B, C])}$.`;
       } else {
         const u = rnd(1, 3), w = nz(-6, 6);
         A = p * u - r * r; B = p * w + q * u - 2 * r * s; C = q * w - s * s;
         E = `(${lin(p, q)})(${lin(u, w)})-(${lin(r, s)})^2`;
-        sol = `$(${lin(p, q)})(${lin(u, w)})=${poly([p * u, p * w + q * u, q * w])}$ a $(${lin(r, s)})^2=${poly([r * r, 2 * r * s, s * s])}$. Po odčítaní: $${poly([A, B, C])}$.`;
+        sol = T`$(${lin(p, q)})(${lin(u, w)})=${poly([p * u, p * w + q * u, q * w])}$ a $(${lin(r, s)})^2=${poly([r * r, 2 * r * s, s * s])}$. Po odčítaní: $${poly([A, B, C])}$.`;
       }
       return {
         type: 'tuple', signed: true, answer: [A, B, C], placeholder: 'A; B; C',
-        q: `Uprav výraz $${E}$ na tvar $Ax^2+Bx+C$ a zadaj koeficienty $A; B; C$.`,
-        solution: sol + ' Pri odčítaní celú druhú zátvorku odčítame, preto sa všetky jej znamienka zmenia.',
-        hint: 'Použi $(a+b)^2=a^2+2ab+b^2$ a $(a+b)(a-b)=a^2-b^2$. Odčítaný výraz daj do zátvorky.'
+        q: T`Uprav výraz $${E}$ na tvar $Ax^2+Bx+C$ a zadaj koeficienty $A; B; C$.`,
+        solution: T`${sol} Pri odčítaní celú druhú zátvorku odčítame, preto sa všetky jej znamienka zmenia.`,
+        hint: T`Použi $(a+b)^2=a^2+2ab+b^2$ a $(a+b)(a-b)=a^2-b^2$. Odčítaný výraz daj do zátvorky.`
       };
     }
     if (t < 0.52) {
@@ -795,9 +797,9 @@
       ][k];
       return {
         signed: true, answer: val,
-        q: `Pre reálne čísla $a$, $b$ platí $a+b=${s}$ a $a\\cdot b=${p}$. Bez výpočtu čísel $a$, $b$ urči hodnotu výrazu $${what}$.`,
-        solution: `Výraz vyjadríme pomocou $a+b$ a $ab$: ${how}.`,
-        hint: 'Vyjadri hľadaný výraz len pomocou súčtu $a+b$ a súčinu $ab$, napr. $(a+b)^2=a^2+2ab+b^2$.'
+        q: T`Pre reálne čísla $a$, $b$ platí $a+b=${s}$ a $a\\cdot b=${p}$. Bez výpočtu čísel $a$, $b$ urči hodnotu výrazu $${what}$.`,
+        solution: T`Výraz vyjadríme pomocou $a+b$ a $ab$: ${how}.`,
+        hint: T`Vyjadri hľadaný výraz len pomocou súčtu $a+b$ a súčinu $ab$, napr. $(a+b)^2=a^2+2ab+b^2$.`
       };
     }
     if (t < 0.76) {
@@ -811,34 +813,34 @@
       const fac = `${r1 === 0 ? 'x' : `(${lin(1, -r1)})`}${r2 === 0 ? 'x' : `(${lin(1, -r2)})`}`;
       const E = rb() ? `\\frac{${num}}{${den}}` : `\\frac{3}{${lin(1, -r1)}}+\\frac{${num}}{${den}}`;
       return {
-        type: 'set', signed: true, answer: [r1, r2], placeholder: 'napr. -2; 3',
-        q: `Pre ktoré reálne čísla $x$ nemá výraz $${E}$ zmysel? Zadaj všetky také čísla oddelené bodkočiarkou.`,
-        solution: `Výraz nemá zmysel tam, kde je niektorý menovateľ nulový. $${den}=${fac.replace(')(', ')\\cdot(')}$, súčin je nulový pre $x=${r1}$ alebo $x=${r2}$.`,
-        hint: 'Menovateľ rozlož na súčin. Súčin je nulový práve vtedy, keď je nulový niektorý činiteľ.'
+        type: 'set', signed: true, answer: [r1, r2], placeholder: T`napr. -2; 3`,
+        q: T`Pre ktoré reálne čísla $x$ nemá výraz $${E}$ zmysel? Zadaj všetky také čísla oddelené bodkočiarkou.`,
+        solution: T`Výraz nemá zmysel tam, kde je niektorý menovateľ nulový. $${den}=${fac.replace(')(', ')\\cdot(')}$, súčin je nulový pre $x=${r1}$ alebo $x=${r2}$.`,
+        hint: T`Menovateľ rozlož na súčin. Súčin je nulový práve vtedy, keď je nulový niektorý činiteľ.`
       };
     }
     const a = rnd(2, 7), k = rnd(2, 6);
     const xm = lin(1, -a), xp = lin(1, a);
-    const T = pick([
+    const V = pick([
       () => [`\\frac{${poly([1, 0, -a * a])}}{${poly([1, a, 0])}}`, `\\frac{${xm}}{x}`,
         [`\\frac{${xp}}{x}`, `\\frac{${xm}}{${a}}`, `-\\frac{${a}}{x}`],
-        `$\\frac{(${xm})(${xp})}{x(${xp})}=\\frac{${xm}}{x}$ pre $x\\neq 0$, $x\\neq ${-a}$`],
+        T`$\\frac{(${xm})(${xp})}{x(${xp})}=\\frac{${xm}}{x}$ pre $x\\neq 0$, $x\\neq ${-a}$`],
       () => [`\\frac{${poly([1, 2 * a, a * a])}}{${poly([1, 0, -a * a])}}`, `\\frac{${xp}}{${xm}}`,
         [`\\frac{${xm}}{${xp}}`, `\\frac{1}{${xm}}`, `\\frac{${xp}}{x}`],
-        `$\\frac{(${xp})^2}{(${xm})(${xp})}=\\frac{${xp}}{${xm}}$ pre $x\\neq \\pm ${a}$`],
+        T`$\\frac{(${xp})^2}{(${xm})(${xp})}=\\frac{${xp}}{${xm}}$ pre $x\\neq \\pm ${a}$`],
       () => [`\\frac{${lin(k, -k * a)}}{${poly([1, -2 * a, a * a])}}`, `\\frac{${k}}{${xm}}`,
         [`\\frac{${k}}{${xp}}`, `\\frac{${k}x}{${xm}}`, `${k}(${xm})`],
-        `$\\frac{${k}(${xm})}{(${xm})^2}=\\frac{${k}}{${xm}}$ pre $x\\neq ${a}$`],
+        T`$\\frac{${k}(${xm})}{(${xm})^2}=\\frac{${k}}{${xm}}$ pre $x\\neq ${a}$`],
       () => [`\\frac{${poly([1, -a, 0])}}{${lin(a, -a * a)}}`, `\\frac{x}{${a}}`,
         [`-\\frac{x}{${a}}`, `\\frac{${xm}}{${a}}`, 'x'],
-        `$\\frac{x(${xm})}{${a}(${xm})}=\\frac{x}{${a}}$ pre $x\\neq ${a}$`]
+        T`$\\frac{x(${xm})}{${a}(${xm})}=\\frac{x}{${a}}$ pre $x\\neq ${a}$`]
     ])();
-    const [E, ans, wrong, why] = T;
+    const [E, ans, wrong, why] = V;
     return {
       type: 'choice', answer: `$${ans}$`, options: shuffle([`$${ans}$`, ...wrong.map((w) => `$${w}$`)]),
-      q: `Zjednoduš výraz $${E}$ (pre všetky $x$, pre ktoré má zmysel).`,
-      solution: `Čitateľ aj menovateľ rozložíme na súčin a vykrátime spoločného činiteľa: ${why}.`,
-      hint: 'Krátiť sa dá len spoločný činiteľ súčinu. Rozlož čitateľ aj menovateľ (vyberanie, vzorce).'
+      q: T`Zjednoduš výraz $${E}$ (pre všetky $x$, pre ktoré má zmysel).`,
+      solution: T`Čitateľ aj menovateľ rozložíme na súčin a vykrátime spoločného činiteľa: ${why}.`,
+      hint: T`Krátiť sa dá len spoločný činiteľ súčinu. Rozlož čitateľ aj menovateľ (vyberanie, vzorce).`
     };
   });
 
@@ -880,11 +882,11 @@
       const P = poly([k, -k * (r1 + r2), k * r1 * r2]);
       const kT = k === 1 ? '' : k === -1 ? '-' : String(k);
       return {
-        type: 'set', signed: true, answer: [r1, r2], placeholder: 'napr. -2; 5',
-        q: `Rozlož trojčlen $${P}$ na súčin v tvare $${kT}(x-x_1)(x-x_2)$. Zadaj čísla $x_1; x_2$.`,
-        solution: `${k === 1 ? '' : `Vyberieme $${k}$: $${kT}(${poly([1, -(r1 + r2), r1 * r2])})$. `}Hľadáme čísla so súčtom $${r1 + r2}$ a súčinom $${r1 * r2}$: sú to $${r1}$ a $${r2}$. `
-          + `Teda $${P}=${kT}(${lin(1, -r1)})(${lin(1, -r2)})$.`,
-        hint: 'Ak $x^2+px+q=(x-x_1)(x-x_2)$, potom $x_1+x_2=-p$ a $x_1\\cdot x_2=q$.'
+        type: 'set', signed: true, answer: [r1, r2], placeholder: T`napr. -2; 5`,
+        q: T`Rozlož trojčlen $${P}$ na súčin v tvare $${kT}(x-x_1)(x-x_2)$. Zadaj čísla $x_1; x_2$.`,
+        solution: T`${k === 1 ? '' : T`Vyberieme $${k}$: $${kT}(${poly([1, -(r1 + r2), r1 * r2])})$. `}Hľadáme čísla so súčtom $${r1 + r2}$ a súčinom $${r1 * r2}$: sú to $${r1}$ a $${r2}$. `
+          + T`Teda $${P}=${kT}(${lin(1, -r1)})(${lin(1, -r2)})$.`,
+        hint: T`Ak $x^2+px+q=(x-x_1)(x-x_2)$, potom $x_1+x_2=-p$ a $x_1\\cdot x_2=q$.`
       };
     }
     if (t < 0.52) {
@@ -892,10 +894,10 @@
       do { a = nz(-6, 6); b = rnd(1, 6); } while (Math.abs(a) === b);
       const P = poly([1, -a, -b * b, a * b * b]);
       return {
-        type: 'set', signed: true, answer: [a, b, -b], placeholder: 'napr. -3; 2; 3',
-        q: `Rozlož mnohočlen $p(x)=${P}$ na súčin lineárnych činiteľov a zadaj všetky jeho korene oddelené bodkočiarkou.`,
-        solution: `Zoskupíme: $p(x)=x^2(${lin(1, -a)})${mul(-b * b)}(${lin(1, -a)})=(${lin(1, -a)})(x^2-${b * b})=(${lin(1, -a)})(${lin(1, -b)})(${lin(1, b)})$. Korene sú $${a}$, $${b}$ a $${-b}$.`,
-        hint: 'Zoskup prvé dva a posledné dva členy a z každej dvojice vyber, čo sa dá. Potom použi $a^2-b^2=(a-b)(a+b)$.'
+        type: 'set', signed: true, answer: [a, b, -b], placeholder: T`napr. -3; 2; 3`,
+        q: T`Rozlož mnohočlen $p(x)=${P}$ na súčin lineárnych činiteľov a zadaj všetky jeho korene oddelené bodkočiarkou.`,
+        solution: T`Zoskupíme: $p(x)=x^2(${lin(1, -a)})${mul(-b * b)}(${lin(1, -a)})=(${lin(1, -a)})(x^2-${b * b})=(${lin(1, -a)})(${lin(1, -b)})(${lin(1, b)})$. Korene sú $${a}$, $${b}$ a $${-b}$.`,
+        hint: T`Zoskup prvé dva a posledné dva členy a z každej dvojice vyber, čo sa dá. Potom použi $a^2-b^2=(a-b)(a+b)$.`
       };
     }
     if (t < 0.76) {
@@ -903,19 +905,19 @@
       const b2 = c3 * c + c2, b1 = b2 * c + c1, r = b1 * c + c0;
       return {
         signed: true, answer: r,
-        q: `Aký zvyšok dostaneme pri delení mnohočlena $p(x)=${poly([c3, c2, c1, c0])}$ dvojčlenom $(${lin(1, -c)})$?`,
-        solution: `Podľa vety o zvyšku je zvyšok $p(${c})$. Hornerovou schémou: $${c3}$, $${c3}\\cdot ${par(c)}${term(c2)}=${b2}$, $${b2}\\cdot ${par(c)}${term(c1)}=${b1}$, $${b1}\\cdot ${par(c)}${term(c0)}=${r}$. Zvyšok je $${r}$.`,
-        hint: 'Zvyšok po delení $(x-c)$ je hodnota $p(c)$. Pozor na znamienko: pri $(x+2)$ je $c=-2$.'
+        q: T`Aký zvyšok dostaneme pri delení mnohočlena $p(x)=${poly([c3, c2, c1, c0])}$ dvojčlenom $(${lin(1, -c)})$?`,
+        solution: T`Podľa vety o zvyšku je zvyšok $p(${c})$. Hornerovou schémou: $${c3}$, $${c3}\\cdot ${par(c)}${term(c2)}=${b2}$, $${b2}\\cdot ${par(c)}${term(c1)}=${b1}$, $${b1}\\cdot ${par(c)}${term(c0)}=${r}$. Zvyšok je $${r}$.`,
+        hint: T`Zvyšok po delení $(x-c)$ je hodnota $p(c)$. Pozor na znamienko: pri $(x+2)$ je $c=-2$.`
       };
     }
-    const T = pick([
+    const V = pick([
       () => {
         const a = rnd(1, 5), plus = rb(), s = plus ? '+' : '-', o = plus ? '-' : '+';
         const P = poly([1, 0, 0, plus ? a ** 3 : -(a ** 3)]);
         const L = `(${lin(1, plus ? a : -a)})`;
         return [P, `${L}(${poly([1, plus ? -a : a, a * a])})`,
           [`${L}(${poly([1, plus ? a : -a, a * a])})`, `${L}^3`, `${L}(${poly([1, 0, a * a])})`],
-          `Podľa vzorca $a^3${s}b^3=(a${s}b)(a^2${o}ab+b^2)$ pre $a=x$, $b=${a}$.`];
+          T`Podľa vzorca $a^3${s}b^3=(a${s}b)(a^2${o}ab+b^2)$ pre $a=x$, $b=${a}$.`];
       },
       () => {
         let k, m;
@@ -923,22 +925,22 @@
         const kx = k === 1 ? 'x' : `${k}x`;
         return [poly([k * k, 0, -m * m]), `(${kx}-${m})(${kx}+${m})`,
           [`(${kx}-${m})^2`, `(${kx}+${m})^2`, `(${m}-${kx})(${m}+${kx})`],
-          `Je to rozdiel štvorcov $(${kx})^2-${m}^2$, teda $(${kx}-${m})(${kx}+${m})$.`];
+          T`Je to rozdiel štvorcov $(${kx})^2-${m}^2$, teda $(${kx}-${m})(${kx}+${m})$.`];
       },
       () => {
         let k, m;
         do { k = rnd(1, 5); m = nz(-7, 7); } while (gcd(k, Math.abs(m)) !== 1 || k === Math.abs(m));
         return [poly([k * k, 2 * k * m, m * m]), `(${lin(k, m)})^2`,
           [`(${lin(k, -m)})^2`, `(${lin(k, m)})(${lin(k, -m)})`, `(${lin(Math.abs(m), m > 0 ? k : -k)})^2`],
-          `Prvý a posledný člen sú štvorce $(${k === 1 ? 'x' : `${k}x`})^2$ a $${Math.abs(m)}^2$, prostredný člen je ich dvojnásobný súčin, teda ide o $(a${m > 0 ? '+' : '-'}b)^2$.`];
+          T`Prvý a posledný člen sú štvorce $(${k === 1 ? 'x' : `${k}x`})^2$ a $${Math.abs(m)}^2$, prostredný člen je ich dvojnásobný súčin, teda ide o $(a${m > 0 ? '+' : '-'}b)^2$.`];
       }
     ])();
-    const [P, ans, wrong, why] = T;
+    const [P, ans, wrong, why] = V;
     return {
       type: 'choice', answer: `$${ans}$`, options: shuffle([`$${ans}$`, ...wrong.map((w) => `$${w}$`)]),
-      q: `Ktorý zápis je rozkladom výrazu $${P}$ na súčin?`,
-      solution: `${why} Správne: $${P}=${ans}$. Overiť to môžeš roznásobením.`,
-      hint: 'Zisti, či ide o rozdiel štvorcov, štvorec dvojčlena alebo súčet/rozdiel tretích mocnín. Každú možnosť môžeš overiť roznásobením.'
+      q: T`Ktorý zápis je rozkladom výrazu $${P}$ na súčin?`,
+      solution: T`${why} Správne: $${P}=${ans}$. Overiť to môžeš roznásobením.`,
+      hint: T`Zisti, či ide o rozdiel štvorcov, štvorec dvojčlena alebo súčet/rozdiel tretích mocnín. Každú možnosť môžeš overiť roznásobením.`
     };
   });
 
@@ -976,9 +978,9 @@
       do { x0 = rnd(-8, 8); c = nz(-6, 6); a = pick([1, 2, 3, -1, -2]); k = nz(-5, 5); b = k * (x0 - c) - a * x0; } while (x0 === c || a === k);
       return {
         signed: true, answer: x0,
-        q: `Vyrieš rovnicu $\\frac{${lin(a, b)}}{${lin(1, -c)}}=${k}$.`,
-        solution: `Podmienka $x\\neq ${c}$. Vynásobíme $(${lin(1, -c)})$: $${lin(a, b)}=${lin(k, -k * c)}$, teda ${solveX(a - k, -k * c - b, x0)}. Podmienku spĺňa.`,
-        hint: 'Napíš podmienku a obe strany vynásob menovateľom.'
+        q: T`Vyrieš rovnicu $\\frac{${lin(a, b)}}{${lin(1, -c)}}=${k}$.`,
+        solution: T`Podmienka $x\\neq ${c}$. Vynásobíme $(${lin(1, -c)})$: $${lin(a, b)}=${lin(k, -k * c)}$, teda ${solveX(a - k, -k * c - b, x0)}. Podmienku spĺňa.`,
+        hint: T`Napíš podmienku a obe strany vynásob menovateľom.`
       };
     }
     if (t < 0.52) {
@@ -990,10 +992,10 @@
       if (a < 0 && b < 0) { a = -a; b = -b; }
       return {
         signed: true, answer: x0,
-        q: `Vyrieš rovnicu $\\frac{${a}}{${lin(1, -p)}}=\\frac{${b}}{${lin(1, -q)}}$.`,
-        solution: `Podmienky $x\\neq ${p}$, $x\\neq ${q}$. Vynásobíme oboma menovateľmi: $${a}(${lin(1, -q)})=${b}(${lin(1, -p)})$, teda $${lin(a, -a * q)}=${lin(b, -b * p)}$, `
-          + `${solveX(a - b, a * q - b * p, x0)}. Podmienky sú splnené.`,
-        hint: 'Rovnosť dvoch zlomkov môžeš „vynásobiť do kríža“: $\\frac{a}{b}=\\frac{c}{d}\\Leftrightarrow ad=bc$ pre $b, d\\neq 0$.'
+        q: T`Vyrieš rovnicu $\\frac{${a}}{${lin(1, -p)}}=\\frac{${b}}{${lin(1, -q)}}$.`,
+        solution: T`Podmienky $x\\neq ${p}$, $x\\neq ${q}$. Vynásobíme oboma menovateľmi: $${a}(${lin(1, -q)})=${b}(${lin(1, -p)})$, teda $${lin(a, -a * q)}=${lin(b, -b * p)}$, `
+          + T`${solveX(a - b, a * q - b * p, x0)}. Podmienky sú splnené.`,
+        hint: T`Rovnosť dvoch zlomkov môžeš „vynásobiť do kríža“: $\\frac{a}{b}=\\frac{c}{d}\\Leftrightarrow ad=bc$ pre $b, d\\neq 0$.`
       };
     }
     if (t < 0.76) {
@@ -1003,25 +1005,25 @@
         a = rnd(1, 4); m = nz(-4, 4); c = nz(-6, 6); b = rnd(-6, 6); x0 = rnd(-6, 6);
         d = trap ? b + a * c : (a - m) * x0 + b + m * c;
       } while (a === m || x0 === c || x0 === -c || d === 0);
-      const NO = 'Rovnica nemá riešenie.';
+      const NO = T`Rovnica nemá riešenie.`;
       const ans = trap ? NO : `$x=${x0}$`;
       const opts = choose(ans, [NO, `$x=${c}$`, `$x=${-c}$`, `$x=${x0}$`, `$x=${x0 === 0 ? 1 : -x0}$`]);
       return {
         type: 'choice', answer: ans, options: opts,
-        q: `Vyrieš rovnicu $\\frac{${lin(a, b)}}{${lin(1, -c)}}=\\frac{${d}}{${lin(1, -c)}}${term(m)}$.`,
-        solution: `Podmienka $x\\neq ${c}$. Vynásobíme $(${lin(1, -c)})$: $${lin(a, b)}=${d}${mul(m)}(${lin(1, -c)})$, teda ${solveX(a - m, d - b - m * c, trap ? c : x0)}. `
-          + (trap ? `Toto číslo však nespĺňa podmienku $x\\neq ${c}$, preto rovnica nemá riešenie.` : 'Podmienku spĺňa, je to riešenie.'),
-        hint: 'Nezabudni na podmienku. Koreň, ktorý ju nespĺňa, riešením nie je.'
+        q: T`Vyrieš rovnicu $\\frac{${lin(a, b)}}{${lin(1, -c)}}=\\frac{${d}}{${lin(1, -c)}}${term(m)}$.`,
+        solution: T`Podmienka $x\\neq ${c}$. Vynásobíme $(${lin(1, -c)})$: $${lin(a, b)}=${d}${mul(m)}(${lin(1, -c)})$, teda ${solveX(a - m, d - b - m * c, trap ? c : x0)}. `
+          + (trap ? T`Toto číslo však nespĺňa podmienku $x\\neq ${c}$, preto rovnica nemá riešenie.` : T`Podmienku spĺňa, je to riešenie.`),
+        hint: T`Nezabudni na podmienku. Koreň, ktorý ju nespĺňa, riešením nie je.`
       };
     }
     let a, m, n, x0, k;
     do { a = rnd(1, 6); m = rnd(1, 5); n = rnd(1, 5); x0 = rnd(-8, 8); k = (m + n) * x0 + (m - n) * a; } while (Math.abs(x0) === a || k === 0);
     return {
       signed: true, answer: x0,
-      q: `Vyrieš rovnicu $\\frac{${m}}{${lin(1, -a)}}+\\frac{${n}}{${lin(1, a)}}=\\frac{${k}}{x^2-${a * a}}$.`,
-      solution: `$x^2-${a * a}=(${lin(1, -a)})(${lin(1, a)})$, podmienky $x\\neq\\pm ${a}$. Vynásobíme: $${m}(${lin(1, a)})+${n}(${lin(1, -a)})=${k}$, `
-        + `teda $${lin(m + n, (m - n) * a)}=${k}$ a $x=${x0}$. Podmienky sú splnené.`,
-      hint: 'Rozlož $x^2-a^2=(x-a)(x+a)$; to je spoločný menovateľ všetkých zlomkov.'
+      q: T`Vyrieš rovnicu $\\frac{${m}}{${lin(1, -a)}}+\\frac{${n}}{${lin(1, a)}}=\\frac{${k}}{x^2-${a * a}}$.`,
+      solution: T`$x^2-${a * a}=(${lin(1, -a)})(${lin(1, a)})$, podmienky $x\\neq\\pm ${a}$. Vynásobíme: $${m}(${lin(1, a)})+${n}(${lin(1, -a)})=${k}$, `
+        + T`teda $${lin(m + n, (m - n) * a)}=${k}$ a $x=${x0}$. Podmienky sú splnené.`,
+      hint: T`Rozlož $x^2-a^2=(x-a)(x+a)$; to je spoločný menovateľ všetkých zlomkov.`
     };
   });
 
@@ -1082,18 +1084,18 @@
         const e = nz(-5, 5);
         x0 = rnd(-6, 6); b = a * e; d = (a - c) * x0 + b;
         lhs = `${a}(${lin(1, e)})`;
-        sol1 = `Roznásobíme: $${lin(a, b)} `;
+        sol1 = T`Roznásobíme: $${lin(a, b)} `;
       }
       const rel = pick(['lt', 'le', 'gt', 'ge']), k = a - c, rel2 = k < 0 ? FLIP[rel] : rel;
       const ray = (r) => [r === 'lt' || r === 'le' ? { a: -Infinity, b: x0, R: r === 'le' } : { a: x0, b: Infinity, L: r === 'ge' }];
       const ans = optT(ray(rel2));
       return {
         type: 'choice', answer: ans, options: shuffle(['lt', 'le', 'gt', 'ge'].map((r) => optT(ray(r)))),
-        q: `Vyrieš nerovnicu $${lhs} ${REL[rel]} ${lin(c, d)}$ v $\\mathbb{R}$.`,
-        solution: `${sol1 ? sol1 + `${REL[rel]} ${lin(c, d)}$. ` : ''}Členy s $x$ prevedieme doľava, čísla doprava: $${lin(k, 0)} ${REL[rel]} ${d - b}$. `
-          + (k === 1 ? '' : k < 0 ? `Delíme záporným číslom $${k}$, znak nerovnosti sa obráti: ` : `Delíme číslom $${k}$: `)
-          + `$x ${REL[rel2]} ${x0}$, teda $x\\in${setT(ray(rel2))}$.`,
-        hint: 'Pri delení alebo násobení záporným číslom obráť znak nerovnosti. Ostrá nerovnosť znamená okrúhlu zátvorku.'
+        q: T`Vyrieš nerovnicu $${lhs} ${REL[rel]} ${lin(c, d)}$ v $\\mathbb{R}$.`,
+        solution: T`${sol1 ? sol1 + `${REL[rel]} ${lin(c, d)}$. ` : ''}Členy s $x$ prevedieme doľava, čísla doprava: $${lin(k, 0)} ${REL[rel]} ${d - b}$. `
+          + (k === 1 ? '' : k < 0 ? T`Delíme záporným číslom $${k}$, znak nerovnosti sa obráti: ` : T`Delíme číslom $${k}$: `)
+          + T`$x ${REL[rel2]} ${x0}$, teda $x\\in${setT(ray(rel2))}$.`,
+        hint: T`Pri delení alebo násobení záporným číslom obráť znak nerovnosti. Ostrá nerovnosť znamená okrúhlu zátvorku.`
       };
     }
     if (t < 0.52) {
@@ -1106,10 +1108,10 @@
       const r = signSolve(f, p, q, [p, q], rel);
       return {
         type: 'choice', answer: r.ans, options: choose(r.ans, r.cands),
-        q: `Vyrieš nerovnicu $${F1}${fac1(q)} ${REL[rel]} 0$.`,
-        solution: `Nulové body sú $${p}$ a $${q}$. Na intervaloch $(-\\infty; ${p})$, $(${p}; ${q})$, $(${q}; \\infty)$ má súčin postupne znamienka $${r.signs.join('$, $')}$. `
-          + `${rel === 'le' || rel === 'ge' ? 'Nulové body pridáme, lebo v nich je súčin rovný 0. ' : 'Nulové body nepatria, nerovnosť je ostrá. '}Riešenie: ${r.ans}.`,
-        hint: 'Nájdi nulové body oboch činiteľov a v každom z troch intervalov urči znamienko súčinu (dosaď ľubovoľné číslo).'
+        q: T`Vyrieš nerovnicu $${F1}${fac1(q)} ${REL[rel]} 0$.`,
+        solution: T`Nulové body sú $${p}$ a $${q}$. Na intervaloch $(-\\infty; ${p})$, $(${p}; ${q})$, $(${q}; \\infty)$ má súčin postupne znamienka $${r.signs.join('$, $')}$. `
+          + T`${rel === 'le' || rel === 'ge' ? T`Nulové body pridáme, lebo v nich je súčin rovný 0. ` : T`Nulové body nepatria, nerovnosť je ostrá. `}Riešenie: ${r.ans}.`,
+        hint: T`Nájdi nulové body oboch činiteľov a v každom z troch intervalov urči znamienko súčinu (dosaď ľubovoľné číslo).`
       };
     }
     if (t < 0.78) {
@@ -1122,10 +1124,10 @@
       const r = signSolve(f, lo, hi, [p], rel);
       return {
         type: 'choice', answer: r.ans, options: choose(r.ans, r.cands),
-        q: `Vyrieš nerovnicu $\\frac{${flip ? `${p} - x` : lin(1, -p)}}{${lin(1, -q)}} ${REL[rel]} 0$.`,
-        solution: `Nulový bod čitateľa je $${p}$, menovateľa $${q}$ (podmienka $x\\neq ${q}$). Na intervaloch $(-\\infty; ${lo})$, $(${lo}; ${hi})$, $(${hi}; \\infty)$ má podiel znamienka $${r.signs.join('$, $')}$. `
-          + `${rel === 'le' || rel === 'ge' ? `Bod $${p}$ pridáme (podiel je 0), bod $${q}$ nie.` : 'Krajné body nepatria.'} Riešenie: ${r.ans}.`,
-        hint: 'Podiel má rovnaké znamienko ako súčin čitateľa a menovateľa. Nulový bod menovateľa do riešenia nikdy nepatrí.'
+        q: T`Vyrieš nerovnicu $\\frac{${flip ? `${p} - x` : lin(1, -p)}}{${lin(1, -q)}} ${REL[rel]} 0$.`,
+        solution: T`Nulový bod čitateľa je $${p}$, menovateľa $${q}$ (podmienka $x\\neq ${q}$). Na intervaloch $(-\\infty; ${lo})$, $(${lo}; ${hi})$, $(${hi}; \\infty)$ má podiel znamienka $${r.signs.join('$, $')}$. `
+          + T`${rel === 'le' || rel === 'ge' ? T`Bod $${p}$ pridáme (podiel je 0), bod $${q}$ nie.` : T`Krajné body nepatria.`} Riešenie: ${r.ans}.`,
+        hint: T`Podiel má rovnaké znamienko ako súčin čitateľa a menovateľa. Nulový bod menovateľa do riešenia nikdy nepatrí.`
       };
     }
     let p, q;
@@ -1139,11 +1141,11 @@
     const E = quot ? `\\frac{${lin(1, -a)}}{${lin(1, -b)}}` : `${fac1(a)}${fac1(b)}`;
     return {
       answer: cnt,
-      q: `Koľko celých čísel vyhovuje nerovnici $${E} ${REL[rel]} 0$?`,
-      solution: `Výraz je záporný medzi nulovými bodmi $${p}$ a $${q}$. ${rel === 'le' ? (quot ? `Číslo $${b}$ nepatrí (menovateľ je 0), číslo $${a}$ patrí.` : 'Oba nulové body patria.') : (quot ? `Krajné body nepatria (v čísle $${b}$ je menovateľ nulový).` : 'Krajné body nepatria.')}`
-        + (cnt === 1 ? ` Vyhovuje jediné celé číslo $${ints[0]}$.`
-          : ` Vyhovujú celé čísla $${cnt <= 4 ? ints.join(', ') : `${ints[0]}, ${ints[1]}, \\dots, ${ints[cnt - 1]}`}$, spolu ${cnt}.`),
-      hint: 'Urči interval riešení a potom spočítaj celé čísla v ňom. Dávaj pozor na krajné body.'
+      q: T`Koľko celých čísel vyhovuje nerovnici $${E} ${REL[rel]} 0$?`,
+      solution: T`Výraz je záporný medzi nulovými bodmi $${p}$ a $${q}$. ${rel === 'le' ? (quot ? T`Číslo $${b}$ nepatrí (menovateľ je 0), číslo $${a}$ patrí.` : T`Oba nulové body patria.`) : (quot ? T`Krajné body nepatria (v čísle $${b}$ je menovateľ nulový).` : T`Krajné body nepatria.`)}`
+        + (cnt === 1 ? T` Vyhovuje jediné celé číslo $${ints[0]}$.`
+          : T` Vyhovujú celé čísla $${cnt <= 4 ? ints.join(', ') : `${ints[0]}, ${ints[1]}, \\dots, ${ints[cnt - 1]}`}$, spolu ${cnt}.`),
+      hint: T`Urči interval riešení a potom spočítaj celé čísla v ňom. Dávaj pozor na krajné body.`
     };
   });
 
@@ -1189,18 +1191,18 @@
         } while (!Number.isInteger(v2) || v2 > 120);
         return {
           answer: tt,
-          q: `Cyklista vyrazil z mesta rýchlosťou $${v1}\\,\\text{km/h}$. O ${h} ${pl(h, ['hodinu', 'hodiny', 'hodín'])} neskôr za ním po tej istej ceste vyrazil motocyklista rýchlosťou $${v2}\\,\\text{km/h}$. Za koľko hodín od svojho vyrazenia dobehne motocyklista cyklistu?`,
-          solution: `Nech motocyklista ide $t$ hodín, cyklista dovtedy ide $t+${h}$ hodín a prejdú rovnakú dráhu: $${v2}t=${v1}(t+${h})$. Odtiaľ $${v2 - v1}t=${v1 * h}$ a $t=${dc(tt)}\\,\\text{h}$.`,
-          hint: 'V okamihu dobehnutia prešli obaja rovnakú dráhu. Cyklista išiel o niekoľko hodín dlhšie.'
+          q: T`Cyklista vyrazil z mesta rýchlosťou $${v1}\\,\\text{km/h}$. O ${h} ${pl(h, [T`hodinu`, T`hodiny`, T`hodín`])} neskôr za ním po tej istej ceste vyrazil motocyklista rýchlosťou $${v2}\\,\\text{km/h}$. Za koľko hodín od svojho vyrazenia dobehne motocyklista cyklistu?`,
+          solution: T`Nech motocyklista ide $t$ hodín, cyklista dovtedy ide $t+${h}$ hodín a prejdú rovnakú dráhu: $${v2}t=${v1}(t+${h})$. Odtiaľ $${v2 - v1}t=${v1 * h}$ a $t=${dc(tt)}\\,\\text{h}$.`,
+          hint: T`V okamihu dobehnutia prešli obaja rovnakú dráhu. Cyklista išiel o niekoľko hodín dlhšie.`
         };
       }
       let v, w, d;
       do { v = rnd(8, 20); w = rnd(1, 5); d = lcm(v + w, v - w) * rnd(1, 3); } while (v - w < 3 || d > 150 || d < 10);
       return {
         type: 'tuple', answer: [v, w], placeholder: 'v; w',
-        q: `Loď preplávala ${d} km po prúde rieky za ${d / (v + w)} h a späť proti prúdu za ${d / (v - w)} h. Aká je rýchlosť lode v stojatej vode $v$ a rýchlosť prúdu $w$ (v km/h)? Zadaj $v; w$.`,
-        solution: `Po prúde: $v+w=${d}:${d / (v + w)}=${v + w}$, proti prúdu: $v-w=${d}:${d / (v - w)}=${v - w}$. Sčítaním $2v=${2 * v}$, teda $v=${v}\\,\\text{km/h}$ a $w=${w}\\,\\text{km/h}$.`,
-        hint: 'Po prúde sa rýchlosti sčítajú ($v+w$), proti prúdu odčítajú ($v-w$). Z dráhy a času vypočítaj obe a vyrieš sústavu.'
+        q: T`Loď preplávala ${d} km po prúde rieky za ${d / (v + w)} h a späť proti prúdu za ${d / (v - w)} h. Aká je rýchlosť lode v stojatej vode $v$ a rýchlosť prúdu $w$ (v km/h)? Zadaj $v; w$.`,
+        solution: T`Po prúde: $v+w=${d}:${d / (v + w)}=${v + w}$, proti prúdu: $v-w=${d}:${d / (v - w)}=${v - w}$. Sčítaním $2v=${2 * v}$, teda $v=${v}\\,\\text{km/h}$ a $w=${w}\\,\\text{km/h}$.`,
+        hint: T`Po prúde sa rýchlosti sčítajú ($v+w$), proti prúdu odčítajú ($v-w$). Z dráhy a času vypočítaj obe a vyrieš sústavu.`
       };
     }
     if (t < 0.5) {
@@ -1208,16 +1210,16 @@
       if (rb()) {
         return {
           answer: tt, tol: 0.01,
-          q: `Prvé čerpadlo napustí bazén za ${dc(t1).replace('{,}', ',')} h, druhé za ${dc(t2).replace('{,}', ',')} h. Za koľko hodín ho napustia, ak pracujú súčasne?`,
-          solution: `Za hodinu napustí prvé $\\frac{1}{${dc(t1)}}$, druhé $\\frac{1}{${dc(t2)}}$ bazéna. Rovnica $\\frac{t}{${dc(t1)}}+\\frac{t}{${dc(t2)}}=1$ dáva $t=\\frac{${dc(t1)}\\cdot ${dc(t2)}}{${dc(t1)}+${dc(t2)}}=${dc(tt)}\\,\\text{h}$.`,
-          hint: 'Vyjadri, akú časť bazéna napustí každé čerpadlo za $t$ hodín. Spolu to musí byť celý bazén, teda 1.'
+          q: T`Prvé čerpadlo napustí bazén za ${dc(t1).replace('{,}', ',')} h, druhé za ${dc(t2).replace('{,}', ',')} h. Za koľko hodín ho napustia, ak pracujú súčasne?`,
+          solution: T`Za hodinu napustí prvé $\\frac{1}{${dc(t1)}}$, druhé $\\frac{1}{${dc(t2)}}$ bazéna. Rovnica $\\frac{t}{${dc(t1)}}+\\frac{t}{${dc(t2)}}=1$ dáva $t=\\frac{${dc(t1)}\\cdot ${dc(t2)}}{${dc(t1)}+${dc(t2)}}=${dc(tt)}\\,\\text{h}$.`,
+          hint: T`Vyjadri, akú časť bazéna napustí každé čerpadlo za $t$ hodín. Spolu to musí byť celý bazén, teda 1.`
         };
       }
       return {
         answer: t2, tol: 0.01,
-        q: `Dvaja maliari spolu vymaľujú halu za ${dc(tt).replace('{,}', ',')} h. Prvý by ju sám vymaľoval za ${dc(t1).replace('{,}', ',')} h. Za koľko hodín by ju vymaľoval sám druhý maliar?`,
-        solution: `Nech druhý potrebuje $x$ hodín. Rovnica $\\frac{${dc(tt)}}{${dc(t1)}}+\\frac{${dc(tt)}}{x}=1$, teda $\\frac{${dc(tt)}}{x}=${fTex(Math.round((t1 - tt) * 2), Math.round(t1 * 2))}$ a $x=${dc(t2)}\\,\\text{h}$.`,
-        hint: 'Prvý maliar urobí za spoločný čas časť práce $\\frac{t}{t_1}$; zvyšok urobí druhý.'
+        q: T`Dvaja maliari spolu vymaľujú halu za ${dc(tt).replace('{,}', ',')} h. Prvý by ju sám vymaľoval za ${dc(t1).replace('{,}', ',')} h. Za koľko hodín by ju vymaľoval sám druhý maliar?`,
+        solution: T`Nech druhý potrebuje $x$ hodín. Rovnica $\\frac{${dc(tt)}}{${dc(t1)}}+\\frac{${dc(tt)}}{x}=1$, teda $\\frac{${dc(tt)}}{x}=${fTex(Math.round((t1 - tt) * 2), Math.round(t1 * 2))}$ a $x=${dc(t2)}\\,\\text{h}$.`,
+        hint: T`Prvý maliar urobí za spoločný čas časť práce $\\frac{t}{t_1}$; zvyšok urobí druhý.`
       };
     }
     if (t < 0.75) {
@@ -1228,9 +1230,9 @@
       } while (!Number.isInteger(x) || x < 1 || x > 40);
       return {
         answer: x,
-        q: `Koľko litrov ${p2} % roztoku soli treba pridať k ${m1} litrom ${p1} % roztoku, aby vznikol ${p} % roztok?`,
-        solution: `Množstvo soli sa zachová: $${dc(p1 / 100)}\\cdot ${m1}+${dc(p2 / 100)}\\,x=${dc(p / 100)}(${m1}+x)$. Upravíme: $${dc((p2 - p) / 100)}\\,x=${dc(m1 * (p - p1) / 100)}$, teda $x=${x}$. Treba pridať ${x} l roztoku.`,
-        hint: 'Porovnaj množstvo čistej soli pred zmiešaním a po ňom: $p_1m_1+p_2m_2=p(m_1+m_2)$.'
+        q: T`Koľko litrov ${p2} % roztoku soli treba pridať k ${m1} litrom ${p1} % roztoku, aby vznikol ${p} % roztok?`,
+        solution: T`Množstvo soli sa zachová: $${dc(p1 / 100)}\\cdot ${m1}+${dc(p2 / 100)}\\,x=${dc(p / 100)}(${m1}+x)$. Upravíme: $${dc((p2 - p) / 100)}\\,x=${dc(m1 * (p - p1) / 100)}$, teda $x=${x}$. Treba pridať ${x} l roztoku.`,
+        hint: T`Porovnaj množstvo čistej soli pred zmiešaním a po ňom: $p_1m_1+p_2m_2=p(m_1+m_2)$.`
       };
     }
     let s, k, n, m;
@@ -1238,12 +1240,12 @@
       s = rnd(3, 15); k = rnd(3, 7); n = rnd(2, 20);
       m = (k * s + n) / (s + n);
     } while (!Number.isInteger(m) || m < 2 || m >= k || k * s < 22 || k * s > 55);
-    const kid = pick([['syn', 'syna', 'Otec', 'otec'], ['dcéra', 'dcéry', 'Mama', 'mama']]);
+    const kid = pick([[T`syn`, T`syna`, T`Otec`, T`otec`], [T`dcéra`, T`dcéry`, T`Mama`, T`mama`]]);
     return {
       answer: s,
-      q: `${kid[2]} je teraz ${KRAT[k]} ${kid[2] === 'Otec' ? 'starší' : 'staršia'} ako ${kid[0]}. O ${n} ${pl(n, ROK)} bude ${KRAT[m]} ${kid[2] === 'Otec' ? 'starší' : 'staršia'}. Koľko rokov má teraz ${kid[0]}?`,
-      solution: `Nech ${kid[0]} má $x$ rokov, ${kid[3]} $${k}x$. O ${n} ${pl(n, ROK)}: $${k}x+${n}=${m}(x+${n})$, teda ${solveX(k - m, n * (m - 1), s)}. (${kid[2]} má ${k * s} rokov, o ${n} ${pl(n, ROK)} bude mať ${k * s + n} a ${kid[0]} ${s + n}.)`,
-      hint: 'Označ vek dieťaťa $x$. O $n$ rokov budú obaja o $n$ rokov starší.'
+      q: T`${kid[2]} je teraz ${T.s(KRAT[k])} ${kid[2] === T`Otec` ? T`starší` : T`staršia`} ako ${kid[0]}. O ${n} ${T.s(pl(n, ROK))} bude ${T.s(KRAT[m])} ${kid[2] === T`Otec` ? T`starší` : T`staršia`}. Koľko rokov má teraz ${kid[0]}?`,
+      solution: T`Nech ${kid[0]} má $x$ rokov, ${kid[3]} $${k}x$. O ${n} ${T.s(pl(n, ROK))}: $${k}x+${n}=${m}(x+${n})$, teda ${solveX(k - m, n * (m - 1), s)}. (${kid[2]} má ${k * s} rokov, o ${n} ${T.s(pl(n, ROK))} bude mať ${k * s + n} a ${kid[0]} ${s + n}.)`,
+      hint: T`Označ vek dieťaťa $x$. O $n$ rokov budú obaja o $n$ rokov starší.`
     };
   });
 
@@ -1279,10 +1281,10 @@
 
   // dvojica polôh uhlov pri priečke → názov vzťahu (alebo null)
   const pairName = (i, k, j, q) => {
-    if (i === j) return (k + 2) % 4 === q ? 'vrcholové' : 'susedné';
-    if (k === q) return 'súhlasné';
+    if (i === j) return (k + 2) % 4 === q ? T`vrcholové` : T`susedné`;
+    if (k === q) return T`súhlasné`;
     const [top, bot] = i === 0 ? [k, q] : [q, k];
-    return bot === (top + 2) % 4 ? 'striedavé' : null;
+    return bot === (top + 2) % 4 ? T`striedavé` : null;
   };
 
   gen('s1-uhly', () => {
@@ -1298,21 +1300,21 @@
         { i: j, k: q, label: 'φ', math: true, cls: 'f-accent', color: 'c-accent' }
       ], 300);
       let why;
-      if (i === j) why = `Uhly sú pri tom istom priesečníku a sú ${same ? 'vrcholové, teda zhodné' : 'susedné, ich súčet je $180^\\circ$'}.`;
+      if (i === j) why = T`Uhly sú pri tom istom priesečníku a sú ${same ? T`vrcholové, teda zhodné` : T`susedné, ich súčet je $180^\\circ$`}.`;
       else {
         const nm = pairName(i, k, j, q);
-        why = nm ? `Uhly sú ${nm} pri rovnobežkách, teda zhodné.`
-          : `Uhol súhlasný s $\\varphi$ pri druhom priesečníku je s daným uhlom ${same ? 'vrcholový' : 'susedný'}, preto ${same ? 'sú zhodné' : 'má $\\varphi$ veľkosť $180^\\circ$ mínus daný uhol'}.`;
+        why = nm ? T`Uhly sú ${nm} pri rovnobežkách, teda zhodné.`
+          : T`Uhol súhlasný s $\\varphi$ pri druhom priesečníku je s daným uhlom ${same ? T`vrcholový` : T`susedný`}, preto ${same ? T`sú zhodné` : T`má $\\varphi$ veľkosť $180^\\circ$ mínus daný uhol`}.`;
       }
       return {
         answer: ans,
-        q: `Priamky $p$ a $q$ sú rovnobežné. Urči veľkosť uhla $\\varphi$ v stupňoch. ${pic}`,
+        q: T`Priamky $p$ a $q$ sú rovnobežné. Urči veľkosť uhla $\\varphi$ v stupňoch. ${pic}`,
         solution: `${why} $\\varphi=${ans}^\\circ$.`,
-        hint: 'Vrcholové, súhlasné a striedavé uhly sú zhodné; susedné uhly majú súčet $180^\\circ$.'
+        hint: T`Vrcholové, súhlasné a striedavé uhly sú zhodné; susedné uhly majú súčet $180^\\circ$.`
       };
     }
     if (t < 0.45) {
-      const NAMES = ['vrcholové', 'susedné', 'súhlasné', 'striedavé'];
+      const NAMES = [T`vrcholové`, T`susedné`, T`súhlasné`, T`striedavé`];
       let i, k, j, q, nm;
       do { i = rnd(0, 1); k = rnd(0, 3); j = rnd(0, 1); q = rnd(0, 3); nm = (i === j && k === q) ? null : pairName(i, k, j, q); } while (!nm);
       let theta;
@@ -1322,16 +1324,16 @@
         { i: j, k: q, label: 'β', math: true, cls: 'f-accent', color: 'c-accent' }
       ], 300);
       const why = {
-        'vrcholové': 'majú spoločný vrchol a ich ramená sú opačné polpriamky',
-        'susedné': 'majú spoločný vrchol aj jedno rameno a zvyšné ramená sú opačné polpriamky',
-        'súhlasné': 'ležia pri rôznych rovnobežkách v rovnakej polohe vzhľadom na priečku',
-        'striedavé': 'ležia pri rôznych rovnobežkách na opačných stranách priečky a v opačnej polohe'
+        [T`vrcholové`]: T`majú spoločný vrchol a ich ramená sú opačné polpriamky`,
+        [T`susedné`]: T`majú spoločný vrchol aj jedno rameno a zvyšné ramená sú opačné polpriamky`,
+        [T`súhlasné`]: T`ležia pri rôznych rovnobežkách v rovnakej polohe vzhľadom na priečku`,
+        [T`striedavé`]: T`ležia pri rôznych rovnobežkách na opačných stranách priečky a v opačnej polohe`
       }[nm];
       return {
         type: 'choice', options: NAMES, answer: nm,
-        q: `Ako nazývame dvojicu uhlov $\\alpha$ a $\\beta$? ${pic}`,
-        solution: `Uhly $\\alpha$ a $\\beta$ ${why}, sú to uhly <strong>${nm}</strong>.`,
-        hint: 'Zisti, či majú uhly spoločný vrchol. Ak nie, porovnaj ich polohu vzhľadom na priečku $t$.'
+        q: T`Ako nazývame dvojicu uhlov $\\alpha$ a $\\beta$? ${pic}`,
+        solution: T`Uhly $\\alpha$ a $\\beta$ ${why}, sú to uhly <strong>${nm}</strong>.`,
+        hint: T`Zisti, či majú uhly spoločný vrchol. Ak nie, porovnaj ich polohu vzhľadom na priečku $t$.`
       };
     }
     if (t < 0.72) {
@@ -1341,9 +1343,9 @@
         do { a = rnd(20, 120); b = rnd(20, 120); } while (a + b > 160);
         return {
           answer: 180 - a - b,
-          q: `V trojuholníku $ABC$ je $\\alpha=${a}^\\circ$ a $\\beta=${b}^\\circ$. Urči veľkosť uhla $\\gamma$ v stupňoch.`,
+          q: T`V trojuholníku $ABC$ je $\\alpha=${a}^\\circ$ a $\\beta=${b}^\\circ$. Urči veľkosť uhla $\\gamma$ v stupňoch.`,
           solution: `$\\gamma=180^\\circ-${a}^\\circ-${b}^\\circ=${180 - a - b}^\\circ$.`,
-          hint: 'Súčet vnútorných uhlov trojuholníka je $180^\\circ$.'
+          hint: T`Súčet vnútorných uhlov trojuholníka je $180^\\circ$.`
         };
       }
       if (k === 1) {
@@ -1351,9 +1353,9 @@
         do { a = rnd(20, 110); b = rnd(20, 110); } while (a + b > 160);
         return {
           answer: 180 - a - b,
-          q: `V trojuholníku $ABC$ je $\\alpha=${a}^\\circ$ a vonkajší uhol pri vrchole $B$ má veľkosť $${180 - b}^\\circ$. Urči veľkosť uhla $\\gamma$ v stupňoch.`,
-          solution: `Vonkajší uhol pri $B$ sa rovná súčtu vnútorných uhlov pri $A$ a $C$: $${180 - b}^\\circ=${a}^\\circ+\\gamma$, teda $\\gamma=${180 - a - b}^\\circ$.`,
-          hint: 'Vonkajší uhol trojuholníka sa rovná súčtu dvoch vnútorných uhlov pri zvyšných vrcholoch.'
+          q: T`V trojuholníku $ABC$ je $\\alpha=${a}^\\circ$ a vonkajší uhol pri vrchole $B$ má veľkosť $${180 - b}^\\circ$. Urči veľkosť uhla $\\gamma$ v stupňoch.`,
+          solution: T`Vonkajší uhol pri $B$ sa rovná súčtu vnútorných uhlov pri $A$ a $C$: $${180 - b}^\\circ=${a}^\\circ+\\gamma$, teda $\\gamma=${180 - a - b}^\\circ$.`,
+          hint: T`Vonkajší uhol trojuholníka sa rovná súčtu dvoch vnútorných uhlov pri zvyšných vrcholoch.`
         };
       }
       if (k === 2) {
@@ -1361,30 +1363,30 @@
           const g = 2 * rnd(10, 80);
           return {
             answer: (180 - g) / 2,
-            q: `Rovnoramenný trojuholník má pri hlavnom vrchole (medzi ramenami) uhol $${g}^\\circ$. Akú veľkosť má uhol pri základni?`,
-            solution: `Uhly pri základni sú zhodné: $\\frac{180^\\circ-${g}^\\circ}{2}=${(180 - g) / 2}^\\circ$.`,
-            hint: 'V rovnoramennom trojuholníku sú uhly pri základni zhodné.'
+            q: T`Rovnoramenný trojuholník má pri hlavnom vrchole (medzi ramenami) uhol $${g}^\\circ$. Akú veľkosť má uhol pri základni?`,
+            solution: T`Uhly pri základni sú zhodné: $\\frac{180^\\circ-${g}^\\circ}{2}=${(180 - g) / 2}^\\circ$.`,
+            hint: T`V rovnoramennom trojuholníku sú uhly pri základni zhodné.`
           };
         }
         const a = rnd(20, 85);
         return {
           answer: 180 - 2 * a,
-          q: `Uhol pri základni rovnoramenného trojuholníka má $${a}^\\circ$. Akú veľkosť má uhol pri hlavnom vrchole?`,
+          q: T`Uhol pri základni rovnoramenného trojuholníka má $${a}^\\circ$. Akú veľkosť má uhol pri hlavnom vrchole?`,
           solution: `$180^\\circ-2\\cdot ${a}^\\circ=${180 - 2 * a}^\\circ$.`,
-          hint: 'Oba uhly pri základni sú zhodné a spolu s uhlom pri hlavnom vrchole dávajú $180^\\circ$.'
+          hint: T`Oba uhly pri základni sú zhodné a spolu s uhlom pri hlavnom vrchole dávajú $180^\\circ$.`
         };
       }
       const a = rnd(2, 12), b = rnd(2, 12), mode = rnd(0, 2);
       const c = mode === 0 ? rnd(Math.abs(a - b) + 1, a + b - 1) : mode === 1 ? a + b : a + b + rnd(1, 5);
       const sides = shuffle([a, b, c]).sort((x, y) => x - y);
       const ok = sides[0] + sides[1] > sides[2];
-      const YES = 'Áno, existuje.', NO = 'Nie, neexistuje.';
+      const YES = T`Áno, existuje.`, NO = T`Nie, neexistuje.`;
       return {
         type: 'choice', options: [YES, NO], answer: ok ? YES : NO,
-        q: `Existuje trojuholník so stranami dĺžok ${shuffle(sides).join(' cm, ')} cm?`,
-        solution: `Stačí porovnať najdlhšiu stranu so súčtom zvyšných dvoch: $${sides[0]}+${sides[1]}=${sides[0] + sides[1]}$ ${ok ? '&gt;' : sides[0] + sides[1] === sides[2] ? '=' : '&lt;'} $${sides[2]}$. `
-          + (ok ? 'Trojuholníková nerovnosť platí, trojuholník existuje.' : 'Trojuholníková nerovnosť neplatí (musí byť ostrá), trojuholník neexistuje.'),
-        hint: 'Trojuholník existuje práve vtedy, keď je najdlhšia strana kratšia ako súčet dvoch kratších.'
+        q: T`Existuje trojuholník so stranami dĺžok ${shuffle(sides).join(' cm, ')} cm?`,
+        solution: T`Stačí porovnať najdlhšiu stranu so súčtom zvyšných dvoch: $${sides[0]}+${sides[1]}=${sides[0] + sides[1]}$ ${ok ? '&gt;' : sides[0] + sides[1] === sides[2] ? '=' : '&lt;'} $${sides[2]}$. `
+          + (ok ? T`Trojuholníková nerovnosť platí, trojuholník existuje.` : T`Trojuholníková nerovnosť neplatí (musí byť ostrá), trojuholník neexistuje.`),
+        hint: T`Trojuholník existuje práve vtedy, keď je najdlhšia strana kratšia ako súčet dvoch kratších.`
       };
     }
     const k = rnd(0, 3);
@@ -1393,38 +1395,38 @@
       const n = rnd(5, 14);
       return {
         answer: (n - 2) * 180,
-        q: `Aký je súčet vnútorných uhlov ${n}-uholníka (v stupňoch)?`,
-        solution: `Uhlopriečky z jedného vrcholu ho rozdelia na $${n}-2=${n - 2}$ trojuholníkov: $${n - 2}\\cdot 180^\\circ=${(n - 2) * 180}^\\circ$.`,
-        hint: 'Súčet vnútorných uhlov $n$-uholníka je $(n-2)\\cdot 180^\\circ$.'
+        q: T`Aký je súčet vnútorných uhlov ${n}-uholníka (v stupňoch)?`,
+        solution: T`Uhlopriečky z jedného vrcholu ho rozdelia na $${n}-2=${n - 2}$ trojuholníkov: $${n - 2}\\cdot 180^\\circ=${(n - 2) * 180}^\\circ$.`,
+        hint: T`Súčet vnútorných uhlov $n$-uholníka je $(n-2)\\cdot 180^\\circ$.`
       };
     }
     if (k === 1) {
       const n = pick(REG), ang = 180 * (n - 2) / n;
       return {
         answer: ang,
-        q: `Akú veľkosť má vnútorný uhol pravidelného ${n}-uholníka (v stupňoch)?`,
-        solution: `Súčet uhlov je $${n - 2}\\cdot 180^\\circ=${(n - 2) * 180}^\\circ$, jeden uhol má $${(n - 2) * 180}^\\circ:${n}=${ang}^\\circ$.`,
-        hint: 'Vypočítaj súčet vnútorných uhlov a vydeľ ho počtom uhlov.'
+        q: T`Akú veľkosť má vnútorný uhol pravidelného ${n}-uholníka (v stupňoch)?`,
+        solution: T`Súčet uhlov je $${n - 2}\\cdot 180^\\circ=${(n - 2) * 180}^\\circ$, jeden uhol má $${(n - 2) * 180}^\\circ:${n}=${ang}^\\circ$.`,
+        hint: T`Vypočítaj súčet vnútorných uhlov a vydeľ ho počtom uhlov.`
       };
     }
     if (k === 2) {
       const n = pick(REG), ang = 180 * (n - 2) / n;
       return {
         answer: n,
-        q: `Vnútorný uhol pravidelného mnohouholníka má $${ang}^\\circ$. Koľko má tento mnohouholník vrcholov?`,
-        solution: `Vonkajší uhol má $180^\\circ-${ang}^\\circ=${180 - ang}^\\circ$ a súčet vonkajších uhlov konvexného mnohouholníka je $360^\\circ$, preto $n=360:${180 - ang}=${n}$.`,
-        hint: 'Rovnica $\\frac{(n-2)\\cdot 180}{n}=\\text{uhol}$, alebo rýchlejšie cez vonkajšie uhly, ktorých súčet je $360^\\circ$.'
+        q: T`Vnútorný uhol pravidelného mnohouholníka má $${ang}^\\circ$. Koľko má tento mnohouholník vrcholov?`,
+        solution: T`Vonkajší uhol má $180^\\circ-${ang}^\\circ=${180 - ang}^\\circ$ a súčet vonkajších uhlov konvexného mnohouholníka je $360^\\circ$, preto $n=360:${180 - ang}=${n}$.`,
+        hint: T`Rovnica $\\frac{(n-2)\\cdot 180}{n}=\\text{uhol}$, alebo rýchlejšie cez vonkajšie uhly, ktorých súčet je $360^\\circ$.`
       };
     }
     let a;
     do { a = rnd(25, 155); } while (a === 90);
-    const nm = pick(['rovnobežníku', 'kosoštvorci']), opp = rb();
+    const nm = pick([T`rovnobežníku`, T`kosoštvorci`]), opp = rb();
     return {
       answer: opp ? a : 180 - a,
-      q: `V ${nm} $ABCD$ má vnútorný uhol pri vrchole $A$ veľkosť $${a}^\\circ$. Akú veľkosť má vnútorný uhol pri vrchole $${opp ? 'C' : 'B'}$?`,
-      solution: opp ? `Uhly pri $A$ a $C$ sú protiľahlé, v rovnobežníku sú zhodné: $${a}^\\circ$.`
-        : `Uhly pri $A$ a $B$ sú susedné uhly rovnobežníka (pri rovnobežkách $AD$ a $BC$), ich súčet je $180^\\circ$: $180^\\circ-${a}^\\circ=${180 - a}^\\circ$.`,
-      hint: 'V rovnobežníku sú protiľahlé uhly zhodné a susedné uhly majú súčet $180^\\circ$.'
+      q: T`V ${nm} $ABCD$ má vnútorný uhol pri vrchole $A$ veľkosť $${a}^\\circ$. Akú veľkosť má vnútorný uhol pri vrchole $${opp ? 'C' : 'B'}$?`,
+      solution: opp ? T`Uhly pri $A$ a $C$ sú protiľahlé, v rovnobežníku sú zhodné: $${a}^\\circ$.`
+        : T`Uhly pri $A$ a $B$ sú susedné uhly rovnobežníka (pri rovnobežkách $AD$ a $BC$), ich súčet je $180^\\circ$: $180^\\circ-${a}^\\circ=${180 - a}^\\circ$.`,
+      hint: T`V rovnobežníku sú protiľahlé uhly zhodné a susedné uhly majú súčet $180^\\circ$.`
     };
   });
 
@@ -1467,30 +1469,30 @@
       if (rb()) {
         return {
           answer: (a + c) * v / 2,
-          q: `Rovnoramenný lichobežník má základne $a=${a}$ cm, $c=${c}$ cm a ramená $b=${b}$ cm. Vypočítaj jeho obsah v $\\text{cm}^2$.`,
-          solution: `$x=\\frac{a-c}{2}=${x}$ cm, výška $v=\\sqrt{${b}^2-${x}^2}=\\sqrt{${v * v}}=${v}$ cm. $S=\\frac{(${a}+${c})\\cdot ${v}}{2}=${(a + c) * v / 2}\\,\\text{cm}^2$.`,
-          hint: 'Výškou odrež pravouhlý trojuholník s preponou $b$ a odvesnou $\\frac{a-c}{2}$. Výšku dopočítaj Pytagorovou vetou.'
+          q: T`Rovnoramenný lichobežník má základne $a=${a}$ cm, $c=${c}$ cm a ramená $b=${b}$ cm. Vypočítaj jeho obsah v $\\text{cm}^2$.`,
+          solution: T`$x=\\frac{a-c}{2}=${x}$ cm, výška $v=\\sqrt{${b}^2-${x}^2}=\\sqrt{${v * v}}=${v}$ cm. $S=\\frac{(${a}+${c})\\cdot ${v}}{2}=${(a + c) * v / 2}\\,\\text{cm}^2$.`,
+          hint: T`Výškou odrež pravouhlý trojuholník s preponou $b$ a odvesnou $\\frac{a-c}{2}$. Výšku dopočítaj Pytagorovou vetou.`
         };
       }
       return {
         answer: a + c + 2 * b,
-        q: `Rovnoramenný lichobežník má základne $a=${a}$ cm a $c=${c}$ cm a výšku $v=${v}$ cm. Vypočítaj jeho obvod v cm.`,
-        solution: `$x=\\frac{a-c}{2}=${x}$ cm, rameno $b=\\sqrt{${x}^2+${v}^2}=\\sqrt{${b * b}}=${b}$ cm. $o=${a}+${c}+2\\cdot ${b}=${a + c + 2 * b}$ cm.`,
-        hint: 'Rameno je prepona pravouhlého trojuholníka s odvesnami $v$ a $\\frac{a-c}{2}$.'
+        q: T`Rovnoramenný lichobežník má základne $a=${a}$ cm a $c=${c}$ cm a výšku $v=${v}$ cm. Vypočítaj jeho obvod v cm.`,
+        solution: T`$x=\\frac{a-c}{2}=${x}$ cm, rameno $b=\\sqrt{${x}^2+${v}^2}=\\sqrt{${b * b}}=${b}$ cm. $o=${a}+${c}+2\\cdot ${b}=${a + c + 2 * b}$ cm.`,
+        hint: T`Rameno je prepona pravouhlého trojuholníka s odvesnami $v$ a $\\frac{a-c}{2}$.`
       };
     }
     if (t < 0.5) {
       const [p, q, s] = pick(TRIPLES.slice(0, 4)), u1 = 2 * p, u2 = 2 * q, k = rnd(0, 2);
       const S = u1 * u2 / 2;
-      const ask = ['obvod (v cm)', 'obsah (v $\\text{cm}^2$)', 'výšku (v cm, na dve desatinné miesta)'][k];
+      const ask = [T`obvod (v cm)`, T`obsah (v $\\text{cm}^2$)`, T`výšku (v cm, na dve desatinné miesta)`][k];
       const ans = [4 * s, S, S / s][k];
       return {
         answer: Math.round(ans * 100) / 100, tol: k === 2 ? 0.011 : 1e-6,
-        q: `Kosoštvorec má uhlopriečky dĺžok ${u1} cm a ${u2} cm. Vypočítaj jeho ${ask}.`,
-        solution: `Strana: $a=\\sqrt{${p}^2+${q}^2}=${s}$ cm (polovice uhlopriečok sú odvesny). `
+        q: T`Kosoštvorec má uhlopriečky dĺžok ${u1} cm a ${u2} cm. Vypočítaj jeho ${ask}.`,
+        solution: T`Strana: $a=\\sqrt{${p}^2+${q}^2}=${s}$ cm (polovice uhlopriečok sú odvesny). `
           + [`$o=4a=${4 * s}$ cm.`, `$S=\\frac{u_1u_2}{2}=\\frac{${u1}\\cdot ${u2}}{2}=${S}\\,\\text{cm}^2$.`,
-            `$S=\\frac{${u1}\\cdot ${u2}}{2}=${S}\\,\\text{cm}^2$ a zároveň $S=a\\cdot v$, preto $v=\\frac{${S}}{${s}}\\approx ${dc(Math.round(S / s * 100) / 100)}$ cm.`][k],
-        hint: 'Uhlopriečky kosoštvorca sú na seba kolmé a rozpoľujú sa. Obsah je $\\frac{u_1u_2}{2}$, ale aj $a\\cdot v$.'
+            T`$S=\\frac{${u1}\\cdot ${u2}}{2}=${S}\\,\\text{cm}^2$ a zároveň $S=a\\cdot v$, preto $v=\\frac{${S}}{${s}}\\approx ${dc(Math.round(S / s * 100) / 100)}$ cm.`][k],
+        hint: T`Uhlopriečky kosoštvorca sú na seba kolmé a rozpoľujú sa. Obsah je $\\frac{u_1u_2}{2}$, ale aj $a\\cdot v$.`
       };
     }
     if (t < 0.75) {
@@ -1499,29 +1501,29 @@
         const [p, q, s] = pick(TRIPLES);
         return {
           answer: p * q,
-          q: `Rovnoramenný trojuholník má základňu ${2 * p} cm a ramená ${s} cm. Vypočítaj jeho obsah v $\\text{cm}^2$.`,
-          solution: `Výška na základňu ju rozpolí: $v=\\sqrt{${s}^2-${p}^2}=\\sqrt{${q * q}}=${q}$ cm. $S=\\frac{${2 * p}\\cdot ${q}}{2}=${p * q}\\,\\text{cm}^2$.`,
-          hint: 'Výška na základňu rovnoramenného trojuholníka ju delí na polovice. Použi Pytagorovu vetu.'
+          q: T`Rovnoramenný trojuholník má základňu ${2 * p} cm a ramená ${s} cm. Vypočítaj jeho obsah v $\\text{cm}^2$.`,
+          solution: T`Výška na základňu ju rozpolí: $v=\\sqrt{${s}^2-${p}^2}=\\sqrt{${q * q}}=${q}$ cm. $S=\\frac{${2 * p}\\cdot ${q}}{2}=${p * q}\\,\\text{cm}^2$.`,
+          hint: T`Výška na základňu rovnoramenného trojuholníka ju delí na polovice. Použi Pytagorovu vetu.`
         };
       }
       if (k === 1) {
         const [a0, b0, c0] = pick(TRIPLES), m = rnd(1, 3), right = rb();
         const a = a0 * m, b = b0 * m, c = right ? c0 * m : c0 * m + pick([-1, 1]);
-        const YES = 'je pravouhlý', NO = 'nie je pravouhlý';
+        const YES = T`je pravouhlý`, NO = T`nie je pravouhlý`;
         return {
           type: 'choice', options: [YES, NO], answer: right ? YES : NO,
-          q: `Trojuholník má strany ${shuffle([a, b, c]).join(' cm, ')} cm. Rozhodni, či je pravouhlý.`,
-          solution: `Najdlhšia strana je ${c} cm. $${a}^2+${b}^2=${a * a + b * b}$ a $${c}^2=${c * c}$. `
-            + (right ? 'Rovnosť platí, podľa obrátenej Pytagorovej vety je trojuholník pravouhlý.' : 'Rovnosť neplatí, trojuholník nie je pravouhlý.'),
-          hint: 'Porovnaj štvorec najdlhšej strany so súčtom štvorcov dvoch kratších strán.'
+          q: T`Trojuholník má strany ${shuffle([a, b, c]).join(' cm, ')} cm. Rozhodni, či je pravouhlý.`,
+          solution: T`Najdlhšia strana je ${c} cm. $${a}^2+${b}^2=${a * a + b * b}$ a $${c}^2=${c * c}$. `
+            + (right ? T`Rovnosť platí, podľa obrátenej Pytagorovej vety je trojuholník pravouhlý.` : T`Rovnosť neplatí, trojuholník nie je pravouhlý.`),
+          hint: T`Porovnaj štvorec najdlhšej strany so súčtom štvorcov dvoch kratších strán.`
         };
       }
       const a = rnd(2, 20), v = a * Math.sqrt(3) / 2;
       return {
         answer: Math.round(v * 100) / 100, tol: 0.011,
-        q: `Vypočítaj výšku rovnostranného trojuholníka so stranou $${a}$ cm (v cm, na dve desatinné miesta).`,
-        solution: `Výška rozpolí stranu: $v=\\sqrt{${a}^2-\\left(${fTex(a, 2)}\\right)^2}=\\frac{${a}\\sqrt3}{2}\\approx ${dc(Math.round(v * 100) / 100)}$ cm.`,
-        hint: 'Výška rovnostranného trojuholníka ho delí na dva pravouhlé trojuholníky s odvesnou $\\frac{a}{2}$ a preponou $a$.'
+        q: T`Vypočítaj výšku rovnostranného trojuholníka so stranou $${a}$ cm (v cm, na dve desatinné miesta).`,
+        solution: T`Výška rozpolí stranu: $v=\\sqrt{${a}^2-\\left(${fTex(a, 2)}\\right)^2}=\\frac{${a}\\sqrt3}{2}\\approx ${dc(Math.round(v * 100) / 100)}$ cm.`,
+        hint: T`Výška rovnostranného trojuholníka ho delí na dva pravouhlé trojuholníky s odvesnou $\\frac{a}{2}$ a preponou $a$.`
       };
     }
     const k = rnd(0, 2);
@@ -1531,25 +1533,25 @@
         const kk = r * r * al / 360;
         return {
           ...piAns(kk),
-          q: `Vypočítaj obsah kruhového výseku s polomerom $${r}$ cm a stredovým uhlom $${al}^\\circ$ (v $\\text{cm}^2$, $\\pi\\approx 3{,}14$, na dve desatinné miesta).`,
-          solution: `$S=\\pi r^2\\cdot\\frac{\\alpha}{360^\\circ}=3{,}14\\cdot ${r * r}\\cdot\\frac{${al}}{360}\\approx ${dc(piAns(kk).answer)}\\,\\text{cm}^2$.`,
-          hint: 'Výsek so stredovým uhlom $\\alpha$ je $\\frac{\\alpha}{360^\\circ}$ celého kruhu.'
+          q: T`Vypočítaj obsah kruhového výseku s polomerom $${r}$ cm a stredovým uhlom $${al}^\\circ$ (v $\\text{cm}^2$, $\\pi\\approx 3{,}14$, na dve desatinné miesta).`,
+          solution: `$S=\\pi r^2\\cdot\\frac{\\alpha}{360^\\circ}=3${dsep()}14\\cdot ${r * r}\\cdot\\frac{${al}}{360}\\approx ${dc(piAns(kk).answer)}\\,\\text{cm}^2$.`,
+          hint: T`Výsek so stredovým uhlom $\\alpha$ je $\\frac{\\alpha}{360^\\circ}$ celého kruhu.`
         };
       }
       const kk = 2 * r * al / 360;
       return {
         ...piAns(kk),
-        q: `Vypočítaj dĺžku kruhového oblúka s polomerom $${r}$ cm a stredovým uhlom $${al}^\\circ$ (v cm, $\\pi\\approx 3{,}14$, na dve desatinné miesta).`,
-        solution: `$l=2\\pi r\\cdot\\frac{\\alpha}{360^\\circ}=2\\cdot 3{,}14\\cdot ${r}\\cdot\\frac{${al}}{360}\\approx ${dc(piAns(kk).answer)}$ cm.`,
-        hint: 'Oblúk so stredovým uhlom $\\alpha$ je $\\frac{\\alpha}{360^\\circ}$ obvodu kružnice.'
+        q: T`Vypočítaj dĺžku kruhového oblúka s polomerom $${r}$ cm a stredovým uhlom $${al}^\\circ$ (v cm, $\\pi\\approx 3{,}14$, na dve desatinné miesta).`,
+        solution: `$l=2\\pi r\\cdot\\frac{\\alpha}{360^\\circ}=2\\cdot 3${dsep()}14\\cdot ${r}\\cdot\\frac{${al}}{360}\\approx ${dc(piAns(kk).answer)}$ cm.`,
+        hint: T`Oblúk so stredovým uhlom $\\alpha$ je $\\frac{\\alpha}{360^\\circ}$ obvodu kružnice.`
       };
     }
     const R = rnd(4, 15), r = rnd(2, R - 1);
     return {
       ...piAns(R * R - r * r),
-      q: `Vypočítaj obsah medzikružia s polomermi $R=${R}$ cm a $r=${r}$ cm (v $\\text{cm}^2$, $\\pi\\approx 3{,}14$).`,
-      solution: `$S=\\pi(R^2-r^2)=3{,}14\\cdot(${R * R}-${r * r})=3{,}14\\cdot ${R * R - r * r}\\approx ${dc(piAns(R * R - r * r).answer)}\\,\\text{cm}^2$.`,
-      hint: 'Od obsahu veľkého kruhu odčítaj obsah malého.'
+      q: T`Vypočítaj obsah medzikružia s polomermi $R=${R}$ cm a $r=${r}$ cm (v $\\text{cm}^2$, $\\pi\\approx 3{,}14$).`,
+      solution: `$S=\\pi(R^2-r^2)=3${dsep()}14\\cdot(${R * R}-${r * r})=3${dsep()}14\\cdot ${R * R - r * r}\\approx ${dc(piAns(R * R - r * r).answer)}\\,\\text{cm}^2$.`,
+      hint: T`Od obsahu veľkého kruhu odčítaj obsah malého.`
     };
   });
 
@@ -1606,32 +1608,32 @@
       if (type === 'sss') {
         let a, b, c;
         do { a = rnd(3, 12); b = rnd(3, 12); c = rnd(3, 12); } while (a + b <= c || a + c <= b || b + c <= a);
-        data = [s('a', a), s('b', b), s('c', c)]; ans = 'sss'; why = 'Sú dané všetky tri strany (trojuholníková nerovnosť platí).';
+        data = [s('a', a), s('b', b), s('c', c)]; ans = T`sss`; why = T`Sú dané všetky tri strany (trojuholníková nerovnosť platí).`;
       } else if (type === 'sus') {
-        data = [s(X, rnd(3, 12)), s(Y, rnd(3, 12)), u(Z, rnd(25, 130))]; ans = 'sus';
-        why = `Uhol $${ANG[Z]}$ leží oproti strane $${Z}$, teda medzi stranami $${X}$ a $${Y}$ – je nimi zovretý.`;
+        data = [s(X, rnd(3, 12)), s(Y, rnd(3, 12)), u(Z, rnd(25, 130))]; ans = T`sus`;
+        why = T`Uhol $${ANG[Z]}$ leží oproti strane $${Z}$, teda medzi stranami $${X}$ a $${Y}$ – je nimi zovretý.`;
       } else if (type === 'usu') {
         const p = rnd(25, 90), q = rnd(25, 150 - p);
-        data = [s(X, rnd(3, 12)), u(Y, p), u(Z, q)]; ans = 'usu';
-        why = `Uhly $${ANG[Y]}$ a $${ANG[Z]}$ ležia pri koncových bodoch strany $${X}$, sú k nej priľahlé.`;
+        data = [s(X, rnd(3, 12)), u(Y, p), u(Z, q)]; ans = T`usu`;
+        why = T`Uhly $${ANG[Y]}$ a $${ANG[Z]}$ ležia pri koncových bodoch strany $${X}$, sú k nej priľahlé.`;
       } else if (type === 'Ssu') {
         const big = rnd(6, 14), small = rnd(3, big - 1);
-        data = [s(X, big), s(Y, small), u(X, rnd(30, 120))]; ans = 'Ssu';
-        why = `Uhol $${ANG[X]}$ leží oproti väčšej zo strán ($${X}=${big}$ cm &gt; $${Y}=${small}$ cm).`;
+        data = [s(X, big), s(Y, small), u(X, rnd(30, 120))]; ans = T`Ssu`;
+        why = T`Uhol $${ANG[X]}$ leží oproti väčšej zo strán ($${X}=${big}$ cm &gt; $${Y}=${small}$ cm).`;
       } else if (type === 'uuu') {
         const p = rnd(30, 90), q = rnd(30, 150 - p);
-        data = [u('a', p), u('b', q), u('c', 180 - p - q)]; ans = 'žiadna z viet';
-        why = 'Sú dané len uhly. Trojuholníky s rovnakými uhlami môžu mať rôzne veľké strany – sú podobné, nie nutne zhodné.';
+        data = [u('a', p), u('b', q), u('c', 180 - p - q)]; ans = T`žiadna z viet`;
+        why = T`Sú dané len uhly. Trojuholníky s rovnakými uhlami môžu mať rôzne veľké strany – sú podobné, nie nutne zhodné.`;
       } else {
         const big = rnd(6, 14), small = rnd(3, big - 1);
-        data = [s(X, big), s(Y, small), u(Y, rnd(20, 55))]; ans = 'žiadna z viet';
-        why = `Uhol $${ANG[Y]}$ leží oproti <em>menšej</em> strane $${Y}$. Také údaje môžu určovať dva rôzne trojuholníky, nejde o vetu Ssu.`;
+        data = [s(X, big), s(Y, small), u(Y, rnd(20, 55))]; ans = T`žiadna z viet`;
+        why = T`Uhol $${ANG[Y]}$ leží oproti <em>menšej</em> strane $${Y}$. Také údaje môžu určovať dva rôzne trojuholníky, nejde o vetu Ssu.`;
       }
       return {
-        type: 'choice', options: ['sss', 'sus', 'usu', 'Ssu', 'žiadna z viet'], answer: ans,
-        q: `O trojuholníku $ABC$ vieme: $${shuffle(data).join('$, $')}$. Ktorá veta o zhodnosti zaručuje, že všetky trojuholníky s týmito údajmi sú navzájom zhodné?`,
-        solution: `${why} Odpoveď: <strong>${ans}</strong>.`,
-        hint: 'Uhol $\\alpha$ leží oproti strane $a$ (pri vrchole $A$). Zisti, či je uhol zovretý danými stranami, priľahlý k danej strane, alebo oproti niektorej z nich.'
+        type: 'choice', options: [T`sss`, T`sus`, T`usu`, T`Ssu`, T`žiadna z viet`], answer: ans,
+        q: T`O trojuholníku $ABC$ vieme: $${shuffle(data).join('$, $')}$. Ktorá veta o zhodnosti zaručuje, že všetky trojuholníky s týmito údajmi sú navzájom zhodné?`,
+        solution: T`${why} Odpoveď: <strong>${ans}</strong>.`,
+        hint: T`Uhol $\\alpha$ leží oproti strane $a$ (pri vrchole $A$). Zisti, či je uhol zovretý danými stranami, priľahlý k danej strane, alebo oproti niektorej z nich.`
       };
     }
     if (t < 0.55) {
@@ -1640,31 +1642,31 @@
         const cnt = v < r ? 2 : v === r ? 1 : 0;
         return {
           answer: cnt,
-          q: `Konštruujeme pravouhlý trojuholník $ABC$ s preponou $|AB|=${c}$ cm a výškou $v_c=${v}$ cm. Koľko riešení má úloha v jednej polrovine určenej priamkou $AB$?`,
-          solution: `Vrchol $C$ leží na Talesovej kružnici nad $AB$ s polomerom $${r}$ cm a na rovnobežke s $AB$ vo vzdialenosti $${v}$ cm. `
-            + (cnt === 2 ? `Keďže $${v}&lt;${r}$, rovnobežka pretína polkružnicu v dvoch bodoch.` : cnt === 1 ? `Keďže $${v}=${r}$, rovnobežka sa polkružnice dotýka v jednom bode (trojuholník je rovnoramenný).` : `Keďže $${v}&gt;${r}$, rovnobežka polkružnicu nepretína, úloha nemá riešenie.`)
-            + ` Počet riešení: ${cnt}.`,
-          hint: 'Porovnaj výšku s polomerom Talesovej kružnice, ktorý je polovicou prepony.'
+          q: T`Konštruujeme pravouhlý trojuholník $ABC$ s preponou $|AB|=${c}$ cm a výškou $v_c=${v}$ cm. Koľko riešení má úloha v jednej polrovine určenej priamkou $AB$?`,
+          solution: T`Vrchol $C$ leží na Talesovej kružnici nad $AB$ s polomerom $${r}$ cm a na rovnobežke s $AB$ vo vzdialenosti $${v}$ cm. `
+            + (cnt === 2 ? T`Keďže $${v}&lt;${r}$, rovnobežka pretína polkružnicu v dvoch bodoch.` : cnt === 1 ? T`Keďže $${v}=${r}$, rovnobežka sa polkružnice dotýka v jednom bode (trojuholník je rovnoramenný).` : T`Keďže $${v}&gt;${r}$, rovnobežka polkružnicu nepretína, úloha nemá riešenie.`)
+            + T` Počet riešení: ${cnt}.`,
+          hint: T`Porovnaj výšku s polomerom Talesovej kružnice, ktorý je polovicou prepony.`
         };
       }
       const c = rnd(4, 12), v = rnd(2, 6), tc = pick([rnd(1, v - 1), v, rnd(v + 1, v + 4)]);
       const cnt = tc > v ? 2 : tc === v ? 1 : 0;
       return {
         answer: cnt,
-        q: `Konštruujeme trojuholník $ABC$, ak $|AB|=${c}$ cm, výška $v_c=${v}$ cm a ťažnica $t_c=${tc}$ cm. Koľko riešení má úloha v jednej polrovine určenej priamkou $AB$?`,
-        solution: `Vrchol $C$ leží na kružnici so stredom v strede $S$ strany $AB$ a polomerom $t_c=${tc}$ cm a na rovnobežke s $AB$ vo vzdialenosti $${v}$ cm. `
-          + (cnt === 2 ? `Keďže $${tc}&gt;${v}$, kružnica pretína rovnobežku v dvoch bodoch.` : cnt === 1 ? `Keďže $t_c=v_c$, kružnica sa rovnobežky dotýka (ťažnica splýva s výškou).` : `Ťažnica nemôže byť kratšia ako výška, úloha nemá riešenie.`)
-          + ` Počet riešení: ${cnt}.`,
-        hint: 'Vrchol $C$ je vo vzdialenosti $t_c$ od stredu strany $AB$ a vo vzdialenosti $v_c$ od priamky $AB$.'
+        q: T`Konštruujeme trojuholník $ABC$, ak $|AB|=${c}$ cm, výška $v_c=${v}$ cm a ťažnica $t_c=${tc}$ cm. Koľko riešení má úloha v jednej polrovine určenej priamkou $AB$?`,
+        solution: T`Vrchol $C$ leží na kružnici so stredom v strede $S$ strany $AB$ a polomerom $t_c=${tc}$ cm a na rovnobežke s $AB$ vo vzdialenosti $${v}$ cm. `
+          + (cnt === 2 ? T`Keďže $${tc}&gt;${v}$, kružnica pretína rovnobežku v dvoch bodoch.` : cnt === 1 ? T`Keďže $t_c=v_c$, kružnica sa rovnobežky dotýka (ťažnica splýva s výškou).` : T`Ťažnica nemôže byť kratšia ako výška, úloha nemá riešenie.`)
+          + T` Počet riešení: ${cnt}.`,
+        hint: T`Vrchol $C$ je vo vzdialenosti $t_c$ od stredu strany $AB$ a vo vzdialenosti $v_c$ od priamky $AB$.`
       };
     }
     if (t < 0.75) {
-      const [desc, ans] = pick(LOCI);
+      const [desc, ans] = pick(LOCI).map(T.s);
       return {
-        type: 'choice', answer: ans, options: choose(ans, LOCI.map((l) => l[1])),
-        q: `Čo tvorí množina všetkých bodov $X$ roviny, ktoré ${desc}?`,
-        solution: `Množinou všetkých takých bodov je ${ans}.`,
-        hint: 'Spomeň si na základné množiny bodov: os úsečky, os uhla, kružnica, rovnobežky a Talesova kružnica.'
+        type: 'choice', answer: ans, options: choose(ans, LOCI.map((l) => T.s(l[1]))),
+        q: T`Čo tvorí množina všetkých bodov $X$ roviny, ktoré ${desc}?`,
+        solution: T`Množinou všetkých takých bodov je ${ans}.`,
+        hint: T`Spomeň si na základné množiny bodov: os úsečky, os uhla, kružnica, rovnobežky a Talesova kružnica.`
       };
     }
     const img = shuffle(['K', 'L', 'M']), pre = {};
@@ -1677,18 +1679,18 @@
       const val = side[pre[X] + pre[Y]];
       return {
         answer: val,
-        q: `Platí $\\triangle ABC\\cong\\triangle ${img.join('')}$, pričom $|AB|=${c}$ cm, $|BC|=${a}$ cm a $|CA|=${b}$ cm. Akú dĺžku má strana $${X}${Y}$ (v cm)?`,
-        solution: `Zápis určuje dvojice vrcholov $A\\leftrightarrow ${img[0]}$, $B\\leftrightarrow ${img[1]}$, $C\\leftrightarrow ${img[2]}$. Strane $${X}${Y}$ zodpovedá strana $${pre[X]}${pre[Y]}$, teda $|${X}${Y}|=${val}$ cm.`,
-        hint: 'V zápise zhodnosti si zodpovedajú vrcholy na rovnakých miestach: prvý s prvým, druhý s druhým, tretí s tretím.'
+        q: T`Platí $\\triangle ABC\\cong\\triangle ${img.join('')}$, pričom $|AB|=${c}$ cm, $|BC|=${a}$ cm a $|CA|=${b}$ cm. Akú dĺžku má strana $${X}${Y}$ (v cm)?`,
+        solution: T`Zápis určuje dvojice vrcholov $A\\leftrightarrow ${img[0]}$, $B\\leftrightarrow ${img[1]}$, $C\\leftrightarrow ${img[2]}$. Strane $${X}${Y}$ zodpovedá strana $${pre[X]}${pre[Y]}$, teda $|${X}${Y}|=${val}$ cm.`,
+        hint: T`V zápise zhodnosti si zodpovedajú vrcholy na rovnakých miestach: prvý s prvým, druhý s druhým, tretí s tretím.`
       };
     }
     const al = rnd(30, 90), be = rnd(25, 150 - al), ga = 180 - al - be;
     const X = pick(['K', 'L', 'M']), val = { A: al, B: be, C: ga }[pre[X]];
     return {
       answer: val,
-      q: `Platí $\\triangle ABC\\cong\\triangle ${img.join('')}$, pričom $\\alpha=${al}^\\circ$ a $\\beta=${be}^\\circ$. Akú veľkosť má vnútorný uhol trojuholníka $${img.join('')}$ pri vrchole $${X}$?`,
-      solution: `Vrcholu $${X}$ zodpovedá vrchol $${pre[X]}$${pre[X] === 'C' ? ` a $\\gamma=180^\\circ-${al}^\\circ-${be}^\\circ=${ga}^\\circ$` : ''}. Uhol pri $${X}$ má teda $${val}^\\circ$.`,
-      hint: 'Zisti, ktorému vrcholu trojuholníka $ABC$ zodpovedá daný vrchol. Tretí uhol dopočítaš zo súčtu $180^\\circ$.'
+      q: T`Platí $\\triangle ABC\\cong\\triangle ${img.join('')}$, pričom $\\alpha=${al}^\\circ$ a $\\beta=${be}^\\circ$. Akú veľkosť má vnútorný uhol trojuholníka $${img.join('')}$ pri vrchole $${X}$?`,
+      solution: T`Vrcholu $${X}$ zodpovedá vrchol $${pre[X]}$${pre[X] === 'C' ? ` a $\\gamma=180^\\circ-${al}^\\circ-${be}^\\circ=${ga}^\\circ$` : ''}. Uhol pri $${X}$ má teda $${val}^\\circ$.`,
+      hint: T`Zisti, ktorému vrcholu trojuholníka $ABC$ zodpovedá daný vrchol. Tretí uhol dopočítaš zo súčtu $180^\\circ$.`
     };
   });
 
@@ -1733,22 +1735,22 @@
     const t = Math.random();
     if (t < 0.25) {
       if (rb()) {
-        const a = rnd(1, 7), b = rnd(1, 7), c = rnd(1, 7), u = rnd(2, 40), T = u * (a + b + c);
+        const a = rnd(1, 7), b = rnd(1, 7), c = rnd(1, 7), u = rnd(2, 40), TOT = u * (a + b + c);
         return {
-          type: 'tuple', answer: [a * u, b * u, c * u], placeholder: 'prvý; druhý; tretí',
-          q: `Traja kamaráti si rozdelili ${T} € v pomere $${a}:${b}:${c}$. Koľko eur dostal každý? Zadaj sumy v poradí oddelené bodkočiarkou.`,
-          solution: `Dielov je $${a}+${b}+${c}=${a + b + c}$, jeden diel je $${T}:${a + b + c}=${u}$ €. Sumy: $${a}\\cdot ${u}=${a * u}$, $${b}\\cdot ${u}=${b * u}$, $${c}\\cdot ${u}=${c * u}$ €.`,
-          hint: 'Sčítaj členy pomeru – to je počet dielov. Celok vydeľ počtom dielov.'
+          type: 'tuple', answer: [a * u, b * u, c * u], placeholder: T`prvý; druhý; tretí`,
+          q: T`Traja kamaráti si rozdelili ${TOT} € v pomere $${a}:${b}:${c}$. Koľko eur dostal každý? Zadaj sumy v poradí oddelené bodkočiarkou.`,
+          solution: T`Dielov je $${a}+${b}+${c}=${a + b + c}$, jeden diel je $${TOT}:${a + b + c}=${u}$ €. Sumy: $${a}\\cdot ${u}=${a * u}$, $${b}\\cdot ${u}=${b * u}$, $${c}\\cdot ${u}=${c * u}$ €.`,
+          hint: T`Sčítaj členy pomeru – to je počet dielov. Celok vydeľ počtom dielov.`
         };
       }
       let a, b;
       do { a = rnd(2, 9); b = rnd(1, 8); } while (a <= b || gcd(a, b) !== 1);
       const u = rnd(2, 30);
       return {
-        type: 'tuple', answer: [a * u, b * u], placeholder: 'väčšia; menšia',
-        q: `Dve čísla sú v pomere $${a}:${b}$ a ich rozdiel je ${(a - b) * u}. Urči obe čísla (najprv väčšie, potom menšie).`,
-        solution: `Čísla sú $${a}k$ a $${b}k$. Rozdiel: $${a - b}k=${(a - b) * u}$, teda $k=${u}$. Čísla sú $${a * u}$ a $${b * u}$.`,
-        hint: 'Čísla v pomere $a:b$ zapíš ako $ak$ a $bk$ a zostav rovnicu.'
+        type: 'tuple', answer: [a * u, b * u], placeholder: T`väčšia; menšia`,
+        q: T`Dve čísla sú v pomere $${a}:${b}$ a ich rozdiel je ${(a - b) * u}. Urči obe čísla (najprv väčšie, potom menšie).`,
+        solution: T`Čísla sú $${a}k$ a $${b}k$. Rozdiel: $${a - b}k=${(a - b) * u}$, teda $k=${u}$. Čísla sú $${a * u}$ a $${b * u}$.`,
+        hint: T`Čísla v pomere $a:b$ zapíš ako $ak$ a $bk$ a zostav rovnicu.`
       };
     }
     if (t < 0.5) {
@@ -1758,24 +1760,24 @@
       if (k === 0) {
         return {
           answer: km,
-          q: `Na mape s mierkou $1:${big(n)}$ je vzdialenosť dvoch obcí $${dc(cm)}$ cm. Aká je skutočná vzdialenosť v kilometroch?`,
-          solution: `Skutočnosť je $${big(n)}$-krát väčšia: $${dc(cm)}\\cdot ${big(n)}=${big(Math.round(cm * n))}$ cm $=${dc(km)}$ km (1 km = 100 000 cm).`,
-          hint: 'Vzdialenosť z mapy vynásob číslom $n$ a výsledok v centimetroch preveď na kilometre.'
+          q: T`Na mape s mierkou $1:${big(n)}$ je vzdialenosť dvoch obcí $${dc(cm)}$ cm. Aká je skutočná vzdialenosť v kilometroch?`,
+          solution: T`Skutočnosť je $${big(n)}$-krát väčšia: $${dc(cm)}\\cdot ${big(n)}=${big(Math.round(cm * n))}$ cm $=${dc(km)}$ km (1 km = 100 000 cm).`,
+          hint: T`Vzdialenosť z mapy vynásob číslom $n$ a výsledok v centimetroch preveď na kilometre.`
         };
       }
       if (k === 1) {
         return {
           answer: cm,
-          q: `Skutočná vzdialenosť dvoch miest je $${dc(km)}$ km. Akú dlhú úsečku (v cm) nakreslíme na mape s mierkou $1:${big(n)}$?`,
-          solution: `$${dc(km)}$ km $=${big(Math.round(cm * n))}$ cm. Na mape: $${big(Math.round(cm * n))}:${big(n)}=${dc(cm)}$ cm.`,
-          hint: 'Skutočnú vzdialenosť preveď na centimetre a vydeľ číslom $n$.'
+          q: T`Skutočná vzdialenosť dvoch miest je $${dc(km)}$ km. Akú dlhú úsečku (v cm) nakreslíme na mape s mierkou $1:${big(n)}$?`,
+          solution: T`$${dc(km)}$ km $=${big(Math.round(cm * n))}$ cm. Na mape: $${big(Math.round(cm * n))}:${big(n)}=${dc(cm)}$ cm.`,
+          hint: T`Skutočnú vzdialenosť preveď na centimetre a vydeľ číslom $n$.`
         };
       }
       return {
         answer: n,
-        q: `Úsečka dlhá $${dc(cm)}$ cm na mape zodpovedá skutočnej vzdialenosti $${dc(km)}$ km. Aká je mierka mapy $1:n$? Zadaj $n$.`,
-        solution: `$${dc(km)}$ km $=${big(Math.round(cm * n))}$ cm, $n=${big(Math.round(cm * n))}:${dc(cm)}=${big(n)}$. Mierka je $1:${big(n)}$.`,
-        hint: 'Obe vzdialenosti vyjadri v rovnakých jednotkách a vydeľ skutočnú vzdialenosť vzdialenosťou na mape.'
+        q: T`Úsečka dlhá $${dc(cm)}$ cm na mape zodpovedá skutočnej vzdialenosti $${dc(km)}$ km. Aká je mierka mapy $1:n$? Zadaj $n$.`,
+        solution: T`$${dc(km)}$ km $=${big(Math.round(cm * n))}$ cm, $n=${big(Math.round(cm * n))}:${dc(cm)}=${big(n)}$. Mierka je $1:${big(n)}$.`,
+        hint: T`Obe vzdialenosti vyjadri v rovnakých jednotkách a vydeľ skutočnú vzdialenosť vzdialenosťou na mape.`
       };
     }
     if (t < 0.78) {
@@ -1786,31 +1788,31 @@
         do { b = rnd(2, 12); } while (b === a);
         return {
           answer: b * unit / 100,
-          q: `${a} kg ovocia stojí $${dc(a * unit / 100)}$ €. Koľko eur zaplatíme za ${b} kg toho istého ovocia?`,
-          solution: `Priama úmernosť: cena za 1 kg je $${dc(a * unit / 100)}:${a}=${dc(unit / 100)}$ €, za ${b} kg zaplatíme $${b}\\cdot ${dc(unit / 100)}=${dc(b * unit / 100)}$ €.`,
-          hint: 'Koľkokrát viac kilogramov, toľkokrát vyššia cena. Vypočítaj cenu za 1 kg.'
+          q: T`${a} kg ovocia stojí $${dc(a * unit / 100)}$ €. Koľko eur zaplatíme za ${b} kg toho istého ovocia?`,
+          solution: T`Priama úmernosť: cena za 1 kg je $${dc(a * unit / 100)}:${a}=${dc(unit / 100)}$ €, za ${b} kg zaplatíme $${b}\\cdot ${dc(unit / 100)}=${dc(b * unit / 100)}$ €.`,
+          hint: T`Koľkokrát viac kilogramov, toľkokrát vyššia cena. Vypočítaj cenu za 1 kg.`
         };
       }
       if (k === 1) {
         let w1, d1, w2;
         do { w1 = rnd(2, 12); d1 = rnd(2, 20); w2 = rnd(2, 15); } while (w1 === w2 || (w1 * d1) % w2 !== 0 || w1 * d1 / w2 < 2);
-        const d2 = w1 * d1 / w2, DEN = ['deň', 'dni', 'dní'];
-        const crew = (w, verb) => (w <= 4 ? `${w} rovnako výkonní robotníci ${verb[1]}` : `${w} rovnako výkonných robotníkov ${verb[0]}`);
+        const d2 = w1 * d1 / w2, DEN = [T`deň`, T`dni`, T`dní`];
+        const crew = (w, verb) => (w <= 4 ? T`${w} rovnako výkonní robotníci ${verb[1]}` : T`${w} rovnako výkonných robotníkov ${verb[0]}`);
         return {
           answer: d2,
-          q: `${crew(w1, ['urobí', 'urobia'])} prácu za ${d1} ${pl(d1, DEN)}. Za koľko dní by rovnakú prácu ${w2 <= 4 ? 'urobili' : 'urobilo'} ${w2} ${pl(w2, ['robotník', 'robotníci', 'robotníkov'])}?`,
-          solution: `Nepriama úmernosť: súčin počtu robotníkov a dní je stály. $${w1}\\cdot ${d1}=${w2}\\cdot x$, teda $x=${d2}$ (${pl(d2, DEN)}).`,
-          hint: 'Viac robotníkov potrebuje menej času. Stály je súčin (robotníci × dni).'
+          q: T`${crew(w1, [T`urobí`, T`urobia`])} prácu za ${d1} ${pl(d1, DEN)}. Za koľko dní by rovnakú prácu ${w2 <= 4 ? T`urobili` : T`urobilo`} ${w2} ${pl(w2, [T`robotník`, T`robotníci`, T`robotníkov`])}?`,
+          solution: T`Nepriama úmernosť: súčin počtu robotníkov a dní je stály. $${w1}\\cdot ${d1}=${w2}\\cdot x$, teda $x=${d2}$ (${pl(d2, DEN)}).`,
+          hint: T`Viac robotníkov potrebuje menej času. Stály je súčin (robotníci × dni).`
         };
       }
       const [s, a] = pick(UMER);
       return {
-        type: 'choice', answer: a, options: ['priama úmernosť', 'nepriama úmernosť', 'ani priama, ani nepriama úmernosť'],
-        q: `Aký vzťah je medzi veličinami: ${s}?`,
-        solution: a === 'priama úmernosť' ? 'Ak jednu veličinu zväčšíme $k$-krát, aj druhá sa zväčší $k$-krát; ich podiel je stály. Ide o priamu úmernosť.'
-          : a === 'nepriama úmernosť' ? 'Ak jednu veličinu zväčšíme $k$-krát, druhá sa $k$-krát zmenší; ich súčin je stály. Ide o nepriamu úmernosť.'
-            : 'Ani podiel, ani súčin veličín nie je stály (napr. pri dvojnásobnej hodnote jednej veličiny sa druhá nezmení dvojnásobne ani na polovicu). Nejde o úmernosť.',
-        hint: 'Skús jednu veličinu zdvojnásobiť. Zdvojnásobí sa druhá, klesne na polovicu, alebo ani jedno?'
+        type: 'choice', answer: T.s(a), options: [T`priama úmernosť`, T`nepriama úmernosť`, T`ani priama, ani nepriama úmernosť`],
+        q: T`Aký vzťah je medzi veličinami: ${T.s(s)}?`,
+        solution: a === 'priama úmernosť' ? T`Ak jednu veličinu zväčšíme $k$-krát, aj druhá sa zväčší $k$-krát; ich podiel je stály. Ide o priamu úmernosť.`
+          : a === 'nepriama úmernosť' ? T`Ak jednu veličinu zväčšíme $k$-krát, druhá sa $k$-krát zmenší; ich súčin je stály. Ide o nepriamu úmernosť.`
+            : T`Ani podiel, ani súčin veličín nie je stály (napr. pri dvojnásobnej hodnote jednej veličiny sa druhá nezmení dvojnásobne ani na polovicu). Nejde o úmernosť.`,
+        hint: T`Skús jednu veličinu zdvojnásobiť. Zdvojnásobí sa druhá, klesne na polovicu, alebo ani jedno?`
       };
     }
     let p, q;
@@ -1818,9 +1820,9 @@
     const x = q * rnd(2, 30), res = x * p / q;
     return {
       answer: res,
-      q: `${p > q ? 'Zväčši' : 'Zmenši'} číslo ${x} v pomere $${p}:${q}$.`,
-      solution: `Zmena v pomere $${p}:${q}$ znamená násobenie zlomkom $\\frac{${p}}{${q}}$: $${x}\\cdot\\frac{${p}}{${q}}=${res}$.`,
-      hint: 'Zmeniť číslo v pomere $p:q$ znamená vynásobiť ho číslom $\\frac{p}{q}$.'
+      q: T`${p > q ? T`Zväčši` : T`Zmenši`} číslo ${x} v pomere $${p}:${q}$.`,
+      solution: T`Zmena v pomere $${p}:${q}$ znamená násobenie zlomkom $\\frac{${p}}{${q}}$: $${x}\\cdot\\frac{${p}}{${q}}=${res}$.`,
+      hint: T`Zmeniť číslo v pomere $p:q$ znamená vynásobiť ho číslom $\\frac{p}{q}$.`
     };
   });
 
@@ -1855,8 +1857,8 @@
   const PLACES = [[1000000, 'tisícky'], [100000, 'stovky'], [10000, 'desiatky'], [1000, 'jednotky'], [100, 'desatiny'], [10, 'stotiny']];
   const thou = (X) => fmt(X / 1000);
   const thouTex = (X) => {
-    const [i, d] = thou(X).split(',');
-    return big(i) + (d ? '{,}' + d : '');
+    const [i, d] = thou(X).split(/[.,]/);
+    return big(i) + (d ? dsep() + d : '');
   };
 
   gen('s1-percenta', () => {
@@ -1867,18 +1869,18 @@
         do { p = pick([2, 4, 5, 6, 8, 12, 15, 16, 18, 24, 25, 35, 45, 60, 75]); z = 10 * rnd(2, 80); c = p * z / 100; } while (!Number.isInteger(c));
         return {
           answer: z,
-          q: `${p} % z neznámeho čísla je ${c}. Urči toto číslo.`,
-          solution: `Percentová časť je $${c}$, počet percent $${p}$, hľadáme základ: $z=\\frac{${c}\\cdot 100}{${p}}=${z}$.`,
-          hint: 'Najprv zisti, koľko je 1 %, potom 100 %.'
+          q: T`${p} % z neznámeho čísla je ${c}. Urči toto číslo.`,
+          solution: T`Percentová časť je $${c}$, počet percent $${p}$, hľadáme základ: $z=\\frac{${c}\\cdot 100}{${p}}=${z}$.`,
+          hint: T`Najprv zisti, koľko je 1 %, potom 100 %.`
         };
       }
       let z, c, p;
       do { z = pick([40, 50, 80, 120, 150, 200, 250, 400, 500, 640, 800]); c = rnd(1, z - 1); p = c * 100 / z; } while ((c * 1000) % z !== 0);
       return {
         answer: p,
-        q: `Koľko percent je ${c} z ${z}?`,
+        q: T`Koľko percent je ${c} z ${z}?`,
         solution: `$p=\\frac{${c}}{${z}}\\cdot 100=${dc(p)}\\,\\%$.`,
-        hint: 'Percentovú časť vydeľ základom a vynásob 100.'
+        hint: T`Percentovú časť vydeľ základom a vynásob 100.`
       };
     }
     if (t < 0.5) {
@@ -1886,12 +1888,12 @@
       const up1 = rb(), up2 = rb() ? !up1 : up1;
       const f = (1 + (up1 ? p : -p) / 100) * (1 + (up2 ? q : -q) / 100);
       const ch = Math.round((f - 1) * 10000) / 100;
-      const w = (up) => (up ? 'zdražel' : 'zlacnel');
+      const w = (up) => (up ? T`zdražel` : T`zlacnel`);
       return {
         signed: true, answer: ch, tol: 0.001,
-        q: `Tovar najprv ${w(up1)} o ${p} % a potom ${w(up2)} o ${q} %. O koľko percent sa zmenila jeho cena oproti pôvodnej? (Zníženie zadaj záporným číslom.)`,
-        solution: `Celkový násobiteľ: $${dc(1 + (up1 ? p : -p) / 100)}\\cdot ${dc(1 + (up2 ? q : -q) / 100)}=${dc(Math.round(f * 10000) / 10000)}$. Zmena je $${dc(ch)}\\,\\%$${ch < 0 ? ' (zlacnenie)' : ch > 0 ? ' (zdraženie)' : ''}.`,
-        hint: 'Každú zmenu vyjadri násobiteľom (napr. $+20\\,\\%$ je $1{,}2$, $-15\\,\\%$ je $0{,}85$) a násobitele vynásob.'
+        q: T`Tovar najprv ${w(up1)} o ${p} % a potom ${w(up2)} o ${q} %. O koľko percent sa zmenila jeho cena oproti pôvodnej? (Zníženie zadaj záporným číslom.)`,
+        solution: T`Celkový násobiteľ: $${dc(1 + (up1 ? p : -p) / 100)}\\cdot ${dc(1 + (up2 ? q : -q) / 100)}=${dc(Math.round(f * 10000) / 10000)}$. Zmena je $${dc(ch)}\\,\\%$${ch < 0 ? T` (zlacnenie)` : ch > 0 ? T` (zdraženie)` : ''}.`,
+        hint: T`Každú zmenu vyjadri násobiteľom (napr. $+20\\,\\%$ je $1{,}2$, $-15\\,\\%$ je $0{,}85$) a násobitele vynásob.`
       };
     }
     if (t < 0.75) {
@@ -1899,17 +1901,17 @@
         const p = pick([10, 15, 20, 25, 30, 40]), z = 20 * rnd(2, 40), x = z * (100 - p) / 100;
         return {
           answer: z,
-          q: `Po zľave ${p} % stojí bicykel ${fmt(x)} €. Aká bola pôvodná cena (v eurách)?`,
-          solution: `Zľavnená cena je $${100 - p}\\,\\%$ pôvodnej: $z\\cdot ${dc((100 - p) / 100)}=${dc(x)}$, teda $z=${dc(x)}:${dc((100 - p) / 100)}=${z}$ €.`,
-          hint: 'Pozor, zľava sa počíta z pôvodnej ceny. Zľavnená cena je $(100-p)\\,\\%$ pôvodnej.'
+          q: T`Po zľave ${p} % stojí bicykel ${fmt(x)} €. Aká bola pôvodná cena (v eurách)?`,
+          solution: T`Zľavnená cena je $${100 - p}\\,\\%$ pôvodnej: $z\\cdot ${dc((100 - p) / 100)}=${dc(x)}$, teda $z=${dc(x)}:${dc((100 - p) / 100)}=${z}$ €.`,
+          hint: T`Pozor, zľava sa počíta z pôvodnej ceny. Zľavnená cena je $(100-p)\\,\\%$ pôvodnej.`
         };
       }
       const z = 5 * rnd(4, 120), x = z * 1.2;
       return {
         answer: z,
-        q: `Cena výrobku vrátane 20 % DPH je ${fmt(x)} €. Aká je cena bez DPH (v eurách)?`,
-        solution: `Cena s DPH je $120\\,\\%$ ceny bez DPH: $z=${dc(x)}:1{,}2=${z}$ €. (Nie je to $${dc(x)}$ mínus 20 % z $${dc(x)}$!)`,
-        hint: 'DPH sa pripočítava k cene bez dane, ktorá je základom (100 %).'
+        q: T`Cena výrobku vrátane 20 % DPH je ${fmt(x)} €. Aká je cena bez DPH (v eurách)?`,
+        solution: T`Cena s DPH je $120\\,\\%$ ceny bez DPH: $z=${dc(x)}:1{,}2=${z}$ €. (Nie je to $${dc(x)}$ mínus 20 % z $${dc(x)}$!)`,
+        hint: T`DPH sa pripočítava k cene bez dane, ktorá je základom (100 %).`
       };
     }
     if (rb()) {
@@ -1922,9 +1924,9 @@
         const R = Math.round(X / unit) * unit;
         return {
           answer: R / 1000, show: thou(R),
-          q: `Zaokrúhli číslo $${thouTex(X)}$ na ${nm}.`,
-          solution: `Prvá vynechaná cifra (hneď za miestom, na ktoré zaokrúhľujeme) je $${next}$, preto zaokrúhľujeme ${next >= 5 ? 'nahor' : 'nadol'}: $${thouTex(X)}\\approx ${thouTex(R)}$.`,
-          hint: 'Rozhoduje prvá vynechaná cifra: 0 až 4 nadol, 5 až 9 nahor.'
+          q: T`Zaokrúhli číslo $${thouTex(X)}$ na ${T.s(nm)}.`,
+          solution: T`Prvá vynechaná cifra (hneď za miestom, na ktoré zaokrúhľujeme) je $${next}$, preto zaokrúhľujeme ${next >= 5 ? T`nahor` : T`nadol`}: $${thouTex(X)}\\approx ${thouTex(R)}$.`,
+          hint: T`Rozhoduje prvá vynechaná cifra: 0 až 4 nadol, 5 až 9 nahor.`
         };
       }
       const e = rnd(-5, -2), d1 = rnd(1, 9), digs = rnd(1, 3);
@@ -1932,12 +1934,12 @@
       do { rest = rnd(100, 999); } while (rest % 10 === 0 || rest % 10 === 5);
       const x = Number(((d1 * 1000 + rest) * 10 ** (e - 3)).toPrecision(4));
       const res = Number(x.toPrecision(digs));
-      const tx = (v) => String(v).replace('.', '{,}');
+      const tx = (v) => String(v).replace('.', dsep());
       return {
-        answer: res, tol: 1e-12, show: String(res).replace('.', ','),
-        q: `Zaokrúhli číslo $${tx(x)}$ na ${digs} ${pl(digs, ['platnú cifru', 'platné cifry', 'platných cifier'])}.`,
-        solution: `Platné cifry počítame od prvej nenulovej cifry, nuly pred ňou sa nerátajú. Ponecháme ${digs === 1 ? 'prvú platnú cifru' : `prvé ${digs} platné cifry`} a podľa nasledujúcej cifry zaokrúhlime: $${tx(x)}\\approx ${tx(res)}$.`,
-        hint: 'Nuly na začiatku desatinného čísla nie sú platné cifry.'
+        answer: res, tol: 1e-12, show: String(res).replace('.', CONTENT_I18N.decimal()),
+        q: T`Zaokrúhli číslo $${tx(x)}$ na ${digs} ${pl(digs, [T`platnú cifru`, T`platné cifry`, T`platných cifier`])}.`,
+        solution: T`Platné cifry počítame od prvej nenulovej cifry, nuly pred ňou sa nerátajú. Ponecháme ${digs === 1 ? T`prvú platnú cifru` : T`prvé ${digs} platné cifry`} a podľa nasledujúcej cifry zaokrúhlime: $${tx(x)}\\approx ${tx(res)}$.`,
+        hint: T`Nuly na začiatku desatinného čísla nie sú platné cifry.`
       };
     }
     const a = rnd(150, 999), b = rnd(15, 99);
@@ -1946,9 +1948,9 @@
     const opts = [E / 100, E / 10, E, E * 10].map((v) => `$${big(v)}$`);
     return {
       type: 'choice', answer: `$${big(E)}$`, options: opts,
-      q: `Bez kalkulačky odhadni výsledok $${a}\\cdot ${b}$. Ktorá hodnota je najbližšia?`,
-      solution: `Zaokrúhlime na jednu platnú cifru: $${a}\\approx ${r1(a)}$, $${b}\\approx ${r1(b)}$, $${r1(a)}\\cdot ${r1(b)}=${big(E)}$. (Presne: $${big(a * b)}$.)`,
-      hint: 'Zaokrúhli oba činitele na jednu platnú cifru a vynásob ich.'
+      q: T`Bez kalkulačky odhadni výsledok $${a}\\cdot ${b}$. Ktorá hodnota je najbližšia?`,
+      solution: T`Zaokrúhlime na jednu platnú cifru: $${a}\\approx ${r1(a)}$, $${b}\\approx ${r1(b)}$, $${r1(a)}\\cdot ${r1(b)}=${big(E)}$. (Presne: $${big(a * b)}$.)`,
+      hint: T`Zaokrúhli oba činitele na jednu platnú cifru a vynásob ich.`
     };
   });
 })();

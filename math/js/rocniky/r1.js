@@ -4,6 +4,7 @@
   'use strict';
 
   const { rnd, pick, shuffle } = EXERCISES.util;
+  const { T } = CONTENT_I18N;
   const lesson = (l) => LESSONS.push(Object.assign({ level: 'r1' }, l));
   const gen = EXERCISES.register;
   const fig = FIGURES.register;
@@ -138,11 +139,11 @@
       const ans = a < b ? '<' : a > b ? '>' : '=';
       return {
         type: 'choice', options: ['<', '=', '>'], answer: ans,
-        q: `Doplň správny znak: $${a} \\;\\square\\; ${b}$`,
+        q: T`Doplň správny znak: $${a} \\;\\square\\; ${b}$`,
         solution: a === b
-          ? `Čísla sú rovnaké, preto $${a} = ${b}$.`
-          : `Číslo ${Math.max(a, b)} leží na číselnom rade ďalej vpravo, je väčšie. Preto $${a} ${ans === '<' ? '&lt;' : '&gt;'} ${b}$.`,
-        hint: 'Väčšie číslo leží na číselnom rade viac vpravo. Otvorená strana znaku smeruje k väčšiemu číslu.'
+          ? T`Čísla sú rovnaké, preto $${a} = ${b}$.`
+          : T`Číslo ${Math.max(a, b)} leží na číselnom rade ďalej vpravo, je väčšie. Preto $${a} ${ans === '<' ? '&lt;' : '&gt;'} ${b}$.`,
+        hint: T`Väčšie číslo leží na číselnom rade viac vpravo. Otvorená strana znaku smeruje k väčšiemu číslu.`
       };
     }
     if (t < 0.8) {
@@ -150,17 +151,17 @@
       const askOnes = Math.random() < 0.5;
       return {
         answer: askOnes ? ones : tens,
-        q: `Koľko ${askOnes ? 'jednotiek' : 'desiatok'} má číslo ${n}?`,
-        solution: `$${n} = ${tens * 10} + ${ones}$, teda ${tens} ${pl(tens, ['desiatka', 'desiatky', 'desiatok'])} a ${ones} ${pl(ones, ['jednotka', 'jednotky', 'jednotiek'])}.`,
-        hint: 'Číslo rozdeľ na desiatky a jednotky, napríklad $14 = 10 + 4$.'
+        q: T`Koľko ${askOnes ? T`jednotiek` : T`desiatok`} má číslo ${n}?`,
+        solution: T`$${n} = ${tens * 10} + ${ones}$, teda ${tens} ${pl(tens, [T`desiatka`, T`desiatky`, T`desiatok`])} a ${ones} ${pl(ones, [T`jednotka`, T`jednotky`, T`jednotiek`])}.`,
+        hint: T`Číslo rozdeľ na desiatky a jednotky, napríklad $14 = 10 + 4$.`
       };
     }
     const n = rnd(1, 19), up = Math.random() < 0.5;
     return {
       answer: up ? n + 1 : n - 1,
-      q: `Ktoré číslo je o 1 ${up ? 'väčšie' : 'menšie'} ako ${n}?`,
-      solution: `${up ? 'Hneď za' : 'Hneď pred'} číslom ${n} je v číselnom rade číslo ${up ? n + 1 : n - 1}.`,
-      hint: up ? 'Na číselnom rade sa posuň o jedno miesto doprava.' : 'Na číselnom rade sa posuň o jedno miesto doľava.'
+      q: T`Ktoré číslo je o 1 ${up ? T`väčšie` : T`menšie`} ako ${n}?`,
+      solution: T`${up ? T`Hneď za` : T`Hneď pred`} číslom ${n} je v číselnom rade číslo ${up ? n + 1 : n - 1}.`,
+      hint: up ? T`Na číselnom rade sa posuň o jedno miesto doprava.` : T`Na číselnom rade sa posuň o jedno miesto doľava.`
     };
   });
 
@@ -186,27 +187,27 @@
     const t = Math.random();
     if (t < 0.4) {
       const a = rnd(2, 15), b = rnd(1, 20 - a), s = a + b;
-      const via = a < 10 && s > 10 ? ` Doplň do desiatky: $${a} + ${10 - a} = 10$, potom $10 + ${s - 10} = ${s}$.` : '';
+      const via = a < 10 && s > 10 ? T` Doplň do desiatky: $${a} + ${10 - a} = 10$, potom $10 + ${s - 10} = ${s}$.` : '';
       return {
-        answer: s, q: `Vypočítaj $${a} + ${b}$.`,
+        answer: s, q: T`Vypočítaj $${a} + ${b}$.`,
         solution: `$${a} + ${b} = ${s}$.${via}`,
-        hint: 'Ak prejdeš cez 10, najprv doplň do desiatky a potom pridaj zvyšok.'
+        hint: T`Ak prejdeš cez 10, najprv doplň do desiatky a potom pridaj zvyšok.`
       };
     }
     if (t < 0.8) {
       const a = rnd(5, 20), b = rnd(1, a), d = a - b;
-      const via = a > 10 && d < 10 ? ` Najprv uber do desiatky: $${a} - ${a - 10} = 10$, potom $10 - ${b - (a - 10)} = ${d}$.` : '';
+      const via = a > 10 && d < 10 ? T` Najprv uber do desiatky: $${a} - ${a - 10} = 10$, potom $10 - ${b - (a - 10)} = ${d}$.` : '';
       return {
-        answer: d, q: `Vypočítaj $${a} - ${b}$.`,
+        answer: d, q: T`Vypočítaj $${a} - ${b}$.`,
         solution: `$${a} - ${b} = ${d}$.${via}`,
-        hint: `Odčítanie je opak sčítania: koľko musíš pridať k ${b}, aby si dostal ${a}?`
+        hint: T`Odčítanie je opak sčítania: koľko musíš pridať k ${b}, aby si dostal ${a}?`
       };
     }
     const a = rnd(1, 15), x = rnd(1, 20 - a), s = a + x;
     return {
-      answer: x, q: `Doplň chýbajúce číslo: $${a} + \\square = ${s}$`,
-      solution: `Hľadáme, koľko chýba od ${a} do ${s}: $${s} - ${a} = ${x}$.`,
-      hint: 'Chýbajúce číslo zistíš odčítaním.'
+      answer: x, q: T`Doplň chýbajúce číslo: $${a} + \\square = ${s}$`,
+      solution: T`Hľadáme, koľko chýba od ${a} do ${s}: $${s} - ${a} = ${x}$.`,
+      hint: T`Chýbajúce číslo zistíš odčítaním.`
     };
   });
 
@@ -233,9 +234,9 @@
     if (t < 0.4) {
       const n = rnd(3, 20), a = rnd(0, n);
       return {
-        answer: n - a, q: `Rozlož číslo ${n}: $${n} = ${a} + \\square$`,
-        solution: `$${n} - ${a} = ${n - a}$, teda $${n} = ${a} + ${n - a}$.`,
-        hint: `Koľko chýba od ${a} do ${n}?`
+        answer: n - a, q: T`Rozlož číslo ${n}: $${n} = ${a} + \\square$`,
+        solution: T`$${n} - ${a} = ${n - a}$, teda $${n} = ${a} + ${n - a}$.`,
+        hint: T`Koľko chýba od ${a} do ${n}?`
       };
     }
     if (t < 0.7) {
@@ -243,16 +244,16 @@
       const seq = [0, 1, 2, 3].map((i) => (up ? start + i : start - i));
       return {
         answer: seq[miss],
-        q: `Doplň číslo, ktoré chýba v číselnom rade: ${seq.map((v, i) => (i === miss ? '□' : v)).join(', ')}`,
-        solution: `Čísla ${up ? 'rastú' : 'klesajú'} vždy o 1: ${seq.join(', ')}.`,
-        hint: 'Zisti, či čísla rastú alebo klesajú, a o koľko.'
+        q: T`Doplň číslo, ktoré chýba v číselnom rade: ${seq.map((v, i) => (i === miss ? '□' : v)).join(', ')}`,
+        solution: T`Čísla ${up ? T`rastú` : T`klesajú`} vždy o 1: ${seq.join(', ')}.`,
+        hint: T`Zisti, či čísla rastú alebo klesajú, a o koľko.`
       };
     }
     const a = rnd(0, 18);
     return {
-      answer: a + 1, q: `Ktoré číslo leží v číselnom rade medzi číslami ${a} a ${a + 2}?`,
-      solution: `Za číslom ${a} nasleduje ${a + 1} a za ním ${a + 2}.`,
-      hint: 'Hľadaj číslo, ktoré je o 1 väčšie ako prvé.'
+      answer: a + 1, q: T`Ktoré číslo leží v číselnom rade medzi číslami ${a} a ${a + 2}?`,
+      solution: T`Za číslom ${a} nasleduje ${a + 1} a za ním ${a + 2}.`,
+      hint: T`Hľadaj číslo, ktoré je o 1 väčšie ako prvé.`
     };
   });
 
@@ -286,42 +287,42 @@
   const verb = (kid, m, f) => (kid.f ? f : m);
 
   gen('r1-slovne', () => {
-    const T = pick(THINGS);
+    const TH = pick(THINGS);
     const k1 = pick(KIDS), k2 = pick(KIDS.filter((k) => k !== k1));
     const kind = rnd(0, 3);
     if (kind === 0) {
       const a = rnd(2, 15), b = rnd(1, 20 - a);
       return {
         answer: a + b,
-        q: `${k1.n} ${verb(k1, 'mal', 'mala')} ${a} ${pl(a, T)} a ${verb(k1, 'dostal', 'dostala')} ešte ${b}. Koľko ${T[2]} má teraz?`,
-        solution: `Pridávame, preto sčítame: $${a} + ${b} = ${a + b}$. ${k1.n} má ${a + b} ${pl(a + b, T)}.`,
-        hint: 'Keď niečo pribudne, sčítavame.'
+        q: T`${k1.n} ${verb(k1, T`mal`, T`mala`)} ${a} ${pl(a, TH)} a ${verb(k1, T`dostal`, T`dostala`)} ešte ${b}. Koľko ${TH[2]} má teraz?`,
+        solution: T`Pridávame, preto sčítame: $${a} + ${b} = ${a + b}$. ${k1.n} má ${a + b} ${pl(a + b, TH)}.`,
+        hint: T`Keď niečo pribudne, sčítavame.`
       };
     }
     if (kind === 1) {
       const a = rnd(5, 20), b = rnd(2, a - 1);
       return {
         answer: a - b,
-        q: `${k1.n} ${verb(k1, 'mal', 'mala')} ${a} ${pl(a, T)}. Kamarátom ${verb(k1, 'dal', 'dala')} ${b} ${pl(b, T)}. Koľko ${T[2]} ${verb(k1, 'mu', 'jej')} zostalo?`,
-        solution: `Uberáme, preto odčítame: $${a} - ${b} = ${a - b}$. Zostalo ${verb(k1, 'mu', 'jej')} ${a - b} ${pl(a - b, T)}.`,
-        hint: 'Keď niečo ubudne, odčítavame.'
+        q: T`${k1.n} ${verb(k1, T`mal`, T`mala`)} ${a} ${pl(a, TH)}. Kamarátom ${verb(k1, T`dal`, T`dala`)} ${b} ${pl(b, TH)}. Koľko ${TH[2]} ${verb(k1, T`mu`, T`jej`)} zostalo?`,
+        solution: T`Uberáme, preto odčítame: $${a} - ${b} = ${a - b}$. Zostalo ${verb(k1, T`mu`, T`jej`)} ${a - b} ${pl(a - b, TH)}.`,
+        hint: T`Keď niečo ubudne, odčítavame.`
       };
     }
     if (kind === 2) {
       const a = rnd(3, 20), b = rnd(1, a - 1);
       return {
         answer: a - b,
-        q: `${k1.n} má ${a} ${pl(a, T)}, ${k2.n} má ${b} ${pl(b, T)}. O koľko ${T[2]} má ${k1.n} viac?`,
-        solution: `Porovnávame: $${a} - ${b} = ${a - b}$. ${k1.n} má o ${a - b} ${pl(a - b, T)} viac.`,
-        hint: 'Otázka „o koľko viac“ sa rieši odčítaním.'
+        q: T`${k1.n} má ${a} ${pl(a, TH)}, ${k2.n} má ${b} ${pl(b, TH)}. O koľko ${TH[2]} má ${k1.n} viac?`,
+        solution: T`Porovnávame: $${a} - ${b} = ${a - b}$. ${k1.n} má o ${a - b} ${pl(a - b, TH)} viac.`,
+        hint: T`Otázka „o koľko viac“ sa rieši odčítaním.`
       };
     }
     const a = rnd(1, 15), b = rnd(2, 20 - a);
     return {
       answer: a + b,
-      q: `${k1.n} má ${a} ${pl(a, T)}. ${k2.n} má o ${b} ${pl(b, T)} viac. Koľko ${T[2]} má ${k2.n}?`,
-      solution: `„O ${b} viac“ znamená pridať ${b}: $${a} + ${b} = ${a + b}$. ${k2.n} má ${a + b} ${pl(a + b, T)}.`,
-      hint: '„O … viac“ znamená k číslu pripočítať.'
+      q: T`${k1.n} má ${a} ${pl(a, TH)}. ${k2.n} má o ${b} ${pl(b, TH)} viac. Koľko ${TH[2]} má ${k2.n}?`,
+      solution: T`„O ${b} viac“ znamená pridať ${b}: $${a} + ${b} = ${a + b}$. ${k2.n} má ${a + b} ${pl(a + b, TH)}.`,
+      hint: T`„O … viac“ znamená k číslu pripočítať.`
     };
   });
 
@@ -360,15 +361,15 @@
       const shapes = solid ? SOLIDS : PLANE;
       const name = pick(Object.keys(shapes));
       return {
-        type: 'choice', options: shuffle(Object.keys(shapes)), answer: name,
-        q: `Ako sa volá ${solid ? 'toto teleso' : 'tento útvar'}?
+        type: 'choice', options: shuffle(Object.keys(shapes)).map(T.s), answer: T.s(name),
+        q: `${T`Ako sa volá ${solid ? T`toto teleso` : T`tento útvar`}?`}
             <svg viewBox="0 0 180 150" width="180" role="img" aria-label="obrázok útvaru">${shapes[name](90, 75)}</svg>`,
-        solution: `Na obrázku je ${name}.`,
-        hint: solid ? 'Predstav si loptu, plechovku, krabicu, hraciu kocku alebo kornútok.' : 'Spočítaj strany a vrcholy útvaru.'
+        solution: T`Na obrázku je ${name}.`,
+        hint: solid ? T`Predstav si loptu, plechovku, krabicu, hraciu kocku alebo kornútok.` : T`Spočítaj strany a vrcholy útvaru.`
       };
     }
     const [q, a, why] = pick(FACTS);
-    return { answer: a, q, solution: why, hint: 'Vrchol je roh útvaru, strana je čiara medzi dvoma vrcholmi.' };
+    return { answer: a, q: T.s(q), solution: T.s(why), hint: T`Vrchol je roh útvaru, strana je čiara medzi dvoma vrcholmi.` };
   });
 
   lesson({
@@ -400,28 +401,28 @@
   gen('r1-meranie', () => {
     if (Math.random() < 0.55) {
       const row = shuffle(ANIMALS).slice(0, 5);
-      const label = (x) => `${x[0]} ${x[1]}`;
+      const label = (x) => `${x[0]} ${T.s(x[1])}`;
       const show = `<span class="emoji-row">${row.map((x) => x[0]).join(' ')}</span>`;
-      const base = { type: 'choice', options: row.map(label), hint: 'Vľavo je začiatok radu, vpravo jeho koniec.' };
+      const base = { type: 'choice', options: row.map(label), hint: T`Vľavo je začiatok radu, vpravo jeho koniec.` };
       const kind = rnd(0, 2);
       if (kind === 0) {
         const i = rnd(0, 3);
         return Object.assign(base, {
-          answer: label(row[i + 1]), q: `Zvieratká stoja v rade: ${show} Kto stojí hneď vpravo od ${row[i][2]}?`,
-          solution: `Hneď vpravo od ${row[i][2]} stojí ${row[i + 1][1]}.`
+          answer: label(row[i + 1]), q: T`Zvieratká stoja v rade: ${show} Kto stojí hneď vpravo od ${row[i][2]}?`,
+          solution: T`Hneď vpravo od ${row[i][2]} stojí ${row[i + 1][1]}.`
         });
       }
       if (kind === 1) {
         const i = rnd(1, 4);
         return Object.assign(base, {
-          answer: label(row[i - 1]), q: `Zvieratká stoja v rade: ${show} Kto stojí hneď vľavo od ${row[i][2]}?`,
-          solution: `Hneď vľavo od ${row[i][2]} stojí ${row[i - 1][1]}.`
+          answer: label(row[i - 1]), q: T`Zvieratká stoja v rade: ${show} Kto stojí hneď vľavo od ${row[i][2]}?`,
+          solution: T`Hneď vľavo od ${row[i][2]} stojí ${row[i - 1][1]}.`
         });
       }
       const i = rnd(1, 3);
       return Object.assign(base, {
-        answer: label(row[i]), q: `Zvieratká stoja v rade: ${show} Kto stojí medzi ${row[i - 1][3]} a ${row[i + 1][3]}?`,
-        solution: `Medzi ${row[i - 1][3]} a ${row[i + 1][3]} stojí ${row[i][1]}.`
+        answer: label(row[i]), q: T`Zvieratká stoja v rade: ${show} Kto stojí medzi ${row[i - 1][3]} a ${row[i + 1][3]}?`,
+        solution: T`Medzi ${row[i - 1][3]} a ${row[i + 1][3]} stojí ${row[i][1]}.`
       });
     }
     if (Math.random() < 0.5) {
@@ -430,16 +431,16 @@
         <text class="f-text" x="10" y="30">modrý</text>${cubes(a, 12, 'f-fill', 'f-outline')}
         <text class="f-text" x="10" y="72">zelený</text>${cubes(b, 54, 'f-fill2', 'f-outline2')}</svg>`;
       return {
-        answer: a - b, q: `O koľko kociek je modrý pás dlhší ako zelený? ${pic}`,
-        solution: `Modrý pás má ${a} ${pl(a, KOCKA)}, zelený ${b}. $${a} - ${b} = ${a - b}$.`,
-        hint: 'Spočítaj kocky v oboch pásoch a odčítaj.'
+        answer: a - b, q: T`O koľko kociek je modrý pás dlhší ako zelený? ${pic}`,
+        solution: T`Modrý pás má ${a} ${pl(a, KOCKA)}, zelený ${b}. $${a} - ${b} = ${a - b}$.`,
+        hint: T`Spočítaj kocky v oboch pásoch a odčítaj.`
       };
     }
     const x = rnd(5, 18), y = rnd(2, x - 1);
     return {
-      answer: x - y, q: `Červená stuha meria ${x} cm, modrá ${y} cm. O koľko centimetrov je červená stuha dlhšia?`,
-      solution: `$${x} - ${y} = ${x - y}$, červená stuha je o ${x - y} cm dlhšia.`,
-      hint: 'Rozdiel dĺžok zistíš odčítaním.'
+      answer: x - y, q: T`Červená stuha meria ${x} cm, modrá ${y} cm. O koľko centimetrov je červená stuha dlhšia?`,
+      solution: T`$${x} - ${y} = ${x - y}$, červená stuha je o ${x - y} cm dlhšia.`,
+      hint: T`Rozdiel dĺžok zistíš odčítaním.`
     };
   });
 })();

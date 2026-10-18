@@ -12,8 +12,9 @@
   --radius: 14px;
 }
 
+/* Bez zvoleného vzhľadu (data-theme) sa riadime nastavením systému. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme]) {
     --bg: #0b1220;
     --card: #111a2e;
     --text: #e2e8f0;
@@ -39,6 +40,48 @@
   --warn: #fbbf24;
   --border: #1e293b;
 }
+
+/* Sépia: teplé „papierové“ farby, príjemné na dlhšie čítanie. */
+:root[data-theme="sepia"] {
+  --bg: #f3ead7;
+  --card: #fbf5e6;
+  --text: #3b2e1e;
+  --muted: #76664f;
+  --primary: #9a4f12;
+  --primary-text: #ffffff;
+  --ok: #3f6b12;
+  --bad: #a3271b;
+  --warn: #a35a06;
+  --border: #e0d1b2;
+}
+
+/* Vysoký kontrast: čierne pozadie, biely text, výrazné okraje a podčiarknuté odkazy. */
+:root[data-theme="contrast"] {
+  --bg: #000000;
+  --card: #000000;
+  --text: #ffffff;
+  --muted: #e6e6e6;
+  --primary: #ffd60a;
+  --primary-text: #000000;
+  --ok: #5cff7a;
+  --bad: #ff7a7a;
+  --warn: #ffb347;
+  --border: #ffffff;
+}
+/* podčiarknuté len odkazy v texte, nie karty a tlačidlá, ktoré sú tiež odkazmi */
+:root[data-theme="contrast"] :is(.block, .crumbs, .pager, .pager-label, figcaption, .solution, .footer, .install-note) a { text-decoration: underline; }
+:root[data-theme="contrast"] .card,
+:root[data-theme="contrast"] .block,
+:root[data-theme="contrast"] .figure,
+:root[data-theme="contrast"] .card-box { border-width: 2px; }
+:root[data-theme="contrast"] .f-fill,
+:root[data-theme="contrast"] .f-fill2,
+:root[data-theme="contrast"] .f-fill3 { fill-opacity: 0.35; }
+
+/* natívne prvky (rozbaľovací zoznam, posuvníky) v tmavej alebo svetlej podobe */
+:root { color-scheme: light; }
+:root[data-theme="dark"], :root[data-theme="contrast"] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme]) { color-scheme: dark; } }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -72,7 +115,97 @@ h3 { font-size: 1.05rem; margin: 0 0 0.3em; }
   border-bottom: 1px solid var(--border);
 }
 
-.brand { font-weight: 700; text-decoration: none; color: var(--text); }
+.brand { font-weight: 700; line-height: 1.25; text-decoration: none; color: var(--text); }
+
+.topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.theme-select {
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.theme-select:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.theme-select option { color: var(--text); background: var(--card); }
+
+/* výber jazyka (rovnaký princíp ako v Jocadiu): tlačidlo s vlajkou a rozbaľovací zoznam */
+.lang-wrap { position: relative; }
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lang-btn:hover { border-color: var(--primary); }
+.lang-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.lang-btn .flag { font-size: 1.05rem; line-height: 1; }
+.lang-btn .chevron { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; }
+.lang-wrap.open .lang-btn .chevron { transform: rotate(180deg); }
+.lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 190px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.lang-option:hover, .lang-option:focus-visible { color: var(--text); background: var(--bg); outline: none; }
+.lang-option.active { color: var(--text); font-weight: 600; }
+.lang-option .flag { font-size: 1.15rem; line-height: 1; }
+.lang-option .check { margin-left: auto; color: var(--primary); }
+
+.notice {
+  margin: 8px 0 14px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--warn);
+  border-radius: 8px;
+}
+
+/* úzke displeje: kompaktná horná lišta, aby sa názov nezalamoval do mnohých riadkov */
+@media (max-width: 480px) {
+  .topbar { padding-left: 12px; padding-right: 12px; gap: 8px; }
+  .topbar-actions { gap: 6px; }
+  .brand { font-size: 0.95rem; }
+  .brand-icon, .hide-narrow, .lang-name { display: none; }
+  .theme-select { max-width: 104px; padding: 6px 4px; font-size: 0.85rem; }
+  .lang-btn { padding: 6px 8px; }
+}
 
 .container {
   max-width: 960px;
@@ -266,6 +399,89 @@ summary { cursor: pointer; color: var(--primary); font-weight: 600; }
 .choices .choice:disabled { opacity: 1; }
 .choices .choice.correct { border-color: var(--ok); color: var(--ok); }
 .choices .choice.wrong { border-color: var(--bad); color: var(--bad); }
+
+/* ---------- prepínač zobrazenia a témy ---------- */
+.view-switch {
+  display: inline-flex;
+  margin: 8px 0 4px;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+.view-switch .seg {
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.view-switch .seg.active { background: var(--primary); color: var(--primary-text); }
+.view-switch .seg:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.view-intro { margin: 10px 0 14px; }
+
+.theme-icon { font-size: 1.8rem; line-height: 1; margin-bottom: 8px; }
+.theme-icon.inline { font-size: 1.5rem; margin: 0; }
+.theme-head { margin: 12px 0 20px; max-width: 560px; }
+.theme-head .actions { margin-top: 14px; }
+
+.path { list-style: none; margin: 0; padding: 0; }
+.path-level {
+  margin: 22px 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.path-level:first-child { margin-top: 4px; }
+.path-step { position: relative; padding-left: 0; }
+/* zvislá čiara spájajúca kroky cesty */
+.path-step::before {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.path-step a {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 10px 12px 10px 0;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 10px;
+}
+.path-step a:hover .step-body strong, .path-step a:focus-visible .step-body strong { color: var(--primary); }
+.step {
+  flex: 0 0 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--card);
+  border: 2px solid var(--border);
+  color: var(--muted);
+  z-index: 1;
+}
+.path-step.done .step { border-color: var(--ok); color: var(--ok); }
+.step-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.step-body .muted { font-size: 0.92rem; }
+.step-body .meta { font-size: 0.82rem; color: var(--muted); }
+
+.pager-box { margin: 18px 0 4px; padding-top: 10px; border-top: 1px solid var(--border); }
+.pager-label { font-size: 0.85rem; color: var(--muted); }
+.pager-box .pager { margin: 6px 0 0; }
 
 /* ---------- obrázky a grafy (js/figures.js) ---------- */
 .figure {

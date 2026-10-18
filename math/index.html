@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Matika krok za krokom</title>
+  <title>Matematika krok za krokom</title>
   <meta name="description" content="Štúdium matematiky od základov po vysokú školu: teória, vyriešené príklady a precvičovanie.">
   <meta name="theme-color" content="#2563eb">
   <link rel="manifest" href="manifest.webmanifest">
@@ -11,23 +11,43 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Zvolený vzhľad nastavíme ešte pred vykreslením, aby stránka neblikla inými farbami.
+    try {
+      var t = localStorage.getItem('matika.theme');
+      if (/^(light|dark|sepia|contrast)$/.test(t)) document.documentElement.setAttribute('data-theme', t);
+    } catch (e) { /* bez úložiska platí vzhľad podľa systému */ }
+  </script>
 </head>
 <body>
   <header class="topbar">
-    <a href="#/" class="brand">📐 Matika krok za krokom</a>
-    <button id="install-btn" class="btn btn-small" type="button" hidden>Nainštalovať</button>
+    <a href="#/" class="brand"><span class="brand-icon" aria-hidden="true">📐 </span><span id="brand-name">Matematika krok za krokom</span></a>
+    <div class="topbar-actions">
+      <button id="install-btn" class="btn btn-small" type="button" aria-label="Nainštalovať aplikáciu" hidden><span aria-hidden="true">⬇</span><span class="hide-narrow"> Nainštalovať</span></button>
+      <select id="theme-select" class="theme-select" aria-label="Vzhľad aplikácie" title="Vzhľad aplikácie">
+        <option value="light">☀️ Svetlá</option>
+        <option value="dark">🌙 Tmavá</option>
+        <option value="sepia">📜 Sépia</option>
+        <option value="contrast">◐ Kontrastná</option>
+      </select>
+      <div class="lang-wrap" id="lang-wrap">
+        <button id="lang-btn" class="lang-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Jazyk">
+          <span class="flag" id="lang-flag" aria-hidden="true">🇸🇰</span><span class="lang-name" id="lang-name">Slovenčina</span><span class="chevron" aria-hidden="true">▾</span>
+        </button>
+        <div class="lang-dropdown" id="lang-dropdown" role="listbox" aria-label="Jazyk" hidden></div>
+      </div>
+    </div>
   </header>
 
   <main id="app" class="container">
     <p class="muted">Načítavam…</p>
   </main>
 
-  <footer class="footer">
-    Všetok obsah je pôvodný a voľne použiteľný. Po prvom načítaní funguje aj offline.
-  </footer>
+  <footer class="footer" id="footer">Všetok obsah je pôvodný a voľne použiteľný. Po prvom načítaní funguje aj offline.</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="js/content-i18n.js"></script>
   <script src="js/content.js"></script>
   <script src="js/exercises.js"></script>
   <script src="js/figures.js"></script>
@@ -48,6 +68,22 @@
   <script src="js/rocniky/v2.js"></script>
   <script src="js/rocniky/v3.js"></script>
   <script src="js/rocniky/v4.js"></script>
+  <script src="js/temy.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/lang/sk.js"></script>
+  <script src="js/lang/en.js"></script>
+  <script src="js/lang/es.js"></script>
+  <script src="js/lang/pt.js"></script>
+  <script src="js/lang/de.js"></script>
+  <script src="js/lang/fr.js"></script>
+  <script src="js/lang/it.js"></script>
+  <script src="js/lang/ru.js"></script>
+  <script src="js/lang/tr.js"></script>
+  <script src="js/lang/ja.js"></script>
+  <script src="js/lang/ko.js"></script>
+  <script src="js/lang/zh.js"></script>
+  <script src="js/content-i18n/en/r1.js"></script>
+  <script src="js/content-i18n/en/s1.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
