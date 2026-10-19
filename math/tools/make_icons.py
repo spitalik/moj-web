@@ -1,57 +1,71 @@
-"""Vygeneruje PNG ikony pre PWA (bez externých knižníc).
-Spustenie: python make_icons.py  (z priečinka tools; zapíše do ../icons)
+"""Vygeneruje PNG ikony aplikácie z loga icons/logo.svg.
+
+Spustenie (z koreňa projektu math):  python tools/make_icons.py
+Potrebuje: Google Chrome alebo Microsoft Edge (headless vykreslenie SVG) a Pillow (zmenšenie).
+
+Vytvorí v icons/:
+  icon-512.png           logo na bielej zaoblenej dlaždici, priehľadné rohy (purpose "any")
+  icon-192.png           to isté zmenšené
+  icon-maskable-512.png  plné biele pozadie, logo v bezpečnej zóne (purpose "maskable" – Android si tvar oreže sám)
+  apple-touch-icon.png   180 px z maskable verzie (iOS priehľadné rohy vyplní čiernou)
 """
 import os
-import struct
-import zlib
+import shutil
+import subprocess
+import tempfile
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'icons')
-BLUE = (37, 99, 235)
-WHITE = (255, 255, 255)
+from PIL import Image
 
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+ICONS = os.path.join(ROOT, 'icons')
+BROWSERS = [
+    r'C:\Program Files\Google\Chrome\Application\chrome.exe',
+    r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
+    'google-chrome', 'chromium', 'microsoft-edge',
+]
 
-def inside_triangle(x, y, p1, p2, p3):
-    def sign(a, b, c):
-        return (a[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (a[1] - c[1])
-    d1, d2, d3 = sign((x, y), p1, p2), sign((x, y), p2, p3), sign((x, y), p3, p1)
-    has_neg = d1 < 0 or d2 < 0 or d3 < 0
-    has_pos = d1 > 0 or d2 > 0 or d3 > 0
-    return not (has_neg and has_pos)
-
-
-def render(size):
-    # pravouhlý trojuholník (Pytagoras) na modrom pozadí, s bielym obrysom
-    s = size
-    tri = [(0.22 * s, 0.74 * s), (0.22 * s, 0.26 * s), (0.78 * s, 0.74 * s)]
-    rows = []
-    for y in range(size):
-        row = bytearray([0])  # filter type None
-        for x in range(size):
-            color = BLUE
-            if inside_triangle(x + 0.5, y + 0.5, *tri):
-                color = WHITE
-            row += bytes(color)
-        rows.append(bytes(row))
-    return b''.join(rows)
+# logo je priehľadné, ikony ho preto kladú na biely podklad (na tmavej ploche by tmavomodrá šípka zanikla)
+ANY = ('<!doctype html><style>html,body{margin:0;width:100vw;height:100vh;background:transparent}'
+       'div{box-sizing:border-box;width:100vw;height:100vh;border-radius:22%;background:#fff;'
+       'border:1px solid #dbe6fb;display:flex;align-items:center;justify-content:center}'
+       'img{width:80%;height:80%}</style><div><img src="logo.svg"></div>')
+MASKABLE = ('<!doctype html><style>html,body{margin:0;width:100vw;height:100vh;'
+            'background:#fff;display:flex;align-items:center;justify-content:center}'
+            'img{width:66vw;height:66vw}</style><img src="logo.svg">')
 
 
-def chunk(tag, data):
-    body = tag + data
-    return struct.pack('>I', len(data)) + body + struct.pack('>I', zlib.crc32(body) & 0xffffffff)
+def browser():
+    for b in BROWSERS:
+        if os.path.isfile(b) or shutil.which(b):
+            return b
+    raise SystemExit('Nenašiel sa Chrome ani Edge.')
 
 
-def write_png(path, size):
-    raw = render(size)
-    png = b'\x89PNG\r\n\x1a\n'
-    png += chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 2, 0, 0, 0))
-    png += chunk(b'IDAT', zlib.compress(raw, 9))
-    png += chunk(b'IEND', b'')
-    with open(path, 'wb') as f:
-        f.write(png)
+def shot(exe, tmp, html, out):
+    page = os.path.join(tmp, 'page.html')
+    with open(page, 'w', encoding='utf-8') as f:
+        f.write(html)
+    # vždy 512 px: headless prehliadač má minimálnu šírku okna, menšie veľkosti sa robia zmenšením
+    subprocess.run([exe, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--default-background-color=00000000',
+                    '--window-size=512,512', f'--user-data-dir={os.path.join(tmp, "profile")}',
+                    f'--screenshot={out}', 'file:///' + page.replace('\\', '/')], check=True, timeout=60)
+
+
+def main():
+    exe = browser()
+    with tempfile.TemporaryDirectory() as tmp:
+        shutil.copy(os.path.join(ICONS, 'logo.svg'), tmp)
+        any_png, mask_png = os.path.join(tmp, 'any.png'), os.path.join(tmp, 'mask.png')
+        shot(exe, tmp, ANY, any_png)
+        shot(exe, tmp, MASKABLE, mask_png)
+        im = Image.open(any_png).convert('RGBA')
+        im.save(os.path.join(ICONS, 'icon-512.png'), optimize=True)
+        im.resize((192, 192), Image.LANCZOS).save(os.path.join(ICONS, 'icon-192.png'), optimize=True)
+        mask = Image.open(mask_png).convert('RGB')
+        mask.save(os.path.join(ICONS, 'icon-maskable-512.png'), optimize=True)
+        mask.resize((180, 180), Image.LANCZOS).save(os.path.join(ICONS, 'apple-touch-icon.png'), optimize=True)
+    print('Ikony vygenerované do', os.path.abspath(ICONS))
 
 
 if __name__ == '__main__':
-    os.makedirs(OUT, exist_ok=True)
-    write_png(os.path.join(OUT, 'icon-192.png'), 192)
-    write_png(os.path.join(OUT, 'icon-512.png'), 512)
-    print('Ikony vygenerované do', os.path.abspath(OUT))
+    main()

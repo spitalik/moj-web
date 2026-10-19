@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Matematika krok za krokom">
+  <!-- Logo „Matematika krok za krokom“: písmeno M, ktorého pravý ťah pokračuje šípkou nahor (rast, pokrok).
+       Svetlé stĺpy, stredný ľavý ťah, najtmavší pravý ťah so šípkou. Pôvodná kresba, voľne použiteľná. -->
+  <!-- stĺpy písmena M -->
+  <path d="M5 18.5a1.5 1.5 0 0 1 1.5-1.5h9a1.5 1.5 0 0 1 1.5 1.5V56.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 5 56.5z" fill="#3b8ef3"/>
+  <path d="M43 30h12V56.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 43 56.5z" fill="#3b8ef3"/>
+  <!-- ľavý šikmý ťah do údolia -->
+  <polygon points="5,17 17,17 32,36 32,50" fill="#2f74e3"/>
+  <!-- pravý ťah z údolia nahor so šípkou -->
+  <polygon points="32,36 47,18 51,27.2 32,50" fill="#1d52c7"/>
+  <polygon points="57.96,11.85 57.45,29.6 40.55,15.56" fill="#1d52c7"/>
+</svg>
