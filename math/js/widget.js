@@ -228,7 +228,7 @@
       choicesEl.innerHTML = '';
       if (isChoice) {
         choicesEl.innerHTML = task.options.map((o, k) =>
-          `<button type="button" class="btn choice" data-k="${k}">${esc(o)}</button>`).join('');
+          `<button type="button" class="btn choice" data-k="${k}">${o}</button>`).join('');
         renderMath(choicesEl);
       } else {
         input.dataset.mode = (task.type === 'num' && !task.signed) ? 'decimal' : 'text';
@@ -284,7 +284,7 @@
     function reveal() {
       finalized = true;
       el.sol.hidden = false;
-      el.sol.innerHTML = `<p><strong>${esc(t('correctAnswer'))}</strong> <span lang="${lang}">${esc(EXERCISES.formatAnswer(ex))}</span></p><p lang="${lang}">${ex.solution}</p>`;
+      el.sol.innerHTML = `<p><strong>${esc(t('correctAnswer'))}</strong> <span lang="${lang}">${EXERCISES.formatAnswer(ex)}</span></p><p lang="${lang}">${ex.solution}</p>`;
       renderMath(el.sol);
       if (el.next) {
         el.next.hidden = false;
@@ -379,7 +379,7 @@
       const s = stepTask();
       const li = el.steps.querySelector('.step-current');
       li.className = shown ? 'step-done shown' : 'step-done';
-      li.innerHTML = `<div class="step-q">${s.q}</div><div class="step-ans">${shown ? '👁' : '✓'} <strong>${esc(EXERCISES.formatAnswer(s))}</strong></div>`;
+      li.innerHTML = `<div class="step-q">${s.q}</div><div class="step-ans">${shown ? '👁' : '✓'} <strong>${EXERCISES.formatAnswer(s)}</strong></div>`;
       renderMath(li);
       stepState.k += 1;
       if (stepState.k < ex.steps.length) { renderStep(); return; }

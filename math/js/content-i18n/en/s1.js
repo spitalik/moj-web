@@ -1133,6 +1133,20 @@ CONTENT_I18N.add('en', {
     "desatinné miesto": 'decimal place', "desatinné miesta": 'decimal places', "desatinných miest": 'decimal places',
     "Zaokrúhlil si na {@0} {@1}. Platné cifry sa počítajú až od prvej nenulovej cifry.": 'You rounded to {@0} {@1}. Significant figures are counted from the first non-zero digit.',
     "Delíš v opačnom poradí: časť vydeľ celkom (základom), nie celok časťou.": 'You are dividing the wrong way round: divide the part by the whole (the base), not the whole by the part.',
-    "Cifry si len odrezal. Ak je prvá vynechaná cifra 5 až 9, zaokrúhľuje sa nahor.": 'You only cut off the digits. If the first dropped digit is 5 to 9, round up.'
+    "Cifry si len odrezal. Ak je prvá vynechaná cifra 5 až 9, zaokrúhľuje sa nahor.": 'You only cut off the digits. If the first dropped digit is 5 to 9, round up.',
+    // pôvodné lekcie (js/exercises.js): mnoziny, linearne, mocniny – typické chyby a kroky
+    'Prvky prieniku si započítal dvakrát – sú v $A$ aj v $B$. Raz ich odčítaj.': 'You counted the elements of the intersection twice – they are in both $A$ and $B$. Subtract them once.',
+    'Prvky prieniku si odčítal dvakrát. Do zjednotenia patria – odčítaj ich len raz.': 'You subtracted the intersection twice. Its elements belong to the union – subtract them only once.',
+    'Koľko je $|A| + |B|$?': 'What is $|A| + |B|$?',
+    'Prvky prieniku sú v tomto súčte dvakrát. Koľko je ${@0} - {@1}$?': 'The intersection is counted twice in this sum. What is ${@0} - {@1}$?',
+    'Pri prenesení čísla {@0} na druhú stranu si nezmenil znamienko. Na oboch stranách urob tú istú opačnú operáciu.': 'When you moved the number {@0} to the other side, you did not change its sign. Do the same opposite operation on both sides.',
+    'Koeficient {@0} si odčítal. Pri $x$ je násobenie, preto obe strany vydeľ číslom {@1}.': 'You subtracted the coefficient {@0}. It multiplies $x$, so divide both sides by {@1}.',
+    'Prenes konštantu na pravú stranu. Koľko je ${@0}x$?': 'Move the constant to the right-hand side. What is ${@0}x$?',
+    'Vydeľ obe strany číslom {@0}. Koľko je $x$?': 'Divide both sides by {@0}. What is $x$?',
+    'Exponenty si vynásobil. Pri násobení mocnín s rovnakým základom sa exponenty sčítajú.': 'You multiplied the exponents. When multiplying powers with the same base, the exponents are added.',
+    'Základy si vynásobil. Základ {@0} ostáva, sčítajú sa len exponenty.': 'You multiplied the bases. The base {@0} stays the same; only the exponents are added.',
+    'Aký exponent bude mať výsledok ${@0}^{\\square}$?': 'What exponent will the result ${@0}^{\\square}$ have?',
+    'Koľko je ${@0}^{{@1}}$?': 'What is ${@0}^{{@1}}$?',
+    'Exponenty si sčítal. Pri umocňovaní mocniny sa exponenty násobia.': 'You added the exponents. When raising a power to a power, the exponents are multiplied.'
   }
 });

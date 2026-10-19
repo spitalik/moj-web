@@ -144,7 +144,7 @@
           <div class="tr-head">${r.correct ? '✓' : '✗'} <a href="#/lekcia/${r.id}">${APP.lessonTitle(L)}</a></div>
           <div class="q-text" lang="${lang}">${r.ex.q}</div>
           <p><strong>${esc(t('yourAnswerWas'))}</strong> ${r.input ? esc(r.input) : `<em>${esc(t('noAnswer'))}</em>`}
-             · <strong>${esc(t('correctAnswer'))}</strong> <span lang="${lang}">${esc(EXERCISES.formatAnswer(r.ex))}</span></p>
+             · <strong>${esc(t('correctAnswer'))}</strong> <span lang="${lang}">${EXERCISES.formatAnswer(r.ex)}</span></p>
           <details><summary>${esc(t('showSolution'))}</summary><p lang="${lang}">${r.ex.solution}</p></details>
         </li>`;
       }).join('')}</ol>

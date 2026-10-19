@@ -95,8 +95,7 @@
       solution: `$|A\\cup B|=|A|+|B|-|A\\cap B|=${a}+${b}-${c}=${a + b - c}$.`,
       hint: T`Prvky prieniku sa rátajú dvakrát, preto ich odčítaj.`
     };
-    // typické chyby a kroky zatiaľ len po slovensky (anglický preklad v js/content-i18n/en/s1.js ešte chýba)
-    if (CONTENT_I18N.lang() === 'sk') {
+    {
       ex.mistakes = [
         ...(c > 0 ? [{ value: a + b, msg: T`Prvky prieniku si započítal dvakrát – sú v $A$ aj v $B$. Raz ich odčítaj.` }] : []),
         ...(c > 1 ? [{ value: a + b - 2 * c, msg: T`Prvky prieniku si odčítal dvakrát. Do zjednotenia patria – odčítaj ich len raz.` }] : [])
@@ -208,8 +207,7 @@
       solution: T`$${a}x=${c}${term(-b)}=${a * x}$, teda $x=${x}$.`,
       hint: T`Najprv odčítaj konštantu na oboch stranách, potom vydeľ koeficientom pri $x$.`
     };
-    // typické chyby a kroky zatiaľ len po slovensky (anglický preklad v js/content-i18n/en/s1.js ešte chýba)
-    if (CONTENT_I18N.lang() === 'sk') {
+    {
       const wrongSide = (c + b) / a;
       ex.mistakes = [
         ...(Number.isInteger(wrongSide) && wrongSide !== x && wrongSide !== -x
@@ -246,8 +244,6 @@
 
   G.mocniny = () => {
     const a = rnd(2, 5), m = rnd(1, 3), n = rnd(1, 3);
-    // typické chyby a kroky zatiaľ len po slovensky (anglický preklad v js/content-i18n/en/s1.js ešte chýba)
-    const sk = CONTENT_I18N.lang() === 'sk';
     if (Math.random() < 0.5) {
       const ex = {
         q: T`Vypočítaj $${a}^{${m}}\\cdot ${a}^{${n}}$.`,
@@ -255,7 +251,7 @@
         solution: `$${a}^{${m}}\\cdot ${a}^{${n}}=${a}^{${m + n}}=${Math.pow(a, m + n)}$.`,
         hint: T`Pri násobení mocnín rovnakého základu sa exponenty sčítajú.`
       };
-      if (sk) {
+      {
         ex.mistakes = [
           ...(m * n !== m + n ? [{ value: Math.pow(a, m * n), msg: T`Exponenty si vynásobil. Pri násobení mocnín s rovnakým základom sa exponenty sčítajú.` }] : []),
           { value: Math.pow(a * a, m + n), msg: T`Základy si vynásobil. Základ ${a} ostáva, sčítajú sa len exponenty.` }
@@ -273,7 +269,7 @@
       solution: `$(${a}^{${m}})^{${n}}=${a}^{${m * n}}=${Math.pow(a, m * n)}$.`,
       hint: T`Pri umocňovaní mocniny sa exponenty násobia.`
     };
-    if (sk) {
+    {
       ex.mistakes = m * n !== m + n ? [{ value: Math.pow(a, m + n), msg: T`Exponenty si sčítal. Pri umocňovaní mocniny sa exponenty násobia.` }] : [];
       if (m > 1 && n > 1) {
         ex.steps = [

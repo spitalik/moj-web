@@ -145,7 +145,7 @@
         let ans = EXERCISES.formatAnswer(ex);
         let body = `<div class="q-text" lang="${L}">${ex.q}</div>`;
         if (ex.type === 'choice') {
-          body += `<ol class="ws-options" type="A">${ex.options.map((o) => `<li>${esc(o)}</li>`).join('')}</ol>`;
+          body += `<ol class="ws-options" type="A">${ex.options.map((o) => `<li>${o}</li>`).join('')}</ol>`;
           ans = `${LETTERS[ex.options.indexOf(String(ex.answer))]}) ${ans}`;
         } else {
           body += `<div class="ws-answer">${esc(t('worksheetAnswer'))} <span class="ws-line"></span>${ex.placeholder ? ` <span class="muted small">(${esc(ex.placeholder)})</span>` : ''}</div>`;
@@ -160,7 +160,7 @@
         <ol class="ws-tasks">${items}</ol></section>`;
     }
     const key = cfg.k ? `<section class="ws-page ws-key"><h2>${esc(t('worksheetKeyTitle'))} – ${esc(cfg.ti || '')}</h2>
-      ${keyRows.map((r) => `<h3>${cfg.va > 1 ? `${esc(t('worksheetVariant'))} ${r.v}` : ''}</h3><ol>${r.answers.map((a) => `<li>${esc(a)}</li>`).join('')}</ol>`).join('')}</section>` : '';
+      ${keyRows.map((r) => `<h3>${cfg.va > 1 ? `${esc(t('worksheetVariant'))} ${r.v}` : ''}</h3><ol>${r.answers.map((a) => `<li>${a}</li>`).join('')}</ol>`).join('')}</section>` : '';
     APP.setPage(`<div class="no-print"><nav class="crumbs"><a href="#/ucitel">${esc(t('teacherTitle'))}</a></nav>
       <div class="actions"><button class="btn btn-primary" id="pr" type="button">🖨️ ${esc(t('worksheetPrint'))}</button>
         <button class="btn" id="cpw" type="button">🔗 ${esc(t('worksheetLink'))}</button></div>
@@ -218,7 +218,7 @@
             <div class="actions"><button class="btn btn-primary" type="button" id="cpr">📋 ${esc(t('copyCode'))}</button>
             ${navigator.share ? `<button class="btn" type="button" id="shr">📤 ${esc(t('share'))}</button>` : ''}</div></div>
           ${cfg.m === 't' ? `<details class="block"><summary>${esc(t('testReview'))}</summary><ol class="test-review">${results.map((r) => `<li class="${r.correct ? 'ok' : 'bad'}">
-              <div class="q-text">${r.ex.q}</div><p><strong>${esc(t('yourAnswerWas'))}</strong> ${r.input ? esc(r.input) : `<em>${esc(t('noAnswer'))}</em>`} · <strong>${esc(t('correctAnswer'))}</strong> ${esc(EXERCISES.formatAnswer(r.ex))}</p></li>`).join('')}</ol></details>` : ''}`);
+              <div class="q-text">${r.ex.q}</div><p><strong>${esc(t('yourAnswerWas'))}</strong> ${r.input ? esc(r.input) : `<em>${esc(t('noAnswer'))}</em>`} · <strong>${esc(t('correctAnswer'))}</strong> ${EXERCISES.formatAnswer(r.ex)}</p></li>`).join('')}</ol></details>` : ''}`);
         document.getElementById('cpr').addEventListener('click', () => copy(rc));
         const sh = document.getElementById('shr');
         if (sh) sh.addEventListener('click', () => navigator.share({ title: cfg.ti, text: `${name}: ${k}/${results.length}\n${rc}` }).catch(() => {}));
