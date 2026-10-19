@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Matematika krok za krokom</title>
   <meta name="description" content="Štúdium matematiky od základov po vysokú školu: teória, vyriešené príklady a precvičovanie.">
-  <meta name="theme-color" content="#2563eb">
+  <meta name="theme-color" content="#0b1220">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
@@ -14,11 +14,13 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/features.css">
   <script>
-    // Zvolený vzhľad nastavíme ešte pred vykreslením, aby stránka neblikla inými farbami.
+    // Zvolený vzhľad nastavíme ešte pred vykreslením, aby stránka neblikla inými farbami. Predvolený je tmavý.
+    var t = 'dark';
     try {
-      var t = localStorage.getItem('matika.theme');
-      if (/^(light|dark|sepia|contrast)$/.test(t)) document.documentElement.setAttribute('data-theme', t);
-    } catch (e) { /* bez úložiska platí vzhľad podľa systému */ }
+      var saved = localStorage.getItem('matika.theme');
+      if (/^(light|dark|sepia|contrast)$/.test(saved)) t = saved;
+    } catch (e) { /* bez úložiska platí predvolený tmavý vzhľad */ }
+    document.documentElement.setAttribute('data-theme', t);
   </script>
 </head>
 <body>
@@ -32,12 +34,6 @@
         </button>
         <div class="lang-dropdown menu-dropdown" id="menu-dropdown" role="menu" aria-label="Menu" hidden></div>
       </div>
-      <select id="theme-select" class="theme-select" aria-label="Vzhľad aplikácie" title="Vzhľad aplikácie">
-        <option value="light">☀️ Svetlá</option>
-        <option value="dark">🌙 Tmavá</option>
-        <option value="sepia">📜 Sépia</option>
-        <option value="contrast">◐ Kontrastná</option>
-      </select>
       <div class="lang-wrap" id="lang-wrap">
         <button id="lang-btn" class="lang-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Jazyk">
           <span class="flag" id="lang-flag" aria-hidden="true">🇸🇰</span><span class="lang-name" id="lang-name">Slovenčina</span><span class="chevron" aria-hidden="true">▾</span>

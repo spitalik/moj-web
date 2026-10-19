@@ -370,24 +370,27 @@
     return showHome();
   }
 
-  /* ---------- vzhľad: 4 témy; bez voľby platí svetlá/tmavá podľa systému (bez atribútu data-theme) ---------- */
+  /* ---------- vzhľad: 4 témy, predvolená tmavá; voľba je v Nastaveniach ---------- */
   const THEME_KEY = 'matika.theme';
+  const THEME_DEFAULT = 'dark';
   const THEME_COLORS = { light: '#2563eb', dark: '#0b1220', sepia: '#9a4f12', contrast: '#000000' };
-  const themeSelect = document.getElementById('theme-select');
-  const darkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
-  const currentTheme = () => document.documentElement.getAttribute('data-theme') || (darkQuery && darkQuery.matches ? 'dark' : 'light');
-  function syncTheme() {
-    const v = currentTheme();
-    themeSelect.value = v;
+  const THEME_ICONS = { light: '☀️', dark: '🌙', sepia: '📜', contrast: '◐' };
+  const THEME_KEYS = { light: 'themeLight', dark: 'themeDark', sepia: 'themeSepia', contrast: 'themeContrast' };
+  function storedTheme() {
+    try { const v = localStorage.getItem(THEME_KEY); return THEME_COLORS[v] ? v : THEME_DEFAULT; } catch (e) { return THEME_DEFAULT; }
+  }
+  const currentTheme = () => document.documentElement.getAttribute('data-theme') || THEME_DEFAULT;
+  function applyTheme(v) {
+    document.documentElement.setAttribute('data-theme', v);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', THEME_COLORS[v]);
   }
-  themeSelect.addEventListener('change', () => {
-    document.documentElement.setAttribute('data-theme', themeSelect.value);
-    try { localStorage.setItem(THEME_KEY, themeSelect.value); } catch (e) { /* vzhľad platí aspoň do zatvorenia */ }
-    syncTheme();
-  });
-  if (darkQuery && darkQuery.addEventListener) darkQuery.addEventListener('change', syncTheme);
+  function setTheme(v) {
+    if (!THEME_COLORS[v]) return;
+    try { localStorage.setItem(THEME_KEY, v); } catch (e) { /* vzhľad platí aspoň do zatvorenia */ }
+    applyTheme(v);
+  }
+  const themeOptions = () => Object.keys(THEME_COLORS).map((id) => ({ id, icon: THEME_ICONS[id], label: t(THEME_KEYS[id]) }));
 
   /* ---------- písmo pre ľahšie čítanie (nastavenie) ---------- */
   const FONT_URLS = {
@@ -488,10 +491,6 @@
     const install = document.getElementById('install-btn');
     install.setAttribute('aria-label', t('installAria'));
     install.querySelector('.hide-narrow').textContent = ' ' + t('install');
-    themeSelect.setAttribute('aria-label', t('themeLabel'));
-    themeSelect.title = t('themeLabel');
-    const labels = { light: '☀️ ' + t('themeLight'), dark: '🌙 ' + t('themeDark'), sepia: '📜 ' + t('themeSepia'), contrast: '◐ ' + t('themeContrast') };
-    [...themeSelect.options].forEach((o) => { o.textContent = labels[o.value]; });
     document.getElementById('lang-flag').textContent = info.flag;
     document.getElementById('lang-name').textContent = info.name;
     langBtn.setAttribute('aria-label', `${t('langLabel')}: ${info.name}`);
@@ -518,15 +517,16 @@
     addHomePanel: (fn) => { homePanels.push(fn); },
     addLessonPanel: (fn) => { lessonPanels.push(fn); },
     refresh: () => { applyStatic(); route(); },
-    applyStatic
+    applyStatic,
+    getTheme: currentTheme, setTheme, themeOptions
   };
 
   function start() {
     applyReading();
     applyStatic();
-    syncTheme();
+    applyTheme(storedTheme());
     window.addEventListener('hashchange', () => { route(); applyStatic(); });
-    STORE.on('import', () => { applyReading(); APP.refresh(); });
+    STORE.on('import', () => { applyReading(); applyTheme(storedTheme()); APP.refresh(); });
     STORE.on('mastered', (ev) => {
       const L = lessonById(ev.id);
       if (L) toast(`🎉 ${esc(t('masteredToast'))} ${lessonTitle(L)}`);

@@ -291,6 +291,18 @@ mark { background: color-mix(in srgb, var(--warn) 35%, transparent); color: inhe
 /* ---------- nastavenia, Jocadium ---------- */
 .settings h2 { margin-top: 0; }
 .settings.danger { border-color: var(--bad); }
+.theme-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.theme-opt { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; }
+.theme-opt:has(input:checked) { border-color: var(--primary); }
+.theme-opt:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }
+.theme-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.theme-swatch { display: flex; flex-direction: column; gap: 5px; height: 54px; padding: 8px; border-radius: 8px; border: 1px solid rgba(127, 127, 127, 0.35); }
+.theme-swatch i { display: block; height: 7px; border-radius: 4px; }
+.theme-swatch i:first-child { width: 40%; }
+.theme-swatch i:nth-child(2) { width: 75%; opacity: 0.55; }
+.theme-swatch i:last-child { width: 30%; height: 12px; margin-top: auto; }
+.theme-opt-name { font-weight: 600; }
+.theme-opt:has(input:checked) .theme-opt-name::after { content: "✓"; float: right; color: var(--primary); }
 .font-preview { padding: 8px 12px; border: 1px dashed var(--border); border-radius: 8px; }
 .game-break {
   margin: 16px 0;

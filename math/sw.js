@@ -1,6 +1,6 @@
 /* Service worker: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu. */
-const CACHE = 'matika-v25';
+const CACHE = 'matika-v26';
 const ASSETS = [
   './',
   './index.html',

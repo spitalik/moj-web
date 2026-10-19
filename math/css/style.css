@@ -12,22 +12,7 @@
   --radius: 14px;
 }
 
-/* Bez zvoleného vzhľadu (data-theme) sa riadime nastavením systému. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --bg: #0b1220;
-    --card: #111a2e;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --primary: #60a5fa;
-    --primary-text: #0b1220;
-    --ok: #4ade80;
-    --bad: #f87171;
-    --warn: #fbbf24;
-    --border: #1e293b;
-  }
-}
-
+/* Vzhľad určuje atribút data-theme (nastaví ho skript v index.html, predvolený je tmavý). */
 :root[data-theme="dark"] {
   --bg: #0b1220;
   --card: #111a2e;
@@ -81,7 +66,6 @@
 /* natívne prvky (rozbaľovací zoznam, posuvníky) v tmavej alebo svetlej podobe */
 :root { color-scheme: light; }
 :root[data-theme="dark"], :root[data-theme="contrast"] { color-scheme: dark; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme]) { color-scheme: dark; } }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -123,18 +107,6 @@ h3 { font-size: 1.05rem; margin: 0 0 0.3em; }
 :root[data-theme="dark"] .brand-logo, :root[data-theme="contrast"] .brand-logo { filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.35)); }
 
 .topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.theme-select {
-  padding: 6px 8px;
-  font: inherit;
-  font-size: 0.9rem;
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  cursor: pointer;
-}
-.theme-select:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
-.theme-select option { color: var(--text); background: var(--card); }
 
 /* výber jazyka (rovnaký princíp ako v Jocadiu): tlačidlo s vlajkou a rozbaľovací zoznam */
 .lang-wrap { position: relative; }
@@ -209,7 +181,6 @@ h3 { font-size: 1.05rem; margin: 0 0 0.3em; }
   .brand { font-size: 0.86rem; line-height: 1.15; gap: 8px; }
   .hide-narrow, .lang-name, .lang-btn .chevron { display: none; }
   .brand-logo { width: 30px; height: 30px; }
-  .theme-select { max-width: 104px; padding: 6px 4px; font-size: 0.85rem; }
   .lang-btn { padding: 6px 8px; }
 }
 
