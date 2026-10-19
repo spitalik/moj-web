@@ -137,8 +137,14 @@
     if (t < 0.6) {
       const a = rnd(0, 20), b = Math.random() < 0.15 ? a : rnd(0, 20);
       const ans = a < b ? '<' : a > b ? '>' : '=';
+      // typické chyby: obrátený znak, znak = pri rôznych číslach
+      const same = T`Pozri sa znova: obe čísla sú rovnaké, ani jedno nie je väčšie.`;
+      const choiceHints = a === b ? { '<': same, '>': same } : {
+        [ans === '<' ? '>' : '<']: T`Znak je otočený naopak. Otvorená strana znaku má smerovať k väčšiemu číslu.`,
+        '=': T`Znak $=$ patrí len medzi dve rovnaké čísla. Tieto čísla sú rôzne.`
+      };
       return {
-        type: 'choice', options: ['<', '=', '>'], answer: ans,
+        type: 'choice', options: ['<', '=', '>'], answer: ans, choiceHints,
         q: T`Doplň správny znak: $${a} \\;\\square\\; ${b}$`,
         solution: a === b
           ? T`Čísla sú rovnaké, preto $${a} = ${b}$.`
@@ -150,6 +156,10 @@
       const n = rnd(11, 20), tens = Math.floor(n / 10), ones = n % 10;
       const askOnes = Math.random() < 0.5;
       return {
+        // typická chyba: zamenené desiatky a jednotky
+        mistakes: tens === ones ? [] : [askOnes
+          ? { value: tens, msg: T`To je počet desiatok. Jednotky sú číslica vpravo.` }
+          : { value: ones, msg: T`To je počet jednotiek. Desiatky sú číslica vľavo.` }],
         answer: askOnes ? ones : tens,
         q: T`Koľko ${askOnes ? T`jednotiek` : T`desiatok`} má číslo ${n}?`,
         solution: T`$${n} = ${tens * 10} + ${ones}$, teda ${tens} ${pl(tens, [T`desiatka`, T`desiatky`, T`desiatok`])} a ${ones} ${pl(ones, [T`jednotka`, T`jednotky`, T`jednotiek`])}.`,
@@ -158,6 +168,10 @@
     }
     const n = rnd(1, 19), up = Math.random() < 0.5;
     return {
+      // typická chyba: posun na opačnú stranu číselného radu
+      mistakes: [{ value: up ? n - 1 : n + 1, msg: up
+        ? T`Posunul si sa na opačnú stranu. Väčšie čísla sú na číselnom rade vpravo.`
+        : T`Posunul si sa na opačnú stranu. Menšie čísla sú na číselnom rade vľavo.` }],
       answer: up ? n + 1 : n - 1,
       q: T`Ktoré číslo je o 1 ${up ? T`väčšie` : T`menšie`} ako ${n}?`,
       solution: T`${up ? T`Hneď za` : T`Hneď pred`} číslom ${n} je v číselnom rade číslo ${up ? n + 1 : n - 1}.`,
@@ -187,25 +201,51 @@
     const t = Math.random();
     if (t < 0.4) {
       const a = rnd(2, 15), b = rnd(1, 20 - a), s = a + b;
-      const via = a < 10 && s > 10 ? T` Doplň do desiatky: $${a} + ${10 - a} = 10$, potom $10 + ${s - 10} = ${s}$.` : '';
-      return {
+      const bridge = a < 10 && s > 10;
+      const via = bridge ? T` Doplň do desiatky: $${a} + ${10 - a} = 10$, potom $10 + ${s - 10} = ${s}$.` : '';
+      const ex = {
         answer: s, q: T`Vypočítaj $${a} + ${b}$.`,
         solution: `$${a} + ${b} = ${s}$.${via}`,
-        hint: T`Ak prejdeš cez 10, najprv doplň do desiatky a potom pridaj zvyšok.`
+        hint: T`Ak prejdeš cez 10, najprv doplň do desiatky a potom pridaj zvyšok.`,
+        // typické chyby: odčítanie namiesto sčítania; pri prechode cez desiatku zabudnutý zvyšok
+        mistakes: [
+          ...(a !== b ? [{ value: Math.abs(a - b), msg: T`Máš sčítať, nie odčítať: znamienko $+$ znamená pridať.` }] : []),
+          ...(bridge && s - 10 !== b ? [{ value: 10, msg: T`Doplnil si do desiatky, ale zabudol si pridať zvyšok: ešte $+ ${s - 10}$.` }] : [])
+        ]
       };
+      // po krokoch: prechod cez desiatku
+      if (bridge) {
+        ex.steps = [
+          { q: T`Koľko chýba čísla ${a} do 10?`, answer: 10 - a, hint: T`Počítaj od ${a} po 10.` },
+          { q: T`Z čísla ${b} sme použili ${10 - a}. Koľko z neho ešte zostáva pridať?`, answer: s - 10, hint: T`Vypočítaj $${b} - ${10 - a}$.` },
+          { q: T`Koľko je $10 + ${s - 10}$?`, answer: s }
+        ];
+      }
+      return ex;
     }
     if (t < 0.8) {
       const a = rnd(5, 20), b = rnd(1, a), d = a - b;
-      const via = a > 10 && d < 10 ? T` Najprv uber do desiatky: $${a} - ${a - 10} = 10$, potom $10 - ${b - (a - 10)} = ${d}$.` : '';
-      return {
+      const bridge = a > 10 && d < 10;
+      const via = bridge ? T` Najprv uber do desiatky: $${a} - ${a - 10} = 10$, potom $10 - ${b - (a - 10)} = ${d}$.` : '';
+      const ex = {
         answer: d, q: T`Vypočítaj $${a} - ${b}$.`,
         solution: `$${a} - ${b} = ${d}$.${via}`,
-        hint: T`Odčítanie je opak sčítania: koľko musíš pridať k ${b}, aby si dostal ${a}?`
+        hint: T`Odčítanie je opak sčítania: koľko musíš pridať k ${b}, aby si dostal ${a}?`,
+        mistakes: [{ value: a + b, msg: T`Máš odčítať, nie sčítať: znamienko $-$ znamená ubrať.` }]
       };
+      if (bridge) {
+        ex.steps = [
+          { q: T`Koľko musíš ubrať z čísla ${a}, aby si sa dostal na 10?`, answer: a - 10, hint: T`Koľko jednotiek má ${a} navyše oproti 10?` },
+          { q: T`Z čísla ${b} sme ubrali ${a - 10}. Koľko ešte treba ubrať?`, answer: b - (a - 10), hint: T`Vypočítaj $${b} - ${a - 10}$.` },
+          { q: T`Koľko je $10 - ${b - (a - 10)}$?`, answer: d }
+        ];
+      }
+      return ex;
     }
     const a = rnd(1, 15), x = rnd(1, 20 - a), s = a + x;
     return {
       answer: x, q: T`Doplň chýbajúce číslo: $${a} + \\square = ${s}$`,
+      mistakes: [{ value: s + a, msg: T`Čísla nesčítavaj. Hľadáš, koľko treba pridať k ${a}, aby si dostal ${s}.` }],
       solution: T`Hľadáme, koľko chýba od ${a} do ${s}: $${s} - ${a} = ${x}$.`,
       hint: T`Chýbajúce číslo zistíš odčítaním.`
     };
@@ -234,6 +274,7 @@
     if (t < 0.4) {
       const n = rnd(3, 20), a = rnd(0, n);
       return {
+        mistakes: a > 0 ? [{ value: n + a, msg: T`Čísla nesčítavaj. Hľadáš, koľko chýba od ${a} do ${n}.` }] : [],
         answer: n - a, q: T`Rozlož číslo ${n}: $${n} = ${a} + \\square$`,
         solution: T`$${n} - ${a} = ${n - a}$, teda $${n} = ${a} + ${n - a}$.`,
         hint: T`Koľko chýba od ${a} do ${n}?`
@@ -290,39 +331,59 @@
     const TH = pick(THINGS);
     const k1 = pick(KIDS), k2 = pick(KIDS.filter((k) => k !== k1));
     const kind = rnd(0, 3);
+    // po krokoch: najprv vybrať počtovú operáciu, potom vypočítať
+    const opSteps = (plus, a, b, hint) => [
+      { q: T`Budeš sčítať (+), alebo odčítať (−)?`, type: 'choice', options: ['+', '−'], answer: plus ? '+' : '−', hint },
+      plus ? { q: T`Vypočítaj $${a} + ${b}$.`, answer: a + b } : { q: T`Vypočítaj $${a} - ${b}$.`, answer: a - b }
+    ];
     if (kind === 0) {
       const a = rnd(2, 15), b = rnd(1, 20 - a);
+      const hint = T`Keď niečo pribudne, sčítavame.`;
       return {
         answer: a + b,
         q: T`${k1.n} ${verb(k1, T`mal`, T`mala`)} ${a} ${pl(a, TH)} a ${verb(k1, T`dostal`, T`dostala`)} ešte ${b}. Koľko ${TH[2]} má teraz?`,
         solution: T`Pridávame, preto sčítame: $${a} + ${b} = ${a + b}$. ${k1.n} má ${a + b} ${pl(a + b, TH)}.`,
-        hint: T`Keď niečo pribudne, sčítavame.`
+        hint,
+        mistakes: a !== b ? [{ value: Math.abs(a - b), msg: T`Keď niečo pribudne, je toho viac. Tu treba sčítať, nie odčítať.` }] : [],
+        steps: opSteps(true, a, b, hint)
       };
     }
     if (kind === 1) {
       const a = rnd(5, 20), b = rnd(2, a - 1);
+      const hint = T`Keď niečo ubudne, odčítavame.`;
       return {
         answer: a - b,
         q: T`${k1.n} ${verb(k1, T`mal`, T`mala`)} ${a} ${pl(a, TH)}. Kamarátom ${verb(k1, T`dal`, T`dala`)} ${b} ${pl(b, TH)}. Koľko ${TH[2]} ${verb(k1, T`mu`, T`jej`)} zostalo?`,
         solution: T`Uberáme, preto odčítame: $${a} - ${b} = ${a - b}$. Zostalo ${verb(k1, T`mu`, T`jej`)} ${a - b} ${pl(a - b, TH)}.`,
-        hint: T`Keď niečo ubudne, odčítavame.`
+        hint,
+        mistakes: [{ value: a + b, msg: T`Keď niečo dáš preč, zostane toho menej. Tu treba odčítať, nie sčítať.` }],
+        steps: opSteps(false, a, b, hint)
       };
     }
     if (kind === 2) {
       const a = rnd(3, 20), b = rnd(1, a - 1);
+      const hint = T`Otázka „o koľko viac“ sa rieši odčítaním.`;
       return {
         answer: a - b,
         q: T`${k1.n} má ${a} ${pl(a, TH)}, ${k2.n} má ${b} ${pl(b, TH)}. O koľko ${TH[2]} má ${k1.n} viac?`,
         solution: T`Porovnávame: $${a} - ${b} = ${a - b}$. ${k1.n} má o ${a - b} ${pl(a - b, TH)} viac.`,
-        hint: T`Otázka „o koľko viac“ sa rieši odčítaním.`
+        hint,
+        mistakes: [{ value: a + b, msg: T`Čísla nesčítavaj. Pýtame sa, o koľko má jedno dieťa viac – odčítaj menšie číslo od väčšieho.` }],
+        steps: opSteps(false, a, b, hint)
       };
     }
     const a = rnd(1, 15), b = rnd(2, 20 - a);
+    const hint = T`„O … viac“ znamená k číslu pripočítať.`;
     return {
       answer: a + b,
       q: T`${k1.n} má ${a} ${pl(a, TH)}. ${k2.n} má o ${b} ${pl(b, TH)} viac. Koľko ${TH[2]} má ${k2.n}?`,
       solution: T`„O ${b} viac“ znamená pridať ${b}: $${a} + ${b} = ${a + b}$. ${k2.n} má ${a + b} ${pl(a + b, TH)}.`,
-      hint: T`„O … viac“ znamená k číslu pripočítať.`
+      hint,
+      mistakes: [
+        { value: b, msg: T`${b} je len to, o koľko má ${k2.n} viac. Pripočítaj to k tomu, čo má ${k1.n}.` },
+        ...(a !== b ? [{ value: Math.abs(a - b), msg: T`„O ${b} viac“ znamená, že ${k2.n} má viac ako ${k1.n}. Treba pripočítať, nie odčítať.` }] : [])
+      ],
+      steps: opSteps(true, a, b, hint)
     };
   });
 
@@ -350,8 +411,10 @@
     ['Koľko strán má trojuholník?', 3, 'Trojuholník má 3 strany.'],
     ['Koľko strán má štvorec?', 4, 'Štvorec má 4 rovnako dlhé strany.'],
     ['Koľko vrcholov má obdĺžnik?', 4, 'Obdĺžnik má 4 vrcholy.'],
-    ['Koľko stien má kocka?', 6, 'Kocka má 6 stien a každá stena je štvorec.'],
-    ['Koľko vrcholov má kocka?', 8, 'Kocka má 8 vrcholov: 4 hore a 4 dole.'],
+    ['Koľko stien má kocka?', 6, 'Kocka má 6 stien a každá stena je štvorec.',
+      [3, 'Na obrázku vidno len 3 steny. Ďalšie 3 steny sú schované vzadu, vľavo a dole.']],
+    ['Koľko vrcholov má kocka?', 8, 'Kocka má 8 vrcholov: 4 hore a 4 dole.',
+      [4, 'Spočítal si len vrcholy na jednej stene. Kocka má vrcholy hore aj dole.']],
     ['Koľko vrcholov má kruh?', 0, 'Kruh nemá žiadne vrcholy, jeho okraj je oblý.']
   ];
 
@@ -360,7 +423,17 @@
       const solid = Math.random() < 0.5;
       const shapes = solid ? SOLIDS : PLANE;
       const name = pick(Object.keys(shapes));
+      // typické zámeny podobných útvarov
+      const confuse = {
+        'štvorec': ['obdĺžnik', T`Obdĺžnik má dve strany dlhšie a dve kratšie. Sú tu všetky strany rovnako dlhé?`],
+        'obdĺžnik': ['štvorec', T`Štvorec má všetky štyri strany rovnako dlhé. Tu sú dve strany dlhšie.`],
+        'kocka': ['kváder', T`Kváder vyzerá ako krabica, jeho steny nie sú všetky rovnaké. Tu sú všetky steny rovnaké štvorce.`],
+        'kváder': ['kocka', T`Kocka má všetky steny rovnaké štvorce. Toto teleso je širšie, ako je vysoké.`],
+        'valec': ['kužeľ', T`Kužeľ má hore špičku. Toto teleso má hore aj dole kruh.`],
+        'kužeľ': ['valec', T`Valec má hore aj dole kruh. Toto teleso má hore špičku.`]
+      }[name];
       return {
+        choiceHints: confuse ? { [T.s(confuse[0])]: confuse[1] } : undefined,
         type: 'choice', options: shuffle(Object.keys(shapes)).map(T.s), answer: T.s(name),
         q: `${T`Ako sa volá ${solid ? T`toto teleso` : T`tento útvar`}?`}
             <svg viewBox="0 0 180 150" width="180" role="img" aria-label="obrázok útvaru">${shapes[name](90, 75)}</svg>`,
@@ -368,8 +441,10 @@
         hint: solid ? T`Predstav si loptu, plechovku, krabicu, hraciu kocku alebo kornútok.` : T`Spočítaj strany a vrcholy útvaru.`
       };
     }
-    const [q, a, why] = pick(FACTS);
-    return { answer: a, q: T.s(q), solution: T.s(why), hint: T`Vrchol je roh útvaru, strana je čiara medzi dvoma vrcholmi.` };
+    const [q, a, why, mis] = pick(FACTS);
+    const ex = { answer: a, q: T.s(q), solution: T.s(why), hint: T`Vrchol je roh útvaru, strana je čiara medzi dvoma vrcholmi.` };
+    if (mis) ex.mistakes = [{ value: mis[0], msg: T.s(mis[1]) }];
+    return ex;
   });
 
   lesson({
@@ -405,18 +480,24 @@
       const show = `<span class="emoji-row">${row.map((x) => x[0]).join(' ')}</span>`;
       const base = { type: 'choice', options: row.map(label), hint: T`Vľavo je začiatok radu, vpravo jeho koniec.` };
       const kind = rnd(0, 2);
+      // typické chyby: zámena vľavo a vpravo, výber samotného zvieratka, od ktorého hľadáme
+      const self = T`Toto je zvieratko, od ktorého hľadáme. Hľadáme jeho suseda.`;
       if (kind === 0) {
         const i = rnd(0, 3);
+        const choiceHints = { [label(row[i])]: self };
+        if (i > 0) choiceHints[label(row[i - 1])] = T`Toto zvieratko stojí vľavo. Vpravo je tá strana, kde rad končí.`;
         return Object.assign(base, {
           answer: label(row[i + 1]), q: T`Zvieratká stoja v rade: ${show} Kto stojí hneď vpravo od ${row[i][2]}?`,
-          solution: T`Hneď vpravo od ${row[i][2]} stojí ${row[i + 1][1]}.`
+          solution: T`Hneď vpravo od ${row[i][2]} stojí ${row[i + 1][1]}.`, choiceHints
         });
       }
       if (kind === 1) {
         const i = rnd(1, 4);
+        const choiceHints = { [label(row[i])]: self };
+        if (i < 4) choiceHints[label(row[i + 1])] = T`Toto zvieratko stojí vpravo. Vľavo je tá strana, kde rad začína.`;
         return Object.assign(base, {
           answer: label(row[i - 1]), q: T`Zvieratká stoja v rade: ${show} Kto stojí hneď vľavo od ${row[i][2]}?`,
-          solution: T`Hneď vľavo od ${row[i][2]} stojí ${row[i - 1][1]}.`
+          solution: T`Hneď vľavo od ${row[i][2]} stojí ${row[i - 1][1]}.`, choiceHints
         });
       }
       const i = rnd(1, 3);
@@ -433,14 +514,24 @@
       return {
         answer: a - b, q: T`O koľko kociek je modrý pás dlhší ako zelený? ${pic}`,
         solution: T`Modrý pás má ${a} ${pl(a, KOCKA)}, zelený ${b}. $${a} - ${b} = ${a - b}$.`,
-        hint: T`Spočítaj kocky v oboch pásoch a odčítaj.`
+        hint: T`Spočítaj kocky v oboch pásoch a odčítaj.`,
+        mistakes: [
+          { value: a + b, msg: T`Kocky z oboch pásov nesčítavaj. Zisti, o koľko kociek má modrý pás viac – odčítaj.` },
+          { value: a, msg: T`To je dĺžka celého modrého pásu. Odčítaj od nej, koľko kociek má zelený pás.` }
+        ],
+        steps: [
+          { q: T`Koľko kociek má modrý pás?`, answer: a },
+          { q: T`Koľko kociek má zelený pás?`, answer: b },
+          { q: T`O koľko je modrý pás dlhší? Vypočítaj $${a} - ${b}$.`, answer: a - b }
+        ]
       };
     }
     const x = rnd(5, 18), y = rnd(2, x - 1);
     return {
       answer: x - y, q: T`Červená stuha meria ${x} cm, modrá ${y} cm. O koľko centimetrov je červená stuha dlhšia?`,
       solution: T`$${x} - ${y} = ${x - y}$, červená stuha je o ${x - y} cm dlhšia.`,
-      hint: T`Rozdiel dĺžok zistíš odčítaním.`
+      hint: T`Rozdiel dĺžok zistíš odčítaním.`,
+      mistakes: [{ value: x + y, msg: T`Dĺžky stúh nesčítavaj. Pýtame sa, o koľko je červená stuha dlhšia – odčítaj.` }]
     };
   });
 })();

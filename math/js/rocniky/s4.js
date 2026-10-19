@@ -108,7 +108,16 @@
         q: `Vypočítaj $\\lim_{x\\to ${a}} \\dfrac{${num}}{${poly([1, -a])}}$.`,
         solution: `Po dosadení $x=${a}$ vyjde výraz $\\frac{0}{0}$, preto čitateľa rozložíme: $${num}=${fac(a)}${fac(-b)}$.
           Pre $x\\neq ${a}$ vykrátime a dostaneme $\\lim_{x\\to ${a}}${b === 0 ? 'x' : `(${poly([1, b])})`}=${b === 0 ? '' : `${a}${term(b)}=`}${L}$.`,
-        hint: 'Ak po dosadení vyjde $\\frac{0}{0}$, rozlož čitateľa na súčin. Jeden z činiteľov sa vykráti s menovateľom.'
+        hint: 'Ak po dosadení vyjde $\\frac{0}{0}$, rozlož čitateľa na súčin. Jeden z činiteľov sa vykráti s menovateľom.',
+        mistakes: [
+          ...(L !== 0 ? [{ value: 0, msg: 'Dosadením vyšlo $\\frac{0}{0}$, a to nie je nula, ale neurčitý výraz. Čitateľa rozlož na súčin a vykráť.' }] : []),
+          { value: b, msg: `Po vykrátení ostal výraz $${b === 0 ? 'x' : poly([1, b])}$ a doňho ešte treba dosadiť $x=${a}$.` }
+        ],
+        steps: [
+          { q: `Čitateľ $${num}$ rozlož na súčin $${fac(a)}\\cdot(x+c)$. Aké je číslo $c$?`, answer: b, signed: true,
+            hint: `Druhý koreň čitateľa je $-c$; súčin koreňov je $${-a * b}$.` },
+          { q: `Po vykrátení činiteľa $${fac(a)}$ zostane $${b === 0 ? 'x' : poly([1, b])}$. Akú hodnotu má tento výraz pre $x=${a}$?`, answer: L, signed: true }
+        ]
       };
     }
     if (t < 0.52) {
@@ -123,7 +132,11 @@
         solution: `Čitateľa aj menovateľa vydelíme najvyššou mocninou menovateľa, teda $${xn}$. Všetky členy tvaru $\\frac{c}{x^k}$ sa blížia k nule.
           ${lower ? `Čitateľ má nižší stupeň než menovateľ, v čitateli preto zostane len nula a limita je $0$.`
             : `Zostane podiel vedúcich koeficientov: $\\frac{${p}}{${s}}${fTex(p, s) === `\\frac{${p}}{${s}}` ? '' : `=${fTex(p, s)}`}$.`}`,
-        hint: 'Porovnaj stupne čitateľa a menovateľa. Pri rovnakom stupni rozhodujú vedúce koeficienty.'
+        hint: 'Porovnaj stupne čitateľa a menovateľa. Pri rovnakom stupni rozhodujú vedúce koeficienty.',
+        mistakes: lower
+          ? [{ value: p / s, msg: 'Podiel vedúcich koeficientov rozhoduje len pri rovnakom stupni. Tu má čitateľ nižší stupeň, takže po vydelení najvyššou mocninou menovateľa ide celý čitateľ k nule.' }]
+          : (D[n] !== 0 && Math.abs(N[n] / D[n] - p / s) > 1e-9
+            ? [{ value: N[n] / D[n], msg: 'Pre $x\\to\\infty$ nerozhodujú absolútne členy, ale členy s najvyššou mocninou $x$.' }] : [])
       };
     }
     if (t < 0.7) {
@@ -133,7 +146,15 @@
         q: `Vypočítaj $\\lim_{x\\to ${a * a}} \\dfrac{\\sqrt{x}-${a}}{x-${a * a}}$. Výsledok zadaj ako zlomok.`,
         solution: `Dosadením dostaneme $\\frac{0}{0}$. Menovateľ je rozdiel štvorcov: $x-${a * a}=(\\sqrt{x}-${a})(\\sqrt{x}+${a})$.
           Po vykrátení $\\lim_{x\\to ${a * a}}\\frac{1}{\\sqrt{x}+${a}}=\\frac{1}{${a}+${a}}=\\frac{1}{${2 * a}}$.`,
-        hint: 'Zapíš menovateľ ako $(\\sqrt{x})^2-a^2$ a rozlož ho podľa vzorca $A^2-B^2=(A-B)(A+B)$.'
+        hint: 'Zapíš menovateľ ako $(\\sqrt{x})^2-a^2$ a rozlož ho podľa vzorca $A^2-B^2=(A-B)(A+B)$.',
+        mistakes: [
+          { value: 0, msg: 'Dosadením vyjde $\\frac{0}{0}$, čo nie je nula, ale neurčitý výraz. Menovateľ rozlož ako rozdiel štvorcov a vykráť.' },
+          { value: 1 / a, msg: `Po vykrátení ostane v menovateli $\\sqrt{x}+${a}$, nie len $\\sqrt{x}$. Dosaď $x=${a * a}$ do celého súčtu.` }
+        ],
+        steps: [
+          { q: `Menovateľ rozložíme: $x-${a * a}=(\\sqrt{x}-${a})(\\sqrt{x}+${a})$. Po vykrátení zostane $\\frac{1}{\\sqrt{x}+${a}}$. Akú hodnotu má $\\sqrt{x}+${a}$ pre $x=${a * a}$?`, answer: 2 * a },
+          { q: 'Aká je teda hodnota limity? Zadaj ju ako zlomok.', answer: 1 / (2 * a) }
+        ]
       };
     }
     if (t < 0.86) {
@@ -143,7 +164,11 @@
         q: `Vypočítaj $\\lim_{x\\to 0} \\dfrac{\\sin ${k}x}{${lead(m, 'x')}}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
         solution: `Upravíme: $\\dfrac{\\sin ${k}x}{${lead(m, 'x')}}=\\frac{${k}}{${m}}\\cdot\\dfrac{\\sin ${k}x}{${k}x}$. Pre $x\\to 0$ aj $t=${k}x\\to 0$ a $\\frac{\\sin t}{t}\\to 1$.
           Limita je $${gcd(k, m) > 1 ? `\\frac{${k}}{${m}}=` : ''}${fTex(k, m)}$.`,
-        hint: 'Využi $\\lim_{t\\to 0}\\frac{\\sin t}{t}=1$: vynásob a vydeľ výraz tak, aby si v menovateli dostal ten istý argument ako v sínuse.'
+        hint: 'Využi $\\lim_{t\\to 0}\\frac{\\sin t}{t}=1$: vynásob a vydeľ výraz tak, aby si v menovateli dostal ten istý argument ako v sínuse.',
+        mistakes: [
+          ...(k !== m ? [{ value: 1, msg: `Vzorec $\\frac{\\sin t}{t}\\to 1$ platí, len keď je v menovateli presne argument sínusu, teda $${k}x$. Výraz najprv uprav.` }] : []),
+          ...(m > 1 ? [{ value: k, msg: `Nezabudni na koeficient $${m}$ v menovateli: výraz je $\\frac{${k}}{${m}}\\cdot\\frac{\\sin ${k}x}{${k}x}$.` }] : [])
+        ]
       };
     }
     const a = rnd(-4, 4), c = nz(-6, 6), right = Math.random() < 0.5;
@@ -154,7 +179,12 @@
       q: `Urči jednostrannú limitu $\\lim_{x\\to ${a}^{${right ? '+' : '-'}}} \\dfrac{${c}}{${poly([1, -a])}}$.`,
       solution: `Pre $x\\to ${a}^{${right ? '+' : '-'}}$ je $x ${right ? '&gt;' : '&lt;'} ${a}$, menovateľ $${poly([1, -a])}$ je teda ${right ? 'kladný' : 'záporný'} a blíži sa k nule.
         Čitateľ $${c}$ je ${c > 0 ? 'kladný' : 'záporný'}, preto zlomok rastie v absolútnej hodnote nad všetky medze so znamienkom ${plus ? 'plus' : 'mínus'}: limita je ${ans}.`,
-      hint: 'Zisti znamienko menovateľa pre $x$ tesne vpravo alebo vľavo od daného bodu a skombinuj ho so znamienkom čitateľa.'
+      hint: 'Zisti znamienko menovateľa pre $x$ tesne vpravo alebo vľavo od daného bodu a skombinuj ho so znamienkom čitateľa.',
+      choiceHints: {
+        [plus ? '$-\\infty$' : '$+\\infty$']: `Pozor na znamienko menovateľa: pre $x$ tesne ${right ? 'vpravo' : 'vľavo'} od $${a}$ je menovateľ $${poly([1, -a])}$ ${right ? 'kladný' : 'záporný'}. Skombinuj ho so znamienkom čitateľa.`,
+        '$0$': 'Čitateľ je nenulová konštanta a menovateľ sa blíži k nule, takže zlomok v absolútnej hodnote rastie nad všetky medze.',
+        [`$${c}$`]: 'Dosadiť sa nedá, menovateľ sa blíži k nule. Deliť číslom blízkym nule dáva v absolútnej hodnote veľmi veľké čísla.'
+      }
     };
   });
 
@@ -216,14 +246,31 @@
           q: `Pre funkciu $f(x)=(${poly([a, b])})\\,\\mathrm{e}^{x}$ vypočítaj $f'(0)$.`,
           solution: `Derivácia súčinu: $f'(x)=${a}\\cdot\\mathrm{e}^{x}+(${poly([a, b])})\\,\\mathrm{e}^{x}=(${poly([a, a + b])})\\,\\mathrm{e}^{x}$.
             Keďže $\\mathrm{e}^0=1$, je $f'(0)=${a + b}$.`,
-          hint: 'Použi $(u\\cdot v)\'=u\'v+uv\'$ a $(\\mathrm{e}^x)\'=\\mathrm{e}^x$.'
+          hint: 'Použi $(u\\cdot v)\'=u\'v+uv\'$ a $(\\mathrm{e}^x)\'=\\mathrm{e}^x$.',
+          mistakes: [
+            { value: a, msg: 'Derivácia súčinu nie je súčin derivácií: $(u\\cdot v)\'=u\'v+uv\'$, nie $u\'\\cdot v\'$.' },
+            { value: b, msg: 'Zabudol si na člen $u\'v$: derivuj aj lineárnu funkciu v zátvorke.' }
+          ],
+          steps: [
+            { q: `Nech $u=${poly([a, b])}$, $v=\\mathrm{e}^x$. Akú hodnotu má člen $u'v$ v bode $0$?`, answer: a, signed: true },
+            { q: 'Akú hodnotu má člen $uv\'$ v bode $0$?', answer: b, signed: true },
+            { q: 'Koľko je $f\'(0)$?', answer: a + b, signed: true }
+          ]
         };
       }
       return {
         signed: true, answer: a + b,
         q: `Pre funkciu $f(x)=(${poly([a, b])})\\ln x$ vypočítaj $f'(1)$.`,
         solution: `Derivácia súčinu: $f'(x)=${a}\\ln x+(${poly([a, b])})\\cdot\\frac{1}{x}$. Keďže $\\ln 1=0$, je $f'(1)=0+(${a}${term(b)})\\cdot 1=${a + b}$.`,
-        hint: 'Použi $(u\\cdot v)\'=u\'v+uv\'$ a $(\\ln x)\'=\\frac{1}{x}$. Nezabudni, že $\\ln 1=0$.'
+        hint: 'Použi $(u\\cdot v)\'=u\'v+uv\'$ a $(\\ln x)\'=\\frac{1}{x}$. Nezabudni, že $\\ln 1=0$.',
+        mistakes: [
+          { value: a, msg: 'Derivácia súčinu nie je súčin derivácií: $(u\\cdot v)\'=u\'v+uv\'$, nie $u\'\\cdot v\'$.' },
+          ...(a + b !== 0 ? [{ value: 2 * a + b, msg: 'Pozor, $\\ln 1=0$, nie $1$ (lebo $\\mathrm{e}^0=1$). Prvý člen $u\'v$ je preto v bode $1$ nulový.' }] : [])
+        ],
+        steps: [
+          { q: `Nech $u=${poly([a, b])}$, $v=\\ln x$. Akú hodnotu má člen $u'v=${a}\\ln x$ v bode $1$?`, answer: 0, signed: true },
+          { q: `Člen $uv'$ je $(${poly([a, b])})\\cdot\\frac{1}{x}$. Koľko je teda $f'(1)$?`, answer: a + b, signed: true }
+        ]
       };
     }
     if (t < 0.5) {
@@ -235,7 +282,15 @@
         q: `Pre funkciu $f(x)=(${poly([a, b])})^{${n}}$ vypočítaj $f'(${x0})$.`,
         solution: `Derivácia zloženej funkcie: $f'(x)=${n}(${poly([a, b])})^{${n - 1}}\\cdot ${par(a)}$.
           V bode $${x0}$ je vnútorná funkcia $${a}\\cdot ${par(x0)}${term(b)}=${inner}$, teda $f'(${x0})=${n}\\cdot ${par(inner)}^{${n - 1}}\\cdot ${par(a)}=${val}$.`,
-        hint: 'Zderivuj vonkajšiu mocninu (vnútro nechaj tak) a vynásob deriváciou vnútornej funkcie.'
+        hint: 'Zderivuj vonkajšiu mocninu (vnútro nechaj tak) a vynásob deriváciou vnútornej funkcie.',
+        mistakes: [
+          ...(a !== 1 && n * Math.pow(inner, n - 1) !== val ? [{ value: n * Math.pow(inner, n - 1), msg: `Zabudol si vynásobiť deriváciou vnútornej funkcie: $(${poly([a, b])})'=${a}$.` }] : []),
+          ...(n * a * Math.pow(inner, n) !== val ? [{ value: n * a * Math.pow(inner, n), msg: `Pri derivovaní mocniny sa exponent zníži o jedna: $(u^{${n}})'=${n}u^{${n - 1}}\\cdot u'$.` }] : [])
+        ],
+        steps: [
+          { q: `Akú hodnotu má vnútorná funkcia $${poly([a, b])}$ v bode $${x0}$?`, answer: inner, signed: true },
+          { q: `Derivácia je $f'(x)=${n}(${poly([a, b])})^{${n - 1}}\\cdot ${par(a)}$. Koľko je $f'(${x0})$?`, answer: val, signed: true }
+        ]
       };
     }
     if (t < 0.75) {
@@ -247,7 +302,13 @@
         q: `Pre funkciu $f(x)=\\dfrac{${poly([a, b])}}{${poly([c, d])}}$ vypočítaj $f'(${x0})$. Výsledok zadaj ako celé číslo alebo zlomok.`,
         solution: `Derivácia podielu: $f'(x)=\\dfrac{${a}(${poly([c, d])})-(${poly([a, b])})\\cdot ${par(c)}}{(${poly([c, d])})^2}=\\dfrac{${num}}{(${poly([c, d])})^2}$.
           V bode $${x0}$: $f'(${x0})=\\dfrac{${num}}{${par(den)}^2}=${fTex(num, den * den)}$.`,
-        hint: 'Použi $\\left(\\frac{u}{v}\\right)\'=\\frac{u\'v-uv\'}{v^2}$. V čitateli sa členy s $x$ odčítajú.'
+        hint: 'Použi $\\left(\\frac{u}{v}\\right)\'=\\frac{u\'v-uv\'}{v^2}$. V čitateli sa členy s $x$ odčítajú.',
+        mistakes: Math.abs(den) !== 1 ? [{ value: num / den, msg: 'Zabudol si umocniť menovateľ: vo vzorci pre deriváciu podielu je v menovateli $v^2$.' }] : [],
+        steps: [
+          { q: `Čitateľ derivácie $${a}(${poly([c, d])})-(${poly([a, b])})\\cdot ${par(c)}$ je po úprave konštanta. Aká?`, answer: num, signed: true },
+          { q: `Akú hodnotu má menovateľ derivácie $(${poly([c, d])})^2$ v bode $${x0}$?`, answer: den * den },
+          { q: `Koľko je $f'(${x0})$? Zadaj celé číslo alebo zlomok.`, answer: num / (den * den), signed: true }
+        ]
       };
     }
     const A = nz(-4, 4), k = rnd(2, 6), B = nz(-4, 4), m = nz(-3, 3), cosine = Math.random() < 0.35;
@@ -260,7 +321,16 @@
       solution: cosine
         ? `$f'(x)=${-A * k}\\sin ${k}x${term(B * m, ex)}$. Keďže $\\sin 0=0$ a $\\mathrm{e}^0=1$, je $f'(0)=0${term(B * m)}=${val}$.`
         : `$f'(x)=${A * k}\\cos ${k}x${term(B * m, ex)}$. Keďže $\\cos 0=1$ a $\\mathrm{e}^0=1$, je $f'(0)=${A * k}${term(B * m)}=${val}$.`,
-      hint: 'Pri zloženej funkcii násob deriváciou vnútra: $(\\sin kx)\'=k\\cos kx$, $(\\cos kx)\'=-k\\sin kx$, $(\\mathrm{e}^{mx})\'=m\\,\\mathrm{e}^{mx}$.'
+      hint: 'Pri zloženej funkcii násob deriváciou vnútra: $(\\sin kx)\'=k\\cos kx$, $(\\cos kx)\'=-k\\sin kx$, $(\\mathrm{e}^{mx})\'=m\\,\\mathrm{e}^{mx}$.',
+      mistakes: [
+        ...((cosine ? B : A + B) !== val ? [{ value: cosine ? B : A + B, msg: 'Zabudol si násobiť deriváciou vnútornej funkcie: $(\\sin kx)\'=k\\cos kx$ a $(\\mathrm{e}^{mx})\'=m\\,\\mathrm{e}^{mx}$.' }] : []),
+        ...(!cosine && B * m - A * k !== val ? [{ value: B * m - A * k, msg: 'Derivácia sínusu je kosínus bez mínusu: $(\\sin x)\'=\\cos x$. Mínus patrí k derivácii kosínusu.' }] : [])
+      ],
+      steps: [
+        { q: `Akú hodnotu má derivácia člena $${lead(A, g)}$ v bode $0$?`, answer: cosine ? 0 : A * k, signed: true },
+        { q: `Akú hodnotu má derivácia člena $${lead(B, ex)}$ v bode $0$?`, answer: B * m, signed: true },
+        { q: 'Koľko je $f\'(0)$?', answer: val, signed: true }
+      ]
     };
   });
 
@@ -335,7 +405,13 @@
         solution: `$f'(x)=${poly(d)}=${a > 0 ? '3' : '-3'}${fac(p)}${fac(q)}$, stacionárne body sú $${p}$ a $${q}$.
           Derivácia má znamienka ${a > 0 ? '$+, -, +$' : '$-, +, -$'} na intervaloch $(-\\infty; ${p})$, $(${p}; ${q})$, $(${q}; \\infty)$.
           ${kind[0].toUpperCase() + kind.slice(1)} je preto v bode $x=${x}$ a $f(${x})=${y}$.`,
-        hint: 'Rozlož $f\'(x)$ na súčin, nájdi nulové body a zisti, kde derivácia mení znamienko.'
+        hint: 'Rozlož $f\'(x)$ na súčin, nájdi nulové body a zisti, kde derivácia mení znamienko.',
+        mistakes: [{ value: [p + q - x, peval(cs, p + q - x)], msg: `To je druhý stacionárny bod, v ňom má funkcia lokálne ${wantMax ? 'minimum' : 'maximum'}. Pri maxime mení $f'$ znamienko z $+$ na $-$, pri minime z $-$ na $+$.` }],
+        steps: [
+          { q: `Nájdi stacionárne body funkcie, teda korene rovnice $f'(x)=${poly(d)}=0$.`, type: 'set', answer: [p, q], signed: true, placeholder: 'x₁; x₂' },
+          { q: `V ktorom z bodov $${p}$, $${q}$ má funkcia ${kind}?`, answer: x, signed: true, hint: 'Zisti znamienko $f\'$ vľavo a vpravo od bodu.' },
+          { q: `Vypočítaj $f(${x})$.`, answer: y, signed: true }
+        ]
       };
     }
     if (t < 0.55) {
@@ -348,7 +424,12 @@
         q: `Na ktorých intervaloch je funkcia $f(x)=${poly(cs)}$ ${inc ? 'rastúca' : 'klesajúca'}?`,
         solution: `$f'(x)=${poly(d)}=${a > 0 ? '3' : '-3'}${fac(p)}${fac(q)}$. Derivácia je ${a > 0 ? 'záporná' : 'kladná'} medzi koreňmi $${p}$ a $${q}$
           a ${a > 0 ? 'kladná' : 'záporná'} mimo nich. Funkcia je ${inc ? 'rastúca' : 'klesajúca'} na ${ans}.`,
-        hint: 'Kvadratická funkcia $f\'$ má medzi koreňmi opačné znamienko ako jej vedúci koeficient.'
+        hint: 'Kvadratická funkcia $f\'$ má medzi koreňmi opačné znamienko ako jej vedúci koeficient.',
+        choiceHints: {
+          [ans === mid ? outer : mid]: `Tu je funkcia ${inc ? 'klesajúca' : 'rastúca'}. Skontroluj znamienko $f'$: medzi koreňmi má opačné znamienko ako vedúci koeficient $${3 * a}$.`,
+          [`$(-\\infty; ${q}\\rangle$`]: 'Na tomto intervale leží stacionárny bod, v ktorom $f\'$ mení znamienko, takže tam funkcia nie je monotónna.',
+          [`$\\langle ${p}; \\infty)$`]: 'Na tomto intervale leží stacionárny bod, v ktorom $f\'$ mení znamienko, takže tam funkcia nie je monotónna.'
+        }
       };
     }
     if (t < 0.8) {
@@ -366,7 +447,23 @@
         q: `Vypočítaj ${wantMax ? 'najväčšiu' : 'najmenšiu'} hodnotu funkcie $f(x)=${poly(cs)}$ na intervale $\\langle ${u}; ${v}\\rangle$.`,
         solution: `$f'(x)=${poly(d)}$ má korene $${p}$ a $${q}$. ${inside.length ? `Do vnútra intervalu patrí ${inside.map((x) => `$${x}$`).join(' a ')}.` : 'Žiadny z nich neleží vo vnútri intervalu.'}
           Porovnáme hodnoty: ${cand.map((x, i) => `$f(${x})=${vals[i]}$`).join(', ')}. ${wantMax ? 'Najväčšia' : 'Najmenšia'} z nich je $${ans}$.`,
-        hint: 'Kandidáti sú stacionárne body vnútri intervalu a oba krajné body. Vypočítaj v nich funkčné hodnoty a porovnaj ich.'
+        hint: 'Kandidáti sú stacionárne body vnútri intervalu a oba krajné body. Vypočítaj v nich funkčné hodnoty a porovnaj ich.',
+        mistakes: (() => {
+          const ms = [];
+          if (inside.length) {
+            const iv = inside.map((x) => peval(cs, x)), w = wantMax ? Math.max(...iv) : Math.min(...iv);
+            if (w !== ans) ms.push({ value: w, msg: 'Porovnaj aj hodnoty funkcie v krajných bodoch intervalu, globálny extrém môže byť práve tam.' });
+          }
+          const xa = cand[vals.indexOf(ans)];
+          if (xa !== ans && !ms.some((m) => m.value === xa)) ms.push({ value: xa, msg: 'Hľadá sa hodnota funkcie, nie bod $x$, v ktorom ju nadobúda.' });
+          return ms;
+        })(),
+        steps: [
+          { q: `Nájdi korene derivácie $f'(x)=${poly(d)}$.`, type: 'set', answer: [p, q], signed: true, placeholder: 'x₁; x₂' },
+          { q: `Vypočítaj hodnotu v ľavom krajnom bode, $f(${u})$.`, answer: peval(cs, u), signed: true },
+          { q: `Vypočítaj hodnotu v pravom krajnom bode, $f(${v})$.`, answer: peval(cs, v), signed: true },
+          { q: `Porovnaj tieto hodnoty s hodnotami v stacionárnych bodoch vnútri intervalu. Aká je ${wantMax ? 'najväčšia' : 'najmenšia'} hodnota?`, answer: ans, signed: true }
+        ]
       };
     }
     const k = rnd(3, 15), L = 4 * k, askArea = Math.random() < 0.6;
@@ -376,7 +473,15 @@
         ${askArea ? 'Aký najväčší obsah (v $\\text{m}^2$) môže mať pozemok?' : 'Aká dlhá musí byť strana rovnobežná so stenou, aby bol obsah najväčší (v metroch)?'}`,
       solution: `Nech $x$ je dĺžka strán kolmých na stenu. Strana rovnobežná so stenou má dĺžku $${L}-2x$ a obsah je $S(x)=x(${L}-2x)=${L}x-2x^2$.
         $S'(x)=${L}-4x=0$ pre $x=${k}$ a $S''=-4&lt;0$, ide o maximum. Rozmery sú $${k}\\,\\text{m}$ a $${2 * k}\\,\\text{m}$, obsah $${2 * k * k}\\,\\text{m}^2$.`,
-      hint: 'Označ $x$ stranu kolmú na stenu, vyjadri druhú stranu z dĺžky pletiva a obsah ako funkciu $x$. Potom hľadaj, kde je jej derivácia nulová.'
+      hint: 'Označ $x$ stranu kolmú na stenu, vyjadri druhú stranu z dĺžky pletiva a obsah ako funkciu $x$. Potom hľadaj, kde je jej derivácia nulová.',
+      mistakes: askArea
+        ? [{ value: k * k, msg: 'Pletivo netreba na všetky štyri strany: stena tvorí jednu stranu, ohradiť treba len tri.' }]
+        : [{ value: k, msg: 'To je dĺžka strany kolmej na stenu. Pýtame sa na stranu rovnobežnú so stenou, jej dĺžka je ' + `$${L}-2x$.` }],
+      steps: [
+        { q: `Obsah je $S(x)=x(${L}-2x)$, kde $x$ je strana kolmá na stenu. Pre aké $x$ je $S'(x)=0$?`, answer: k },
+        { q: 'Aká dlhá je potom strana rovnobežná so stenou (v metroch)?', answer: 2 * k },
+        ...(askArea ? [{ q: 'Aký je najväčší obsah pozemku (v $\\text{m}^2$)?', answer: 2 * k * k }] : [])
+      ]
     };
   });
 
@@ -452,7 +557,12 @@
         q: `Nájdi inflexný bod funkcie $f(x)=${poly(cs)}$. Zadaj jeho súradnice $x$ a $y$ (napr. 1; -4).`,
         solution: `$f'(x)=${poly([3 * a, 2 * b, c])}$, $f''(x)=${poly([6 * a, 2 * b])}$. $f''(x)=0$ pre $x=${s}$ a druhá derivácia tam mení znamienko.
           $f(${s})=${y}$, inflexný bod je $[${s}; ${y}]$.`,
-        hint: 'Inflexný bod hľadaj tam, kde $f\'\'(x)=0$ a druhá derivácia mení znamienko.'
+        hint: 'Inflexný bod hľadaj tam, kde $f\'\'(x)=0$ a druhá derivácia mení znamienko.',
+        mistakes: y !== 0 ? [{ value: [s, 0], msg: `Druhá súradnica inflexného bodu je funkčná hodnota $f(${s})$, nie hodnota $f''(${s})$.` }] : [],
+        steps: [
+          { q: 'Vypočítaj druhú deriváciu. Pre aké $x$ je $f\'\'(x)=0$?', answer: s, signed: true, hint: `$f'(x)=${poly([3 * a, 2 * b, c])}$.` },
+          { q: `Vypočítaj $f(${s})$.`, answer: y, signed: true }
+        ]
       };
     }
     if (t < 0.55) {
@@ -463,7 +573,15 @@
         q: `Urči asymptoty grafu funkcie $f(x)=\\dfrac{${poly([a, b])}}{${poly([c, d])}}$. Zadaj číslo zo zvislej asymptoty $x=\\dots$ a potom číslo z vodorovnej asymptoty $y=\\dots$ (napr. 2; -1/2).`,
         solution: `Menovateľ je nulový pre $x=${fTex(-d, c)}$ a čitateľ tam nulový nie je (lebo $ad-bc=${a * d - b * c}\\neq 0$), preto je $x=${fTex(-d, c)}$ zvislá asymptota.
           Pre $x\\to\\pm\\infty$ sa $f(x)$ blíži k podielu koeficientov pri $x$: $\\frac{${a}}{${c}}=${fTex(a, c)}$, vodorovná asymptota je $y=${fTex(a, c)}$.`,
-        hint: 'Zvislá asymptota je v nulovom bode menovateľa. Vodorovnú asymptotu dá limita pre $x\\to\\infty$: podiel koeficientov pri $x$.'
+        hint: 'Zvislá asymptota je v nulovom bode menovateľa. Vodorovnú asymptotu dá limita pre $x\\to\\infty$: podiel koeficientov pri $x$.',
+        mistakes: [
+          { value: [d / c, a / c], msg: `Zvislá asymptota je v nulovom bode menovateľa: rieš rovnicu $${poly([c, d])}=0$. Pozor na znamienko.` },
+          ...(b !== 0 && Math.abs(b / d - a / c) > 1e-9 ? [{ value: [-d / c, b / d], msg: 'Pre $x\\to\\pm\\infty$ rozhodujú koeficienty pri $x$, nie absolútne členy.' }] : [])
+        ],
+        steps: [
+          { q: 'Číslo zo zvislej asymptoty $x=\\dots$ (nulový bod menovateľa)?', answer: -d / c, signed: true },
+          { q: 'Číslo z vodorovnej asymptoty $y=\\dots$ (limita pre $x\\to\\infty$)?', answer: a / c, signed: true }
+        ]
       };
     }
     if (t < 0.8) {
@@ -472,7 +590,12 @@
         type: 'choice', options: ['párna', 'nepárna', 'ani párna, ani nepárna'], answer: kind,
         q: `Je funkcia $f(x)=${f(k)}$ párna, nepárna, alebo ani jedno?`,
         solution: `${why(k)} Funkcia je <strong>${kind}</strong>.`,
-        hint: 'Dosaď $-x$ namiesto $x$ a porovnaj $f(-x)$ s $f(x)$ a s $-f(x)$. Over aj, či je definičný obor súmerný podľa nuly.'
+        hint: 'Dosaď $-x$ namiesto $x$ a porovnaj $f(-x)$ s $f(x)$ a s $-f(x)$. Over aj, či je definičný obor súmerný podľa nuly.',
+        choiceHints: Object.fromEntries([
+          ['párna', 'Párna funkcia spĺňa $f(-x)=f(x)$ pre všetky $x$ z definičného oboru. Dosaď napríklad $x=1$ a $x=-1$ a porovnaj.'],
+          ['nepárna', 'Nepárna funkcia spĺňa $f(-x)=-f(x)$ pre všetky $x$ z definičného oboru. Dosaď napríklad $x=1$ a $x=-1$ a porovnaj.'],
+          ['ani párna, ani nepárna', 'Uprav $f(-x)$: využi $(-x)^2=x^2$, $(-x)^3=-x^3$, $\\sin(-x)=-\\sin x$ a $\\cos(-x)=\\cos x$. Potom porovnaj s $f(x)$ aj s $-f(x)$.']
+        ].filter(([o]) => o !== kind))
       };
     }
     const a = pick([1, -1]), s = rnd(-3, 3), b = -3 * a * s, c = rnd(-6, 6), d = rnd(-5, 5);
@@ -483,7 +606,12 @@
       type: 'choice', options: shuffle([right, left, `$(${o}; \\infty)$`, `$(-\\infty; ${o})$`]), answer: ans,
       q: `Na ktorom intervale je funkcia $f(x)=${poly(cs)}$ konvexná?`,
       solution: `$f''(x)=${poly([6 * a, 2 * b])}$. Nerovnica $f''(x)&gt;0$ dáva $${a > 0 ? `x&gt;${s}` : `x&lt;${s}`}$, funkcia je konvexná na ${ans}.`,
-      hint: 'Funkcia je konvexná tam, kde $f\'\'(x)&gt;0$. Vypočítaj druhú deriváciu a vyrieš lineárnu nerovnicu.'
+      hint: 'Funkcia je konvexná tam, kde $f\'\'(x)&gt;0$. Vypočítaj druhú deriváciu a vyrieš lineárnu nerovnicu.',
+      choiceHints: {
+        [a > 0 ? left : right]: 'Tu je $f\'\'(x)&lt;0$, funkcia je tam konkávna. Pri delení nerovnice záporným číslom nezabudni otočiť znak nerovnosti.',
+        [`$(${o}; \\infty)$`]: 'Hranica intervalu konvexnosti je inflexný bod, v ktorom $f\'\'(x)=0$. Over, kde je druhá derivácia nulová.',
+        [`$(-\\infty; ${o})$`]: 'Hranica intervalu konvexnosti je inflexný bod, v ktorom $f\'\'(x)=0$. Over, kde je druhá derivácia nulová.'
+      }
     };
   });
 
@@ -537,7 +665,17 @@
         q: `Vypočítaj obsah útvaru ohraničeného parabolou $y=x^2$ a priamkou $y=${lead(k, 'x')}$. Výsledok zadaj ako zlomok alebo celé číslo.`,
         solution: `Priesečníky: $x^2=${lead(k, 'x')}$, teda $x=0$ a $x=${k}$. Na $\\langle 0; ${k}\\rangle$ leží priamka nad parabolou.
           $S=\\int_0^{${k}}(${lead(k, 'x')}-x^2)\\,dx=\\left[\\frac{${k}x^2}{2}-\\frac{x^3}{3}\\right]_0^{${k}}=\\frac{${k * k * k}}{2}-\\frac{${k * k * k}}{3}=${fTex(k * k * k, 6)}$.`,
-        hint: 'Najprv nájdi priesečníky, potom integruj rozdiel „horná mínus dolná“ funkcia.'
+        hint: 'Najprv nájdi priesečníky, potom integruj rozdiel „horná mínus dolná“ funkcia.',
+        mistakes: [
+          { value: k * k * k / 3, msg: 'To je obsah pod parabolou. Útvar je medzi dvoma krivkami, integruj rozdiel „horná mínus dolná“.' },
+          { value: k * k * k / 2, msg: 'To je obsah pod priamkou. Od neho ešte treba odčítať obsah pod parabolou.' }
+        ],
+        steps: [
+          { q: `Priesečníky sú $x=0$ a ešte jeden bod. Aké je jeho $x$?`, answer: k },
+          { q: `Vypočítaj $\\int_0^{${k}} ${lead(k, 'x')}\\,dx$.`, answer: k * k * k / 2 },
+          { q: `Vypočítaj $\\int_0^{${k}} x^2\\,dx$. Zadaj zlomok alebo celé číslo.`, answer: k * k * k / 3 },
+          { q: 'Aký je obsah útvaru? Zadaj zlomok alebo celé číslo.', answer: k * k * k / 6 }
+        ]
       };
     }
     if (t < 0.5) {
@@ -547,7 +685,13 @@
         q: `Vypočítaj obsah útvaru ohraničeného parabolou $y=${M}-x^2$ a osou $x$. Výsledok zadaj ako zlomok alebo celé číslo.`,
         solution: `Priesečníky s osou $x$: $${M}-x^2=0$, teda $x=\\pm ${m}$.
           $S=\\int_{-${m}}^{${m}}(${M}-x^2)\\,dx=\\left[${M}x-\\frac{x^3}{3}\\right]_{-${m}}^{${m}}=2\\left(${M * m}-\\frac{${M * m}}{3}\\right)=${fTex(4 * M * m, 3)}$.`,
-        hint: 'Hranice integrálu sú nulové body paraboly. Funkcia je párna, môžeš počítať $2\\int_0^{m}$.'
+        hint: 'Hranice integrálu sú nulové body paraboly. Funkcia je párna, môžeš počítať $2\\int_0^{m}$.',
+        mistakes: [{ value: 2 * M * m / 3, msg: `Integroval si len od $0$ do $${m}$, to je polovica útvaru. Dolná hranica je druhý nulový bod paraboly.` }],
+        steps: [
+          { q: `Primitívna funkcia je $F(x)=${M}x-\\frac{x^3}{3}$. Vypočítaj $F(${m})$. Zadaj zlomok alebo celé číslo.`, answer: 2 * M * m / 3 },
+          { q: `Vypočítaj $F(-${m})$.`, answer: -2 * M * m / 3, signed: true },
+          { q: 'Aký je obsah útvaru? Zadaj zlomok alebo celé číslo.', answer: 4 * M * m / 3 }
+        ]
       };
     }
     if (t < 0.75) {
@@ -558,21 +702,42 @@
         q: `Vypočítaj $\\displaystyle\\int_0^{1}(${poly([a, b])})^{${n}}\\,dx$. Výsledok zadaj ako zlomok alebo celé číslo.`,
         solution: `Substitúcia $u=${poly([a, b])}$ (alebo vzorec $\\int f(ax+b)\\,dx=\\frac{1}{a}F(ax+b)$): primitívna funkcia je $F(x)=\\dfrac{(${poly([a, b])})^{${n + 1}}}{${Q}}$.
           $F(1)-F(0)=\\dfrac{${a + b}^{${n + 1}}-${b}^{${n + 1}}}{${Q}}=\\dfrac{${P}}{${Q}}=${fTex(P, Q)}$.`,
-        hint: 'Integruj ako mocninu, $\\frac{u^{n+1}}{n+1}$, a výsledok vydeľ koeficientom pri $x$ vnútri zátvorky.'
+        hint: 'Integruj ako mocninu, $\\frac{u^{n+1}}{n+1}$, a výsledok vydeľ koeficientom pri $x$ vnútri zátvorky.',
+        mistakes: [
+          ...(a !== 1 ? [{ value: P / (n + 1), msg: `Pri lineárnej substitúcii treba výsledok vydeliť koeficientom pri $x$, teda číslom $${a}$.` }] : []),
+          { value: P / a, msg: `Integrál mocniny je $\\frac{u^{${n + 1}}}{${n + 1}}$: exponent sa zvýši o jedna a zároveň sa ním delí.` }
+        ],
+        steps: [
+          { q: `Primitívna funkcia je $F(x)=\\dfrac{(${poly([a, b])})^{${n + 1}}}{${Q}}$. Vypočítaj $F(1)$. Zadaj zlomok alebo celé číslo.`, answer: Math.pow(a + b, n + 1) / Q },
+          { q: 'Vypočítaj $F(0)$.', answer: Math.pow(b, n + 1) / Q },
+          { q: 'Vypočítaj $F(1)-F(0)$. Zadaj zlomok alebo celé číslo.', answer: P / Q }
+        ]
       };
     }
     const k = rnd(1, 6), m = rnd(2, 5);
     const v = pick([
-      { q: `\\displaystyle\\int_0^{\\pi} ${lead(k, '')}\\sin x\\,dx`, a: 2 * k, s: `$\\left[-${lead(k, '')}\\cos x\\right]_0^{\\pi}=-${lead(k, '')}\\cos\\pi+${lead(k, '')}\\cos 0=${k}+${k}=${2 * k}$.` },
-      { q: `\\displaystyle\\int_0^{\\pi/2} ${lead(k, '')}\\cos x\\,dx`, a: k, s: `$\\left[${lead(k, '')}\\sin x\\right]_0^{\\pi/2}=${k}\\cdot 1-${k}\\cdot 0=${k}$.` },
-      { q: `\\displaystyle\\int_1^{\\mathrm{e}^{${m}}} \\frac{${k}}{x}\\,dx`, a: k * m, s: `$\\left[${lead(k, '')}\\ln x\\right]_1^{\\mathrm{e}^{${m}}}=${k}\\cdot ${m}-${k}\\cdot 0=${k * m}$.` },
-      { q: `\\displaystyle\\int_0^{\\ln ${m}} \\mathrm{e}^{x}\\,dx`, a: m - 1, s: `$\\left[\\mathrm{e}^{x}\\right]_0^{\\ln ${m}}=\\mathrm{e}^{\\ln ${m}}-\\mathrm{e}^0=${m}-1=${m - 1}$.` }
+      { q: `\\displaystyle\\int_0^{\\pi} ${lead(k, '')}\\sin x\\,dx`, a: 2 * k, s: `$\\left[-${lead(k, '')}\\cos x\\right]_0^{\\pi}=-${lead(k, '')}\\cos\\pi+${lead(k, '')}\\cos 0=${k}+${k}=${2 * k}$.`,
+        F: `-${lead(k, '')}\\cos x`, hi: '\\pi', lo: '0', Fh: k, Fl: -k,
+        m: [{ value: 0, msg: 'Pozor, $\\cos\\pi=-1$, nie $1$. Hodnoty primitívnej funkcie v hraniciach sa preto neodčítajú na nulu.' }] },
+      { q: `\\displaystyle\\int_0^{\\pi/2} ${lead(k, '')}\\cos x\\,dx`, a: k, s: `$\\left[${lead(k, '')}\\sin x\\right]_0^{\\pi/2}=${k}\\cdot 1-${k}\\cdot 0=${k}$.`,
+        F: `${lead(k, '')}\\sin x`, hi: '\\frac{\\pi}{2}', lo: '0', Fh: k, Fl: 0, m: [] },
+      { q: `\\displaystyle\\int_1^{\\mathrm{e}^{${m}}} \\frac{${k}}{x}\\,dx`, a: k * m, s: `$\\left[${lead(k, '')}\\ln x\\right]_1^{\\mathrm{e}^{${m}}}=${k}\\cdot ${m}-${k}\\cdot 0=${k * m}$.`,
+        F: `${lead(k, '')}\\ln x`, hi: `\\mathrm{e}^{${m}}`, lo: '1', Fh: k * m, Fl: 0,
+        m: [{ value: k * (m - 1), msg: 'Pozor, $\\ln 1=0$, lebo $\\mathrm{e}^0=1$. Hodnota primitívnej funkcie v dolnej hranici je nulová.' }] },
+      { q: `\\displaystyle\\int_0^{\\ln ${m}} \\mathrm{e}^{x}\\,dx`, a: m - 1, s: `$\\left[\\mathrm{e}^{x}\\right]_0^{\\ln ${m}}=\\mathrm{e}^{\\ln ${m}}-\\mathrm{e}^0=${m}-1=${m - 1}$.`,
+        F: '\\mathrm{e}^{x}', hi: `\\ln ${m}`, lo: '0', Fh: m, Fl: 1, m: [] }
     ]);
     return {
       answer: v.a,
       q: `Vypočítaj $${v.q}$.`,
       solution: `Newton-Leibnizova formula: ${v.s}`,
-      hint: 'Nájdi primitívnu funkciu ($\\int\\sin x=-\\cos x$, $\\int\\cos x=\\sin x$, $\\int\\frac{1}{x}=\\ln|x|$, $\\int\\mathrm{e}^x=\\mathrm{e}^x$) a dosaď hranice.'
+      hint: 'Nájdi primitívnu funkciu ($\\int\\sin x=-\\cos x$, $\\int\\cos x=\\sin x$, $\\int\\frac{1}{x}=\\ln|x|$, $\\int\\mathrm{e}^x=\\mathrm{e}^x$) a dosaď hranice.',
+      mistakes: v.m,
+      steps: [
+        { q: `Primitívna funkcia je $F(x)=${v.F}$. Vypočítaj $F(${v.hi})$.`, answer: v.Fh, signed: true },
+        { q: `Vypočítaj $F(${v.lo})$.`, answer: v.Fl, signed: true },
+        { q: `Vypočítaj $F(${v.hi})-F(${v.lo})$.`, answer: v.a, signed: true }
+      ]
     };
   });
 
@@ -634,7 +799,15 @@
         solution: fg
           ? `$(f\\circ g)(${x0})=f(g(${x0}))$. Najprv $g(${x0})=${m}\\cdot ${par(x0)}${term(n)}=${inner}$, potom $f(${inner})=${a === 1 ? '' : a === -1 ? '-' : a + '\\cdot '}${par(inner)}^2${term(b)}=${val}$.`
           : `$(g\\circ f)(${x0})=g(f(${x0}))$. Najprv $f(${x0})=${a === 1 ? '' : a === -1 ? '-' : a + '\\cdot '}${par(x0)}^2${term(b)}=${inner}$, potom $g(${inner})=${m}\\cdot ${par(inner)}${term(n)}=${val}$.`,
-        hint: 'Pri $(f\\circ g)(x)=f(g(x))$ počítaš najprv vnútornú funkciu $g$, jej výsledok dosadíš do $f$.'
+        hint: 'Pri $(f\\circ g)(x)=f(g(x))$ počítaš najprv vnútornú funkciu $g$, jej výsledok dosadíš do $f$.',
+        mistakes: (() => {
+          const w = fg ? peval(G, peval(F, x0)) : peval(F, peval(G, x0));
+          return w !== val ? [{ value: w, msg: `Počítal si v opačnom poradí. Pri $(${nm})(x)$ sa najprv použije ${fg ? '$g$' : '$f$'} (vnútorná funkcia) a jej výsledok sa dosadí do ${fg ? '$f$' : '$g$'}.` }] : [];
+        })(),
+        steps: [
+          { q: `Najprv vypočítaj vnútornú funkciu: $${fg ? 'g' : 'f'}(${x0})$.`, answer: inner, signed: true },
+          { q: `Výsledok dosaď do vonkajšej funkcie: $${fg ? 'f' : 'g'}(${inner})$.`, answer: val, signed: true }
+        ]
       };
     }
     if (t < 0.52) {
@@ -644,7 +817,15 @@
         q: `Inverzná funkcia k funkcii $f(x)=${poly([a, b])}$ má tvar $f^{-1}(x)=kx+q$. Zadaj $k$ a $q$ (napr. 1/2; -3).`,
         solution: `Vymeníme $x$ a $y$: $x=${poly([a, b], 'y')}$, odtiaľ $${a}y=${poly([1, -b])}$ a $y=\\dfrac{${poly([1, -b])}}{${a}}$.
           Teda $f^{-1}(x)=${fTex(1, a)}x${-b / a > 0 ? '+' : ''}${fTex(-b, a)}$, čiže $k=${fTex(1, a)}$ a $q=${fTex(-b, a)}$.`,
-        hint: 'V rovnici $y=ax+b$ vymeň $x$ a $y$ a vyjadri $y$.'
+        hint: 'V rovnici $y=ax+b$ vymeň $x$ a $y$ a vyjadri $y$.',
+        mistakes: [
+          { value: [1 / a, -b], msg: `Pri vyjadrení $y$ treba číslom $${a}$ vydeliť celú pravú stranu, teda aj absolútny člen.` },
+          { value: [a, -b], msg: 'Inverzná funkcia vráti operácie v opačnom poradí: násobenie sa zmení na delenie. Vymeň $x$ a $y$ a vyjadri $y$.' }
+        ],
+        steps: [
+          { q: `Po výmene premenných máme $x=${poly([a, b], 'y')}$. Aký je koeficient $k$ pri $x$ vo vyjadrení $y=kx+q$?`, answer: 1 / a, signed: true },
+          { q: 'Aký je absolútny člen $q$?', answer: -b / a, signed: true }
+        ]
       };
     }
     if (t < 0.76) {
@@ -656,7 +837,9 @@
         q: `Funkcia $f(x)=\\dfrac{${poly([a, b])}}{${poly([1, d])}}$ je prostá. Vypočítaj $f^{-1}\\!\\left(${fTex(P, Q)}\\right)$.`,
         solution: `$f^{-1}(${fTex(P, Q)})$ je číslo $x$, pre ktoré $f(x)=${fTex(P, Q)}$. Riešime $\\dfrac{${poly([a, b])}}{${poly([1, d])}}=${fTex(P, Q)}$:
           po vynásobení menovateľmi dostaneme lineárnu rovnicu s riešením $x=${x0}$. Skúška: $f(${x0})=\\dfrac{${P}}{${Q}}=${fTex(P, Q)}$ ✓`,
-        hint: 'Hodnotu inverznej funkcie nájdeš bez jej predpisu: hľadáš $x$, pre ktoré $f(x)$ dá zadané číslo.'
+        hint: 'Hodnotu inverznej funkcie nájdeš bez jej predpisu: hľadáš $x$, pre ktoré $f(x)$ dá zadané číslo.',
+        mistakes: P + d * Q !== 0 && Math.abs((a * P + b * Q) / (P + d * Q) - x0) > 1e-9
+          ? [{ value: (a * P + b * Q) / (P + d * Q), msg: `Vypočítal si $f\\!\\left(${fTex(P, Q)}\\right)$. Hodnota $f^{-1}(c)$ je však číslo $x$, pre ktoré $f(x)=c$.` }] : []
       };
     }
     const B = pick([2, 3]), a = rnd(-3, 3), b = rnd(-4, 4), k = rnd(0, B === 2 ? 5 : 3);
@@ -666,7 +849,13 @@
       q: `Je daná funkcia $f(x)=${B}^{${poly([1, -a])}}${term(b)}$. Vypočítaj $f^{-1}(${y0})$.`,
       solution: `Inverzná funkcia: $x=${B}^{y${term(-a)}}${term(b)} \\Rightarrow ${B}^{y${term(-a)}}=${poly([1, -b])} \\Rightarrow f^{-1}(x)=\\log_{${B}}(${poly([1, -b])})${term(a)}$.
         $f^{-1}(${y0})=\\log_{${B}}${Math.pow(B, k)}${term(a)}=${k}${term(a)}=${k + a}$.`,
-      hint: `Inverznou funkciou k exponenciálnej je logaritmická. Hľadáš $x$, pre ktoré $${B}^{${poly([1, -a])}}${term(b)}=${y0}$.`
+      hint: `Inverznou funkciou k exponenciálnej je logaritmická. Hľadáš $x$, pre ktoré $${B}^{${poly([1, -a])}}${term(b)}=${y0}$.`,
+      mistakes: a !== 0 ? [{ value: k, msg: `Zistil si len exponent $${poly([1, -a])}$. Z neho ešte vyjadri $x$.` }] : [],
+      steps: [
+        { q: `Riešime $${B}^{${poly([1, -a])}}${term(b)}=${y0}$. Čomu sa rovná mocnina $${B}^{${poly([1, -a])}}$?`, answer: Math.pow(B, k) },
+        ...(a !== 0 ? [{ q: `Aký je teda exponent $${poly([1, -a])}$?`, answer: k, signed: true }] : []),
+        { q: `Koľko je $x=f^{-1}(${y0})$?`, answer: k + a, signed: true }
+      ]
     };
   });
 
@@ -709,7 +898,12 @@
         solution: `$${B * B}^{x}=(${B}^{x})^2$, substitúcia $t=${B}^{x}$, pričom $t&gt;0$: $${poly([1, -s, pr], 't')}=0$, korene $t_1=${t1}$, $t_2=${t2}$.
           ${neg ? `Koreň $t_2=${t2}$ je záporný a rovnica $${B}^{x}=${t2}$ nemá riešenie. ` : ''}Z $${B}^{x}=${t1}$ je $x=${m}$${neg ? '' : `, z $${B}^{x}=${t2}$ je $x=${n}$`}.
           $K=\\{${[...ans].sort((x, y) => x - y).join('; ')}\\}$.`,
-        hint: `Zapíš $${B * B}^{x}$ ako $(${B}^{x})^2$ a zaveď substitúciu $t=${B}^{x}$. Nezabudni, že $t$ musí byť kladné.`
+        hint: `Zapíš $${B * B}^{x}$ ako $(${B}^{x})^2$ a zaveď substitúciu $t=${B}^{x}$. Nezabudni, že $t$ musí byť kladné.`,
+        mistakes: [{ value: neg ? [t1] : [t1, t2], msg: `To sú hodnoty substitúcie $t=${B}^{x}$. Ešte sa vráť k neznámej $x$.` }],
+        steps: [
+          { q: `Po substitúcii $t=${B}^{x}$ vyrieš rovnicu $${poly([1, -s, pr], 't')}=0$. Zadaj jej korene $t$.`, type: 'set', answer: [t1, t2], signed: true },
+          { q: `Z rovníc $${B}^{x}=t$ urči všetky riešenia $x$ (pamätaj, že $${B}^{x}&gt;0$).`, type: 'set', answer: ans, signed: true }
+        ]
       };
     }
     if (t < 0.55) {
@@ -722,7 +916,11 @@
         q: `Vyrieš rovnicu $${side(c, a)}=${side(d, b)}$. ${ROUND2}`,
         solution: `Vydelíme obe strany výrazom $${side(c, b)}$: $\\left(\\frac{${a}}{${b}}\\right)^{x}=${fTex(d, c)}$. Zlogaritmujeme:
           $x\\cdot\\ln\\frac{${a}}{${b}}=\\ln ${fTex(d, c)}$, teda $x=\\dfrac{${c === 1 ? `\\ln ${d}` : d === 1 ? `-\\ln ${c}` : `\\ln ${d}-\\ln ${c}`}}{\\ln ${a}-\\ln ${b}}\\approx ${dd(x)}$.`,
-        hint: 'Mocniny s rovnakým exponentom $x$ daj na jednu stranu, $\\frac{a^x}{b^x}=\\left(\\frac{a}{b}\\right)^x$, a potom obe strany zlogaritmuj.'
+        hint: 'Mocniny s rovnakým exponentom $x$ daj na jednu stranu, $\\frac{a^x}{b^x}=\\left(\\frac{a}{b}\\right)^x$, a potom obe strany zlogaritmuj.',
+        steps: [
+          { q: `Uprav rovnicu na tvar $\\left(\\frac{${a}}{${b}}\\right)^{x}=r$. Aké je číslo $r$? Zadaj zlomok alebo celé číslo.`, answer: d / c },
+          { q: `Zlogaritmuj obe strany a vyjadri $x$. ${ROUND2}`, answer: round(x, 2), tol: 0.006, signed: true }
+        ]
       };
     }
     if (t < 0.8) {
@@ -736,7 +934,13 @@
         solution: `Podmienky: $${poly([1, a])}&gt;0$ a $${poly([1, b])}&gt;0$, teda $x&gt;${lo}$.
           $\\log_2\\big((${poly([1, a])})(${poly([1, b])})\\big)=${k} \\Rightarrow (${poly([1, a])})(${poly([1, b])})=${Math.pow(2, k)} \\Rightarrow ${poly([1, a + b, a * b - Math.pow(2, k)])}=0$.
           Korene sú $${x1}$ a $${x2}$; podmienku spĺňa len $x=${x1}$. $K=\\{${x1}\\}$.`,
-        hint: 'Urči podmienky, súčet logaritmov zapíš ako logaritmus súčinu a odlogaritmuj. Nájdené korene porovnaj s podmienkami.'
+        hint: 'Urči podmienky, súčet logaritmov zapíš ako logaritmus súčinu a odlogaritmuj. Nájdené korene porovnaj s podmienkami.',
+        mistakes: (Math.pow(2, k) - a - b) / 2 !== x1 ? [{ value: [(Math.pow(2, k) - a - b) / 2], msg: 'Súčet logaritmov je logaritmus súčinu: $\\log_2 u+\\log_2 v=\\log_2(uv)$, nie $\\log_2(u+v)$.' }] : [],
+        steps: [
+          { q: `Podmienky dávajú $x&gt;c$. Aké je číslo $c$?`, answer: lo, signed: true },
+          { q: `Po odlogaritmovaní dostaneš $(${poly([1, a])})(${poly([1, b])})=${Math.pow(2, k)}$. Zadaj korene tejto kvadratickej rovnice.`, type: 'set', answer: [x1, x2], signed: true },
+          { q: 'Ktoré z koreňov spĺňajú podmienky? Zadaj všetky riešenia rovnice.', type: 'set', answer: [x1], signed: true }
+        ]
       };
     }
     const base = pick([2, 3, 10]), m = rnd(-1, 3);
@@ -751,7 +955,12 @@
       q: `Vyrieš rovnicu $(${lg})^2${term(-(m + n), lg)}${term(m * n)}=0$. Zadaj všetky riešenia oddelené bodkočiarkou (zlomok napr. ako 1/2).`,
       solution: `Podmienka $x&gt;0$. Substitúcia $t=${lg}$: $${poly([1, -(m + n), m * n], 't')}=0$, teda $t_1=${m}$, $t_2=${n}$.
         Z $${lg}=${m}$ je $x=${base}^{${m}}=${tex(m)}$ a z $${lg}=${n}$ je $x=${base}^{${n}}=${tex(n)}$. $K=\\left\\{${sorted.map(tex).join('; ')}\\right\\}$.`,
-      hint: `Zaveď substitúciu $t=${lg}$, vyrieš kvadratickú rovnicu a potom sa vráť k $x$ cez definíciu logaritmu.`
+      hint: `Zaveď substitúciu $t=${lg}$, vyrieš kvadratickú rovnicu a potom sa vráť k $x$ cez definíciu logaritmu.`,
+      mistakes: [{ value: [m, n], msg: `To sú hodnoty substitúcie $t=${lg}$. Z definície logaritmu ešte vypočítaj $x=${base}^{t}$.` }],
+      steps: [
+        { q: `Po substitúcii $t=${lg}$ vyrieš rovnicu $${poly([1, -(m + n), m * n], 't')}=0$. Zadaj jej korene $t$.`, type: 'set', answer: [m, n], signed: true },
+        { q: 'Vráť sa k $x$ a zadaj všetky riešenia (zlomok napr. ako 1/2).', type: 'set', answer: [val(m), val(n)] }
+      ]
     };
   });
 
@@ -838,7 +1047,11 @@
           Substitúcia $t=${fn} x$: $${poly([A, B, Cc], 't')}=0$, korene $t_1=${fTex(R1, 2)}$, $t_2=${fTex(R2, 2)}$.
           ${bad.length ? `Hodnota $${fTex(bad[0], 2)}$ leží mimo $\\langle -1; 1\\rangle$, tá riešenie nedáva. ` : ''}
           ${roots.map((R) => `$${fn} x=${fTex(R, 2)}$ pre $x\\in\\{${degTex(TB[String(R)])}\\}$`).join('; ')}. Spolu $K=\\{${degTex(ans)}\\}$.`,
-        hint: `${viaIdentity ? `Pomocou $\\sin^2 x+\\cos^2 x=1$ prepíš rovnicu len na $${fn} x$. ` : ''}Zaveď $t=${fn} x$, vyrieš kvadratickú rovnicu a ponechaj len korene z intervalu $\\langle -1; 1\\rangle$.`
+        hint: `${viaIdentity ? `Pomocou $\\sin^2 x+\\cos^2 x=1$ prepíš rovnicu len na $${fn} x$. ` : ''}Zaveď $t=${fn} x$, vyrieš kvadratickú rovnicu a ponechaj len korene z intervalu $\\langle -1; 1\\rangle$.`,
+        steps: [
+          { q: `Po substitúcii $t=${fn} x$ dostaneš $${poly([A, B, Cc], 't')}=0$. Zadaj jej korene (zlomok napr. ako 1/2).`, type: 'set', answer: [R1 / 2, R2 / 2], signed: true },
+          { q: `Pre korene z intervalu $\\langle -1; 1\\rangle$ nájdi všetky $x$ v stupňoch z ${INT360}.`, type: 'set', answer: ans, show: degShow(ans) }
+        ]
       };
     }
     if (t < 0.82) {
@@ -854,7 +1067,16 @@
             $\\cos x=0$ pre $x\\in\\{90^\\circ; 270^\\circ\\}$, $\\sin x=${c[0] === '-' ? '-' : ''}\\frac{${c.replace('-', '')}}{2}$ pre $x\\in\\{${degTex(sAng)}\\}$. $K=\\{${degTex(ans)}\\}$.`
           : `$2\\sin x\\cos x ${negK(c, '\\sin x')}=0 \\Rightarrow \\sin x\\,(2\\cos x ${negK(c, '')})=0$.
             $\\sin x=0$ pre $x\\in\\{0^\\circ; 180^\\circ\\}$, $\\cos x=${c[0] === '-' ? '-' : ''}\\frac{${c.replace('-', '')}}{2}$ pre $x\\in\\{${degTex(cAng)}\\}$. $K=\\{${degTex(ans)}\\}$.`,
-        hint: 'Použi $\\sin 2x=2\\sin x\\cos x$, všetko prenes na jednu stranu a vyber spoločného činiteľa pred zátvorku. Nedeľ ním!'
+        hint: 'Použi $\\sin 2x=2\\sin x\\cos x$, všetko prenes na jednu stranu a vyber spoločného činiteľa pred zátvorku. Nedeľ ním!',
+        mistakes: (() => {
+          const part = [...(withCos ? sAng : cAng)].sort((x, y) => x - y);
+          return part.length < ans.length ? [{ value: part, msg: `Rovnicu si zrejme vydelil výrazom $${withCos ? '\\cos x' : '\\sin x'}$ a stratil si riešenia, v ktorých je nulový. Vyber ho pred zátvorku.` }] : [];
+        })(),
+        steps: [
+          { q: `Po vybratí $${withCos ? '\\cos x' : '\\sin x'}$ pred zátvorku: pre ktoré $x$ z ${INT360} je $${withCos ? '\\cos x' : '\\sin x'}=0$?`, type: 'set', answer: withCos ? [90, 270] : [0, 180] },
+          { q: `Pre ktoré $x$ je nulová zátvorka $${withCos ? '2\\sin x' : '2\\cos x'} ${negK(c, '')}$?`, type: 'set', answer: withCos ? sAng : cAng },
+          { q: 'Zadaj všetky riešenia rovnice.', type: 'set', answer: ans, show: degShow(ans) }
+        ]
       };
     }
     const [eq, ok, wrong, why] = pick(GENERAL);
@@ -862,7 +1084,8 @@
       type: 'choice', options: shuffle([ok, ...wrong].map((s) => `$${s}$`)), answer: `$${ok}$`,
       q: `Ktorý zápis vyjadruje všetky riešenia rovnice $${eq}$ v $\\mathbb{R}$ ($k\\in\\mathbb{Z}$)?`,
       solution: `${why} Správne je $${ok}$, $k\\in\\mathbb{Z}$.`,
-      hint: 'Vyjadri goniometrickú funkciu, nájdi riešenia v jednej perióde a pripočítaj násobky periódy ($2\\pi$ pre sínus a kosínus, $\\pi$ pre tangens).'
+      hint: 'Vyjadri goniometrickú funkciu, nájdi riešenia v jednej perióde a pripočítaj násobky periódy ($2\\pi$ pre sínus a kosínus, $\\pi$ pre tangens).',
+      choiceHints: Object.fromEntries(wrong.map((s) => [`$${s}$`, 'Over tento zápis: dosaď $k=0$ a $k=1$ a skontroluj, či dostaneš riešenia rovnice. Over aj, či zápis nevynecháva niektoré riešenie z jednej periódy.']))
     };
   });
 
@@ -913,7 +1136,11 @@
         q: `Vyrieš sústavu rovníc $x+y=${s}$, $x\\cdot y=${pr}$. Zadaj všetky možné hodnoty $x$ oddelené bodkočiarkou.`,
         solution: `Z prvej rovnice $y=${poly([-1, s])}$. Dosadíme: $x(${poly([-1, s])})=${pr} \\Rightarrow ${poly([1, -s, pr])}=0$, korene $x_1=${Math.min(a, b)}$, $x_2=${Math.max(a, b)}$.
           Riešenia sústavy sú $[${a}; ${b}]$ a $[${b}; ${a}]$, $x$ je teda $${Math.min(a, b)}$ alebo $${Math.max(a, b)}$.`,
-        hint: 'Z lineárnej rovnice vyjadri $y$ a dosaď do druhej. Dostaneš kvadratickú rovnicu pre $x$.'
+        hint: 'Z lineárnej rovnice vyjadri $y$ a dosaď do druhej. Dostaneš kvadratickú rovnicu pre $x$.',
+        steps: [
+          { q: `Dosadením $y=${poly([-1, s])}$ dostaneš rovnicu $${poly([1, -s, pr])}=0$. Aký je jej diskriminant?`, answer: s * s - 4 * pr },
+          { q: 'Zadaj všetky možné hodnoty $x$.', type: 'set', answer: [a, b], signed: true }
+        ]
       };
     }
     if (t < 0.5) {
@@ -925,7 +1152,12 @@
         q: `Parabola $y=${poly([1, b, c])}$ a priamka $y=${poly([k, q0])}$ majú dva spoločné body. Zadaj súradnice toho z nich, ktorý má menšiu $x$-ovú súradnicu (napr. -1; 4).`,
         solution: `Porovnáme pravé strany: $${poly([1, b, c])}=${poly([k, q0])} \\Rightarrow ${poly([1, b - k, c - q0])}=0$, korene $x=${xm}$ a $x=${xM}$.
           Pre $x=${xm}$ je $y=${k}\\cdot ${par(xm)}${term(q0)}=${k * xm + q0}$. Priesečníky sú $[${xm}; ${k * xm + q0}]$ a $[${xM}; ${k * xM + q0}]$.`,
-        hint: 'V spoločnom bode majú obe funkcie rovnakú hodnotu: polož pravé strany rovné a vyrieš kvadratickú rovnicu.'
+        hint: 'V spoločnom bode majú obe funkcie rovnakú hodnotu: polož pravé strany rovné a vyrieš kvadratickú rovnicu.',
+        mistakes: [{ value: [xM, k * xM + q0], msg: 'To je druhý spoločný bod. Pýtame sa na ten s menšou $x$-ovou súradnicou.' }],
+        steps: [
+          { q: `Z rovnice $${poly([1, b, c])}=${poly([k, q0])}$ urči $x$-ové súradnice spoločných bodov.`, type: 'set', answer: [r1, r2], signed: true },
+          { q: `Aká je $y$-ová súradnica bodu s $x=${xm}$?`, answer: k * xm + q0, signed: true }
+        ]
       };
     }
     if (t < 0.75) {
@@ -940,7 +1172,12 @@
         solution: `Prvá nerovnica: $${lead(a1, 'x')} ${a1 > 0 ? '&gt;' : '&lt;'} ${a1 * L}$, po delení číslom $${a1}$ ${a1 < 0 ? '(otočíme znak) ' : ''}$x&gt;${L}$.
           Druhá: $${lead(a2, 'x')} ${a2 > 0 ? '\\le' : '\\ge'} ${a2 * R}$, odtiaľ ${a2 < 0 ? '(otočíme znak) ' : ''}$x\\le ${R}$.
           Prienik je $(${L}; ${R}\\rangle$. ${askMin ? `Najmenšie celé číslo v ňom je $${L + 1}$.` : `Celé čísla $${L + 1}, \\dots, ${R}$ — je ich $${R - L}$.`}`,
-        hint: 'Vyrieš každú nerovnicu zvlášť (pozor na delenie záporným číslom) a urob prienik intervalov.'
+        hint: 'Vyrieš každú nerovnicu zvlášť (pozor na delenie záporným číslom) a urob prienik intervalov.',
+        steps: [
+          { q: `Prvá nerovnica má riešenie $x&gt;c$. Aké je číslo $c$?`, answer: L, signed: true, ...(a1 < 0 ? { hint: 'Delíš záporným číslom, znak nerovnosti sa otočí.' } : {}) },
+          { q: `Druhá nerovnica má riešenie $x\\le d$. Aké je číslo $d$?`, answer: R, signed: true, ...(a2 < 0 ? { hint: 'Delíš záporným číslom, znak nerovnosti sa otočí.' } : {}) },
+          { q: askMin ? 'Aké je najmenšie celé číslo v prieniku?' : 'Koľko celých čísel leží v prieniku?', answer: askMin ? L + 1 : R - L, signed: true }
+        ]
       };
     }
     let p, q;
@@ -951,7 +1188,13 @@
       q: `Vypočítaj obsah časti roviny, ktorú určuje sústava nerovníc $y\\ge 0$, $y\\le ${poly([1, p])}$, $y\\le ${poly([-1, q])}$.`,
       solution: `Priamky $y=${poly([1, p])}$ a $y=${poly([-1, q])}$ pretínajú os $x$ v bodoch $[${-p}; 0]$ a $[${q}; 0]$ a navzájom sa pretínajú v bode $[${(q - p) / 2}; ${(p + q) / 2}]$.
         Oblasť je trojuholník so základňou $${p + q}$ a výškou $${(p + q) / 2}$, jeho obsah je $\\frac{${p + q}\\cdot ${(p + q) / 2}}{2}=${S}$.`,
-      hint: 'Načrtni priamky a nájdi vrcholy oblasti ako priesečníky hraničných priamok. Oblasť je trojuholník.'
+      hint: 'Načrtni priamky a nájdi vrcholy oblasti ako priesečníky hraničných priamok. Oblasť je trojuholník.',
+      mistakes: [{ value: 2 * S, msg: 'Obsah trojuholníka je polovica súčinu základne a výšky. Nezabudni deliť dvoma.' }],
+      steps: [
+        { q: 'Aká dlhá je základňa trojuholníka na osi $x$?', answer: p + q },
+        { q: 'Aká je výška trojuholníka (y-ová súradnica priesečníka oboch priamok)?', answer: (p + q) / 2 },
+        { q: 'Aký je obsah oblasti?', answer: S }
+      ]
     };
   });
 
@@ -988,7 +1231,12 @@
           type: 'set', signed: true, answer: [-2 * m, 2 * m],
           q: `Pre ktoré hodnoty parametra $p$ má rovnica $x^2+px+${m * m}=0$ dvojnásobný koreň? Zadaj všetky hodnoty oddelené bodkočiarkou.`,
           solution: `Dvojnásobný koreň je pri $D=0$: $p^2-4\\cdot ${m * m}=0 \\Rightarrow p^2=${4 * m * m} \\Rightarrow p=\\pm ${2 * m}$.`,
-          hint: 'Kvadratická rovnica má dvojnásobný koreň práve vtedy, keď je diskriminant nulový.'
+          hint: 'Kvadratická rovnica má dvojnásobný koreň práve vtedy, keď je diskriminant nulový.',
+          mistakes: [{ value: [-m, m], msg: 'Diskriminant je $D=b^2-4ac$. Nezabudni na štvorku pred súčinom $ac$.' }],
+          steps: [
+            { q: 'Z podmienky $D=0$ vyjadri $p^2$. Koľko je $p^2$?', answer: 4 * m * m },
+            { q: 'Zadaj všetky hodnoty $p$.', type: 'set', answer: [-2 * m, 2 * m], signed: true }
+          ]
         };
       }
       const b = 2 * nz(-6, 6);
@@ -996,7 +1244,8 @@
         answer: b * b / 4,
         q: `Pre akú hodnotu parametra $c$ má rovnica $x^2${term(b, 'x')}+c=0$ dvojnásobný koreň?`,
         solution: `$D=${b * b}-4c=0 \\Rightarrow c=${b * b / 4}$. Rovnica je potom $(${poly([1, b / 2])})^2=0$ s dvojnásobným koreňom $${-b / 2}$.`,
-        hint: 'Polož diskriminant rovný nule.'
+        hint: 'Polož diskriminant rovný nule.',
+        mistakes: [{ value: b * b, msg: 'Diskriminant je $D=b^2-4ac$. Z rovnice $D=0$ treba $c$ ešte vydeliť štyrmi.' }]
       };
     }
     if (t < 0.5) {
@@ -1011,7 +1260,14 @@
         type: 'choice', options: shuffle([`$p \\lt ${K}$`, `$p \\gt ${K}$`, `$p \\le ${K}$`, `$p \\ge ${K}$`, `$p = ${K}$`]), answer: v[1],
         q: `Pre ktoré hodnoty parametra $p$ má rovnica $x^2${term(2 * k, 'x')}+p=0$ ${v[0]}?`,
         solution: `$D=${4 * K}-4p$. Podmienka ${v[2]} dáva ${v[1]}.`,
-        hint: 'Vyjadri diskriminant pomocou $p$ a podľa požadovaného počtu koreňov urči, či má byť kladný, nulový alebo záporný.'
+        hint: 'Vyjadri diskriminant pomocou $p$ a podľa požadovaného počtu koreňov urči, či má byť kladný, nulový alebo záporný.',
+        choiceHints: Object.fromEntries([
+          [`$p \\lt ${K}$`, 'Táto podmienka zodpovedá $D&gt;0$, teda dvom rôznym reálnym koreňom.'],
+          [`$p \\gt ${K}$`, 'Táto podmienka zodpovedá $D&lt;0$, rovnica potom nemá reálny koreň.'],
+          [`$p \\le ${K}$`, 'Táto podmienka zodpovedá $D\\ge 0$, teda aspoň jednému reálnemu koreňu.'],
+          [`$p \\ge ${K}$`, 'Táto podmienka zodpovedá $D\\le 0$: zahŕňa dvojnásobný koreň aj prípad bez reálnych koreňov.'],
+          [`$p = ${K}$`, 'Táto podmienka zodpovedá $D=0$, teda jednému dvojnásobnému koreňu.']
+        ].filter(([o]) => o !== v[1]))
       };
     }
     if (t < 0.75) {
@@ -1022,7 +1278,12 @@
         q: `Rovnica $x^2+px${term(q0)}=0$ má koreň $x_1=${r}$. Urči parameter $p$ a druhý koreň $x_2$ (zadaj ich v tomto poradí, napr. -5; 3).`,
         solution: `Z Vietovho vzťahu $x_1x_2=${q0}$ je $x_2=\\frac{${q0}}{${r}}=${x2}$. Zo vzťahu $x_1+x_2=-p$ je $p=-(${r}${term(x2)})=${p}$.
           Kontrola dosadením: $${par(r)}^2${term(p)}\\cdot ${par(r)}${term(q0)}=0$ ✓`,
-        hint: 'Využi Vietove vzťahy: súčin koreňov je absolútny člen, súčet koreňov je $-p$. Alebo dosaď známy koreň do rovnice.'
+        hint: 'Využi Vietove vzťahy: súčin koreňov je absolútny člen, súčet koreňov je $-p$. Alebo dosaď známy koreň do rovnice.',
+        mistakes: p !== 0 ? [{ value: [-p, x2], msg: 'Podľa Vietovho vzťahu je súčet koreňov $x_1+x_2=-p$, nie $p$. Pozor na znamienko.' }] : [],
+        steps: [
+          { q: `Súčin koreňov je $x_1x_2=${q0}$. Aký je druhý koreň $x_2$?`, answer: x2, signed: true },
+          { q: 'Aký je parameter $p$?', answer: p, signed: true }
+        ]
       };
     }
     const k = rnd(1, 5), s = nz(-6, 6), none = Math.random() < 0.5;
@@ -1115,7 +1376,9 @@
         solution: `Z rovnice priamky vyjadríme $y=${yLine(a, b, c)}$ a dosadíme do rovnice kružnice.
           Po úprave dostaneme $${poly([A, B, Cc])}=0$ s koreňmi $x_1=${Math.min(P1[0], P2[0])}$, $x_2=${Math.max(P1[0], P2[0])}$.
           Priesečníky sú $[${P1[0]}; ${P1[1]}]$ a $[${P2[0]}; ${P2[1]}]$.`,
-        hint: 'Z rovnice priamky vyjadri $y$, dosaď do rovnice kružnice a vyrieš kvadratickú rovnicu pre $x$.'
+        hint: 'Z rovnice priamky vyjadri $y$, dosaď do rovnice kružnice a vyrieš kvadratickú rovnicu pre $x$.',
+        mistakes: [P1[1], P2[1]].sort((x, y) => x - y).join() !== [P1[0], P2[0]].sort((x, y) => x - y).join()
+          ? [{ value: [P1[1], P2[1]], msg: 'To sú $y$-ové súradnice priesečníkov. Zadaj ich $x$-ové súradnice.' }] : []
       };
     }
     if (t < 0.7) {
@@ -1129,7 +1392,9 @@
         solution: `Stred kružnice je $S[${m}; ${n}]$, polomer $r=${r}$. Vzdialenosť stredu od priamky:
           $d=\\dfrac{|${[[a, m], [b, n]].filter(([cf]) => cf !== 0).map(([cf, w], i) => `${i && cf > 0 ? '+' : ''}${cf}\\cdot ${par(w)}`).join('')}${term(c)}|}{\\sqrt{${a * a}+${b * b}}}=\\dfrac{${d * N}}{${N}}=${d}$.
           Keďže $d${d < r ? '&lt;' : d === r ? '=' : '&gt;'}r$, priamka je ${kind}.`,
-        hint: 'Z rovnice kružnice zisti stred a polomer, potom vypočítaj vzdialenosť stredu od priamky a porovnaj ju s polomerom.'
+        hint: 'Z rovnice kružnice zisti stred a polomer, potom vypočítaj vzdialenosť stredu od priamky a porovnaj ju s polomerom.',
+        choiceHints: Object.fromEntries(['sečnica (dva spoločné body)', 'dotyčnica (jeden spoločný bod)', 'nesečnica (žiadny spoločný bod)'].filter((o) => o !== kind)
+          .map((o) => [o, `Porovnaj vzdialenosť stredu od priamky s polomerom. Polomer je odmocnina z pravej strany rovnice kružnice, teda $r=${r}$, nie $${r * r}$. Pozor aj na znamienka súradníc stredu.`]))
       };
     }
     const [u, w] = pick(OFF5), T = [m + u, n + w], c = -(u * T[0] + w * T[1]);
@@ -1138,7 +1403,8 @@
       q: `Bod $T[${T[0]}; ${T[1]}]$ leží na kružnici $k: ${circEq(m, n, 25)}$. Dotyčnica ku kružnici v bode $T$ má rovnicu $${lin([[u, 'x'], [w, 'y']])}+c=0$. Vypočítaj $c$.`,
       solution: `Stred je $S[${m}; ${n}]$ a vektor $\\vec{ST}=(${u}; ${w})$ je kolmý na dotyčnicu, je to jej normálový vektor — preto má rovnica tvar $${lin([[u, 'x'], [w, 'y']])}+c=0$.
         Dosadíme $T$: $${u}\\cdot ${par(T[0])}${term(w)}\\cdot ${par(T[1])}+c=0$, teda $c=${c}$.`,
-      hint: 'Dotyčnica je kolmá na polomer $ST$. Do zadanej rovnice dosaď súradnice bodu $T$.'
+      hint: 'Dotyčnica je kolmá na polomer $ST$. Do zadanej rovnice dosaď súradnice bodu $T$.',
+      mistakes: -(u * m + w * n) !== c ? [{ value: -(u * m + w * n), msg: 'Dosadil si stred kružnice. Dotyčnica stredom neprechádza, prechádza bodom dotyku $T$.' }] : []
     };
   });
 
@@ -1225,7 +1491,13 @@
         type: 'choice', options: ['totožné', 'rovnobežné', 'rôznobežné', 'mimobežné'], answer: rel,
         q: `V kocke $ABCDEFGH$ (podstava $ABCD$, nad ňou $EFGH$, hrany $AE$, $BF$, $CG$, $DH$) urči vzájomnú polohu priamok $${l1}$ a $${l2}$.`,
         solution: `${COORD} ${why}`,
-        hint: 'Porovnaj smery priamok. Ak nie sú rovnobežné, zisti, či ležia v jednej rovine (napr. v stene alebo uhlopriečnom reze kocky).'
+        hint: 'Porovnaj smery priamok. Ak nie sú rovnobežné, zisti, či ležia v jednej rovine (napr. v stene alebo uhlopriečnom reze kocky).',
+        choiceHints: Object.fromEntries([
+          ['totožné', 'Totožné priamky majú všetky body spoločné. Over, či oba body jednej priamky ležia na druhej.'],
+          ['rovnobežné', 'Rovnobežné priamky majú smerové vektory, ktoré sú násobkami seba. Porovnaj smerové vektory.'],
+          ['rôznobežné', 'Rôznobežné priamky majú spoločný bod, a teda ležia v jednej rovine. Nájdeš takú rovinu?'],
+          ['mimobežné', 'Mimobežné priamky neležia v jednej rovine. Skús nájsť stenu alebo rez kocky, v ktorom ležia obe priamky.']
+        ].filter(([o]) => o !== rel))
       };
     }
     if (t < 0.56) {
@@ -1243,7 +1515,12 @@
         solution: `${COORD} Normálový vektor roviny $${pl3}$ je $\\vec{n}=${vec(n)}$ (kolmý na $\\vec{${pl3[0]}${pl3[1]}}$ aj $\\vec{${pl3[0]}${pl3[2]}}$), smerový vektor priamky $\\vec{u}=${vec(u)}$.
           $\\vec{u}\\cdot\\vec{n}=${dot3(u, n)}$. ${rel === 2 ? 'Súčin je nenulový, priamka rovinu pretína.'
             : `Súčin je nulový, priamka je s rovinou rovnobežná; bod $${ln[0]}$ ${rel === 0 ? 'v rovine leží, takže v nej leží celá priamka' : 'v rovine neleží, preto nemajú spoločný bod'}.`}`,
-        hint: 'Predstav si rovinu ako rez kockou. Priamka v nej leží, ak v nej ležia dva jej body; je rovnobežná, ak je rovnobežná s niektorou priamkou roviny.'
+        hint: 'Predstav si rovinu ako rez kockou. Priamka v nej leží, ak v nej ležia dva jej body; je rovnobežná, ak je rovnobežná s niektorou priamkou roviny.',
+        choiceHints: Object.fromEntries([
+          'Priamka leží v rovine, len ak v nej ležia dva jej body. Over oba koncové body.',
+          'Priamka je s rovinou rovnobežná, len ak je jej smerový vektor kolmý na normálový vektor roviny ($\\vec u\\cdot\\vec n=0$). Vypočítaj tento skalárny súčin.',
+          'Priamka pretína rovinu, len ak $\\vec u\\cdot\\vec n\\neq 0$. Vypočítaj skalárny súčin smerového a normálového vektora.'
+        ].map((m, i) => [LP_OPT[i], m]).filter((_, i) => i !== rel))
       };
     }
     if (t < 0.78) {
@@ -1259,7 +1536,12 @@
         q: `V kocke $ABCDEFGH$ urči vzájomnú polohu rovín $${p1}$ a $${p2}$.`,
         solution: `${COORD} Normálové vektory sú $${vec(nrm(p1))}$ a $${vec(nrm(p2))}$. ${rel === 2 ? 'Nie sú násobkami seba, roviny sú rôznobežné.'
           : `Sú násobkami seba, roviny sú rovnobežné; bod $${p2[0]}$ ${rel === 0 ? 'leží v rovine' : 'neleží v rovine'} $${p1}$, preto sú roviny ${rel === 0 ? 'totožné' : 'rovnobežné rôzne'}.`}`,
-        hint: 'Zisti, ktoré body kocky v rovinách ležia. Tri body môžu určovať tú istú rovinu, aj keď sú to iné vrcholy.'
+        hint: 'Zisti, ktoré body kocky v rovinách ležia. Tri body môžu určovať tú istú rovinu, aj keď sú to iné vrcholy.',
+        choiceHints: Object.fromEntries([
+          'Totožné roviny majú všetky body spoločné. Over, či všetky tri body druhej roviny ležia v prvej.',
+          'Rovnobežné roviny majú normálové vektory, ktoré sú násobkami seba. Porovnaj normálové vektory.',
+          'Rôznobežné roviny majú normálové vektory, ktoré nie sú násobkami seba. Porovnaj normálové vektory.'
+        ].map((m, i) => [PP_OPT[i], m]).filter((_, i) => i !== rel))
       };
     }
     if (Math.random() < 0.5) {
@@ -1268,7 +1550,11 @@
         signed: true, answer: d,
         q: `Rovina $\\rho: ${lin([[n[0], 'x'], [n[1], 'y'], [n[2], 'z']])}+d=0$ prechádza bodom $P${pt3(P)}$. Vypočítaj $d$.`,
         solution: `Súradnice bodu $P$ musia vyhovovať rovnici: $${n[0]}\\cdot ${par(P[0])}${term(n[1])}\\cdot ${par(P[1])}${term(n[2])}\\cdot ${par(P[2])}+d=0$, teda $${dot3(n, P)}+d=0$ a $d=${d}$.`,
-        hint: 'Dosaď súradnice bodu $P$ do rovnice roviny a vyjadri $d$.'
+        hint: 'Dosaď súradnice bodu $P$ do rovnice roviny a vyjadri $d$.',
+        steps: [
+          { q: `Dosaď bod $P$ do výrazu $${lin([[n[0], 'x'], [n[1], 'y'], [n[2], 'z']])}$. Akú hodnotu dostaneš?`, answer: dot3(n, P), signed: true },
+          { q: 'Súčet s $d$ má byť nula. Koľko je $d$?', answer: d, signed: true }
+        ]
       };
     }
     const A = [rnd(-3, 3), rnd(-3, 3), rnd(-3, 3)], u = [nz(-3, 3), rnd(-3, 3), rnd(-3, 3)], tt = nz(-3, 3);
@@ -1281,7 +1567,10 @@
       q: `Leží bod $Q${pt3(Q)}$ na priamke $p: X=${pt3(A)}+t\\,${vec(u)}$, $t\\in\\mathbb{R}$?`,
       solution: `Hľadáme $t$ tak, aby $A+t\\vec{u}=Q$. Z prvej rovnice ${rows[0]} je $t=${tt}$. Ďalšie rovnice: ${rows[1]} a ${rows[2]} —
         ${on ? `pre $t=${tt}$ obe platia, bod na priamke <strong>leží</strong>.` : `pre $t=${tt}$ niektorá z nich neplatí, bod na priamke <strong>neleží</strong>.`}`,
-      hint: 'Z jednej súradnice vypočítaj parameter $t$ a over, či rovnaké $t$ vyhovuje aj ostatným súradniciam.'
+      hint: 'Z jednej súradnice vypočítaj parameter $t$ a over, či rovnaké $t$ vyhovuje aj ostatným súradniciam.',
+      choiceHints: on
+        ? { nie: 'Vypočítaj $t$ z prvej súradnice a dosaď ho do zvyšných dvoch rovníc. Over starostlivo obe.' }
+        : { 'áno': 'Jedna súradnica nestačí: to isté $t$ musí vyhovovať všetkým trom rovniciam. Over aj $y$ a $z$.' }
     };
   });
 
@@ -1332,7 +1621,13 @@
         q: `${intro} Bod $K$ je stred hrany $${e}$. Vypočítaj vzdialenosť bodov $${P}$ a $K$ v cm. ${ROUND2}`,
         solution: `${setup} Potom $${P}${pt3(S(V3[P]))}$ a $K${pt3(S(K))}$.
           $|${P}K|=\\sqrt{${d.map((x) => `${par(x)}^2`).join('+')}}=\\sqrt{${s2}}${Number.isInteger(dist) ? '=' + dist : '\\approx ' + dd(dist)}\\,\\text{cm}$.`,
-        hint: 'Umiestni kocku do súradnicovej sústavy, zapíš súradnice oboch bodov (stred hrany je priemer koncových bodov) a použi vzorec pre vzdialenosť.'
+        hint: 'Umiestni kocku do súradnicovej sústavy, zapíš súradnice oboch bodov (stred hrany je priemer koncových bodov) a použi vzorec pre vzdialenosť.',
+        mistakes: Math.abs(round(s2, 2) - round(dist, 2)) > 0.006 ? [{ value: s2, msg: 'To je druhá mocnina vzdialenosti. Výsledok ešte odmocni.' }] : [],
+        steps: [
+          { q: `Aké sú súradnice bodu $K$ (v cm)? Zadaj $x$; $y$; $z$.`, type: 'tuple', answer: S(K), placeholder: 'x; y; z' },
+          { q: `Vypočítaj $|${P}K|^2$.`, answer: s2 },
+          { q: `Vypočítaj $|${P}K|$ v cm. ${ROUND2}`, answer: round(dist, 2), tol: 0.006 }
+        ]
       };
     }
     if (t < 0.5) {
@@ -1345,7 +1640,12 @@
           q: `V kocke $ABCDEFGH$ vypočítaj uhol priamok $${l1}$ a $${l2}$ v stupňoch. Výsledok zaokrúhli na desatiny stupňa.`,
           solution: `V kocke s hranou $1$ sú smerové vektory $\\vec{u}=\\vec{${l1}}=${vec(u)}$ a $\\vec{v}=\\vec{${l2}}=${vec(v)}$.
             $\\cos\\varphi=\\dfrac{|${dot3(u, v)}|}{\\sqrt{${dot3(u, u)}}\\cdot\\sqrt{${dot3(v, v)}}}\\approx ${dc(c)}$, teda $\\varphi\\approx ${dd(phi, 1)}^\\circ$.`,
-          hint: 'Uhol priamok je uhol ich smerových vektorov z intervalu $\\langle 0^\\circ; 90^\\circ\\rangle$: $\\cos\\varphi=\\frac{|\\vec u\\cdot\\vec v|}{|\\vec u||\\vec v|}$.'
+          hint: 'Uhol priamok je uhol ich smerových vektorov z intervalu $\\langle 0^\\circ; 90^\\circ\\rangle$: $\\cos\\varphi=\\frac{|\\vec u\\cdot\\vec v|}{|\\vec u||\\vec v|}$.',
+          mistakes: dot3(u, v) < 0 ? [{ value: round(180 - phi, 1), msg: 'Uhol dvoch priamok je najviac $90^\\circ$. Vo vzorci pre $\\cos\\varphi$ je v čitateli absolútna hodnota skalárneho súčinu.' }] : [],
+          steps: [
+            { q: `Vypočítaj skalárny súčin smerových vektorov $\\vec{${l1}}\\cdot\\vec{${l2}}$ (kocka s hranou $1$).`, answer: dot3(u, v), signed: true },
+            { q: 'Vypočítaj uhol priamok v stupňoch. Výsledok zaokrúhli na desatiny stupňa.', answer: round(phi, 1), tol: 0.06 }
+          ]
         };
       }
       const FACES = [['ABC', [0, 0, 1]], ['ABF', [0, 1, 0]], ['BCG', [1, 0, 0]], ['EFG', [0, 0, 1]], ['ADH', [1, 0, 0]], ['CDH', [0, 1, 0]]];
@@ -1357,7 +1657,12 @@
         q: `V kocke $ABCDEFGH$ vypočítaj uhol priamky $${ln}$ s rovinou $${f[0]}$ v stupňoch. Výsledok zaokrúhli na desatiny stupňa.`,
         solution: `V kocke s hranou $1$ je smerový vektor priamky $\\vec{u}=${vec(u)}$ a rovina $${f[0]}$ je stena kocky s normálovým vektorom $\\vec{n}=${vec(f[1])}$.
           $\\sin\\varphi=\\dfrac{|\\vec u\\cdot\\vec n|}{|\\vec u|\\,|\\vec n|}=\\dfrac{${Math.abs(dot3(u, f[1]))}}{\\sqrt{${dot3(u, u)}}}\\approx ${dc(sn)}$, teda $\\varphi\\approx ${dd(phi, 1)}^\\circ$.`,
-        hint: 'Uhol priamky s rovinou počítaj cez normálový vektor roviny: $\\sin\\varphi=\\frac{|\\vec u\\cdot\\vec n|}{|\\vec u||\\vec n|}$. Alebo nájdi priemet priamky do roviny a pravouhlý trojuholník.'
+        hint: 'Uhol priamky s rovinou počítaj cez normálový vektor roviny: $\\sin\\varphi=\\frac{|\\vec u\\cdot\\vec n|}{|\\vec u||\\vec n|}$. Alebo nájdi priemet priamky do roviny a pravouhlý trojuholník.',
+        mistakes: Math.abs(90 - 2 * phi) > 0.1 ? [{ value: round(90 - phi, 1), msg: 'To je uhol priamky s normálovým vektorom roviny. Uhol s rovinou ho dopĺňa do $90^\\circ$: s normálou počítaj $\\sin\\varphi$, nie $\\cos\\varphi$.' }] : [],
+        steps: [
+          { q: `Vypočítaj $|\\vec u\\cdot\\vec n|$ pre $\\vec u=\\vec{${ln}}$ a normálový vektor $\\vec n=${vec(f[1])}$ (kocka s hranou $1$).`, answer: Math.abs(dot3(u, f[1])) },
+          { q: 'Vypočítaj uhol priamky s rovinou v stupňoch. Výsledok zaokrúhli na desatiny stupňa.', answer: round(phi, 1), tol: 0.06 }
+        ]
       };
     }
     if (t < 0.75) {
@@ -1369,7 +1674,9 @@
         q: `${intro} Vypočítaj vzdialenosť vrcholu $${P}$ od priamky $${ln}$ v cm. ${ROUND2}`,
         solution: `${setup} Smerový vektor priamky $\\vec{u}=\\vec{${ln}}=${vec(S(u))}$, vektor $\\vec{${ln[0]}${P}}=${vec(S(w))}$.
           $d=\\dfrac{|\\vec{${ln[0]}${P}}\\times\\vec{u}|}{|\\vec{u}|}=\\dfrac{|${vec(cross3(S(w), S(u)))}|}{\\sqrt{${dot3(S(u), S(u))}}}\\approx ${dd(dist)}\\,\\text{cm}$.`,
-        hint: 'Použi vzorec $d=\\frac{|\\vec{QP}\\times\\vec u|}{|\\vec u|}$, kde $Q$ je bod priamky. Alebo nájdi trojuholník, v ktorom je hľadaná vzdialenosť výškou.'
+        hint: 'Použi vzorec $d=\\frac{|\\vec{QP}\\times\\vec u|}{|\\vec u|}$, kde $Q$ je bod priamky. Alebo nájdi trojuholník, v ktorom je hľadaná vzdialenosť výškou.',
+        mistakes: Math.abs(round(len3(S(w)), 2) - round(dist, 2)) > 0.006
+          ? [{ value: round(len3(S(w)), 2), msg: `To je vzdialenosť bodov $${ln[0]}$ a $${P}$. Vzdialenosť od priamky sa meria kolmo na priamku.` }] : []
       };
     }
     let P, pl3, n;
@@ -1383,7 +1690,13 @@
       q: `${intro} Vypočítaj vzdialenosť vrcholu $${P}$ od roviny $${pl3}$ v cm. ${ROUND2}`,
       solution: `${setup} Rovina $${pl3}$ má normálový vektor $\\vec{n}=${vec(n)}$ a rovnicu $${lin([[n[0], 'x'], [n[1], 'y'], [n[2], 'z'], [d0, '']])}=0$.
         Pre $${P}${pt3(S(V3[P]))}$: $d=\\dfrac{${num}}{\\sqrt{${dot3(n, n)}}}\\approx ${dd(dist)}\\,\\text{cm}$.`,
-      hint: 'Zostav rovnicu roviny (normálový vektor je kolmý na dva vektory v rovine) a použi vzorec pre vzdialenosť bodu od roviny.'
+      hint: 'Zostav rovnicu roviny (normálový vektor je kolmý na dva vektory v rovine) a použi vzorec pre vzdialenosť bodu od roviny.',
+      mistakes: dot3(n, n) !== 1 ? [{ value: num, msg: `Zabudol si deliť veľkosťou normálového vektora $|\\vec n|=\\sqrt{${dot3(n, n)}}$.` }] : [],
+      steps: [
+        { q: `Rovina $${pl3}$ má normálový vektor $\\vec{n}=${vec(n)}$ a rovnicu $${lin([[n[0], 'x'], [n[1], 'y'], [n[2], 'z']])}+d=0$. Vypočítaj $d$.`, answer: d0, signed: true },
+        { q: `Dosaď bod $${P}$ do ľavej strany rovnice roviny. Aká je absolútna hodnota výsledku?`, answer: num },
+        { q: `Vypočítaj vzdialenosť bodu $${P}$ od roviny v cm. ${ROUND2}`, answer: round(dist, 2), tol: 0.006 }
+      ]
     };
   });
 
@@ -1438,7 +1751,14 @@
         q: `Pravidelný štvorboký ihlan má podstavnú hranu $a=${a}\\,\\text{cm}$ a výšku $v=${v}\\,\\text{cm}$. Vypočítaj ${ask === 'S' ? 'jeho povrch v $\\text{cm}^2$' : ask === 'V' ? 'jeho objem v $\\text{cm}^3$' : 'stenovú výšku $v_s$ v cm'}.${ask === 'V' && !Number.isInteger(res) ? ' ' + ROUND2 : ''}`,
         solution: `Stenová výška: $v_s=\\sqrt{v^2+\\left(\\frac{a}{2}\\right)^2}=\\sqrt{${v * v}+${(a / 2) * (a / 2)}}=${w}\\,\\text{cm}$.
           ${ask === 'S' ? `$S=a^2+2av_s=${a * a}+2\\cdot ${a}\\cdot ${w}=${res}\\,\\text{cm}^2$.` : ask === 'V' ? `$V=\\frac{1}{3}a^2v=\\frac{1}{3}\\cdot ${a * a}\\cdot ${v}=${fTex(a * a * v, 3)}${Number.isInteger(V) ? '' : `\\approx ${dd(V)}`}\\,\\text{cm}^3$.` : ''}`,
-        hint: ask === 'V' ? 'Objem ihlana je tretina súčinu obsahu podstavy a výšky.' : 'Výška ihlana, polovica podstavnej hrany a stenová výška tvoria pravouhlý trojuholník.'
+        hint: ask === 'V' ? 'Objem ihlana je tretina súčinu obsahu podstavy a výšky.' : 'Výška ihlana, polovica podstavnej hrany a stenová výška tvoria pravouhlý trojuholník.',
+        mistakes: ask === 'S' ? [{ value: 2 * a * w, msg: 'To je len plášť ihlana. Povrch zahŕňa aj štvorcovú podstavu.' }]
+          : ask === 'V' ? [{ value: a * a * v, msg: 'To je objem hranola s rovnakou podstavou a výškou. Objem ihlana je jeho tretina.' }]
+            : [{ value: round(Math.sqrt(v * v + a * a), 2), msg: 'V pravouhlom trojuholníku s výškou ihlana a stenovou výškou je druhou odvesnou polovica podstavnej hrany, nie celá hrana.' }],
+        ...(ask === 'S' ? { steps: [
+          { q: 'Vypočítaj stenovú výšku $v_s$ v cm.', answer: w },
+          { q: 'Vypočítaj povrch ihlana v $\\text{cm}^2$.', answer: res }
+        ] } : {})
       };
     }
     if (t < 0.55) {
@@ -1450,7 +1770,14 @@
         q: `Rotačný kužeľ má polomer podstavy $r=${r}\\,\\text{cm}$ a výšku $v=${v}\\,\\text{cm}$. Vypočítaj ${ask === 'S' ? 'jeho povrch v $\\text{cm}^2$' : ask === 'V' ? 'jeho objem v $\\text{cm}^3$' : 'obsah jeho plášťa v $\\text{cm}^2$'}. ${ROUND2}`,
         solution: `Strana kužeľa: $s=\\sqrt{r^2+v^2}=\\sqrt{${r * r}+${v * v}}=${s}\\,\\text{cm}$.
           ${ask === 'S' ? `$S=\\pi r^2+\\pi rs=\\pi\\cdot ${r}\\cdot(${r}+${s})` : ask === 'V' ? `$V=\\frac{1}{3}\\pi r^2v=\\frac{1}{3}\\pi\\cdot ${r * r}\\cdot ${v}` : `$S_{pl}=\\pi rs=\\pi\\cdot ${r}\\cdot ${s}`}=${coef}\\pi\\approx ${dd(res)}$.`,
-        hint: 'Strana kužeľa $s$ je prepona pravouhlého trojuholníka s odvesnami $r$ a $v$.'
+        hint: 'Strana kužeľa $s$ je prepona pravouhlého trojuholníka s odvesnami $r$ a $v$.',
+        mistakes: ask === 'S' ? [{ value: round(Math.PI * r * s, 2), msg: 'To je len plášť kužeľa. Povrch zahŕňa aj kruhovú podstavu $\\pi r^2$.' }]
+          : ask === 'V' ? [{ value: round(Math.PI * r * r * v, 2), msg: 'To je objem valca. Objem kužeľa je jeho tretina.' }]
+            : [{ value: round(Math.PI * r * v, 2), msg: 'Do vzorca pre plášť $\\pi rs$ patrí strana kužeľa $s$, nie výška $v$.' }],
+        ...(ask !== 'V' ? { steps: [
+          { q: 'Vypočítaj stranu kužeľa $s$ v cm.', answer: s },
+          { q: `Vypočítaj ${ask === 'S' ? 'povrch' : 'obsah plášťa'} v $\\text{cm}^2$. ${ROUND2}`, answer: round(res, 2), tol: piTol(res) }
+        ] } : {})
       };
     }
     if (t < 0.8) {
@@ -1461,7 +1788,13 @@
           answer: askArea ? round(res, 2) : rho, tol: askArea ? piTol(res) : 1e-6,
           q: `Guľu s polomerom $r=${r}\\,\\text{cm}$ pretne rovina vo vzdialenosti $${d}\\,\\text{cm}$ od stredu gule. Vypočítaj ${askArea ? `obsah rezu v $\\text{cm}^2$. ${ROUND2}` : 'polomer rezu v cm.'}`,
           solution: `Polomer rezu: $\\rho=\\sqrt{r^2-d^2}=\\sqrt{${r * r}-${d * d}}=${rho}\\,\\text{cm}$.${askArea ? ` Obsah rezu: $\\pi\\rho^2=${rho * rho}\\pi\\approx ${dd(res)}\\,\\text{cm}^2$.` : ''}`,
-          hint: 'Polomer gule, vzdialenosť roviny od stredu a polomer rezu tvoria pravouhlý trojuholník (polomer gule je prepona).'
+          hint: 'Polomer gule, vzdialenosť roviny od stredu a polomer rezu tvoria pravouhlý trojuholník (polomer gule je prepona).',
+          mistakes: askArea ? [{ value: round(Math.PI * r * r, 2), msg: 'Rez nemá polomer gule. Polomer rezu $\\rho$ najprv vypočítaj z pravouhlého trojuholníka.' }]
+            : (r - d !== rho ? [{ value: r - d, msg: 'Dĺžky sa neodčítajú priamo. Polomer gule je prepona pravouhlého trojuholníka, použi Pytagorovu vetu.' }] : []),
+          ...(askArea ? { steps: [
+            { q: 'Vypočítaj polomer rezu $\\rho$ v cm.', answer: rho },
+            { q: `Vypočítaj obsah rezu v $\\text{cm}^2$. ${ROUND2}`, answer: round(res, 2), tol: piTol(res) }
+          ] } : {})
         };
       }
       const r = rnd(1, 6) * 3;
@@ -1469,7 +1802,12 @@
         answer: 4 * r * r * r / 3, show: String(4 * r * r * r / 3),
         q: `Povrch gule je $${4 * r * r}\\pi\\,\\text{cm}^2$. Jej objem sa dá zapísať ako $V=k\\pi\\,\\text{cm}^3$. Vypočítaj $k$.`,
         solution: `$4\\pi r^2=${4 * r * r}\\pi \\Rightarrow r^2=${r * r} \\Rightarrow r=${r}\\,\\text{cm}$. $V=\\frac{4}{3}\\pi r^3=\\frac{4}{3}\\pi\\cdot ${r * r * r}=${4 * r * r * r / 3}\\pi\\,\\text{cm}^3$, teda $k=${4 * r * r * r / 3}$.`,
-        hint: 'Z povrchu $S=4\\pi r^2$ vypočítaj polomer a dosaď ho do vzorca pre objem $V=\\frac{4}{3}\\pi r^3$.'
+        hint: 'Z povrchu $S=4\\pi r^2$ vypočítaj polomer a dosaď ho do vzorca pre objem $V=\\frac{4}{3}\\pi r^3$.',
+        mistakes: [{ value: r * r * r, msg: 'Objem gule je $\\frac{4}{3}\\pi r^3$, nezabudni na koeficient $\\frac{4}{3}$.' }],
+        steps: [
+          { q: 'Vypočítaj polomer gule v cm.', answer: r },
+          { q: 'Vypočítaj $k$.', answer: 4 * r * r * r / 3 }
+        ]
       };
     }
     const a = rnd(2, 10), v = rnd(3, 15), Sp = Math.sqrt(3) / 4 * a * a, askV = Math.random() < 0.5;
@@ -1479,7 +1817,13 @@
       q: `Pravidelný trojboký hranol má podstavnú hranu $a=${a}\\,\\text{cm}$ a výšku $v=${v}\\,\\text{cm}$. Vypočítaj jeho ${askV ? 'objem v $\\text{cm}^3$' : 'povrch v $\\text{cm}^2$'}. ${ROUND2}`,
       solution: `Podstava je rovnostranný trojuholník: $S_p=\\frac{\\sqrt3}{4}a^2=\\frac{\\sqrt3}{4}\\cdot ${a * a}\\approx ${dd(Sp, 3)}\\,\\text{cm}^2$.
         ${askV ? `$V=S_p\\cdot v\\approx ${dd(res)}\\,\\text{cm}^3$.` : `Plášť tvoria tri obdĺžniky $${a}\\times ${v}$: $S=2S_p+3av\\approx ${dd(2 * Sp, 3)}+${3 * a * v}\\approx ${dd(res)}\\,\\text{cm}^2$.`}`,
-      hint: 'Obsah rovnostranného trojuholníka so stranou $a$ je $\\frac{\\sqrt3}{4}a^2$. Plášť hranola tvoria tri zhodné obdĺžniky.'
+      hint: 'Obsah rovnostranného trojuholníka so stranou $a$ je $\\frac{\\sqrt3}{4}a^2$. Plášť hranola tvoria tri zhodné obdĺžniky.',
+      mistakes: askV ? [{ value: a * a * v, msg: 'Podstava je rovnostranný trojuholník, nie štvorec: jej obsah je $\\frac{\\sqrt3}{4}a^2$.' }]
+        : [{ value: round(Sp + 3 * a * v, 2), msg: 'Hranol má dve podstavy, hornú aj dolnú. Obsah podstavy započítaj dvakrát.' }],
+      steps: [
+        { q: `Vypočítaj obsah podstavy $S_p$ v $\\text{cm}^2$. ${ROUND2}`, answer: round(Sp, 2), tol: 0.006 },
+        { q: `Vypočítaj ${askV ? 'objem hranola v $\\text{cm}^3$' : 'povrch hranola v $\\text{cm}^2$'}. ${ROUND2}`, answer: round(res, 2), tol: 0.006 }
+      ]
     };
   });
 
@@ -1532,7 +1876,16 @@
         solution: askV
           ? `$V=\\frac{\\pi v}{3}(R^2+Rr+r^2)=\\frac{\\pi\\cdot ${v}}{3}(${R * R}+${R * r}+${r * r})=${fTex(v * (R * R + R * r + r * r), 3)}\\pi\\approx ${dd(res)}\\,\\text{cm}^3$.`
           : `Strana: $s=\\sqrt{v^2+(R-r)^2}=\\sqrt{${v * v}+${x * x}}=${s}\\,\\text{cm}$. $S=\\pi(R^2+r^2)+\\pi s(R+r)=\\pi(${R * R}+${r * r})+\\pi\\cdot ${s}\\cdot ${R + r}=${coef}\\pi\\approx ${dd(res)}\\,\\text{cm}^2$.`,
-        hint: askV ? 'Použi $V=\\frac{\\pi v}{3}(R^2+Rr+r^2)$.' : 'Najprv vypočítaj stranu $s$ z pravouhlého trojuholníka s odvesnami $v$ a $R-r$. Povrch tvoria dve podstavy a plášť $\\pi s(R+r)$.'
+        hint: askV ? 'Použi $V=\\frac{\\pi v}{3}(R^2+Rr+r^2)$.' : 'Najprv vypočítaj stranu $s$ z pravouhlého trojuholníka s odvesnami $v$ a $R-r$. Povrch tvoria dve podstavy a plášť $\\pi s(R+r)$.',
+        mistakes: askV
+          ? [{ value: round(3 * res, 2), msg: 'Vo vzorci pre objem zrezaného kužeľa je výška delená tromi: $V=\\frac{\\pi v}{3}(R^2+Rr+r^2)$.' },
+            { value: round(Math.PI * v * (R * R + r * r) / 3, 2), msg: 'Nezabudni na prostredný člen $Rr$ v zátvorke: $R^2+Rr+r^2$.' }]
+          : [{ value: round(Math.PI * s * (R + r), 2), msg: 'To je len plášť. Povrch zahŕňa aj obe kruhové podstavy.' }],
+        steps: askV
+          ? [{ q: 'Vypočítaj súčet $R^2+Rr+r^2$.', answer: R * R + R * r + r * r },
+            { q: `Vypočítaj objem v $\\text{cm}^3$. ${ROUND2}`, answer: round(res, 2), tol: piTol(res) }]
+          : [{ q: 'Vypočítaj stranu $s$ v cm.', answer: s },
+            { q: `Vypočítaj povrch v $\\text{cm}^2$. ${ROUND2}`, answer: round(res, 2), tol: piTol(res) }]
       };
     }
     if (t < 0.5) {
@@ -1542,7 +1895,15 @@
         answer: Number.isInteger(V) ? V : round(V, 2), tol: Number.isInteger(V) ? 1e-6 : 0.006,
         q: `Pravidelný štvorboký zrezaný ihlan má podstavné hrany $a_1=${a1}\\,\\text{cm}$, $a_2=${a2}\\,\\text{cm}$ a výšku $v=${v}\\,\\text{cm}$. Vypočítaj jeho objem v $\\text{cm}^3$.${Number.isInteger(V) ? '' : ' ' + ROUND2}`,
         solution: `$V=\\frac{v}{3}(a_1^2+a_1a_2+a_2^2)=\\frac{${v}}{3}(${a1 * a1}+${a1 * a2}+${a2 * a2})=${fTex(v * (a1 * a1 + a1 * a2 + a2 * a2), 3)}${Number.isInteger(V) ? '' : `\\approx ${dd(V)}`}\\,\\text{cm}^3$.`,
-        hint: 'Pre zrezaný ihlan platí $V=\\frac{v}{3}(S_1+\\sqrt{S_1S_2}+S_2)$; pri štvorcových podstavách je $\\sqrt{S_1S_2}=a_1a_2$.'
+        hint: 'Pre zrezaný ihlan platí $V=\\frac{v}{3}(S_1+\\sqrt{S_1S_2}+S_2)$; pri štvorcových podstavách je $\\sqrt{S_1S_2}=a_1a_2$.',
+        mistakes: [
+          { value: 3 * (Number.isInteger(V) ? V : round(V, 2)), msg: 'Vo vzorci je výška delená tromi: $V=\\frac{v}{3}(a_1^2+a_1a_2+a_2^2)$.' },
+          { value: round(v * (a1 * a1 + a2 * a2) / 3, 2), msg: 'Nezabudni na prostredný člen $a_1a_2$, teda $\\sqrt{S_1S_2}$.' }
+        ].filter((m) => Math.abs(m.value - V) > 0.006),
+        steps: [
+          { q: 'Vypočítaj súčet $a_1^2+a_1a_2+a_2^2$.', answer: a1 * a1 + a1 * a2 + a2 * a2 },
+          { q: `Vypočítaj objem v $\\text{cm}^3$.${Number.isInteger(V) ? '' : ' ' + ROUND2}`, answer: Number.isInteger(V) ? V : round(V, 2), tol: Number.isInteger(V) ? 1e-6 : 0.006 }
+        ]
       };
     }
     if (t < 0.75) {
@@ -1553,7 +1914,13 @@
           answer: round(res, 2), tol: piTol(res),
           q: `Teleso tvorí valec s polomerom $${r}\\,\\text{m}$ a výškou $${v}\\,\\text{m}$, na ktorého hornej podstave je polguľa s rovnakým polomerom. Vypočítaj objem telesa v $\\text{m}^3$. ${ROUND2}`,
           solution: `Valec: $\\pi r^2v=${r * r * v}\\pi$. Polguľa: $\\frac{2}{3}\\pi r^3=${fTex(2 * r * r * r, 3)}\\pi$. Spolu $V=${fTex(3 * r * r * v + 2 * r * r * r, 3)}\\pi\\approx ${dd(res)}\\,\\text{m}^3$.`,
-          hint: 'Objem polgule je polovica objemu gule, teda $\\frac{2}{3}\\pi r^3$. Objemy častí sčítaj.'
+          hint: 'Objem polgule je polovica objemu gule, teda $\\frac{2}{3}\\pi r^3$. Objemy častí sčítaj.',
+          mistakes: [{ value: round((r * r * v + 4 * r * r * r / 3) * Math.PI, 2), msg: 'Na valci je len polguľa, jej objem je polovica objemu gule.' }],
+          steps: [
+            { q: `Vypočítaj objem valca v $\\text{m}^3$. ${ROUND2}`, answer: round(r * r * v * Math.PI, 2), tol: piTol(r * r * v * Math.PI) },
+            { q: `Vypočítaj objem polgule v $\\text{m}^3$. ${ROUND2}`, answer: round(2 * r * r * r / 3 * Math.PI, 2), tol: piTol(2 * r * r * r / 3 * Math.PI) },
+            { q: `Vypočítaj objem celého telesa v $\\text{m}^3$. ${ROUND2}`, answer: round(res, 2), tol: piTol(res) }
+          ]
         };
       }
       if (kind === 1) {
@@ -1562,7 +1929,13 @@
           answer: round(res, 2), tol: piTol(res),
           q: `Teleso tvorí valec s polomerom $${r}\\,\\text{dm}$ a výškou $${v}\\,\\text{dm}$, na ktorý je nasadený kužeľ s rovnakou podstavou a výškou $${w}\\,\\text{dm}$. Vypočítaj objem telesa v $\\text{dm}^3$. ${ROUND2}`,
           solution: `Valec: $\\pi r^2v=${r * r * v}\\pi$. Kužeľ: $\\frac{1}{3}\\pi r^2w=${fTex(r * r * w, 3)}\\pi$. Spolu $V=${fTex(3 * r * r * v + r * r * w, 3)}\\pi\\approx ${dd(res)}\\,\\text{dm}^3$.`,
-          hint: 'Objem kužeľa je tretina objemu valca s rovnakou podstavou a výškou. Objemy častí sčítaj.'
+          hint: 'Objem kužeľa je tretina objemu valca s rovnakou podstavou a výškou. Objemy častí sčítaj.',
+          mistakes: [{ value: round((r * r * v + r * r * w) * Math.PI, 2), msg: 'Objem kužeľa nie je $\\pi r^2 w$, ale len jeho tretina.' }],
+          steps: [
+            { q: `Vypočítaj objem valca v $\\text{dm}^3$. ${ROUND2}`, answer: round(r * r * v * Math.PI, 2), tol: piTol(r * r * v * Math.PI) },
+            { q: `Vypočítaj objem kužeľa v $\\text{dm}^3$. ${ROUND2}`, answer: round(r * r * w / 3 * Math.PI, 2), tol: piTol(r * r * w / 3 * Math.PI) },
+            { q: `Vypočítaj objem celého telesa v $\\text{dm}^3$. ${ROUND2}`, answer: round(res, 2), tol: piTol(res) }
+          ]
         };
       }
       const R = r + rnd(1, 3), l = v * 10, coef = (R * R - r * r) * l, res = coef * Math.PI;
@@ -1570,7 +1943,13 @@
         answer: round(res, 2), tol: piTol(res),
         q: `Rúra má tvar dutého valca s vonkajším polomerom $${R}\\,\\text{cm}$, vnútorným polomerom $${r}\\,\\text{cm}$ a dĺžkou $${l}\\,\\text{cm}$. Vypočítaj objem materiálu v $\\text{cm}^3$. ${ROUND2}`,
         solution: `Od objemu plného valca odčítame dutinu: $V=\\pi(R^2-r^2)\\cdot l=\\pi(${R * R}-${r * r})\\cdot ${l}=${coef}\\pi\\approx ${dd(res)}\\,\\text{cm}^3$.`,
-        hint: 'Objem materiálu je rozdiel objemov dvoch valcov s rovnakou výškou.'
+        hint: 'Objem materiálu je rozdiel objemov dvoch valcov s rovnakou výškou.',
+        mistakes: [{ value: round((R - r) * (R - r) * l * Math.PI, 2), msg: 'Pozor, $R^2-r^2$ nie je to isté ako $(R-r)^2$. Odčítaj objemy dvoch valcov.' }],
+        steps: [
+          { q: `Vypočítaj objem plného valca s polomerom $${R}\\,\\text{cm}$ v $\\text{cm}^3$. ${ROUND2}`, answer: round(R * R * l * Math.PI, 2), tol: piTol(R * R * l * Math.PI) },
+          { q: `Vypočítaj objem dutiny s polomerom $${r}\\,\\text{cm}$ v $\\text{cm}^3$. ${ROUND2}`, answer: round(r * r * l * Math.PI, 2), tol: piTol(r * r * l * Math.PI) },
+          { q: `Vypočítaj objem materiálu v $\\text{cm}^3$. ${ROUND2}`, answer: round(res, 2), tol: piTol(res) }
+        ]
       };
     }
     if (Math.random() < 0.5) {
@@ -1579,7 +1958,11 @@
         answer: k * k * k,
         q: `Olovenú guľu s polomerom $${R}\\,\\text{cm}$ pretavili na rovnaké guľôčky s polomerom $${r === 1 ? '1' : r}\\,\\text{cm}$. Koľko guľôčok vzniklo (bez strát materiálu)?`,
         solution: `Objem sa zachová: $n\\cdot\\frac{4}{3}\\pi\\cdot ${r}^3=\\frac{4}{3}\\pi\\cdot ${R}^3$, teda $n=\\left(\\frac{${R}}{${r}}\\right)^3=${k}^3=${k * k * k}$.`,
-        hint: 'Pri pretavení sa zachováva objem. Pomer objemov podobných telies je tretia mocnina pomeru dĺžok.'
+        hint: 'Pri pretavení sa zachováva objem. Pomer objemov podobných telies je tretia mocnina pomeru dĺžok.',
+        mistakes: [
+          { value: k, msg: 'To je pomer polomerov. Pri pretavení sa zachováva objem a objem rastie s treťou mocninou polomeru.' },
+          { value: k * k, msg: 'Druhá mocnina pomeru dĺžok platí pre povrch. Zachováva sa však objem, a ten závisí od tretej mocniny.' }
+        ]
       };
     }
     const p = pick([10, 20, 25, 50, 30]), surf = Math.random() < 0.4;
@@ -1588,7 +1971,15 @@
       answer: round(res, 2), tol: 0.006,
       q: `Všetky hrany kocky zväčšíme o $${p}\\,\\%$. O koľko percent sa zväčší jej ${surf ? 'povrch' : 'objem'}? ${ROUND2}`,
       solution: `Koeficient podobnosti je $k=${dc(f)}$. ${surf ? 'Povrch' : 'Objem'} sa zmení $k^{${surf ? 2 : 3}}=${dd(surf ? f * f : f * f * f, 4)}$-krát, teda sa zväčší o $${dd(res)}\\,\\%$.`,
-      hint: `Pri podobnosti s koeficientom $k$ sa ${surf ? 'povrch mení $k^2$-krát' : 'objem mení $k^3$-krát'}. Výsledný násobok preveď na percentá.`
+      hint: `Pri podobnosti s koeficientom $k$ sa ${surf ? 'povrch mení $k^2$-krát' : 'objem mení $k^3$-krát'}. Výsledný násobok preveď na percentá.`,
+      mistakes: [
+        { value: p, msg: `Hrany sa zväčšia o $${p}\\,\\%$, ${surf ? 'povrch' : 'objem'} však rastie rýchlejšie: koeficient podobnosti treba umocniť.` },
+        { value: (surf ? 2 : 3) * p, msg: `Percentá sa nesčitujú. Koeficient $k=${dc(f)}$ umocni na ${surf ? 'druhú' : 'tretiu'} a až potom preveď na percentá.` }
+      ],
+      steps: [
+        { q: `Koeficient podobnosti je $k=${dc(f)}$. Koľkokrát sa zväčší ${surf ? 'povrch' : 'objem'}? Zadaj číslo na 4 desatinné miesta.`, answer: round(surf ? f * f : f * f * f, 4), tol: 0.00006 },
+        { q: `O koľko percent sa ${surf ? 'povrch' : 'objem'} zväčší? ${ROUND2}`, answer: round(res, 2), tol: 0.006 }
+      ]
     };
   });
 
@@ -1656,7 +2047,12 @@
         type: 'choice', options: [...ZNAK_OPT], answer: ZNAK_OPT[k],
         q: `Aký je štatistický znak „${txt}“?`,
         solution: `${ZNAK_WHY[k]} Znak je <strong>${ZNAK_OPT[k]}</strong>.`,
-        hint: 'Najprv rozhodni, či sú hodnoty slová alebo čísla. Pri číslach rozlíš počítanie (diskrétny) a meranie (spojitý).'
+        hint: 'Najprv rozhodni, či sú hodnoty slová alebo čísla. Pri číslach rozlíš počítanie (diskrétny) a meranie (spojitý).',
+        choiceHints: Object.fromEntries(ZNAK_OPT.filter((o, i) => i !== k).map((o) => [o,
+          k === 0 ? 'Hodnoty tohto znaku sú slová (kategórie), nie čísla.'
+            : o === 'kvalitatívny' ? 'Hodnoty tohto znaku sú čísla, takže znak je kvantitatívny.'
+              : k === 1 ? 'Hodnoty získavame počítaním, sú to len celé čísla. Medzi dvoma susednými hodnotami nie je iná možná hodnota.'
+                : 'Hodnoty získavame meraním, môžu byť ľubovoľným číslom z nejakého intervalu (aj desatinným).']))
       };
     }
     if (t < 0.48) {
@@ -1670,7 +2066,14 @@
           ? `Aký stredový uhol (v stupňoch) bude mať výseč „${cats[i]}“ v kruhovom diagrame?` : `Koľko percent žiakov odpovedalo „${cats[i]}“?`} Výsledok zaokrúhli na desatiny.`,
         solution: `Rozsah súboru $n=${counts.join('+')}=${n}$. Relatívna početnosť: $f=\\frac{${counts[i]}}{${n}}\\approx ${dc(f)}$.
           ${angle ? `Stredový uhol: $f\\cdot 360^\\circ\\approx ${dd(res, 1)}^\\circ$.` : `V percentách $${dd(res, 1)}\\,\\%$.`}`,
-        hint: angle ? 'Výseč má stredový uhol $\\frac{n_i}{n}\\cdot 360^\\circ$.' : 'Relatívna početnosť je $\\frac{n_i}{n}$, v percentách ju vynásob číslom 100.'
+        hint: angle ? 'Výseč má stredový uhol $\\frac{n_i}{n}\\cdot 360^\\circ$.' : 'Relatívna početnosť je $\\frac{n_i}{n}$, v percentách ju vynásob číslom 100.',
+        mistakes: angle
+          ? [{ value: round(f * 100, 1), msg: 'To sú percentá. Stredový uhol je rovnaká časť z celého uhla $360^\\circ$, nie zo $100$.' }]
+          : [{ value: round(f * 360, 1), msg: 'To je stredový uhol výseče v stupňoch. Percentá sú časť zo $100$, nie z $360$.' }],
+        steps: [
+          { q: 'Aký je rozsah súboru $n$ (počet všetkých žiakov)?', answer: n },
+          { q: `${angle ? 'Aký je stredový uhol výseče v stupňoch?' : 'Koľko percent to je?'} Výsledok zaokrúhli na desatiny.`, answer: round(res, 1), tol: 0.051 }
+        ]
       };
     }
     let counts;
@@ -1683,7 +2086,16 @@
         answer: round(sum / n, 2), tol: 0.006,
         q: `${chart ? 'Graf' : 'Tabuľka'} zobrazuje známky z písomky v triede:${data}Vypočítaj priemernú známku. ${ROUND2}`,
         solution: `$n=${counts.join('+')}=${n}$. Vážený aritmetický priemer: $\\bar{x}=\\dfrac{${counts.map((c, i) => `${i + 1}\\cdot ${c}`).join('+')}}{${n}}=\\dfrac{${sum}}{${n}}\\approx ${dd(sum / n)}$.`,
-        hint: 'Každú známku vynásob počtom žiakov, ktorí ju dostali, výsledky sčítaj a vydeľ počtom všetkých žiakov.'
+        hint: 'Každú známku vynásob počtom žiakov, ktorí ju dostali, výsledky sčítaj a vydeľ počtom všetkých žiakov.',
+        mistakes: [
+          ...(Math.abs(round(sum / n, 2) - 3) > 0.006 ? [{ value: 3, msg: 'Priemer z tabuľky početností je vážený: každú známku vynásob počtom žiakov, ktorí ju dostali.' }] : []),
+          { value: round(sum / 5, 2), msg: 'Súčet známok treba deliť počtom žiakov $n$, nie počtom rôznych známok.' }
+        ],
+        steps: [
+          { q: 'Koľko žiakov písalo písomku?', answer: n },
+          { q: 'Aký je súčet známok všetkých žiakov?', answer: sum },
+          { q: `Vypočítaj priemernú známku. ${ROUND2}`, answer: round(sum / n, 2), tol: 0.006 }
+        ]
       };
     }
     const list = []; counts.forEach((c, i) => { for (let j = 0; j < c; j++) list.push(i + 1); });
@@ -1693,7 +2105,15 @@
       q: `${chart ? 'Graf' : 'Tabuľka'} zobrazuje známky z písomky v triede:${data}Aký je medián známok?`,
       solution: `$n=${n}$ je ${n % 2 ? `nepárne, medián je ${(n + 1) / 2}. hodnota` : `párne, medián je priemer ${n / 2}. a ${n / 2 + 1}. hodnoty`} v usporiadanom súbore.
         Kumulované počty: ${counts.map((c, i) => `do známky ${i + 1} je to ${counts.slice(0, i + 1).reduce((a, b) => a + b, 0)}`).join(', ')}. Medián je $${dc(med)}$.`,
-      hint: 'Predstav si všetky známky zoradené od najlepšej. Medián je prostredná hodnota (pri párnom počte priemer dvoch prostredných).'
+      hint: 'Predstav si všetky známky zoradené od najlepšej. Medián je prostredná hodnota (pri párnom počte priemer dvoch prostredných).',
+      mistakes: [
+        ...(med !== 3 ? [{ value: 3, msg: 'Medián nie je prostredná zo známok 1 až 5. Je to prostredná hodnota, keď známky všetkých žiakov zoradíš za sebou.' }] : []),
+        ...(Math.abs(round(sum / n, 2) - med) > 1e-6 && Math.abs(round(sum / n, 2) - 3) > 1e-6 ? [{ value: round(sum / n, 2), msg: 'To je priemer. Medián je prostredná hodnota usporiadaného súboru.' }] : [])
+      ],
+      steps: [
+        { q: 'Koľko žiakov písalo písomku?', answer: n },
+        { q: `${n % 2 ? `Medián je ${(n + 1) / 2}. hodnota` : `Medián je priemer ${n / 2}. a ${n / 2 + 1}. hodnoty`} usporiadaného súboru. Aký je medián?`, answer: med }
+      ]
     };
   });
 
@@ -1747,7 +2167,15 @@
         q: `Daný je súbor údajov: $${data.join(';\\ ')}$. Urči jeho ${askRange ? 'variačné rozpätie' : 'medián'}.`,
         solution: `Usporiadaný súbor: $${s.join(';\\ ')}$ ($n=${n}$). ${askRange ? `$R=x_{\\max}-x_{\\min}=${s[n - 1]}-${s[0]}=${s[n - 1] - s[0]}$.`
           : n % 2 ? `Medián je ${(n + 1) / 2}. hodnota: $${med}$.` : `Medián je priemer ${n / 2}. a ${n / 2 + 1}. hodnoty: $\\frac{${s[n / 2 - 1]}+${s[n / 2]}}{2}=${dc(med)}$.`}`,
-        hint: askRange ? 'Variačné rozpätie je rozdiel najväčšej a najmenšej hodnoty.' : 'Údaje najprv usporiadaj podľa veľkosti. Pri párnom počte je medián priemerom dvoch prostredných hodnôt.'
+        hint: askRange ? 'Variačné rozpätie je rozdiel najväčšej a najmenšej hodnoty.' : 'Údaje najprv usporiadaj podľa veľkosti. Pri párnom počte je medián priemerom dvoch prostredných hodnôt.',
+        mistakes: (() => {
+          if (askRange) {
+            const w = data[n - 1] - data[0];
+            return w !== s[n - 1] - s[0] ? [{ value: w, msg: 'Rozpätie je rozdiel najväčšej a najmenšej hodnoty, nie poslednej a prvej hodnoty v zápise.' }] : [];
+          }
+          const w = n % 2 ? data[(n - 1) / 2] : (data[n / 2 - 1] + data[n / 2]) / 2;
+          return w !== med ? [{ value: w, msg: 'Pred určením mediánu treba údaje usporiadať podľa veľkosti.' }] : [];
+        })()
       };
     }
     if (t < 0.45) {
@@ -1759,7 +2187,8 @@
         answer: mode,
         q: `Hráč zapisoval počet bodov v jednotlivých zápasoch: $${sh.join(';\\ ')}$. Aký je modus tohto súboru?`,
         solution: `Najčastejšie sa vyskytuje hodnota $${mode}$ (trikrát), ostatné hodnoty najviac dvakrát. Modus je $${mode}$.`,
-        hint: 'Modus je hodnota s najväčšou početnosťou. Spočítaj, koľkokrát sa vyskytuje každá hodnota.'
+        hint: 'Modus je hodnota s najväčšou početnosťou. Spočítaj, koľkokrát sa vyskytuje každá hodnota.',
+        mistakes: mode !== 3 ? [{ value: 3, msg: 'To je početnosť najčastejšej hodnoty. Modus je samotná hodnota, ktorá sa vyskytuje najčastejšie.' }] : []
       };
     }
     if (t < 0.75) {
@@ -1776,7 +2205,17 @@
         q: `Vypočítaj ${askS ? 'smerodajnú odchýlku' : 'rozptyl'} súboru $${data.join(';\\ ')}$. ${ROUND2}`,
         solution: `$\\bar{x}=\\frac{${data.reduce((a, b) => a + b, 0)}}{${n}}=${m}$. Odchýlky od priemeru: $${data.map((x) => x - m).join(';\\ ')}$.
           $s^2=\\frac{${data.map((x) => `${par(x - m)}^2`).join('+')}}{${n}}=\\frac{${ss}}{${n}}\\approx ${dd(v)}$${askS ? `, $s=\\sqrt{s^2}\\approx ${dd(res)}$` : ''}.`,
-        hint: 'Vypočítaj priemer, potom priemer druhých mocnín odchýlok od neho. Smerodajná odchýlka je odmocnina z rozptylu.'
+        hint: 'Vypočítaj priemer, potom priemer druhých mocnín odchýlok od neho. Smerodajná odchýlka je odmocnina z rozptylu.',
+        mistakes: [
+          { value: round(askS ? Math.sqrt(ss / (n - 1)) : ss / (n - 1), 2), msg: `Súčet štvorcov odchýlok delíme počtom údajov $n=${n}$, nie číslom $n-1$ (tak je rozptyl definovaný v teórii).` },
+          { value: round(askS ? v : Math.sqrt(v), 2), msg: askS ? 'To je rozptyl. Smerodajná odchýlka je jeho druhá odmocnina.' : 'To je smerodajná odchýlka. Rozptyl sa neodmocňuje.' }
+        ].filter((mk) => Math.abs(mk.value - round(res, 2)) > 0.006),
+        steps: [
+          { q: 'Vypočítaj aritmetický priemer $\\bar{x}$.', answer: m },
+          { q: 'Vypočítaj súčet druhých mocnín odchýlok od priemeru.', answer: ss },
+          { q: `Vypočítaj rozptyl $s^2$. ${ROUND2}`, answer: round(v, 2), tol: 0.006 },
+          ...(askS ? [{ q: `Vypočítaj smerodajnú odchýlku $s$. ${ROUND2}`, answer: round(res, 2), tol: 0.006 }] : [])
+        ]
       };
     }
     const n = rnd(5, 20), m = rnd(15, 40), d = nz(-2, 3), x = m + (n + 1) * d;
@@ -1785,7 +2224,16 @@
       q: `Priemerný vek ${n} členov speváckeho zboru je $${m}$ rokov. Keď do zboru pribudol nový člen, priemerný vek sa ${d > 0 ? 'zvýšil' : 'znížil'} na $${m + d}$ rokov. Koľko rokov má nový člen?`,
       solution: `Súčet vekov pôvodných členov je $${n}\\cdot ${m}=${n * m}$. Po príchode je súčet vekov $${n + 1}\\cdot ${m + d}=${(n + 1) * (m + d)}$.
         Nový člen má $${(n + 1) * (m + d)}-${n * m}=${x}$ rokov.`,
-      hint: 'Pracuj so súčtami: súčet = priemer · počet. Porovnaj súčet pred príchodom a po príchode nového člena.'
+      hint: 'Pracuj so súčtami: súčet = priemer · počet. Porovnaj súčet pred príchodom a po príchode nového člena.',
+      mistakes: [
+        { value: m + d, msg: 'To je nový priemerný vek. Pracuj so súčtami vekov: súčet = priemer · počet.' },
+        { value: m + n * d, msg: `Po príchode má zbor $${n + 1}$ členov, nový súčet je preto $${n + 1}\\cdot ${m + d}$.` }
+      ].filter((mk) => mk.value !== x),
+      steps: [
+        { q: 'Aký je súčet vekov pôvodných členov?', answer: n * m },
+        { q: 'Aký je súčet vekov po príchode nového člena?', answer: (n + 1) * (m + d) },
+        { q: 'Koľko rokov má nový člen?', answer: x }
+      ]
     };
   });
 
@@ -1832,7 +2280,16 @@
           q: `V triede je ${b} chlapcov a ${g} dievčat. Koľkými spôsobmi môžeme vybrať skupinu, v ktorej budú ${k1 === 1 ? 'jeden chlapec' : `${k1} chlapci`} a ${k2 === 1 ? 'jedno dievča' : `${k2} dievčatá`}?`,
           solution: `Na poradí nezáleží, ide o kombinácie: chlapcov vyberieme $\\binom{${b}}{${k1}}=${C(b, k1)}$ spôsobmi, dievčatá $\\binom{${g}}{${k2}}=${C(g, k2)}$ spôsobmi.
             Podľa pravidla súčinu je spolu $${C(b, k1)}\\cdot ${C(g, k2)}=${C(b, k1) * C(g, k2)}$ možností.`,
-          hint: 'Chlapcov a dievčatá vyberáš nezávisle (kombinácie, lebo na poradí nezáleží) a počty vynásobíš.'
+          hint: 'Chlapcov a dievčatá vyberáš nezávisle (kombinácie, lebo na poradí nezáleží) a počty vynásobíš.',
+          mistakes: [
+            { value: C(b, k1) + C(g, k2), msg: 'Výber chlapcov a výber dievčat sa navzájom nevylučujú, kombinujú sa. Použi pravidlo súčinu, nie súčtu.' },
+            { value: C(b, k1) * fact(k1) * C(g, k2) * fact(k2), msg: 'V skupine nezáleží na poradí, ide o kombinácie, nie variácie.' }
+          ].filter((mk) => mk.value !== C(b, k1) * C(g, k2)),
+          steps: [
+            { q: `Koľkými spôsobmi vyberieme chlapcov?`, answer: C(b, k1) },
+            { q: `Koľkými spôsobmi vyberieme dievčatá?`, answer: C(g, k2) },
+            { q: 'Koľko je spolu možností?', answer: C(b, k1) * C(g, k2) }
+          ]
         };
       }
       const n = rnd(6, 15);
@@ -1840,7 +2297,11 @@
         answer: n * (n - 1) * (n - 2),
         q: `Spolok má ${n} členov. Koľkými spôsobmi môžu zvoliť predsedu, podpredsedu a pokladníka (jedna osoba zastáva najviac jednu funkciu)?`,
         solution: `Záleží na tom, kto má akú funkciu, ide o variácie 3. triedy z ${n} prvkov: $V_3(${n})=${n}\\cdot ${n - 1}\\cdot ${n - 2}=${n * (n - 1) * (n - 2)}$.`,
-        hint: 'Predsedu vyberáš z $n$ ľudí, podpredsedu už len zo zvyšných, pokladníka zo zvyšných ďalej.'
+        hint: 'Predsedu vyberáš z $n$ ľudí, podpredsedu už len zo zvyšných, pokladníka zo zvyšných ďalej.',
+        mistakes: [
+          { value: C(n, 3), msg: 'Funkcie sú rôzne, takže záleží na tom, kto je predseda a kto pokladník. Ide o variácie, nie kombinácie.' },
+          { value: n * n * n, msg: 'Jedna osoba môže mať najviac jednu funkciu, ďalšiu funkciu už vyberáš len zo zvyšných ľudí.' }
+        ]
       };
     }
     if (t < 0.5) {
@@ -1854,7 +2315,13 @@
           q: `Koľko rôznych „slov“ (aj nezmyselných) vznikne preusporiadaním všetkých písmen slova ${w}?`,
           solution: `Slovo má ${letters.length} písmen, opakujú sa ${reps.map((l) => `${l} (${cnt[l]}×)`).join(', ')}. Ide o permutácie s opakovaním:
             $\\dfrac{${letters.length}!}{${reps.map((l) => `${cnt[l]}!`).join('\\cdot ')}}=\\dfrac{${fact(letters.length)}}{${den}}=${res}$.`,
-          hint: 'Keby boli všetky písmená rôzne, bolo by ich $n!$. Výmena rovnakých písmen nové slovo nedá, preto vydeľ faktoriálmi počtov opakujúcich sa písmen.'
+          hint: 'Keby boli všetky písmená rôzne, bolo by ich $n!$. Výmena rovnakých písmen nové slovo nedá, preto vydeľ faktoriálmi počtov opakujúcich sa písmen.',
+          mistakes: [{ value: fact(letters.length), msg: 'Niektoré písmená sa opakujú a ich výmenou nové slovo nevznikne. Vydeľ faktoriálmi počtov opakujúcich sa písmen.' }],
+          steps: [
+            { q: `Koľko je $${letters.length}!$?`, answer: fact(letters.length) },
+            { q: 'Aký je súčin faktoriálov počtov opakujúcich sa písmen?', answer: den },
+            { q: 'Koľko rôznych slov vznikne?', answer: res }
+          ]
         };
       }
       const n = rnd(4, 9), round_ = Math.random() < 0.5;
@@ -1864,7 +2331,9 @@
           : `Koľkými spôsobmi si môže ${n} ľudí sadnúť do radu na ${n} stoličiek?`,
         solution: round_ ? `Jedného človeka posadíme na ľubovoľné miesto (otočenia nerozlišujeme), ostatných ${n - 1} usporiadame: $(${n}-1)!=${n - 1}!=${fact(n - 1)}$.`
           : `Ide o permutácie: $${n}!=${fact(n)}$.`,
-        hint: round_ ? 'Pri okrúhlom stole sú rozsadenia, ktoré sa líšia len otočením, rovnaké. Zafixuj jedného človeka.' : 'Počet usporiadaní $n$ rôznych prvkov je $n!$.'
+        hint: round_ ? 'Pri okrúhlom stole sú rozsadenia, ktoré sa líšia len otočením, rovnaké. Zafixuj jedného človeka.' : 'Počet usporiadaní $n$ rôznych prvkov je $n!$.',
+        mistakes: round_ ? [{ value: fact(n), msg: `Rozsadenia, ktoré sa líšia len otočením stola, sú rovnaké. Každé si takto započítal ${n}-krát.` }]
+          : [{ value: fact(n - 1), msg: 'V rade záleží na tom, kto sedí na ktorej stoličke: otočenie tu nehrá rolu, usporiadaj všetkých ľudí.' }]
       };
     }
     if (t < 0.78) {
@@ -1891,7 +2360,21 @@
         answer: good.length,
         q: `Koľko ${CIF[k]} ${cond ? cond + ' ' : ''}čísel možno zostaviť z cifier ${digits.join(', ')}, ak sa cifry ${rep ? 'môžu opakovať' : 'nesmú opakovať'}?`,
         solution: sol,
-        hint: 'Vypĺňaj miesta postupne a použi pravidlo súčinu. Prvá cifra nesmie byť nula; pri podmienke na deliteľnosť začni poslednou cifrou a rozdeľ prípady.'
+        hint: 'Vypĺňaj miesta postupne a použi pravidlo súčinu. Prvá cifra nesmie byť nula; pri podmienke na deliteľnosť začni poslednou cifrou a rozdeľ prípady.',
+        mistakes: (() => {
+          if (!zero) return [];
+          let cnt = 0;
+          const go = (cur) => {
+            if (cur.length === k) {
+              const l = cur[k - 1];
+              if (cond === '' || (cond === 'párnych' ? l % 2 === 0 : cond === 'nepárnych' ? l % 2 === 1 : l % 5 === 0)) cnt++;
+              return;
+            }
+            digits.forEach((dg) => { if (rep || !cur.includes(dg)) go(cur.concat(dg)); });
+          };
+          go([]);
+          return cnt !== good.length ? [{ value: cnt, msg: 'Započítal si aj „čísla“ začínajúce nulou. Na prvom mieste nula byť nemôže.' }] : [];
+        })()
       };
     }
     if (Math.random() < 0.5) {
@@ -1900,7 +2383,11 @@
         answer: n,
         q: `Na stretnutí si každý účastník podal ruku s každým iným práve raz. Podaní rúk bolo ${H}. Koľko ľudí bolo na stretnutí?`,
         solution: `Podaní rúk je $\\binom{n}{2}=\\frac{n(n-1)}{2}$. Z rovnice $\\frac{n(n-1)}{2}=${H}$ dostaneme $n^2-n-${2 * H}=0$, kladný koreň je $n=${n}$.`,
-        hint: 'Každé podanie rúk je dvojica ľudí, na poradí nezáleží: $\\binom{n}{2}$. Zostav kvadratickú rovnicu.'
+        hint: 'Každé podanie rúk je dvojica ľudí, na poradí nezáleží: $\\binom{n}{2}$. Zostav kvadratickú rovnicu.',
+        steps: [
+          { q: `Z rovnice $\\frac{n(n-1)}{2}=${H}$ vyjadri súčin $n(n-1)$. Koľko je?`, answer: 2 * H },
+          { q: 'Vyrieš rovnicu. Koľko ľudí bolo na stretnutí?', answer: n }
+        ]
       };
     }
     const n = rnd(5, 20), Dg = n * (n - 3) / 2, reverse = Math.random() < 0.5;
@@ -1909,7 +2396,18 @@
       q: reverse ? `Konvexný mnohouholník má ${Dg} uhlopriečok. Koľko má vrcholov?` : `Koľko uhlopriečok má konvexný ${n}-uholník?`,
       solution: `Každý vrchol spojíme s $n-3$ nesusednými vrcholmi a každú uhlopriečku tak započítame dvakrát: $\\frac{n(n-3)}{2}$.
         ${reverse ? `Z $\\frac{n(n-3)}{2}=${Dg}$ je $n^2-3n-${2 * Dg}=0$ a kladný koreň $n=${n}$.` : `$\\frac{${n}\\cdot ${n - 3}}{2}=${Dg}$.`}`,
-      hint: 'Počet uhlopriečok $n$-uholníka je $\\binom{n}{2}-n=\\frac{n(n-3)}{2}$ (všetky spojnice vrcholov mínus strany).'
+      hint: 'Počet uhlopriečok $n$-uholníka je $\\binom{n}{2}-n=\\frac{n(n-3)}{2}$ (všetky spojnice vrcholov mínus strany).',
+      ...(reverse ? {
+        steps: [
+          { q: `Z rovnice $\\frac{n(n-3)}{2}=${Dg}$ vyjadri súčin $n(n-3)$. Koľko je?`, answer: 2 * Dg },
+          { q: 'Vyrieš rovnicu. Koľko vrcholov má mnohouholník?', answer: n }
+        ]
+      } : {
+        mistakes: [
+          { value: n * (n - 3), msg: 'Každú uhlopriečku si započítal dvakrát, z oboch jej koncových vrcholov. Výsledok vydeľ dvoma.' },
+          { value: C(n, 2), msg: 'To sú všetky spojnice dvojíc vrcholov, aj strany mnohouholníka. Strany treba odčítať.' }
+        ]
+      })
     };
   });
 
@@ -1947,7 +2445,17 @@
           : v === 1 ? `Priaznivé: $${w}\\cdot ${c}=${fav}$ (bielu a čiernu vyberáme nezávisle).`
             : `Opačný jav „obe čierne“ má $\\binom{${c}}{2}=${C(c, 2)}$ výberov, priaznivých je $${all}-${C(c, 2)}=${fav}$.`}
           $P=\\frac{${fav}}{${all}}=${fTex(fav, all)}\\approx ${dd(fav / all, 3)}$.`,
-        hint: 'Výsledky pokusu sú dvojice gúľ (kombinácie). Spočítaj všetky a priaznivé; pri „aspoň jedna“ je jednoduchší opačný jav.'
+        hint: 'Výsledky pokusu sú dvojice gúľ (kombinácie). Spočítaj všetky a priaznivé; pri „aspoň jedna“ je jednoduchší opačný jav.',
+        mistakes: [
+          v === 0 ? { value: (w / n) * (w / n), msg: 'Gule ťaháme naraz, teda bez vrátenia. Po vytiahnutí bielej je v urne o jednu bielu menej.' }
+            : v === 1 ? { value: w * c / (n * (n - 1)), msg: 'Biela a čierna môžu prísť v dvoch poradiach. Pri výbere naraz radšej počítaj neusporiadané dvojice: bielu a čiernu guľu vyberáš nezávisle.' }
+              : { value: C(w, 2) / all, msg: 'Jav „aspoň jedna biela“ zahŕňa aj prípad, keď je jedna biela a jedna čierna. Použi opačný jav „obe čierne“.' }
+        ].filter((mk) => Math.abs(mk.value - fav / all) > 0.0006),
+        steps: [
+          { q: 'Koľko je všetkých výberov dvoch gúľ?', answer: all },
+          { q: 'Koľko je priaznivých výberov?', answer: fav },
+          { q: `Aká je pravdepodobnosť? ${PROB}`, answer: fav / all, tol: 0.00051 }
+        ]
       };
     }
     if (t < 0.55) {
@@ -1961,7 +2469,19 @@
         solution: `Pravdepodobnosti netrafenia sú $${dc(q1)}$ a $${dc(q2)}$. ${v === 0 ? `Opačný jav (obaja minú): $${dc(q1)}\\cdot ${dc(q2)}=${dc(q1 * q2)}$, teda $P=1-${dc(q1 * q2)}=${dc(res)}$.`
           : v === 1 ? `$P=${dc(p1)}\\cdot ${dc(q2)}+${dc(q1)}\\cdot ${dc(p2)}=${dc(p1 * q2)}+${dc(q1 * p2)}=${dc(res)}$ (prvý trafí a druhý nie, alebo naopak).`
             : `$P=${dc(q1)}\\cdot ${dc(q2)}=${dc(res)}$.`}`,
-        hint: 'Pri nezávislých javoch sa pravdepodobnosti súčasného nastania násobia. Pri „aspoň jeden“ použi opačný jav.'
+        hint: 'Pri nezávislých javoch sa pravdepodobnosti súčasného nastania násobia. Pri „aspoň jeden“ použi opačný jav.',
+        mistakes: [
+          ...(v === 0 ? [{ value: round(p1 + p2, 4), msg: 'Javy „prvý zasiahne“ a „druhý zasiahne“ môžu nastať súčasne: $P(A\\cup B)=P(A)+P(B)-P(A\\cap B)$. Alebo použi opačný jav.' },
+            { value: round(p1 * p2, 4), msg: 'To je pravdepodobnosť, že zasiahnu obaja. „Aspoň jeden“ zahŕňa aj prípady, keď zasiahne len jeden.' }] : []),
+          ...(v === 1 ? [{ value: round(p1 * q2, 4), msg: 'Práve jeden môže byť prvý aj druhý strelec. Sčítaj pravdepodobnosti oboch možností.' }] : []),
+          ...(v === 2 ? [{ value: round(1 - p1 * p2, 4), msg: 'To je pravdepodobnosť, že nezasiahnu obaja súčasne. Ani jeden znamená, že minú obaja.' }] : [])
+        ].filter((mk) => Math.abs(mk.value - round(res, 4)) > 0.0005),
+        ...(v !== 2 ? { steps: v === 0
+          ? [{ q: 'Aká je pravdepodobnosť, že obaja minú?', answer: round(q1 * q2, 4), tol: 0.0005 },
+            { q: 'Aká je pravdepodobnosť, že terč zasiahne aspoň jeden?', answer: round(res, 4), tol: 0.0005 }]
+          : [{ q: 'Aká je pravdepodobnosť, že prvý zasiahne a druhý minie?', answer: round(p1 * q2, 4), tol: 0.0005 },
+            { q: 'Aká je pravdepodobnosť, že prvý minie a druhý zasiahne?', answer: round(q1 * p2, 4), tol: 0.0005 },
+            { q: 'Aká je pravdepodobnosť, že terč zasiahne práve jeden?', answer: round(res, 4), tol: 0.0005 }] } : {})
       };
     }
     if (t < 0.78) {
@@ -1975,7 +2495,16 @@
         q: `Hodíme naraz dvoma hracími kockami. Aká je pravdepodobnosť, že ${ev}? ${PROB}`,
         solution: `Všetkých výsledkov je $6\\cdot 6=36$. ${v === 2 ? `Súčin je nepárny len vtedy, keď sú obe čísla nepárne: $3\\cdot 3=9$ výsledkov. Priaznivých je $36-9=27$.`
           : `Priaznivé dvojice: ${pairs.filter(ok).map((p) => `[${p[0]}; ${p[1]}]`).join(', ')} — spolu $${fav}$.`} $P=\\frac{${fav}}{36}=${fTex(fav, 36)}$.`,
-        hint: 'Výsledok je usporiadaná dvojica (prvá kocka, druhá kocka), všetkých je 36. Spočítaj priaznivé dvojice.'
+        hint: 'Výsledok je usporiadaná dvojica (prvá kocka, druhá kocka), všetkých je 36. Spočítaj priaznivé dvojice.',
+        mistakes: (() => {
+          if (v === 2) return [{ value: 9 / 36, msg: 'To je pravdepodobnosť opačného javu, že súčin je nepárny. Odpočítaj ju od jednotky.' }];
+          const un = pairs.filter((p) => p[0] <= p[1] && ok(p)).length;
+          return un !== fav ? [{ value: un / 36, msg: 'Kocky rozlišujeme: $[1; 2]$ a $[2; 1]$ sú dva rôzne výsledky. Započítaj obe poradia.' }] : [];
+        })(),
+        steps: [
+          { q: 'Koľko je priaznivých výsledkov (usporiadaných dvojíc)?', answer: fav },
+          { q: `Aká je pravdepodobnosť? ${PROB}`, answer: fav / 36, tol: 0.00051 }
+        ]
       };
     }
     if (Math.random() < 0.5) {
@@ -1984,7 +2513,15 @@
         answer: round(res, 3), tol: 0.00051,
         q: `Hráč hodí hracou kockou ${n}-krát. Aká je pravdepodobnosť, že aspoň raz padne šestka? Výsledok zaokrúhli na 3 desatinné miesta.`,
         solution: `Opačný jav: šestka nepadne ani raz, $P=\\left(\\frac{5}{6}\\right)^{${n}}\\approx ${dd(1 - res, 4)}$. Hľadaná pravdepodobnosť je $1-\\left(\\frac{5}{6}\\right)^{${n}}\\approx ${dd(res, 3)}$.`,
-        hint: 'Použi opačný jav: pravdepodobnosť, že šestka nepadne v žiadnom z hodov, je $\\left(\\frac{5}{6}\\right)^n$.'
+        hint: 'Použi opačný jav: pravdepodobnosť, že šestka nepadne v žiadnom z hodov, je $\\left(\\frac{5}{6}\\right)^n$.',
+        mistakes: [
+          { value: round(n / 6, 3), msg: 'Pravdepodobnosti jednotlivých hodov sa nesčítavajú (pri 6 hodoch by vyšla istota). Použi opačný jav „ani raz“.' },
+          { value: round(1 - res, 3), msg: 'To je pravdepodobnosť opačného javu, že šestka nepadne ani raz. Odpočítaj ju od jednotky.' }
+        ].filter((mk) => Math.abs(mk.value - round(res, 3)) > 0.0006),
+        steps: [
+          { q: 'Aká je pravdepodobnosť, že šestka nepadne ani raz? Výsledok zaokrúhli na 4 desatinné miesta.', answer: round(1 - res, 4), tol: 0.00006 },
+          { q: 'Aká je pravdepodobnosť, že šestka padne aspoň raz? Výsledok zaokrúhli na 3 desatinné miesta.', answer: round(res, 3), tol: 0.00051 }
+        ]
       };
     }
     const th = pick([0.5, 0.75, 0.9, 0.95, 0.99]);
@@ -2069,7 +2606,12 @@
         answer: round(res, 4), tol: 0.00006, show: dt(res, 4),
         q: `${c.txt(n)} Vypočítaj $P(X=${k})$. ${R4}`,
         solution: `$X\\sim Bi(${n}; ${c.ptex})$. $P(X=${k})=\\binom{${n}}{${k}}\\left(${c.ptex}\\right)^{${k}}\\left(${qtex}\\right)^{${n - k}}=${C(n, k)}\\cdot\\left(${c.ptex}\\right)^{${k}}\\cdot\\left(${qtex}\\right)^{${n - k}}\\approx ${dd(res, 4)}$.`,
-        hint: 'Použi $P(X=k)=\\binom{n}{k}p^k(1-p)^{n-k}$.'
+        hint: 'Použi $P(X=k)=\\binom{n}{k}p^k(1-p)^{n-k}$.',
+        mistakes: C(n, k) > 1 && Math.abs(round(res / C(n, k), 4) - round(res, 4)) > 0.00006 ? [{ value: round(res / C(n, k), 4), msg: `Zabudol si na kombinačné číslo $\\binom{${n}}{${k}}$: úspešné pokusy môžu byť medzi všetkými pokusmi rozmiestnené rôznymi spôsobmi.` }] : [],
+        steps: [
+          { q: `Vypočítaj kombinačné číslo $\\binom{${n}}{${k}}$.`, answer: C(n, k) },
+          { q: `Vypočítaj $P(X=${k})$. ${R4}`, answer: round(res, 4), tol: 0.00006 }
+        ]
       };
     }
     if (t < 0.55) {
@@ -2078,7 +2620,15 @@
         answer: round(res, 4), tol: 0.00006, show: dt(res, 4),
         q: `${c.txt(n)} Vypočítaj $P(X\\ge 1)$. ${R4}`,
         solution: `Opačný jav je $X=0$: $P(X=0)=\\left(${qtex}\\right)^{${n}}\\approx ${dd(Math.pow(q, n), 4)}$. Preto $P(X\\ge 1)=1-\\left(${qtex}\\right)^{${n}}\\approx ${dd(res, 4)}$.`,
-        hint: 'Jav „aspoň jeden úspech“ je opačný k javu „ani jeden úspech“.'
+        hint: 'Jav „aspoň jeden úspech“ je opačný k javu „ani jeden úspech“.',
+        mistakes: [
+          { value: round(P(1), 4), msg: 'To je pravdepodobnosť práve jedného úspechu. „Aspoň jeden“ zahŕňa aj viac úspechov, použi opačný jav.' },
+          { value: round(Math.pow(q, n), 4), msg: 'To je pravdepodobnosť opačného javu $X=0$. Odpočítaj ju od jednotky.' }
+        ].filter((mk) => Math.abs(mk.value - round(res, 4)) > 0.00006),
+        steps: [
+          { q: `Vypočítaj $P(X=0)$. ${R4}`, answer: round(Math.pow(q, n), 4), tol: 0.00006 },
+          { q: `Vypočítaj $P(X\\ge 1)$. ${R4}`, answer: round(res, 4), tol: 0.00006 }
+        ]
       };
     }
     if (t < 0.8) {
@@ -2088,7 +2638,15 @@
         show: p === 1 / 6 ? `${fTxt(n, 6)}; ${fTxt(5 * n, 36)}` : `${f4(E)}; ${f4(D)}`,
         q: `${c.txt(n)} Vypočítaj strednú hodnotu $E(X)$ a rozptyl $D(X)$. Zadaj ich v tomto poradí oddelené bodkočiarkou (ako zlomky alebo desatinné čísla zaokrúhlené aspoň na 2 miesta).`,
         solution: `$E(X)=np=${n}\\cdot ${c.ptex}=${p === 1 / 6 ? fTex(n, 6) : dc(E)}$, $D(X)=np(1-p)=${n}\\cdot ${c.ptex}\\cdot ${qtex}=${p === 1 / 6 ? fTex(5 * n, 36) : dc(D)}$.`,
-        hint: 'Pre binomické rozdelenie je $E(X)=np$ a $D(X)=np(1-p)$.'
+        hint: 'Pre binomické rozdelenie je $E(X)=np$ a $D(X)=np(1-p)$.',
+        mistakes: [
+          { value: [round(E, 4), round(E, 4)], msg: 'Rozptyl binomického rozdelenia je $np(1-p)$, nezabudni na činiteľ $1-p$.' },
+          { value: [round(E, 4), round(Math.sqrt(D), 4)], msg: 'To je smerodajná odchýlka. Rozptyl je jej druhá mocnina, $D(X)=np(1-p)$.' }
+        ].filter((mk) => Math.abs(mk.value[1] - D) > 0.006),
+        steps: [
+          { q: 'Vypočítaj strednú hodnotu $E(X)$ (zlomok alebo desatinné číslo aspoň na 2 miesta).', answer: round(E, 4), tol: 0.006 },
+          { q: 'Vypočítaj rozptyl $D(X)$.', answer: round(D, 4), tol: 0.006 }
+        ]
       };
     }
     const res = P(0) + P(1);
@@ -2096,7 +2654,16 @@
       answer: round(res, 4), tol: 0.00006, show: dt(res, 4),
       q: `${c.txt(n)} Vypočítaj pravdepodobnosť, že $X\\le 1$. ${R4}`,
       solution: `$P(X\\le 1)=P(X=0)+P(X=1)=\\left(${qtex}\\right)^{${n}}+${n}\\cdot ${c.ptex}\\cdot\\left(${qtex}\\right)^{${n - 1}}\\approx ${dd(P(0), 4)}+${dd(P(1), 4)}\\approx ${dd(res, 4)}$.`,
-      hint: '„Najviac jeden“ znamená 0 alebo 1 úspech. Sčítaj tieto dve pravdepodobnosti.'
+      hint: '„Najviac jeden“ znamená 0 alebo 1 úspech. Sčítaj tieto dve pravdepodobnosti.',
+      mistakes: [
+        { value: round(P(1), 4), msg: '„Najviac jeden“ zahŕňa aj možnosť, že nenastane žiadny úspech. Pripočítaj $P(X=0)$.' },
+        { value: round(P(0) + p * Math.pow(q, n - 1), 4), msg: `V $P(X=1)$ chýba kombinačné číslo $\\binom{${n}}{1}=${n}$: úspech môže nastať v ktoromkoľvek pokuse.` }
+      ].filter((mk) => Math.abs(mk.value - round(res, 4)) > 0.00006),
+      steps: [
+        { q: `Vypočítaj $P(X=0)$. ${R4}`, answer: round(P(0), 4), tol: 0.00006 },
+        { q: `Vypočítaj $P(X=1)$. ${R4}`, answer: round(P(1), 4), tol: 0.00006 },
+        { q: `Vypočítaj $P(X\\le 1)$. ${R4}`, answer: round(res, 4), tol: 0.00006 }
+      ]
     };
   });
 
@@ -2262,7 +2829,15 @@
         solution: `Pri strane odstrihnutého štvorca $x$ má krabica dno $(${a}-2x)^2$ a výšku $x$: $V(x)=x(${a}-2x)^2$ pre $x\\in(0; ${a / 2})$.
           $V'(x)=(${a}-2x)^2-4x(${a}-2x)=(${a}-2x)(${a}-6x)$, v intervale je nulová len pre $x=${k}$ (tam sa mení znamienko z $+$ na $-$).
           $V(${k})=${k}\\cdot ${a - 2 * k}^2=${16 * k * k * k}\\,\\text{cm}^3$.`,
-        hint: 'Vyjadri objem ako funkciu strany odstrihnutého štvorca, zderivuj ju a nájdi stacionárny bod v prípustnom intervale.'
+        hint: 'Vyjadri objem ako funkciu strany odstrihnutého štvorca, zderivuj ju a nájdi stacionárny bod v prípustnom intervale.',
+        mistakes: askX
+          ? [{ value: a / 2, msg: `Hodnota $${a / 2}$ je síce koreňom $V'(x)$, ale nepatrí do prípustného intervalu: krabica by nemala žiadne dno.` }]
+          : [{ value: k, msg: 'To je strana odstrihnutého štvorca. Pýtame sa na objem krabice.' }],
+        steps: askX
+          ? [{ q: `Objem je $V(x)=x(${a}-2x)^2$. Rozlož deriváciu na súčin $V'(x)=(${a}-2x)(${a}-cx)$. Aké je číslo $c$?`, answer: 6 },
+            { q: `Ktorý koreň $V'(x)$ leží v intervale $(0; ${a / 2})$?`, answer: k }]
+          : [{ q: `Objem je $V(x)=x(${a}-2x)^2$. Pre ktoré $x$ z intervalu $(0; ${a / 2})$ je $V'(x)=0$?`, answer: k },
+            { q: 'Aký je najväčší objem krabice v $\\text{cm}^3$?', answer: 16 * k * k * k }]
       };
     }
     if (t === 1) {
@@ -2273,7 +2848,12 @@
           answer: round(res, 2), tol: 0.011,
           q: `Na účet sme vložili $${ths(String(K))}\\,€$ s ročnou úrokovou sadzbou $${dc(p)}\\,\\%$, úroky sa pripisujú raz ročne a ponechávajú na účte (daň neuvažujeme). Koľko eur bude na účte po ${n} rokoch? Výsledok zaokrúhli na centy.`,
           solution: `Zložené úročenie: $K_{${n}}=K_0\\left(1+\\frac{p}{100}\\right)^{${n}}=${ths(String(K))}\\cdot ${dc(f)}^{${n}}\\approx ${ths(dd(res))}\\,€$. Stav na účte tvorí geometrickú postupnosť s kvocientom $${dc(f)}$.`,
-          hint: 'Každý rok sa suma vynásobí číslom $1+\\frac{p}{100}$ — ide o geometrickú postupnosť.'
+          hint: 'Každý rok sa suma vynásobí číslom $1+\\frac{p}{100}$ — ide o geometrickú postupnosť.',
+          mistakes: [{ value: round(K * (1 + n * p / 100), 2), msg: 'Takto by to bolo pri jednoduchom úročení. Úroky ostávajú na účte a ďalší rok sa úročia tiež, suma sa každý rok násobí.' }],
+          steps: [
+            { q: 'Akým číslom sa suma na účte každý rok vynásobí?', answer: f },
+            { q: `Koľko eur bude na účte po ${n} rokoch? Výsledok zaokrúhli na centy.`, answer: round(res, 2), tol: 0.011 }
+          ]
         };
       }
       const m = pick([2, 3]);
@@ -2282,7 +2862,12 @@
         answer: n,
         q: `Vklad je úročený ročne sadzbou $${dc(p)}\\,\\%$ (zložené úročenie, bez dane). Po koľkých rokoch sa prvýkrát aspoň ${m === 2 ? 'zdvojnásobí' : 'strojnásobí'}?`,
         solution: `Hľadáme najmenšie prirodzené $n$, pre ktoré $${dc(f)}^n\\ge ${m}$. Logaritmovaním: $n\\ge\\dfrac{\\ln ${m}}{\\ln ${dc(f)}}\\approx ${dd(Math.log(m) / Math.log(f))}$, teda $n=${n}$.`,
-        hint: 'Zostav nerovnicu $\\left(1+\\frac{p}{100}\\right)^n\\ge k$ a vyrieš ju logaritmovaním. Výsledok zaokrúhli nahor.'
+        hint: 'Zostav nerovnicu $\\left(1+\\frac{p}{100}\\right)^n\\ge k$ a vyrieš ju logaritmovaním. Výsledok zaokrúhli nahor.',
+        mistakes: Math.ceil((m - 1) * 100 / p) !== n ? [{ value: Math.ceil((m - 1) * 100 / p), msg: 'Takto by to bolo pri jednoduchom úročení. Pri zloženom sa úročia aj pripísané úroky, suma sa každý rok násobí.' }] : [],
+        steps: [
+          { q: `Vypočítaj $\\dfrac{\\ln ${m}}{\\ln ${dc(f)}}$. ${ROUND2}`, answer: round(Math.log(m) / Math.log(f), 2), tol: 0.006 },
+          { q: `Po koľkých rokoch sa vklad prvýkrát aspoň ${m === 2 ? 'zdvojnásobí' : 'strojnásobí'}?`, answer: n }
+        ]
       };
     }
     if (t === 2) {
@@ -2293,7 +2878,14 @@
         solution: `Strany označíme $a-d$, $a$, $a+d$ (prepona je najdlhšia). Z obvodu $3a=${o}$, teda $a=${4 * d}$.
           Pytagorova veta: $(${4 * d}-d)^2+${4 * d}^2=(${4 * d}+d)^2 \\Rightarrow ${16 * d * d}=${16 * d}d \\Rightarrow d=${d}$.
           Strany sú $${3 * d}$, $${4 * d}$, $${5 * d}$ cm${askArea ? `, obsah $S=\\frac{${3 * d}\\cdot ${4 * d}}{2}=${6 * d * d}\\,\\text{cm}^2$` : `, prepona má $${5 * d}\\,\\text{cm}$`}.`,
-        hint: 'Strany zapíš ako $a-d$, $a$, $a+d$. Obvod dá $a$, Pytagorova veta potom diferenciu $d$.'
+        hint: 'Strany zapíš ako $a-d$, $a$, $a+d$. Obvod dá $a$, Pytagorova veta potom diferenciu $d$.',
+        mistakes: askArea ? [{ value: 12 * d * d, msg: 'Obsah pravouhlého trojuholníka je polovica súčinu odvesien.' }]
+          : [{ value: 4 * d, msg: 'To je prostredná strana. Prepona je najdlhšia strana trojuholníka.' }],
+        steps: [
+          { q: 'Strany sú $a-d$, $a$, $a+d$. Z obvodu vypočítaj $a$.', answer: 4 * d },
+          { q: 'Z Pytagorovej vety vypočítaj diferenciu $d$.', answer: d },
+          { q: askArea ? 'Vypočítaj obsah v $\\text{cm}^2$.' : 'Aká dlhá je prepona v cm?', answer: askArea ? 6 * d * d : 5 * d }
+        ]
       };
     }
     if (t === 3) {
@@ -2309,7 +2901,14 @@
         solution: `$\\vec{AB}=(${B[0] - A[0]}; ${B[1] - A[1]})$, $\\vec{AC}=(${Cp[0] - A[0]}; ${Cp[1] - A[1]})$.
           $S=\\frac{1}{2}|${B[0] - A[0]}\\cdot ${par(Cp[1] - A[1])}-${par(B[1] - A[1])}\\cdot ${par(Cp[0] - A[0])}|=\\frac{${Math.abs(det)}}{2}=${dc(S)}$.
           $|AB|=\\sqrt{${ab2}}$, z $S=\\frac{|AB|\\cdot v_c}{2}$ je $v_c=\\dfrac{2S}{|AB|}=\\dfrac{${Math.abs(det)}}{\\sqrt{${ab2}}}\\approx ${dd(vc)}$.`,
-        hint: 'Obsah vypočítaj z vektorov $\\vec{AB}$ a $\\vec{AC}$ (polovica absolútnej hodnoty determinantu), výšku potom zo vzorca $S=\\frac{c\\cdot v_c}{2}$.'
+        hint: 'Obsah vypočítaj z vektorov $\\vec{AB}$ a $\\vec{AC}$ (polovica absolútnej hodnoty determinantu), výšku potom zo vzorca $S=\\frac{c\\cdot v_c}{2}$.',
+        mistakes: [{ value: [Math.abs(det), round(2 * vc, 2)], msg: 'Determinant z vektorov $\\vec{AB}$ a $\\vec{AC}$ dáva obsah rovnobežníka. Obsah trojuholníka je jeho polovica.' }],
+        steps: [
+          { q: 'Vypočítaj determinant $(b_1-a_1)(c_2-a_2)-(b_2-a_2)(c_1-a_1)$.', answer: det, signed: true },
+          { q: 'Vypočítaj obsah $S$.', answer: S },
+          { q: 'Vypočítaj $|AB|^2$.', answer: ab2 },
+          { q: `Vypočítaj výšku $v_c$. ${ROUND2}`, answer: round(vc, 2), tol: 0.006 }
+        ]
       };
     }
     if (t === 4) {
@@ -2319,7 +2918,14 @@
         q: `V krúžku je ${b} chlapcov a ${g} ${pl(g, ['dievča', 'dievčatá', 'dievčat'])}. Na súťaž náhodne vyberieme troch členov. Aká je pravdepodobnosť, že medzi nimi bude aspoň jedno dievča? ${PROB}`,
         solution: `Všetkých trojíc je $\\binom{${n}}{3}=${all}$. Opačný jav — vyberú sa len chlapci — má $\\binom{${b}}{3}=${none}$ možností.
           $P=1-\\frac{${none}}{${all}}=\\frac{${all - none}}{${all}}=${fTex(all - none, all)}\\approx ${dd((all - none) / all, 3)}$.`,
-        hint: 'Spočítaj trojice kombináciami a využi opačný jav „samí chlapci“.'
+        hint: 'Spočítaj trojice kombináciami a využi opačný jav „samí chlapci“.',
+        mistakes: [{ value: none / all, msg: 'To je pravdepodobnosť opačného javu, že sa vyberú len chlapci. Odpočítaj ju od jednotky.' }]
+          .filter((mk) => Math.abs(mk.value - (all - none) / all) > 0.0006),
+        steps: [
+          { q: 'Koľko je všetkých trojíc?', answer: all },
+          { q: 'Koľko je trojíc, v ktorých sú len chlapci?', answer: none },
+          { q: `Aká je pravdepodobnosť, že vo výbere bude aspoň jedno dievča? ${PROB}`, answer: (all - none) / all, tol: 0.00051 }
+        ]
       };
     }
     if (t === 5) {
@@ -2328,7 +2934,13 @@
         type: 'tuple', signed: true, answer: [k, q], placeholder: 'k; q',
         q: `Napíš rovnicu dotyčnice ku grafu funkcie $f(x)=${poly([1, b, c])}$ v bode s $x$-ovou súradnicou $x_0=${x0}$ v tvare $y=kx+q$. Zadaj $k$ a $q$.`,
         solution: `$f(${x0})=${y0}$, $f'(x)=${poly([2, b])}$, $f'(${x0})=${k}$. Dotyčnica: $y=${y0}+${par(k)}(x-${par(x0)})$, teda $y=${poly([k, q])}$.`,
-        hint: 'Smernica dotyčnice je $f\'(x_0)$. Dosaď do $y=f(x_0)+f\'(x_0)(x-x_0)$ a uprav.'
+        hint: 'Smernica dotyčnice je $f\'(x_0)$. Dosaď do $y=f(x_0)+f\'(x_0)(x-x_0)$ a uprav.',
+        mistakes: y0 !== q ? [{ value: [k, y0], msg: `Číslo $f(${x0})$ nie je absolútny člen $q$. Dosaď do $y=f(x_0)+f'(x_0)(x-x_0)$ a roznásob zátvorku.` }] : [],
+        steps: [
+          { q: `Vypočítaj $f(${x0})$.`, answer: y0, signed: true },
+          { q: `Vypočítaj smernicu $k=f'(${x0})$.`, answer: k, signed: true },
+          { q: 'Vypočítaj absolútny člen $q$.', answer: q, signed: true }
+        ]
       };
     }
     const a1 = rnd(1, 10), d = rnd(2, 6), T = rnd(100, 600);

@@ -94,6 +94,7 @@
       const D = Math.abs(x - a), rel = D / Math.abs(x) * 100;
       if (Math.random() < 0.35) {
         return {
+          mistakes: [{ value: round(D / Math.abs(x), 6), msg: 'Toto je relatívna chyba (podiel chyby a hodnoty). Absolútna chyba je samotný rozdiel $|x-\\tilde{x}|$.' }],
           answer: round(D, 6), tol: 0.0000011,
           q: `Číslo $${tex}$ nahradíme aproximáciou $${at}$. Aká je absolútna chyba tejto aproximácie? ${R(6)}`,
           solution: `$${tex}\\approx ${nm(x, 8)}$, teda $\\Delta=|${tex}-${at}|\\approx ${dd(D, 6)}$.`,
@@ -101,6 +102,11 @@
         };
       }
       return {
+        mistakes: Math.abs(round(D, 3) - round(rel, 3)) > 0.0011 ? [{ value: round(D, 3), msg: 'Toto je absolútna chyba. Relatívnu dostaneš vydelením absolútnej chyby hodnotou $|x|$ (a v percentách ešte krát 100).' }] : [],
+        steps: [
+          { q: `Vypočítaj absolútnu chybu $|x-\\tilde{x}|$. ${R(6)}`, answer: round(D, 6), tol: 0.0000011, show: nt(D, 6) },
+          { q: `Aká je relatívna chyba v percentách? ${R(3)}`, answer: round(rel, 3), tol: 0.0011, show: nt(rel, 3) }
+        ],
         answer: round(rel, 3), tol: 0.0011,
         q: `Číslo $${tex}$ nahradíme aproximáciou $${at}$. Aká je relatívna chyba v percentách? ${R(3)}`,
         solution: `$${tex}\\approx ${nm(x, 8)}$, absolútna chyba $\\Delta\\approx ${nm(D, 7)}$. Relatívna chyba $\\delta=\\frac{\\Delta}{|${tex}|}\\approx\\frac{${nm(D, 7)}}{${nm(x, 6)}}\\approx ${nm(rel / 100, 7)}$, teda približne $${dd(rel, 3)}\\,\\%$.`,
@@ -112,6 +118,15 @@
       if (Math.random() < 0.5) {
         const dS = b * e + a * e;
         return {
+          mistakes: [
+            { value: round(e * e, 3), msg: 'Chyby strán sa nenásobia. Lineárny odhad je $\\Delta S\\approx b\\,\\Delta a + a\\,\\Delta b$.' },
+            { value: round(b * e, 3), msg: 'Započítal si len chybu jednej strany. K $b\\,\\Delta a$ pripočítaj aj $a\\,\\Delta b$.' }
+          ],
+          steps: [
+            { q: `Vypočítaj príspevok chyby strany $a$, teda $b\\,\\Delta a$. ${R(3)}`, answer: round(b * e, 3), tol: 0.0011, show: nt(b * e, 3) },
+            { q: `Vypočítaj príspevok chyby strany $b$, teda $a\\,\\Delta b$. ${R(3)}`, answer: round(a * e, 3), tol: 0.0011, show: nt(a * e, 3) },
+            { q: `Aká je hranica absolútnej chyby obsahu? ${R(3)}`, answer: round(dS, 3), tol: 0.0011, show: nt(dS, 3) }
+          ],
           answer: round(dS, 3), tol: 0.0011,
           q: `Strany obdĺžnika sme namerali s presnosťou $\\pm ${nm(e)}$ cm: $a=${nm(a)}$ cm a $b=${nm(b)}$ cm. Odhadni hranicu absolútnej chyby obsahu $S=ab$ (v cm²) pomocou lineárneho priblíženia. ${R(3)}`,
           solution: `$\\Delta S\\approx\\left|\\frac{\\partial S}{\\partial a}\\right|\\Delta a+\\left|\\frac{\\partial S}{\\partial b}\\right|\\Delta b=b\\,\\Delta a+a\\,\\Delta b=${nm(b)}\\cdot ${nm(e)}+${nm(a)}\\cdot ${nm(e)}=${nm(dS, 4)}$ cm².`,
@@ -121,6 +136,11 @@
       const n = pick([2, 3, 3, 4]), x = rnd(15, 90) / 10, dx = pick([0.01, 0.02, 0.05]);
       const rel = n * dx / x * 100;
       return {
+        mistakes: [{ value: round(dx / x * 100, 3), msg: `Toto je relatívna chyba samotného $x$. Pri mocnine sa relatívna chyba násobí exponentom $${n}$.` }],
+        steps: [
+          { q: `Vypočítaj relatívnu chybu $x$ v percentách. ${R(3)}`, answer: round(dx / x * 100, 3), tol: 0.0011, show: nt(dx / x * 100, 3) },
+          { q: `Aká je relatívna chyba $x^{${n}}$ v percentách? ${R(3)}`, answer: round(rel, 3), tol: 0.0011, show: nt(rel, 3) }
+        ],
         answer: round(rel, 3), tol: 0.0011,
         q: `Hodnota $x=${nm(x)}\\pm ${nm(dx)}$. Odhadni relatívnu chybu výrazu $x^{${n}}$ v percentách. ${R(3)}`,
         solution: `$\\delta x=\\frac{${nm(dx)}}{${nm(x)}}\\approx ${nm(dx / x, 6)}$. Pri mocnine sa relatívna chyba násobí exponentom: $\\delta(x^{${n}})\\approx ${n}\\,\\delta x\\approx ${nm(n * dx / x, 6)}$, teda asi $${dd(rel, 3)}\\,\\%$.`,
@@ -136,6 +156,11 @@
       for (let i = 0; i < 5; i++) s += rnd(0, 9);
       const half = 0.5 * Math.pow(10, -k);
       return {
+        mistakes: k > 0 ? [{ value: k, msg: 'Spočítal si len platné desatinné miesta. K platným cifrám patria aj cifry pred desatinnou čiarkou.' }] : [],
+        steps: [
+          { q: 'Koľko desatinných miest je platných?', answer: k, hint: 'Hľadaj najmenší rád $10^{-k}$, pre ktorý chyba nepresiahne $\\frac{1}{2}\\cdot 10^{-k}$.' },
+          { q: 'Koľko platných cifier má aproximácia celkovo?', answer: m + k }
+        ],
         answer: m + k,
         q: `Aproximácia $\\tilde{x}=${s.replace(',', '{,}')}$ má absolútnu chybu nanajvýš $${nm(eps, 6)}$. Koľko má platných cifier?`,
         solution: `Cifra na mieste $10^{-j}$ je platná, ak chyba nepresiahne $\\frac{1}{2}\\cdot 10^{-j}$. Platí $${nm(eps, 6)}\\le ${nm(half, 6)}=\\frac{1}{2}\\cdot 10^{${-k}}$${k < 4 ? `, ale $${nm(eps, 6)}&gt;${nm(half / 10, 6)}$` : ''}, preto ${k === 0 ? 'nie je platné žiadne desatinné miesto' : k === 1 ? 'je platné 1 desatinné miesto' : `sú platné ${k} desatinné miesta`}.
@@ -149,6 +174,7 @@
         const x = pick([1.01, 1.02, 1.05, 1.1, 0.9, 0.95, 2, 3, 0.5]);
         const k = 1 / Math.abs(Math.log(x));
         return {
+          mistakes: [{ value: round(k / x, 3), msg: 'Zabudol si na činiteľ $x$ v čitateli: $\\kappa = \\left|\\frac{x\\,f\'(x)}{f(x)}\\right|$, nie $\\left|\\frac{f\'(x)}{f(x)}\\right|$.' }],
           answer: round(k, 3), tol: 0.0011,
           q: `Urči číslo podmienenosti $\\kappa(x)=\\left|\\frac{x\\,f'(x)}{f(x)}\\right|$ výpočtu funkcie $f(x)=\\ln x$ v bode $x=${nm(x)}$. ${R(3)}`,
           solution: `$f'(x)=\\frac{1}{x}$, teda $\\kappa=\\left|\\frac{x\\cdot\\frac{1}{x}}{\\ln x}\\right|=\\frac{1}{|\\ln ${nm(x)}|}=\\frac{1}{${nm(Math.abs(Math.log(x)), 6)}}\\approx ${dd(k, 3)}$.
@@ -160,6 +186,7 @@
         const c = rnd(1, 5), d = pick([0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1]), x = c + d;
         const k = Math.abs(x / (x - c));
         return {
+          mistakes: [{ value: round(1 / d, 3), msg: 'Zabudol si na činiteľ $x$ v čitateli: $\\kappa = \\left|\\frac{x\\,f\'(x)}{f(x)}\\right|$.' }],
           answer: round(k, 3), tol: 0.0011,
           q: `Urči číslo podmienenosti $\\kappa(x)=\\left|\\frac{x\\,f'(x)}{f(x)}\\right|$ výpočtu $f(x)=x-${c}$ v bode $x=${nm(x)}$. ${R(3)}`,
           solution: `$f'(x)=1$, teda $\\kappa=\\left|\\frac{x}{x-${c}}\\right|=\\frac{${nm(x)}}{${nm(d)}}=${nm(k, 3)}$. Odčítanie blízkych čísel je zle podmienené.`,
@@ -169,14 +196,19 @@
       const x = pick([3, 3.1, 3.12, 3.13, 3.05, 3.2]);
       const k = Math.abs(x * Math.cos(x) / Math.sin(x));
       return {
+        mistakes: [{ value: round(Math.abs(Math.cos(x) / Math.sin(x)), 3), msg: 'Zabudol si na činiteľ $x$: $\\kappa = |x\\cot x|$, nie $|\\cot x|$.' }],
         answer: round(k, 3), tol: 0.0011,
         q: `Urči číslo podmienenosti $\\kappa(x)=\\left|\\frac{x\\,f'(x)}{f(x)}\\right|$ výpočtu $f(x)=\\sin x$ v bode $x=${nm(x)}$ (v radiánoch). ${R(3)}`,
         solution: `$\\kappa=\\left|\\frac{x\\cos x}{\\sin x}\\right|=\\left|\\frac{${nm(x)}\\cdot(${nm(Math.cos(x), 6)})}{${nm(Math.sin(x), 6)}}\\right|\\approx ${dd(k, 3)}$. Blízko $\\pi$ je sínus malý a úloha je zle podmienená.`,
         hint: 'Pre $f(x)=\\sin x$ je $\\kappa=|x\\cot x|$. Počítaj v radiánoch.'
       };
     }
-    const x = 100 * rnd(10, 500), v = 1 / (Math.sqrt(x + 1) + Math.sqrt(x));
+    const x = 100 * rnd(10, 500), v = 1 / (Math.sqrt(x + 1) + Math.sqrt(x)), sS = Math.sqrt(x + 1) + Math.sqrt(x);
     return {
+      steps: [
+        { q: `Vypočítaj menovateľ $\\sqrt{${x + 1}}+\\sqrt{${x}}$. ${R(6)}`, answer: round(sS, 6), tol: 0.0000011, show: nt(sS, 6) },
+        { q: `Vypočítaj $\\frac{1}{\\sqrt{${x + 1}}+\\sqrt{${x}}}$. ${R(7)}`, answer: round(v, 7), tol: 0.00000011, show: nt(v, 7) }
+      ],
       answer: round(v, 7), tol: 0.00000011,
       q: `Vypočítaj $\\sqrt{${x + 1}}-\\sqrt{${x}}$ numericky stabilným spôsobom (bez odčítania blízkych čísel). ${R(7)}`,
       solution: `Rozšírime výraz súčtom odmocnín: $\\sqrt{${x + 1}}-\\sqrt{${x}}=\\frac{1}{\\sqrt{${x + 1}}+\\sqrt{${x}}}\\approx\\frac{1}{${nm(Math.sqrt(x + 1), 6)}+${nm(Math.sqrt(x), 6)}}\\approx ${dd(v, 7)}$.`,
@@ -263,7 +295,17 @@
       let a;
       do { a = rnd(2, 60); } while (Number.isInteger(Math.sqrt(a)));
       const x0 = Math.ceil(Math.sqrt(a)) + rnd(0, 1), x1 = 0.5 * (x0 + a / x0);
+      const wPlus = x0 + (x0 * x0 - a) / (2 * x0), wDer = a / x0;
       return {
+        mistakes: [
+          { value: round(wPlus, 4), msg: 'Newtonov krok je $x_1 = x_0 - \\frac{f(x_0)}{f\'(x_0)}$; zlomok sa odčítava, nie pripočítava.' },
+          ...(Math.abs(round(wDer, 4) - round(x1, 4)) > 0.0001 ? [{ value: round(wDer, 4), msg: 'Derivácia $x^2 - a$ je $2x$, nie $x$.' }] : [])
+        ],
+        steps: [
+          { q: `Vypočítaj $f(x_0)$.`, answer: x0 * x0 - a, signed: true },
+          { q: `Vypočítaj $f'(x_0)$.`, answer: 2 * x0 },
+          { q: `Vypočítaj $x_1$. ${R(4)}`, answer: round(x1, 4), tol: 0.0001, show: nt(x1, 4) }
+        ],
         answer: round(x1, 4), tol: 0.0001,
         q: `Newtonovou metódou hľadáme $\\sqrt{${a}}$ ako koreň funkcie $f(x)=x^2-${a}$. Vypočítaj $x_1$ zo štartu $x_0=${x0}$. ${R(4)}`,
         solution: `$f'(x)=2x$, teda $x_1=x_0-\\frac{x_0^2-${a}}{2x_0}=${x0}-\\frac{${x0 * x0 - a}}{${2 * x0}}\\approx ${dd(x1, 4)}$. (Presne $\\sqrt{${a}}\\approx ${nm(Math.sqrt(a), 6)}$.)`,
@@ -274,6 +316,12 @@
       const pp = rnd(1, 6), q = rnd(2, 25), x0 = rnd(1, 3);
       const f = x0 ** 3 + pp * x0 - q, d = 3 * x0 * x0 + pp, x1 = x0 - f / d;
       return {
+        mistakes: f !== 0 ? [{ value: round(x0 + f / d, 4), msg: 'Newtonov krok je $x_1 = x_0 - \\frac{f(x_0)}{f\'(x_0)}$; zlomok sa odčítava, nie pripočítava.' }] : [],
+        steps: [
+          { q: 'Vypočítaj $f(x_0)$.', answer: f, signed: true },
+          { q: "Vypočítaj $f'(x_0)$.", answer: d },
+          { q: `Vypočítaj $x_1$. ${R(4)}`, answer: round(x1, 4), tol: 0.0001, show: nt(x1, 4), signed: x1 < 0 }
+        ],
         signed: x1 < 0,
         answer: round(x1, 4), tol: 0.0001,
         q: `Urob jeden krok Newtonovej metódy pre rovnicu $x^3${tm(pp, 'x')}-${q}=0$ so štartom $x_0=${x0}$. ${R(4)}`,
@@ -285,13 +333,23 @@
       let a, m;
       do { a = rnd(3, 90); m = Math.floor(Math.sqrt(a)); } while (m * m === a);
       let lo = m, hi = m + 1;
-      const rows = [];
+      const rows = [], after = [];
       for (let i = 0; i < 2; i++) {
         const c = (lo + hi) / 2, fc = c * c - a;
         rows.push(`$f(${nm(c)})=${nm(fc, 4)}${fc > 0 ? '&gt;' : '&lt;'}0$ → $[${nm(fc > 0 ? lo : c)};\\ ${nm(fc > 0 ? c : hi)}]$`);
         if (fc > 0) hi = c; else lo = c;
+        after.push([lo, hi]);
       }
+      // typická chyba: ponechaná polovica, na ktorej koncoch má f rovnaké znamienko
+      let wl = m, wh = m + 1;
+      for (let i = 0; i < 2; i++) { const c = (wl + wh) / 2; if (c * c - a > 0) wl = c; else wh = c; }
       return {
+        mistakes: [{ value: [wl, wh], msg: 'Ponechal si nesprávnu polovicu. Koreň je v tej polovici, na ktorej koncoch má $f$ opačné znamienka.' }],
+        steps: [
+          { q: `Vypočítaj $f$ v strede intervalu, teda $f(${nm(m + 0.5)})$. ${R(4)}`, answer: round((m + 0.5) ** 2 - a, 4), tol: 0.0001, show: nt((m + 0.5) ** 2 - a, 4), signed: true },
+          { q: 'Aký interval dostaneš po prvom kroku? (krajné body oddeľ bodkočiarkou)', type: 'tuple', answer: after[0], tol: 1e-9, show: after[0].map((v) => nt(v)).join('; ') },
+          { q: 'Aký interval dostaneš po druhom kroku?', type: 'tuple', answer: after[1], tol: 1e-9, show: after[1].map((v) => nt(v)).join('; ') }
+        ],
         type: 'tuple', answer: [lo, hi], tol: 1e-9,
         q: `Rovnica $x^2-${a}=0$ má koreň v intervale $[${m};\\ ${m + 1}]$. Urob dva kroky metódy bisekcie a zadaj výsledný interval ako dvojicu krajných bodov oddelených bodkočiarkou (napr. 1,25; 1,5).`,
         solution: `$f(${m})=${m * m - a}&lt;0$, $f(${m + 1})=${(m + 1) ** 2 - a}&gt;0$. ${rows.join(', ')}. Výsledný interval je $[${nm(lo)};\\ ${nm(hi)}]$.`,
@@ -302,7 +360,13 @@
       const L = pick([1, 2, 3, 4, 0.5]), k = rnd(2, 6), eps = pick([1, 5]) * Math.pow(10, -k);
       let n = 0;
       while (L / Math.pow(2, n) > eps) n++;
+      const n10 = Math.ceil(Math.log10(L / eps) - 1e-9);
       return {
+        mistakes: n10 !== n && Math.abs(n10 - n) !== 1 ? [{ value: n10, msg: 'Každý krok bisekcie interval len rozpolí, preto treba logaritmus so základom 2, nie 10.' }] : [],
+        steps: [
+          { q: 'Koľkokrát treba interval zmenšiť, teda koľko je $\\frac{b-a}{\\varepsilon}$?', answer: L / eps, tol: 0.01, show: nt(L / eps, 2) },
+          { q: 'Koľko najmenej krokov bisekcie treba?', answer: n, hint: 'Hľadaj najmenšie $n$ s $2^n$ aspoň takým veľkým.' }
+        ],
         answer: n,
         q: `Koreň leží v intervale dĺžky $${nm(L)}$. Koľko najmenej krokov bisekcie treba, aby mal výsledný interval dĺžku nanajvýš $${nm(eps, 8)}$?`,
         solution: `Po $n$ krokoch má interval dĺžku $\\frac{${nm(L)}}{2^n}$. Treba $2^n\\ge\\frac{${nm(L)}}{${nm(eps, 8)}}=${nm(L / eps, 2)}$, teda $n\\ge\\log_2 ${nm(L / eps, 2)}\\approx ${nm(Math.log2(L / eps), 3)}$. Najmenšie celé je $n=${n}$.`,
@@ -318,7 +382,16 @@
         { tex: '\\frac{1}{1+x}', g: (x) => 1 / (1 + x), eq: 'x=\\frac{1}{1+x}', x0: pick([0, 0.5, 1]) }
       ]);
       const x1 = G.g(G.x0), x2 = G.g(x1);
+      const D2R = Math.PI / 180, xd = G.tex === '\\cos x' ? Math.cos(Math.cos(G.x0 * D2R) * D2R) : NaN;
       return {
+        mistakes: [
+          ...(Math.abs(round(x1, 4) - round(x2, 4)) > 0.0001 ? [{ value: round(x1, 4), msg: 'Toto je až $x_1$. Výsledok ešte raz dosaď do $g$.' }] : []),
+          ...(Number.isFinite(xd) ? [{ value: round(xd, 4), msg: 'Kalkulačka je v stupňoch. Goniometrické funkcie v numerických metódach počítame v radiánoch.' }] : [])
+        ],
+        steps: [
+          { q: `Vypočítaj $x_1 = g(x_0)$. ${R(4)}`, answer: round(x1, 4), tol: 0.0001, show: nt(x1, 4) },
+          { q: `Vypočítaj $x_2 = g(x_1)$. ${R(4)}`, answer: round(x2, 4), tol: 0.0001, show: nt(x2, 4) }
+        ],
         answer: round(x2, 4), tol: 0.0001,
         q: `Rovnicu riešime metódou prostej iterácie $x_{k+1}=g(x_k)$ s $g(x)=${G.tex}$ (rovnica $${G.eq}$) a štartom $x_0=${nm(G.x0)}$. Vypočítaj $x_2$. ${R(4)}`,
         solution: `$x_1=g(${nm(G.x0)})\\approx ${nm(x1, 6)}$, $x_2=g(x_1)\\approx ${nm(x2, 6)}\\approx ${dd(x2, 4)}$. (Počítame v radiánoch a medzivýsledky nezaokrúhľujeme.)`,
@@ -330,6 +403,12 @@
     const x0 = m, x1 = m + 1, f0 = x0 * x0 - a, f1 = x1 * x1 - a;
     const x2 = x1 - f1 * (x1 - x0) / (f1 - f0);
     return {
+      mistakes: [{ value: round(x1 + f1 * (x1 - x0) / (f1 - f0), 4), msg: 'Vo vzorci sečníc sa korekcia $f(x_1)\\frac{x_1-x_0}{f(x_1)-f(x_0)}$ od $x_1$ odčítava.' }],
+      steps: [
+        { q: 'Vypočítaj $f(x_0)$.', answer: f0, signed: true },
+        { q: 'Vypočítaj $f(x_1)$.', answer: f1, signed: true },
+        { q: `Vypočítaj $x_2$. ${R(4)}`, answer: round(x2, 4), tol: 0.0001, show: nt(x2, 4) }
+      ],
       answer: round(x2, 4), tol: 0.0001,
       q: `Urob jeden krok metódy sečníc pre $f(x)=x^2-${a}$ s počiatočnými bodmi $x_0=${x0}$ a $x_1=${x1}$. ${R(4)}`,
       solution: `$f(x_0)=${f0}$, $f(x_1)=${f1}$. $x_2=x_1-f(x_1)\\frac{x_1-x_0}{f(x_1)-f(x_0)}=${x1}-${par(f1)}\\cdot\\frac{1}{${f1 - f0}}\\approx ${dd(x2, 4)}$. (Presne $\\sqrt{${a}}\\approx ${nm(Math.sqrt(a), 6)}$.)`,
@@ -391,7 +470,13 @@
         const xs = pick(cand);
         const L = X.map((xi, i) => X.reduce((pr, xj, j) => (j === i ? pr : pr * (xs - xj) / (xi - xj)), 1));
         const val = sum(L.map((l, i) => l * Y[i]));
+        const i0 = xs < x1 ? 0 : 1, lin = Y[i0] + (Y[i0 + 1] - Y[i0]) / (X[i0 + 1] - X[i0]) * (xs - X[i0]);
         return {
+          mistakes: Math.abs(round(lin, 3) - round(val, 3)) > 0.001 ? [{ value: round(lin, 3), msg: 'Toto je lineárna interpolácia len zo susedných dvoch uzlov. Polynóm 2. stupňa využíva všetky tri body.' }] : [],
+          steps: [
+            ...L.map((l, i) => ({ q: `Vypočítaj $\\ell_${i}(${nm(xs)})$. ${R(4)}`, answer: round(l, 4), tol: 0.0001, show: nt(l, 4), signed: true })),
+            { q: `Vypočítaj $P(${nm(xs)})$. ${R(3)}`, answer: round(val, 3), tol: 0.001, show: nt(val, 3), signed: true }
+          ],
           signed: true,
           answer: round(val, 3), tol: 0.001,
           q: `Interpolačný polynóm 2. stupňa prechádza bodmi ${pts}. Vypočítaj jeho hodnotu v bode $x=${nm(xs)}$. ${R(3)}`,
@@ -401,7 +486,17 @@
         };
       }
       const d01 = (Y[1] - Y[0]) / (x1 - x0), d12 = (Y[2] - Y[1]) / (x2 - x1), d012 = (d12 - d01) / (x2 - x0);
+      const wr = (d12 - d01) / (x2 - x1);
       return {
+        mistakes: [
+          ...(Math.abs(round(d12 - d01, 4) - round(d012, 4)) > 0.0001 ? [{ value: round(d12 - d01, 4), msg: 'Rozdiel diferencií prvého rádu treba ešte vydeliť rozdielom krajných uzlov $x_2 - x_0$.' }] : []),
+          ...(Math.abs(round(wr, 4) - round(d012, 4)) > 0.0001 && Math.abs(round(wr, 4) - round(d12 - d01, 4)) > 0.0001 ? [{ value: round(wr, 4), msg: 'Pri diferencii druhého rádu sa delí rozdielom krajných uzlov $x_2 - x_0$, nie $x_2 - x_1$.' }] : [])
+        ],
+        steps: [
+          { q: `Vypočítaj $f[x_0, x_1]$. ${R(4)}`, answer: round(d01, 4), tol: 0.0001, show: nt(d01, 4), signed: true },
+          { q: `Vypočítaj $f[x_1, x_2]$. ${R(4)}`, answer: round(d12, 4), tol: 0.0001, show: nt(d12, 4), signed: true },
+          { q: `Vypočítaj $f[x_0, x_1, x_2]$. ${R(4)}`, answer: round(d012, 4), tol: 0.0001, show: nt(d012, 4), signed: true }
+        ],
         signed: true,
         answer: round(d012, 4), tol: 0.0001,
         q: `Pre body ${pts} vypočítaj pomernú diferenciu druhého rádu $f[x_0, x_1, x_2]$ (koeficient pri $(x-x_0)(x-x_1)$ v Newtonovom tvare). ${R(4)}`,
@@ -418,7 +513,17 @@
       const Sx = sum(X), Sy = sum(Y), Sxx = sum(X.map((x) => x * x)), Sxy = sum(X.map((x, i) => x * Y[i]));
       const a = (n * Sxy - Sx * Sy) / (n * Sxx - Sx * Sx), b = (Sy - a * Sx) / n;
       const askA = Math.random() < 0.55, ans = askA ? a : b;
+      const wv = askA ? Sxy / Sxx : Sy / n;
       return {
+        mistakes: Math.abs(round(wv, 3) - round(ans, 3)) > 0.001 ? [{ value: round(wv, 3), msg: askA
+          ? 'Vzorec $\\frac{\\sum x_iy_i}{\\sum x_i^2}$ platí len pre priamku cez začiatok ($b = 0$). Použi obe normálne rovnice.'
+          : 'Toto je priemer $\\bar{y}$. Absolútny člen je $b = \\frac{\\sum y_i - a\\sum x_i}{n}$, teda treba odčítať aj $a\\bar{x}$.' }] : [],
+        steps: [
+          { q: 'Vypočítaj $\\sum x_i$ a $\\sum y_i$ (oddelené bodkočiarkou).', type: 'tuple', answer: [Sx, Sy], signed: true, show: `${Sx}; ${Sy}` },
+          { q: 'Vypočítaj $\\sum x_i^2$ a $\\sum x_iy_i$ (oddelené bodkočiarkou).', type: 'tuple', answer: [Sxx, Sxy], signed: true, show: `${Sxx}; ${Sxy}` },
+          { q: `Vypočítaj smernicu $a$. ${R(3)}`, answer: round(a, 3), tol: 0.001, show: nt(a, 3), signed: true },
+          ...(askA ? [] : [{ q: `Vypočítaj absolútny člen $b$. ${R(3)}`, answer: round(b, 3), tol: 0.001, show: nt(b, 3), signed: true }])
+        ],
         signed: true,
         answer: round(ans, 3), tol: 0.001,
         q: `Metódou najmenších štvorcov prelož priamku $y=ax+b$ bodmi ${X.map((x, i) => `$[${x};\\ ${Y[i]}]$`).join(', ')}. Urči ${askA ? 'smernicu $a$' : 'absolútny člen $b$'}. ${R(3)}`,
@@ -435,8 +540,17 @@
       ]);
       const h = pick([0.1, 0.2]), x0 = rnd(1, 9) / 10, x1 = round(x0 + h, 2);
       const off = pick([0.25, 0.5, 0.3, 0.4]) * h, x = round(x0 + off, 3);
-      const M = F.M(x1), w = Math.abs((x - x0) * (x - x1)), bound = M / 2 * w;
+      const M = F.M(x1), w = Math.abs((x - x0) * (x - x1)), bound = M / 2 * w, glob = M * h * h / 8;
       return {
+        mistakes: [
+          { value: round(M * w, 6), msg: 'Vo vzorci je ešte delenie dvoma: $\\frac{M_2}{2!}$.' },
+          ...(Math.abs(round(glob, 6) - round(bound, 6)) > 0.0000011 ? [{ value: round(glob, 6), msg: 'Toto je odhad $\\frac{M_2h^2}{8}$ pre najhorší bod intervalu. Úloha sa pýta na konkrétny bod $x$.' }] : [])
+        ],
+        steps: [
+          { q: `Urči $M_2 = \\max|f''|$ na intervale. ${R(6)}`, answer: round(M, 6), tol: 0.0000011, show: nt(M, 6) },
+          { q: `Vypočítaj $|(x-x_0)(x-x_1)|$. ${R(6)}`, answer: round(w, 6), tol: 0.0000011, show: nt(w, 6) },
+          { q: `Vypočítaj odhad chyby. ${R(6)}`, answer: round(bound, 6), tol: 0.0000011, show: nt(bound, 6) }
+        ],
         answer: round(bound, 6), tol: 0.0000011,
         q: `Funkciu $f(x)=${F.tex}$ nahradíme na intervale $[${nm(x0)};\\ ${nm(x1)}]$ lineárnou interpoláciou. Odhadni zhora chybu interpolácie v bode $x=${nm(x)}$ pomocou vzorca $\\frac{M_2}{2}|(x-x_0)(x-x_1)|$. ${R(6)}`,
         solution: `${F.Mt ? `$${F.Mt}$, teda $M_2=1$.` : `$f''(x)=e^{x}$ je rastúca, preto $M_2=e^{${nm(x1)}}\\approx ${nm(M, 6)}$.`}
@@ -451,7 +565,13 @@
     ]);
     const x0 = pick(F.xs), h = pick([1, 0.5]), x1 = x0 + h, x = x0 + h * pick([0.2, 0.3, 0.4, 0.6, 0.75]);
     const y0 = round(F.f(x0), 4), y1 = round(F.f(x1), 4), P = y0 + (y1 - y0) / (x1 - x0) * (x - x0);
+    const wP = y0 + (y1 - y0) * (x - x0);
     return {
+      mistakes: Math.abs(round(wP, 4) - round(P, 4)) > 0.00011 ? [{ value: round(wP, 4), msg: `Rozdiel hodnôt $y_1 - y_0$ treba vydeliť dĺžkou kroku $x_1 - x_0 = ${nm(h)}$, až potom násobiť $(x - x_0)$.` }] : [],
+      steps: [
+        { q: `Vypočítaj smernicu $\\frac{y_1-y_0}{x_1-x_0}$. ${R(4)}`, answer: round((y1 - y0) / h, 4), tol: 0.00011, show: nt((y1 - y0) / h, 4), signed: true },
+        { q: `Vypočítaj $P_1(${nm(x)})$. ${R(4)}`, answer: round(P, 4), tol: 0.00011, show: nt(P, 4) }
+      ],
       answer: round(P, 4), tol: 0.00011,
       q: `Z tabuľky poznáme $${F.tex.replace(/x/g, nm(x0))}\\approx ${dd(y0, 4)}$ a $${F.tex.replace(/x/g, nm(x1))}\\approx ${dd(y1, 4)}$. Lineárnou interpoláciou odhadni hodnotu funkcie $${F.tex}$ v bode $x=${nm(x)}$. ${R(4)}`,
       solution: `$P_1(x)=y_0+\\frac{y_1-y_0}{x_1-x_0}(x-x_0)=${dd(y0, 4)}+\\frac{${dd(y1 - y0, 4)}}{${nm(h)}}\\cdot ${nm(x - x0, 4)}\\approx ${dd(P, 4)}$. (Presná hodnota je $${nm(F.f(x), 6)}$.)`,
@@ -548,7 +668,20 @@
       const central = Math.random() < 0.5;
       const v = central ? (F.f(x + h) - F.f(x - h)) / (2 * h) : (F.f(x + h) - F.f(x)) / h;
       const ex = F.d(x);
+      const xl = central ? x - h : x, fl = F.f(xl), fr = F.f(x + h);
+      const mis = [];
+      if (central) mis.push({ value: round(2 * v, 4), msg: 'Pri centrálnej diferencii je vzdialenosť bodov $x-h$ a $x+h$ rovná $2h$; rozdiel hodnôt treba deliť $2h$, nie $h$.' });
+      if (F.tex === '\\sin x' && x !== 0) {
+        const D = Math.PI / 180, vd = central ? (Math.sin((x + h) * D) - Math.sin((x - h) * D)) / (2 * h) : (Math.sin((x + h) * D) - Math.sin(x * D)) / h;
+        if (Math.abs(round(vd, 4) - round(v, 4)) > 0.0001) mis.push({ value: round(vd, 4), msg: 'Kalkulačka je v stupňoch. Pri derivovaní goniometrických funkcií počítame v radiánoch.' });
+      }
       return {
+        mistakes: mis,
+        steps: [
+          { q: `Vypočítaj $f(${nm(x + h)})$. ${R(6)}`, answer: round(fr, 6), tol: 0.0000011, show: nt(fr, 6), signed: fr < 0 },
+          { q: `Vypočítaj $f(${nm(xl)})$. ${R(6)}`, answer: round(fl, 6), tol: 0.0000011, show: nt(fl, 6), signed: fl < 0 },
+          { q: `Dosaď do vzorca ${central ? 'centrálnej' : 'doprednej'} diferencie. ${R(4)}`, answer: round(v, 4), tol: 0.0001, show: nt(v, 4), signed: v < 0 }
+        ],
         signed: v < 0,
         answer: round(v, 4), tol: 0.0001,
         q: `Odhadni deriváciu funkcie $f(x)=${F.tex}$ v bode $x=${nm(x)}$ ${central ? 'centrálnou' : 'doprednou'} diferenciou s krokom $h=${nm(h)}$. ${R(4)}`,
@@ -582,7 +715,26 @@
         hint = 'Obdĺžniková metóda: $M_n=h\\sum f(\\text{stred dielika})$, $h=\\frac{b-a}{n}$.';
       }
       const exact = F.F(a, b);
+      const mis = [], st = [{ q: 'Aký je krok $h$?', answer: h, tol: 1e-9, show: nt(h) }];
+      const add = (wv, msg) => { if (Math.abs(round(wv, 4) - round(val, 4)) > 0.0001) mis.push({ value: round(wv, 4), msg }); };
+      const inner = sum(fs.slice(1, n));
+      if (kind === 'T') {
+        add(h * sum(fs), 'Krajné hodnoty $f_0$ a $f_n$ majú v lichobežníkovej metóde váhu $\\frac{h}{2}$, vnútorné $h$. Krajné body treba započítať len polovične.');
+        st.push({ q: `Vypočítaj súčet vnútorných hodnôt ${n === 2 ? '(tu len $f_1$)' : `$f_1 + \\dots + f_{${n - 1}}$`}. ${R(4)}`, answer: round(inner, 4), tol: 0.0003, show: nt(inner, 4) });
+      } else if (kind === 'S') {
+        add(h / 3 * (fs[0] + fs[n] + sum(fs.slice(1, n).map((v, i) => (i % 2 === 0 ? 2 : 4) * v))), 'Zamenil si váhy: v Simpsonovej metóde majú nepárne uzly $f_1, f_3, \\dots$ váhu 4 a párne vnútorné uzly váhu 2.');
+        add(h / 2 * (fs[0] + fs[n] + 2 * inner), 'Toto je lichobežníková metóda. Simpsonova metóda používa váhy $1, 4, 2, 4, \\dots, 4, 1$ a násobí $\\frac{h}{3}$.');
+        const odd = sum(fs.filter((_, i) => i % 2 === 1));
+        st.push({ q: `Vypočítaj súčet hodnôt v nepárnych uzloch $f_1${n > 2 ? ' + f_3' : ''}$ (váha 4). ${R(4)}`, answer: round(odd, 4), tol: 0.0003, show: nt(odd, 4) });
+      } else {
+        add(h * sum(fs.slice(0, n)), 'Stredová metóda berie hodnoty v stredoch dielikov, nie v ich ľavých koncoch.');
+        const fmS = sum(Array.from({ length: n }, (_, i) => F.f(a + (i + 0.5) * h)));
+        st.push({ q: `Vypočítaj súčet hodnôt funkcie v stredoch dielikov. ${R(4)}`, answer: round(fmS, 4), tol: 0.0003, show: nt(fmS, 4) });
+      }
+      st.push({ q: `Vypočítaj výslednú hodnotu integrálu. ${R(4)}`, answer: round(val, 4), tol: 0.0001, show: nt(val, 4) });
       return {
+        mistakes: mis,
+        steps: st,
         answer: round(val, 4), tol: 0.0001,
         q: `Vypočítaj $\\displaystyle\\int_{${a}}^{${b}} ${F.tex}\\,dx$ ${name} s $n=${n}$ dielikmi. ${R(4)}`,
         solution: `$h=\\frac{${b}-${a}}{${n}}=${nm(h)}$, ${kind === 'M' ? '' : `uzly ${xs.map((x) => `$${nm(x, 4)}$`).join(', ')}. `}${sol}. Presná hodnota je $${nm(exact, 6)}$, chyba asi $${nm(Math.abs(val - exact), 6)}$.`,
@@ -595,6 +747,11 @@
     ]);
     const k = pick([2, 2, 3, 4]), r = Math.pow(k, M[1]);
     return {
+      mistakes: [
+        ...(M[1] > 1 ? [{ value: k, msg: `Chyba nie je úmerná samotnému $h$, ale $h^{p}$, kde $p$ je rád presnosti metódy.` }] : []),
+        ...(M[1] === 4 ? [{ value: k * k, msg: 'Simpsonova metóda má rád presnosti 4, nie 2 ako lichobežníková.' }] : []),
+        ...(M[1] === 2 && k * M[1] !== r ? [{ value: k * M[1], msg: 'Chyba je úmerná $h^{p}$, preto sa zmenší $k^{p}$-krát, nie $k\\cdot p$-krát.' }] : [])
+      ],
       answer: r,
       q: `Krok $h$ zmenšíme ${k === 2 ? 'na polovicu' : k + '-krát'}. Približne koľkokrát sa zmenší chyba ${M[0]} (pre hladkú funkciu)?`,
       solution: `Chyba ${M[0]} je úmerná $h^{${M[1]}}$ (rád presnosti ${M[1]}). Pri kroku $\\frac{h}{${k}}$ sa zmenší $${k}^{${M[1]}}=${r}$-krát.`,
@@ -682,7 +839,18 @@
     if (t < 0.38) {
       const h = pick([0.1, 0.2, 0.25, 0.5].filter((v) => E.tex !== '1+y^2' || v <= 0.2));
       const k1 = f(0, y0), y1 = y0 + h * k1, k2 = f(h, y1), y2 = y1 + h * k2;
+      const w2h = y0 + 2 * h * k1;
       return {
+        mistakes: [
+          ...(Math.abs(round(w2h, 4) - round(y2, 4)) > 0.0001 ? [{ value: round(w2h, 4), msg: 'Smernicu treba v druhom kroku prepočítať v novom bode $(x_1, y_1)$; nestačí urobiť jeden krok dĺžky $2h$ so smernicou zo začiatku.' }] : []),
+          ...(Math.abs(round(y1, 4) - round(y2, 4)) > 0.0001 ? [{ value: round(y1, 4), msg: 'Toto je až $y_1$. Urob ešte druhý krok.' }] : [])
+        ],
+        steps: [
+          { q: `Vypočítaj $f(x_0, y_0)$. ${R(4)}`, answer: round(k1, 4), tol: 0.0001, show: nt(k1, 4), signed: k1 < 0 },
+          { q: `Vypočítaj $y_1$. ${R(4)}`, answer: round(y1, 4), tol: 0.0001, show: nt(y1, 4), signed: y1 < 0 },
+          { q: `Vypočítaj $f(x_1, y_1)$. ${R(4)}`, answer: round(k2, 4), tol: 0.0002, show: nt(k2, 4), signed: k2 < 0 },
+          { q: `Vypočítaj $y_2$. ${R(4)}`, answer: round(y2, 4), tol: 0.0001, show: nt(y2, 4), signed: y2 < 0 }
+        ],
         signed: y2 < 0,
         answer: round(y2, 4), tol: 0.0001,
         q: `Úlohu ${ic} rieš Eulerovou metódou s krokom $h=${nm(h)}$. Vypočítaj $y_2\\approx y(${nm(2 * h)})$. ${R(4)}`,
@@ -695,6 +863,16 @@
       const h = pick([0.1, 0.2, 0.25, 0.5].filter((v) => E.tex !== '1+y^2' || v <= 0.2));
       const k1 = f(0, y0), yp = y0 + h * k1, k2 = f(h, yp), y1 = y0 + h / 2 * (k1 + k2);
       return {
+        mistakes: [
+          ...(Math.abs(round(yp, 4) - round(y1, 4)) > 0.0001 ? [{ value: round(yp, 4), msg: 'Toto je len Eulerov prediktor $\\tilde{y}_1$. Heunova metóda ho ešte opraví priemerom dvoch smerníc.' }] : []),
+          ...(Math.abs(round(y0 + h * (k1 + k2), 4) - round(y1, 4)) > 0.0001 ? [{ value: round(y0 + h * (k1 + k2), 4), msg: 'Smernice sa priemerujú: násobí sa $\\frac{h}{2}$, nie $h$.' }] : [])
+        ],
+        steps: [
+          { q: `Vypočítaj $f(x_0, y_0)$. ${R(4)}`, answer: round(k1, 4), tol: 0.0001, show: nt(k1, 4), signed: k1 < 0 },
+          { q: `Vypočítaj prediktor $\\tilde{y}_1$. ${R(4)}`, answer: round(yp, 4), tol: 0.0001, show: nt(yp, 4), signed: yp < 0 },
+          { q: `Vypočítaj $f(x_1, \\tilde{y}_1)$. ${R(4)}`, answer: round(k2, 4), tol: 0.0002, show: nt(k2, 4), signed: k2 < 0 },
+          { q: `Vypočítaj $y_1$. ${R(4)}`, answer: round(y1, 4), tol: 0.0001, show: nt(y1, 4), signed: y1 < 0 }
+        ],
         signed: y1 < 0,
         answer: round(y1, 4), tol: 0.0001,
         q: `Úlohu ${ic} rieš Heunovou (zlepšenou Eulerovou) metódou s krokom $h=${nm(h)}$. Vypočítaj $y_1\\approx y(${nm(h)})$. ${R(4)}`,
@@ -707,7 +885,12 @@
       const h = pick([0.1, 0.2]);
       const k1 = f(0, y0), k2 = f(h / 2, y0 + h / 2 * k1), k3 = f(h / 2, y0 + h / 2 * k2), k4 = f(h, y0 + h * k3);
       const y1 = y0 + h / 6 * (k1 + 2 * k2 + 2 * k3 + k4);
+      const yq = y0 + h / 4 * (k1 + k2 + k3 + k4);
+      const kst = (k, i) => ({ q: `Vypočítaj $k_${i}$. ${R(6)}`, answer: round(k, 6), tol: 0.000003, show: nt(k, 6), signed: k < 0 });
       return {
+        mistakes: Math.abs(round(yq, 5) - round(y1, 5)) > 0.00001 ? [{ value: round(yq, 5), msg: 'Smernice $k_2$ a $k_3$ majú v RK4 dvojnásobnú váhu: $y_1 = y_0 + \\frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)$.' }] : [],
+        steps: [kst(k1, 1), kst(k2, 2), kst(k3, 3), kst(k4, 4),
+          { q: `Vypočítaj $y_1$. ${R(5)}`, answer: round(y1, 5), tol: 0.00001, show: nt(y1, 5), signed: y1 < 0 }],
         signed: y1 < 0,
         answer: round(y1, 5), tol: 0.00001,
         q: `Urob jeden krok Rungeho–Kuttovej metódy 4. rádu s krokom $h=${nm(h)}$ pre úlohu ${ic}. ${R(5)}`,
@@ -723,6 +906,7 @@
     ]);
     const e = pick(M[2]), k = pick(M[3]), r = e / Math.pow(k, M[1]);
     return {
+      mistakes: M[1] > 1 ? [{ value: round(e / k, 6), msg: `Chyba sa nezmenšuje úmerne kroku: metóda má rád ${M[1]}, takže chyba je úmerná $h^{${M[1]}}$.` }] : [],
       answer: round(r, 6), tol: 0.0000011,
       q: `Riešenie istej úlohy ${M[0]} s krokom $h$ má v koncovom bode globálnu chybu približne $${nm(e, 6)}$. Akú chybu môžeme očakávať pri kroku $\\frac{h}{${k}}$? ${R(6)}`,
       solution: `Metóda má rád ${M[1]}, globálna chyba je približne $Ch^{${M[1]}}$. Pri kroku $\\frac{h}{${k}}$ sa zmenší $${k}^{${M[1]}}=${Math.pow(k, M[1])}$-krát: $\\frac{${nm(e, 6)}}{${Math.pow(k, M[1])}}=${nm(r, 6)}$.`,
@@ -807,11 +991,24 @@
         return v;
       });
       const ans = nx.map((v) => round(v, 4));
+      // výsledok druhej metódy (typická zámena Jacobi ↔ Gauss–Seidel)
+      const ox = [...x0], other = [0, 1, 2].map((i) => {
+        const src = gs ? x0 : ox;
+        const v = (b[i] - sum([0, 1, 2].filter((j) => j !== i).map((j) => A[i][j] * src[j]))) / A[i][i];
+        if (!gs) ox[i] = v;
+        return round(v, 4);
+      });
+      const diff = other.some((v, i) => Math.abs(v - ans[i]) > 0.00011);
+      const mistakes = diff ? [{ value: other, msg: gs
+        ? 'Toto je Jacobiho krok. Pri Gaussovej–Seidelovej metóde dosadzuj do ďalších rovníc hneď nové hodnoty $x_1^{(1)}, x_2^{(1)}$.'
+        : 'Pri Jacobiho metóde sa do všetkých rovníc dosadzujú len hodnoty zo štartu $x^{(0)}$, nie práve prepočítané zložky.' }] : [];
+      const steps = [0, 1, 2].map((i) => ({ q: `Vypočítaj $x_${i + 1}^{(1)}$. ${R(4)}`, answer: ans[i], tol: 0.00011, show: nt(ans[i], 4), signed: ans[i] < 0 }));
       const rows = [0, 1, 2].map((i) => `$x_${i + 1}^{(1)}=\\frac{${b[i]}${[0, 1, 2].filter((j) => j !== i && A[i][j] !== 0).map((j) => {
         const val = gs && j < i ? nx[j] : x0[j];
         return `${A[i][j] > 0 ? '-' : '+'}${Math.abs(A[i][j])}\\cdot ${pn(val, 4)}`;
       }).join('')}}{${A[i][i]}}\\approx ${dd(nx[i], 4)}$`);
       return {
+        mistakes, steps,
         type: 'tuple', answer: ans, tol: 0.00011,
         q: `Sústavu ${sysTex(A, b)} rieš ${gs ? 'Gaussovou–Seidelovou' : 'Jacobiho'} metódou zo štartu $x^{(0)}=${vec(x0)}$. Vypočítaj prvú iteráciu $x^{(1)}$ a zadaj jej tri zložky oddelené bodkočiarkou, každú zaokrúhlenú na 4 desatinné miesta.`,
         solution: `${rows.join(', ')}.${gs ? ' Pri Gaussovej–Seidelovej metóde sme v druhej a tretej rovnici použili už nové hodnoty.' : ' Pri Jacobiho metóde dosadzujeme všade hodnoty zo štartu.'}`,
@@ -829,7 +1026,27 @@
       const Q = pick([
         ['l_{21}', L[1][0]], ['l_{31}', L[2][0]], ['l_{32}', L[2][1]], ['u_{22}', U[1][1]], ['u_{23}', U[1][2]], ['u_{33}', U[2][2]], ['\\det A', U[0][0] * U[1][1] * U[2][2]]
       ]);
+      const u32 = A[2][1] - L[2][0] * U[0][1];
+      const MIS = {
+        'l_{21}': U[0][0] !== 1 ? [{ value: A[1][0], msg: 'Multiplikátor je podiel $l_{21} = \\frac{a_{21}}{a_{11}}$; prvok treba vydeliť pivotom.' }] : [],
+        'l_{31}': U[0][0] !== 1 ? [{ value: A[2][0], msg: 'Multiplikátor je podiel $l_{31} = \\frac{a_{31}}{a_{11}}$; prvok treba vydeliť pivotom.' }] : [],
+        'l_{32}': A[2][1] !== u32 && A[2][1] / U[1][1] !== L[2][1] ? [{ value: A[2][1] / U[1][1], msg: 'Multiplikátor $l_{32}$ sa počíta z matice upravenej po prvom kroku eliminácie, nie z pôvodného prvku $a_{32}$.' }] : [],
+        'u_{22}': A[1][1] !== U[1][1] ? [{ value: A[1][1], msg: 'Toto je pôvodný prvok $a_{22}$. Od druhého riadku treba najprv odčítať $l_{21}$-násobok prvého.' }] : [],
+        'u_{23}': A[1][2] !== U[1][2] ? [{ value: A[1][2], msg: 'Toto je pôvodný prvok $a_{23}$. Od druhého riadku treba najprv odčítať $l_{21}$-násobok prvého.' }] : [],
+        'u_{33}': A[2][2] !== U[2][2] ? [{ value: A[2][2], msg: 'Toto je pôvodný prvok $a_{33}$. Tretí riadok treba upraviť v oboch krokoch eliminácie.' }] : [],
+        '\\det A': A[0][0] * A[1][1] * A[2][2] !== Q[1] ? [{ value: A[0][0] * A[1][1] * A[2][2], msg: 'Súčin diagonálnych prvkov dáva determinant len pri trojuholníkovej matici. Vynásob diagonálu matice $U$, nie $A$.' }] : []
+      };
+      const S = { l21: { q: 'Urči multiplikátor $l_{21}$.', answer: L[1][0], signed: true }, l31: { q: 'Urči multiplikátor $l_{31}$.', answer: L[2][0], signed: true },
+        u22: { q: 'Urči $u_{22}$.', answer: U[1][1], signed: true }, l32: { q: 'Urči multiplikátor $l_{32}$.', answer: L[2][1], signed: true },
+        u33: { q: 'Urči $u_{33}$.', answer: U[2][2], signed: true } };
+      const STEPS = {
+        'u_{22}': [S.l21, S.u22], 'u_{23}': [S.l21, { q: 'Urči $u_{23}$.', answer: U[1][2], signed: true }],
+        'l_{32}': [S.l21, S.l31, S.u22, S.l32], 'u_{33}': [S.l21, S.l31, S.l32, S.u33],
+        '\\det A': [S.u22, S.u33, { q: 'Vypočítaj $\\det A = u_{11}u_{22}u_{33}$.', answer: Q[1], signed: true }]
+      };
       return {
+        mistakes: MIS[Q[0]],
+        ...(STEPS[Q[0]] ? { steps: STEPS[Q[0]] } : {}),
         signed: true, answer: Q[1],
         q: `Nájdi LU rozklad (bez výmeny riadkov, $L$ má na diagonále jednotky) matice $A=${mat(A)}$ a urči ${Q[0] === '\\det A' ? 'determinant $\\det A$ ako súčin diagonálnych prvkov $U$' : `prvok $${Q[0]}$`}.`,
         solution: `Multiplikátory: $l_{21}=\\frac{${A[1][0]}}{${A[0][0]}}=${L[1][0]}$, $l_{31}=\\frac{${A[2][0]}}{${A[0][0]}}=${L[2][0]}$; po prvom kroku má druhý riadok tvar $(0, ${U[1][1]}, ${U[1][2]})$
@@ -845,7 +1062,17 @@
       const x0 = [1, 1], x1 = mulVec(A, x0), x2 = mulVec(A, x1);
       const lam = (x2[0] * x1[0] + x2[1] * x1[1]) / (x1[0] ** 2 + x1[1] ** 2);
       const tr = A[0][0] + A[1][1], det = A[0][0] * A[1][1] - A[0][1] * A[1][0], ex = (tr + Math.sqrt(tr * tr - 4 * det)) / 2;
+      const w0 = (x1[0] + x1[1]) / 2, wn = x2[0] * x1[0] + x2[1] * x1[1];
       return {
+        mistakes: [
+          ...(Math.abs(round(w0, 4) - round(lam, 4)) > 0.0001 ? [{ value: round(w0, 4), msg: 'Rayleighov podiel si počítal s vektorom $x^{(0)}$. Úloha chce podiel pre $x^{(1)}$, teda treba ešte vypočítať $Ax^{(1)}$.' }] : []),
+          { value: wn, msg: 'Toto je len čitateľ $(x^{(1)})^{T}Ax^{(1)}$. Vydeľ ho ešte $(x^{(1)})^{T}x^{(1)}$.' }
+        ],
+        steps: [
+          { q: 'Vypočítaj $x^{(1)} = Ax^{(0)}$ (dve zložky oddelené bodkočiarkou).', type: 'tuple', answer: x1, show: x1.join('; ') },
+          { q: 'Vypočítaj $Ax^{(1)}$.', type: 'tuple', answer: x2, show: x2.join('; ') },
+          { q: `Vypočítaj Rayleighov podiel. ${R(4)}`, answer: round(lam, 4), tol: 0.0001, show: nt(lam, 4) }
+        ],
         answer: round(lam, 4), tol: 0.0001,
         q: `Mocninovou metódou odhadujeme dominantné vlastné číslo symetrickej matice $A=${mat(A)}$. Zo štartu $x^{(0)}=(1;\\ 1)^{T}$ vypočítaj $x^{(1)}=Ax^{(0)}$ a Rayleighov podiel $\\frac{(x^{(1)})^{T}Ax^{(1)}}{(x^{(1)})^{T}x^{(1)}}$. ${R(4)}`,
         solution: `$x^{(1)}=Ax^{(0)}=(${x1[0]};\\ ${x1[1]})^{T}$, $Ax^{(1)}=(${x2[0]};\\ ${x2[1]})^{T}$. Rayleighov podiel: $\\frac{${x1[0]}\\cdot ${x2[0]}+${x1[1]}\\cdot ${x2[1]}}{${x1[0]}^2+${x1[1]}^2}=\\frac{${x2[0] * x1[0] + x2[1] * x1[1]}}{${x1[0] ** 2 + x1[1] ** 2}}\\approx ${dd(lam, 4)}$.
@@ -857,6 +1084,10 @@
       const n1v = pick([500, 1000, 2000]), k = pick([2, 3, 4, 5, 10]), tm0 = pick([0.5, 1, 2, 3, 4]);
       const r = tm0 * k ** 3;
       return {
+        mistakes: [
+          { value: tm0 * k, msg: 'Čas nerastie lineárne s počtom neznámych: eliminácia potrebuje asi $\\frac{2}{3}n^3$ operácií.' },
+          { value: tm0 * k * k, msg: 'Kvadraticky rastie len cena trojuholníkovej substitúcie. Priamy chod eliminácie má zložitosť $O(n^3)$.' }
+        ],
         answer: r,
         q: `Gaussova eliminácia sústavy s $${n1v}$ neznámymi trvá na istom počítači $${nm(tm0)}$ s. Približne koľko sekúnd potrvá sústava s $${n1v * k}$ neznámymi (plná matica)?`,
         solution: `Počet operácií je približne $\\frac{2}{3}n^3$, čas rastie s treťou mocninou rozmeru. Rozmer sa zväčšil $${k}$-krát, čas teda $${k}^3=${k ** 3}$-krát: $${nm(tm0)}\\cdot ${k ** 3}=${nm(r)}$ s.`,
@@ -871,6 +1102,12 @@
     } while (A.some((r) => r.some((v) => Math.abs(v) > 12)) || A[1][0] === 0);
     const xs = [rnd(-3, 3), rnd(-3, 3), rnd(-3, 3)], b = mulVec(A, xs);
     return {
+      steps: [
+        { q: 'Aký je multiplikátor $l_{21}$ (násobok prvej rovnice, ktorý odčítaš od druhej)?', answer: L[1][0], signed: true },
+        { q: 'Aký je multiplikátor $l_{32}$ v druhom kroku eliminácie?', answer: L[2][1], signed: true },
+        { q: 'Spätným chodom urči najprv $x_3$.', answer: xs[2], signed: true },
+        { q: 'Zadaj celé riešenie $x_1; x_2; x_3$.', type: 'tuple', answer: xs, signed: true, tol: 1e-6 }
+      ],
       type: 'tuple', answer: xs, tol: 1e-6,
       q: `Gaussovou elimináciou vyrieš sústavu ${sysTex(A, b)}. Zadaj $x_1; x_2; x_3$ oddelené bodkočiarkou.`,
       solution: `Priamy chod s multiplikátormi $l_{21}=${L[1][0]}$, $l_{31}=${L[2][0]}$, $l_{32}=${L[2][1]}$ dá hornú trojuholníkovú maticu $U=${mat(U)}$ a pravú stranu $y=(${[b[0], b[1] - L[1][0] * b[0], b[2] - L[2][0] * b[0] - L[2][1] * (b[1] - L[1][0] * b[0])].join(';\\ ')})^{T}$.

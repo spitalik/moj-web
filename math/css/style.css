@@ -376,8 +376,9 @@ summary { cursor: pointer; color: var(--primary); font-weight: 600; }
   color: var(--primary);
   border: 1px solid var(--border);
 }
-.bar { height: 6px; margin-top: 8px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.bar { display: flex; height: 6px; margin-top: 8px; border-radius: 3px; background: var(--border); overflow: hidden; }
 .bar span { display: block; height: 100%; background: var(--primary); }
+.bar span.bar-learning { background: var(--primary); opacity: 0.35; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
 .chip {

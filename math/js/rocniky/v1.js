@@ -435,7 +435,14 @@
         type: 'tuple', signed: true, answer: w, placeholder: n === 3 ? 'w₁; w₂; w₃' : 'w₁; w₂; w₃; w₄',
         q: `Dané sú vektory $u=${vt(u)}$ a $v=${vt(v)}$ v $\\mathbb{R}^{${n}}$. Vypočítaj vektor $${expr}$. Zložky oddeľ bodkočiarkou.`,
         solution: `Počítame po zložkách: $${expr}=(${comp.join(',\\ ')})=${vt(w)}$.`,
-        hint: 'Najprv vynásob každý vektor jeho koeficientom (každú zložku), potom sčítaj zodpovedajúce zložky.'
+        hint: 'Najprv vynásob každý vektor jeho koeficientom (každú zložku), potom sčítaj zodpovedajúce zložky.',
+        mistakes: [{ value: u.map((x, i) => x + v[i]), msg: 'Zabudol si vektory vynásobiť ich koeficientmi. Každú zložku vektora $u$ aj $v$ najprv vynásob príslušným číslom.' }]
+          .filter((mk) => mk.value.some((x, i) => x !== w[i])),
+        steps: [
+          { q: `Vypočítaj vektor $${cf(a)}u$.`, type: 'tuple', signed: true, answer: u.map((x) => a * x + 0) },
+          { q: `Vypočítaj vektor $${b < 0 ? '-' : ''}${Math.abs(b) === 1 ? '' : Math.abs(b)}v$.`, type: 'tuple', signed: true, answer: v.map((x) => b * x + 0) },
+          { q: `Sčítaj ich: aký je vektor $${expr}$?`, type: 'tuple', signed: true, answer: w }
+        ]
       };
     }
     if (k === 1) {
@@ -450,7 +457,13 @@
         solution: `Porovnaním zložiek dostaneme sústavu $${lin([u[0], v[0]], G)}=${w[0]}$, $${lin([u[1], v[1]], G)}=${w[1]}$. `
           + `Cramerovým pravidlom: $D=${vm([[u[0], v[0]], [u[1], v[1]]])}=${D}$, $D_\\alpha=${vm([[w[0], v[0]], [w[1], v[1]]])}=${Da}$, $D_\\beta=${vm([[u[0], w[0]], [u[1], w[1]]])}=${Db}$, `
           + `teda $\\alpha=\\frac{${Da}}{${D}}=${a}$ a $\\beta=\\frac{${Db}}{${D}}=${b}$.`,
-        hint: 'Zapíš rovnosť po zložkách – dostaneš sústavu dvoch rovníc pre $\\alpha$ a $\\beta$.'
+        hint: 'Zapíš rovnosť po zložkách – dostaneš sústavu dvoch rovníc pre $\\alpha$ a $\\beta$.',
+        steps: [
+          { q: `Sústava je $${lin([u[0], v[0]], G)}=${w[0]}$, $${lin([u[1], v[1]], G)}=${w[1]}$. Vypočítaj jej determinant $D$.`, answer: D, signed: true },
+          { q: 'Vypočítaj determinant $D_\\alpha$ (prvý stĺpec nahradíš pravými stranami).', answer: Da, signed: true },
+          { q: 'Vypočítaj determinant $D_\\beta$ (druhý stĺpec nahradíš pravými stranami).', answer: Db, signed: true },
+          { q: 'Zadaj $\\alpha$ a $\\beta$.', type: 'tuple', signed: true, answer: [a, b], placeholder: 'α; β' }
+        ]
       };
     }
     if (k === 2) {
@@ -475,7 +488,14 @@
         q: `Sú vektory $u=${vt(shown[0])}$, $v=${vt(shown[1])}$ a $w=${vt(shown[2])}$ lineárne závislé, alebo nezávislé?`,
         solution: `Vektory zapíšeme do riadkov matice a determinant vypočítame Sarrusovým pravidlom: $${vm(shown)}=${S.tex}$. `
           + (S.value === 0 ? `Determinant je nulový, vektory sú <strong>lineárne závislé</strong>${rel}.` : 'Determinant je nenulový, vektory sú <strong>lineárne nezávislé</strong>.'),
-        hint: 'Tri vektory v $\\mathbb{R}^3$ sú lineárne nezávislé práve vtedy, keď je determinant matice z nich zostavenej nenulový.'
+        hint: 'Tri vektory v $\\mathbb{R}^3$ sú lineárne nezávislé práve vtedy, keď je determinant matice z nich zostavenej nenulový.',
+        choiceHints: S.value === 0
+          ? { 'lineárne nezávislé': 'Prepočítaj determinant Sarrusovým pravidlom: tri súčiny sa sčítajú a tri odčítajú. Nezávislé sú vektory len pri nenulovom determinante.' }
+          : { 'lineárne závislé': 'Závislé sú vektory len vtedy, keď je determinant nulový. Prepočítaj ho Sarrusovým pravidlom a pozor na znamienka.' },
+        steps: [
+          { q: `Vypočítaj determinant $${vm(shown)}$.`, answer: S.value, signed: true, hint: 'Sarrusovo pravidlo: tri súčiny na diagonálach doprava dole so znamienkom plus, tri doľava dole so znamienkom mínus.' },
+          { q: 'Sú vektory lineárne závislé, alebo nezávislé?', type: 'choice', options: ['lineárne závislé', 'lineárne nezávislé'], answer: ans }
+        ]
       };
     }
     let u, v, w0, pos, R;
@@ -489,7 +509,12 @@
       signed: true, answer: R.t0,
       q: `Pre ktorú hodnotu parametra $t$ sú vektory $u=${vt(u)}$, $v=${vt(v)}$ a $w=${vt(R.w)}$ lineárne závislé?`,
       solution: `Vektory sú závislé práve vtedy, keď $D=${vm([u, v, R.w])}=0$. ${R.tex} Pre $t=${R.t0}$ je $w$ lineárnou kombináciou vektorov $u$ a $v$.`,
-      hint: 'Determinant matice s riadkami $u, v, w$ je lineárna funkcia parametra $t$ – rozviň ho podľa riadka s parametrom a polož rovný nule.'
+      hint: 'Determinant matice s riadkami $u, v, w$ je lineárna funkcia parametra $t$ – rozviň ho podľa riadka s parametrom a polož rovný nule.',
+      steps: [
+        { q: 'Rozvoj podľa 3. riadka dáva $D=Ct+D_0$. Aký je koeficient $C$ (algebraický doplnok prvku s parametrom)?', answer: R.C, signed: true },
+        { q: 'Aký je absolútny člen $D_0$?', answer: R.D0, signed: true },
+        { q: 'Pre ktoré $t$ je $D=0$?', answer: R.t0, signed: true }
+      ]
     };
   });
 
@@ -525,7 +550,13 @@
         type: 'tuple', signed: true, answer: R.flat(), placeholder: 'a₁₁; a₁₂; a₂₁; a₂₂',
         q: `Pre $A=${pm(A)}$ a $B=${pm(B)}$ vypočítaj maticu $${expr}$. Prvky zadaj po riadkoch (4 čísla oddelené bodkočiarkou).`,
         solution: `$B^{T}=${pm(BT)}$, takže $${expr}=${pm(A.map((r, i) => r.map((x, j) => `${a}\\cdot ${par(x)} ${b < 0 ? '-' : '+'} ${Math.abs(b)}\\cdot ${par(BT[i][j])}`)))}=${pm(R)}$.`,
-        hint: 'Najprv transponuj $B$ (riadky ↔ stĺpce), potom počítaj po prvkoch.'
+        hint: 'Najprv transponuj $B$ (riadky ↔ stĺpce), potom počítaj po prvkoch.',
+        mistakes: [{ value: A.map((r, i) => r.map((x, j) => a * x + b * B[i][j])).flat(), msg: 'Zabudol si transponovať maticu $B$: v $B^{T}$ sú riadky matice $B$ zapísané ako stĺpce.' }]
+          .filter((mk) => mk.value.some((x, i) => x !== R.flat()[i])),
+        steps: [
+          { q: 'Napíš maticu $B^{T}$ (prvky po riadkoch).', type: 'tuple', signed: true, answer: BT.flat(), placeholder: 'b₁₁; b₁₂; b₂₁; b₂₂' },
+          { q: `Vypočítaj maticu $${expr}$ (prvky po riadkoch).`, type: 'tuple', signed: true, answer: R.flat(), placeholder: 'a₁₁; a₁₂; a₂₁; a₂₂' }
+        ]
       };
     }
     if (k === 1) {
@@ -535,7 +566,13 @@
         answer: sq.reduce((s, x) => s + x, 0),
         q: `Pre maticu $A=${pm(A)}$ vypočítaj stopu $\\operatorname{tr}(A^{T}A)$.`,
         solution: `Diagonálny prvok $(A^{T}A)_{jj}$ je súčet druhých mocnín prvkov $j$-tého stĺpca matice $A$, preto je $\\operatorname{tr}(A^{T}A)$ súčtom druhých mocnín všetkých prvkov: $${A.flat().map((x) => `${par(x)}^2`).join('+')}=${sq.join('+')}=${sq.reduce((s, x) => s + x, 0)}$.`,
-        hint: 'Prvok $(A^{T}A)_{jj}$ vznikne skalárnym súčinom $j$-tého stĺpca matice $A$ so sebou samým.'
+        hint: 'Prvok $(A^{T}A)_{jj}$ vznikne skalárnym súčinom $j$-tého stĺpca matice $A$ so sebou samým.',
+        mistakes: [{ value: A.flat().reduce((s, x) => s + x, 0), msg: 'Prvky sa neumocnili. Diagonálny prvok $(A^{T}A)_{jj}$ je skalárny súčin $j$-tého stĺpca so sebou samým, teda súčet druhých mocnín.' }]
+          .filter((mk) => mk.value !== sq.reduce((s, x) => s + x, 0)),
+        steps: [
+          ...A[0].map((_, j) => ({ q: `Vypočítaj diagonálny prvok $(A^{T}A)_{${j + 1}${j + 1}}$.`, answer: A.reduce((s, r) => s + r[j] * r[j], 0) })),
+          { q: 'Vypočítaj stopu $\\operatorname{tr}(A^{T}A)$.', answer: sq.reduce((s, x) => s + x, 0) }
+        ]
       };
     }
     if (k === 2) {
@@ -553,7 +590,12 @@
         type: 'choice', options: O, answer: O[type],
         q: `Rozhodni, aká je matica $A=${pm(A)}$.`,
         solution: `$A^{T}=${pm(trn(A))}$. Porovnaním s $A$ vidíme, že ${why}.`,
-        hint: 'Transponuj maticu a porovnaj ju s $A$ a s $-A$. Pozri sa aj na diagonálu.'
+        hint: 'Transponuj maticu a porovnaj ju s $A$ a s $-A$. Pozri sa aj na diagonálu.',
+        choiceHints: Object.fromEntries([
+          'Symetrická matica spĺňa $a_{ij}=a_{ji}$ pre všetky dvojice prvkov súmerných podľa hlavnej diagonály. Porovnaj ich jednu po druhej.',
+          'Antisymetrická matica má na diagonále nuly a spĺňa $a_{ij}=-a_{ji}$. Over to pre všetky dvojice.',
+          'Porovnaj $A^{T}$ s $A$ aj s $-A$ prvok po prvku. Možno platí jedna z rovností.'
+        ].map((m, i) => [O[i], m]).filter((_, i) => i !== type))
       };
     }
     const X = randM(2, 2, -4, 4), B = randM(2, 2, -5, 5), BT = trn(B);
@@ -563,7 +605,15 @@
       type: 'tuple', signed: true, answer: X.flat(), placeholder: 'x₁₁; x₁₂; x₂₁; x₂₂',
       q: `Nájdi maticu $X$, pre ktorú platí $${c}X-A=B^{T}$, ak $A=${pm(A)}$ a $B=${pm(B)}$. Prvky zadaj po riadkoch.`,
       solution: `Z rovnice $X=\\tfrac{1}{${c}}(A+B^{T})$. Máme $B^{T}=${pm(BT)}$, $A+B^{T}=${pm(A.map((r, i) => r.map((x, j) => x + BT[i][j])))}$, teda $X=${pm(X)}$.`,
-      hint: 'S maticovou rovnicou narábaj ako s obyčajnou: osamostatni $X$, potom počítaj po prvkoch.'
+      hint: 'S maticovou rovnicou narábaj ako s obyčajnou: osamostatni $X$, potom počítaj po prvkoch.',
+      mistakes: [
+        { value: A.map((r, i) => r.map((x, j) => (x + B[i][j]) / c)).flat(), msg: 'Zabudol si transponovať maticu $B$: v rovnici je $B^{T}$.' },
+        { value: A.map((r, i) => r.map((x, j) => (BT[i][j] - x) / c)).flat(), msg: `Pri prenesení $A$ na druhú stranu sa mení znamienko: $${c}X=A+B^{T}$.` }
+      ].filter((mk) => mk.value.some((x, i) => Math.abs(x - X.flat()[i]) > 1e-9)),
+      steps: [
+        { q: 'Vypočítaj maticu $A+B^{T}$ (prvky po riadkoch).', type: 'tuple', signed: true, answer: A.map((r, i) => r.map((x, j) => x + BT[i][j])).flat(), placeholder: 'c₁₁; c₁₂; c₂₁; c₂₂' },
+        { q: 'Vypočítaj maticu $X$ (prvky po riadkoch).', type: 'tuple', signed: true, answer: X.flat(), placeholder: 'x₁₁; x₁₂; x₂₁; x₂₂' }
+      ]
     };
   });
 
@@ -616,7 +666,11 @@
         answer: E.rank,
         q: `Urči hodnosť matice $A=${pm(M)}$.`,
         solution: `Gaussovou elimináciou prevedieme maticu do stupňovitého tvaru:<br>${chain(M, E)}<br>Stupňovitý tvar má ${E.rank} ${pl(E.rank, RIADOK)}, teda $h(A)=${E.rank}$.`,
-        hint: 'Riadkovými úpravami vynuluj prvky pod vedúcimi prvkami a spočítaj nenulové riadky.'
+        hint: 'Riadkovými úpravami vynuluj prvky pod vedúcimi prvkami a spočítaj nenulové riadky.',
+        mistakes: [
+          ...(E.rank < m ? [{ value: m, msg: 'To je počet riadkov pôvodnej matice. Hodnosť je počet nenulových riadkov až po prevedení do stupňovitého tvaru.' }] : []),
+          ...(E.rank < n && n !== m ? [{ value: n, msg: 'To je počet stĺpcov. Hodnosť je počet nenulových riadkov stupňovitého tvaru.' }] : [])
+        ]
       };
     }
     let u, v, w0, pos, R;
@@ -630,7 +684,12 @@
       signed: true, answer: R.t0,
       q: `Pre ktorú hodnotu parametra $a$ má matica $A=${pm([u, v, R.w])}$ hodnosť 2?`,
       solution: `Prvé dva riadky nie sú navzájom úmerné, preto $h(A)\\ge 2$. Hodnosť je menšia ako 3 práve vtedy, keď $D=\\det A=0$. ${R.tex}`,
-      hint: 'Štvorcová matica rádu 3 má hodnosť 3 práve vtedy, keď je jej determinant nenulový.'
+      hint: 'Štvorcová matica rádu 3 má hodnosť 3 práve vtedy, keď je jej determinant nenulový.',
+      steps: [
+        { q: 'Rozvoj determinantu podľa 3. riadka dáva $D=Ca+D_0$. Aký je koeficient $C$ (algebraický doplnok prvku s parametrom)?', answer: R.C, signed: true },
+        { q: 'Aký je absolútny člen $D_0$?', answer: R.D0, signed: true },
+        { q: 'Pre ktoré $a$ je $D=0$?', answer: R.t0, signed: true }
+      ]
     };
   });
 
@@ -665,7 +724,22 @@
         signed: true, answer: S.value,
         q: `Vypočítaj determinant matice $A=${pm(A)}$.`,
         solution: `Sarrusovo pravidlo: $\\det A=${S.tex}$.`,
-        hint: 'Použi Sarrusovo pravidlo: tri súčiny „doprava dole“ so znamienkom plus, tri „doľava dole“ so znamienkom mínus.'
+        hint: 'Použi Sarrusovo pravidlo: tri súčiny „doprava dole“ so znamienkom plus, tri „doľava dole“ so znamienkom mínus.',
+        ...(() => {
+          const [[a, b, c], [d, e, f], [g, h, i]] = A;
+          const P = a * e * i + b * f * g + c * d * h, Q = c * e * g + a * f * h + b * d * i;
+          return {
+            mistakes: [
+              { value: P + Q, msg: 'Súčiny na diagonálach smerom doľava dole sa od kladných členov odčítajú, nie pripočítajú.' },
+              { value: a * e * i - c * e * g, msg: 'Pri matici rádu 3 nestačia dve diagonály ako pri $2\\times 2$. Sarrusovo pravidlo má šesť súčinov: tri kladné a tri záporné.' }
+            ].filter((mk) => mk.value !== P - Q).filter((mk, k, arr) => arr.findIndex((o) => o.value === mk.value) === k),
+            steps: [
+              { q: 'Vypočítaj súčet troch súčinov na diagonálach smerom doprava dole.', answer: P, signed: true },
+              { q: 'Vypočítaj súčet troch súčinov na diagonálach smerom doľava dole.', answer: Q, signed: true },
+              { q: 'Vypočítaj $\\det A$.', answer: P - Q, signed: true }
+            ]
+          };
+        })()
       };
     }
     if (k === 1) {
@@ -678,7 +752,14 @@
         q: `Vypočítaj determinant matice $A=${pm(A)}$.`,
         solution: `V ${byRow ? `${i + 1}. riadku` : `${j + 1}. stĺpci`} je jediný nenulový prvok $a_{${i + 1}${j + 1}}=${A[i][j]}$, preto Laplaceov rozvoj podľa ${byRow ? 'tohto riadka' : 'tohto stĺpca'} dáva $\\det A=${par(A[i][j])}\\cdot(-1)^{${i + 1}+${j + 1}}\\cdot M_{${i + 1}${j + 1}}$. `
           + `Minor: $M_{${i + 1}${j + 1}}=${vm(Mm)}=${S.tex}$. Teda $\\det A=${par(A[i][j])}\\cdot ${par(sg)}\\cdot ${par(S.value)}=${val}$.`,
-        hint: 'Rozviň determinant podľa riadka alebo stĺpca, v ktorom je len jeden nenulový prvok. Nezabudni na znamienko $(-1)^{i+j}$.'
+        hint: 'Rozviň determinant podľa riadka alebo stĺpca, v ktorom je len jeden nenulový prvok. Nezabudni na znamienko $(-1)^{i+j}$.',
+        mistakes: [{ value: sg * S.value + 0, msg: `Minor treba ešte vynásobiť samotným prvkom $a_{${i + 1}${j + 1}}=${A[i][j]}$, podľa ktorého rozvíjaš.` }]
+          .filter((mk) => mk.value !== val && mk.value !== -val),
+        steps: [
+          { q: `Vypočítaj minor $M_{${i + 1}${j + 1}}$ (determinant po vynechaní ${i + 1}. riadka a ${j + 1}. stĺpca).`, answer: S.value, signed: true },
+          { q: `Aké je znamienko $(-1)^{${i + 1}+${j + 1}}$? Zadaj $1$ alebo $-1$.`, answer: sg, signed: true },
+          { q: 'Vypočítaj $\\det A$.', answer: val, signed: true }
+        ]
       };
     }
     const n = pick([3, 4]), d = nz(-5, 5), c = pick([2, 3, -1, -2]);
@@ -690,13 +771,24 @@
       ['\\det(-A^{3})', Math.pow(-1, n) * d * d * d, 1, `$\\det(-A^{3})=(-1)^{${n}}(\\det A)^3=${Math.pow(-1, n)}\\cdot ${par(d * d * d)}=${Math.pow(-1, n) * d * d * d}$`],
       ['\\det B', -c * d, 1, `výmena riadkov mení znamienko a vynásobenie riadka číslom $${c}$ násobí determinant číslom $${c}$: $\\det B=-${par(c)}\\cdot ${par(d)}=${-c * d}$`]
     ];
-    const [expr, p, q, sol] = pick(V);
+    const VM = [
+      [c * d, `Pri násobení matice rádu $${n}$ číslom $c$ sa číslom $c$ násobí každý z $${n}$ riadkov: $\\det(cA)=c^{n}\\det A$.`],
+      [d, '$\\det(A^{T}A)=\\det A^{T}\\cdot\\det A$ a transponovaním sa determinant nemení. Súčin teda obsahuje $\\det A$ dvakrát.'],
+      [null, ''],
+      [c / d, `Pri násobení matice rádu $${n}$ číslom $c$ sa determinant násobí číslom $c^{n}$, nie len $c$.`],
+      [d * d * d, `Matica $-A^{3}$ je $(-1)\\cdot A^{3}$, a $\\det(-M)=(-1)^{${n}}\\det M$.`],
+      [-d, `Vynásobenie riadka číslom $${c}$ násobí determinant číslom $${c}$.`]
+    ];
+    const pickedV = pick(V);
+    const [expr, p, q, sol] = pickedV;
+    const mk = VM[V.indexOf(pickedV)];
     const extra = expr === '\\det B' ? ` Matica $B$ vznikne z $A$ výmenou prvých dvoch riadkov a vynásobením posledného riadka číslom $${c}$.` : '';
     return {
       signed: true, answer: p / q, show: fTxt(p, q),
       q: `Štvorcová matica $A$ rádu $${n}$ má $\\det A=${d}$.${extra} Vypočítaj $${expr}$. Neceločíselný výsledok zadaj ako zlomok, napr. $-3/4$.`,
       solution: sol.startsWith('$') ? sol + '.' : sol.charAt(0).toUpperCase() + sol.slice(1) + '.',
-      hint: 'Použi $\\det(cA)=c^{n}\\det A$, $\\det(AB)=\\det A\\det B$, $\\det A^{T}=\\det A$ a $\\det A^{-1}=1/\\det A$.'
+      hint: 'Použi $\\det(cA)=c^{n}\\det A$, $\\det(AB)=\\det A\\det B$, $\\det A^{T}=\\det A$ a $\\det A^{-1}=1/\\det A$.',
+      mistakes: mk[0] !== null && Math.abs(mk[0] - p / q) > 1e-9 ? [{ value: mk[0], msg: mk[1] }] : []
     };
   });
 
@@ -733,7 +825,14 @@
         q: `Nájdi ${i + 1}. riadok inverznej matice k matici $A=${pm(A)}$. Zadaj tri čísla oddelené bodkočiarkou.`,
         solution: `$\\det A=${S.tex}$. Podľa vzorca $(A^{-1})_{${i + 1}j}=\\frac{A_{j${i + 1}}}{\\det A}$ potrebujeme algebraické doplnky ${i + 1}. stĺpca: $${[0, 1, 2].map((j) => cofTex(A, j, i)).join(',\\ ')}$. `
           + `Teda ${i + 1}. riadok matice $A^{-1}$ je $\\frac{1}{${d}}(${[0, 1, 2].map((j) => cof(A, j, i)).join(', ')})=${vt(row)}$.`,
-        hint: '$(A^{-1})_{ij}=\\frac{A_{ji}}{\\det A}$: $i$-ty riadok inverznej matice tvoria algebraické doplnky $i$-teho <em>stĺpca</em> matice $A$.'
+        hint: '$(A^{-1})_{ij}=\\frac{A_{ji}}{\\det A}$: $i$-ty riadok inverznej matice tvoria algebraické doplnky $i$-teho <em>stĺpca</em> matice $A$.',
+        mistakes: [{ value: [0, 1, 2].map((j) => cof(A, i, j) / d + 0), msg: `Použil si algebraické doplnky ${i + 1}. riadka. Adjungovaná matica je transponovaná: ${i + 1}. riadok inverznej matice tvoria doplnky ${i + 1}. stĺpca.` }]
+          .filter((mk) => mk.value.some((x, j) => x !== row[j])),
+        steps: [
+          { q: 'Vypočítaj $\\det A$.', answer: d, signed: true },
+          { q: `Vypočítaj algebraické doplnky ${i + 1}. stĺpca: $A_{1${i + 1}}$, $A_{2${i + 1}}$, $A_{3${i + 1}}$.`, type: 'tuple', signed: true, answer: [0, 1, 2].map((j) => cof(A, j, i)), placeholder: 'A₁; A₂; A₃' },
+          { q: `Zadaj ${i + 1}. riadok matice $A^{-1}$.`, type: 'tuple', signed: true, answer: row, placeholder: 'b₁; b₂; b₃' }
+        ]
       };
     }
     if (k === 1) {
@@ -745,7 +844,16 @@
         signed: true, answer: c / d, show: fTxt(c, d),
         q: `Pre maticu $A=${pm(A)}$ vypočítaj prvok $(A^{-1})_{${i + 1}${j + 1}}$ inverznej matice. Neceločíselný výsledok zadaj ako zlomok.`,
         solution: `$\\det A=${S.tex}$. Ďalej $(A^{-1})_{${i + 1}${j + 1}}=\\frac{A_{${j + 1}${i + 1}}}{\\det A}$ a $${cofTex(A, j, i)}$. Teda $(A^{-1})_{${i + 1}${j + 1}}=\\frac{${c}}{${d}}=${fTex(c, d)}$.`,
-        hint: 'Celú inverznú maticu počítať netreba: $(A^{-1})_{ij}=\\frac{A_{ji}}{\\det A}$ (indexy algebraického doplnku sú vymenené).'
+        hint: 'Celú inverznú maticu počítať netreba: $(A^{-1})_{ij}=\\frac{A_{ji}}{\\det A}$ (indexy algebraického doplnku sú vymenené).',
+        mistakes: [
+          { value: cof(A, i, j) / d, msg: `Použil si doplnok $A_{${i + 1}${j + 1}}$. Pre prvok $(A^{-1})_{${i + 1}${j + 1}}$ treba doplnok s vymenenými indexmi, $A_{${j + 1}${i + 1}}$.` },
+          { value: c, msg: 'Algebraický doplnok treba ešte vydeliť determinantom matice $A$.' }
+        ].filter((mk) => Math.abs(mk.value - c / d) > 1e-9),
+        steps: [
+          { q: 'Vypočítaj $\\det A$.', answer: d, signed: true },
+          { q: `Vypočítaj algebraický doplnok $A_{${j + 1}${i + 1}}$.`, answer: c, signed: true },
+          { q: `Vypočítaj $(A^{-1})_{${i + 1}${j + 1}}$. Neceločíselný výsledok zadaj ako zlomok.`, answer: c / d, signed: true }
+        ]
       };
     }
     const { M: A, inv, d } = unimod(2, 4, 6);
@@ -756,7 +864,13 @@
       q: `Vyrieš maticovú rovnicu $${left ? 'AX=B' : 'XA=B'}$, kde $A=${pm(A)}$ a $B=${pm(B)}$. Prvky matice $X$ zadaj po riadkoch.`,
       solution: `$\\det A=${d}$, teda $A^{-1}=\\frac{1}{${d}}${pm([[A[1][1], -A[0][1]], [-A[1][0], A[0][0]]].map((r) => r.map((x) => x + 0)))}=${pm(inv)}$. `
         + `Riešenie je $X=${left ? 'A^{-1}B' : 'BA^{-1}'}=${left ? pm(inv) + pm(B) : pm(B) + pm(inv)}=${pm(X)}$.`,
-      hint: left ? 'Rovnicu vynásob maticou $A^{-1}$ zľava: $X=A^{-1}B$.' : 'Rovnicu vynásob maticou $A^{-1}$ sprava: $X=BA^{-1}$.'
+      hint: left ? 'Rovnicu vynásob maticou $A^{-1}$ zľava: $X=A^{-1}B$.' : 'Rovnicu vynásob maticou $A^{-1}$ sprava: $X=BA^{-1}$.',
+      mistakes: [{ value: (left ? mul(B, inv) : mul(inv, B)).flat(), msg: `Násobenie matíc nie je komutatívne. Z rovnice $${left ? 'AX=B' : 'XA=B'}$ treba násobiť maticou $A^{-1}$ ${left ? 'zľava' : 'sprava'}.` }]
+        .filter((mk) => mk.value.some((x, k) => x !== X.flat()[k])),
+      steps: [
+        { q: 'Vypočítaj $A^{-1}$ (prvky po riadkoch).', type: 'tuple', signed: true, answer: inv.flat(), placeholder: 'a₁₁; a₁₂; a₂₁; a₂₂' },
+        { q: `Vypočítaj $X=${left ? 'A^{-1}B' : 'BA^{-1}'}$ (prvky po riadkoch).`, type: 'tuple', signed: true, answer: X.flat(), placeholder: 'x₁₁; x₁₂; x₂₁; x₂₂' }
+      ]
     };
   });
 
@@ -796,7 +910,12 @@
         type: 'tuple', signed: true, answer: x, placeholder: 'x₁; x₂; x₃',
         q: `Gaussovou elimináciou vyrieš sústavu $${A.map((r, i) => `${lin(r, X3)}=${b[i]}`).join(',\\quad ')}$. Riešenie zadaj v tvare „x₁; x₂; x₃“.`,
         solution: `${chain(A.map((r, i) => [...r, b[i]]), E, augm)}<br>Spätné dosadzovanie – ${backSub(E.M, x, X3)}`,
-        hint: 'Rozšírenú maticu uprav na stupňovitý tvar a neznáme dopočítaj odspodu.'
+        hint: 'Rozšírenú maticu uprav na stupňovitý tvar a neznáme dopočítaj odspodu.',
+        steps: [
+          { q: 'Uprav rozšírenú maticu na stupňovitý tvar. Z posledného riadku vypočítaj $x_3$.', answer: x[2], signed: true },
+          { q: 'Dosaď $x_3$ do predposledného riadku a vypočítaj $x_2$.', answer: x[1], signed: true },
+          { q: 'Z prvého riadku vypočítaj $x_1$ a zadaj celé riešenie.', type: 'tuple', signed: true, answer: x, placeholder: 'x₁; x₂; x₃' }
+        ]
       };
     }
     if (k === 1) {
@@ -822,7 +941,17 @@
         type: 'choice', options: O, answer: ans,
         q: `Koľko riešení má sústava $${A.map((r, i) => `${lin(r, X3)}=${b[i]}`).join(',\\quad ')}$?`,
         solution: `${chain(A.map((r, i) => [...r, b[i]]), E, augm)}<br>Podľa Frobeniovej vety: ${why}.`,
-        hint: 'Uprav rozšírenú maticu na stupňovitý tvar a porovnaj $h(A)$ s $h(A\\mid b)$ a s počtom neznámych.'
+        hint: 'Uprav rozšírenú maticu na stupňovitý tvar a porovnaj $h(A)$ s $h(A\\mid b)$ a s počtom neznámych.',
+        choiceHints: Object.fromEntries([
+          'Práve jedno riešenie má sústava len pri $h(A)=h(A\\mid b)=3$. Over, či po eliminácii nevznikne v matici sústavy nulový riadok.',
+          'Nekonečne veľa riešení je len pri $h(A)=h(A\\mid b)\\lt 3$. Pozri sa aj na pravú stranu riadku, ktorý je v matici sústavy nulový.',
+          'Sústava nemá riešenie, len keď vznikne riadok $(0\\ 0\\ 0\\mid c)$ s $c\\neq 0$, teda $h(A)\\neq h(A\\mid b)$.'
+        ].map((m, i) => [O[i], m]).filter(([o]) => o !== ans)),
+        steps: [
+          { q: 'Uprav rozšírenú maticu na stupňovitý tvar. Aká je hodnosť matice sústavy $h(A)$?', answer: hA },
+          { q: 'Aká je hodnosť rozšírenej matice $h(A\\mid b)$?', answer: hAb },
+          { q: 'Koľko riešení má sústava?', type: 'choice', options: O, answer: ans }
+        ]
       };
     }
     if (k === 2) {
@@ -836,7 +965,18 @@
         signed: true, answer: Si.value / D, show: fTxt(Si.value, D),
         q: `Cramerovým pravidlom vypočítaj neznámu $x_{${i + 1}}$ zo sústavy $${A.map((r, rr) => `${lin(r, X3)}=${b[rr]}`).join(',\\quad ')}$. Neceločíselný výsledok zadaj ako zlomok.`,
         solution: `$D=${vm(A)}=${SD.tex}$.<br>$D_{${i + 1}}=${vm(Ai)}=${Si.tex}$.<br>Teda $x_{${i + 1}}=\\frac{D_{${i + 1}}}{D}=\\frac{${Si.value}}{${D}}=${fTex(Si.value, D)}$.`,
-        hint: `$x_{${i + 1}}=\\frac{D_{${i + 1}}}{D}$, kde v $D_{${i + 1}}$ nahradíš ${i + 1}. stĺpec matice sústavy stĺpcom pravých strán.`
+        hint: `$x_{${i + 1}}=\\frac{D_{${i + 1}}}{D}$, kde v $D_{${i + 1}}$ nahradíš ${i + 1}. stĺpec matice sústavy stĺpcom pravých strán.`,
+        mistakes: (() => {
+          // pravé strany zapísané namiesto riadka (nie stĺpca)
+          const Ar = A.map((r, rr) => (rr === i ? b.slice() : r.slice()));
+          const w = det(Ar) / D;
+          return Math.abs(w - Si.value / D) > 1e-9 ? [{ value: w, msg: `Stĺpec pravých strán patrí do ${i + 1}. <em>stĺpca</em> determinantu, nie do ${i + 1}. riadka.` }] : [];
+        })(),
+        steps: [
+          { q: 'Vypočítaj determinant $D$ matice sústavy.', answer: D, signed: true },
+          { q: `Vypočítaj determinant $D_{${i + 1}}$.`, answer: Si.value, signed: true },
+          { q: `Vypočítaj $x_{${i + 1}}$. Neceločíselný výsledok zadaj ako zlomok.`, answer: Si.value / D, signed: true }
+        ]
       };
     }
     let A, E, kv;
@@ -853,7 +993,11 @@
       type: 'tuple', proportional: true, signed: true, answer: kv, placeholder: 'x₁; x₂; x₃',
       q: `Nájdi jedno netriviálne riešenie homogénnej sústavy $${A.map((r) => `${lin(r, X3)}=0`).join(',\\quad ')}$. (Uznáme ľubovoľný nenulový násobok.)`,
       solution: `${chain(A, E)}<br>$h(A)=2\\lt 3$, riešenia tvoria priamku (jeden parameter). Riešenie je kolmé na oba nenulové riadky stupňovitého tvaru, preto ho dostaneme ako ich vektorový súčin: $${vt(E.M[0])}\\times${vt(E.M[1])}=${vt(cross(E.M[0], E.M[1]))}$${red3(E, kv)}. Všetky riešenia sú $t\\cdot${vt(kv)}$, $t\\in\\mathbb{R}$.`,
-      hint: 'Po úprave zostanú dve nezávislé rovnice. Zvoľ jednu neznámu ako parameter (alebo použi vektorový súčin dvoch riadkov).'
+      hint: 'Po úprave zostanú dve nezávislé rovnice. Zvoľ jednu neznámu ako parameter (alebo použi vektorový súčin dvoch riadkov).',
+      steps: [
+        { q: 'Aká je hodnosť matice sústavy?', answer: 2 },
+        { q: 'Zadaj jedno netriviálne riešenie (uznáme ľubovoľný nenulový násobok).', type: 'tuple', proportional: true, signed: true, answer: kv, placeholder: 'x₁; x₂; x₃' }
+      ]
     };
   });
 
@@ -894,7 +1038,17 @@
         type: 'tuple', signed: true, answer: c, placeholder: 'c₁; c₂; c₃',
         q: `Nájdi súradnice vektora $v=${vt(v)}$ v báze $b_1=${vt(B[0])}$, $b_2=${vt(B[1])}$, $b_3=${vt(B[2])}$ priestoru $\\mathbb{R}^3$. Zadaj ich v tvare „c₁; c₂; c₃“.`,
         solution: `Rovnica $c_1b_1+c_2b_2+c_3b_3=v$ je sústava s maticou, ktorá má vektory bázy v stĺpcoch:<br>${chain(trn(B).map((r, i) => [...r, v[i]]), E, augm)}<br>Spätné dosadzovanie – ${backSub(E.M, c, C)}`,
-        hint: 'Napíš $v=c_1b_1+c_2b_2+c_3b_3$ po zložkách: dostaneš sústavu troch rovníc, v ktorej sú vektory bázy stĺpcami matice.'
+        hint: 'Napíš $v=c_1b_1+c_2b_2+c_3b_3$ po zložkách: dostaneš sústavu troch rovníc, v ktorej sú vektory bázy stĺpcami matice.',
+        mistakes: (() => {
+          // vektory bázy omylom v riadkoch matice sústavy: B c' = v
+          const dB = det(B), w = [0, 1, 2].map((i) => det(B.map((r, rr) => r.map((x, cc) => (cc === i ? v[rr] : x)))) / dB);
+          return w.some((x, i) => Math.abs(x - c[i]) > 1e-9) ? [{ value: w, msg: 'Vektory bázy patria do <em>stĺpcov</em> matice sústavy, nie do riadkov: $i$-ta rovnica porovnáva $i$-te zložky.' }] : [];
+        })(),
+        steps: [
+          { q: 'Zostav sústavu (vektory bázy v stĺpcoch) a uprav ju na stupňovitý tvar. Z posledného riadku vypočítaj $c_3$.', answer: c[2], signed: true },
+          { q: 'Vypočítaj $c_2$.', answer: c[1], signed: true },
+          { q: 'Vypočítaj $c_1$ a zadaj všetky súradnice.', type: 'tuple', signed: true, answer: c, placeholder: 'c₁; c₂; c₃' }
+        ]
       };
     }
     if (k === 1) {
@@ -905,7 +1059,11 @@
         answer: E.rank,
         q: `Urči dimenziu podpriestoru $W=\\mathcal{L}(${M.map((u) => vt(u)).join(',\\ ')})$ priestoru $\\mathbb{R}^{${n}}$.`,
         solution: `Dimenzia lineárneho obalu je hodnosť matice, ktorej riadky sú dané vektory:<br>${chain(M, E)}<br>Stupňovitý tvar má ${E.rank} ${pl(E.rank, RIADOK)}, teda $\\dim W=${E.rank}$.`,
-        hint: 'Vektory zapíš do riadkov matice a urči jej hodnosť.'
+        hint: 'Vektory zapíš do riadkov matice a urči jej hodnosť.',
+        mistakes: [
+          { value: m, msg: 'To je počet vektorov. Niektoré z nich môžu byť lineárnou kombináciou ostatných; dimenzia je hodnosť matice z nich zostavenej.' },
+          { value: n, msg: `To je dimenzia celého priestoru $\\mathbb{R}^{${n}}$. Podpriestor môže mať menšiu dimenziu, rozhoduje hodnosť.` }
+        ].filter((mk, i, arr) => mk.value !== E.rank && arr.findIndex((o) => o.value === mk.value) === i)
       };
     }
     if (k === 2) {
@@ -927,7 +1085,10 @@
         type: 'choice', options: O, answer: yes ? O[0] : O[1],
         q: `Je množina $W=${set}$ podpriestorom vektorového priestoru $\\mathbb{R}^3$?`,
         solution: `${yes ? '<strong>Je</strong>' : '<strong>Nie je</strong>'} podpriestor: ${why}.`,
-        hint: 'Over, či $W$ obsahuje nulový vektor a či je uzavretá na sčítanie a násobenie reálnym číslom. Na vyvrátenie stačí jeden protipríklad.'
+        hint: 'Over, či $W$ obsahuje nulový vektor a či je uzavretá na sčítanie a násobenie reálnym číslom. Na vyvrátenie stačí jeden protipríklad.',
+        choiceHints: yes
+          ? { [O[1]]: 'Over všetky tri podmienky: nulový vektor, uzavretosť na sčítanie a na násobenie číslom. Ak platia všetky, ide o podpriestor.' }
+          : { [O[0]]: 'Hľadaj protipríklad: patrí nulový vektor do $W$? Je súčet dvoch prvkov $W$ opäť v $W$? A ich násobok?' }
       };
     }
     const n = pick([4, 5]), m = pick([2, 3]), r = pick([1, 2, 2, 3].filter((x) => x <= m));
@@ -937,7 +1098,15 @@
       answer: n - E.rank,
       q: `Urči dimenziu podpriestoru $W=\\{x\\in\\mathbb{R}^{${n}} : ${M.map((row) => `${lin(row, V)}=0`).join(',\\ ')}\\}$.`,
       solution: `$W$ je množina riešení homogénnej sústavy, preto $\\dim W=n-h(A)$. Hodnosť matice sústavy:<br>${chain(M, E)}<br>$h(A)=${E.rank}$, teda $\\dim W=${n}-${E.rank}=${n - E.rank}$.`,
-      hint: 'Riešenia homogénnej sústavy s $n$ neznámymi tvoria podpriestor dimenzie $n-h(A)$.'
+      hint: 'Riešenia homogénnej sústavy s $n$ neznámymi tvoria podpriestor dimenzie $n-h(A)$.',
+      mistakes: [
+        { value: E.rank, msg: 'To je hodnosť matice sústavy. Dimenzia priestoru riešení je počet voľných neznámych, $n-h(A)$.' },
+        { value: n - m, msg: 'Od počtu neznámych sa neodčíta počet rovníc, ale hodnosť matice sústavy: niektoré rovnice môžu byť závislé.' }
+      ].filter((mk, i, arr) => mk.value !== n - E.rank && arr.findIndex((o) => o.value === mk.value) === i),
+      steps: [
+        { q: 'Aká je hodnosť matice sústavy $h(A)$?', answer: E.rank },
+        { q: 'Aká je dimenzia $W$?', answer: n - E.rank }
+      ]
     };
   });
 
@@ -993,7 +1162,13 @@
         type: 'tuple', signed: true, answer: w, placeholder: 'x; y',
         q: `Vektor $v=${vt(v)}$ najprv zobrazíme zobrazením $f$: ${fn}, a výsledok potom zobrazením $g$: ${gn}. Urči obraz $(g\\circ f)(v)$ v tvare „x; y“.`,
         solution: `Matice: $A_f=${pm(F)}$, $A_g=${pm(G)}$. Zloženie má maticu $A_gA_f=${pm(GF)}$, teda $(g\\circ f)(v)=${pm(GF)}${col(v)}=${col(w)}$.`,
-        hint: 'Stĺpce matice zobrazenia sú obrazy vektorov $e_1=(1, 0)$ a $e_2=(0, 1)$. Zloženiu „najprv $f$, potom $g$“ zodpovedá súčin $A_gA_f$.'
+        hint: 'Stĺpce matice zobrazenia sú obrazy vektorov $e_1=(1, 0)$ a $e_2=(0, 1)$. Zloženiu „najprv $f$, potom $g$“ zodpovedá súčin $A_gA_f$.',
+        mistakes: [{ value: mv(mul(F, G), v), msg: 'Zobrazenia si použil v opačnom poradí. Najprv sa na $v$ použije $f$, preto je matica zloženia $A_gA_f$ (matica $A_f$ stojí pri vektore).' }]
+          .filter((mk) => mk.value.some((x, i) => x !== w[i])),
+        steps: [
+          { q: 'Vypočítaj $f(v)$.', type: 'tuple', signed: true, answer: mv(F, v), placeholder: 'x; y' },
+          { q: 'Vypočítaj $g\\bigl(f(v)\\bigr)$.', type: 'tuple', signed: true, answer: w, placeholder: 'x; y' }
+        ]
       };
     }
     if (k === 1) {
@@ -1006,7 +1181,13 @@
         type: 'tuple', signed: true, answer: A.flat(), placeholder: 'a₁₁; a₁₂; a₂₁; a₂₂',
         q: `Lineárne zobrazenie $f:\\mathbb{R}^2\\to\\mathbb{R}^2$ spĺňa $f${vt(u)}=${vt(fu)}$ a $f${vt(v)}=${vt(fv)}$. Nájdi maticu $A$ zobrazenia $f$ (v štandardnej báze). Prvky zadaj po riadkoch.`,
         solution: `Vektory zapíšeme do stĺpcov: $A\\,U=P$, kde $U=${pm(Uc)}$ a $P=${pm(P)}$. Keďže $\\det U=${det(Uc)}$, je $U^{-1}=${pm(Uci)}$ a $A=PU^{-1}=${pm(P)}${pm(Uci)}=${pm(A)}$.`,
-        hint: 'Obe podmienky naraz: $A\\,(u\\mid v)=(f(u)\\mid f(v))$. Maticu $(u\\mid v)$ invertuj a vynásob sprava.'
+        hint: 'Obe podmienky naraz: $A\\,(u\\mid v)=(f(u)\\mid f(v))$. Maticu $(u\\mid v)$ invertuj a vynásob sprava.',
+        mistakes: [{ value: mul(Uci, P).flat(), msg: 'Z rovnice $AU=P$ treba násobiť maticou $U^{-1}$ sprava: $A=PU^{-1}$. Násobenie matíc nie je komutatívne.' }]
+          .filter((mk) => mk.value.some((x, i) => x !== A.flat()[i])),
+        steps: [
+          { q: `Vypočítaj inverznú maticu k $U=${pm(Uc)}$ (prvky po riadkoch).`, type: 'tuple', signed: true, answer: Uci.flat(), placeholder: 'u₁₁; u₁₂; u₂₁; u₂₂' },
+          { q: 'Vypočítaj $A=PU^{-1}$ (prvky po riadkoch).', type: 'tuple', signed: true, answer: A.flat(), placeholder: 'a₁₁; a₁₂; a₂₁; a₂₂' }
+        ]
       };
     }
     if (k === 2) {
@@ -1023,7 +1204,11 @@
         type: 'tuple', proportional: true, signed: true, answer: kv, placeholder: 'x₁; x₂; x₃',
         q: `Zobrazenie $f:\\mathbb{R}^3\\to\\mathbb{R}^3$ je dané predpisom $f(x)=Ax$, kde $A=${pm(A)}$. Jadro $\\operatorname{Ker}f$ je priamka. Nájdi jej smerový vektor (ľubovoľný nenulový násobok je správne).`,
         solution: `Jadro je množina riešení sústavy $Ax=o$:<br>${chain(A, E)}<br>$h(A)=2$, teda $\\dim\\operatorname{Ker}f=3-2=1$. Riešenie je kolmé na oba nenulové riadky, preto je násobkom $${vt(E.M[0])}\\times${vt(E.M[1])}=${vt(cross(E.M[0], E.M[1]))}$${red3(E, kv)}. Teda $\\operatorname{Ker}f=\\mathcal{L}\\bigl(${vt(kv)}\\bigr)$.`,
-        hint: 'Jadro je množina riešení homogénnej sústavy $Ax=o$. Uprav maticu a zvoľ voľnú neznámu ako parameter.'
+        hint: 'Jadro je množina riešení homogénnej sústavy $Ax=o$. Uprav maticu a zvoľ voľnú neznámu ako parameter.',
+        steps: [
+          { q: 'Aká je hodnosť matice $A$?', answer: 2 },
+          { q: 'Zadaj smerový vektor jadra (ľubovoľný nenulový násobok je správne).', type: 'tuple', proportional: true, signed: true, answer: kv, placeholder: 'x₁; x₂; x₃' }
+        ]
       };
     }
     const [m, n] = pick([[3, 4], [3, 5], [4, 3], [2, 4]]);
@@ -1034,7 +1219,16 @@
       answer: askKer ? n - E.rank : E.rank,
       q: `Zobrazenie $f:\\mathbb{R}^{${n}}\\to\\mathbb{R}^{${m}}$ je dané maticou $A=${pm(M)}$. Urči $\\dim\\operatorname{${askKer ? 'Ker' : 'Im'}}f$.`,
       solution: `${chain(M, E)}<br>$h(A)=${E.rank}$, teda $\\dim\\operatorname{Im}f=${E.rank}$ a podľa vety o dimenzii $\\dim\\operatorname{Ker}f=${n}-${E.rank}=${n - E.rank}$.`,
-      hint: '$\\dim\\operatorname{Im}f=h(A)$ a $\\dim\\operatorname{Ker}f+\\dim\\operatorname{Im}f$ je počet stĺpcov matice (dimenzia vzoru).'
+      hint: '$\\dim\\operatorname{Im}f=h(A)$ a $\\dim\\operatorname{Ker}f+\\dim\\operatorname{Im}f$ je počet stĺpcov matice (dimenzia vzoru).',
+      mistakes: (askKer
+        ? [{ value: E.rank, msg: 'To je $\\dim\\operatorname{Im}f=h(A)$. Dimenzia jadra je počet stĺpcov mínus hodnosť.' },
+          { value: m - E.rank, msg: `Vo vete o dimenzii je dimenzia vzoru, teda počet stĺpcov $${n}$, nie počet riadkov.` }]
+        : [{ value: n - E.rank, msg: 'To je dimenzia jadra. Dimenzia obrazu sa rovná hodnosti matice.' }])
+        .filter((mk, i, arr) => mk.value !== (askKer ? n - E.rank : E.rank) && arr.findIndex((o) => o.value === mk.value) === i),
+      ...(askKer ? { steps: [
+        { q: 'Aká je hodnosť matice $A$?', answer: E.rank },
+        { q: 'Aká je dimenzia jadra $\\operatorname{Ker}f$?', answer: n - E.rank }
+      ] } : {})
     };
   });
 
@@ -1086,7 +1280,14 @@
         q: `Nájdi vlastné čísla matice $A=${pm(A)}$. Zadaj ich oddelené bodkočiarkou.`,
         solution: `$\\operatorname{tr}A=${T}$, $\\det A=${D}$, charakteristická rovnica je $${T === 0 ? '\\lambda^2' : `\\lambda^2 ${T > 0 ? '-' : '+'} ${Math.abs(T) === 1 ? '' : Math.abs(T)}\\lambda`}${D ? ` ${D > 0 ? '+' : '-'} ${Math.abs(D)}` : ''}=0$. `
           + `Diskriminant $${D ? `${T * T}${-4 * D < 0 ? '-' : '+'}${Math.abs(4 * D)}=` : ''}${disc}$, teda $\\lambda_{1,2}=\\frac{${T}\\pm${Math.sqrt(disc)}}{2}$, t. j. $\\lambda_1=${Math.min(l1, l2)}$ a $\\lambda_2=${Math.max(l1, l2)}$.`,
-        hint: 'Pre maticu $2\\times 2$ rieš $\\lambda^2-\\operatorname{tr}A\\cdot\\lambda+\\det A=0$.'
+        hint: 'Pre maticu $2\\times 2$ rieš $\\lambda^2-\\operatorname{tr}A\\cdot\\lambda+\\det A=0$.',
+        mistakes: [{ value: [A[0][0], A[1][1]], msg: 'Vlastné čísla sú prvky diagonály len pri trojuholníkovej matici. Tu rieš charakteristickú rovnicu $\\det(A-\\lambda I)=0$.' }]
+          .filter((mk) => [...mk.value].sort((x, y) => x - y).join() !== [l1, l2].sort((x, y) => x - y).join()),
+        steps: [
+          { q: 'Vypočítaj stopu $\\operatorname{tr}A$.', answer: T, signed: true },
+          { q: 'Vypočítaj $\\det A$.', answer: D, signed: true },
+          { q: 'Vyrieš charakteristickú rovnicu $\\lambda^2-\\operatorname{tr}A\\cdot\\lambda+\\det A=0$. Zadaj vlastné čísla.', type: 'set', signed: true, answer: [l1, l2], placeholder: 'λ₁; λ₂' }
+        ]
       };
     }
     if (k === 1) {
@@ -1110,7 +1311,11 @@
         type: 'tuple', proportional: true, signed: true, answer: v, placeholder: n === 2 ? 'v₁; v₂' : 'v₁; v₂; v₃',
         q: `Číslo $\\lambda=${l}$ je vlastným číslom matice $A=${pm(A)}$. Nájdi k nemu vlastný vektor (ľubovoľný nenulový násobok je správne).`,
         solution: `Riešime $(A-\\lambda I)v=o$, kde $A-${par(l)}I=${pm(B)}$. ${how} Skúška: $A${col(v)}=${col(mv(A, v))}=${l}\\cdot${col(v)}$.`,
-        hint: 'Vlastné vektory sú nenulové riešenia homogénnej sústavy $(A-\\lambda I)v=o$.'
+        hint: 'Vlastné vektory sú nenulové riešenia homogénnej sústavy $(A-\\lambda I)v=o$.',
+        steps: [
+          { q: `Napíš maticu $A-${par(l)}I$ (prvky po riadkoch).`, type: 'tuple', signed: true, answer: B.flat() },
+          { q: 'Nájdi nenulové riešenie sústavy $(A-\\lambda I)v=o$ (ľubovoľný nenulový násobok je správne).', type: 'tuple', proportional: true, signed: true, answer: v, placeholder: n === 2 ? 'v₁; v₂' : 'v₁; v₂; v₃' }
+        ]
       };
     }
     if (k === 2) {
@@ -1124,7 +1329,15 @@
         q: `Nájdi všetky vlastné čísla matice $A=${pm(A)}$. Zadaj ich oddelené bodkočiarkou (viacnásobné vlastné číslo zadaj viackrát).`,
         solution: `Rozvoj $\\det(A-\\lambda I)$ podľa 3. riadka: $p(\\lambda)=(${l3 === 0 ? '-\\lambda' : `${l3}-\\lambda`})\\cdot${vm([[`${Bm[0][0]}-\\lambda`, Bm[0][1]], [Bm[1][0], `${Bm[1][1]}-\\lambda`]])}=(${l3 === 0 ? '-\\lambda' : `${l3}-\\lambda`})\\bigl(${charPolyTex(Bm)}\\bigr)$. `
           + `Kvadratický činiteľ má $\\operatorname{tr}=${T}$, $\\det=${D}$ a korene $${Math.min(l1, l2)}$ a $${Math.max(l1, l2)}$. Vlastné čísla sú $${[l1, l2, l3].sort((x, y) => x - y).join(',\\ ')}$.`,
-        hint: 'V treťom riadku sú dve nuly – rozviň $\\det(A-\\lambda I)$ podľa neho a zvyšný determinant $2\\times 2$ rieš ako kvadratickú rovnicu.'
+        hint: 'V treťom riadku sú dve nuly – rozviň $\\det(A-\\lambda I)$ podľa neho a zvyšný determinant $2\\times 2$ rieš ako kvadratickú rovnicu.',
+        mistakes: [{ value: [A[0][0], A[1][1], A[2][2]], msg: 'Matica nie je trojuholníková, vlastné čísla preto nie sú jej diagonálne prvky. Rozviň $\\det(A-\\lambda I)$ podľa 3. riadka.' }]
+          .filter((mk) => [...mk.value].sort((x, y) => x - y).join() !== [l1, l2, l3].sort((x, y) => x - y).join()),
+        steps: [
+          { q: 'Rozvojom podľa 3. riadka dostaneš činiteľ $(c-\\lambda)$. Aké je $c$?', answer: l3, signed: true },
+          { q: 'Zvyšný činiteľ je charakteristický polynóm ľavej hornej podmatice $2\\times 2$. Aká je jej stopa?', answer: T, signed: true },
+          { q: 'Aký je determinant tejto podmatice?', answer: D, signed: true },
+          { q: 'Zadaj všetky vlastné čísla matice $A$.', type: 'set', signed: true, answer: [l1, l2, l3], placeholder: 'λ₁; λ₂; λ₃' }
+        ]
       };
     }
     let l1, l2;
@@ -1141,7 +1354,15 @@
         q: `Matica $A=${pm(A)}$ má vlastné čísla $${l1}$ a $${l2}$. Pomocou diagonalizácie vypočítaj $A^{${e}}$. Prvky zadaj po riadkoch.`,
         solution: `Vlastné vektory: $${vt([P[0][0], P[1][0]])}$ pre $\\lambda=${l1}$ a $${vt([P[0][1], P[1][1]])}$ pre $\\lambda=${l2}$. Teda $P=${pm(P)}$, $D=${pm(D)}$, $\\det P=${d}$ a $P^{-1}=${pm(Pi)}$. `
           + `$A^{${e}}=PD^{${e}}P^{-1}=${pm(P)}${pm(De)}${pm(Pi)}=${pm(Ae)}$.`,
-        hint: 'Nájdi vlastné vektory, zostav $P$ a $D$ a použi $A^k=PD^kP^{-1}$; mocnina diagonálnej matice sa počíta po prvkoch na diagonále.'
+        hint: 'Nájdi vlastné vektory, zostav $P$ a $D$ a použi $A^k=PD^kP^{-1}$; mocnina diagonálnej matice sa počíta po prvkoch na diagonále.',
+        mistakes: [{ value: A.flat().map((x) => Math.pow(x, e)), msg: 'Mocnina matice sa nepočíta po prvkoch, to platí len pre diagonálnu maticu $D$. Použi $A^k=PD^kP^{-1}$.' }]
+          .filter((mk) => mk.value.some((x, i) => x !== Ae.flat()[i])),
+        steps: [
+          { q: `Zadaj vlastný vektor k $\\lambda=${l1}$ (ľubovoľný nenulový násobok).`, type: 'tuple', proportional: true, signed: true, answer: [P[0][0], P[1][0]], placeholder: 'v₁; v₂' },
+          { q: `Zadaj vlastný vektor k $\\lambda=${l2}$ (ľubovoľný nenulový násobok).`, type: 'tuple', proportional: true, signed: true, answer: [P[0][1], P[1][1]], placeholder: 'v₁; v₂' },
+          { q: `Diagonálne prvky matice $D^{${e}}$?`, type: 'tuple', signed: true, answer: [Math.pow(l1, e), Math.pow(l2, e)], placeholder: 'd₁; d₂' },
+          { q: `Vypočítaj $A^{${e}}=PD^{${e}}P^{-1}$ (prvky po riadkoch).`, type: 'tuple', signed: true, answer: Ae.flat(), placeholder: 'a₁₁; a₁₂; a₂₁; a₂₂' }
+        ]
       };
     }
   });
@@ -1186,7 +1407,16 @@
         q: `Vypočítaj ortogonálnu projekciu vektora $v=${vt(v)}$ na smer vektora $u=${vt(u)}$. Zložky zadaj oddelené bodkočiarkou (zlomky v tvare $p/q$).`,
         solution: `$\\langle v, u\\rangle=${v.map((x, i) => `${par(x)}\\cdot ${par(u[i])}`).join('+')}=${p}$, $\\langle u, u\\rangle=${q}$. `
           + `$\\operatorname{proj}_u v=\\frac{${p}}{${q}}${vt(u)}=\\left(${u.map((x) => fTex(p * x, q)).join(', ')}\\right)$.`,
-        hint: '$\\operatorname{proj}_u v=\\frac{\\langle v, u\\rangle}{\\langle u, u\\rangle}\\,u$.'
+        hint: '$\\operatorname{proj}_u v=\\frac{\\langle v, u\\rangle}{\\langle u, u\\rangle}\\,u$.',
+        mistakes: [
+          { value: v.map((x) => (p * x) / dot(v, v)), msg: 'Toto je projekcia vektora $u$ na smer $v$. Premietame $v$ na smer $u$, výsledok je preto násobkom vektora $u$.' },
+          { value: u.map((x) => p * x), msg: 'Skalárny súčin treba ešte vydeliť číslom $\\langle u, u\\rangle=\\|u\\|^2$.' }
+        ].filter((mk) => mk.value.some((x, i) => Math.abs(x - pr[i]) > 1e-9)),
+        steps: [
+          { q: 'Vypočítaj $\\langle v, u\\rangle$.', answer: p, signed: true },
+          { q: 'Vypočítaj $\\langle u, u\\rangle$.', answer: q },
+          { q: 'Zadaj projekciu $\\operatorname{proj}_u v$ (zlomky v tvare $p/q$).', type: 'tuple', signed: true, answer: pr, placeholder: 'p₁; p₂; p₃' }
+        ]
       };
     }
     if (k === 1) {
@@ -1202,7 +1432,13 @@
         q: `Gramovým–Schmidtovým procesom zortogonalizuj vektory $u_1=${vt(u1)}$ a $u_2=${vt(u2)}$ (v tomto poradí, bez normovania). Zadaj vektor $w_2$.`,
         solution: `$w_1=u_1$. $\\langle u_2, w_1\\rangle=${p}$, $\\langle w_1, w_1\\rangle=${q}$, koeficient $\\frac{${p}}{${q}}=${c}$. `
           + `$w_2=u_2${c < 0 ? '+' : '-'}${Math.abs(c) === 1 ? '' : Math.abs(c)}w_1=${vt(u2)}${c < 0 ? '+' : '-'}${vt(u1.map((x) => Math.abs(c) * x))}=${vt(w)}$. Skúška: $\\langle w_1, w_2\\rangle=${dot(u1, w)}$.`,
-        hint: '$w_2=u_2-\\frac{\\langle u_2, w_1\\rangle}{\\langle w_1, w_1\\rangle}\\,w_1$; výsledok musí byť kolmý na $w_1$.'
+        hint: '$w_2=u_2-\\frac{\\langle u_2, w_1\\rangle}{\\langle w_1, w_1\\rangle}\\,w_1$; výsledok musí byť kolmý na $w_1$.',
+        mistakes: [{ value: u2.map((x, i) => x + c * u1[i]), msg: 'Projekciu na $w_1$ treba od $u_2$ odčítať, nie pripočítať. Over, či je výsledok kolmý na $w_1$.' }],
+        steps: [
+          { q: 'Vypočítaj $\\langle u_2, w_1\\rangle$, kde $w_1=u_1$.', answer: p, signed: true },
+          { q: 'Vypočítaj $\\langle w_1, w_1\\rangle$.', answer: q },
+          { q: 'Zadaj vektor $w_2$.', type: 'tuple', signed: true, answer: w, placeholder: 'w₁; w₂; w₃' }
+        ]
       };
     }
     if (k === 2) {
@@ -1214,7 +1450,12 @@
         signed: true, answer: -rest / v[pos], show: fTxt(-rest, v[pos]),
         q: `Pre ktoré $t$ sú vektory $u=${vt(ut)}$ a $v=${vt(v)}$ ortogonálne? Neceločíselný výsledok zadaj ako zlomok.`,
         solution: `$\\langle u, v\\rangle=${ut.map((x, i) => `${x === 't' ? 't' : par(x)}\\cdot ${par(v[i])}`).join('+')}=${lin([v[pos]], ['t'], rest)}$. Podmienka $\\langle u, v\\rangle=0$ dáva $t=${fTex(-rest, v[pos])}$.`,
-        hint: 'Vektory sú ortogonálne práve vtedy, keď je ich skalárny súčin nulový.'
+        hint: 'Vektory sú ortogonálne práve vtedy, keď je ich skalárny súčin nulový.',
+        steps: [
+          { q: 'Skalárny súčin $\\langle u, v\\rangle$ má tvar $at+b$. Aký je koeficient $a$?', answer: v[pos], signed: true },
+          { q: 'Aký je absolútny člen $b$?', answer: rest, signed: true },
+          { q: 'Pre ktoré $t$ je skalárny súčin nulový? Neceločíselný výsledok zadaj ako zlomok.', answer: -rest / v[pos], signed: true }
+        ]
       };
     }
     if (Math.random() < 0.5) {
@@ -1223,7 +1464,8 @@
         answer: n,
         q: `Vypočítaj vzdialenosť $\\|u-v\\|$ vektorov $u=${vt(u)}$ a $v=${vt(v)}$.`,
         solution: `$u-v=${vt(d)}$, $\\|u-v\\|=\\sqrt{${d.map((x) => `${par(x)}^2`).join('+')}}=\\sqrt{${n * n}}=${n}$.`,
-        hint: 'Odčítaj vektory po zložkách a použi $\\|x\\|=\\sqrt{x_1^2+x_2^2+x_3^2}$.'
+        hint: 'Odčítaj vektory po zložkách a použi $\\|x\\|=\\sqrt{x_1^2+x_2^2+x_3^2}$.',
+        mistakes: [{ value: n * n, msg: 'To je druhá mocnina vzdialenosti. Výsledok ešte odmocni.' }]
       };
     }
     let a, b, p;
@@ -1232,7 +1474,15 @@
       signed: true, answer: p / (a.n * b.n), show: fTxt(p, a.n * b.n),
       q: `Vypočítaj $\\cos\\varphi$, kde $\\varphi$ je uhol vektorov $u=${vt(a.v)}$ a $v=${vt(b.v)}$. Výsledok zadaj ako zlomok.`,
       solution: `$\\langle u, v\\rangle=${p}$, $\\|u\\|=${a.n}$, $\\|v\\|=${b.n}$, teda $\\cos\\varphi=\\frac{${p}}{${a.n}\\cdot ${b.n}}=${fTex(p, a.n * b.n)}$.`,
-      hint: '$\\cos\\varphi=\\frac{\\langle u, v\\rangle}{\\|u\\|\\,\\|v\\|}$; normy týchto vektorov vychádzajú celočíselne.'
+      hint: '$\\cos\\varphi=\\frac{\\langle u, v\\rangle}{\\|u\\|\\,\\|v\\|}$; normy týchto vektorov vychádzajú celočíselne.',
+      mistakes: [{ value: p / (a.n * a.n * b.n * b.n), msg: 'V menovateli sú normy $\\|u\\|$ a $\\|v\\|$, nie ich druhé mocniny.' }]
+        .filter((mk) => Math.abs(mk.value - p / (a.n * b.n)) > 1e-9),
+      steps: [
+        { q: 'Vypočítaj $\\langle u, v\\rangle$.', answer: p, signed: true },
+        { q: 'Vypočítaj $\\|u\\|$.', answer: a.n },
+        { q: 'Vypočítaj $\\|v\\|$.', answer: b.n },
+        { q: 'Vypočítaj $\\cos\\varphi$ (ako zlomok).', answer: p / (a.n * b.n), signed: true }
+      ]
     };
   });
 
@@ -1302,7 +1552,19 @@
         type: 'choice', options: DEF, answer: DEF[target],
         q: `Urči definitnosť kvadratickej formy $Q=${formTex(A, V)}$ (vyber najpresnejšiu možnosť).`,
         solution: `Matica formy: $A=${pm(A)}$. Hlavné rohové minory: $${Dtxt}$. Keďže ${why}, forma je <strong>${DEF[target]}</strong>.`,
-        hint: 'Zostav symetrickú maticu formy (pri zmiešaných členoch polovica koeficientu) a vypočítaj hlavné rohové minory.'
+        hint: 'Zostav symetrickú maticu formy (pri zmiešaných členoch polovica koeficientu) a vypočítaj hlavné rohové minory.',
+        choiceHints: Object.fromEntries([
+          'Kladne definitná je forma len vtedy, keď sú všetky hlavné rohové minory kladné.',
+          'Záporne definitná je forma len vtedy, keď sa znamienka rohových minorov striedajú a $D_1\\lt 0$.',
+          ...[2, 3].map(() => (target === 2 || target === 3
+            ? 'Determinant je síce nulový, ale pozri sa na znamienko nenulového vlastného čísla: pri matici $2\\times 2$ sa rovná stope.'
+            : 'Semidefinitná forma má $\\det A=0$, teda aspoň jedno vlastné číslo nulové. Skontroluj determinant.')),
+          'Indefinitná forma nadobúda kladné aj záporné hodnoty. Over znamienka rohových minorov podľa Sylvestrovho kritéria.'
+        ].map((m, i) => [DEF[i], m]).filter((_, i) => i !== target)),
+        steps: [
+          ...Ds.map((d, i) => ({ q: `Vypočítaj hlavný rohový minor $D_${i + 1}$.`, answer: d, signed: true })),
+          { q: 'Aká je definitnosť formy?', type: 'choice', options: DEF, answer: DEF[target] }
+        ]
       };
     }
     if (k === 1) {
@@ -1312,7 +1574,8 @@
           signed: true, answer: b * b / a11, show: fTxt(b * b, a11),
           q: `Forma $Q=${lin([a11, 2 * b], ['x^2', 'xy'])}+ay^2$ je kladne definitná práve vtedy, keď $a\\gt c$. Urči číslo $c$ (prípadne ako zlomok).`,
           solution: `$A=${pm([[a11, b], [b, 'a']])}$, $D_1=${a11}\\gt 0$, $D_2=${a11}a-${b * b}\\gt 0\\iff a\\gt ${fTex(b * b, a11)}$. Teda $c=${fTex(b * b, a11)}$.`,
-          hint: 'Sylvestrovo kritérium: $D_1\\gt 0$ platí vždy, podmienku dáva $D_2=\\det A\\gt 0$.'
+          hint: 'Sylvestrovo kritérium: $D_1\\gt 0$ platí vždy, podmienku dáva $D_2=\\det A\\gt 0$.',
+          mistakes: [{ value: 4 * b * b / a11, msg: `Do matice formy patrí mimo diagonály polovica koeficientu pri $xy$, teda $${b}$, nie $${2 * b}$.` }]
         };
       }
       let A, D2, K;
@@ -1331,7 +1594,12 @@
         q: `Forma $Q=${Q}$ je kladne definitná práve vtedy, keď $a\\gt c$. Urči číslo $c$ (prípadne ako zlomok).`,
         solution: `Matica formy $A=${pm(Aa)}$. $D_1=${A[0][0]}\\gt 0$, $D_2=${D2}\\gt 0$ nezávisia od $a$. Rozvojom podľa 3. riadka (alebo Sarrusovým pravidlom) $D_3=\\det A=${lin([D2], ['a'], K)}$. `
           + `Podmienka $D_3\\gt 0$ dáva $a\\gt ${fTex(-K, D2)}$, teda $c=${fTex(-K, D2)}$.`,
-        hint: 'Prvé dva rohové minory od $a$ nezávisia; $D_3=\\det A$ je lineárna funkcia $a$ s koeficientom $D_2$.'
+        hint: 'Prvé dva rohové minory od $a$ nezávisia; $D_3=\\det A$ je lineárna funkcia $a$ s koeficientom $D_2$.',
+        steps: [
+          { q: 'Vypočítaj rohový minor $D_2$.', answer: D2 },
+          { q: 'Minor $D_3=\\det A$ má tvar $D_2\\,a+K$. Aké je číslo $K$?', answer: K, signed: true },
+          { q: 'Urči číslo $c$ (prípadne ako zlomok).', answer: -K / D2, signed: true }
+        ]
       };
     }
     const n = pick([2, 3]);
@@ -1353,7 +1621,8 @@
       placeholder: n === 2 ? 'a₁₂' : 'a₁₂; a₁₃; a₂₃',
       q: `Kvadratická forma je $Q=${lin(cs, vs)}$. Urči ${n === 2 ? 'prvok $a_{12}$' : 'prvky $a_{12}, a_{13}, a_{23}$'} jej symetrickej matice ${n === 2 ? '' : '(oddelené bodkočiarkou) '}(zlomky v tvare $p/q$).`,
       solution: `Koeficient pri $x_ix_j$ ($i\\neq j$) sa rozdelí rovnakým dielom medzi $a_{ij}$ a $a_{ji}$, teda $a_{ij}$ je polovica koeficientu. Matica formy: $A=${Mtex}$.`,
-      hint: 'Pri zmiešanom člene $c\\,x_ix_j$ je $a_{ij}=a_{ji}=c/2$.'
+      hint: 'Pri zmiešanom člene $c\\,x_ix_j$ je $a_{ij}=a_{ji}=c/2$.',
+      mistakes: [{ value: entries.map(([i, j]) => S[i][j]), msg: 'Koeficient pri $x_ix_j$ sa v symetrickej matici rozdelí rovnakým dielom medzi $a_{ij}$ a $a_{ji}$, každý dostane polovicu.' }]
     };
   });
 })();

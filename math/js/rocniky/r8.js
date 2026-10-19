@@ -35,6 +35,22 @@
     return !s ? '0' : s[0] === '+' ? s.slice(2) : '-' + s.slice(2);
   };
 
+  // typické chyby: vynechá prázdne a duplicitné položky a tie, ktorých hodnota by bola zároveň správnou odpoveďou
+  const withMist = (ex, list) => {
+    const seen = new Set();
+    const ms = list.filter((m) => {
+      if (!m) return false;
+      const vals = Array.isArray(m.value) ? m.value : [m.value];
+      if (!vals.every((v) => typeof v === 'number' && Number.isFinite(v))) return false;
+      const c = EXERCISES.canonical(Object.assign({}, ex, { answer: m.value }));
+      if (seen.has(c) || EXERCISES.check(ex, c) === true) return false;
+      seen.add(c);
+      return true;
+    });
+    if (ms.length) ex.mistakes = ms;
+    return ex;
+  };
+
   /* ---------- kreslenie ---------- */
 
   // stĺpcový diagram s hodnotami nad stĺpcami
@@ -235,20 +251,26 @@
       const a = nz(-15, 15), b = nz(-12, 12), k = rnd(0, 3);
       const sgn = (a < 0) === (b < 0) ? 'rovnaké, výsledok je kladný' : 'rôzne, výsledok je záporný';
       if (k === 0) {
-        return {
+        return withMist({
           signed: true, answer: a + b, q: `Vypočítaj $${a} + ${par(b)}$.`,
           solution: b < 0
             ? `Pripočítať záporné číslo je to isté ako odčítať jeho absolútnu hodnotu: $${a} + ${par(b)} = ${a} - ${-b} = ${a + b}$.`
             : `$${a} + ${b} = ${a + b}$.`,
           hint: 'Predstav si posun po číselnej osi: kladné číslo posúva doprava, záporné doľava.'
-        };
+        }, [
+          (a < 0) !== (b < 0) && { value: Math.sign(a) * (Math.abs(a) + Math.abs(b)),
+            msg: 'Čísla majú rôzne znamienka, preto ich absolútne hodnoty nesčítavaj, ale menšiu odčítaj od väčšej. Znamienko výsledku určí číslo s väčšou absolútnou hodnotou.' }
+        ]);
       }
       if (k === 1) {
-        return {
+        return withMist({
           signed: true, answer: a - b, q: `Vypočítaj $${a} - ${par(b)}$.`,
           solution: `Odčítať číslo znamená pripočítať opačné číslo: $${a} - ${par(b)} = ${a} + ${par(-b)} = ${a - b}$.`,
           hint: 'Odčítanie nahraď pripočítaním opačného čísla.'
-        };
+        }, [
+          b < 0 && { value: a + b, msg: `Odčítať záporné číslo znamená pripočítať opačné, kladné číslo: $-${par(b)} = +${-b}$.` },
+          b > 0 && a < 0 && { value: a + b, msg: 'Od záporného čísla odčítavaš, posúvaš sa teda po číselnej osi ešte ďalej doľava od nuly.' }
+        ]);
       }
       if (k === 2) {
         return {
@@ -267,18 +289,30 @@
       const a = nz(-20, 20);
       let b = nz(-20, 20);
       if (Math.random() < 0.5) {
-        return {
+        const ex = withMist({
           signed: true, answer: Math.abs(a) - Math.abs(b), q: `Vypočítaj $|${a}| - |${b}|$.`,
           solution: `$|${a}| = ${Math.abs(a)}$ a $|${b}| = ${Math.abs(b)}$, teda $${Math.abs(a)} - ${Math.abs(b)} = ${Math.abs(a) - Math.abs(b)}$.`,
           hint: 'Absolútna hodnota je vzdialenosť od nuly, nikdy nie je záporná.'
-        };
+        }, [
+          { value: a - b, msg: 'Najprv urči absolútne hodnoty oboch čísel (vzdialenosti od nuly, tie nie sú záporné) a až potom odčítaj.' }
+        ]);
+        ex.steps = [
+          { q: `Koľko je $|${a}|$?`, answer: Math.abs(a) },
+          { q: `Koľko je $|${b}|$?`, answer: Math.abs(b) },
+          { q: 'Odčítaj získané absolútne hodnoty. Aký je výsledok?', answer: Math.abs(a) - Math.abs(b), signed: true }
+        ];
+        return ex;
       }
       if (b === a) b = -a;
-      return {
+      return withMist({
         answer: Math.abs(a - b), q: `Na číselnej osi ležia čísla $${a}$ a $${b}$. Aká je ich vzdialenosť?`,
         solution: `Vzdialenosť dvoch čísel je absolútna hodnota ich rozdielu: $|${a} - ${par(b)}| = |${a - b}| = ${Math.abs(a - b)}$.`,
         hint: 'Odčítaj čísla a výsledok vezmi bez znamienka. Ak ležia na opačných stranách nuly, vzdialenosti od nuly sa sčítajú.'
-      };
+      }, [
+        (a < 0) !== (b < 0)
+          ? { value: Math.abs(Math.abs(a) - Math.abs(b)), msg: 'Čísla ležia na opačných stranách nuly, preto sa ich vzdialenosti od nuly sčítajú, neodčítajú.' }
+          : { value: Math.abs(a) + Math.abs(b), msg: 'Obe čísla ležia na tej istej strane nuly, preto ich vzdialenosti od nuly odčítaj, nesčítavaj.' }
+      ]);
     }
     if (t < 0.78) {
       const q1 = pick([2, 4, 5, 8, 10]), p1 = nz(-2 * q1 + 1, 2 * q1 - 1);
@@ -290,12 +324,17 @@
       const ans = L < R ? '<' : L > R ? '>' : '=';
       const sym = ans === '<' ? '&lt;' : ans === '>' ? '&gt;' : '=';
       const [LS, RS] = left ? [fr, de] : [de, fr];
-      return {
+      const ex = {
         type: 'choice', options: ['<', '=', '>'], answer: ans,
         q: `Doplň správny znak: $${LS} \\;\\square\\; ${RS}$`,
         solution: `Zlomok prevedieme na desatinné číslo: $${fr} = ${dc(V1 / 1000)}$. Porovnávame $${dc(L / 1000)}$ a $${dc(R / 1000)}$, preto $${LS} ${sym} ${RS}$.`,
         hint: 'Preveď zlomok na desatinné číslo. Zo dvoch záporných čísel je väčšie to, ktoré je bližšie k nule.'
       };
+      // pri dvoch záporných číslach sa často porovnávajú len absolútne hodnoty
+      if (L < 0 && R < 0 && ans !== '=') {
+        ex.choiceHints = { [ans === '<' ? '>' : '<']: 'Pri záporných číslach nerozhoduje, ktoré má väčšiu absolútnu hodnotu: väčšie je to, ktoré je bližšie k nule.' };
+      }
+      return ex;
     }
     let [a, b] = red(nz(-7, 7), pick([2, 3, 4, 5, 6]));
     let [c, d] = red(nz(-7, 7), pick([2, 3, 4, 6, 8]));
@@ -307,14 +346,30 @@
     const L = lcm(b, d), A = a * L / b, C = c * L / d;
     const [P, Q] = op === '+' ? [A + C, L] : op === '-' ? [A - C, L] : [a * c, b * d];
     const expr = `${fTex(a, b)} ${op === '·' ? '\\cdot' : op} ${fPar(c, d)}`;
-    return {
+    const ex = withMist({
       signed: true, answer: P / Q, show: fTxt(P, Q),
       q: `Vypočítaj $${expr}$. Výsledok zadaj ako zlomok v základnom tvare (napr. -5/6) alebo ako celé číslo.`,
       solution: op === '·'
         ? `Čitateľ násobíme čitateľom a menovateľ menovateľom: $${expr} = ${a * c < 0 ? '-' : ''}\\frac{${Math.abs(a * c)}}{${b * d}}${gcd(a * c, b * d) > 1 ? ` = ${fTex(P, Q)}` : ''}$.`
         : `Spoločný menovateľ je ${L}: $${expr} = \\frac{${A} ${op} ${par(C)}}{${L}} = ${fTex(P, Q)}$.`,
       hint: 'Pri sčítaní a odčítaní zlomkov potrebuješ spoločného menovateľa. Nezabudni na znamienka.'
-    };
+    }, [
+      op === '+' && { value: (a + c) / (b + d), msg: 'Zlomky nesčítavaj tak, že sčítaš zvlášť čitatele a zvlášť menovatele. Najprv ich preveď na spoločného menovateľa.' },
+      op === '-' && b !== d && { value: (a - c) / (b - d), msg: 'Zlomky neodčítavaj tak, že odčítaš zvlášť čitatele a zvlášť menovatele. Najprv ich preveď na spoločného menovateľa.' },
+      op === '·' && { value: A * C / L, msg: 'Pri násobení zlomkov netreba spoločného menovateľa: čitateľ násob čitateľom a menovateľ menovateľom.' }
+    ]);
+    ex.steps = op === '·'
+      ? [
+        { q: 'Vynásob čitatele. Aký čitateľ dostaneš (pred krátením)?', answer: a * c, signed: true },
+        { q: 'Vynásob menovatele. Aký menovateľ dostaneš?', answer: b * d },
+        { q: `Zapíš zlomok $\\frac{${a * c}}{${b * d}}$ v základnom tvare (alebo ako celé číslo).`, answer: P / Q, show: fTxt(P, Q), signed: true }
+      ]
+      : [
+        { q: `Aký je najmenší spoločný menovateľ zlomkov $${fTex(a, b)}$ a $${fTex(c, d)}$?`, answer: L },
+        { q: `Rozšír oba zlomky na menovateľ ${L} a ${op === '+' ? 'sčítaj' : 'odčítaj'} ich čitatele. Aký čitateľ dostaneš?`, answer: A + (op === '+' ? C : -C), signed: true },
+        { q: `Zapíš výsledok $\\frac{${P}}{${L}}$ v základnom tvare (alebo ako celé číslo).`, answer: P / Q, show: fTxt(P, Q), signed: true }
+      ];
+    return ex;
   });
 
   /* ---------- 2. Mocniny a odmocniny ---------- */
@@ -351,19 +406,19 @@
       const k = rnd(0, 2);
       if (k === 0) {
         const a = nz(-12, 15);
-        return {
+        return withMist({
           signed: true, answer: a * a, q: `Vypočítaj $${par(a)}^2$.`,
           solution: `$${par(a)}^2 = ${par(a)}\\cdot ${par(a)} = ${a * a}$.`,
           hint: 'Druhá mocnina je súčin dvoch rovnakých činiteľov. Mínus krát mínus je plus.'
-        };
+        }, [{ value: 2 * a, msg: 'Druhá mocnina nie je dvojnásobok: umocniť na druhú znamená vynásobiť číslo samým sebou.' }]);
       }
       if (k === 1) {
         const a = nz(-5, 6);
-        return {
+        return withMist({
           signed: true, answer: a * a * a, q: `Vypočítaj $${par(a)}^3$.`,
           solution: `$${par(a)}^3 = ${par(a)}\\cdot ${par(a)}\\cdot ${par(a)} = ${a * a * a}$.`,
           hint: 'Tretia mocnina je súčin troch rovnakých činiteľov. Nepárna mocnina záporného čísla je záporná.'
-        };
+        }, [{ value: 3 * a, msg: 'Tretia mocnina nie je trojnásobok: číslo treba napísať trikrát ako činiteľ a vynásobiť.' }]);
       }
       const a = rnd(2, 9), inside = Math.random() < 0.5;
       return {
@@ -378,19 +433,26 @@
       const k = rnd(0, 2);
       if (k === 0) {
         const n = rnd(2, 20);
-        return {
+        return withMist({
           answer: n, q: `Vypočítaj $\\sqrt{${n * n}}$.`,
           solution: `$\\sqrt{${n * n}} = ${n}$, lebo $${n}^2 = ${n * n}$.`,
           hint: 'Hľadaj nezáporné číslo, ktorého druhá mocnina je číslo pod odmocninou.'
-        };
+        }, [{ value: n * n / 2, msg: `Odmocnina nie je polovica čísla. Hľadaj číslo, ktoré vynásobené samým sebou dá ${n * n}.` }]);
       }
       if (k === 1) {
         const a = rnd(2, 12), b = rnd(2, 12);
-        return {
+        return withMist({
           signed: true, answer: a - b, q: `Vypočítaj $\\sqrt{${a * a}} - \\sqrt{${b * b}}$.`,
           solution: `$\\sqrt{${a * a}} = ${a}$ a $\\sqrt{${b * b}} = ${b}$, teda $${a} - ${b} = ${a - b}$.`,
-          hint: 'Najprv vypočítaj každú odmocninu zvlášť.'
-        };
+          hint: 'Najprv vypočítaj každú odmocninu zvlášť.',
+          steps: [
+            { q: `Koľko je $\\sqrt{${a * a}}$?`, answer: a },
+            { q: `Koľko je $\\sqrt{${b * b}}$?`, answer: b },
+            { q: 'Odčítaj získané čísla. Aký je výsledok?', answer: a - b, signed: true }
+          ]
+        }, [
+          a > b && Number.isInteger(Math.sqrt(a * a - b * b)) && { value: Math.sqrt(a * a - b * b), msg: 'Rozdiel odmocnín nie je odmocnina z rozdielu. Najprv vypočítaj každú odmocninu zvlášť a až potom odčítaj.' }
+        ]);
       }
       const n = rnd(1, 9);
       return {
@@ -413,12 +475,19 @@
     let m10 = rnd(11, 99);
     if (m10 % 10 === 0) m10 += 1;
     const e = rnd(3, 8), N = m10 * Math.pow(10, e - 1);
-    return {
+    return withMist({
       type: 'tuple', answer: [m10 / 10, e], placeholder: 'a; n',
       q: `Zapíš číslo $${grp(N)}$ v tvare $a\\cdot 10^n$, kde $1 \\le a &lt; 10$. Zadaj $a$ a $n$ oddelené bodkočiarkou.`,
       solution: `Desatinnú čiarku posunieme o ${e} ${pl(e, ['miesto', 'miesta', 'miest'])} doľava, aby pred ňou ostala jediná nenulová číslica: $${grp(N)} = ${dc(m10 / 10)}\\cdot 10^{${e}}$.`,
-      hint: 'Číslo $a$ má pred desatinnou čiarkou jedinú číslicu. Exponent $n$ udáva, o koľko miest posunieš čiarku.'
-    };
+      hint: 'Číslo $a$ má pred desatinnou čiarkou jedinú číslicu. Exponent $n$ udáva, o koľko miest posunieš čiarku.',
+      steps: [
+        { q: 'Aké je číslo $a$? Pred desatinnou čiarkou má mať jedinú nenulovú číslicu.', answer: m10 / 10 },
+        { q: 'O koľko miest doľava treba posunúť desatinnú čiarku? To je exponent $n$.', answer: e }
+      ]
+    }, [
+      { value: [m10 / 10, e + 1], msg: 'Exponent nie je počet číslic čísla, ale počet miest, o ktoré posunieš desatinnú čiarku.' },
+      { value: [m10, e - 1], msg: 'Číslo $a$ musí spĺňať $1 \\le a &lt; 10$, pred desatinnou čiarkou má teda jedinú číslicu.' }
+    ]);
   });
 
   /* ---------- 3. Výrazy s premennými ---------- */
@@ -455,65 +524,117 @@
       const x = nz(-6, 6), k = rnd(0, 3);
       if (k === 0) {
         const a = nz(-9, 9), b = nz(-12, 12), v = a * x + b;
-        return {
+        return withMist({
           signed: true, answer: v, q: `Vypočítaj hodnotu výrazu $${lead(a, 'x')}${term(b)}$ pre $x = ${x}$.`,
           solution: `$${mulSub(a, x)}${term(b)} = ${a * x}${term(b)} = ${v}$.`,
-          hint: 'Za $x$ dosaď číslo; ak je záporné, daj ho do zátvorky.'
-        };
+          hint: 'Za $x$ dosaď číslo; ak je záporné, daj ho do zátvorky.',
+          steps: [
+            { q: `Dosaď $x = ${x}$ do člena $${lead(a, 'x')}$. Koľko je $${mulSub(a, x)}$?`, answer: a * x, signed: true },
+            { q: `Koľko je $${a * x}${term(b)}$?`, answer: v, signed: true }
+          ]
+        }, [
+          // 3x pre x = -2 prečítané ako 3 a -2 vedľa seba (súčet namiesto súčinu)
+          Math.abs(a) !== 1 && { value: a + x + b, msg: `Zápis $${lead(a, 'x')}$ znamená súčin čísla $${a}$ a premennej $x$, nie súčet. Dosadené číslo daj do zátvorky a vynásob.` }
+        ]);
       }
       if (k === 1) {
         const b = rnd(-6, 6), c = nz(-9, 9), v = x * x + b * x + c;
         const bs = b === 0 ? '' : ` ${b > 0 ? '+' : '-'} ${mulSub(Math.abs(b), x)}`;
-        return {
+        const ex = withMist({
           signed: true, answer: v, q: `Vypočítaj hodnotu výrazu $${poly([1, b, c])}$ pre $x = ${x}$.`,
           solution: `$${par(x)}^2${bs}${term(c)} = ${x * x}${term(b * x)}${term(c)} = ${v}$.`,
           hint: 'Najprv umocni, potom násob a nakoniec sčítaj. Záporné číslo daj do zátvorky.'
-        };
+        }, [
+          x < 0 && { value: -x * x + b * x + c, msg: `Záporné číslo pri umocňovaní daj do zátvorky: $(${x})^2$ je kladné číslo.` },
+          { value: 2 * x + b * x + c, msg: 'Druhá mocnina $x^2$ znamená $x\\cdot x$, nie $2\\cdot x$.' }
+        ]);
+        ex.steps = [
+          { q: `Koľko je $${par(x)}^2$?`, answer: x * x },
+          ...(b === 0 ? [] : [{ q: `Koľko je $${mulSub(b, x)}$?`, answer: b * x, signed: true }]),
+          { q: 'Sčítaj všetky členy. Akú hodnotu má výraz?', answer: v, signed: true }
+        ];
+        return ex;
       }
       if (k === 2) {
         const a = pick([-4, -3, -2, 2, 3, 4, 5]), b = nz(-8, 8), v = a * (x + b);
-        return {
+        return withMist({
           signed: true, answer: v, q: `Vypočítaj hodnotu výrazu $${a}(x${term(b)})$ pre $x = ${x}$.`,
           solution: `$${a}\\cdot(${x}${term(b)}) = ${a}\\cdot ${par(x + b)} = ${v}$.`,
-          hint: 'Najprv vypočítaj, čo je v zátvorke, potom násob.'
-        };
+          hint: 'Najprv vypočítaj, čo je v zátvorke, potom násob.',
+          steps: [
+            { q: `Koľko je v zátvorke: $${x}${term(b)}$?`, answer: x + b, signed: true },
+            { q: `Výsledok zo zátvorky vynásob číslom $${a}$. Akú hodnotu má výraz?`, answer: v, signed: true }
+          ]
+        }, [{ value: a * x + b, msg: `Číslo $${a}$ násobí celý obsah zátvorky, nielen $x$.` }]);
       }
       const y = nz(-6, 6), a = nz(-6, 6), b = nz(-6, 6), v = a * x + b * y;
       return {
         signed: true, answer: v, q: `Vypočítaj hodnotu výrazu $${lead(a, 'x')}${term(b, 'y')}$ pre $x = ${x}$ a $y = ${y}$.`,
         solution: `$${mulSub(a, x)} ${b > 0 ? '+' : '-'} ${mulSub(Math.abs(b), y)} = ${a * x}${term(b * y)} = ${v}$.`,
-        hint: 'Dosaď za obe premenné naraz, záporné čísla do zátvoriek.'
+        hint: 'Dosaď za obe premenné naraz, záporné čísla do zátvoriek.',
+        steps: [
+          { q: `Koľko je $${mulSub(a, x)}$?`, answer: a * x, signed: true },
+          { q: `Koľko je $${mulSub(b, y)}$?`, answer: b * y, signed: true },
+          { q: 'Sčítaj oba výsledky. Akú hodnotu má výraz?', answer: v, signed: true }
+        ]
       };
     }
     if (t < 0.8) {
       const [m, nom, gen2] = pick(NAS);
       let k = rnd(2, 9);
       if (k === m) k += 1;
+      // [opis, správny výraz, nesprávne výrazy, vysvetlenie ku každému nesprávnemu]
       const T = [
-        [`číslo o ${k} väčšie ako ${nom} čísla $x$`, `${m}x + ${k}`, [`${m}(x + ${k})`, `${k}x + ${m}`, `${m}x - ${k}`]],
-        [`${nom} súčtu čísla $x$ a čísla ${k}`, `${m}(x + ${k})`, [`${m}x + ${k}`, `x + ${m * k}`, `${m} + x + ${k}`]],
-        [`rozdiel ${gen2} čísla $x$ a čísla ${k}`, `${m}x - ${k}`, [`${m}(x - ${k})`, `${k} - ${m}x`, `x - ${m * k}`]],
-        [`druhá mocnina rozdielu čísla $x$ a čísla ${k}`, `(x - ${k})^2`, [`x^2 - ${k * k}`, `x^2 - ${k}`, `2(x - ${k})`]],
-        [`číslo o ${k} menšie ako polovica čísla $x$`, `\\frac{x}{2} - ${k}`, [`\\frac{x - ${k}}{2}`, `2x - ${k}`, `${k} - \\frac{x}{2}`]]
+        [`číslo o ${k} väčšie ako ${nom} čísla $x$`, `${m}x + ${k}`, [`${m}(x + ${k})`, `${k}x + ${m}`, `${m}x - ${k}`],
+          [`Zátvorka by znamenala, že ${m}-krát berieš celý súčet. Tu sa najprv vezme ${nom} čísla $x$ a až k nemu sa pripočíta ${k}.`,
+            `Zamenil si čísla: násobí sa číslom ${m}, pripočítava sa ${k}.`,
+            `„O ${k} väčšie“ znamená ${k} pripočítať, nie odčítať.`]],
+        [`${nom} súčtu čísla $x$ a čísla ${k}`, `${m}(x + ${k})`, [`${m}x + ${k}`, `x + ${m * k}`, `${m} + x + ${k}`],
+          ['Násobí sa celý súčet, preto ho treba dať do zátvorky. Bez zátvorky by sa násobilo len $x$.',
+            `Násobí sa celý súčet, teda aj $x$, nielen číslo ${k}.`,
+            `${nom.charAt(0).toUpperCase() + nom.slice(1)} znamená násobiť číslom ${m}, nie ${m} pripočítať.`]],
+        [`rozdiel ${gen2} čísla $x$ a čísla ${k}`, `${m}x - ${k}`, [`${m}(x - ${k})`, `${k} - ${m}x`, `x - ${m * k}`],
+          [`Násobí sa len $x$, číslo ${k} sa odčíta až od ${gen2}. Zátvorka by znamenala ${nom} celého rozdielu.`,
+            'Pri rozdiele záleží na poradí: najprv píšeš to, od čoho odčítavaš.',
+            `Násobiť treba číslo $x$, nie číslo ${k}.`]],
+        [`druhá mocnina rozdielu čísla $x$ a čísla ${k}`, `(x - ${k})^2`, [`x^2 - ${k * k}`, `x^2 - ${k}`, `2(x - ${k})`],
+          ['Umocňuje sa celý rozdiel, nie každé číslo zvlášť. Rozdiel daj do zátvorky.',
+            'Umocniť treba celý rozdiel, nielen číslo $x$.',
+            'Druhá mocnina nie je dvojnásobok: umocniť znamená vynásobiť samým sebou.']],
+        [`číslo o ${k} menšie ako polovica čísla $x$`, `\\frac{x}{2} - ${k}`, [`\\frac{x - ${k}}{2}`, `2x - ${k}`, `${k} - \\frac{x}{2}`],
+          [`Na polovicu sa delí len $x$, číslo ${k} sa odčíta až od polovice.`,
+            'Polovica čísla $x$ je $x$ delené dvoma, nie $2x$.',
+            `„O ${k} menšie“ znamená od polovice odčítať ${k}, poradie je opačné.`]]
       ];
-      const [desc, ok, wrong] = pick(T);
+      const [desc, ok, wrong, why] = pick(T);
       const opts = shuffle([ok, ...wrong].map((s) => `$${s}$`));
+      const choiceHints = {};
+      wrong.forEach((w, i) => { if (w !== ok) choiceHints[`$${w}$`] = why[i]; });
       return {
-        type: 'choice', options: opts, answer: `$${ok}$`,
+        type: 'choice', options: opts, answer: `$${ok}$`, choiceHints,
         q: `Ktorý výraz zodpovedá opisu: <em>${desc}</em>?`,
         solution: `Opis zodpovedá výrazu $${ok}$. Pri zápise postupuj od konca vety: najprv urči, čo je „hlavná“ operácia (súčet, rozdiel, mocnina…), potom jej časti.`,
         hint: 'Rozhodni, ktorá operácia sa robí ako posledná. Ak sa násobí alebo umocňuje celý súčet či rozdiel, treba zátvorku.'
       };
     }
     const k = rnd(1, 6), v = rnd(2, 9), obvod = Math.random() < 0.5;
-    return {
+    return withMist({
       answer: obvod ? 4 * v + 2 * k : v * (v + k),
       q: `Obdĺžnik má strany dlhé $a$ a $a + ${k}$ centimetrov. Vypočítaj jeho ${obvod ? 'obvod (v cm)' : 'obsah (v cm²)'} pre $a = ${v}$.`,
       solution: obvod
         ? `$o = 2a + 2(a + ${k}) = 2\\cdot ${v} + 2\\cdot ${v + k} = ${2 * v} + ${2 * (v + k)} = ${4 * v + 2 * k}\\,\\text{cm}$.`
         : `$S = a(a + ${k}) = ${v}\\cdot ${v + k} = ${v * (v + k)}\\,\\text{cm}^2$.`,
-      hint: obvod ? 'Obvod obdĺžnika je $2a + 2b$, za druhú stranu dosaď $a + ' + k + '$.' : 'Obsah obdĺžnika je súčin jeho strán.'
-    };
+      hint: obvod ? 'Obvod obdĺžnika je $2a + 2b$, za druhú stranu dosaď $a + ' + k + '$.' : 'Obsah obdĺžnika je súčin jeho strán.',
+      steps: [
+        { q: `Aká dlhá je druhá strana $a + ${k}$ pre $a = ${v}$ (v cm)?`, answer: v + k },
+        obvod ? { q: 'Vypočítaj obvod obdĺžnika $2a + 2b$ (v cm).', answer: 4 * v + 2 * k }
+          : { q: 'Vypočítaj obsah obdĺžnika $a\\cdot b$ (v cm²).', answer: v * (v + k) }
+      ]
+    }, obvod
+      ? [{ value: 2 * v + k, msg: 'Sčítal si len dve strany. Obdĺžnik má štyri strany, každú dĺžku teda započítaj dvakrát.' },
+        { value: v * (v + k), msg: 'Vypočítal si obsah. Obvod je súčet dĺžok všetkých štyroch strán.' }]
+      : [{ value: v * v + k, msg: `Druhá strana je celý výraz $a + ${k}$, daj ju do zátvorky: násobí sa $a\\cdot(a + ${k})$.` },
+        { value: 2 * v + 2 * (v + k), msg: 'Vypočítal si obvod. Obsah obdĺžnika je súčin dĺžok jeho strán.' }]);
   });
 
   /* ---------- 4. Úprava algebraických výrazov ---------- */
@@ -548,12 +669,19 @@
       do { a1 = nz(-9, 9); a2 = nz(-9, 9); a3 = rnd(-5, 5); A = a1 + a2 + a3; } while (A === 0);
       const b1 = nz(-12, 12), b2 = nz(-12, 12), B = b1 + b2;
       const e = `${lead(a1, 'x')}${term(b1)}${term(a2, 'x')}${term(b2)}${term(a3, 'x')}`;
-      return {
+      const one = [a1, a2, a3].find((c) => Math.abs(c) === 1);
+      return withMist({
         type: 'tuple', signed: true, answer: [A, B], placeholder: 'a; b',
         q: `Zjednoduš výraz $${e}$ na tvar $ax + b$. Zadaj čísla $a$ a $b$ oddelené bodkočiarkou.`,
         solution: `Členy s $x$: $${lead(a1, 'x')}${term(a2, 'x')}${term(a3, 'x')} = ${lead(A, 'x')}$. Čísla: $${b1}${term(b2)} = ${B}$. Výsledok: $${poly([A, B])}$, teda $a = ${A}$, $b = ${B}$.`,
-        hint: 'Sčítaj zvlášť koeficienty pri $x$ a zvlášť samotné čísla. Znamienko pred členom patrí k nemu.'
-      };
+        hint: 'Sčítaj zvlášť koeficienty pri $x$ a zvlášť samotné čísla. Znamienko pred členom patrí k nemu.',
+        steps: [
+          { q: 'Sčítaj koeficienty všetkých členov s $x$. Aké je $a$?', answer: A, signed: true },
+          { q: 'Sčítaj samotné čísla (bez $x$). Aké je $b$?', answer: B, signed: true }
+        ]
+      }, [
+        one !== undefined && { value: [A - one, B], msg: `Člen $${one === 1 ? 'x' : '-x'}$ má koeficient $${one}$, nezabudni ho započítať.` }
+      ]);
     }
     if (t < 0.5) {
       let m, n, p, q, r, s, A;
@@ -563,21 +691,37 @@
       } while (A === 0);
       const B = m * q + n * s;
       const e = `${m}(${poly([p, q])}) ${n > 0 ? '+' : '-'} ${Math.abs(n) === 1 ? '' : Math.abs(n)}(${poly([r, s])})`;
-      return {
+      const nTxt = n === 1 ? '' : n === -1 ? '-' : String(n);
+      return withMist({
         type: 'tuple', signed: true, answer: [A, B], placeholder: 'a; b',
         q: `Roznásob a zjednoduš $${e}$ na tvar $ax + b$. Zadaj $a$ a $b$ oddelené bodkočiarkou.`,
         solution: `Roznásobíme: $${poly([m * p, m * q])}${term(n * r, 'x')}${term(n * s)}$. Spojíme podobné členy: $${poly([A, B])}$, teda $a = ${A}$, $b = ${B}$.`,
-        hint: 'Číslom pred zátvorkou vynásob každý člen v nej, aj so znamienkom. Potom spoj podobné členy.'
-      };
+        hint: 'Číslom pred zátvorkou vynásob každý člen v nej, aj so znamienkom. Potom spoj podobné členy.',
+        steps: [
+          { q: `Roznásob $${m}(${poly([p, q])})$. Zadaj koeficient pri $x$ a samotné číslo oddelené bodkočiarkou.`, answer: [m * p, m * q], type: 'tuple', signed: true, placeholder: 'napr. 6; -9' },
+          { q: `Roznásob $${nTxt}(${poly([r, s])})$ (aj so znamienkom pred zátvorkou). Zadaj koeficient pri $x$ a samotné číslo.`, answer: [n * r, n * s], type: 'tuple', signed: true, placeholder: 'napr. -2; 8' },
+          { q: 'Spoj podobné členy. Zadaj $a$ a $b$ oddelené bodkočiarkou.', answer: [A, B], type: 'tuple', signed: true, placeholder: 'a; b' }
+        ]
+      }, [
+        n > 0 && { value: [A, q + s], msg: 'Číslom pred zátvorkou vynásob každý člen v zátvorke, aj samotné číslo na konci.' },
+        n < 0 && { value: [A, m * q - n * s], msg: 'Záporné číslo pred zátvorkou mení znamienko každého člena v zátvorke, aj čísla na konci.' }
+      ]);
     }
     if (t < 0.75) {
       const a = nz(-8, 8), b = nz(-8, 8);
-      return {
+      return withMist({
         type: 'tuple', signed: true, answer: [a + b, a * b], placeholder: 'p; q',
         q: `Roznásob $(x${term(a)})(x${term(b)})$ a výsledok zapíš v tvare $x^2 + px + q$. Zadaj $p$ a $q$ oddelené bodkočiarkou.`,
         solution: `$(x${term(a)})(x${term(b)}) = x^2${term(b, 'x')}${term(a, 'x')}${term(a * b)} = ${poly([1, a + b, a * b])}$, teda $p = ${a + b}$ a $q = ${a * b}$.`,
-        hint: 'Každý člen prvej zátvorky vynásob každým členom druhej. Potom spoj členy s $x$.'
-      };
+        hint: 'Každý člen prvej zátvorky vynásob každým členom druhej. Potom spoj členy s $x$.',
+        steps: [
+          { q: `Pri roznásobení vzniknú dva členy s $x$: $x$ krát číslo z druhej zátvorky a číslo z prvej zátvorky krát $x$. Spoj ich. Aký je koeficient $p$ pri $x$?`, answer: a + b, signed: true },
+          { q: 'Vynásob samotné čísla z oboch zátvoriek. Aké je $q$?', answer: a * b, signed: true }
+        ]
+      }, [
+        a + b !== 0 && { value: [0, a * b], msg: 'Chýbajú ti členy s $x$: každý člen prvej zátvorky treba vynásobiť každým členom druhej, nielen prvý s prvým a posledný s posledným.' },
+        { value: [a + b, a + b], msg: 'Číslo $q$ vznikne vynásobením samotných čísel zo zátvoriek, nie ich sčítaním.' }
+      ]);
     }
     const a = rnd(2, 9), k = rnd(0, 2);
     const V = [
@@ -585,8 +729,22 @@
       [`(x - ${a})^2`, `x^2 - ${2 * a}x + ${a * a}`, [`x^2 - ${a * a}`, `x^2 - ${2 * a}x - ${a * a}`, `x^2 + ${a * a}`], '(a - b)^2 = a^2 - 2ab + b^2'],
       [`(x + ${a})(x - ${a})`, `x^2 - ${a * a}`, [`x^2 + ${a * a}`, `x^2 - ${2 * a}x + ${a * a}`, `x^2 - ${a}`], '(a + b)(a - b) = a^2 - b^2']
     ][k];
+    // vysvetlenia k nesprávnym možnostiam v poradí V[2]
+    const why = [
+      ['Pri umocnení súčtu nestačí umocniť každý člen zvlášť, chýba stredný člen $2ab$.',
+        'Stredný člen je dvojnásobok súčinu, $2ab$, nie len $ab$.',
+        `Posledný člen je druhá mocnina čísla ${a}, nie samotné číslo.`],
+      ['To je výsledok súčinu $(a + b)(a - b)$. Pri druhej mocnine rozdielu je navyše stredný člen $-2ab$ a posledný člen je kladný.',
+        'Posledný člen $b^2$ je druhá mocnina, a tá je vždy kladná.',
+        'Pri umocnení rozdielu nestačí umocniť každý člen zvlášť, chýba stredný člen $-2ab$.'],
+      ['Súčin $(+b)\\cdot(-b)$ je záporný, preto je pred $b^2$ mínus.',
+        'To by bol výsledok $(x - b)^2$. Pri súčine súčtu a rozdielu sa stredné členy navzájom vyrušia.',
+        `Posledný člen je súčin $${a}\\cdot ${a}$, nie samotné číslo ${a}.`]
+    ][k];
+    const choiceHints = {};
+    V[2].forEach((w, i) => { choiceHints[`$${w}$`] = why[i]; });
     return {
-      type: 'choice', options: shuffle([V[1], ...V[2]].map((s) => `$${s}$`)), answer: `$${V[1]}$`,
+      type: 'choice', options: shuffle([V[1], ...V[2]].map((s) => `$${s}$`)), answer: `$${V[1]}$`, choiceHints,
       q: `Ktorý výraz sa rovná $${V[0]}$?`,
       solution: `Podľa vzorca $${V[3]}$ pre $a = x$, $b = ${a}$: $${V[0]} = ${V[1]}$.`,
       hint: 'Pozor: $(x + a)^2$ nie je $x^2 + a^2$, chýba dvojnásobok súčinu $2ax$.'
@@ -624,37 +782,67 @@
     const hint = 'Členy s $x$ presuň na jednu stranu, čísla na druhú. Nakoniec vydeľ koeficientom pri $x$.';
     if (k === 0) {
       const a = pick(A_COEF), b = nz(-20, 20), c = a * x + b;
-      return {
+      return withMist({
         signed: true, answer: x, hint, q: `Vyrieš rovnicu $${a}x${term(b)} = ${c}$.`,
-        solution: `${b > 0 ? `Od oboch strán odčítame ${b}` : `K obom stranám pripočítame ${-b}`}: $${a}x = ${a * x}$. Obe strany vydelíme číslom $${a}$: $x = ${x}$.`
-      };
+        solution: `${b > 0 ? `Od oboch strán odčítame ${b}` : `K obom stranám pripočítame ${-b}`}: $${a}x = ${a * x}$. Obe strany vydelíme číslom $${a}$: $x = ${x}$.`,
+        steps: [
+          { q: `Zbav sa čísla $${b}$ na ľavej strane, aby ostalo len $${a}x$. Aké číslo bude na pravej strane?`, answer: a * x, signed: true },
+          { q: `Obe strany vydeľ číslom $${a}$. Aké je $x$?`, answer: x, signed: true }
+        ]
+      }, [
+        { value: (c + b) / a, msg: 'Keď presúvaš číslo na druhú stranu rovnice, zmeň mu znamienko. Na oboch stranách urob tú istú operáciu.' },
+        { value: c - b - a, msg: `Koeficient $${a}$ pri $x$ odstrániš delením, nie odčítaním: $${a}x$ znamená $${a}\\cdot x$.` }
+      ]);
     }
     if (k === 1) {
       let a, c;
       do { a = nz(-9, 9); c = nz(-9, 9); } while (a === c);
       const b = nz(-15, 15), d = a * x + b - c * x;
-      return {
+      return withMist({
         signed: true, answer: x, hint, q: `Vyrieš rovnicu $${lead(a, 'x')}${term(b)} = ${lead(c, 'x')}${term(d)}$.`,
-        solution: `Členy s $x$ dáme naľavo, čísla napravo: $${lead(a, 'x')}${term(-c, 'x')} = ${d}${term(-b)}$, teda $${lead(a - c, 'x')} = ${d - b}$ a $x = ${x}$.`
-      };
+        solution: `Členy s $x$ dáme naľavo, čísla napravo: $${lead(a, 'x')}${term(-c, 'x')} = ${d}${term(-b)}$, teda $${lead(a - c, 'x')} = ${d - b}$ a $x = ${x}$.`,
+        steps: [
+          { q: 'Presuň členy s $x$ na ľavú stranu a spoj ich. Aký koeficient bude pri $x$?', answer: a - c, signed: true },
+          { q: 'Presuň čísla na pravú stranu a spoj ich. Aké číslo bude na pravej strane?', answer: d - b, signed: true },
+          { q: 'Vydeľ pravú stranu koeficientom pri $x$. Aké je $x$?', answer: x, signed: true }
+        ]
+      }, [
+        a + c !== 0 && { value: (d - b) / (a + c), msg: 'Pri presune člena s $x$ na druhú stranu rovnice mu treba zmeniť znamienko.' },
+        { value: (d + b) / (a - c), msg: 'Pri presune čísla na druhú stranu rovnice mu treba zmeniť znamienko.' }
+      ]);
     }
     if (k === 2) {
       const m = pick([-3, -2, 2, 3, 4, 5]), p = nz(-6, 6);
       let c = nz(-4, 4);
       if (c === m) c = -c;
       const d = m * (x + p) - c * x;
-      return {
+      return withMist({
         signed: true, answer: x, hint: 'Najprv roznásob zátvorku, potom rieš ako obyčajnú rovnicu.',
         q: `Vyrieš rovnicu $${m}(x${term(p)}) = ${lead(c, 'x')}${term(d)}$.`,
-        solution: `Roznásobíme: $${lead(m, 'x')}${term(m * p)} = ${lead(c, 'x')}${term(d)}$. Členy s $x$ naľavo, čísla napravo: $${lead(m - c, 'x')} = ${d - m * p}$, teda $x = ${x}$.`
-      };
+        solution: `Roznásobíme: $${lead(m, 'x')}${term(m * p)} = ${lead(c, 'x')}${term(d)}$. Členy s $x$ naľavo, čísla napravo: $${lead(m - c, 'x')} = ${d - m * p}$, teda $x = ${x}$.`,
+        steps: [
+          { q: `Roznásob zátvorku $${m}(x${term(p)})$. Aké číslo (bez $x$) vznikne?`, answer: m * p, signed: true },
+          { q: 'Presuň členy s $x$ naľavo a čísla napravo. Na tvar $ax = b$: aké je $a$ a $b$? Zadaj ich oddelené bodkočiarkou.', answer: [m - c, d - m * p], type: 'tuple', signed: true, placeholder: 'a; b' },
+          { q: 'Vydeľ. Aké je $x$?', answer: x, signed: true }
+        ]
+      }, [
+        m !== c && { value: (d - p) / (m - c), msg: 'Číslo pred zátvorkou násobí oba členy v zátvorke, nielen $x$, ale aj samotné číslo.' }
+      ]);
     }
     const a = rnd(2, 5), X = a * rnd(-6, 6), b = nz(-9, 9), c = X / a + b;
-    return {
+    return withMist({
       signed: true, answer: X, hint: 'Najprv osamostatni zlomok, potom obe strany vynásob menovateľom.',
       q: `Vyrieš rovnicu $\\frac{x}{${a}}${term(b)} = ${c}$.`,
-      solution: `$\\frac{x}{${a}} = ${c}${term(-b)} = ${X / a}$. Obe strany vynásobíme ${a}: $x = ${X}$.`
-    };
+      solution: `$\\frac{x}{${a}} = ${c}${term(-b)} = ${X / a}$. Obe strany vynásobíme ${a}: $x = ${X}$.`,
+      steps: [
+        { q: `Osamostatni zlomok. Koľko je $\\frac{x}{${a}}$?`, answer: X / a, signed: true },
+        { q: `Obe strany vynásob číslom ${a}. Aké je $x$?`, answer: X, signed: true }
+      ]
+    }, [
+      X !== 0 && { value: X / a / a, msg: `Zlomok $\\frac{x}{${a}}$ odstrániš násobením číslom ${a}, nie delením.` },
+      { value: (c + b) * a, msg: 'Keď presúvaš číslo na druhú stranu rovnice, zmeň mu znamienko.' },
+      { value: c * a - b, msg: `Ak rovnicu násobíš číslom ${a}, vynásob každý člen na oboch stranách, aj číslo $${b}$. Jednoduchšie je najprv osamostatniť zlomok.` }
+    ]);
   });
 
   /* ---------- 6. Slovné úlohy riešené rovnicami ---------- */
@@ -700,40 +888,74 @@
     const kind = rnd(0, 3);
     if (kind === 0) {
       const n = pick([3, 4]), x = rnd(5, 60), c = n * (n - 1) / 2, S = n * x + c, big = Math.random() < 0.5;
-      return {
+      return withMist({
         answer: big ? x + n - 1 : x,
         q: `Súčet ${n === 3 ? 'troch' : 'štyroch'} po sebe idúcich prirodzených čísel je ${S}. Ktoré z nich je ${big ? 'najväčšie' : 'najmenšie'}?`,
         solution: `Čísla označíme $x$, $x + 1$${n === 4 ? ', $x + 2$ a $x + 3$' : ' a $x + 2$'}. Rovnica: $${n}x + ${c} = ${S}$, teda $${n}x = ${n * x}$ a $x = ${x}$. ${big ? `Najväčšie číslo je $x + ${n - 1} = ${x + n - 1}$.` : `Najmenšie číslo je ${x}.`}`,
-        hint: 'Najmenšie číslo označ $x$, ďalšie sú $x + 1$, $x + 2$, … Sčítaj ich a polož rovné súčtu.'
-      };
+        hint: 'Najmenšie číslo označ $x$, ďalšie sú $x + 1$, $x + 2$, … Sčítaj ich a polož rovné súčtu.',
+        steps: [
+          { q: `Najmenšie číslo označ $x$ a sčítaj všetky čísla. Rovnica má tvar $${n}x + \\square = ${S}$. Aké číslo patrí do štvorčeka?`, answer: c },
+          { q: 'Vyrieš rovnicu. Aké je $x$ (najmenšie číslo)?', answer: x },
+          ...(big ? [{ q: 'Aké je najväčšie z čísel?', answer: x + n - 1 }] : [])
+        ]
+      }, [
+        big ? { value: x, msg: 'Toto je najmenšie z čísel, úloha sa pýta na najväčšie. Pripočítaj k nemu, o koľko je najväčšie číslo väčšie.' }
+          : { value: x + n - 1, msg: 'Toto je najväčšie z čísel, úloha sa pýta na najmenšie.' },
+        { value: S / n, msg: 'Súčet vydelený počtom čísel je ich priemer, nie hľadané číslo. Zostav rovnicu so všetkými číslami $x$, $x + 1$, …' }
+      ]);
     }
     if (kind === 1) {
       const [big, bigG, child, childG, older, dmin, dmax] = pick(FAMILY);
       const c = rnd(5, 16), d = rnd(dmin, dmax), S = 2 * c + d, askChild = Math.random() < 0.6;
-      return {
+      return withMist({
         answer: askChild ? c : c + d,
         q: `${cap(big)} je o ${d} ${pl(d, ROK)} ${older} ako ${child}. Spolu majú ${S} ${pl(S, ROK)}. Koľko rokov má ${askChild ? child : big}?`,
         solution: `Vek ${childG} označíme $x$, vek ${bigG} je potom $x + ${d}$. Rovnica: $x + (x + ${d}) = ${S}$, teda $2x = ${2 * c}$ a $x = ${c}$. ${askChild ? `${cap(child)} má ${c} ${pl(c, ROK)}.` : `${cap(big)} má $${c} + ${d} = ${c + d}$ ${pl(c + d, ROK)}.`}`,
-        hint: 'Vek mladšieho označ $x$, vek staršieho je $x$ plus rozdiel. Súčet oboch vekov sa rovná zadanému číslu.'
-      };
+        hint: 'Vek mladšieho označ $x$, vek staršieho je $x$ plus rozdiel. Súčet oboch vekov sa rovná zadanému číslu.',
+        steps: [
+          { q: `Vek ${childG} označ $x$. Z rovnice $x + (x + ${d}) = ${S}$ vypočítaj, koľko je $2x$.`, answer: 2 * c },
+          { q: `Koľko rokov má ${child}?`, answer: c },
+          ...(askChild ? [] : [{ q: `Koľko rokov má ${big}?`, answer: c + d }])
+        ]
+      }, [
+        { value: askChild ? c + d : c, msg: `Toto je vek ${askChild ? bigG : childG}, úloha sa pýta na vek ${askChild ? childG : bigG}.` },
+        { value: S / 2, msg: `Spolu majú ${S} ${pl(S, ROK)}, ale nie sú rovnako starí, preto súčet nemôžeš len rozdeliť na polovicu. Zohľadni rozdiel ${d} ${pl(d, ROK)}.` },
+        askChild && { value: 2 * c, msg: 'Vypočítal si $2x$, teda dvojnásobok hľadaného veku. Ešte vydeľ dvoma.' }
+      ]);
     }
     if (kind === 2) {
       const x = rnd(3, 20), d = rnd(1, 10), o = 4 * x + 2 * d, long = Math.random() < 0.5;
-      return {
+      return withMist({
         answer: long ? x + d : x,
         q: `Jedna strana obdĺžnika je o ${d} cm dlhšia ako druhá. Obvod obdĺžnika je ${o} cm. Aká dlhá je ${long ? 'dlhšia' : 'kratšia'} strana (v cm)?`,
         solution: `Kratšia strana je $x$, dlhšia $x + ${d}$. Rovnica: $2x + 2(x + ${d}) = ${o}$, teda $4x + ${2 * d} = ${o}$, $4x = ${4 * x}$ a $x = ${x}$. ${long ? `Dlhšia strana má $${x} + ${d} = ${x + d}\\,\\text{cm}$.` : `Kratšia strana má $${x}\\,\\text{cm}$.`}`,
-        hint: 'Obvod obdĺžnika je $2a + 2b$. Kratšiu stranu označ $x$.'
-      };
+        hint: 'Obvod obdĺžnika je $2a + 2b$. Kratšiu stranu označ $x$.',
+        steps: [
+          { q: `Kratšia strana je $x$, dlhšia $x + ${d}$. Z rovnice $2x + 2(x + ${d}) = ${o}$ vypočítaj, koľko je $4x$.`, answer: 4 * x },
+          { q: 'Aká dlhá je kratšia strana (v cm)?', answer: x },
+          ...(long ? [{ q: 'Aká dlhá je dlhšia strana (v cm)?', answer: x + d }] : [])
+        ]
+      }, [
+        { value: (o - d) / 4 + (long ? d : 0), msg: `V obvode je dlhšia strana dvakrát, preto aj rozdiel ${d} cm treba započítať dvakrát.` },
+        { value: o / 4, msg: 'Obvod nemôžeš len vydeliť štyrmi, strany obdĺžnika nie sú rovnako dlhé.' },
+        { value: long ? x : x + d, msg: `Toto je dĺžka druhej strany. Úloha sa pýta na ${long ? 'dlhšiu' : 'kratšiu'} stranu.` }
+      ]);
     }
     const A = pick(KIDS), B = pick(KIDS.filter((k) => k !== A));
     const x = rnd(3, 30), m = rnd(2, 5), S = (m + 1) * x;
-    return {
+    return withMist({
       answer: x,
       q: `${A.n} a ${B.n} ušetrili spolu ${S} €. ${B.n} ${verb(B, 'ušetril', 'ušetrila')} ${KRAT[m]} viac ako ${A.n}. Koľko eur ${verb(A, 'ušetril', 'ušetrila')} ${A.n}?`,
       solution: `${A.n}: $x$, ${B.n}: $${m}x$. Rovnica: $x + ${m}x = ${S}$, teda $${m + 1}x = ${S}$ a $x = ${x}$. ${A.n} ${verb(A, 'ušetril', 'ušetrila')} ${x} €.`,
-      hint: `Sumu, ktorú ${verb(A, 'ušetril', 'ušetrila')} ${A.n}, označ $x$. „${KRAT[m][0].toUpperCase() + KRAT[m].slice(1)} viac“ znamená ${m}-násobok.`
-    };
+      hint: `Sumu, ktorú ${verb(A, 'ušetril', 'ušetrila')} ${A.n}, označ $x$. „${KRAT[m][0].toUpperCase() + KRAT[m].slice(1)} viac“ znamená ${m}-násobok.`,
+      steps: [
+        { q: `${A.n} má $x$ eur, ${B.n} $${m}x$ eur. Koľko $x$ je to spolu, teda aké číslo patrí do rovnice $\\square\\, x = ${S}$?`, answer: m + 1 },
+        { q: `Vyrieš rovnicu. Koľko eur ${verb(A, 'ušetril', 'ušetrila')} ${A.n}?`, answer: x }
+      ]
+    }, [
+      { value: S / m, msg: `Spolu je to ${m + 1} rovnakých dielov: ${A.n} má jeden diel a ${B.n} ${m}. Súčet preto deľ číslom ${m + 1}.` },
+      { value: m * x, msg: `Toto je suma, ktorú ${verb(B, 'ušetril', 'ušetrila')} ${B.n}. Úloha sa pýta, koľko ${verb(A, 'ušetril', 'ušetrila')} ${A.n}.` }
+    ]);
   });
 
   /* ---------- 8. Kruh a kružnica (poradie 70 má lekcia 'pytagoras') ---------- */
@@ -771,47 +993,75 @@
     const t = Math.random();
     if (t < 0.3) {
       const r = rnd(2, 25), useD = Math.random() < 0.5, A = piAns(2 * r);
-      return Object.assign(A, {
+      return withMist(Object.assign(A, {
         q: `Kruh má ${useD ? `priemer $d = ${2 * r}\\,\\text{cm}$` : `polomer $r = ${r}\\,\\text{cm}$`}. Vypočítaj jeho obvod v cm. ${PI}`,
         solution: useD
           ? `$o = \\pi d \\approx 3{,}14\\cdot ${2 * r} = ${dc(A.answer)}\\,\\text{cm}$.`
           : `$o = 2\\pi r \\approx 2\\cdot 3{,}14\\cdot ${r} = ${dc(A.answer)}\\,\\text{cm}$.`,
         hint: 'Obvod kruhu je $o = 2\\pi r = \\pi d$.'
-      });
+      }), useD
+        ? [{ value: piAns(4 * r).answer, msg: 'Vo vzorci $o = 2\\pi r$ je polomer. Ak poznáš priemer, stačí $o = \\pi d$, priemer už nezdvojnásobuj.' },
+          { value: piAns(r * r).answer, msg: 'Počítaš obsah kruhu ($\\pi r^2$), úloha sa pýta na obvod.' }]
+        : [{ value: piAns(r).answer, msg: 'Obvod je $2\\pi r$, zabudol si na dvojku (alebo si dosadil polomer namiesto priemeru do $\\pi d$).' },
+          { value: piAns(r * r).answer, msg: 'Počítaš obsah kruhu ($\\pi r^2$), úloha sa pýta na obvod.' }]);
     }
     if (t < 0.6) {
       const r = rnd(2, 20), useD = Math.random() < 0.4, A = piAns(r * r);
-      return Object.assign(A, {
+      const ex = withMist(Object.assign(A, {
         q: `Kruh má ${useD ? `priemer $d = ${2 * r}\\,\\text{cm}$` : `polomer $r = ${r}\\,\\text{cm}$`}. Vypočítaj jeho obsah v cm². ${PI}`,
         solution: `${useD ? `Polomer je polovica priemeru: $r = ${r}\\,\\text{cm}$. ` : ''}$S = \\pi r^2 \\approx 3{,}14\\cdot ${r}^2 = 3{,}14\\cdot ${r * r} = ${dc(A.answer)}\\,\\text{cm}^2$.`,
         hint: useD ? 'Pozor, vo vzorci $S = \\pi r^2$ je polomer, nie priemer.' : 'Obsah kruhu je $S = \\pi r^2$.'
-      });
+      }), [
+        useD && { value: piAns(4 * r * r).answer, msg: 'Do vzorca $S = \\pi r^2$ si dosadil priemer. Najprv vypočítaj polomer, polovicu priemeru.' },
+        { value: piAns(2 * r).answer, msg: 'Toto je obvod ($2\\pi r$), alebo si $r^2$ počítal ako $2r$. Obsah je $\\pi r^2 = \\pi\\cdot r\\cdot r$.' }
+      ]);
+      ex.steps = [
+        ...(useD ? [{ q: 'Aký je polomer kruhu (v cm)?', answer: r }] : []),
+        { q: 'Koľko je $r^2$?', answer: r * r },
+        { q: 'Vynásob číslom $3{,}14$. Aký je obsah kruhu (v cm²)?', answer: A.answer, tol: A.tol }
+      ];
+      return ex;
     }
     if (t < 0.8) {
       const r = rnd(2, 20), o = Math.round(628 * r) / 100;
-      return {
+      return withMist({
         answer: r, tol: 0.05,
         q: `Obvod kruhu je $${dc(o)}\\,\\text{cm}$. Aký je jeho polomer v cm? ${PI}`,
         solution: `Z $o = 2\\pi r$ vyjadríme $r = \\frac{o}{2\\pi} \\approx \\frac{${dc(o)}}{6{,}28} = ${r}\\,\\text{cm}$.`,
         hint: 'Vzorec $o = 2\\pi r$ vydeľ číslom $2\\pi \\approx 6{,}28$.'
-      };
+      }, [{ value: 2 * r, msg: 'Delil si len číslom $\\pi$, takto dostaneš priemer. Polomer je jeho polovica.' }]);
     }
     if (Math.random() < 0.6) {
       const [al, name] = pick([[90, 'štvrtinu'], [180, 'polovicu'], [60, 'šestinu'], [120, 'tretinu'], [45, 'osminu'], [270, 'tri štvrtiny']]);
       const r = al === 60 || al === 120 ? pick([3, 6, 9, 12]) : al === 45 ? pick([2, 4, 6, 8, 10]) : rnd(2, 12);
       const A = piAns(r * r * al / 360);
-      return Object.assign(A, {
+      return withMist(Object.assign(A, {
         q: `Vypočítaj obsah kruhového výseku s polomerom $r = ${r}\\,\\text{cm}$ a stredovým uhlom $${al}^\\circ$ (v cm²). ${PI}`,
         solution: `Uhol $${al}^\\circ$ je $\\frac{${al}}{360}$ plného uhla, teda výsek je ${name} kruhu: $S = \\pi r^2\\cdot\\frac{${al}}{360} \\approx 3{,}14\\cdot ${r * r}\\cdot\\frac{${al}}{360} = ${dc(A.answer)}\\,\\text{cm}^2$.`,
-        hint: 'Vypočítaj obsah celého kruhu a vezmi z neho takú časť, akú časť z $360^\\circ$ tvorí uhol výseku.'
-      });
+        hint: 'Vypočítaj obsah celého kruhu a vezmi z neho takú časť, akú časť z $360^\\circ$ tvorí uhol výseku.',
+        steps: [
+          { q: 'Aký je obsah celého kruhu (v cm²)?', ...piAns(r * r) },
+          { q: `Akú časť plného uhla tvorí uhol $${al}^\\circ$? Zadaj ju ako zlomok.`, answer: al / 360, show: fTxt(al, 360), tol: 1e-4 },
+          { q: 'Vezmi túto časť z obsahu celého kruhu. Aký je obsah výseku (v cm²)?', ...piAns(r * r * al / 360) }
+        ]
+      }), [
+        { value: piAns(r * r).answer, msg: 'Toto je obsah celého kruhu. Výsek je len jeho časť podľa veľkosti stredového uhla.' },
+        { value: piAns(2 * r * al / 360).answer, msg: 'Vzal si časť z obvodu ($2\\pi r$), to je dĺžka oblúka. Pri obsahu výseku vychádzaj z obsahu kruhu $\\pi r^2$.' }
+      ]);
     }
     const r = rnd(2, 8), R = r + rnd(1, 6), A = piAns(R * R - r * r);
-    return Object.assign(A, {
+    return withMist(Object.assign(A, {
       q: `Vypočítaj obsah medzikružia s polomermi $R = ${R}\\,\\text{cm}$ a $r = ${r}\\,\\text{cm}$ (v cm²). ${PI}`,
       solution: `$S = \\pi(R^2 - r^2) \\approx 3{,}14\\cdot(${R * R} - ${r * r}) = 3{,}14\\cdot ${R * R - r * r} = ${dc(A.answer)}\\,\\text{cm}^2$.`,
-      hint: 'Od obsahu veľkého kruhu odčítaj obsah malého kruhu.'
-    });
+      hint: 'Od obsahu veľkého kruhu odčítaj obsah malého kruhu.',
+      steps: [
+        { q: 'Koľko je $R^2 - r^2$?', answer: R * R - r * r },
+        { q: 'Vynásob číslom $3{,}14$. Aký je obsah medzikružia (v cm²)?', ...piAns(R * R - r * r) }
+      ]
+    }), [
+      { value: piAns((R - r) * (R - r)).answer, msg: 'Obsah medzikružia nie je $\\pi(R - r)^2$. Od obsahu veľkého kruhu odčítaj obsah malého: $\\pi R^2 - \\pi r^2$.' },
+      { value: piAns(R * R + r * r).answer, msg: 'Obsahy kruhov treba odčítať, nie sčítať: malý kruh v strede chýba.' }
+    ]);
   });
 
   /* ---------- 9. Hranoly ---------- */
@@ -844,33 +1094,55 @@
     if (t < 0.3) {
       const a = rnd(2, 12), b = rnd(2, 12), c = rnd(2, 12);
       const S = 2 * (a * b + b * c + a * c), V = a * b * c;
-      return {
+      return withMist({
         type: 'tuple', answer: [S, V], placeholder: 'povrch; objem',
         q: `Kváder má rozmery $a = ${a}\\,\\text{cm}$, $b = ${b}\\,\\text{cm}$, $c = ${c}\\,\\text{cm}$. Vypočítaj jeho povrch (v cm²) a objem (v cm³). Zadaj ich oddelené bodkočiarkou.`,
         solution: `$S = 2(ab + bc + ac) = 2(${a * b} + ${b * c} + ${a * c}) = ${S}\\,\\text{cm}^2$; $V = abc = ${a}\\cdot ${b}\\cdot ${c} = ${V}\\,\\text{cm}^3$.`,
-        hint: 'Kváder má tri dvojice zhodných stien: $ab$, $bc$ a $ac$. Objem je súčin všetkých troch rozmerov.'
-      };
+        hint: 'Kváder má tri dvojice zhodných stien: $ab$, $bc$ a $ac$. Objem je súčin všetkých troch rozmerov.',
+        steps: [
+          { q: 'Vypočítaj obsahy troch rôznych stien $ab$, $bc$ a $ac$ a sčítaj ich (v cm²).', answer: a * b + b * c + a * c },
+          { q: 'Každá stena je na kvádri dvakrát. Aký je povrch kvádra (v cm²)?', answer: S },
+          { q: 'Aký je objem kvádra (v cm³)?', answer: V }
+        ]
+      }, [
+        { value: [S / 2, V], msg: 'Kváder má každú stenu dvakrát (hornú a dolnú, prednú a zadnú, ľavú a pravú). Súčet $ab + bc + ac$ ešte zdvojnásob.' }
+      ]);
     }
     if (t < 0.55) {
       const a = rnd(2, 12), k = rnd(0, 3);
       if (k === 0) {
-        return { answer: 6 * a * a, q: `Vypočítaj povrch kocky s hranou $${a}\\,\\text{cm}$ (v cm²).`,
+        return withMist({ answer: 6 * a * a, q: `Vypočítaj povrch kocky s hranou $${a}\\,\\text{cm}$ (v cm²).`,
           solution: `Kocka má 6 zhodných štvorcových stien: $S = 6a^2 = 6\\cdot ${a * a} = ${6 * a * a}\\,\\text{cm}^2$.`,
-          hint: 'Kocka má 6 stien, každá je štvorec so stranou $a$.' };
+          hint: 'Kocka má 6 stien, každá je štvorec so stranou $a$.' }, [
+          { value: 4 * a * a, msg: 'Kocka má 6 stien, nie 4. Nezabudni na hornú a dolnú stenu.' },
+          { value: a * a * a, msg: 'Toto je objem kocky ($a^3$). Povrch je súčet obsahov všetkých stien.' },
+          { value: 6 * a, msg: 'Obsah jednej steny je $a^2$, nie $a$. Stena je štvorec.' }
+        ]);
       }
       if (k === 1) {
-        return { answer: a * a * a, q: `Vypočítaj objem kocky s hranou $${a}\\,\\text{cm}$ (v cm³).`,
+        return withMist({ answer: a * a * a, q: `Vypočítaj objem kocky s hranou $${a}\\,\\text{cm}$ (v cm³).`,
           solution: `$V = a^3 = ${a}\\cdot ${a}\\cdot ${a} = ${a * a * a}\\,\\text{cm}^3$.`,
-          hint: 'Objem kocky je $a^3$.' };
+          hint: 'Objem kocky je $a^3$.' }, [
+          { value: 3 * a, msg: '$a^3$ znamená $a\\cdot a\\cdot a$, nie $3\\cdot a$.' },
+          { value: 6 * a * a, msg: 'Toto je povrch kocky ($6a^2$). Objem je $a^3$.' }
+        ]);
       }
       if (k === 2) {
-        return { answer: a, q: `Kocka má objem $${a * a * a}\\,\\text{cm}^3$. Aká dlhá je jej hrana (v cm)?`,
+        return withMist({ answer: a, q: `Kocka má objem $${a * a * a}\\,\\text{cm}^3$. Aká dlhá je jej hrana (v cm)?`,
           solution: `Hľadáme číslo, ktorého tretia mocnina je ${a * a * a}: $${a}^3 = ${a * a * a}$, teda $a = ${a}\\,\\text{cm}$.`,
-          hint: 'Hľadaj číslo, ktoré keď vynásobíš trikrát samým sebou, dostaneš objem.' };
+          hint: 'Hľadaj číslo, ktoré keď vynásobíš trikrát samým sebou, dostaneš objem.' }, [
+          { value: a * a * a / 3, msg: 'Objem nedelíš tromi. Hľadáš číslo, ktoré trikrát vynásobené samým sebou dá objem.' }
+        ]);
       }
-      return { answer: a, q: `Kocka má povrch $${6 * a * a}\\,\\text{cm}^2$. Aká dlhá je jej hrana (v cm)?`,
+      return withMist({ answer: a, q: `Kocka má povrch $${6 * a * a}\\,\\text{cm}^2$. Aká dlhá je jej hrana (v cm)?`,
         solution: `Jedna stena má obsah $${6 * a * a} : 6 = ${a * a}\\,\\text{cm}^2$, teda $a = \\sqrt{${a * a}} = ${a}\\,\\text{cm}$.`,
-        hint: 'Povrch vydeľ šiestimi, dostaneš obsah jednej steny. Potom odmocni.' };
+        hint: 'Povrch vydeľ šiestimi, dostaneš obsah jednej steny. Potom odmocni.',
+        steps: [
+          { q: 'Aký obsah má jedna stena kocky (v cm²)?', answer: a * a },
+          { q: 'Stena je štvorec. Aká dlhá je jeho strana, teda hrana kocky (v cm)?', answer: a }
+        ] }, [
+        { value: a * a, msg: 'Toto je obsah jednej steny. Hranu dostaneš, keď ho ešte odmocníš.' }
+      ]);
     }
     if (t < 0.8) {
       const [p, q, r] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 6, 10]]);
@@ -879,11 +1151,26 @@
       const base = `Trojboký hranol má podstavu pravouhlý trojuholník s odvesnami $${p}\\,\\text{cm}$ a $${q}\\,\\text{cm}$ (prepona má $${r}\\,\\text{cm}$) a výšku $${v}\\,\\text{cm}$.`;
       const sol = `$S_p = \\frac{${p}\\cdot ${q}}{2} = ${Sp}\\,\\text{cm}^2$. $V = S_p\\cdot v = ${Sp}\\cdot ${v} = ${V}\\,\\text{cm}^3$. Plášť: $(${p} + ${q} + ${r})\\cdot ${v} = ${(p + q + r) * v}\\,\\text{cm}^2$, povrch $S = 2\\cdot ${Sp} + ${(p + q + r) * v} = ${S}\\,\\text{cm}^2$.`;
       const hint = 'Podstava je pravouhlý trojuholník, jej obsah je polovica súčinu odvesien. Plášť je obvod podstavy krát výška.';
+      const pl2 = (p + q + r) * v;
+      const sSp = { q: 'Aký je obsah podstavy $S_p$ (v cm²)?', answer: Sp };
+      const sV = { q: 'Aký je objem hranola $V = S_p\\cdot v$ (v cm³)?', answer: V };
+      const sPl = { q: 'Aký je obsah plášťa – obvod podstavy krát výška (v cm²)?', answer: pl2 };
+      const sS = { q: 'Aký je povrch hranola – dve podstavy a plášť (v cm²)?', answer: S };
+      const mV = { msg: 'Obsah pravouhlého trojuholníka je polovica súčinu odvesien, nezabudni deliť dvoma.' };
+      const mS = { msg: 'Hranol má dve podstavy (hornú a dolnú), obe treba započítať do povrchu.' };
       if (askBoth) {
-        return { type: 'tuple', answer: [S, V], placeholder: 'povrch; objem', hint, solution: sol,
-          q: `${base} Vypočítaj jeho povrch (v cm²) a objem (v cm³), oddeľ ich bodkočiarkou.` };
+        return withMist({ type: 'tuple', answer: [S, V], placeholder: 'povrch; objem', hint, solution: sol,
+          q: `${base} Vypočítaj jeho povrch (v cm²) a objem (v cm³), oddeľ ich bodkočiarkou.`,
+          steps: [sSp, sPl, sS, sV] }, [
+          { value: [S, 2 * V], msg: mV.msg },
+          { value: [Sp + pl2, V], msg: mS.msg }
+        ]);
       }
-      return { answer: askV ? V : S, hint, solution: sol, q: `${base} Vypočítaj jeho ${askV ? 'objem (v cm³)' : 'povrch (v cm²)'}.` };
+      return withMist({ answer: askV ? V : S, hint, solution: sol, q: `${base} Vypočítaj jeho ${askV ? 'objem (v cm³)' : 'povrch (v cm²)'}.`,
+        steps: askV ? [sSp, sV] : [sSp, sPl, sS] },
+      askV ? [{ value: 2 * V, msg: mV.msg }]
+        : [{ value: Sp + pl2, msg: mS.msg }, { value: pl2, msg: 'Toto je len plášť. K povrchu patria aj obe podstavy.' },
+          { value: p * q + pl2, msg: mV.msg }]);
     }
     const a = 10 * rnd(3, 10), b = 10 * rnd(2, 5), c = 10 * rnd(2, 6), L = a * b * c / 1000;
     return {
@@ -960,30 +1247,61 @@
       const s = vals.reduce((a, b) => a + b, 0);
       vals.push(((n - s % n) % n || n) + n * rnd(0, 2));
       const sum = s + vals[n - 1];
-      return {
+      return withMist({
         answer: sum / n, q: `Vypočítaj aritmetický priemer čísel ${list(vals)}.`,
         solution: `Súčet je $${vals.join(' + ')} = ${sum}$, počet čísel je ${n}. Priemer: $${sum} : ${n} = ${sum / n}$.`,
-        hint: 'Sčítaj všetky čísla a súčet vydeľ ich počtom.'
-      };
+        hint: 'Sčítaj všetky čísla a súčet vydeľ ich počtom.',
+        steps: [
+          { q: 'Aký je súčet všetkých čísel?', answer: sum },
+          { q: 'Koľko je čísel?', answer: n },
+          { q: 'Vydeľ súčet počtom čísel. Aký je priemer?', answer: sum / n }
+        ]
+      }, [
+        { value: sum, msg: 'Toto je súčet čísel. Priemer dostaneš, keď súčet vydelíš počtom čísel.' },
+        { value: sum / (n - 1), msg: 'Súčet treba deliť počtom všetkých čísel. Spočítaj ich ešte raz.' },
+        { value: sum / (n + 1), msg: 'Súčet treba deliť počtom všetkých čísel. Spočítaj ich ešte raz.' }
+      ]);
     }
     if (t < 0.8) {
       const n = rnd(5, 8), vals = Array.from({ length: n }, () => rnd(1, 30));
       const sorted = [...vals].sort((a, b) => a - b);
       const med = n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
-      return {
+      const rawMed = n % 2 ? vals[(n - 1) / 2] : (vals[n / 2 - 1] + vals[n / 2]) / 2;
+      const ex = withMist({
         answer: med, q: `Urči medián čísel ${list(vals)}.`,
         solution: `Usporiadame: ${list(sorted)}. ${n % 2
           ? `Počet čísel je nepárny (${n}), medián je prostredné, ${(n + 1) / 2}. číslo: ${med}.`
           : `Počet čísel je párny (${n}), medián je priemer ${n / 2}. a ${n / 2 + 1}. čísla: $\\frac{${sorted[n / 2 - 1]} + ${sorted[n / 2]}}{2} = ${dc(med)}$.`}`,
         hint: 'Čísla najprv usporiadaj od najmenšieho po najväčšie.'
-      };
+      }, [
+        { value: rawMed, msg: 'Medián hľadaj až v usporiadanom zozname. Čísla najprv zoraď od najmenšieho po najväčšie.' },
+        ...(n % 2 ? [] : [
+          { value: sorted[n / 2 - 1], msg: 'Pri párnom počte čísel sú v strede dve čísla. Medián je ich priemer.' },
+          { value: sorted[n / 2], msg: 'Pri párnom počte čísel sú v strede dve čísla. Medián je ich priemer.' }
+        ]),
+        { value: vals.reduce((s2, v) => s2 + v, 0) / n, msg: 'Toto je aritmetický priemer. Medián je prostredná hodnota usporiadaných čísel.' }
+      ]);
+      ex.steps = n % 2
+        ? [
+          { q: `Čísel je ${n}. Koľké v poradí je prostredné číslo?`, answer: (n + 1) / 2 },
+          { q: 'Čísla usporiadaj od najmenšieho. Aké číslo stojí na tomto mieste? To je medián.', answer: med }
+        ]
+        : [
+          { q: `Čísla usporiadaj od najmenšieho. Aké je ${n / 2}. číslo v poradí?`, answer: sorted[n / 2 - 1] },
+          { q: `Aké je ${n / 2 + 1}. číslo v poradí?`, answer: sorted[n / 2] },
+          { q: 'Medián je priemer týchto dvoch čísel. Koľko je?', answer: med }
+        ];
+      return ex;
     }
     const mode = rnd(1, 20), others = shuffle(Array.from({ length: 20 }, (_, i) => i + 1).filter((v) => v !== mode)).slice(0, rnd(3, 5));
     const vals = shuffle([mode, mode, mode, ...others]);
-    return {
+    return withMist({
       answer: mode, q: `Urči modus súboru údajov ${list(vals)}.`,
       solution: `Číslo ${mode} sa vyskytuje trikrát, ostatné čísla len raz. Modus je ${mode}.`,
       hint: 'Modus je hodnota, ktorá sa opakuje najčastejšie.'
-    };
+    }, [
+      { value: 3, msg: 'Toto je počet, koľkokrát sa najčastejšia hodnota opakuje. Modus je samotná hodnota.' },
+      { value: Math.max(...vals), msg: 'Modus nie je najväčšie číslo, ale hodnota, ktorá sa vyskytuje najčastejšie.' }
+    ]);
   });
 })();

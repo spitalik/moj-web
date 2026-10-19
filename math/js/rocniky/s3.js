@@ -10,6 +10,8 @@
   // Zaokrúhľované číselné výsledky zobraz s toľkými desatinnými miestami, koľko žiada zadanie (podľa tolerancie).
   const gen = (id, fn) => EXERCISES.register(id, () => {
     const ex = fn();
+    // typická chyba nesmie splývať so správnou odpoveďou (pri zaokrúhľovaných výsledkoch v rámci tolerancie)
+    if (Array.isArray(ex.mistakes)) ex.mistakes = ex.mistakes.filter((m) => m && [].concat(m.value).every(Number.isFinite) && !sameAns(ex, m.value));
     if ((ex.type || 'num') === 'num' && !ex.show && ex.tol >= 0.009) {
       ex.show = ex.answer.toFixed(ex.tol >= 0.5 ? 0 : ex.tol >= 0.1 ? 1 : 2).replace('.', ',');
     }
@@ -65,6 +67,27 @@
   };
   const genEq = (a, b, c) => `${lin([[a, 'x'], [b, 'y'], [c, '']])} = 0`;
   const linTxt = (terms) => lin(terms).replace(/-/g, '−');
+
+  // typické chyby: pridajú sa len hodnoty, ktoré sa líšia od správnej odpovede (aj v rámci tolerancie)
+  const sameAns = (ex, v) => EXERCISES.check(ex, EXERCISES.canonical(Object.assign({}, ex, { answer: v }))) === true;
+  const addMis = (ex, list) => {
+    const seen = new Set();
+    const ok = list.filter((m) => m && m.value !== undefined && [].concat(m.value).every(Number.isFinite) && !sameAns(ex, m.value)
+      && !seen.has(String(m.value)) && seen.add(String(m.value)));
+    if (ok.length) ex.mistakes = ok;
+    return ex;
+  };
+  // vysvetlenia k nesprávnym možnostiam výberu [možnosť, text]; správna možnosť sa preskočí
+  const addHints = (ex, pairs) => {
+    const h = {};
+    pairs.forEach(([o, msg]) => { if (msg && ex.options.includes(o) && o !== ex.answer && !h[o]) h[o] = msg; });
+    if (Object.keys(h).length) ex.choiceHints = h;
+    return ex;
+  };
+  // zaokrúhlený medzivýsledok kroku: tolerancia a zobrazenie na d desatinných miest
+  const rs = (v, tol, d) => ({ answer: v, tol, show: v.toFixed(d).replace('.', ',') });
+  // chyba „kalkulačka v radiánoch“ – hodnota sínusu/kosínusu stupňov dosadených ako radiány
+  const RAD_MSG = 'Kalkulačka je zrejme prepnutá na radiány – uhly sú v stupňoch, prepni ju na DEG.';
 
   const fact = (n) => (n <= 1 ? 1 : n * fact(n - 1));
   const C = (n, k) => { if (k < 0 || k > n) return 0; let r = 1; for (let i = 1; i <= k; i++) r = r * (n - k + i) / i; return Math.round(r); };
@@ -474,6 +497,7 @@
     if (k === 0) {
       const deg = 15 * rnd(1, 48), [p, q] = red(deg, 180);
       return {
+        mistakes: [{ value: deg / 360, msg: 'Uhlu $180^\\circ$ zodpovedá $\\pi$ (nie $2\\pi$) – stupne násob zlomkom $\\frac{\\pi}{180}$.' }],
         signed: true, answer: p / q, show: fTxt(p, q),
         q: `Preveď uhol $${deg}^\\circ$ na oblúkovú mieru. Výsledok má tvar $k\\cdot\\pi$, zadaj číslo $k$ (napr. pre $\\frac{3\\pi}{4}$ zadaj 3/4).`,
         solution: `$${deg}^\\circ = ${deg}\\cdot\\frac{\\pi}{180} = \\frac{${deg}}{180}\\pi = ${piTex(deg, 180)}$, teda $k = ${fTex(p, q)}$.`,
@@ -486,6 +510,7 @@
       do p = rnd(1, 4 * q); while (gcd(p, q) !== 1);
       const deg = 180 * p / q;
       return {
+        mistakes: [{ value: 2 * deg, msg: 'Platí $\\pi\\ \\text{rad} = 180^\\circ$, nie $360^\\circ$.' }],
         answer: deg,
         q: `Preveď uhol $${piTex(p, q)}$ na stupne.`,
         solution: p === 1
@@ -500,6 +525,8 @@
       if (Math.random() < 0.5) {
         const base = rnd(1, 359), deg = base + 360 * turns;
         return {
+          mistakes: turns > 1 ? [{ value: base + 360, msg: 'Výsledok ešte neleží v intervale $\\langle 0^\\circ; 360^\\circ)$ – odpočítaj ďalšie celé otočenie.' }]
+            : turns < 0 ? [{ value: base - 360, msg: 'Základná veľkosť musí byť z intervalu $\\langle 0^\\circ; 360^\\circ)$ – pripočítaj ešte jedno otočenie $360^\\circ$.' }] : [],
           answer: base,
           q: `Urči základnú veľkosť orientovaného uhla $${deg}^\\circ$ (v stupňoch, z intervalu $\\langle 0^\\circ; 360^\\circ)$).`,
           solution: `Odpočítame alebo pripočítame celé otočenia: $${deg}^\\circ ${sg} ${T}\\cdot 360^\\circ = ${base}^\\circ$.`,
@@ -511,6 +538,8 @@
       do p0 = rnd(1, 2 * q - 1); while (gcd(p0, q) !== 1);
       const p = p0 + 2 * q * turns;
       return {
+        mistakes: turns > 1 ? [{ value: p0 / q + 2, msg: 'Výsledok ešte neleží v intervale $\\langle 0; 2\\pi)$ – odpočítaj ďalšie $2\\pi$.' }]
+          : turns < 0 ? [{ value: p0 / q - 2, msg: 'Základná veľkosť musí byť z intervalu $\\langle 0; 2\\pi)$ – pripočítaj ešte $2\\pi$.' }] : [],
         signed: true, answer: p0 / q, show: fTxt(p0, q),
         q: `Urči základnú veľkosť orientovaného uhla $${piTex(p, q)}$ v intervale $\\langle 0; 2\\pi)$. Zadaj koeficient pri $\\pi$ (napr. pre $\\frac{5\\pi}{3}$ zadaj 5/3).`,
         solution: `Jedno otočenie je $2\\pi = \\frac{${2 * q}\\pi}{${q}}$. $${piTex(p, q)} ${sg} ${2 * T}\\pi = ${piTex(p0, q)}$, teda koeficient je $${fTex(p0, q)}$.`,
@@ -520,6 +549,12 @@
     const r = rnd(2, 20), deg = pick([20, 30, 40, 45, 60, 72, 75, 90, 120, 135, 150, 210, 240, 270, 300]);
     const l = r * deg * Math.PI / 180;
     return {
+      mistakes: [{ value: r * deg, msg: 'Vzorec $l = r\\cdot\\alpha$ platí len pre uhol v radiánoch – najprv preveď stupne na radiány.' },
+        { value: l / 2, msg: 'Pri prevode na radiány násob zlomkom $\\frac{\\pi}{180}$, nie $\\frac{\\pi}{360}$.' }],
+      steps: [
+        { q: `Preveď $${deg}^\\circ$ na radiány. Výsledok má tvar $k\\cdot\\pi$, zadaj $k$ (napr. 3/4).`, answer: deg / 180, show: fTxt(deg, 180) },
+        { q: 'Vypočítaj dĺžku oblúka $l = r\\cdot\\alpha$ v cm, zaokrúhli na dve desatinné miesta.', ...rs(l, 0.011, 2) }
+      ],
       answer: l, tol: 0.011,
       q: `Na kružnici s polomerom $r = ${r}$ cm vytína stredový uhol $${deg}^\\circ$ kruhový oblúk. Vypočítaj jeho dĺžku v cm a zaokrúhli ju na dve desatinné miesta.`,
       solution: `$\\alpha = ${deg}^\\circ = ${piTex(deg, 180)}$, $l = r\\cdot\\alpha = ${r}\\cdot ${piTex(deg, 180)} \\approx ${fx(l)}$ cm.`,
@@ -584,6 +619,11 @@
     if (k === 0) {
       const A = randomAngle(), Q = quad(A.base);
       return {
+        choiceHints: A.deg < 0 ? { [`${QN[3 - Q]} kvadrant`]: 'Záporný uhol sa nanáša v smere hodinových ručičiek – k uhlu pripočítaj $360^\\circ$.' } : undefined,
+        steps: A.rad || A.turns ? [
+          { q: 'Urči základnú veľkosť uhla v stupňoch (z intervalu $\\langle 0^\\circ; 360^\\circ)$).', answer: A.base },
+          { q: `V ktorom kvadrante leží uhol $${A.base}^\\circ$?`, type: 'choice', options: QN.map((x) => `${x} kvadrant`), answer: `${QN[Q]} kvadrant` }
+        ] : undefined,
         type: 'choice', options: QN.map((x) => `${x} kvadrant`), answer: `${QN[Q]} kvadrant`,
         q: `V ktorom kvadrante leží koncové rameno orientovaného uhla $${A.tex}$?`,
         solution: `${angleIntro(A)}Uhol $${A.base}^\\circ$ leží medzi $${90 * Q}^\\circ$ a $${90 * Q + 90}^\\circ$, teda v ${QN[Q]} kvadrante.`,
@@ -593,7 +633,15 @@
     if (k === 1) {
       const A = randomAngle(), Q = quad(A.base), f = pick(['sin', 'cos', 'tg', 'cotg']);
       const pos = SIGNQ[f][Q] > 0, ans = pos ? 'kladná' : 'záporná';
+      const why = f === 'sin' ? 'Sínus má znamienko $y$-ovej súradnice bodu na jednotkovej kružnici (nie $x$-ovej).'
+        : f === 'cos' ? 'Kosínus má znamienko $x$-ovej súradnice bodu na jednotkovej kružnici (nie $y$-ovej).'
+          : 'Tangens aj kotangens sú podielom sínusu a kosínusu – kladné sú tam, kde majú sínus a kosínus rovnaké znamienko.';
       return {
+        choiceHints: { [pos ? 'záporná' : 'kladná']: `${why} Urči, v ktorom kvadrante uhol leží.` },
+        steps: A.rad || A.turns ? [
+          { q: 'Urči základnú veľkosť uhla v stupňoch (z intervalu $\\langle 0^\\circ; 360^\\circ)$).', answer: A.base },
+          { q: `Uhol $${A.base}^\\circ$ leží v ${QN[Q]} kvadrante. Je hodnota $${FT[f]}\\,${A.base}^\\circ$ kladná, alebo záporná?`, type: 'choice', options: ['kladná', 'záporná'], answer: ans }
+        ] : undefined,
         type: 'choice', options: ['kladná', 'záporná'], answer: ans,
         q: `Je hodnota $${FT[f]}\\,${A.arg}$ kladná, alebo záporná?`,
         solution: `${angleIntro(A)}Uhol $${A.base}^\\circ$ leží v ${QN[Q]} kvadrante, kde je ${FN[f]} ${pos ? 'kladný' : 'záporný'}. Hodnota je ${ans}.`,
@@ -612,7 +660,22 @@
     const intro = (rad ? `$${piTex(deg, 180)} = ${deg}^\\circ$. ` : '')
       + (turns ? `Celé otočenia môžeme vynechať: $${deg}^\\circ ${turns > 0 ? '-' : '+'} ${Math.abs(turns)}\\cdot 360^\\circ = ${base}^\\circ$. ` : '');
     const sgn = val < 0 ? '-' : '';
+    const cof = { sin: 'cos', cos: 'sin', tg: 'cotg', cotg: 'tg' }[f];
+    const swapped = exTex(Math.abs(trig(cof, ref))) === other;
+    const hints = {};
+    hints[`$${val < 0 ? mag : '-' + mag}$`] = `Absolútna hodnota je správna, ale pozor na znamienko: urči, v ktorom kvadrante leží uhol $${base}^\\circ$, a aké znamienko tam má ${FN[f]}.`;
+    const otherMsg = swapped
+      ? (f === 'sin' || f === 'cos' ? `Zamenil si sínus a kosínus: sínus je $y$-ová a kosínus $x$-ová súradnica bodu na jednotkovej kružnici.` : 'Zamenil si tangens a kotangens: $\\mathrm{tg}\\,x = \\frac{\\sin x}{\\cos x}$, $\\mathrm{cotg}\\,x = \\frac{\\cos x}{\\sin x}$.')
+      : `Skontroluj hodnotu ${FN[f]}u pre príslušný ostrý uhol $${ref}^\\circ$.`;
+    hints[`$${other}$`] = otherMsg;
+    hints[`$-${other}$`] = otherMsg;
     return {
+      choiceHints: hints,
+      steps: [
+        ...(rad || turns ? [{ q: 'Urči základnú veľkosť uhla v stupňoch (z intervalu $\\langle 0^\\circ; 360^\\circ)$).', answer: base }] : []),
+        { q: `Aký je príslušný ostrý uhol (v stupňoch) k uhlu $${base}^\\circ$?`, answer: ref, hint: 'Je to ostrý uhol, ktorý zviera koncové rameno s osou $x$.' },
+        { q: `${FN[f][0].toUpperCase() + FN[f].slice(1)} uhla $${base}^\\circ$ má rovnakú absolútnu hodnotu ako pri $${ref}^\\circ$, znamienko určí kvadrant. Vyber hodnotu.`, type: 'choice', options, answer: `$${exTex(val)}$` }
+      ],
       type: 'choice', options, answer: `$${exTex(val)}$`,
       q: `Vypočítaj presnú hodnotu $${FT[f]}\\,${arg}$.`,
       solution: `${intro}Uhol $${base}^\\circ$ leží v ${QN[Q]} kvadrante, príslušný ostrý uhol je $${ref}^\\circ$ a ${FN[f]} je tu ${val > 0 ? 'kladný' : 'záporný'}. Preto $${FT[f]}\\,${arg} = ${sgn}${FT[f]}\\,${ref}^\\circ = ${exTex(val)}$.`,
@@ -675,6 +738,9 @@
       const expr = c ? `${aT}${FT[f]}\\left(${bT}x${c}\\right)` : `${aT}${FT[f]}\\,${bT}x`;
       const [pp, pq] = red(base * bd, bn);
       return {
+        mistakes: [{ value: base * bn / bd, msg: 'Koeficient $b$ pri $x$ periódu skracuje: základnú periódu treba číslom $b$ <em>deliť</em>, nie násobiť.' },
+          base === 2 ? { value: bd / bn, msg: 'Sínus a kosínus majú základnú periódu $2\\pi$, nie $\\pi$.' }
+            : { value: 2 * bd / bn, msg: 'Tangens a kotangens majú základnú periódu $\\pi$, nie $2\\pi$.' }],
         signed: true, answer: pp / pq, show: fTxt(pp, pq),
         q: `Urči najmenšiu periódu funkcie $f(x) = ${expr}$. Zadaj ju ako násobok čísla $\\pi$ (napr. pre periódu $\\frac{2\\pi}{3}$ zadaj 2/3).`,
         solution: `Funkcia ${FN[f]} má periódu $${base === 2 ? '2\\pi' : '\\pi'}$. Ak je argument $bx + c$, perióda sa vydelí číslom $b = ${fTex(bn, bd)}$: $p = ${base === 2 ? '2\\pi' : '\\pi'} : ${fTex(bn, bd)} = ${piTex(base * bd, bn)}$. Koeficient pred funkciou ani posun periódu nemenia.`,
@@ -685,12 +751,18 @@
       const f = pick(['sin', 'cos']), a = nz(-5, 5), d = rnd(-5, 5), b = rnd(1, 4);
       const aT = a === 1 ? '' : a === -1 ? '-' : String(a), A = Math.abs(a);
       const arg = `${FT[f]}${b === 1 ? ' x' : ` ${b}x`}`;
-      return {
+      return addMis({
+        steps: [
+          { q: `Aká je najväčšia hodnota výrazu $${aT}${arg}$?`, answer: A, hint: `Hodnoty $${arg}$ ležia v intervale $\\langle -1; 1\\rangle$.` },
+          { q: `Pripočítaj $${d}$. Zadaj najmenšiu a najväčšiu hodnotu funkcie $f$ v tvare „min; max“.`, type: 'tuple', signed: true, answer: [d - A, d + A], placeholder: 'min; max' }
+        ],
         type: 'tuple', signed: true, answer: [d - A, d + A], placeholder: 'min; max',
         q: `Urči obor hodnôt funkcie $f(x) = ${aT}${arg}${term(d)}$. Zadaj najmenšiu a najväčšiu hodnotu v tvare „min; max“.`,
         solution: `$-1 \\le ${arg} \\le 1$. ${a === 1 ? '' : `Po vynásobení číslom $${a}$${a < 0 ? ' (nerovnosti sa otočia)' : ''} je $${-A} \\le ${aT}${arg} \\le ${A}$. `}${d ? `Po pripočítaní čísla $${d}$ dostaneme $${d - A} \\le f(x) \\le ${d + A}$. ` : ''}Teda $H(f) = \\langle ${d - A}; ${d + A}\\rangle$.`,
         hint: 'Vyjdi z nerovnosti $-1 \\le \\sin t \\le 1$ (rovnako pre kosínus) a postupne ju vynásob a posuň.'
-      };
+      }, [{ value: [-A, A], msg: `Nezabudni na posun: ku všetkým hodnotám treba pripočítať $${d}$.` },
+        { value: [d - 1, d + 1], msg: `Hodnoty z intervalu $\\langle -1; 1\\rangle$ treba najprv vynásobiť koeficientom $${a}$.` },
+        { value: [d - A * b, d + A * b], msg: 'Číslo $b$ v argumente mení len periódu, nie obor hodnôt.' }]);
     }
     if (k === 2) {
       const f = pick(['sin', 'cos']);
@@ -702,12 +774,19 @@
       const aT = a === 1 ? '' : a === -1 ? '-' : String(a);
       const x0 = piTex(tn, td * b);
       const inner = b === 1 ? '' : `${a}\\cdot ${FT[f]}\\left(${b}\\cdot ${x0}\\right) = `;
-      return {
+      const swapV = a * trig(f === 'sin' ? 'cos' : 'sin', 180 * tn / td), noB = a * trig(f, 180 * tn / (td * b));
+      return addMis({
+        steps: [
+          ...(b > 1 ? [{ q: `Vypočítaj argument $${b}\\cdot ${x0}$. Zadaj ho ako násobok $\\pi$ (napr. 5/6).`, answer: tn / td, show: fTxt(tn, td) }] : []),
+          { q: `Vypočítaj $${FT[f]}\\,${piTex(tn, td)}$ (zlomok zadaj napr. ako -1/2).`, signed: true, answer: val, show: fTxt(Math.round(2 * val), 2) },
+          { q: `Vynásob koeficientom $${a}$. Koľko je $f\\left(${x0}\\right)$?`, signed: true, answer: res, show: fTxt(Math.round(2 * res), 2) }
+        ],
         signed: true, answer: res, show: fTxt(Math.round(2 * res), 2),
         q: `Pre funkciu $f(x) = ${aT}${FT[f]}${b === 1 ? ' x' : ` ${b}x`}$ vypočítaj $f\\left(${x0}\\right)$.`,
         solution: `$f\\left(${x0}\\right) = ${inner}${a}\\cdot ${FT[f]}\\,${piTex(tn, td)} = ${a}\\cdot ${exPar(val)} = ${fTex(Math.round(2 * res), 2)}$.`,
         hint: 'Dosaď za $x$, vynásob argument a hodnotu goniometrickej funkcie zisti z jednotkovej kružnice.'
-      };
+      }, [Number.isInteger(Math.round(2 * swapV * 1e9) / 1e9) ? { value: swapV, msg: 'Zamenil si sínus a kosínus: sínus je $y$-ová a kosínus $x$-ová súradnica bodu na jednotkovej kružnici.' } : null,
+        b > 1 && Math.abs(2 * noB - Math.round(2 * noB)) < 1e-9 ? { value: noB, msg: `Za $x$ dosaď do celého argumentu: počítaš $${FT[f]}\\left(${b}\\cdot ${x0}\\right)$.` } : null]);
     }
     const [tex, ans, why] = pick(PARITY);
     return {
@@ -795,14 +874,34 @@
     if (want === 'sin2') st.push(`$\\sin 2x = 2\\sin x\\cos x = 2\\cdot ${fPar(...F.sin)}\\cdot ${fPar(...F.cos)} = ${fTex(...F.sin2)}$.`);
     if (want === 'cos2') st.push(`$\\cos 2x = \\cos^2 x - \\sin^2 x = \\frac{${c1 * c1}}{${h * h}} - \\frac{${s1 * s1}}{${h * h}} = ${fTex(...F.cos2)}$.`);
     const [ap, aq] = F[want];
-    return {
+    const fs = (k) => ({ signed: true, answer: F[k][0] / F[k][1], show: fTxt(...F[k]) });
+    const steps = g === 'tg' && want === 'cos'
+      ? [{ q: 'Vypočítaj $\\cos^2 x$ (ako zlomok).', answer: c1 * c1 / (h * h), show: fTxt(c1 * c1, h * h), hint: 'Použi $1 + \\mathrm{tg}^2 x = \\frac{1}{\\cos^2 x}$.' },
+        { q: 'Vypočítaj $\\cos x$ – znamienko urči podľa kvadrantu.', ...fs('cos') }]
+      : g === 'tg'
+      ? [{ q: 'Vypočítaj $\\cos x$ (zlomok zadaj napr. -3/5).', ...fs('cos'), hint: 'Použi $1 + \\mathrm{tg}^2 x = \\frac{1}{\\cos^2 x}$ a znamienko podľa kvadrantu.' },
+        { q: 'Vypočítaj $\\sin x$.', ...fs('sin'), hint: 'Platí $\\sin x = \\mathrm{tg}\\,x\\cdot\\cos x$.' }]
+      : [{ q: `Vypočítaj $${g === 'sin' ? '\\cos^2 x' : '\\sin^2 x'}$ (ako zlomok).`, answer: (g === 'sin' ? c1 * c1 : s1 * s1) / (h * h), show: fTxt(g === 'sin' ? c1 * c1 : s1 * s1, h * h) },
+        { q: `Vypočítaj $${g === 'sin' ? '\\cos x' : '\\sin x'}$ – znamienko urči podľa kvadrantu.`, ...fs(g === 'sin' ? 'cos' : 'sin') }];
+    const have = g === 'tg' ? ['cos', 'sin'] : [g === 'sin' ? 'cos' : 'sin'];
+    if (!have.includes(want)) steps.push({ q: `Vypočítaj $${T[want]}$.`, ...fs(want) });
+    const mis = [];
+    if (want === 'sin2') {
+      mis.push({ value: F.sin2[0] / F.sin2[1] / 2, msg: 'Vzorec je $\\sin 2x = 2\\sin x\\cos x$ – nezabudni na dvojku.' });
+      mis.push({ value: 2 * F.sin[0] / F.sin[1], msg: '$\\sin 2x$ nie je $2\\sin x$ – použi $\\sin 2x = 2\\sin x\\cos x$.' });
+    }
+    if (want === 'cos2') mis.push({ value: 2 * F.cos[0] / F.cos[1], msg: '$\\cos 2x$ nie je $2\\cos x$ – použi $\\cos 2x = \\cos^2 x - \\sin^2 x$.' });
+    if (g === 'sin' && want === 'cos') mis.push({ value: cS * (h - s1) / h, msg: 'Platí $\\sin^2 x + \\cos^2 x = 1$ – pracuj s druhými mocninami, nie so samotnými hodnotami.' });
+    if (g === 'cos' && want === 'sin') mis.push({ value: sS * (h - c1) / h, msg: 'Platí $\\sin^2 x + \\cos^2 x = 1$ – pracuj s druhými mocninami, nie so samotnými hodnotami.' });
+    return addMis({
+      steps: steps.length >= 2 ? steps : undefined,
       signed: true, answer: ap / aq, show: fTxt(ap, aq),
       q: `Vieme, že $${T[g]} = ${fTex(...F[g])}$ a $x \\in ${QINT[Q]}$. Vypočítaj $${T[want]}$. Výsledok zadaj ako zlomok (napr. -3/4).`,
       solution: st.join(' '),
       hint: g === 'tg'
         ? 'Použi $1 + \\mathrm{tg}^2 x = \\frac{1}{\\cos^2 x}$, znamienko kosínusu urči podľa kvadrantu a potom $\\sin x = \\mathrm{tg}\\,x\\cdot\\cos x$.'
         : 'Použi $\\sin^2 x + \\cos^2 x = 1$ a znamienko urči podľa kvadrantu, v ktorom $x$ leží.'
-    };
+    }, mis);
   });
 
   lesson({
@@ -859,12 +958,18 @@
       } else {
         expl = `Na jednotkovej kružnici nájdeme všetky uhly z intervalu $\\langle 0^\\circ; 360^\\circ)$, pre ktoré $${FX[f]} = ${exTex(v)}$: $x \\in \\{${degList(sol)}\\}$.`;
       }
-      return {
+      const swapSol = f === 'tg' ? [] : solveDeg(f === 'sin' ? 'cos' : 'sin', v);
+      return addMis({
+        steps: ref ? [
+          { q: `Uprav rovnicu na tvar $${FX[f]} = a$. Pre aký ostrý uhol (v stupňoch) má ${FN[f]} hodnotu $${exTex(mag)}$?`, answer: ref },
+          { q: `${FN[f][0].toUpperCase() + FN[f].slice(1)} je ${v > 0 ? 'kladný' : 'záporný'}. Zadaj všetky korene z intervalu $\\langle 0^\\circ; 360^\\circ)$ v stupňoch.`, type: 'set', answer: sol,
+            show: sol.map((d) => d + '°').join('; '), hint: 'Nájdi kvadranty, v ktorých má funkcia toto znamienko, a v každom urči uhol s príslušným ostrým uhlom.' }
+        ] : undefined,
         type: 'set', answer: sol, show: sol.map((d) => d + '°').join('; '),
         q: `Vyrieš rovnicu $${eq}$ v intervale $\\langle 0^\\circ; 360^\\circ)$. Všetky korene zadaj v stupňoch oddelené bodkočiarkou (napr. 30; 150).`,
         solution: `Úpravou dostaneme $${FX[f]} = ${exTex(v)}$. ${expl}`,
         hint: 'Rovnicu uprav na tvar $\\sin x = a$ (resp. $\\cos x = a$, $\\mathrm{tg}\\,x = a$) a nájdi všetky uhly v intervale – pomôže jednotková kružnica a znamienka v kvadrantoch.'
-      };
+      }, [swapSol.length ? { value: swapSol, msg: 'Zamenil si sínus a kosínus: sínus je $y$-ová a kosínus $x$-ová súradnica bodu na jednotkovej kružnici.' } : null]);
     }
     if (k === 1) {
       const f = pick(['sin', 'cos']);
@@ -884,12 +989,19 @@
         parts.push(`$${FX[f]} = ${fTex(p, 2)}$ pre $x \\in \\{${degList(s)}\\}$.`);
       });
       all.sort((a, b) => a - b);
-      return {
+      const other = f === 'sin' ? 'cos' : 'sin', swapAll = [];
+      [p1, p2].forEach((p) => { if (Math.abs(p / 2) <= 1) swapAll.push(...solveDeg(other, p / 2)); });
+      return addMis({
+        steps: [
+          { q: `Zaveď substitúciu $t = ${FX[f]}$ a vyrieš kvadratickú rovnicu. Zadaj oba korene $t$ (zlomky napr. 1/2).`, type: 'set', signed: true,
+            answer: [p1 / 2, p2 / 2], show: [p1, p2].sort((a, b) => a - b).map((p) => fTxt(p, 2)).join('; '), placeholder: 't₁; t₂' },
+          { q: `Pre každý koreň $t$ vyrieš rovnicu $${FX[f]} = t$ (pamätaj, že $|${FX[f]}| \\le 1$). Zadaj všetky korene v stupňoch.`, type: 'set', answer: all, show: all.map((d) => d + '°').join('; ') }
+        ],
         type: 'set', answer: all, show: all.map((d) => d + '°').join('; '),
         q: `Vyrieš rovnicu $${eq}$ v intervale $\\langle 0^\\circ; 360^\\circ)$. Všetky korene zadaj v stupňoch oddelené bodkočiarkou.`,
         solution: `Substitúcia $t = ${FX[f]}$: $${lead}t^2${term(B, 't')}${term(Cc)} = 0$ má korene $t_1 = ${fTex(Math.min(p1, p2), 2)}$, $t_2 = ${fTex(Math.max(p1, p2), 2)}$. ${parts.join(' ')} <strong>Korene:</strong> $${degList(all)}$.`,
         hint: `Zaveď substitúciu $t = ${FX[f]}$, vyrieš kvadratickú rovnicu a potom pre každý koreň $t$ rieš základnú rovnicu. Nezabudni, že $|${FX[f]}| \\le 1$.`
-      };
+      }, [swapAll.length ? { value: swapAll.sort((a, b) => a - b), msg: 'Zamenil si sínus a kosínus: sínus je $y$-ová a kosínus $x$-ová súradnica bodu na jednotkovej kružnici.' } : null]);
     }
     const f = pick(['sin', 'cos', 'tg']), q = pick([6, 4, 3]);
     const a = piTex(1, q), pa = piTex(q - 1, q), val = trig(f, 180 / q);
@@ -905,7 +1017,14 @@
       : f === 'cos'
         ? `Jeden koreň je $${a}$, lebo $\\cos ${a} = ${exTex(val)}$. Rovnaký kosínus (rovnakú $x$-ovú súradnicu) má aj uhol $-${a}$. Kosínus má periódu $2\\pi$, preto $x = \\pm ${a} + 2k\\pi$.`
         : `Jeden koreň je $${a}$, lebo $\\mathrm{tg}\\,${a} = ${exTex(val)}$. Tangens má periódu $\\pi$ a v každej perióde nadobúda danú hodnotu práve raz, preto $x = ${a} + k\\pi$.`;
+    const ONE_MSG = f === 'tg' ? 'Tangens má periódu $\\pi$, nie $2\\pi$.'
+      : `Chýba druhá skupina riešení: v jednej perióde má ${FN[f]} danú hodnotu pre dva uhly.`;
     return {
+      choiceHints: f === 'sin'
+        ? { [O.pm]: 'Symetria $\\pm x$ platí pre kosínus (rovnaká $x$-ová súradnica). Rovnaký sínus má uhol $\\pi - x$.', [O.kpi]: 'Perióda sínusu je $2\\pi$; zápis $k\\pi$ platí pre tangens.', [O.one]: ONE_MSG }
+        : f === 'cos'
+          ? { [O.two]: 'Uhol $\\pi - x$ má rovnaký sínus, nie kosínus. Rovnaký kosínus má uhol $-x$.', [O.kpi]: 'Perióda kosínusu je $2\\pi$; zápis $k\\pi$ platí pre tangens.', [O.one]: ONE_MSG }
+          : { [O.two]: 'Tangens má periódu $\\pi$ a v každej perióde nadobúda danú hodnotu práve raz.', [O.pm]: 'Tangens je nepárna funkcia: $\\mathrm{tg}(-x) = -\\mathrm{tg}\\,x$, uhol $-x$ teda riešením nie je.', [O.one]: ONE_MSG },
       type: 'choice', options: shuffle([O.two, O.pm, O.kpi, O.one]), answer: ans,
       q: `Ktorý zápis vyjadruje všetky riešenia rovnice $${FX[f]} = ${exTex(val)}$ v obore $\\mathbb{R}$? ($k \\in \\mathbb{Z}$)`,
       solution: why,
@@ -942,22 +1061,35 @@
     if (k === 0) {
       const a = rnd(4, 20), al = rnd(25, 80), be = rnd(25, Math.min(120, 160 - al)), ga = 180 - al - be;
       const askB = Math.random() < 0.5, ang = askB ? be : ga, res = a * sinD(ang) / sinD(al), nm = askB ? 'b' : 'c', gr = askB ? '\\beta' : '\\gamma';
-      return {
+      return addMis({
+        steps: [
+          ...(askB ? [] : [{ q: 'Vypočítaj uhol $\\gamma$ v stupňoch.', answer: ga }]),
+          { q: 'Vypočítaj podiel $\\frac{a}{\\sin\\alpha}$ (na dve desatinné miesta).', ...rs(a / sinD(al), 0.02, 2) },
+          { q: `Vypočítaj $${nm} = \\frac{a}{\\sin\\alpha}\\cdot\\sin ${gr}$ v cm (na dve desatinné miesta).`, ...rs(res, 0.02, 2) }
+        ],
         answer: res, tol: 0.02,
         q: `V trojuholníku $ABC$ je $a = ${a}$ cm, $\\alpha = ${al}^\\circ$, $\\beta = ${be}^\\circ$. Vypočítaj dĺžku strany $${nm}$ v cm. ${R2}`,
         solution: `${askB ? '' : `$\\gamma = 180^\\circ - ${al}^\\circ - ${be}^\\circ = ${ga}^\\circ$. `}Zo sínusovej vety $${nm} = \\frac{a\\sin ${gr}}{\\sin\\alpha} = \\frac{${a}\\cdot\\sin ${ang}^\\circ}{\\sin ${al}^\\circ} \\approx \\frac{${a}\\cdot ${fx(sinD(ang), 4)}}{${fx(sinD(al), 4)}} \\approx ${fx(res)}$ cm.`,
         hint: askB ? 'Poznáš stranu a dva uhly – použi sínusovú vetu $\\frac{a}{\\sin\\alpha} = \\frac{b}{\\sin\\beta}$.' : 'Najprv dopočítaj uhol $\\gamma$, potom použi sínusovú vetu.'
-      };
+      }, [{ value: a * sinD(al) / sinD(ang), msg: `Pomer máš obrátene: $\\frac{${nm}}{\\sin ${gr}} = \\frac{a}{\\sin\\alpha}$, strana je úmerná sínusu <em>protiľahlého</em> uhla.` },
+        askB ? null : { value: a * sinD(be) / sinD(al), msg: 'Strane $c$ je protiľahlý uhol $\\gamma$, nie $\\beta$ – najprv ho dopočítaj.' },
+        { value: a * Math.sin(ang) / Math.sin(al), msg: RAD_MSG }]);
     }
     if (k === 1) {
       const a = rnd(3, 15), b = rnd(3, 15), g = rnd(20, 150);
       const c2 = a * a + b * b - 2 * a * b * cosD(g), c = Math.sqrt(c2);
-      return {
+      return addMis({
+        steps: [
+          { q: 'Vypočítaj $c^2 = a^2 + b^2 - 2ab\\cos\\gamma$ (na dve desatinné miesta).', ...rs(c2, 0.05, 2) },
+          { q: 'Vypočítaj $c$ v cm (na dve desatinné miesta).', ...rs(c, 0.02, 2) }
+        ],
         answer: c, tol: 0.02,
         q: `V trojuholníku $ABC$ je $a = ${a}$ cm, $b = ${b}$ cm a uhol $\\gamma = ${g}^\\circ$. Vypočítaj dĺžku strany $c$ v cm. ${R2}`,
         solution: `Kosínusová veta: $c^2 = a^2 + b^2 - 2ab\\cos\\gamma = ${a * a} + ${b * b} - 2\\cdot ${a}\\cdot ${b}\\cdot\\cos ${g}^\\circ \\approx ${fx(c2, 3)}$, teda $c \\approx ${fx(c)}$ cm.`,
         hint: 'Poznáš dve strany a uhol nimi zovretý – použi kosínusovú vetu.'
-      };
+      }, [{ value: Math.sqrt(a * a + b * b + 2 * a * b * cosD(g)), msg: 'V kosínusovej vete je pred členom $2ab\\cos\\gamma$ znamienko mínus.' },
+        { value: c2, msg: 'To je $c^2$ – dĺžku strany dostaneš odmocnením.' },
+        a * a + b * b - 2 * a * b * Math.cos(g) > 0 ? { value: Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(g)), msg: RAD_MSG } : null]);
     }
     if (k === 2) {
       let s;
@@ -967,16 +1099,23 @@
       const [ny, nzz] = [names[(i + 1) % 3], names[(i + 2) % 3]].sort();
       const [yy, zz] = ny === names[(i + 1) % 3] ? [y, z] : [z, y];
       const cs = (yy * yy + zz * zz - x * x) / (2 * yy * zz), ang = Math.acos(cs) * 180 / Math.PI;
-      return {
+      return addMis({
+        steps: [
+          { q: `Vypočítaj $\\cos${angs[i]}$ z kosínusovej vety (na štyri desatinné miesta).`, signed: true, ...rs(cs, 0.0006, 4) },
+          { q: `Vypočítaj uhol $${angs[i]}$ v stupňoch (na desatiny).`, ...rs(ang, 0.1, 1) }
+        ],
         answer: ang, tol: 0.1,
         q: `Trojuholník $ABC$ má strany $a = ${s[0]}$ cm, $b = ${s[1]}$ cm, $c = ${s[2]}$ cm. Vypočítaj veľkosť uhla $${angs[i]}$ v stupňoch, zaokrúhli na desatiny stupňa.`,
         solution: `Z kosínusovej vety $\\cos${angs[i]} = \\frac{${ny}^2 + ${nzz}^2 - ${names[i]}^2}{2${ny}${nzz}} = \\frac{${yy * yy} + ${zz * zz} - ${x * x}}{${2 * yy * zz}} = ${fTex(yy * yy + zz * zz - x * x, 2 * yy * zz)} \\approx ${fx(cs, 4)}$, teda $${angs[i]} \\approx ${fx(ang, 1)}^\\circ$.`,
         hint: 'Poznáš všetky tri strany – z kosínusovej vety vyjadri kosínus hľadaného uhla.'
-      };
+      }, [{ value: 180 - ang, msg: `Pozor na znamienka: od súčtu štvorcov priľahlých strán odčítaš štvorec strany <em>protiľahlej</em> uhlu, teda $${names[i]}^2$.` },
+        { value: Math.acos(cs), msg: 'Výsledok vyšiel v radiánoch – prepni kalkulačku na stupne (DEG).' }]);
     }
     if (Math.random() < 0.6) {
       const a = rnd(3, 15), b = rnd(3, 15), g = rnd(20, 160), S = a * b * sinD(g) / 2;
       return {
+        mistakes: [{ value: 2 * S, msg: 'Obsah je <em>polovica</em> súčinu $ab\\sin\\gamma$.' }, { value: a * b * Math.sin(g) / 2, msg: RAD_MSG }]
+          .filter((m) => Math.abs(m.value - S) > 0.05),
         answer: S, tol: 0.02,
         q: `V trojuholníku $ABC$ je $a = ${a}$ cm, $b = ${b}$ cm a $\\gamma = ${g}^\\circ$. Vypočítaj jeho obsah v cm². ${R2}`,
         solution: `$S = \\frac{1}{2}ab\\sin\\gamma = \\frac{1}{2}\\cdot ${a}\\cdot ${b}\\cdot\\sin ${g}^\\circ \\approx ${fx(a * b / 2, 1)}\\cdot ${fx(sinD(g), 4)} \\approx ${fx(S)}$ cm².`,
@@ -985,6 +1124,8 @@
     }
     const a = rnd(4, 20), al = rnd(20, 150), r = a / (2 * sinD(al));
     return {
+      mistakes: [{ value: 2 * r, msg: 'Sínusová veta dáva $\\frac{a}{\\sin\\alpha} = 2r$ – výsledok treba ešte vydeliť dvoma.' }, { value: a / (2 * Math.sin(al)), msg: RAD_MSG }]
+        .filter((m) => Math.abs(m.value - r) > 0.05),
       answer: r, tol: 0.02,
       q: `V trojuholníku $ABC$ je $a = ${a}$ cm a $\\alpha = ${al}^\\circ$. Vypočítaj polomer kružnice opísanej tomuto trojuholníku v cm. ${R2}`,
       solution: `Zo sínusovej vety $\\frac{a}{\\sin\\alpha} = 2r$, teda $r = \\frac{a}{2\\sin\\alpha} = \\frac{${a}}{2\\cdot\\sin ${al}^\\circ} \\approx \\frac{${a}}{2\\cdot ${fx(sinD(al), 4)}} \\approx ${fx(r)}$ cm.`,
@@ -1033,63 +1174,87 @@
       }
       const b1 = a1 + dx, b2 = a2 + dy, d2 = dx * dx + dy * dy, d = Math.sqrt(d2);
       exact = Number.isInteger(d);
-      return {
+      return addMis({
+        steps: [
+          { q: 'Vypočítaj $|AB|^2 = (b_1 - a_1)^2 + (b_2 - a_2)^2$.', answer: d2 },
+          { q: `Vypočítaj $|AB|$${exact ? '' : ' (na dve desatinné miesta)'}.`, ...(exact ? { answer: d } : rs(d, 0.01, 2)) }
+        ],
         answer: d, tol: exact ? 1e-6 : 0.01,
         q: `Vypočítaj vzdialenosť bodov $${pt('A', a1, a2)}$ a $${pt('B', b1, b2)}$.${exact ? '' : ' Výsledok zaokrúhli na dve desatinné miesta.'}`,
         solution: `$|AB| = \\sqrt{(${b1} - ${par(a1)})^2 + (${b2} - ${par(a2)})^2} = \\sqrt{${dx * dx} + ${dy * dy}} = \\sqrt{${d2}}${exact ? ` = ${d}` : ` \\approx ${fx(d)}`}$.`,
         hint: 'Použi $|AB| = \\sqrt{(b_1 - a_1)^2 + (b_2 - a_2)^2}$.'
-      };
+      }, [{ value: d2, msg: 'To je $|AB|^2$ – vzdialenosť dostaneš odmocnením.' },
+        { value: Math.abs(dx) + Math.abs(dy), msg: 'Vzdialenosť nie je súčet rozdielov súradníc – použi Pytagorovu vetu.' }]);
     }
     if (k === 1) {
       const a1 = rnd(-8, 8), a2 = rnd(-8, 8), b1 = rnd(-8, 8), b2 = rnd(-8, 8);
       if (Math.random() < 0.5) {
         const s1 = (a1 + b1) / 2, s2 = (a2 + b2) / 2;
-        return {
+        return addMis({
           type: 'tuple', signed: true, answer: [s1, s2], placeholder: 'x; y',
           q: `Urči súradnice stredu $S$ úsečky $AB$, kde $${pt('A', a1, a2)}$ a $${pt('B', b1, b2)}$. Zadaj ich v tvare „x; y“.`,
           solution: `$S\\left[\\frac{${a1} + ${par(b1)}}{2}; \\frac{${a2} + ${par(b2)}}{2}\\right] = S[${dc(s1)}; ${dc(s2)}]$.`,
           hint: 'Súradnice stredu sú aritmetické priemery príslušných súradníc krajných bodov.'
-        };
+        }, [{ value: [(b1 - a1) / 2, (b2 - a2) / 2], msg: 'Stred má súradnice $\\frac{a_1 + b_1}{2}$ a $\\frac{a_2 + b_2}{2}$ – súradnice sa sčítajú, nie odčítajú.' },
+          { value: [a1 + b1, a2 + b2], msg: 'Súčet súradníc treba ešte vydeliť dvoma (aritmetický priemer).' }]);
       }
       const s1 = rnd(-6, 6), s2 = rnd(-6, 6);
-      return {
+      return addMis({
+        steps: [
+          { q: 'Vypočítaj prvú súradnicu bodu $B$.', signed: true, answer: 2 * s1 - a1, hint: 'Z $s_1 = \\frac{a_1 + b_1}{2}$ vyjadri $b_1$.' },
+          { q: 'Vypočítaj druhú súradnicu bodu $B$.', signed: true, answer: 2 * s2 - a2 },
+          { q: 'Zapíš súradnice bodu $B$ v tvare „x; y“.', type: 'tuple', signed: true, answer: [2 * s1 - a1, 2 * s2 - a2], placeholder: 'x; y' }
+        ],
         type: 'tuple', signed: true, answer: [2 * s1 - a1, 2 * s2 - a2], placeholder: 'x; y',
         q: `Bod $${pt('S', s1, s2)}$ je stredom úsečky $AB$, pričom $${pt('A', a1, a2)}$. Urči súradnice bodu $B$ v tvare „x; y“.`,
         solution: `Z $s_1 = \\frac{a_1 + b_1}{2}$ dostaneme $b_1 = 2s_1 - a_1 = ${2 * s1} - ${par(a1)} = ${2 * s1 - a1}$, podobne $b_2 = ${2 * s2} - ${par(a2)} = ${2 * s2 - a2}$. Teda $${pt('B', 2 * s1 - a1, 2 * s2 - a2)}$.`,
         hint: 'Platí $B = 2S - A$, t. j. $b_1 = 2s_1 - a_1$ a $b_2 = 2s_2 - a_2$.'
-      };
+      }, [{ value: [(s1 + a1) / 2, (s2 + a2) / 2], msg: 'Bod $S$ je stred úsečky $AB$, nie jej krajný bod – zo vzťahu $s_1 = \\frac{a_1 + b_1}{2}$ vyjadri $b_1$.' },
+        { value: [s1 - a1, s2 - a2], msg: 'Zo vzťahu $s_1 = \\frac{a_1 + b_1}{2}$ dostaneš $b_1 = 2s_1 - a_1$ – nezabudni vynásobiť dvoma.' }]);
     }
     if (k === 2) {
       const u1 = rnd(-5, 5), u2 = rnd(-5, 5), v1 = rnd(-5, 5), v2 = rnd(-5, 5), p = nz(-3, 3), q = nz(-3, 3);
       const cf = (c) => (c === 1 ? '' : c === -1 ? '-' : String(c));
       const expr = `${cf(p)}\\vec{u} ${q > 0 ? '+' : '-'} ${Math.abs(q) === 1 ? '' : Math.abs(q)}\\vec{v}`;
       const w1 = p * u1 + q * v1, w2 = p * u2 + q * v2;
-      return {
+      return addMis({
+        steps: [
+          { q: `Vypočítaj prvú súradnicu: $${p}\\cdot ${par(u1)} ${q < 0 ? '-' : '+'} ${Math.abs(q)}\\cdot ${par(v1)}$.`, signed: true, answer: w1 },
+          { q: 'Vypočítaj druhú súradnicu rovnako.', signed: true, answer: w2 },
+          { q: 'Zapíš výsledný vektor v tvare „x; y“.', type: 'tuple', signed: true, answer: [w1, w2], placeholder: 'x; y' }
+        ],
         type: 'tuple', signed: true, answer: [w1, w2], placeholder: 'x; y',
         q: `Dané sú vektory $\\vec{u} = ${vc(u1, u2)}$ a $\\vec{v} = ${vc(v1, v2)}$. Vypočítaj súradnice vektora $${expr}$ v tvare „x; y“.`,
         solution: `$${expr} = (${p}\\cdot ${par(u1)} ${q < 0 ? '-' : '+'} ${Math.abs(q)}\\cdot ${par(v1)}; ${p}\\cdot ${par(u2)} ${q < 0 ? '-' : '+'} ${Math.abs(q)}\\cdot ${par(v2)}) = ${vc(w1, w2)}$.`,
         hint: 'Násobok aj súčet vektorov počítaj zvlášť pre prvú a zvlášť pre druhú súradnicu.'
-      };
+      }, [q < 0 ? { value: [p * u1 - q * v1, p * u2 - q * v2], msg: 'Pozor na znamienko: vektor $\\vec{v}$ sa v zadaní odčítava.' } : null,
+        { value: [u1 + v1, u2 + v2], msg: `Nezabudni vektory najprv vynásobiť číslami $${p}$ a $${q}$.` }]);
     }
     if (Math.random() < 0.5) {
       let u1, u2, v1, v2;
       do { u1 = rnd(-5, 5); u2 = rnd(-5, 5); v1 = rnd(-5, 5); v2 = rnd(-5, 5); } while ((u1 === 0 && u2 === 0) || (v1 === 0 && v2 === 0));
       const dot = u1 * v1 + u2 * v2, nu = u1 * u1 + u2 * u2, nv = v1 * v1 + v2 * v2;
       const cs = Math.max(-1, Math.min(1, dot / Math.sqrt(nu * nv))), ang = Math.acos(cs) * 180 / Math.PI;
-      return {
+      return addMis({
+        steps: [
+          { q: 'Vypočítaj skalárny súčin $\\vec{u}\\cdot\\vec{v}$.', signed: true, answer: dot },
+          { q: 'Vypočítaj $\\cos\\varphi$ (na štyri desatinné miesta).', signed: true, ...rs(cs, 0.0006, 4) },
+          { q: 'Vypočítaj uhol $\\varphi$ v stupňoch (na desatiny).', ...rs(ang, 0.1, 1) }
+        ],
         answer: ang, tol: 0.1,
         q: `Vypočítaj veľkosť uhla vektorov $\\vec{u} = ${vc(u1, u2)}$ a $\\vec{v} = ${vc(v1, v2)}$ v stupňoch, zaokrúhli na desatiny stupňa.`,
         solution: `$\\vec{u}\\cdot\\vec{v} = ${u1}\\cdot ${par(v1)} + ${par(u2)}\\cdot ${par(v2)} = ${dot}$, $|\\vec{u}| = \\sqrt{${nu}}$, $|\\vec{v}| = \\sqrt{${nv}}$. $\\cos\\varphi = \\frac{${dot}}{\\sqrt{${nu}}\\cdot\\sqrt{${nv}}} \\approx ${fx(cs, 4)}$, teda $\\varphi \\approx ${fx(ang, 1)}^\\circ$.`,
         hint: 'Použi $\\cos\\varphi = \\frac{\\vec{u}\\cdot\\vec{v}}{|\\vec{u}|\\cdot|\\vec{v}|}$.'
-      };
+      }, [dot < 0 ? { value: 180 - ang, msg: 'Skalárny súčin je záporný, uhol vektorov je tupý – znamienko nevynechávaj.' } : null,
+        { value: Math.acos(cs), msg: 'Výsledok vyšiel v radiánoch – prepni kalkulačku na stupne (DEG).' }]);
     }
     const t = rnd(-6, 6), v2 = nz(-4, 4), s = nz(-2, 2), u1 = v2 * s, u2 = -s * t;
-    return {
+    return addMis({
       signed: true, answer: t,
       q: `Pre aké číslo $t$ sú vektory $\\vec{u} = ${vc(u1, u2)}$ a $\\vec{v} = (t; ${v2})$ na seba kolmé?`,
       solution: `Kolmé vektory majú nulový skalárny súčin: $${u1}t + ${par(u2)}\\cdot ${par(v2)} = 0$, teda $${u1}t = ${-u2 * v2}$ a $t = ${t}$.`,
       hint: 'Vektory sú kolmé práve vtedy, keď $u_1 v_1 + u_2 v_2 = 0$.'
-    };
+    }, [u2 !== 0 ? { value: u1 * v2 / u2, msg: 'Toto je podmienka rovnobežnosti (súradnice v rovnakom pomere). Kolmé vektory majú nulový <em>skalárny</em> súčin.' } : null]);
   });
 
   lesson({
@@ -1130,32 +1295,45 @@
       const u1 = b1 - a1, u2 = b2 - a2, A0 = u2, B0 = -u1, C0 = -(A0 * a1 + B0 * a2);
       const [a, b, c] = normLine(A0, B0, C0);
       const changed = a !== A0 || b !== B0 || c !== C0;
-      return {
+      return addMis({
+        steps: [
+          { q: 'Urči smerový vektor $\\vec{u} = B - A$ v tvare „u₁; u₂“.', type: 'tuple', signed: true, answer: [u1, u2], placeholder: 'u₁; u₂' },
+          { q: 'Urči normálový vektor $\\vec{n}$ (kolmý na $\\vec{u}$) v tvare „a; b“.', type: 'tuple', proportional: true, signed: true, answer: [A0, B0], placeholder: 'a; b',
+            hint: 'Z vektora $(u_1; u_2)$ dostaneš kolmý vektor $(u_2; -u_1)$.' },
+          { q: `Pre $\\vec{n} = ${vc(A0, B0)}$ dosaď bod $A$ do $${lin([[A0, 'x'], [B0, 'y']])} + c = 0$. Koľko je $c$?`, signed: true, answer: C0 },
+          { q: 'Zapíš koeficienty všeobecnej rovnice „a; b; c“.', type: 'tuple', proportional: true, signed: true, answer: [a, b, c], placeholder: 'a; b; c' }
+        ],
         type: 'tuple', proportional: true, signed: true, answer: [a, b, c], placeholder: 'a; b; c',
         q: `Napíš všeobecnú rovnicu $ax + by + c = 0$ priamky $AB$, kde $${pt('A', a1, a2)}$ a $${pt('B', b1, b2)}$. Zadaj koeficienty $a; b; c$ (uznáme aj ich nenulový násobok).`,
         solution: `Smerový vektor $\\vec{u} = B - A = ${vc(u1, u2)}$, normálový vektor $\\vec{n} = ${vc(A0, B0)}$. Rovnica $${lin([[A0, 'x'], [B0, 'y']])} + c = 0$; dosadením bodu $A$ dostaneme $c = ${C0}$, teda $${genEq(A0, B0, C0)}$${changed ? `, po úprave $${genEq(a, b, c)}$` : ''}.`,
         hint: 'Z bodov urči smerový vektor, z neho normálový vektor $(u_2; -u_1)$ a $c$ dopočítaj dosadením jedného bodu.'
-      };
+      }, [{ value: [u1, u2, -(u1 * a1 + u2 * a2)], msg: 'Koeficienty $a$, $b$ tvoria <em>normálový</em> vektor (kolmý na priamku), nie smerový. Zo smerového $(u_1; u_2)$ dostaneš normálový $(u_2; -u_1)$.' }]);
     }
     if (k === 1) {
       if (Math.random() < 0.5) {
         const b = nz(-5, 5), a = rnd(-5, 5), c = rnd(-9, 9);
-        return {
+        return addMis({
           type: 'tuple', signed: true, answer: [-a / b, -c / b], show: `${fTxt(-a, b)}; ${fTxt(-c, b)}`, placeholder: 'k; q',
           q: `Priamku $p\\colon ${genEq(a, b, c)}$ vyjadri v smernicovom tvare $y = kx + q$. Zadaj $k; q$ (zlomky v tvare 2/3).`,
           solution: `Vyjadríme $y$: $${b === 1 ? '' : b === -1 ? '-' : b}y = ${lin([[-a, 'x'], [-c, '']])}$${b === 1 ? '' : `, po vydelení číslom $${b}$`}: $${slopeTex(-a, b, -c, b)}$. Teda $k = ${fTex(-a, b)}$, $q = ${fTex(-c, b)}$.`,
           hint: 'Z rovnice vyjadri neznámu $y$: všetko ostatné presuň na pravú stranu a vydeľ koeficientom pri $y$.'
-        };
+        }, [{ value: [a / b, c / b], msg: 'Pri presune členov na druhú stranu rovnice sa mení ich znamienko.' },
+          { value: [-a, -c], msg: `Nezabudni celú rovnicu vydeliť koeficientom pri $y$, teda číslom $${b}$.` }]);
       }
       let x1, y1, x2, y2;
       do { x1 = rnd(-5, 5); y1 = rnd(-5, 5); x2 = rnd(-5, 5); y2 = rnd(-5, 5); } while (x1 === x2);
       const u1 = x2 - x1, u2 = y2 - y1, qp = y1 * u1 - u2 * x1;
-      return {
+      return addMis({
+        steps: [
+          { q: 'Vypočítaj smernicu $k$ (zlomok v tvare 2/3).', signed: true, answer: u2 / u1, show: fTxt(u2, u1) },
+          { q: `Dosaď bod $A$ do $y = kx + q$. Koľko je $q$?`, signed: true, answer: qp / u1, show: fTxt(qp, u1) },
+          { q: 'Zapíš „k; q“.', type: 'tuple', signed: true, answer: [u2 / u1, qp / u1], show: `${fTxt(u2, u1)}; ${fTxt(qp, u1)}`, placeholder: 'k; q' }
+        ],
         type: 'tuple', signed: true, answer: [u2 / u1, qp / u1], show: `${fTxt(u2, u1)}; ${fTxt(qp, u1)}`, placeholder: 'k; q',
         q: `Napíš smernicový tvar $y = kx + q$ priamky prechádzajúcej bodmi $${pt('A', x1, y1)}$ a $${pt('B', x2, y2)}$. Zadaj $k; q$ (zlomky v tvare 2/3).`,
         solution: `$k = \\frac{y_B - y_A}{x_B - x_A} = \\frac{${u2}}{${u1}} = ${fTex(u2, u1)}$. Z bodu $A$: $q = y_A - k x_A = ${y1} - ${fPar(u2, u1)}\\cdot ${par(x1)} = ${fTex(qp, u1)}$. Priamka: $${slopeTex(u2, u1, qp, u1)}$.`,
         hint: 'Smernica je podiel prírastku $y$ a prírastku $x$: $k = \\frac{y_B - y_A}{x_B - x_A}$. Potom dosaď jeden bod do $y = kx + q$.'
-      };
+      }, [u2 !== 0 ? { value: [u1 / u2, y1 - u1 / u2 * x1], msg: 'Smernica je prírastok $y$ delený prírastkom $x$, nie naopak.' } : null]);
     }
     if (k === 2) {
       let a, b;
@@ -1195,7 +1373,12 @@
             + (val === 0 ? ', bod na $p$ leží – priamky sú totožné.' : ', bod na $p$ neleží – priamky sú rovnobežné rôzne.');
         }
       }
+      const PAR = 'Normálové vektory sú násobkami (alebo je smerový vektor jednej priamky kolmý na normálový vektor druhej) – priamky sú rovnobežné. Over, či majú spoločný bod.';
+      const ONE = 'Priamky sú rovnobežné – rozhoduje, či majú spoločný bod. Dosaď bod jednej priamky do rovnice druhej.';
+      const NOTPAR = 'Normálové (smerové) vektory nie sú násobkami, takéto priamky nemôžu byť rovnobežné.';
       return {
+        choiceHints: kind === 'rôznobežné' ? { 'rovnobežné rôzne': NOTPAR, 'totožné': NOTPAR }
+          : { 'rôznobežné': PAR, [kind === 'totožné' ? 'rovnobežné rôzne' : 'totožné']: ONE },
         type: 'choice', options: ['rovnobežné rôzne', 'totožné', 'rôznobežné'], answer: kind,
         q: `Urči vzájomnú polohu priamok $p\\colon ${eqP}$ a $q\\colon ${eqQ}$.`,
         solution: why,
@@ -1214,6 +1397,11 @@
     const [ea, eb, ec, nm] = b !== 0 ? [a, b, c1, 'p'] : [a2, b2, c2, 'q'];
     st += ` Dosadením do rovnice $${nm}$: $${eb}y = ${-ec - ea * X}$, $y = ${Y}$.`;
     return {
+      steps: [
+        { q: 'Vyrieš sústavu rovníc oboch priamok. Koľko je $x$?', signed: true, answer: X, hint: 'Eliminuj $y$: vynásob rovnice vhodnými číslami a odčítaj ich.' },
+        { q: `Dosaď $x = ${X}$ do rovnice ${b !== 0 ? '$p$' : '$q$'}. Koľko je $y$?`, signed: true, answer: Y },
+        { q: 'Zapíš súradnice priesečníka v tvare „x; y“.', type: 'tuple', signed: true, answer: [X, Y], placeholder: 'x; y' }
+      ],
       type: 'tuple', signed: true, answer: [X, Y], placeholder: 'x; y',
       q: `Nájdi priesečník priamok $p\\colon ${genEq(a, b, c1)}$ a $q\\colon ${genEq(a2, b2, c2)}$. Zadaj jeho súradnice v tvare „x; y“.`,
       solution: `Riešime sústavu rovníc oboch priamok. ${st} Priesečník $${pt('P', X, Y)}$.`,
@@ -1246,22 +1434,31 @@
     const k = rnd(0, 3);
     if (k === 0) {
       const m = rnd(-6, 6), n = rnd(-6, 6), r = rnd(1, 9);
-      return {
+      return addMis({
         type: 'tuple', signed: true, answer: [m, n, r], placeholder: 'm; n; r',
         q: `Urči stred $S[m; n]$ a polomer $r$ kružnice $${sqTex(m, 'x')} + ${sqTex(n, 'y')} = ${r * r}$. Zadaj v tvare „m; n; r“.`,
         solution: `Porovnáme so stredovým tvarom $(x - m)^2 + (y - n)^2 = r^2$: $m = ${m}$, $n = ${n}$ a $r = \\sqrt{${r * r}} = ${r}$.`,
         hint: 'V stredovom tvare sa súradnice stredu odčítajú: $(x + 3)^2 = (x - (-3))^2$, teda $m = -3$.'
-      };
+      }, [{ value: [-m, -n, r], msg: 'V stredovom tvare $(x - m)^2$ sa súradnica stredu odčítava: $(x + 3)^2$ znamená $m = -3$.' },
+        { value: [m, n, r * r], msg: 'Na pravej strane je $r^2$ – polomer dostaneš odmocnením.' }]);
     }
     if (k === 1) {
       const m = rnd(-6, 6), n = rnd(-6, 6), r = rnd(1, 8), a = -2 * m, b = -2 * n, c = m * m + n * n - r * r;
       const sqx = m === 0 ? 'x^2' : `${sqTex(m, 'x')} - ${m * m}`, sqy = n === 0 ? 'y^2' : `${sqTex(n, 'y')} - ${n * n}`;
-      return {
+      return addMis({
+        steps: [
+          { q: `Doplň $x^2${term(a, 'x')}$ na štvorec $(x - m)^2 - m^2$. Koľko je $m$?`, signed: true, answer: m },
+          { q: `Doplň $y^2${term(b, 'y')}$ na štvorec $(y - n)^2 - n^2$. Koľko je $n$?`, signed: true, answer: n },
+          { q: 'Prevedením konštánt na pravú stranu dostaneš $r^2$. Koľko je $r^2$?', answer: r * r },
+          { q: 'Zapíš „m; n; r“.', type: 'tuple', signed: true, answer: [m, n, r], placeholder: 'm; n; r' }
+        ],
         type: 'tuple', signed: true, answer: [m, n, r], placeholder: 'm; n; r',
         q: `Urči stred $S[m; n]$ a polomer $r$ kružnice $x^2 + y^2${term(a, 'x')}${term(b, 'y')}${term(c)} = 0$. Zadaj v tvare „m; n; r“.`,
         solution: `Doplníme na štvorce: $${sqx} + ${sqy}${term(c)} = 0$, teda $${sqTex(m, 'x')} + ${sqTex(n, 'y')} = ${r * r}$. Stred $${pt('S', m, n)}$, polomer $r = ${r}$.`,
         hint: 'Členy s $x$ doplň na štvorec: $x^2 + ax = \\left(x + \\frac{a}{2}\\right)^2 - \\frac{a^2}{4}$, rovnako pre $y$.'
-      };
+      }, [{ value: [-m, -n, r], msg: 'Pozor na znamienko: $x^2 + ax = \\left(x + \\frac{a}{2}\\right)^2 - \\frac{a^2}{4}$, takže $m = -\\frac{a}{2}$.' },
+        { value: [m, n, r * r], msg: 'Na pravej strane je $r^2$ – polomer dostaneš odmocnením.' },
+        c !== 0 ? { value: [m, n, Math.sqrt(Math.abs(c))], msg: 'Polomer nie je odmocnina z absolútneho člena – po doplnení na štvorce presuň na pravú stranu aj $m^2$ a $n^2$.' } : null]);
     }
     if (k === 2) {
       const m = rnd(-5, 5), n = rnd(-5, 5);
@@ -1271,7 +1468,14 @@
         const d2 = dx * dx + dy * dy, kind = pick(['vnútri kružnice', 'na kružnici', 'mimo kružnice']);
         const r2 = kind === 'na kružnici' ? d2 : kind === 'vnútri kružnice' ? d2 + rnd(1, 10) : d2 - rnd(1, d2 - 1);
         const x = m + dx, y = n + dy;
+        const cls = (v) => (v < r2 ? 'vnútri kružnice' : v === r2 ? 'na kružnici' : 'mimo kružnice');
+        const sgnKind = cls((x + m) * (x + m) + (y + n) * (y + n));
         return {
+          choiceHints: sgnKind !== kind ? { [sgnKind]: 'Pozor na znamienka pri dosadení: v stredovom tvare $(x - m)^2$ sa súradnica stredu odčítava.' } : undefined,
+          steps: [
+            { q: `Dosaď súradnice bodu $X$ do ľavej strany rovnice. Koľko vyjde?`, answer: d2 },
+            { q: `Porovnaj výsledok s $r^2 = ${r2}$. Kde leží bod?`, type: 'choice', options: ['vnútri kružnice', 'na kružnici', 'mimo kružnice'], answer: kind }
+          ],
           type: 'choice', options: ['vnútri kružnice', 'na kružnici', 'mimo kružnice'], answer: kind,
           q: `Kde leží bod $${pt('X', x, y)}$ vzhľadom na kružnicu $${sqTex(m, 'x')} + ${sqTex(n, 'y')} = ${r2}$?`,
           solution: `Dosadíme: $(${x} ${m < 0 ? '+' : '-'} ${Math.abs(m)})^2 + (${y} ${n < 0 ? '+' : '-'} ${Math.abs(n)})^2 = ${dx * dx} + ${dy * dy} = ${d2}$, čo je ${d2 < r2 ? 'menej ako' : d2 === r2 ? 'presne' : 'viac ako'} $r^2 = ${r2}$. Bod leží ${kind}.`,
@@ -1282,7 +1486,16 @@
       const r = rnd(2, 6), kind = pick(['sečnica', 'dotyčnica', 'nesečnica']);
       const d = kind === 'dotyčnica' ? r : kind === 'sečnica' ? rnd(0, r - 1) : r + rnd(1, 4);
       const c = pick([1, -1]) * d * h - (a * m + b * n), numv = a * m + b * n + c;
+      const clsL = (v, R) => (v < R ? 'sečnica' : v === R ? 'dotyčnica' : 'nesečnica');
+      const lh = {};
+      if (h > 1 && clsL(d * h, r) !== kind) lh[clsL(d * h, r)] = 'Vo vzorci pre vzdialenosť bodu od priamky nezabudni deliť $\\sqrt{a^2 + b^2}$.';
+      if (clsL(d, r * r) !== kind && !lh[clsL(d, r * r)]) lh[clsL(d, r * r)] = 'Vzdialenosť $d$ porovnávaj s polomerom $r$, nie s $r^2$.';
       return {
+        choiceHints: Object.keys(lh).length ? lh : undefined,
+        steps: [
+          { q: 'Vypočítaj vzdialenosť stredu kružnice od priamky $p$.', answer: d, hint: 'Použi $d = \\frac{|am + bn + c|}{\\sqrt{a^2 + b^2}}$.' },
+          { q: `Porovnaj vzdialenosť s polomerom $r = ${r}$. Čím je priamka?`, type: 'choice', options: ['sečnica', 'dotyčnica', 'nesečnica'], answer: kind }
+        ],
         type: 'choice', options: ['sečnica', 'dotyčnica', 'nesečnica'], answer: kind,
         q: `Urči vzájomnú polohu priamky $p\\colon ${genEq(a, b, c)}$ a kružnice $${sqTex(m, 'x')} + ${sqTex(n, 'y')} = ${r * r}$.`,
         solution: `Stred $${pt('S', m, n)}$, $r = ${r}$. Vzdialenosť stredu od priamky: $d = \\frac{|${a}\\cdot ${par(m)} + ${par(b)}\\cdot ${par(n)} + ${par(c)}|}{\\sqrt{${a * a} + ${b * b}}} = \\frac{${Math.abs(numv)}}{${h}} = ${d}$. Keďže $d ${d < r ? '&lt;' : d === r ? '=' : '&gt;'} r$, priamka je ${kind}.`,
@@ -1292,12 +1505,18 @@
     let i, j;
     do { i = rnd(-4, 4); j = rnd(-4, 4); } while (i === 0 && j === 0);
     const a1 = rnd(-6, 6), a2 = rnd(-6, 6), b1 = a1 + 2 * i, b2 = a2 + 2 * j, m = a1 + i, n = a2 + j, r2 = i * i + j * j;
-    return {
+    return addMis({
+      steps: [
+        { q: 'Urči stred kružnice $S$ (stred úsečky $AB$) v tvare „m; n“.', type: 'tuple', signed: true, answer: [m, n], placeholder: 'm; n' },
+        { q: 'Vypočítaj $r^2 = |SA|^2$.', answer: r2 },
+        { q: 'Zapíš „m; n; r²“.', type: 'tuple', signed: true, answer: [m, n, r2], placeholder: 'm; n; r²' }
+      ],
       type: 'tuple', signed: true, answer: [m, n, r2], placeholder: 'm; n; r²',
       q: `Úsečka $AB$, kde $${pt('A', a1, a2)}$ a $${pt('B', b1, b2)}$, je priemerom kružnice. Napíš jej rovnicu v stredovom tvare $(x - m)^2 + (y - n)^2 = r^2$ a zadaj „m; n; r²“.`,
       solution: `Stred kružnice je stred úsečky: $${pt('S', m, n)}$. $r^2 = |SA|^2 = ${i * i} + ${j * j} = ${r2}$. Rovnica: $${sqTex(m, 'x')} + ${sqTex(n, 'y')} = ${r2}$.`,
       hint: 'Stred kružnice je stredom priemeru $AB$, polomer je polovica dĺžky $AB$ (alebo vzdialenosť $S$ od $A$).'
-    };
+    }, [{ value: [m, n, 4 * r2], msg: 'Úsečka $AB$ je priemer, nie polomer – $r^2 = \\frac{|AB|^2}{4}$.' },
+      { value: [i, j, r2], msg: 'Stred úsečky má súradnice $\\frac{a_1 + b_1}{2}$, $\\frac{a_2 + b_2}{2}$ – súradnice sa sčítajú, nie odčítajú.' }]);
   });
 
   /* ================= C. POSTUPNOSTI A FINANČNÁ MATEMATIKA ================= */
@@ -1346,8 +1565,10 @@
       const t = rnd(0, 2);
       if (t === 0) {
         const p = nz(-3, 3), q = rnd(-5, 5), r = rnd(-6, 6), n = rnd(2, 10), val = p * n * n + q * n + r;
+        const mis = p !== 1 ? [{ value: p * p * n * n + q * n + r, msg: `Umocňuje sa len $n$, nie celý súčin: $${p}n^2 = ${p}\\cdot ${n}^2$.` }] : [];
         const sub = `${p}\\cdot ${n}^2${q ? ` ${q < 0 ? '-' : '+'} ${Math.abs(q)}\\cdot ${n}` : ''}${r ? ` ${r < 0 ? '-' : '+'} ${Math.abs(r)}` : ''}`;
         return {
+          mistakes: mis.filter((m) => m.value !== val),
           signed: true, answer: val,
           q: `Postupnosť je daná vzorcom $a_n = ${lin([[p, 'n^2'], [q, 'n'], [r, '']])}$. Vypočítaj $a_{${n}}$.`,
           solution: `Dosadíme $n = ${n}$: $a_{${n}} = ${sub} = ${val}$.`,
@@ -1367,6 +1588,7 @@
       const seq = [a1];
       for (let i = 1; i < n; i++) seq.push(m * seq[i - 1] + c);
       return {
+        steps: seq.slice(1).map((v, i) => ({ q: `Vypočítaj $a_{${i + 2}}$${i ? ` (vieš, že $a_{${i + 1}} = ${seq[i]}$)` : ''}.`, signed: true, answer: v })),
         signed: true, answer: seq[n - 1],
         q: `Postupnosť je daná rekurentne: $a_1 = ${a1}$, $a_{n+1} = ${lin([[m, 'a_n'], [c, '']])}$. Vypočítaj $a_{${n}}$.`,
         solution: seq.slice(1).map((v, i) => `$a_{${i + 2}} = ${m}\\cdot ${par(seq[i])}${term(c)} = ${v}$`).join(', ') + '.',
@@ -1376,36 +1598,55 @@
     if (k === 1) {
       const a1 = rnd(-10, 10), d = nz(-6, 6), r = rnd(2, 6), s = r + rnd(2, 8);
       const ar = a1 + (r - 1) * d, as = a1 + (s - 1) * d;
-      return {
+      return addMis({
+        steps: [
+          { q: `Vypočítaj diferenciu $d$.`, signed: true, answer: d, hint: `Platí $a_{${s}} - a_{${r}} = ${s - r}d$.` },
+          { q: `Vypočítaj prvý člen $a_1$.`, signed: true, answer: a1, hint: `Platí $a_{${r}} = a_1 + ${r - 1}d$.` },
+          { q: 'Zapíš „a₁; d“.', type: 'tuple', signed: true, answer: [a1, d], placeholder: 'a₁; d' }
+        ],
         type: 'tuple', signed: true, answer: [a1, d], placeholder: 'a₁; d',
         q: `V aritmetickej postupnosti je $a_{${r}} = ${ar}$ a $a_{${s}} = ${as}$. Urči prvý člen $a_1$ a diferenciu $d$, zadaj „a₁; d“.`,
         solution: `$a_{${s}} - a_{${r}} = ${s - r}d$, teda $${s - r}d = ${as - ar}$ a $d = ${d}$. $a_1 = a_{${r}} - ${r === 2 ? '' : r - 1}d = ${ar} - ${par((r - 1) * d)} = ${a1}$.`,
         hint: 'Rozdiel dvoch členov je násobok diferencie: $a_s - a_r = (s - r)d$.'
-      };
+      }, [{ value: [ar - r * d, d], msg: `Z $a_1$ sa na $a_{${r}}$ dostaneš za ${r - 1} ${pl(r - 1, ['krok', 'kroky', 'krokov'])}: $a_n = a_1 + (n - 1)d$, nie $a_1 + nd$.` },
+        { value: [a1, (as - ar) / (s - r + 1)], msg: `Z $a_{${r}}$ sa na $a_{${s}}$ dostaneš za ${s - r} ${pl(s - r, ['krok', 'kroky', 'krokov'])}, ich rozdiel je teda $${s - r}d$.` }]);
     }
     if (k === 2) {
       if (Math.random() < 0.5) {
         const a1 = rnd(-10, 10), d = nz(-5, 5), n = rnd(8, 30), an = a1 + (n - 1) * d, sn = n * (a1 + an) / 2;
-        return {
+        return addMis({
+          steps: [
+            { q: `Vypočítaj $a_{${n}}$.`, signed: true, answer: an, hint: 'Použi $a_n = a_1 + (n - 1)d$.' },
+            { q: `Vypočítaj $s_{${n}}$.`, signed: true, answer: sn, hint: 'Použi $s_n = \\frac{n}{2}(a_1 + a_n)$.' }
+          ],
           signed: true, answer: sn,
           q: `Aritmetická postupnosť má $a_1 = ${a1}$ a $d = ${d}$. Vypočítaj súčet jej prvých ${n} členov.`,
           solution: `$a_{${n}} = a_1 + ${n - 1}d = ${a1} + ${n - 1}\\cdot ${par(d)} = ${an}$, $s_{${n}} = \\frac{${n}}{2}(${a1} + ${par(an)}) = ${sn}$.`,
           hint: 'Najprv vypočítaj posledný sčítaný člen $a_n = a_1 + (n-1)d$, potom $s_n = \\frac{n}{2}(a_1 + a_n)$.'
-        };
+        }, [{ value: n * (2 * a1 + n * d) / 2, msg: 'Člen $a_n = a_1 + (n - 1)d$, nie $a_1 + nd$.' },
+          { value: n * (a1 + an), msg: 'Vo vzorci $s_n = \\frac{n}{2}(a_1 + a_n)$ nezabudni deliť dvoma.' }]);
       }
       const three = Math.random() < 0.4, m = three ? rnd(7, 25) : rnd(3, 12);
       const lo = three ? 100 : 10, hi = three ? 999 : 99;
       const first = Math.ceil(lo / m) * m, last = Math.floor(hi / m) * m, n = (last - first) / m + 1, sn = n * (first + last) / 2;
-      return {
+      return addMis({
+        steps: [
+          { q: `Aký je najmenší ${three ? 'trojciferný' : 'dvojciferný'} násobok čísla ${m}?`, answer: first },
+          { q: `Aký je najväčší ${three ? 'trojciferný' : 'dvojciferný'} násobok čísla ${m}?`, answer: last },
+          { q: 'Koľko je takých čísel (počet členov postupnosti)?', answer: n, hint: `Z $${last} = ${first} + (n - 1)\\cdot ${m}$ vyjadri $n$.` },
+          { q: 'Vypočítaj ich súčet.', answer: sn }
+        ],
         answer: sn,
         q: `Vypočítaj súčet všetkých ${three ? 'trojciferných' : 'dvojciferných'} prirodzených čísel deliteľných číslom ${m}.`,
         solution: `Sú to čísla $${first};\\ ${first + m};\\ \\dots;\\ ${last}$ – aritmetická postupnosť s $a_1 = ${first}$ a $d = ${m}$. Z $${last} = ${first} + (n - 1)\\cdot ${m}$ dostaneme $n = ${n}$. $s_{${n}} = \\frac{${n}}{2}(${first} + ${last}) = ${sn}$.`,
         hint: 'Nájdi najmenší a najväčší taký násobok, urči počet členov a použi $s_n = \\frac{n}{2}(a_1 + a_n)$.'
-      };
+      }, [{ value: (n - 1) * (first + last) / 2, msg: 'Počet členov je $\\frac{a_n - a_1}{d} + 1$ – nezabudni pripočítať jednotku.' }]);
     }
     if (Math.random() < 0.4) {
       const p = nz(-5, 5), q = rnd(-9, 9), ans = p > 0 ? 'rastúca' : 'klesajúca';
       return {
+        choiceHints: { [p > 0 ? 'klesajúca' : 'rastúca']: `Rozhoduje koeficient pri $n$ (diferencia), nie absolútny člen: vypočítaj $a_{n+1} - a_n$.`,
+          [MONO_OPT[2]]: 'Rozdiel $a_{n+1} - a_n$ je stále rovnaké nenulové číslo – postupnosť je monotónna.' },
         type: 'choice', options: MONO_OPT, answer: ans,
         q: `Rozhodni, či je postupnosť $(a_n)_{n=1}^{\\infty}$, kde $a_n = ${lin([[p, 'n'], [q, '']])}$, rastúca, klesajúca, alebo ani rastúca, ani klesajúca.`,
         solution: `$a_{n+1} - a_n = ${p}$, čo je ${p > 0 ? 'kladné' : 'záporné'} číslo. Postupnosť je ${ans} (je to aritmetická postupnosť s diferenciou $${p}$).`,
@@ -1453,53 +1694,81 @@
       const [qn, qd] = pick([[2, 1], [3, 1], [-2, 1], [-3, 1], [1, 2], [-1, 2], [1, 3], [3, 2]]);
       const n = Math.abs(qn) === 3 ? rnd(3, 5) : rnd(3, 7), a1 = nz(-5, 5);
       const P = a1 * Math.pow(qn, n - 1), Q = Math.pow(qd, n - 1);
-      return {
+      return addMis({
+        steps: [
+          { q: `Vypočítaj $q^{${n - 1}}$${qd > 1 ? ' (zlomok v tvare 1/8)' : ''}.`, signed: true, answer: Math.pow(qn, n - 1) / Q, show: fTxt(Math.pow(qn, n - 1), Q) },
+          { q: `Vypočítaj $a_{${n}} = a_1\\cdot q^{${n - 1}}$.`, signed: true, answer: P / Q, show: fTxt(P, Q) }
+        ],
         signed: true, answer: P / Q, show: fTxt(P, Q),
         q: `Geometrická postupnosť má $a_1 = ${a1}$ a kvocient $q = ${fTex(qn, qd)}$. Vypočítaj $a_{${n}}$${qd > 1 ? ' (zlomok zadaj v tvare 3/8)' : ''}.`,
         solution: `$a_{${n}} = a_1\\cdot q^{${n - 1}} = ${a1}\\cdot ${qTex(qn, qd)}^{${n - 1}} = ${a1}\\cdot ${fPar(Math.pow(qn, n - 1), Q)} = ${fTex(P, Q)}$.`,
         hint: 'Použi $a_n = a_1\\cdot q^{n-1}$. Pozor na znamienko pri zápornom kvociente.'
-      };
+      }, [{ value: a1 * Math.pow(qn, n) / Math.pow(qd, n), msg: '$a_n = a_1\\cdot q^{n-1}$ – exponent je $n - 1$, nie $n$.' },
+        { value: a1 + (n - 1) * qn / qd, msg: 'Toto je vzorec aritmetickej postupnosti. V geometrickej sa kvocientom násobí: $a_n = a_1\\cdot q^{n-1}$.' }]);
     }
     if (k === 1) {
       const q = pick([2, 3, -2, -3]), a1 = nz(-4, 4), r = rnd(2, 3), s = r + 3;
       const ar = a1 * Math.pow(q, r - 1), as = a1 * Math.pow(q, s - 1);
-      return {
+      return addMis({
+        steps: [
+          { q: `Vypočítaj $q^3 = \\frac{a_{${s}}}{a_{${r}}}$.`, signed: true, answer: q * q * q },
+          { q: 'Vypočítaj kvocient $q$.', signed: true, answer: q },
+          { q: 'Vypočítaj prvý člen $a_1$.', signed: true, answer: a1, hint: `Platí $a_{${r}} = a_1\\cdot q^{${r - 1}}$.` },
+          { q: 'Zapíš „a₁; q“.', type: 'tuple', signed: true, answer: [a1, q], placeholder: 'a₁; q' }
+        ],
         type: 'tuple', signed: true, answer: [a1, q], placeholder: 'a₁; q',
         q: `V geometrickej postupnosti je $a_{${r}} = ${ar}$ a $a_{${s}} = ${as}$. Urči prvý člen $a_1$ a kvocient $q$, zadaj „a₁; q“.`,
         solution: `$a_{${s}} = a_{${r}}\\cdot q^3$, teda $q^3 = \\frac{${as}}{${ar}} = ${q * q * q}$ a $q = ${q}$. $a_1 = \\frac{a_{${r}}}{q^{${r - 1}}} = \\frac{${ar}}{${Math.pow(q, r - 1)}} = ${a1}$.`,
         hint: 'Podiel dvoch členov je mocnina kvocientu: $\\frac{a_s}{a_r} = q^{s-r}$.'
-      };
+      }, [{ value: [ar / Math.pow(q, r), q], msg: `$a_{${r}} = a_1\\cdot q^{${r - 1}}$ – exponent je $${r - 1}$, nie $${r}$.` },
+        { value: [a1, q * q * q], msg: 'To je $q^3$ – kvocient dostaneš treťou odmocninou.' }]);
     }
     if (k === 2) {
       const [qn, qd] = pick([[2, 1], [3, 1], [-2, 1], [-3, 1], [1, 2], [3, 2]]);
       const n = Math.abs(qn) === 3 ? rnd(4, 6) : rnd(4, 8), a1 = nz(-5, 5);
       const P = a1 * (Math.pow(qn, n) - Math.pow(qd, n)), Q = Math.pow(qd, n - 1) * (qn - qd);
       const qs = fTex(qn, qd);
-      return {
+      const an = a1 * Math.pow(qn / qd, n - 1);
+      return addMis({
+        steps: [
+          { q: `Vypočítaj $q^{${n}}$${qd > 1 ? ' (zlomok v tvare p/q)' : ''}.`, signed: true, answer: Math.pow(qn, n) / Math.pow(qd, n), show: fTxt(Math.pow(qn, n), Math.pow(qd, n)) },
+          { q: `Vypočítaj $s_{${n}} = a_1\\cdot\\frac{q^{${n}} - 1}{q - 1}$.`, signed: true, answer: P / Q, show: fTxt(P, Q) }
+        ],
         signed: true, answer: P / Q, show: fTxt(P, Q),
         q: `Geometrická postupnosť má $a_1 = ${a1}$ a $q = ${qs}$. Vypočítaj súčet jej prvých ${n} členov${qd > 1 ? ' (zlomok zadaj v tvare p/q)' : ''}.`,
         solution: `$s_{${n}} = a_1\\cdot\\frac{q^{${n}} - 1}{q - 1} = ${a1}\\cdot\\frac{${fPar(Math.pow(qn, n), Math.pow(qd, n))} - 1}{${qs} - 1} = ${fTex(P, Q)}$.`,
         hint: 'Použi $s_n = a_1\\cdot\\frac{q^n - 1}{q - 1}$.'
-      };
+      }, [{ value: a1 * (Math.pow(qn / qd, n - 1) - 1) / (qn / qd - 1), msg: 'Vo vzorci $s_n = a_1\\cdot\\frac{q^n - 1}{q - 1}$ je exponent $n$, nie $n - 1$.' },
+        { value: n * (a1 + an) / 2, msg: 'Vzorec $s_n = \\frac{n}{2}(a_1 + a_n)$ platí len pre aritmetickú postupnosť. Pre geometrickú použi $s_n = a_1\\cdot\\frac{q^n - 1}{q - 1}$.' }]);
     }
     if (Math.random() < 0.45) {
       const up = Math.random() < 0.5;
       if (up) {
         const N = 1000 * rnd(5, 80), p = pick([1, 1.5, 2, 2.5, 3, 4]), n = rnd(3, 15), res = N * Math.pow(1 + p / 100, n);
-        return {
+        return addMis({
+          steps: [
+            { q: 'Akým číslom $q$ sa počet obyvateľov každý rok vynásobí?', answer: 1 + p / 100 },
+            { q: `Vypočítaj počet obyvateľov o ${n} ${pl(n, ['rok', 'roky', 'rokov'])} (zaokrúhli na celé číslo).`, ...rs(res, 0.51, 0) }
+          ],
           answer: res, tol: 0.51,
           q: `Obec má ${N} obyvateľov a ich počet každý rok vzrastie o $${dc(p)}\\,\\%$. Koľko obyvateľov bude mať o ${n} ${pl(n, ['rok', 'roky', 'rokov'])}? Výsledok zaokrúhli na celé číslo.`,
           solution: `Počty obyvateľov tvoria geometrickú postupnosť s $q = 1 + \\frac{${dc(p)}}{100} = ${dcx(1 + p / 100)}$. O ${n} ${pl(n, ['rok', 'roky', 'rokov'])}: $${eur(N, 0)}\\cdot ${dcx(1 + p / 100)}^{${n}} \\approx ${eur(Math.round(res), 0)}$.`,
           hint: 'Každý rok sa počet vynásobí číslom $1 + \\frac{p}{100}$; po $n$ rokoch teda číslom $\\left(1 + \\frac{p}{100}\\right)^n$.'
-        };
+        }, [{ value: N * (1 + n * p / 100), msg: 'Prírastok sa každý rok počíta z aktuálneho počtu, nie z pôvodného – počty tvoria geometrickú postupnosť.' },
+          { value: N * Math.pow(1 + p / 100, n - 1), msg: `Za ${n} ${pl(n, ['rok', 'roky', 'rokov'])} sa počet vynásobí číslom $q$ presne ${n}-krát.` }]);
       }
       const V0 = 1000 * rnd(8, 40), p = pick([8, 10, 12, 15, 20]), n = rnd(2, 8), res = V0 * Math.pow(1 - p / 100, n);
-      return {
+      return addMis({
+        steps: [
+          { q: 'Akým číslom $q$ sa hodnota auta každý rok vynásobí?', answer: 1 - p / 100 },
+          { q: `Vypočítaj hodnotu auta o ${n} ${pl(n, ['rok', 'roky', 'rokov'])} (zaokrúhli na celé eurá).`, ...rs(res, 0.51, 0) }
+        ],
         answer: res, tol: 0.51,
         q: `Auto v hodnote $${eur(V0, 0)}$ € stráca každý rok $${p}\\,\\%$ svojej hodnoty z predchádzajúceho roka. Akú hodnotu bude mať o ${n} ${pl(n, ['rok', 'roky', 'rokov'])}? Výsledok zaokrúhli na celé eurá.`,
         solution: `Hodnoty tvoria geometrickú postupnosť s $q = 1 - \\frac{${p}}{100} = ${dcx(1 - p / 100)}$. Po ${n} ${pl(n, ['roku', 'rokoch', 'rokoch'])}: $${eur(V0, 0)}\\cdot ${dcx(1 - p / 100)}^{${n}} \\approx ${eur(Math.round(res), 0)}$ €.`,
         hint: 'Pokles o $p\\,\\%$ znamená každý rok vynásobiť hodnotu číslom $1 - \\frac{p}{100}$.'
-      };
+      }, [{ value: V0 * (1 - n * p / 100), msg: 'Pokles sa každý rok počíta z hodnoty v predchádzajúcom roku, nie z pôvodnej ceny – hodnoty tvoria geometrickú postupnosť.' },
+        { value: V0 * Math.pow(p / 100, n), msg: `Auto každý rok stratí $${p}\\,\\%$, teda mu zostane $${100 - p}\\,\\%$ hodnoty – násob číslom $1 - \\frac{p}{100}$.` }]);
     }
     const kind = pick(['aritmetická', 'geometrická', 'ani aritmetická, ani geometrická']);
     let terms, why;
@@ -1521,7 +1790,15 @@
       const nums = terms.map(Number);
       why = `Rozdiely susedných členov $${nums.slice(1).map((x, i) => x - nums[i]).join(';\\ ')}$ nie sú rovnaké a ani podiely $\\frac{${nums[1]}}{${nums[0]}}$, $\\frac{${nums[2]}}{${nums[1]}}$ sa nerovnajú.`;
     }
+    const AH = kind === 'geometrická' ? 'Rozdiely susedných členov nie sú rovnaké – skús ich podiely.'
+      : 'Rozdiely susedných členov nie sú všetky rovnaké – over všetky dvojice, nie len prvé dve.';
+    const GH = kind === 'aritmetická' ? 'Podiely susedných členov nie sú rovnaké – skús ich rozdiely.'
+      : 'Podiely susedných členov nie sú všetky rovnaké – over všetky dvojice, nie len prvé dve.';
+    const kh = { 'aritmetická': AH, 'geometrická': GH,
+      'ani aritmetická, ani geometrická': `Vypočítaj ${kind === 'aritmetická' ? 'rozdiely' : 'podiely'} susedných členov – sú všetky rovnaké.` };
+    delete kh[kind];
     return {
+      choiceHints: kh,
       type: 'choice', options: ['aritmetická', 'geometrická', 'ani aritmetická, ani geometrická'], answer: kind,
       q: `Postupnosť začína členmi $${terms.join(';\\ ')};\\ \\dots$ Je aritmetická, geometrická, alebo ani jedna?`,
       solution: `${why} Postupnosť ${kind.startsWith('ani') ? 'nie je ani aritmetická, ani geometrická' : `je ${kind}`}.`,
@@ -1563,6 +1840,13 @@
       if (Math.random() < 0.5) {
         const n = rnd(2, 6), K = K0 * (1 + n * p / 100);
         return {
+          mistakes: [{ value: K0 * Math.pow(1 + p / 100, n), msg: 'Pri jednoduchom úrokovaní sa úrok počíta stále z pôvodného vkladu – úroky sa neúročia (to by bolo zložené úrokovanie).' },
+            { value: K - K0, msg: 'To je len úrok – suma na účte obsahuje aj pôvodný vklad.' }],
+          steps: [
+            { q: 'Aký úrok sa pripíše za jeden rok (v €)?', ...rs(K0 * p / 100, 0.011, 2) },
+            { q: `Aký úrok sa pripíše spolu za ${n} ${pl(n, ROK)} (v €)?`, ...rs(n * K0 * p / 100, 0.011, 2) },
+            { q: 'Aká suma bude na účte (v €)?', ...rs(K, 0.011, 2) }
+          ],
           answer: K, tol: 0.011,
           q: `Na účet s jednoduchým úrokovaním a úrokovou mierou $${dc(p)}\\,\\%$ p. a. vložíme $${eur(K0, 0)}$ €. Aká suma bude na účte po ${n} rokoch (bez dane)? ${cents}`,
           solution: `$K_{${n}} = K_0\\left(1 + n\\cdot\\frac{p}{100}\\right) = ${eur(K0, 0)}\\cdot\\left(1 + ${n}\\cdot ${dcx(p / 100)}\\right) = ${eur(K0, 0)}\\cdot ${dcx(1 + n * p / 100)} = ${eur(K)}$ €.`,
@@ -1571,6 +1855,12 @@
       }
       const m = pick([3, 4, 6, 8, 9]), u = K0 * p / 100 * m / 12;
       return {
+        mistakes: [{ value: K0 * p / 100, msg: `Úroková miera je ročná (p. a.) – za ${m} ${pl(m, MESIAC)} je úrok len $\\frac{${m}}{12}$ ročného úroku.` },
+          { value: K0 * p / 100 * m / 100, msg: 'Rok má 12 mesiacov – časť roka je $\\frac{m}{12}$, nie $\\frac{m}{100}$.' }],
+        steps: [
+          { q: 'Aký úrok by sa pripísal za celý rok (v €)?', ...rs(K0 * p / 100, 0.011, 2) },
+          { q: `Aký úrok sa pripíše za ${m} ${pl(m, MESIAC)} (v €)?`, ...rs(u, 0.011, 2) }
+        ],
         answer: u, tol: 0.011,
         q: `Akú veľkosť bude mať úrok z vkladu $${eur(K0, 0)}$ € uloženého na ${m} ${pl(m, MESIAC)} pri úrokovej miere $${dc(p)}\\,\\%$ p. a. (jednoduché úrokovanie, bez dane)? ${cents}`,
         solution: `Ročný úrok by bol $${eur(K0, 0)}\\cdot ${dcx(p / 100)} = ${eur(K0 * p / 100)}$ €, za ${m} ${pl(m, MESIAC)} je to $\\frac{${m}}{12}$ z neho: $${eur(K0 * p / 100)}\\cdot\\frac{${m}}{12} = ${eur(u)}$ €.`,
@@ -1583,6 +1873,12 @@
       if (t === 0) {
         const n = rnd(2, 15), q = 1 + p / 100, K = K0 * Math.pow(q, n);
         return {
+          mistakes: [{ value: K0 * (1 + n * p / 100), msg: 'Pri zloženom úrokovaní sa úrok pripisuje k vkladu a ďalší rok sa úročí aj on – suma sa každý rok násobí číslom $q$.' },
+            { value: K0 * Math.pow(q, n - 1), msg: `Za ${n} ${pl(n, ROK)} sa suma vynásobí číslom $q$ presne ${n}-krát.` }],
+          steps: [
+            { q: 'Akým číslom $q$ sa suma každý rok vynásobí?', answer: q },
+            { q: 'Akú sumu budeme mať na konci (v €)?', ...rs(K, 0.02, 2) }
+          ],
           answer: K, tol: 0.02,
           q: `Vklad $${eur(K0, 0)}$ € je uložený na ${n} ${pl(n, ROK)} pri zloženom úrokovaní s ročným pripisovaním úrokov a mierou $${dc(p)}\\,\\%$ p. a. Akú sumu budeme mať na konci (bez dane)? ${cents}`,
           solution: `$K_{${n}} = K_0\\cdot q^{${n}} = ${eur(K0, 0)}\\cdot ${dcx(q)}^{${n}} \\approx ${eur(K)}$ €.`,
@@ -1592,6 +1888,12 @@
       if (t === 1) {
         const n = rnd(2, 10), pe = 0.81 * p, q = 1 + pe / 100, K = K0 * Math.pow(q, n);
         return {
+          mistakes: [{ value: K0 * Math.pow(1 + p / 100, n), msg: 'Nezabudni na daň: po zdanení sa pripisuje len $81\\,\\%$ úroku.' },
+            { value: K0 * Math.pow(1 + 0.19 * p / 100, n), msg: 'Daň $19\\,\\%$ sa z úroku <em>odpočíta</em> – pripisuje sa $81\\,\\%$ úroku, nie $19\\,\\%$.' }],
+          steps: [
+            { q: 'Aká je úroková miera po zdanení (v %)?', answer: pe, hint: 'Pripisuje sa $81\\,\\%$ úroku.' },
+            { q: 'Akú sumu budeme mať na konci (v €)?', ...rs(K, 0.02, 2) }
+          ],
           answer: K, tol: 0.02,
           q: `Vklad $${eur(K0, 0)}$ € je uložený na ${n} ${pl(n, ROK)} pri zloženom úrokovaní s mierou $${dc(p)}\\,\\%$ p. a. Úroky sa pripisujú raz ročne a zdaňujú sa daňou $19\\,\\%$. Akú sumu budeme mať na konci? ${cents}`,
           solution: `Po zdanení sa pripisuje $81\\,\\%$ úroku, skutočná miera je $0{,}81\\cdot ${dc(p)} = ${dcx(pe)}\\,\\%$. $K_{${n}} = ${eur(K0, 0)}\\cdot ${dcx(q)}^{${n}} \\approx ${eur(K)}$ €.`,
@@ -1601,6 +1903,12 @@
       if (t === 2) {
         const n = rnd(1, 5), q = 1 + p / 1200, K = K0 * Math.pow(q, 12 * n);
         return {
+          mistakes: [{ value: K0 * Math.pow(1 + p / 100, n), msg: 'Úroky sa pripisujú mesačne: mesačná miera je $\\frac{p}{12}\\,\\%$ a počet období je $12n$.' },
+            { value: K0 * Math.pow(1 + p / 100, 12 * n), msg: 'Pri mesačnom pripisovaní je mesačná miera len dvanástina ročnej: $\\frac{p}{12}\\,\\%$.' }],
+          steps: [
+            { q: 'Koľkokrát sa za celú dobu pripíšu úroky?', answer: 12 * n },
+            { q: 'Akú sumu budeme mať na konci (v €)?', ...rs(K, 0.02, 2) }
+          ],
           answer: K, tol: 0.02,
           q: `Vklad $${eur(K0, 0)}$ € je uložený na ${n} ${pl(n, ['rok', 'roky', 'rokov'])} pri úrokovej miere $${dc(p)}\\,\\%$ p. a., úroky sa pripisujú mesačne (bez dane). Akú sumu budeme mať na konci? ${cents}`,
           solution: `Mesačná miera je $\\frac{${dc(p)}}{12}\\,\\%$, počet období $12\\cdot ${n} = ${12 * n}$. $K = ${eur(K0, 0)}\\cdot\\left(1 + \\frac{${dc(p)}}{1200}\\right)^{${12 * n}} \\approx ${eur(K)}$ €.`,
@@ -1610,6 +1918,11 @@
       const pp = pick([2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8]), q = 1 + pp / 100, x = Math.log(2) / Math.log(q);
       const n = Math.ceil(x - 1e-9);
       return {
+        mistakes: Math.ceil(100 / pp - 1e-9) !== n ? [{ value: Math.ceil(100 / pp - 1e-9), msg: 'Pri zloženom úrokovaní sa úročia aj pripísané úroky – nestačí, aby súčet ročných úrokov dal $100\\,\\%$. Rieš $q^n \\ge 2$.' }] : [],
+        steps: [
+          { q: 'Vypočítaj $\\frac{\\log 2}{\\log q}$ (na dve desatinné miesta).', ...rs(x, 0.011, 2) },
+          { q: 'Najmenej koľko celých rokov to je?', answer: n, hint: 'Hľadáš najmenšie celé $n$, ktoré je aspoň také veľké.' }
+        ],
         answer: n,
         q: `Najmenej koľko celých rokov musí byť vklad uložený pri zloženom úrokovaní s mierou $${dc(pp)}\\,\\%$ p. a. (ročné pripisovanie, bez dane), aby sa zdvojnásobil?`,
         solution: `Hľadáme najmenšie $n$, pre ktoré $${dcx(q)}^n \\ge 2$. Logaritmovaním: $n \\ge \\frac{\\log 2}{\\log ${dcx(q)}} \\approx ${fx(x)}$, teda $n = ${n}$.`,
@@ -1620,6 +1933,15 @@
       const a = 100 * rnd(1, 30), p = pick([1, 1.5, 2, 2.5, 3, 3.5, 4, 5]), n = rnd(3, 20), q = 1 + p / 100;
       const begin = Math.random() < 0.4, S = a * (begin ? q : 1) * (Math.pow(q, n) - 1) / (q - 1);
       return {
+        mistakes: [begin
+          ? { value: S / q, msg: 'Vklady sú na začiatku roka – každý sa úročí o rok dlhšie, preto vzorec treba ešte vynásobiť $q$.' }
+          : { value: S * q, msg: 'Vklady sú na konci roka – posledný vklad sa už neúročí, vzorec sa nenásobí $q$.' },
+        { value: a * n, msg: 'Vklady sa aj úročia – sčítaj geometrickú postupnosť s kvocientom $q$.' }],
+        steps: [
+          { q: 'Aký je kvocient $q$?', answer: q },
+          { q: `Vypočítaj $\\frac{q^{${n}} - 1}{q - 1}$ (na štyri desatinné miesta).`, ...rs((Math.pow(q, n) - 1) / (q - 1), 0.0006, 4) },
+          { q: 'Koľko bude mať sporiteľ na účte (v €)?', ...rs(S, 0.02, 2) }
+        ],
         answer: S, tol: 0.02,
         q: `Sporiteľ vkladá na ${begin ? 'začiatku' : 'konci'} každého roka $${eur(a, 0)}$ € na účet so zloženým úrokovaním a mierou $${dc(p)}\\,\\%$ p. a. (bez dane). Koľko bude mať na účte na konci ${n}. roka? ${cents}`,
         solution: `$q = ${dcx(q)}$. ${begin ? 'Každý vklad sa úročí o rok dlhšie, preto ' : ''}$S_{${n}} = ${eur(a, 0)}${begin ? `\\cdot ${dcx(q)}` : ''}\\cdot\\frac{${dcx(q)}^{${n}} - 1}{${dcx(q)} - 1} \\approx ${eur(S)}$ €.`,
@@ -1633,6 +1955,12 @@
     const qq = String(parseFloat(q.toFixed(8))).replace('.', '{,}');
     if (Math.random() < 0.6) {
       return {
+        mistakes: [{ value: D / n, msg: 'Splátky musia pokryť aj úroky – použi vzorec pre anuitu.' },
+          { value: D * Math.pow(1 + p / 100, y) * (p / 100) / (Math.pow(1 + p / 100, y) - 1) / 12, msg: 'Splátky sú mesačné – použi mesačný kvocient $q = 1 + \\frac{p}{1200}$ a počet splátok $12\\cdot n$, nie ročnú anuitu delenú dvanástimi.' }],
+        steps: [
+          { q: 'Koľko splátok zaplatíme?', answer: n },
+          { q: 'Vypočítaj mesačnú splátku (v €).', ...rs(a, 0.02, 2), hint: 'Použi $a = D\\cdot\\frac{q^n(q - 1)}{q^n - 1}$ s $q = 1 + \\frac{p}{1200}$.' }
+        ],
         answer: a, tol: 0.02,
         q: `Úver $${eur(D, 0)}$ € s úrokovou mierou $${dc(p)}\\,\\%$ p. a. splácame ${y} ${pl(y, ['rok', 'roky', 'rokov'])} rovnakými mesačnými splátkami (prvá splátka mesiac po poskytnutí úveru). Aká je výška mesačnej splátky? ${cents}`,
         solution: `$q = 1 + \\frac{${dc(p)}}{1200} \\approx ${qq}$, $n = ${n}$. $a = D\\cdot\\frac{q^n(q - 1)}{q^n - 1} = ${eur(D, 0)}\\cdot\\frac{q^{${n}}(q - 1)}{q^{${n}} - 1} \\approx ${eur(a)}$ €.`,
@@ -1641,6 +1969,12 @@
     }
     const ar = Math.round(a * 100) / 100, over = n * ar - D;
     return {
+      mistakes: [{ value: n * ar, msg: 'To je celková zaplatená suma – preplatok je jej rozdiel oproti požičanej sume.' }],
+      steps: [
+        { q: 'Vypočítaj mesačnú splátku zaokrúhlenú na centy (v €).', ...rs(ar, 0.006, 2) },
+        { q: 'Koľko spolu zaplatíme (v €)?', ...rs(n * ar, 0.02, 2) },
+        { q: 'Aký je preplatok (v €)?', ...rs(over, 0.02, 2) }
+      ],
       answer: over, tol: 0.02,
       q: `Úver $${eur(D, 0)}$ € s úrokovou mierou $${dc(p)}\\,\\%$ p. a. splácame ${y} ${pl(y, ['rok', 'roky', 'rokov'])} rovnakými mesačnými splátkami. Splátku zaokrúhli na centy a vypočítaj, koľko eur spolu preplatíme oproti požičanej sume.`,
       solution: `$q = 1 + \\frac{${dc(p)}}{1200}$, $n = ${n}$, splátka $a = ${eur(D, 0)}\\cdot\\frac{q^{${n}}(q - 1)}{q^{${n}} - 1} \\approx ${eur(ar)}$ €. Spolu zaplatíme $${n}\\cdot ${eur(ar)} = ${eur(n * ar)}$ €, preplatok je $${eur(n * ar)} - ${eur(D, 0)} = ${eur(over)}$ €.`,
@@ -1684,6 +2018,13 @@
         const f = [9]; for (let i = 0; i < n - 1; i++) f.push(9 - i);
         const ans = f.reduce((x, y) => x * y, 1);
         return {
+          mistakes: [{ value: V(10, n), msg: 'Na prvom mieste nesmie byť nula.' },
+            { value: V(9, n), msg: 'Na druhom mieste už nula byť môže – aj tam máš 9 možností.' }],
+          steps: [
+            { q: 'Koľko možností máš pre prvú cifru?', answer: 9 },
+            { q: 'Koľko možností máš pre druhú cifru (aj nula, ale nie prvá cifra)?', answer: 9 },
+            { q: 'Koľko je takých čísel spolu?', answer: ans, hint: 'Každá ďalšia cifra má o jednu možnosť menej; použi pravidlo súčinu.' }
+          ],
           answer: ans,
           q: `Koľko je ${DIGW[n]} prirodzených čísel, ktoré majú všetky cifry navzájom rôzne?`,
           solution: `Prvá cifra nesmie byť 0 – 9 možností; druhá môže byť aj 0, ale nie prvá – 9 možností${n > 2 ? ', každá ďalšia o jednu menej' : ''}. $${f.join('\\cdot ')} = ${ans}$.`,
@@ -1695,6 +2036,13 @@
         const digs = [0, ...shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, d - 1)].sort((a, b) => a - b);
         const ans = (d - 1) * Math.pow(d, n - 1);
         return {
+          mistakes: [{ value: Math.pow(d, n), msg: 'Na prvom mieste nemôže byť nula.' },
+            { value: (d - 1) * V(d - 1, n - 1), msg: 'Cifry sa môžu opakovať – na každom ďalšom mieste máš znova všetky cifry.' }],
+          steps: [
+            { q: 'Koľko možností máš pre prvú cifru?', answer: d - 1 },
+            { q: 'Koľko možností máš pre každú ďalšiu cifru?', answer: d },
+            { q: 'Koľko je takých čísel spolu?', answer: ans }
+          ],
           answer: ans,
           q: `Koľko ${DIGW[n]} čísel možno zapísať pomocou cifier ${digs.join(', ')}, ak sa cifry môžu opakovať?`,
           solution: `Na prvom mieste môže byť ${d - 1} ${pl(d - 1, ['cifra', 'cifry', 'cifier'])} (nie 0), na každom z ďalších ${n - 1} miest ľubovoľná z ${d} cifier: $${d - 1}\\cdot ${d}^{${n - 1}} = ${ans}$.`,
@@ -1704,6 +2052,12 @@
       if (t === 2) {
         const x = rnd(2, 5), y = rnd(2, 5), z = rnd(1, 4);
         return {
+          mistakes: [{ value: x * y * z, msg: 'Priame cesty sú samostatný prípad – počty prípadov sa sčítavajú (pravidlo súčtu), nenásobia.' },
+            { value: x + y + z, msg: 'Cesta cez B sa skladá z dvoch úsekov – počty ciest na úsekoch sa násobia (pravidlo súčinu).' }],
+          steps: [
+            { q: 'Koľkými spôsobmi sa dá ísť z A do C cez B?', answer: x * y },
+            { q: 'Koľko je všetkých spôsobov?', answer: x * y + z }
+          ],
           answer: x * y + z,
           q: `Z mesta A do mesta B vedie ${x} ${pl(x, ['cesta', 'cesty', 'ciest'])}, z B do C ${y} ${pl(y, ['cesta', 'cesty', 'ciest'])} a z A do C priamo (mimo B) ${z} ${pl(z, ['cesta', 'cesty', 'ciest'])}. Koľkými spôsobmi sa dá dostať z A do C, ak sa žiadnym mestom neprechádza dvakrát?`,
           solution: `Cez B: $${x}\\cdot ${y} = ${x * y}$ spôsobov (pravidlo súčinu). Priamo: ${z}. Prípady sa neprekrývajú, preto spolu $${x * y} + ${z} = ${x * y + z}$ (pravidlo súčtu).`,
@@ -1712,6 +2066,8 @@
       }
       const L = rnd(1, 3), D = rnd(2, 4), ans = Math.pow(26, L) * Math.pow(10, D);
       return {
+        mistakes: [{ value: 26 * L + 10 * D, msg: 'Každé miesto vyberáš nezávisle – počty možností sa násobia, nie sčítavajú.' },
+          { value: V(26, L) * V(10, D), msg: 'Písmená aj cifry sa môžu opakovať – na každom mieste máš znova všetky možnosti.' }],
         answer: ans,
         q: `Kód sa skladá ${L === 1 ? 'z jedného písmena' : `z ${L === 2 ? 'dvoch' : 'troch'} písmen`} (26 písmen bez diakritiky) a za ${L === 1 ? 'ním' : 'nimi'} ${D === 2 ? 'z dvoch' : D === 3 ? 'z troch' : 'zo štyroch'} cifier. Písmená aj cifry sa môžu opakovať. Koľko rôznych kódov existuje?`,
         solution: `Každé písmeno 26 možností, každá cifra 10 možností: $26^{${L}}\\cdot 10^{${D}} = ${eur(ans, 0)}$.`,
@@ -1729,6 +2085,12 @@
       }
       const E = digs.filter((x) => x > 0 && x % 2 === 0).length;
       return {
+        mistakes: [{ value: (E + 1) * (d - 1) * (d - 2), msg: 'Trojciferné číslo nemôže začínať nulou – rozdeľ úlohu na prípady podľa toho, či posledná cifra je 0.' }],
+        steps: [
+          { q: 'Koľko takých čísel končí nulou?', answer: (d - 1) * (d - 2) },
+          { q: 'Koľko takých čísel končí nenulovou párnou cifrou?', answer: E * (d - 2) * (d - 2), hint: 'Prvá cifra nesmie byť 0 ani posledná cifra.' },
+          { q: 'Koľko je párnych čísel spolu?', answer: cnt }
+        ],
         answer: cnt,
         q: `Koľko párnych trojciferných čísel s navzájom rôznymi ciframi možno zostaviť z cifier ${digs.join(', ')}?`,
         solution: `Rozdelíme na prípady podľa poslednej cifry. Končí nulou: prvú cifru vyberáme z ${d - 1}, strednú zo zvyšných ${d - 2}, spolu $${(d - 1) * (d - 2)}$ čísel. Končí nenulovou párnou cifrou (${E} ${pl(E, ['možnosť', 'možnosti', 'možností'])}): prvá cifra nesmie byť 0 ani posledná, vyberáme ju z ${d - 2}, strednú tiež z ${d - 2} (už môže byť 0), spolu $${E}\\cdot ${d - 2}\\cdot ${d - 2} = ${E * (d - 2) * (d - 2)}$. Celkom $${(d - 1) * (d - 2)} + ${E * (d - 2) * (d - 2)} = ${cnt}$.`,
@@ -1739,6 +2101,7 @@
       const t = rnd(0, 2), n = rnd(4, 9);
       if (t === 0) {
         return {
+          mistakes: [{ value: 2, msg: 'Faktoriály sa nedelia odčítaním čísel: $\\frac{n!}{k!}\\neq (n-k)!$. Rozpíš väčší faktoriál.' }],
           answer: n * (n - 1),
           q: `Vypočítaj $\\frac{${n}!}{${n - 2}!}$.`,
           solution: `$\\frac{${n}!}{${n - 2}!} = \\frac{${n}\\cdot ${n - 1}\\cdot ${n - 2}!}{${n - 2}!} = ${n}\\cdot ${n - 1} = ${n * (n - 1)}$.`,
@@ -1747,6 +2110,12 @@
       }
       if (t === 1) {
         return {
+          mistakes: [{ value: n * (n - 1) - 1, msg: `Aj $${n - 1}! = ${n - 1}\\cdot ${n - 2}!$ – po skrátení zostane $${n - 1}$, nie $1$.` }],
+          steps: [
+            { q: `Vyjadri $${n}!$ ako násobok $${n - 2}!$. Akým číslom sa $${n - 2}!$ násobí?`, answer: n * (n - 1) },
+            { q: `Vyjadri $${n - 1}!$ ako násobok $${n - 2}!$. Akým číslom sa $${n - 2}!$ násobí?`, answer: n - 1 },
+            { q: 'Skráť a vypočítaj výsledok.', answer: (n - 1) * (n - 1) }
+          ],
           answer: (n - 1) * (n - 1),
           q: `Vypočítaj $\\frac{${n}! - ${n - 1}!}{${n - 2}!}$.`,
           solution: `$\\frac{${n}\\cdot ${n - 1}\\cdot ${n - 2}! - ${n - 1}\\cdot ${n - 2}!}{${n - 2}!} = ${n}\\cdot ${n - 1} - ${n - 1} = ${n - 1}\\cdot ${n - 1} = ${(n - 1) * (n - 1)}$.`,
@@ -1768,6 +2137,11 @@
       [`\\frac{(n+2)!}{n!}`, (n + 2) * (n + 1), '(n+2)(n+1)', `n^2 + 3n ${2 - (n + 2) * (n + 1) < 0 ? '-' : '+'} ${Math.abs(2 - (n + 2) * (n + 1))} = 0`, -(n + 3)]
     ][t];
     return {
+      mistakes: [{ value: F[4], msg: 'Tento koreň nie je prirodzené číslo – v obore prirodzených čísel ho vylúč.' }],
+      steps: [
+        { q: 'Skráť faktoriály a vyrieš vzniknutú kvadratickú rovnicu. Zadaj oba jej korene.', type: 'set', signed: true, answer: [n, F[4]], placeholder: 'n₁; n₂' },
+        { q: 'Ktorý koreň je prirodzené číslo?', answer: n }
+      ],
       answer: n,
       q: `Vyrieš v obore prirodzených čísel rovnicu $${F[0]} = ${F[1]}$.`,
       solution: `$${F[0]} = ${F[2]}$, teda $${F[3]}$. Korene sú $${n}$ a $${F[4]}$; prirodzené je len $n = ${n}$.`,
@@ -1836,6 +2210,13 @@
       if (t === 0) {
         const n = rnd(6, 15), kk = rnd(2, 4), ans = C(n, kk);
         return { answer: ans,
+          mistakes: [{ value: V(n, kk), msg: `V skupine nezáleží na poradí – počet usporiadaných výberov treba vydeliť $${kk}!$ (kombinácie, nie variácie).` },
+            { value: V(n, kk) / kk, msg: `Pri kombináciách sa delí $${kk}!$ (počtom usporiadaní vybraných žiakov), nie $${kk}$.` }],
+          steps: [
+            { q: `Koľkými spôsobmi možno vybrať ${kk} žiakov postupne, ak by záležalo na poradí?`, answer: V(n, kk) },
+            { q: `Koľkými spôsobmi možno usporiadať ${kk} vybraných žiakov?`, answer: fact(kk) },
+            { q: 'Koľko je skupín (na poradí nezáleží)?', answer: ans }
+          ],
           q: `Koľkými spôsobmi možno z ${n} žiakov vybrať ${KW[kk]} skupinu?`,
           solution: `Na poradí nezáleží – kombinácie: $\\binom{${n}}{${kk}} = \\frac{${Array.from({ length: kk }, (_, i) => n - i).join('\\cdot ')}}{${kk}!} = ${ans}$.`,
           hint: 'Záleží na poradí členov skupiny? Ak nie, ide o kombinácie $\\binom{n}{k}$.' };
@@ -1843,6 +2224,8 @@
       if (t === 1) {
         const n = rnd(5, 20), three = Math.random() < 0.5, kk = three ? 3 : 2, ans = V(n, kk);
         return { answer: ans,
+          mistakes: [{ value: C(n, kk), msg: 'Funkcie sú rôzne – záleží na tom, kto dostane ktorú. Ide o variácie, nie kombinácie.' },
+            { value: Math.pow(n, kk), msg: 'Nikto nemôže mať dve funkcie – opakovanie nie je dovolené.' }],
           q: `Klub má ${n} členov. Koľkými spôsobmi možno spomedzi nich zvoliť ${three ? 'predsedu, podpredsedu a pokladníka' : 'predsedu a podpredsedu'}, ak nikto nemôže mať dve funkcie?`,
           solution: `Funkcie sú rôzne, záleží na poradí – variácie: $V(${kk}, ${n}) = ${Array.from({ length: kk }, (_, i) => n - i).join('\\cdot ')} = ${ans}$.`,
           hint: 'Funkcie sa líšia, preto záleží na tom, kto dostane ktorú – variácie bez opakovania.' };
@@ -1850,6 +2233,7 @@
       if (t === 2) {
         const n = rnd(4, 8), ans = fact(n);
         return { answer: ans,
+          mistakes: [{ value: Math.pow(n, n), msg: 'Každá kniha môže byť na polici len raz – na každom ďalšom mieste máš o jednu možnosť menej.' }],
           q: `Koľkými spôsobmi možno postaviť ${n} ${pl(n, ['rôznu knihu', 'rôzne knihy', 'rôznych kníh'])} vedľa seba na policu?`,
           solution: `Usporadúvame všetky knihy – permutácie: $P(${n}) = ${n}! = ${ans}$.`,
           hint: 'Usporiadanie všetkých $n$ rôznych prvkov: $n!$.' };
@@ -1857,6 +2241,8 @@
       if (t === 3) {
         const m = rnd(3, 9), kk = rnd(3, 5), ans = Math.pow(m, kk);
         return { answer: ans,
+          mistakes: [{ value: V(m, kk), msg: `Cifry sa môžu opakovať – na každom mieste máš všetkých ${m} možností.` },
+            { value: Math.pow(kk, m), msg: 'Základ mocniny je počet možností na jednom mieste, exponent počet miest.' }],
           q: `Koľko rôznych ${{ 3: 'trojmiestnych', 4: 'štvormiestnych', 5: 'päťmiestnych' }[kk]} kódov možno zostaviť z cifier 1 až ${m}, ak sa cifry môžu opakovať?`,
           solution: `Záleží na poradí a cifry sa opakujú – variácie s opakovaním: $V'(${kk}, ${m}) = ${m}^{${kk}} = ${ans}$.`,
           hint: 'Na každé miesto vyberáš z rovnakého počtu cifier: $n^k$.' };
@@ -1864,6 +2250,8 @@
       if (t === 4) {
         const n = rnd(3, 8), kk = rnd(2, 6), ans = C(n + kk - 1, kk);
         return { answer: ans,
+          mistakes: [kk <= n ? { value: C(n, kk), msg: 'Druhy zákuskov sa môžu opakovať – ide o kombinácie s opakovaním $\\binom{n + k - 1}{k}$.' } : null,
+            { value: Math.pow(n, kk), msg: 'Na poradí kúpených zákuskov nezáleží – $n^k$ počíta usporiadané výbery.' }].filter(Boolean),
           q: `V cukrárni majú ${n} ${pl(n, ['druh', 'druhy', 'druhov'])} zákuskov (každého dostatok). Koľkými spôsobmi môžeme kúpiť ${kk} ${pl(kk, ['zákusok', 'zákusky', 'zákuskov'])}?`,
           solution: `Na poradí nezáleží a druhy sa môžu opakovať – kombinácie s opakovaním: $C'(${kk}, ${n}) = \\binom{${n} + ${kk} - 1}{${kk}} = \\binom{${n + kk - 1}}{${kk}} = ${ans}$.`,
           hint: 'Kombinácie s opakovaním: $C\'(k, n) = \\binom{n + k - 1}{k}$.' };
@@ -1872,6 +2260,12 @@
         const [w, parts] = pick(WORDS), n = w.length;
         const den = parts.reduce((x, [, c]) => x * fact(c), 1), ans = fact(n) / den;
         return { answer: ans,
+          mistakes: [{ value: fact(n), msg: 'Výmenou rovnakých písmen nevznikne nové slovo – vydeľ faktoriálmi počtov opakovaní.' }],
+          steps: [
+            { q: `Koľko je usporiadaní ${n} písmen, ak by boli všetky rôzne?`, answer: fact(n) },
+            { q: 'Koľkými spôsobmi možno medzi sebou vymeniť rovnaké písmená (súčin faktoriálov počtov výskytov)?', answer: den },
+            { q: 'Koľko rôznych slov vznikne?', answer: ans }
+          ],
           q: `Koľko rôznych slov (aj nezmyselných) vznikne preusporiadaním všetkých písmen slova ${w}?`,
           solution: `Slovo má ${n} písmen: ${parts.map(([l, c]) => `${l} ${c === 1 ? 'raz' : c === 2 ? 'dvakrát' : c === 3 ? 'trikrát' : 'štyrikrát'}`).join(', ')}. Permutácie s opakovaním: $\\frac{${n}!}{${parts.map(([, c]) => `${c}!`).join('\\cdot ')}} = \\frac{${fact(n)}}{${den}} = ${ans}$.`,
           hint: 'Permutácie s opakovaním: $\\frac{n!}{k_1!\\cdot k_2!\\cdot\\ldots}$, kde $k_i$ je počet výskytov jednotlivých písmen.' };
@@ -1879,12 +2273,25 @@
       if (t === 6) {
         const n = rnd(4, 8), ans = 2 * fact(n - 1);
         return { answer: ans,
+          mistakes: [{ value: fact(n - 1), msg: 'Ema a Jana si v bloku môžu vymeniť miesta – výsledok vynásob dvoma.' },
+            { value: fact(n), msg: 'Toto sú všetky usporiadania bez podmienky – Emu a Janu zlep do jedného bloku.' }],
+          steps: [
+            { q: 'Koľkými spôsobmi možno usporiadať blok „Ema + Jana“ a ostatné deti?', answer: fact(n - 1) },
+            { q: 'Koľko je všetkých spôsobov sedenia?', answer: ans, hint: 'V bloku si dievčatá môžu vymeniť miesta.' }
+          ],
           q: `Koľkými spôsobmi si ${n <= 4 ? `môžu ${n} deti` : `môže ${n} detí`} sadnúť na lavičku vedľa seba, ak Ema a Jana chcú sedieť vedľa seba?`,
           solution: `Emu a Janu považujeme za jeden „blok“. Usporadúvame ${n - 1} ${pl(n - 1, ['objekt', 'objekty', 'objektov'])}: $${n - 1}!$ spôsobmi; v bloku si môžu dievčatá vymeniť miesta: $2$ spôsoby. Spolu $2\\cdot ${n - 1}! = ${ans}$.`,
           hint: 'Dvojicu, ktorá musí sedieť spolu, zlep do jedného bloku a nezabudni, že v bloku môžu sedieť dvoma spôsobmi.' };
       }
       const b = rnd(5, 10), g = rnd(5, 10), i = rnd(1, 3), j = rnd(1, 3), ans = C(b, i) * C(g, j);
       return { answer: ans,
+        mistakes: [{ value: C(b, i) + C(g, j), msg: 'Chlapcov aj dievčatá vyberáme súčasne – počty výberov sa násobia (pravidlo súčinu).' },
+          { value: C(b + g, i + j), msg: 'Takto nezaručíš presný počet chlapcov a dievčat – vyber ich zvlášť a počty vynásob.' }],
+        steps: [
+          { q: `Koľkými spôsobmi možno vybrať ${BOYS[i]}?`, answer: C(b, i) },
+          { q: `Koľkými spôsobmi možno vybrať ${GIRLS[j]}?`, answer: C(g, j) },
+          { q: 'Koľko je všetkých výberov?', answer: ans }
+        ],
         q: `V triede je ${b} chlapcov a ${g} dievčat. Koľkými spôsobmi možno vybrať ${BOYS[i]} a ${GIRLS[j]}?`,
         solution: `Chlapcov vyberieme $\\binom{${b}}{${i}} = ${C(b, i)}$ spôsobmi, dievčatá $\\binom{${g}}{${j}} = ${C(g, j)}$ spôsobmi. Podľa pravidla súčinu $${C(b, i)}\\cdot ${C(g, j)} = ${ans}$.`,
         hint: 'Výber chlapcov a výber dievčat sú nezávislé kombinácie – vynásob ich počty.' };
@@ -1893,6 +2300,12 @@
       if (Math.random() < 0.5) {
         const n = rnd(6, 20), kk = rnd(2, 4), useCompl = Math.random() < 0.4 && n - kk > kk, shownK = useCompl ? n - kk : kk, ans = C(n, kk);
         return { answer: ans,
+          mistakes: [{ value: V(n, kk), msg: `Nezabudni deliť $${kk}!$ v menovateli.` }],
+          steps: [
+            { q: `Vypočítaj čitateľ $${Array.from({ length: kk }, (_, i) => n - i).join('\\cdot ')}$.`, answer: V(n, kk) },
+            { q: `Vypočítaj menovateľ $${kk}!$.`, answer: fact(kk) },
+            { q: 'Vypočítaj kombinačné číslo.', answer: ans }
+          ],
           q: `Vypočítaj kombinačné číslo $\\binom{${n}}{${shownK}}$.`,
           solution: `${useCompl ? `$\\binom{${n}}{${n - kk}} = \\binom{${n}}{${kk}}$. ` : ''}$\\binom{${n}}{${kk}} = \\frac{${Array.from({ length: kk }, (_, i) => n - i).join('\\cdot ')}}{${Array.from({ length: kk }, (_, i) => kk - i).join('\\cdot ')}} = ${ans}$.`,
           hint: '$\\binom{n}{k} = \\frac{n\\cdot(n-1)\\cdot\\ldots\\cdot(n-k+1)}{k!}$; ak je $k$ blízko $n$, použi $\\binom{n}{k} = \\binom{n}{n-k}$.' };
@@ -1900,6 +2313,11 @@
       const n = rnd(4, 20), alt = Math.random() < 0.5;
       const v = alt ? n * (n + 1) / 2 : n * (n - 1) / 2;
       return { answer: n,
+        mistakes: [{ value: alt ? -n - 1 : 1 - n, msg: 'Záporný koreň nie je prirodzené číslo – v obore prirodzených čísel ho vylúč.' }],
+        steps: [
+          { q: 'Prepíš rovnicu na kvadratickú a zadaj oba jej korene.', type: 'set', signed: true, answer: alt ? [n, -n - 1] : [n, 1 - n], placeholder: 'n₁; n₂', hint: 'Použi $\\binom{n}{2} = \\frac{n(n-1)}{2}$.' },
+          { q: 'Ktorý koreň je prirodzené číslo?', answer: n }
+        ],
         q: alt ? `Vyrieš v obore prirodzených čísel rovnicu $\\binom{n}{2} + \\binom{n}{1} = ${v}$.` : `Vyrieš v obore prirodzených čísel rovnicu $\\binom{n}{2} = ${v}$.`,
         solution: alt
           ? `$\\frac{n(n-1)}{2} + n = \\frac{n(n+1)}{2} = ${v}$, teda $n^2 + n - ${2 * v} = 0$ s koreňmi $${n}$ a $${-n - 1}$. Vyhovuje $n = ${n}$.`
@@ -1941,6 +2359,12 @@
 
   const ANS = 'Výsledok zadaj ako zlomok (napr. 5/14) alebo desatinné číslo zaokrúhlené na štyri desatinné miesta.';
   const prob = (p, q) => ({ signed: true, answer: p / q, show: fTxt(p, q), tol: 0.0001 });
+  // kroky: všetky výsledky, priaznivé výsledky, pravdepodobnosť
+  const pSteps = (favQ, f, a) => [
+    { q: 'Koľko je všetkých možných výsledkov?', answer: a },
+    { q: favQ, answer: f },
+    { q: 'Vypočítaj pravdepodobnosť (zlomok alebo desatinné číslo na štyri miesta).', ...prob(f, a) }
+  ];
   const COINW = { 3: 'tromi', 4: 'štyrmi', 5: 'piatimi', 6: 'šiestimi' };
   const DICE2 = [
     ['súčet bodov bude 7', (a, b) => a + b === 7],
@@ -1965,6 +2389,9 @@
         : j === 1 ? 'medzi vytiahnutými bude práve jedna červená guľôčka'
           : `medzi vytiahnutými budú práve ${j} červené guľôčky`;
       return Object.assign(prob(fav, all), {
+        mistakes: [{ value: fav / V(n, kk), msg: 'Ťaháme naraz – na poradí nezáleží, všetkých výberov je $\\binom{n}{k}$ (kombinácie), nie $V(k, n)$.' },
+          { value: (C(r, j) + C(w, kk - j)) / all, msg: 'Červené aj biele guľôčky sa vyberajú súčasne – počty výberov sa násobia, nie sčítavajú.' }],
+        steps: pSteps('Koľko je priaznivých výberov?', fav, all),
         q: `Urna obsahuje ${r} ${pl(r, ['červenú', 'červené', 'červených'])} a ${w} ${pl(w, ['bielu guľôčku', 'biele guľôčky', 'bielych guľôčok'])}. Naraz náhodne vytiahneme ${kk} ${pl(kk, ['guľôčku', 'guľôčky', 'guľôčok'])}. Aká je pravdepodobnosť, že ${ev}? ${ANS}`,
         solution: `$|\\Omega| = \\binom{${n}}{${kk}} = ${all}$. Priaznivé: vyberieme ${j} z ${r} červených a ${kk - j} z ${w} bielych: $\\binom{${r}}{${j}}\\cdot\\binom{${w}}{${kk - j}} = ${C(r, j)}\\cdot ${C(w, kk - j)} = ${fav}$. $P = \\frac{${fav}}{${all}}${gcd(fav, all) > 1 ? ` = ${fTex(fav, all)}` : ''}$.`,
         hint: 'Počet všetkých výberov je $\\binom{n}{k}$. Priaznivé výbery počítaj ako súčin: výber červených krát výber bielych.'
@@ -1974,6 +2401,12 @@
       if (Math.random() < 0.5) {
         const n = rnd(10, 30), d = rnd(2, 5), kk = rnd(2, 3), none = C(n - d, kk), all = C(n, kk);
         return Object.assign(prob(all - none, all), {
+          mistakes: [{ value: none / all, msg: 'To je pravdepodobnosť opačného javu (žiadny chybný) – odčítaj ju od 1.' }],
+          steps: [
+            { q: 'Koľko je všetkých výberov?', answer: all },
+            { q: 'Koľko výberov neobsahuje žiadny chybný výrobok?', answer: none },
+            { q: 'Vypočítaj pravdepodobnosť, že aspoň jeden je chybný.', ...prob(all - none, all), hint: 'Použi opačný jav: $P = 1 - P\'$.' }
+          ],
           q: `V dodávke ${n} výrobkov ${d <= 4 ? 'sú' : 'je'} ${d} ${pl(d, ['chybný', 'chybné', 'chybných'])}. Kontrolór náhodne vyberie ${kk === 2 ? 'dva' : 'tri'} výrobky. Aká je pravdepodobnosť, že aspoň jeden z vybraných bude chybný? ${ANS}`,
           solution: `Opačný jav: žiadny vybraný nie je chybný, $P' = \\frac{\\binom{${n - d}}{${kk}}}{\\binom{${n}}{${kk}}} = \\frac{${none}}{${all}}$. Hľadaná pravdepodobnosť $P = 1 - \\frac{${none}}{${all}} = ${fTex(all - none, all)}$.`,
           hint: '„Aspoň jeden chybný“ je opačný jav k „žiadny chybný“. Vypočítaj ten a odčítaj od 1.'
@@ -1984,6 +2417,9 @@
         const kk = rnd(0, n), fav = C(n, kk), all = Math.pow(2, n);
         const ev = kk === 0 ? 'nepadne ani jeden znak' : kk === n ? 'na všetkých minciach padne znak' : `${kk >= 2 && kk <= 4 ? 'padnú' : 'padne'} práve ${kk} ${pl(kk, ['znak', 'znaky', 'znakov'])}`;
         return Object.assign(prob(fav, all), {
+          mistakes: [fav > 1 ? { value: 1 / all, msg: `Výsledkov s touto vlastnosťou je viac – mince, na ktorých padne znak, vyberieš $\\binom{${n}}{${kk}}$ spôsobmi.` } : null,
+            { value: fav / (2 * n), msg: 'Všetkých výsledkov je $2^n$, nie $2n$ – každá ďalšia minca počet možností zdvojnásobí.' }].filter(Boolean),
+          steps: pSteps('Koľko je priaznivých výsledkov?', fav, all),
           q: `Hodíme ${COINW[n]} mincami. Aká je pravdepodobnosť, že ${ev}? ${ANS}`,
           solution: `Každá minca má 2 výsledky, $|\\Omega| = 2^{${n}} = ${all}$. Mince, na ktorých padne znak, môžeme vybrať $\\binom{${n}}{${kk}} = ${fav}$ ${fav === 1 ? 'spôsobom' : 'spôsobmi'}. $P = \\frac{${fav}}{${all}}${gcd(fav, all) > 1 ? ` = ${fTex(fav, all)}` : ''}$.`,
           hint: 'Všetkých výsledkov je $2^n$. Priaznivé: koľkými spôsobmi vyberieš mince, na ktorých padne znak?'
@@ -1991,6 +2427,12 @@
       }
       const all = Math.pow(2, n);
       return Object.assign(prob(all - 1, all), {
+        mistakes: [{ value: 1 / all, msg: 'To je pravdepodobnosť opačného javu (nepadne žiadny znak) – odčítaj ju od 1.' }],
+        steps: [
+          { q: 'Koľko je všetkých výsledkov?', answer: all },
+          { q: 'Aká je pravdepodobnosť opačného javu „nepadne ani jeden znak“?', ...prob(1, all) },
+          { q: 'Vypočítaj hľadanú pravdepodobnosť.', ...prob(all - 1, all) }
+        ],
         q: `Hodíme ${COINW[n]} mincami. Aká je pravdepodobnosť, že padne aspoň jeden znak? ${ANS}`,
         solution: `Opačný jav „nepadne ani jeden znak“ nastane v jedinom výsledku z $2^{${n}} = ${all}$. $P = 1 - \\frac{1}{${all}} = \\frac{${all - 1}}{${all}}$.`,
         hint: 'Použi opačný jav: na všetkých minciach padne druhá strana.'
@@ -2002,6 +2444,10 @@
       for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) if (f(a, b)) fav.push(`[${a}; ${b}]`);
       const list = fav.length <= 12 ? ` (${fav.map((x) => `$${x}$`).join(', ')})` : '';
       return Object.assign(prob(fav.length, 36), {
+        steps: [
+          { q: 'Koľko je priaznivých výsledkov (usporiadaných dvojíc)?', answer: fav.length, hint: 'Pomôže tabuľka 6 × 6.' },
+          { q: 'Vypočítaj pravdepodobnosť.', ...prob(fav.length, 36) }
+        ],
         q: `Hodíme naraz dvoma rôznofarebnými kockami. Aká je pravdepodobnosť, že ${ev}? ${ANS}`,
         solution: `$|\\Omega| = 6\\cdot 6 = 36$. Priaznivých výsledkov je ${fav.length}${list}. $P = \\frac{${fav.length}}{36}${gcd(fav.length, 36) > 1 ? ` = ${fTex(fav.length, 36)}` : ''}$.`,
         hint: 'Výsledok hodu je usporiadaná dvojica [prvá kocka; druhá kocka], všetkých je 36. Spočítaj priaznivé dvojice (pomôže tabuľka 6 × 6).'
@@ -2015,6 +2461,14 @@
         ['aspoň jedna bude eso', all - C(28, 2), `$\\binom{32}{2} - \\binom{28}{2} = ${all} - ${C(28, 2)} = ${all - C(28, 2)}$ (od všetkých odčítame dvojice bez esa)`]
       ][t];
       return Object.assign(prob(D[1], all), {
+        mistakes: [{ value: D[1] / (32 * 31), msg: 'Ťaháme naraz – na poradí kariet nezáleží, všetkých dvojíc je $\\binom{32}{2}$.' },
+          t === 2 ? { value: C(28, 2) / all, msg: 'To je pravdepodobnosť opačného javu (žiadne eso) – odčítaj ju od 1.' } : null,
+          t === 2 ? { value: 4 * 28 / all, msg: '„Aspoň jedna“ zahŕňa aj prípad, keď sú esá obe.' } : null].filter(Boolean),
+        steps: [
+          { q: 'Koľko je všetkých dvojíc kariet?', answer: all },
+          { q: 'Koľko je priaznivých dvojíc?', answer: D[1] },
+          { q: 'Vypočítaj pravdepodobnosť.', ...prob(D[1], all) }
+        ],
         q: `Z balíčka 32 mariášových kariet (4 farby po 8 kariet, v balíčku sú 4 esá) náhodne vytiahneme naraz dve karty. Aká je pravdepodobnosť, že ${D[0]}? ${ANS}`,
         solution: `$|\\Omega| = \\binom{32}{2} = ${all}$. Priaznivých výberov je ${D[2]}. $P = \\frac{${D[1]}}{${all}} = ${fTex(D[1], all)}$.`,
         hint: 'Všetkých dvojíc kariet je $\\binom{32}{2}$. Priaznivé dvojice počítaj tiež kombinačným číslom (pri „aspoň“ cez opačný jav).'
@@ -2027,6 +2481,12 @@
       ['sa vyžrebuje jeden chlapec a jedno dievča', b * g, `$${b}\\cdot ${g} = ${b * g}$`]
     ][t];
     return Object.assign(prob(D[1], all), {
+      mistakes: [{ value: D[1] / (n * (n - 1)), msg: 'Na poradí vyžrebovaných nezáleží – všetkých dvojíc je $\\binom{n}{2}$; počty priaznivých aj všetkých dvojíc musia byť bez ohľadu na poradie.' }],
+      steps: [
+        { q: 'Koľko je všetkých dvojíc žiakov?', answer: all },
+        { q: 'Koľko je priaznivých dvojíc?', answer: D[1] },
+        { q: 'Vypočítaj pravdepodobnosť.', ...prob(D[1], all) }
+      ],
       q: `V triede je ${b} chlapcov a ${g} dievčat. Na službu sa žrebujú dvaja žiaci. Aká je pravdepodobnosť, že ${D[0]}? ${ANS}`,
       solution: `$|\\Omega| = \\binom{${n}}{2} = ${all}$. Priaznivých dvojíc je ${D[2]}. $P = \\frac{${D[1]}}{${all}}${gcd(D[1], all) > 1 ? ` = ${fTex(D[1], all)}` : ''}$.`,
       hint: 'Všetkých dvojíc žiakov je $\\binom{n}{2}$; spočítaj dvojice, ktoré vyhovujú.'

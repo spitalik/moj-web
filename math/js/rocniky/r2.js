@@ -208,8 +208,17 @@
       else if (k < 0.52) b = a;
       if (b < 10) b += 10;
       const ans = cmp(a, b);
+      // typické chyby: obrátený znak (napr. pri vymenených cifrách porovnané jednotky), znak = pri rôznych číslach
+      const choiceHints = a === b
+        ? { '<': 'Čísla sú úplne rovnaké, ani jedno nie je väčšie.', '>': 'Čísla sú úplne rovnaké, ani jedno nie je väčšie.' }
+        : {
+          [ans === '<' ? '>' : '<']: Math.floor(a / 10) !== Math.floor(b / 10)
+            ? 'Znak je otočený naopak. Rozhodujú desiatky: väčšie je číslo, ktoré má viac desiatok.'
+            : 'Znak je otočený naopak. Desiatky sú rovnaké, preto rozhodujú jednotky.',
+          '=': 'Znak = patrí len medzi dve rovnaké čísla. Tieto čísla sú rôzne.'
+        };
       return {
-        type: 'choice', options: ['<', '=', '>'], answer: ans,
+        type: 'choice', options: ['<', '=', '>'], answer: ans, choiceHints,
         q: `Doplň správny znak: $${a} \\;\\square\\; ${b}$`,
         solution: a === b ? `Čísla sú rovnaké: $${a} = ${b}$.`
           : Math.floor(a / 10) !== Math.floor(b / 10)
@@ -221,6 +230,9 @@
     if (t < 0.55) {
       const n = rnd(11, 99), d = Math.floor(n / 10), j = n % 10, askJ = Math.random() < 0.5;
       return {
+        mistakes: d === j ? [] : [askJ
+          ? { value: d, msg: 'To je počet desiatok. Jednotky sú posledná číslica vpravo.' }
+          : { value: j, msg: 'To je počet jednotiek. Desiatky sú prvá číslica vľavo.' }],
         answer: askJ ? j : d,
         q: `Koľko ${askJ ? 'jednotiek' : 'desiatok'} má číslo ${n}?`,
         solution: `$${n} = ${d * 10} + ${j}$, teda ${d} ${pl(d, ['desiatka', 'desiatky', 'desiatok'])} a ${j} ${pl(j, ['jednotka', 'jednotky', 'jednotiek'])}.`,
@@ -230,6 +242,10 @@
     if (t < 0.7) {
       const d = rnd(1, 9), j = rnd(0, 9);
       return {
+        mistakes: [
+          ...(j > 0 && j !== d ? [{ value: j * 10 + d, msg: 'Vymenil si desiatky a jednotky. Desiatky píšeme na prvé miesto, jednotky na druhé.' }] : []),
+          { value: d + j, msg: `Desiatky a jednotky nesčítavaj ako obyčajné čísla. Desiatky napíš na prvé miesto a jednotky za ne.` }
+        ],
         answer: d * 10 + j,
         q: `Ktoré číslo má ${d} ${pl(d, ['desiatku', 'desiatky', 'desiatok'])} a ${j} ${pl(j, ['jednotku', 'jednotky', 'jednotiek'])}?`,
         solution: `$${d * 10} + ${j} = ${d * 10 + j}$.`,
@@ -249,6 +265,9 @@
     }
     const by = pick([1, 10]), up = Math.random() < 0.5, n = up ? rnd(1, 100 - by) : rnd(by, 99);
     return {
+      mistakes: [{ value: up ? n - by : n + by, msg: up
+        ? 'Posunul si sa na opačnú stranu. Väčšie číslo dostaneš pripočítaním.'
+        : 'Posunul si sa na opačnú stranu. Menšie číslo dostaneš odčítaním.' }],
       answer: up ? n + by : n - by,
       q: `Ktoré číslo je o ${by} ${up ? 'väčšie' : 'menšie'} ako ${n}?`,
       solution: `$${n} ${up ? '+' : '-'} ${by} = ${up ? n + by : n - by}$.`,
@@ -295,37 +314,71 @@
       return {
         answer: plus ? a + b : a - b, q: `Vypočítaj $${a} ${plus ? '+' : '-'} ${b}$.`,
         solution: `${a / 10} ${pl(a / 10, ['desiatka', 'desiatky', 'desiatok'])} ${plus ? '+' : '−'} ${b / 10} ${pl(b / 10, ['desiatka', 'desiatky', 'desiatok'])}: $${a} ${plus ? '+' : '-'} ${b} = ${plus ? a + b : a - b}$.`,
-        hint: 'Počítaj s desiatkami ako s jednotkami: 3 desiatky + 4 desiatky = 7 desiatok.'
+        hint: 'Počítaj s desiatkami ako s jednotkami: 3 desiatky + 4 desiatky = 7 desiatok.',
+        mistakes: [plus
+          ? { value: Math.abs(a - b), msg: 'Znamienko + znamená pridať. Tu treba sčítať, nie odčítať.' }
+          : { value: a + b, msg: 'Znamienko − znamená ubrať. Tu treba odčítať, nie sčítať.' }]
       };
     }
+    // rozklad druhého čísla na celé desiatky a jednotky (kroky riešenia)
+    const tens = (b) => b - (b % 10);
+    const tensQ = (b) => `Ktoré celé desiatky sú v čísle ${b}? (Pri čísle 36 by to bolo 30.)`;
     if (t < 0.5) {
-      const a = rnd(11, 88), b = rnd(3, 99 - a);
-      return {
+      const a = rnd(11, 88), b = rnd(3, 99 - a), tb = tens(b), o = b % 10;
+      const ex = {
         answer: a + b, q: `Vypočítaj $${a} + ${b}$.`,
         solution: addSteps(a, b),
-        hint: 'Rozdeľ druhé číslo na desiatky a jednotky a pripočítaj ich postupne.'
+        hint: 'Rozdeľ druhé číslo na desiatky a jednotky a pripočítaj ich postupne.',
+        mistakes: []
       };
+      // typické chyby: zabudnutá desiatka pri prechode cez desiatku; pripočítané len desiatky
+      if (a % 10 + o >= 10) ex.mistakes.push({ value: a + b - 10, msg: 'Jednotky dali spolu viac ako 10, ale zabudol si pripočítať túto novú desiatku.' });
+      if (tb && o) ex.mistakes.push({ value: a + tb, msg: `Pripočítal si len desiatky. Nezabudni pridať aj ${o} ${pl(o, ['jednotku', 'jednotky', 'jednotiek'])}.` });
+      if (tb && o && a % 10) {
+        ex.steps = [
+          { q: tensQ(b), answer: tb },
+          { q: `Najprv pripočítaj desiatky: koľko je $${a} + ${tb}$?`, answer: a + tb },
+          { q: `Teraz pripočítaj jednotky: koľko je $${a + tb} + ${o}$?`, answer: a + b }
+        ];
+      }
+      return ex;
     }
     if (t < 0.85) {
-      const a = rnd(20, 100), b = rnd(3, a - 1);
-      return {
+      const a = rnd(20, 100), b = rnd(3, a - 1), tb = tens(b), o = b % 10;
+      const ex = {
         answer: a - b, q: `Vypočítaj $${a} - ${b}$.`,
         solution: `${subSteps(a, b)} Skúška: $${a - b} + ${b} = ${a}$.`,
-        hint: 'Najprv odčítaj desiatky, potom jednotky.'
+        hint: 'Najprv odčítaj desiatky, potom jednotky.',
+        mistakes: [{ value: a + b, msg: 'Znamienko − znamená ubrať. Tu treba odčítať, nie sčítať.' }]
       };
+      // typická chyba: pri jednotkách odčítané menšie od väčšieho („obrátene“)
+      if (a % 10 < o) {
+        ex.mistakes.push({ value: (Math.floor(a / 10) - Math.floor(b / 10)) * 10 + (o - a % 10),
+          msg: `Pri jednotkách si odčítal obrátene (${o} − ${a % 10}). Keď jednotky nestačia, prejdi cez desiatku: uber najprv desiatky, potom jednotky.` });
+      }
+      if (tb && o) {
+        ex.steps = [
+          { q: tensQ(b), answer: tb },
+          { q: `Najprv odčítaj desiatky: koľko je $${a} - ${tb}$?`, answer: a - tb },
+          { q: `Teraz odčítaj jednotky: koľko je $${a - tb} - ${o}$?`, answer: a - b }
+        ];
+      }
+      return ex;
     }
     const a = rnd(10, 80), x = rnd(3, 100 - a), s = a + x;
     if (Math.random() < 0.5) {
       return {
         answer: x, q: `Doplň chýbajúce číslo: $${a} + \\square = ${s}$`,
         solution: `Chýbajúce číslo zistíme odčítaním: $${s} - ${a} = ${x}$. Skúška: $${a} + ${x} = ${s}$.`,
-        hint: `Koľko chýba od ${a} do ${s}?`
+        hint: `Koľko chýba od ${a} do ${s}?`,
+        mistakes: [{ value: s + a, msg: `Čísla nesčítavaj. Hľadáš, koľko treba pridať k ${a}, aby vyšlo ${s} – to zistíš odčítaním.` }]
       };
     }
     return {
       answer: x, q: `Doplň chýbajúce číslo: $${s} - \\square = ${a}$`,
       solution: `Od ${s} sme ubrali toľko, koľko je $${s} - ${a} = ${x}$. Skúška: $${s} - ${x} = ${a}$.`,
-      hint: `O koľko je ${s} viac ako ${a}?`
+      hint: `O koľko je ${s} viac ako ${a}?`,
+      mistakes: [{ value: s + a, msg: `Čísla nesčítavaj. Hľadáš, koľko sme ubrali, aby z čísla ${s} zostalo ${a} – to zistíš odčítaním.` }]
     };
   });
 
@@ -360,7 +413,13 @@
         answer: k * n,
         q: `Koľko je spolu ${gpl}? <span class="emoji-row">${row}</span>`,
         solution: `Sú tu ${k} ${pl(k, ['skupina', 'skupiny', 'skupín'])} po ${n}: $${Array(k).fill(n).join(' + ')} = ${k} \\cdot ${n} = ${k * n}$.`,
-        hint: 'Spočítaj skupiny a koľko je v jednej skupine. Potom vynásob.'
+        hint: 'Spočítaj skupiny a koľko je v jednej skupine. Potom vynásob.',
+        mistakes: k + n !== k * n ? [{ value: k + n, msg: 'Počet skupín a počet v jednej skupine nesčítavaj. Rovnaké skupiny spočítaš násobením.' }] : [],
+        steps: [
+          { q: 'Koľko je skupín?', answer: k },
+          { q: 'Koľko kúskov je v jednej skupine?', answer: n },
+          { q: `Koľko je $${k} \\cdot ${n}$?`, answer: k * n }
+        ]
       };
     }
     if (t < 0.5) {
@@ -369,7 +428,12 @@
         answer: k * n,
         q: `Zapíš súčet ako násobenie a vypočítaj: $${Array(k).fill(n).join(' + ')}$`,
         solution: `Číslo ${n} sčítavame ${k}-krát: $${k} \\cdot ${n} = ${k * n}$.`,
-        hint: 'Koľkokrát sa opakuje to isté číslo?'
+        hint: 'Koľkokrát sa opakuje to isté číslo?',
+        mistakes: n > 1 && k + n !== k * n ? [{ value: k + n, msg: `Nesčítavaj počet sčítancov a číslo ${n}. Číslo ${n} sa opakuje ${k}-krát – to je násobenie.` }] : [],
+        steps: [
+          { q: `Koľkokrát sa v súčte opakuje číslo ${n}?`, answer: k },
+          { q: `Koľko je $${k} \\cdot ${n}$?`, answer: k * n }
+        ]
       };
     }
     const kid = pick(KIDS), d = rnd(2, 5), q = rnd(2, 5), tot = d * q;
@@ -378,14 +442,16 @@
         answer: q,
         q: `${kid.n} ${verb(kid, 'rozdelil', 'rozdelila')} ${tot} ${pl(tot, ['cukrík', 'cukríky', 'cukríkov'])} rovnako medzi ${d} ${pl(d, ['dieťa', 'deti', 'detí'])}. Koľko cukríkov dostalo každé dieťa?`,
         solution: `Delíme na ${d} ${pl(d, ['rovnakú časť', 'rovnaké časti', 'rovnakých častí'])}: $${tot} : ${d} = ${q}$, lebo $${d} \\cdot ${q} = ${tot}$.`,
-        hint: `Ktoré číslo krát ${d} dá ${tot}?`
+        hint: `Ktoré číslo krát ${d} dá ${tot}?`,
+        mistakes: tot - d !== q ? [{ value: tot - d, msg: 'Neodčítavaj. Cukríky rozdeľujeme rovnako, to je delenie.' }] : []
       };
     }
     return {
       answer: d,
       q: `Z ${tot} balónov robíme zväzky po ${q} ${pl(q, ['balón', 'balóny', 'balónov'])}. Koľko zväzkov urobíme?`,
       solution: `Zisťujeme, koľkokrát sa ${q} zmestí do ${tot}: $${tot} : ${q} = ${d}$, lebo $${d} \\cdot ${q} = ${tot}$.`,
-      hint: `Koľkokrát musíš sčítať ${q}, aby si dostal ${tot}?`
+      hint: `Koľkokrát musíš sčítať ${q}, aby si dostal ${tot}?`,
+      mistakes: tot - q !== d ? [{ value: tot - q, msg: `Neodčítavaj. Zisťujeme, koľkokrát sa ${q} zmestí do ${tot}, to je delenie.` }] : []
     };
   });
 
@@ -414,21 +480,30 @@
       return {
         answer: c, q: `Vypočítaj $${a} \\cdot ${b}$.`,
         solution: `Násobky ${b}: ${Array.from({ length: a }, (_, i) => (i + 1) * b).join(', ')}. Teda $${a} \\cdot ${b} = ${c}$.`,
-        hint: `Pripočítavaj ${b} toľkokrát, koľko je ${a}, alebo si spomeň na násobilku čísla ${b}.`
+        hint: `Pripočítavaj ${b} toľkokrát, koľko je ${a}, alebo si spomeň na násobilku čísla ${b}.`,
+        // typické chyby: sčítanie namiesto násobenia, o jeden skok viac alebo menej v násobkoch
+        mistakes: [
+          ...(a + b !== c ? [{ value: a + b, msg: 'Čísla si sčítal. Znak · znamená násobiť.' }] : []),
+          ...(b > 1 ? [{ value: c - b, msg: `Si o jeden násobok čísla ${b} nižšie. Spočítaj skoky po ${b} ešte raz.` },
+            { value: c + b, msg: `Si o jeden násobok čísla ${b} vyššie. Spočítaj skoky po ${b} ešte raz.` }] : [])
+        ]
       };
     }
+    const divMis = c - a !== b ? [{ value: c - a, msg: `Delenie nie je odčítanie. Hľadaj číslo, ktoré krát ${a} dá ${c}.` }] : [];
     if (t < 0.55) {
       return {
         answer: b, q: `Vypočítaj $${c} : ${a}$.`,
         solution: `$${b} \\cdot ${a} = ${c}$, preto $${c} : ${a} = ${b}$.`,
-        hint: `Ktoré číslo krát ${a} dá ${c}?`
+        hint: `Ktoré číslo krát ${a} dá ${c}?`,
+        mistakes: divMis
       };
     }
     if (t < 0.7) {
       return {
         answer: b, q: `Doplň chýbajúce číslo: $${a} \\cdot \\square = ${c}$`,
         solution: `$${c} : ${a} = ${b}$, teda $${a} \\cdot ${b} = ${c}$.`,
-        hint: `Prejdi násobky čísla ${a}, kým nenájdeš ${c}.`
+        hint: `Prejdi násobky čísla ${a}, kým nenájdeš ${c}.`,
+        mistakes: c - a !== b ? [{ value: c - a, msg: `Neodčítavaj. Hľadáš číslo, ktoré krát ${a} dá ${c}.` }] : []
       };
     }
     if (t < 0.85) {
@@ -438,8 +513,14 @@
         const v = rnd(Math.max(2, good - 12), good + 12);
         if (v % n !== 0) opts.add(v);
       }
+      // pri každej nesprávnej možnosti ukážeme, medzi ktorými násobkami leží
+      const choiceHints = {};
+      [...opts].filter((v) => v !== good).forEach((v) => {
+        const lo = Math.floor(v / n) * n;
+        choiceHints[String(v)] = `Číslo ${v} nie je v násobilke čísla ${n}: leží medzi násobkami ${lo} a ${lo + n}.`;
+      });
       return {
-        type: 'choice', options: shuffle([...opts].map(String)), answer: String(good),
+        type: 'choice', options: shuffle([...opts].map(String)), answer: String(good), choiceHints,
         q: `Ktoré z týchto čísel je násobkom čísla ${n}?`,
         solution: `$${k} \\cdot ${n} = ${good}$, preto ${good} je násobok čísla ${n}. Ostatné čísla v násobilke čísla ${n} nie sú.`,
         hint: `Vymenuj násobky ${n}: ${n}, ${2 * n}, ${3 * n}, …`
@@ -480,58 +561,86 @@
     const T = pick(THINGS);
     const k1 = pick(KIDS), k2 = pick(KIDS.filter((k) => k !== k1));
     const kind = rnd(0, 6);
+    // po krokoch: najprv výber počtovej operácie, potom výpočet
+    const OPS = { '+': '+', '-': '−', '*': '·', '/': ':' };
+    const steps = (op, a, b, res, hint) => [
+      { q: 'Ktorú počtovú operáciu použiješ?', type: 'choice', options: ['+', '−', '·', ':'], answer: OPS[op], hint },
+      { q: `Vypočítaj $${a} ${{ '+': '+', '-': '-', '*': '\\cdot', '/': ':' }[op]} ${b}$.`, answer: res }
+    ];
+    const carry = (a, b) => (a % 10 + b % 10 >= 10 ? [{ value: a + b - 10, msg: 'Jednotky dali spolu viac ako 10, ale zabudol si pripočítať túto novú desiatku.' }] : []);
     if (kind === 0) {
       const a = rnd(12, 70), b = rnd(5, 100 - a);
+      const hint = 'Keď niečo pribudne, sčítavame.';
       return {
         answer: a + b,
         q: `${k1.n} ${verb(k1, 'mal', 'mala')} ${a} ${pl(a, T)} a ${verb(k1, 'dostal', 'dostala')} ešte ${b}. Koľko ${T[2]} má teraz?`,
         solution: `Pridávame, preto sčítame: ${addSteps(a, b)} ${k1.n} má ${a + b} ${pl(a + b, T)}.`,
-        hint: 'Keď niečo pribudne, sčítavame.'
+        hint,
+        mistakes: [...(a !== b ? [{ value: Math.abs(a - b), msg: 'Keď niečo pribudne, je toho viac. Tu treba sčítať, nie odčítať.' }] : []), ...carry(a, b)],
+        steps: steps('+', a, b, a + b, hint)
       };
     }
     if (kind === 1) {
       const a = rnd(20, 100), b = rnd(5, a - 3);
+      const hint = 'Keď niečo ubudne, odčítavame.';
       return {
         answer: a - b,
         q: `${k1.n} ${verb(k1, 'mal', 'mala')} ${a} ${pl(a, T)}. Kamarátom ${verb(k1, 'dal', 'dala')} ${b} ${pl(b, T)}. Koľko ${T[2]} ${verb(k1, 'mu', 'jej')} zostalo?`,
         solution: `Uberáme, preto odčítame: ${subSteps(a, b)} Zostalo ${verb(k1, 'mu', 'jej')} ${a - b} ${pl(a - b, T)}.`,
-        hint: 'Keď niečo ubudne, odčítavame.'
+        hint,
+        mistakes: [{ value: a + b, msg: 'Keď niečo dáš preč, zostane toho menej. Tu treba odčítať, nie sčítať.' }],
+        steps: steps('-', a, b, a - b, hint)
       };
     }
     if (kind === 2) {
       const a = rnd(20, 99), b = rnd(5, a - 5);
+      const hint = 'Otázka „o koľko viac“ sa rieši odčítaním väčšieho a menšieho čísla.';
       return {
         answer: a - b,
         q: `${k1.n} má ${a} ${pl(a, T)}, ${k2.n} má ${b} ${pl(b, T)}. O koľko ${T[2]} má ${k1.n} viac?`,
         solution: `Porovnávame, preto odčítame: ${subSteps(a, b)} ${k1.n} má o ${a - b} ${pl(a - b, T)} viac.`,
-        hint: 'Otázka „o koľko viac“ sa rieši odčítaním väčšieho a menšieho čísla.'
+        hint,
+        mistakes: [{ value: a + b, msg: 'Čísla nesčítavaj. Otázka „o koľko viac“ porovnáva – odčítaj menšie číslo od väčšieho.' }],
+        steps: steps('-', a, b, a - b, hint)
       };
     }
     if (kind === 3) {
       const a = rnd(20, 90), b = rnd(3, a - 5);
+      const hint = '„O … menej“ znamená odčítať.';
       return {
         answer: a - b,
         q: `${k1.n} má ${a} ${pl(a, T)}. ${k2.n} má o ${b} ${pl(b, T)} menej. Koľko ${T[2]} má ${k2.n}?`,
         solution: `„O ${b} menej“ znamená ${b} ubrať: ${subSteps(a, b)} ${k2.n} má ${a - b} ${pl(a - b, T)}.`,
-        hint: '„O … menej“ znamená odčítať.'
+        hint,
+        mistakes: [
+          { value: a + b, msg: `${k2.n} má menej ako ${k1.n}, preto treba odčítať, nie sčítať.` },
+          ...(a - b !== b ? [{ value: b, msg: `${b} je len to, o koľko má ${k2.n} menej. Odčítaj to od toho, čo má ${k1.n}.` }] : [])
+        ],
+        steps: steps('-', a, b, a - b, hint)
       };
     }
     if (kind === 4) {
       const k = rnd(2, 5), n = rnd(2, 10);
+      const hint = 'Keď je viackrát to isté číslo, môžeš násobiť.';
       return {
         answer: k * n,
         q: `${k1.n} ${verb(k1, 'položil', 'položila')} na ${k} ${pl(k, ['tanier', 'taniere', 'tanierov'])} po ${n} ${pl(n, T)}. Koľko ${T[2]} je na tanieroch spolu?`,
         solution: `${k}-krát po ${n} je násobenie: $${k} \\cdot ${n} = ${k * n}$. Na tanieroch je ${k * n} ${pl(k * n, T)}.`,
-        hint: 'Keď je viackrát to isté číslo, môžeš násobiť.'
+        hint,
+        mistakes: k + n !== k * n ? [{ value: k + n, msg: 'Počet tanierov a počet na jednom tanieri nesčítavaj. Na každom tanieri je rovnako – násob.' }] : [],
+        steps: steps('*', k, n, k * n, hint)
       };
     }
     if (kind === 5) {
       const d = rnd(2, 5), q = rnd(2, 10), tot = d * q;
+      const hint = 'Rovnaké rozdeľovanie je delenie.';
       return {
         answer: q,
         q: `${k1.n} ${verb(k1, 'rozdelil', 'rozdelila')} ${tot} ${pl(tot, T)} rovnako medzi ${d} kamarátov. Koľko ${T[2]} dostal každý kamarát?`,
         solution: `Rozdeľujeme na ${d} ${pl(d, ['rovnakú časť', 'rovnaké časti', 'rovnakých častí'])}: $${tot} : ${d} = ${q}$, lebo $${d} \\cdot ${q} = ${tot}$. Každý dostal ${q} ${pl(q, T)}.`,
-        hint: 'Rovnaké rozdeľovanie je delenie.'
+        hint,
+        mistakes: tot - d !== q ? [{ value: tot - d, msg: 'Neodčítavaj. Keď rozdeľujeme rovnako, delíme.' }] : [],
+        steps: steps('/', tot, d, q, hint)
       };
     }
     // výber správneho zápisu
@@ -542,8 +651,11 @@
       [`${k1.n} ${verb(k1, 'mal', 'mala')} ${b} ${pl(b, T)} a ${a} ${verb(k1, 'stratil', 'stratila')}. Ktorý zápis ukazuje, koľko ${T[2]} ${verb(k1, 'mu', 'jej')} zostalo?`, sub, 'Ubudlo, preto odčítame.'],
       [`${k1.n} ${verb(k1, 'kúpil', 'kúpila')} ${a} ${pl(a, ['vrecko', 'vrecká', 'vreciek'])} po ${b} ${pl(b, T)}. Ktorý zápis ukazuje, koľko ${T[2]} ${verb(k1, 'kúpil', 'kúpila')} spolu?`, mul, `${a}-krát po ${b} je násobenie.`]
     ]);
+    const why = { [add]: 'Sčítanie použiješ, keď niečo pribudne.', [sub]: 'Odčítanie použiješ, keď niečo ubudne.', [mul]: 'Násobenie použiješ, keď máš viackrát po rovnako.' };
+    const choiceHints = {};
+    [add, sub, mul].filter((o) => o !== story[1]).forEach((o) => { choiceHints[o] = why[o]; });
     return {
-      type: 'choice', options: shuffle([add, sub, mul]), answer: story[1],
+      type: 'choice', options: shuffle([add, sub, mul]), answer: story[1], choiceHints,
       q: story[0],
       solution: `${story[2]} Správny zápis je ${story[1]}.`,
       hint: 'Pribudlo → sčítanie, ubudlo → odčítanie, viackrát po rovnako → násobenie.'
@@ -583,8 +695,17 @@
     const t = Math.random();
     if (t < 0.35) {
       const name = pick(Object.keys(LINES));
+      // vysvetlenie pri nesprávnej možnosti podľa toho, čím sa líši od nakresleného útvaru
+      const WHY = {
+        'bod': 'Bod je len jedna malá bodka. Na obrázku je čiara.',
+        'úsečka': name === 'priamka' ? 'Úsečka má na koncoch dva krajné body. Táto čiara ich nemá, pokračuje ďalej.' : name === 'bod' ? 'Úsečka je čiara medzi dvoma bodmi. Tu je len jedna bodka.' : 'Úsečka je rovná. Táto čiara sa zatáča.',
+        'priamka': name === 'úsečka' ? 'Priamka nemá krajné body. Táto čiara má dva krajné body, kde začína a končí.' : name === 'bod' ? 'Priamka je rovná čiara. Tu je len jedna bodka.' : 'Priamka je rovná. Táto čiara sa zatáča.',
+        'krivá čiara': name === 'bod' ? 'Krivá čiara je čiara. Tu je len jedna bodka.' : 'Krivá čiara sa zatáča. Táto čiara je rovná.'
+      };
+      const choiceHints = {};
+      Object.keys(LINES).filter((n) => n !== name).forEach((n) => { choiceHints[n] = WHY[n]; });
       return {
-        type: 'choice', options: Object.keys(LINES), answer: name,
+        type: 'choice', options: Object.keys(LINES), answer: name, choiceHints,
         q: `Čo je na obrázku?<svg viewBox="0 0 180 120" width="200" role="img" aria-label="čiara alebo bod">${LINES[name]()}</svg>`,
         solution: {
           'bod': 'Je to len jedna bodka, teda bod.',
@@ -598,6 +719,15 @@
     if (t < 0.65) {
       const len = rnd(2, 9), s = Math.random() < 0.6 ? 0 : rnd(1, 10 - len);
       return {
+        ...(s > 0 ? {
+          // typická chyba: prečítané číslo pri bode B, hoci úsečka nezačína na nule
+          mistakes: [{ value: s + len, msg: 'Prečítal si len číslo pri bode B. Úsečka nezačína na nule, preto odčítaj číslo pri bode A.' }],
+          steps: [
+            { q: 'Pri ktorom čísle na pravítku je bod A?', answer: s },
+            { q: 'Pri ktorom čísle na pravítku je bod B?', answer: s + len },
+            { q: `Koľko centimetrov je od ${s} po ${s + len}? Vypočítaj $${s + len} - ${s}$.`, answer: len }
+          ]
+        } : {}),
         answer: len,
         q: `Aká dlhá je úsečka $AB$? Odpoveď napíš v centimetroch.${ruler(s, s + len, 10)}`,
         solution: s === 0 ? `Úsečka začína na nule a končí pri čísle ${len}. Je dlhá $${len}\\,\\text{cm}$.`
@@ -612,7 +742,8 @@
           answer: a + b,
           q: `Lomená čiara sa skladá z dvoch úsečiek. Prvá meria $${a}\\,\\text{cm}$, druhá $${b}\\,\\text{cm}$. Aká dlhá je celá lomená čiara (v cm)?`,
           solution: `Dĺžky sčítame: $${a} + ${b} = ${a + b}$. Lomená čiara meria $${a + b}\\,\\text{cm}$.`,
-          hint: 'Celá dĺžka je súčet dĺžok všetkých úsečiek.'
+          hint: 'Celá dĺžka je súčet dĺžok všetkých úsečiek.',
+          mistakes: a !== b ? [{ value: Math.abs(a - b), msg: 'Celá lomená čiara je dlhšia ako každá jej časť. Dĺžky úsečiek sčítaj, nie odčítaj.' }] : []
         };
       }
       const x = Math.max(a, b) + 1, y = Math.min(a, b);
@@ -620,7 +751,8 @@
         answer: x - y,
         q: `Úsečka $KL$ meria $${x}\\,\\text{cm}$, úsečka $MN$ meria $${y}\\,\\text{cm}$. O koľko centimetrov je úsečka $KL$ dlhšia?`,
         solution: `$${x} - ${y} = ${x - y}$. Úsečka $KL$ je o $${x - y}\\,\\text{cm}$ dlhšia.`,
-        hint: 'Rozdiel dĺžok zistíš odčítaním.'
+        hint: 'Rozdiel dĺžok zistíš odčítaním.',
+        mistakes: [{ value: x + y, msg: 'Dĺžky nesčítavaj. Pýtame sa, o koľko je jedna úsečka dlhšia – odčítaj.' }]
       };
     }
     const [q, a, why] = pick(LINE_FACTS);
@@ -665,8 +797,16 @@
       while (opts.size < 4) opts.add(fmtT(rnd(1, 12), pick([0, 15, 30, 45])));
       const hw = `${h} ${pl(h, ['hodina', 'hodiny', 'hodín'])}`;
       const words = m === 0 ? `presne ${hw}` : `${hw} a ${m} minút`;
+      // typické chyby: vymenené ručičky; pri m > 0 prečítaná nasledujúca hodina
+      const choiceHints = {};
+      const swapped = fmtT(m === 0 ? 12 : m / 5, (h * 5) % 60), next = fmtT(h % 12 + 1, m);
+      if (swapped !== right) choiceHints[swapped] = 'Vymenil si ručičky. Krátka ručička ukazuje hodiny, dlhá ručička minúty.';
+      if (next !== right && next !== swapped) {
+        choiceHints[next] = m === 0 ? 'Pozri sa presne, na ktoré číslo ukazuje krátka ručička.'
+          : `Krátka ručička je ešte len medzi ${h} a ${h % 12 + 1}. Kým nedôjde k ${h % 12 + 1}, platí menšia hodina.`;
+      }
       return {
-        type: 'choice', options: shuffle([...opts]), answer: right,
+        type: 'choice', options: shuffle([...opts]), answer: right, choiceHints,
         q: `Koľko je hodín?<svg viewBox="0 0 180 180" width="180" role="img" aria-label="ciferník hodín">${clock(90, 90, 80, h, m)}</svg>`,
         solution: `Krátka ručička ${m === 0 ? `ukazuje na ${h}` : `je medzi ${h} a ${h % 12 + 1}`}, dlhá ručička ukazuje na ${m === 0 ? 12 : m / 5}, teda ${m} minút. Je ${right} (${words}).`,
         hint: 'Krátka ručička ukazuje hodiny, dlhá minúty. Keď je dlhá na 6, je pol.'
@@ -678,34 +818,55 @@
         const n = rnd(1, 10);
         return { answer: n * 10, q: `Koľko centimetrov je $${n}\\,\\text{dm}$?`,
           solution: `$1\\,\\text{dm} = 10\\,\\text{cm}$, teda $${n}\\,\\text{dm} = ${n} \\cdot 10\\,\\text{cm} = ${n * 10}\\,\\text{cm}$.`,
-          hint: '1 dm je 10 cm.' };
+          hint: '1 dm je 10 cm.',
+          mistakes: [{ value: n + 10, msg: 'Desať nepripočítavaj. Každý decimeter má 10 cm, preto počet decimetrov násob desiatimi.' }] };
       }
       if (kind === 1) {
         const c = rnd(5, 95);
         return { answer: 100 - c, q: `Stuha meria $${c}\\,\\text{cm}$. Koľko centimetrov chýba do $1\\,\\text{m}$?`,
           solution: `$1\\,\\text{m} = 100\\,\\text{cm}$, $100 - ${c} = ${100 - c}$. Chýba $${100 - c}\\,\\text{cm}$.`,
-          hint: '1 m je 100 cm.' };
+          hint: '1 m je 100 cm.',
+          mistakes: c !== 50 ? [{ value: c, msg: 'To je dĺžka stuhy. Pýtame sa, koľko jej chýba do 1 metra – odčítaj od 100.' }] : [],
+          steps: [
+            { q: 'Koľko centimetrov má 1 meter?', answer: 100 },
+            { q: `Koľko je $100 - ${c}$?`, answer: 100 - c }
+          ] };
       }
       if (kind === 2) {
-        const [w, v] = pick([['pol hodiny', 30], ['štvrť hodiny', 15], ['trištvrte hodiny', 45], ['1 hodina', 60]]);
+        const [w, v, bad] = pick([['pol hodiny', 30, 50], ['štvrť hodiny', 15, 25], ['trištvrte hodiny', 45, 75], ['1 hodina', 60, 100]]);
         return { answer: v, q: `Koľko minút je ${w}?`,
           solution: `Hodina má 60 minút. ${w.charAt(0).toUpperCase() + w.slice(1)} je ${v} minút.`,
-          hint: 'Hodina má 60 minút. Polovica z 60 je 30, štvrtina je 15.' };
+          hint: 'Hodina má 60 minút. Polovica z 60 je 30, štvrtina je 15.',
+          mistakes: [{ value: bad, msg: 'Počítal si, akoby mala hodina 100 minút. Hodina má len 60 minút.' }] };
       }
       if (kind === 3) {
         const m = rnd(1, 8) * 5;
         return { answer: 60 + m, q: `Koľko minút je 1 hodina a ${m} minút?`,
           solution: `1 hodina je 60 minút: $60 + ${m} = ${60 + m}$ minút.`,
-          hint: 'Najprv premeň hodinu na minúty a potom pripočítaj.' };
+          hint: 'Najprv premeň hodinu na minúty a potom pripočítaj.',
+          mistakes: [
+            { value: 100 + m, msg: 'Hodina nemá 100 minút, ale 60 minút.' },
+            { value: 1 + m, msg: 'Hodinu musíš najprv premeniť na minúty: 1 hodina je 60 minút.' }
+          ],
+          steps: [
+            { q: 'Koľko minút má 1 hodina?', answer: 60 },
+            { q: `Koľko je $60 + ${m}$?`, answer: 60 + m }
+          ] };
       }
       if (kind === 4) {
         const c = rnd(1, 19) * 5;
         return { answer: 100 - c, q: `Máš ${c} ${pl(c, ['cent', 'centy', 'centov'])}. Koľko centov ti chýba do 1 eura?`,
           solution: `1 euro je 100 centov: $100 - ${c} = ${100 - c}$. Chýba ${100 - c} ${pl(100 - c, ['cent', 'centy', 'centov'])}.`,
-          hint: '1 € = 100 centov.' };
+          hint: '1 € = 100 centov.',
+          mistakes: c !== 50 ? [{ value: c, msg: 'Toľko centov už máš. Pýtame sa, koľko ti chýba do 100 centov – odčítaj.' }] : [],
+          steps: [
+            { q: 'Koľko centov má 1 euro?', answer: 100 },
+            { q: `Koľko je $100 - ${c}$?`, answer: 100 - c }
+          ] };
       }
       return { answer: 24, q: 'Koľko hodín má jeden deň?',
-        solution: 'Deň (s nocou) má 24 hodín.', hint: 'Spočítaj 12 hodín dopoludnia a 12 hodín popoludní.' };
+        solution: 'Deň (s nocou) má 24 hodín.', hint: 'Spočítaj 12 hodín dopoludnia a 12 hodín popoludní.',
+        mistakes: [{ value: 12, msg: 'To je len polovica dňa. Ciferník ukazuje 12 hodín, ale ručička ho za deň obehne dvakrát.' }] };
     }
     if (t < 0.8) {
       const vals = [1, 2, 5, 10, 20, 50, 100, 200];
@@ -722,20 +883,45 @@
         return {
           answer: sum, q: `Koľko centov je spolu?${pic}`,
           solution: `$${parts} = ${sum}$ centov.`,
-          hint: 'Sčítaj hodnoty mincí, začni od najväčšej.'
+          hint: 'Sčítaj hodnoty mincí, začni od najväčšej.',
+          mistakes: cs.length !== sum ? [{ value: cs.length, msg: 'Spočítal si, koľko je mincí. Treba sčítať čísla napísané na minciach.' }] : []
         };
       }
       const e = Math.floor(sum / 100), c = sum % 100;
-      return {
+      // eurá z eurových mincí a centy z centových mincí (bez prevodu 100 c na 1 €)
+      const eC = cs.filter((x) => x >= 100).reduce((s, x) => s + x, 0) / 100, cC = sum - eC * 100;
+      const ex = {
+        mistakes: cC >= 100 ? [{ value: [eC, cC], msg: 'Centov máš 100 alebo viac. Zo 100 centov je ďalšie celé euro – pripočítaj ho k eurám.' }] : [],
         type: 'tuple', placeholder: 'eurá; centy', answer: [e, c],
         q: `Koľko je to spolu eur a centov? Napíš dve čísla oddelené bodkočiarkou (napr. 2; 35).${pic}`,
         solution: `V centoch: $${parts} = ${sum}$ centov. 100 centov je 1 euro, preto je to ${e} € a ${c} c.`,
         hint: 'Mince 1 € a 2 € maj zvlášť, centy sčítaj zvlášť. 100 centov je 1 euro.'
       };
+      if (eC > 0 && cC > 0) {
+        ex.steps = [
+          { q: 'Koľko eur je v minciach 1 € a 2 €?', answer: eC },
+          { q: 'Koľko centov je v ostatných minciach?', answer: cC },
+          { q: `Spolu je to ${eC} € a ${cC} c. Koľko je to eur a centov? (Pamätaj: 100 centov je 1 euro.)`, type: 'tuple', placeholder: 'eurá; centy', answer: [e, c] }
+        ];
+      }
+      return ex;
     }
     const [s, u] = pick(UNIT_GUESS);
+    // vysvetlenie nesprávnej jednotky: iná veličina, alebo priveľká / primalá jednotka
+    const KIND = { cm: 'len', m: 'len', min: 'time', h: 'time', '€': 'money' };
+    const NEED = { len: 'dĺžku', time: 'čas', money: 'cenu' };
+    const SAME = {
+      cm: 'Centimeter je veľmi malý, asi ako šírka prsta. Tu treba väčšiu jednotku.',
+      m: 'Meter je asi taký dlhý ako veľký krok. Tu je to priveľa, treba menšiu jednotku.',
+      min: 'Minúta je krátky čas. Tu treba dlhšiu jednotku.',
+      h: 'Hodina je dlhý čas. Tu treba kratšiu jednotku.'
+    };
+    const choiceHints = {};
+    ['cm', 'm', 'min', 'h', '€'].filter((w) => w !== u).forEach((w) => {
+      choiceHints[w] = KIND[w] === KIND[u] ? SAME[w] : `V jednotkách ${w} meriame ${NEED[KIND[w]]}, ale tu ide o ${NEED[KIND[u]]}.`;
+    });
     return {
-      type: 'choice', options: ['cm', 'm', 'min', 'h', '€'], answer: u,
+      type: 'choice', options: ['cm', 'm', 'min', 'h', '€'], answer: u, choiceHints,
       q: `Doplň správnu jednotku: ${s}`,
       solution: `${s.replace('…', u)}. ${{ cm: 'Krátke veci meriame v centimetroch.', m: 'Dlhšie veci meriame v metroch.', min: 'Krátky čas meriame v minútach.', h: 'Dlhší čas meriame v hodinách.', '€': 'Ceny píšeme v eurách.' }[u]}`,
       hint: 'Je to dĺžka, čas, alebo cena? A je to krátke, alebo dlhé?'

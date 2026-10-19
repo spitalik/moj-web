@@ -17,7 +17,9 @@ const err = (where, msg) => errors.push(`${where}: ${msg}`);
 const missingFor = (() => { const k = process.argv.indexOf('--missing'); return k > 0 ? process.argv[k + 1] : null; })();
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const scripts = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map((m) => m[1]).filter((s) => s !== 'js/app.js');
+// skripty rozhrania (potrebujú prehliadač) – validátor načíta len obsah a logiku úloh
+const UI_SCRIPTS = ['js/app.js', 'js/store.js', 'js/keypad.js', 'js/scratchpad.js', 'js/tts.js', 'js/widget.js'];
+const scripts = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map((m) => m[1]).filter((s) => !UI_SCRIPTS.includes(s) && !s.startsWith('js/features/'));
 for (const rel of scripts) {
   const file = path.join(root, rel);
   if (!fs.existsSync(file)) { warnings.push(`chýba súbor ${rel}`); continue; }
@@ -44,6 +46,80 @@ function checkText(where, s) {
   }
 }
 
+// Tvar odpovede a to, že správna odpoveď prejde kontrolou (úloha aj jej krok).
+function checkAnswer(ex, gw) {
+  let canonical;
+  switch (ex.type) {
+    case 'num':
+      if (typeof ex.answer !== 'number' || !Number.isFinite(ex.answer)) err(gw, `odpoveď nie je konečné číslo: ${ex.answer}`);
+      canonical = String(ex.answer);
+      break;
+    case 'set': case 'tuple':
+      if (!Array.isArray(ex.answer) || ex.answer.some((v) => !Number.isFinite(v))) err(gw, `odpoveď nie je pole čísel: ${ex.answer}`);
+      canonical = (ex.answer || []).join('; ');
+      break;
+    case 'text':
+      if (typeof ex.answer !== 'string' || !ex.answer.trim()) err(gw, 'textová odpoveď je prázdna');
+      canonical = ex.answer;
+      break;
+    case 'choice':
+      if (!Array.isArray(ex.options) || ex.options.length < 2) err(gw, 'výber potrebuje aspoň 2 možnosti');
+      else if (new Set(ex.options).size !== ex.options.length) err(gw, `duplicitné možnosti: ${ex.options.join(' | ')}`);
+      if (!(ex.options || []).includes(ex.answer)) err(gw, `odpoveď „${ex.answer}“ nie je medzi možnosťami`);
+      (ex.options || []).forEach((o) => checkText(`${gw} možnosť`, String(o)));
+      canonical = ex.answer;
+      break;
+    default:
+      err(gw, `neznámy typ ${ex.type}`);
+  }
+  if (canonical !== undefined && EXERCISES.check(ex, canonical) !== true) {
+    err(gw, `správna odpoveď „${canonical}“ neprejde kontrolou (zadanie: ${String(ex.q).slice(0, 100)})`);
+  }
+}
+
+// Typické chyby a kroky riešenia (nepovinné polia generátora).
+const stats = { withMistakes: new Set(), withSteps: new Set() };
+function checkExtras(ex, gw) {
+  if (ex.mistakes !== undefined) {
+    if (!Array.isArray(ex.mistakes)) err(gw, 'mistakes musí byť pole');
+    else {
+      if (ex.mistakes.length) stats.withMistakes.add(ex.lesson);
+      ex.mistakes.forEach((m, i) => {
+        const mw = `${gw} chyba ${i + 1}`;
+        if (!m || m.value === undefined) { err(mw, 'chýba value'); return; }
+        checkText(`${mw} text`, m.msg);
+        const fake = Object.assign({}, ex, { answer: m.value });
+        const c = EXERCISES.canonical(fake);
+        // hodnota chyby nesmie byť zároveň správna odpoveď
+        if (EXERCISES.check(ex, c) === true) err(mw, `hodnota chyby „${c}“ je zároveň správna odpoveď`);
+        if (EXERCISES.check(fake, c) !== true) err(mw, `hodnota chyby „${c}“ nemá tvar odpovede (typ ${ex.type})`);
+      });
+    }
+  }
+  if (ex.choiceHints !== undefined) {
+    Object.entries(ex.choiceHints).forEach(([opt, msg]) => {
+      if (!(ex.options || []).includes(opt)) err(gw, `choiceHints: možnosť „${opt}“ neexistuje`);
+      if (opt === ex.answer) err(gw, 'choiceHints nemá vysvetľovať správnu možnosť');
+      checkText(`${gw} choiceHints`, msg);
+    });
+  }
+  if (ex.steps !== undefined) {
+    if (!Array.isArray(ex.steps) || ex.steps.length < 2) { err(gw, 'steps musí byť pole s aspoň 2 krokmi'); return; }
+    stats.withSteps.add(ex.lesson);
+    ex.steps.forEach((s, i) => {
+      const sw = `${gw} krok ${i + 1}`;
+      checkText(`${sw} zadanie`, s.q);
+      if (s.hint !== undefined) checkText(`${sw} nápoveda`, s.hint);
+      checkAnswer(EXERCISES.stepEx(ex, s), sw);
+    });
+    // posledný krok vedie k výsledku úlohy (ak má rovnaký typ odpovede)
+    const last = EXERCISES.stepEx(ex, ex.steps[ex.steps.length - 1]);
+    if (last.type === ex.type && ex.type !== 'choice' && EXERCISES.check(ex, EXERCISES.canonical(last)) !== true) {
+      err(gw, `posledný krok (${EXERCISES.canonical(last)}) nedáva výsledok úlohy (${EXERCISES.canonical(ex)})`);
+    }
+  }
+}
+
 // Generátor: 400 behov, každá správna odpoveď musí prejsť kontrolou. lang = jazyk obsahu,
 // extra(ex, gw) = ďalšia kontrola výstupu (napr. úniky slovenčiny v preklade).
 function checkGenerator(L, lang, w, extra) {
@@ -56,36 +132,18 @@ function checkGenerator(L, lang, w, extra) {
     checkText(`${gw} zadanie`, ex.q);
     checkText(`${gw} riešenie`, ex.solution);
     checkText(`${gw} nápoveda`, ex.hint);
-    let canonical;
-    switch (ex.type) {
-      case 'num':
-        if (typeof ex.answer !== 'number' || !Number.isFinite(ex.answer)) err(gw, `odpoveď nie je konečné číslo: ${ex.answer}`);
-        canonical = String(ex.answer);
-        break;
-      case 'set': case 'tuple':
-        if (!Array.isArray(ex.answer) || ex.answer.some((v) => !Number.isFinite(v))) err(gw, `odpoveď nie je pole čísel: ${ex.answer}`);
-        canonical = (ex.answer || []).join('; ');
-        break;
-      case 'text':
-        if (typeof ex.answer !== 'string' || !ex.answer.trim()) err(gw, 'textová odpoveď je prázdna');
-        canonical = ex.answer;
-        break;
-      case 'choice':
-        if (!Array.isArray(ex.options) || ex.options.length < 2) err(gw, 'výber potrebuje aspoň 2 možnosti');
-        else if (new Set(ex.options).size !== ex.options.length) err(gw, `duplicitné možnosti: ${ex.options.join(' | ')}`);
-        if (!(ex.options || []).includes(ex.answer)) err(gw, `odpoveď „${ex.answer}“ nie je medzi možnosťami`);
-        (ex.options || []).forEach((o) => checkText(`${gw} možnosť`, String(o)));
-        canonical = ex.answer;
-        break;
-      default:
-        err(gw, `neznámy typ ${ex.type}`);
-    }
-    if (canonical !== undefined && EXERCISES.check(ex, canonical) !== true) {
-      err(gw, `správna odpoveď „${canonical}“ neprejde kontrolou (zadanie: ${String(ex.q).slice(0, 100)})`);
-    }
+    checkAnswer(ex, gw);
+    checkExtras(ex, gw);
     if (extra) extra(ex, gw);
     if (errors.length > before && !missingFor) break; // jedna chyba na generátor stačí
   }
+  // rovnaké semienko → rovnaká úloha (zadania od učiteľa, denná výzva)
+  try {
+    const a = EXERCISES.make(L.id, lang, 12345), b = EXERCISES.make(L.id, lang, 12345);
+    // interné id prvkov SVG (clipPath a pod.) sa líšia medzi vykresleniami, obsah úlohy nie
+    const strip = (q) => String(q).replace(/\b[a-z]+\d+\b/gi, 'ID');
+    if (strip(a.q) !== strip(b.q) || JSON.stringify(a.answer) !== JSON.stringify(b.answer)) err(w, 'generátor nie je deterministický pri rovnakom semienku (používa niečo iné ako Math.random?)');
+  } catch (e) { err(w, `generátor so semienkom spadol: ${e.message}`); }
 }
 
 const levelIds = new Set(LEVELS.map((l) => l.id));
@@ -280,6 +338,7 @@ if (global.I18N) {
 
 const perLevel = LEVELS.map((lv) => `${lv.id}: ${LESSONS.filter((l) => l.level === lv.id).length}`).join(', ');
 console.log(`Lekcie: ${LESSONS.length} (${perLevel})`);
+console.log(`Typické chyby: ${stats.withMistakes.size} lekcií · kroky riešenia: ${stats.withSteps.size} lekcií`);
 warnings.forEach((w) => console.log('UPOZORNENIE ' + w));
 if (errors.length) {
   errors.forEach((e) => console.log('CHYBA ' + e));

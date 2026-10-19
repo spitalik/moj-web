@@ -215,6 +215,14 @@
       const mult = [];
       for (let j = 1; j <= Math.min(o, 6); j++) mult.push(`${j}\\cdot ${a}\\equiv ${j * a % n}`);
       return {
+        mistakes: [
+          ...(n !== o ? [{ value: n, msg: `Toto je rád celej grupy $\\mathbb{Z}_{${n}}$. Rád prvku je najmenšie $k$ s $k\\cdot ${a}\\equiv 0$ a môže byť menší.` }] : []),
+          ...(d !== o && d !== n ? [{ value: d, msg: 'Toto je $\\operatorname{NSD}(a, n)$. Rád prvku je $\\frac{n}{\\operatorname{NSD}(a, n)}$.' }] : [])
+        ],
+        steps: [
+          { q: `Vypočítaj $\\operatorname{NSD}(${a}, ${n})$.`, answer: d },
+          { q: `Aký je rád prvku $${a}$?`, answer: o }
+        ],
         answer: o,
         q: `Aký je rád prvku $${a}$ v grupe $(\\mathbb{Z}_{${n}}, +)$?`,
         solution: `Rád je najmenšie $k\\geq 1$ s $k\\cdot ${a}\\equiv 0 \\pmod{${n}}$. Platí $\\operatorname{NSD}(${a}, ${n})=${d}$, teda rád je $\\frac{${n}}{${d}}=${o}$.`
@@ -227,6 +235,11 @@
       const pw = [];
       for (let j = 1, x = a; j <= o; j++, x = x * a % p) pw.push(`${a}^{${j}}\\equiv ${x}`);
       return {
+        mistakes: o !== p - 1 ? [{ value: p - 1, msg: `Toto je rád celej grupy. Rád prvku ho podľa Lagrangeovej vety delí, ale nemusí sa mu rovnať: hľadaj prvú mocninu $${a}$, ktorá dá $1$.` }] : [],
+        steps: [
+          { q: `Vypočítaj $${a}^{2} \\bmod ${p}$.`, answer: a * a % p },
+          { q: `Aký je rád prvku $${a}$?`, answer: o, hint: `Rád delí číslo $${p - 1}$; stačí overiť mocniny s exponentmi, ktoré ho delia.` }
+        ],
         answer: o,
         q: `Aký je rád prvku $${a}$ v multiplikatívnej grupe $(\\mathbb{Z}_{${p}}\\setminus\\{0\\}, \\cdot)$?`,
         solution: `Počítame mocniny modulo $${p}$: $${pw.join(',\\ ')}$. Prvá mocnina rovná $1$ je ${o}. mocnina, rád je teda $${o}$ (delí rád grupy $${p - 1}$, ako hovorí Lagrangeova veta).`,
@@ -236,6 +249,7 @@
     if (k === 2) {
       const n = pick([6, 8, 10, 12, 15, 16, 18, 20, 24, 28, 30, 36]), D = divisors(n);
       return {
+        mistakes: [{ value: D.length - 2, msg: 'Započítaj aj triviálnu podgrupu $\\{0\\}$ a celú grupu – aj tie zodpovedajú deliteľom $1$ a $n$.' }],
         answer: D.length,
         q: `Koľko podgrúp má cyklická grupa $(\\mathbb{Z}_{${n}}, +)$ (vrátane triviálnej a celej grupy)?`,
         solution: `V cyklickej grupe rádu $${n}$ zodpovedá každému deliteľovi $d$ čísla $${n}$ práve jedna podgrupa $\\langle ${n}/d\\rangle$ rádu $d$. Delitele sú $${D.join(', ')}$, podgrúp je teda $${D.length}$.`,
@@ -245,7 +259,17 @@
     if (k === 3) {
       const O = ['komutatívna grupa', 'nekomutatívna grupa', 'nie je grupa'];
       const [t, ans, why] = pick(GROUPS)();
+      const GH = [
+        ans === 2 ? 'Over všetky axiómy grupy: uzavretosť, asociatívnosť, neutrálny prvok a inverzie. Stačí, aby jedna zlyhala.'
+          : 'Over komutatívnosť: skús nájsť dva prvky, pre ktoré $a\\ast b\\neq b\\ast a$.',
+        ans === 2 ? 'Komutatívnosť riešime až vtedy, keď je štruktúra grupou. Over najprv axiómy grupy (uzavretosť, neutrálny prvok, inverzie).'
+          : 'Over, či sa výsledok operácie naozaj zmení pri výmene poradia operandov.',
+        'Over axiómy znova: je operácia uzavretá, existuje neutrálny prvok a má každý prvok inverz?'
+      ];
+      const choiceHints = {};
+      O.forEach((x, i) => { if (i !== ans) choiceHints[x] = GH[i]; });
       return {
+        choiceHints,
         type: 'choice', options: O, answer: O[ans],
         q: `Rozhodni o štruktúre $${t}$.`,
         solution: `${why} Odpoveď: <strong>${O[ans]}</strong>.`,
@@ -266,7 +290,18 @@
     }
     const o = cyc.reduce((s, c) => lcm(s, c.length), 1);
     const two = `\\begin{pmatrix}${perm.map((_, i) => i + 1).join('&')}\\\\${perm.join('&')}\\end{pmatrix}`;
+    const sumL = cyc.reduce((s, c) => s + c.length, 0), prodL = cyc.reduce((s, c) => s * c.length, 1);
+    const c1 = cyc.find((c) => c.includes(1));
     return {
+      mistakes: [
+        ...(sumL !== o ? [{ value: sumL, msg: 'Rád permutácie nie je súčet dĺžok cyklov, ale ich najmenší spoločný násobok.' }] : []),
+        ...(prodL !== o && prodL !== sumL ? [{ value: prodL, msg: 'Súčin dĺžok cyklov je len násobok rádu; rád je ich najmenší spoločný násobok.' }] : [])
+      ],
+      steps: [
+        { q: 'Akú dĺžku má cyklus, ktorý obsahuje číslo $1$? (Ak je $1$ pevný bod, zadaj 1.)', answer: c1 ? c1.length : 1 },
+        { q: 'Koľko cyklov dĺžky aspoň 2 má rozklad $\\sigma$ na disjunktné cykly?', answer: cyc.length },
+        { q: 'Aký je rád permutácie $\\sigma$?', answer: o, hint: 'Rád je NSN dĺžok cyklov.' }
+      ],
       answer: o,
       q: `Aký je rád permutácie $\\sigma=${two}$ v grupe $S_{${n}}$?`,
       solution: `Rozklad na disjunktné cykly: $\\sigma=${cyc.map((c) => `(${c.join('\\,')})`).join('')}$, dĺžky cyklov sú $${cyc.map((c) => c.length).join(', ')}$.`
@@ -327,6 +362,14 @@
       const p = pick([7, 11, 13, 17, 19, 23, 29, 31]), a = rnd(2, p - 1), x = inv(a, p);
       const E = euclid(p, a), [, , t] = egcd(p, a);
       return {
+        mistakes: [
+          ...(t < 0 ? [{ value: t, msg: `Koeficient z Euklidovho algoritmu je správny, ale výsledok treba zapísať ako zvyšok z $\\{0, \\dots, ${p - 1}\\}$: pripočítaj $${p}$.` }] : []),
+          ...(p - x !== x ? [{ value: p - x, msg: 'Pri spätnom dosadzovaní v Euklidovom algoritme si sa pomýlil v znamienku. Urob skúšku: súčin s pôvodným číslom musí dať zvyšok 1.' }] : [])
+        ],
+        steps: [
+          { q: `Prvý krok Euklidovho algoritmu: aký zvyšok dáva $${p}$ po delení číslom $${a}$?`, answer: p % a },
+          { q: `Zapíš $${a}^{-1}$ ako číslo z $\\{0, \\dots, ${p - 1}\\}$.`, answer: x }
+        ],
         answer: x,
         q: `Nájdi inverzný prvok k $${a}$ v poli $\\mathbb{Z}_{${p}}$. Výsledok zadaj ako číslo z $\\{0, 1, \\dots, ${p - 1}\\}$.`,
         solution: `Euklidov algoritmus: $${E.join(',\\ ')}$. Spätným dosadením dostaneme $1=${par(egcd(p, a)[1])}\\cdot ${p}+${par(t)}\\cdot ${a}$, teda $${a}^{-1}\\equiv ${t}\\equiv ${x} \\pmod{${p}}$. Skúška: $${a}\\cdot ${x}=${a * x}=${Math.floor(a * x / p)}\\cdot ${p}+1$.`,
@@ -336,6 +379,14 @@
     if (k === 1) {
       const p = pick([5, 7, 11, 13, 17, 19]), a = rnd(2, p - 1), b = rnd(1, p - 1), ai = inv(a, p), x = b * ai % p;
       return {
+        mistakes: [
+          ...(a * b % p !== x ? [{ value: a * b % p, msg: `Rovnicu treba vynásobiť inverzným prvkom $${a}^{-1}$, nie číslom $${a}$.` }] : []),
+          ...(ai !== x && ai !== a * b % p ? [{ value: ai, msg: `Toto je inverz $${a}^{-1}$. Ešte ním vynásob pravú stranu $${b}$.` }] : [])
+        ],
+        steps: [
+          { q: `Nájdi $${a}^{-1}$ v $\\mathbb{Z}_{${p}}$.`, answer: ai },
+          { q: `Vypočítaj $x = ${b}\\cdot ${a}^{-1} \\bmod ${p}$.`, answer: x }
+        ],
         answer: x,
         q: `V poli $\\mathbb{Z}_{${p}}$ vyrieš rovnicu $${a}\\cdot x=${b}$. Výsledok zadaj ako číslo z $\\{0, \\dots, ${p - 1}\\}$.`,
         solution: `V poli môžeme deliť: $x=${b}\\cdot ${a}^{-1}$. Inverz je $${a}^{-1}=${ai}$, lebo $${a}\\cdot ${ai}=${a * ai}\\equiv 1$. Teda $x=${b}\\cdot ${ai}=${b * ai}\\equiv ${x} \\pmod{${p}}$.`,
@@ -345,6 +396,11 @@
     if (k === 2) {
       const n = pick([8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 24, 25, 26, 27, 28, 30]), f = phi(n), z = n - 1 - f;
       return {
+        mistakes: f !== z ? [{ value: f, msg: `Toto je počet invertibilných prvkov $\\varphi(${n})$. Delitele nuly sú zvyšné nenulové prvky.` }] : [],
+        steps: [
+          { q: `Vypočítaj $\\varphi(${n})$, teda počet invertibilných prvkov.`, answer: f },
+          { q: 'Koľko je deliteľov nuly?', answer: z }
+        ],
         answer: z,
         q: `Koľko deliteľov nuly má okruh $\\mathbb{Z}_{${n}}$?`,
         solution: `Nenulový prvok $a$ je buď invertibilný ($\\operatorname{NSD}(a, ${n})=1$), alebo deliteľ nuly. Invertibilných je $\\varphi(${n})=${f}$ (lebo $${n}=${factTex(n)}$), deliteľov nuly je teda $${n}-1-${f}=${z}$.`,
@@ -354,7 +410,12 @@
     if (k === 3) {
       const n = pick([7, 9, 10, 12, 14, 15, 16, 18, 20, 21, 22, 24, 30, 36]), f = phi(n);
       const U = Array.from({ length: n }, (_, i) => i).filter((a) => gcd(a, n) === 1);
+      const wPhi = factor(n).reduce((s, [p, e]) => s * Math.pow(p - 1, e), 1);
       return {
+        mistakes: [
+          ...(n - 1 !== f ? [{ value: n - 1, msg: `Invertibilné sú len prvky nesúdeliteľné s $${n}$; všetky nenulové by to boli len pre prvočíslo.` }] : []),
+          ...(wPhi !== f ? [{ value: wPhi, msg: 'Pre mocninu prvočísla platí $\\varphi(p^{e}) = p^{e-1}(p-1)$, nie $(p-1)^{e}$.' }] : [])
+        ],
         answer: f,
         q: `Koľko invertibilných prvkov má okruh $\\mathbb{Z}_{${n}}$?`,
         solution: `Invertibilné sú zvyšky nesúdeliteľné s $${n}$: $${U.join(', ')}$. Je ich $\\varphi(${n})=${f}$.`,
@@ -363,7 +424,17 @@
     }
     const O = ['pole', 'obor integrity, ale nie pole', 'okruh s deliteľmi nuly'];
     const [t, ans, why] = pick(RINGS)();
+    const RH = [
+      ans === 1 ? 'Pole vyžaduje inverz ku každému nenulovému prvku. Má ho naozaj každý?'
+        : 'V poli nemôžu byť delitele nuly. Skús nájsť dva nenulové prvky so súčinom $0$.',
+      ans === 0 ? 'Over, či náhodou nemá inverz každý nenulový prvok – potom je to pole.'
+        : 'Obor integrity nemá delitele nuly. Skús nájsť nenulové $a, b$ s $ab = 0$.',
+      'Delitele nuly sú nenulové $a, b$ s $ab = 0$. Vieš také konkrétne nájsť?'
+    ];
+    const choiceHints = {};
+    O.forEach((x, i) => { if (i !== ans) choiceHints[x] = RH[i]; });
     return {
+      choiceHints,
       type: 'choice', options: O, answer: O[ans],
       q: `Ktorá možnosť najlepšie opisuje okruh $${t}$ (s obvyklým sčítaním a násobením)?`,
       solution: `${why} Odpoveď: <strong>${O[ans]}</strong>.`,
@@ -427,18 +498,30 @@
     if (k === 0) {
       const n = pick([8, 9, 10, 12, 14, 15, 16, 18, 20, 24]), c = rnd(2, n - 1), d = gcd(c, n), askKer = Math.random() < 0.5;
       const ker = Array.from({ length: d }, (_, i) => i * n / d);
-      return {
+      const o = {
+        mistakes: d !== n / d ? [{ value: askKer ? n / d : d, msg: askKer
+          ? 'Toto je počet prvkov obrazu. Jadro tvoria prvky, ktoré sa zobrazia na $0$, a má ich $\\operatorname{NSD}(c, n)$.'
+          : 'Toto je počet prvkov jadra. Obraz dostaneš z rovnosti $|G| = |\\ker f|\\cdot|\\operatorname{Im} f|$.' }] : [],
         answer: askKer ? d : n / d,
         q: `Homomorfizmus $f:\\mathbb{Z}_{${n}}\\to\\mathbb{Z}_{${n}}$ je daný predpisom $f(x)=${c}x$. Koľko prvkov má ${askKer ? 'jeho jadro $\\ker f$' : 'jeho obraz $\\operatorname{Im} f$'}?`,
         solution: `$${c}x\\equiv 0 \\pmod{${n}}$ práve vtedy, keď $\\frac{${n}}{${d}}\\mid x$ (lebo $\\operatorname{NSD}(${c}, ${n})=${d}$), teda $\\ker f=\\{${ker.join(', ')}\\}$ má $${d}$ prvkov.`
           + ` Z rovnosti $|\\mathbb{Z}_{${n}}|=|\\ker f|\\cdot|\\operatorname{Im} f|$ má obraz $\\frac{${n}}{${d}}=${n / d}$ prvkov. Odpoveď: $${askKer ? d : n / d}$.`,
         hint: 'Jadro tvoria $x$ s $cx\\equiv 0 \\pmod n$; má $\\operatorname{NSD}(c, n)$ prvkov. Potom použi $|G|=|\\ker f|\\cdot|\\operatorname{Im} f|$.'
       };
+      if (!askKer) {
+        o.steps = [
+          { q: `Vypočítaj $\\operatorname{NSD}(${c}, ${n})$.`, answer: d },
+          { q: 'Koľko prvkov má jadro $\\ker f$?', answer: d },
+          { q: 'Koľko prvkov má obraz $\\operatorname{Im} f$?', answer: n / d }
+        ];
+      }
+      return o;
     }
     if (k === 1) {
       const m = pick([4, 6, 8, 9, 10, 12, 15, 18, 20, 24]), n = pick([4, 6, 8, 9, 10, 12, 14, 15, 16, 18]), d = gcd(m, n);
       const vals = Array.from({ length: d }, (_, i) => i * n / d);
       return {
+        mistakes: n !== d ? [{ value: n, msg: `Obraz generátora $f(1) = a$ nemôže byť ľubovoľný: musí platiť $${m}\\cdot a\\equiv 0 \\pmod{${n}}$.` }] : [],
         answer: d,
         q: `Koľko existuje homomorfizmov grúp $(\\mathbb{Z}_{${m}}, +)\\to(\\mathbb{Z}_{${n}}, +)$?`,
         solution: `Homomorfizmus je určený obrazom generátora $a=f(1)$, pričom musí platiť $${m}\\cdot a\\equiv 0 \\pmod{${n}}$, t. j. $\\frac{${n}}{${d}}\\mid a$.`
@@ -449,7 +532,17 @@
     if (k === 2) {
       const O = ['izomorfizmus', 'homomorfizmus, ale nie izomorfizmus', 'nie je homomorfizmus'];
       const [t, ans, why] = pick(HOMS)();
+      const HH = [
+        ans === 1 ? 'Izomorfizmus musí byť bijekcia: over, či nemajú dva prvky rovnaký obraz a či je zobrazenie surjektívne.'
+          : 'Najprv over, či $f(a\\ast b) = f(a)\\circ f(b)$. Pomôže napríklad otázka, kam sa zobrazí neutrálny prvok.',
+        ans === 0 ? 'Over, či zobrazenie nie je aj bijektívne – potom je to izomorfizmus.'
+          : 'Over rovnosť $f(a\\ast b) = f(a)\\circ f(b)$ na konkrétnych prvkoch, napríklad $a = b = 1$.',
+        'Over rovnosť $f(a\\ast b) = f(a)\\circ f(b)$ všeobecne, pre ľubovoľné prvky; použi známe vlastnosti funkcie.'
+      ];
+      const choiceHints = {};
+      O.forEach((x, i) => { if (i !== ans) choiceHints[x] = HH[i]; });
       return {
+        choiceHints,
         type: 'choice', options: O, answer: O[ans],
         q: `Rozhodni o zobrazení $${t}$.`,
         solution: `${why} Odpoveď: <strong>${O[ans]}</strong>.`,
@@ -461,6 +554,14 @@
       do { m = pick([6, 8, 9, 10, 12, 15, 18, 20]); n = pick([4, 6, 8, 9, 10, 12, 15, 16, 18]); d = gcd(m, n); } while (d < 2);
       const a = (n / d) * rnd(1, d - 1), x = rnd(2, m - 1), y = x * a % n;
       return {
+        mistakes: [
+          ...(x * a !== y ? [{ value: x * a, msg: `Výsledok je prvok $\\mathbb{Z}_{${n}}$, treba ho zredukovať modulo $${n}$.` }] : []),
+          ...((x + a) % n !== y ? [{ value: (x + a) % n, msg: `Homomorfizmus zachováva násobky: $f(${x}) = ${x}\\cdot f(1)$, nie $${x} + f(1)$.` }] : [])
+        ],
+        steps: [
+          { q: `Vypočítaj súčin $${x}\\cdot f(1)$ (bez redukcie).`, answer: x * a },
+          { q: `Zredukuj ho modulo $${n}$.`, answer: y }
+        ],
         answer: y,
         q: `Homomorfizmus $f:\\mathbb{Z}_{${m}}\\to\\mathbb{Z}_{${n}}$ spĺňa $f(1)=${a}$. Vypočítaj $f(${x})$ ako číslo z $\\{0, \\dots, ${n - 1}\\}$.`,
         solution: `$${x}=1+1+\\dots+1$ (${x}-krát), preto $f(${x})=${x}\\cdot f(1)=${x}\\cdot ${a}=${x * a}\\equiv ${y} \\pmod{${n}}$.`
@@ -471,6 +572,7 @@
     const n = pick([5, 7, 8, 9, 10, 12, 14, 15, 16, 18, 20]), f = phi(n);
     const U = Array.from({ length: n }, (_, i) => i).filter((a) => gcd(a, n) === 1);
     return {
+      mistakes: n !== f ? [{ value: n, msg: `Toto je počet všetkých homomorfizmov $\\mathbb{Z}_{${n}}\\to\\mathbb{Z}_{${n}}$. Izomorfizmus musí poslať generátor $1$ na generátor.` }] : [],
       answer: f,
       q: `Koľko izomorfizmov $\\mathbb{Z}_{${n}}\\to\\mathbb{Z}_{${n}}$ (automorfizmov) existuje?`,
       solution: `Homomorfizmus $f(x)=ax$ je bijekcia práve vtedy, keď $f(1)=a$ je generátor $\\mathbb{Z}_{${n}}$, t. j. $\\operatorname{NSD}(a, ${n})=1$. Takých $a$ je $\\varphi(${n})=${f}$: $${U.join(', ')}$.`,
@@ -512,8 +614,16 @@
         const e = n - i, pw = e === 0 ? '' : e === 1 ? String(c) : `${c}^{${e}}`;
         return e === 0 ? String(a) : a === 1 ? pw : `${a}\\cdot ${pw}`;
       }).filter(Boolean);
-      const raw = f.reduce((s, a) => s * c + a, 0);
+      const raw = f.reduce((s, a) => s * c + a, 0), vm = evalP(f, p - c, p);
       return {
+        mistakes: [
+          ...(raw !== v ? [{ value: raw, msg: `Hodnotu $f(${c})$ treba ešte zredukovať modulo $${p}$, zvyšok má byť z $\\{0, \\dots, ${p - 1}\\}$.` }] : []),
+          ...(vm !== v ? [{ value: vm, msg: `Pri delení polynómom $x-${c}$ dosadzuješ $x = ${c}$, nie $x = -${c}$.` }] : [])
+        ],
+        steps: [
+          { q: `Dosaď $x = ${c}$ do $f$ a vypočítaj hodnotu ako celé číslo (bez redukcie).`, answer: raw },
+          { q: `Zredukuj výsledok modulo $${p}$.`, answer: v }
+        ],
         answer: v,
         q: `Aký je zvyšok po delení polynómu $f=${polyTex(f)}$ polynómom $x-${c}$ v $\\mathbb{Z}_{${p}}[x]$? (Zvyšok je konštanta z $\\{0, \\dots, ${p - 1}\\}$.)`,
         solution: `Podľa Bézoutovej vety je zvyšok $f(${c})$. Dosadením: $${terms.join(' + ')}=${raw}\\equiv ${v} \\pmod{${p}}$.`,
@@ -526,6 +636,12 @@
       const vals = Array.from({ length: p }, (_, x) => evalP(f, x, p));
       const roots = vals.map((v, x) => (v === 0 ? x : -1)).filter((x) => x >= 0);
       return {
+        mistakes: roots.length !== 3 ? [{ value: 3, msg: `Polynóm stupňa 3 má nad poľom najviac 3 korene, nie vždy práve 3. Dosaď všetky prvky $\\mathbb{Z}_{${p}}$.` }] : [],
+        steps: [
+          { q: `Vypočítaj $f(0)$ v $\\mathbb{Z}_{${p}}$.`, answer: vals[0] },
+          { q: `Vypočítaj $f(1)$ v $\\mathbb{Z}_{${p}}$.`, answer: vals[1] },
+          { q: `Dosaď aj ostatné prvky. Koľko rôznych koreňov má polynóm?`, answer: roots.length }
+        ],
         answer: roots.length,
         q: `Koľko rôznych koreňov má polynóm $${polyTex(f)}$ v poli $\\mathbb{Z}_{${p}}$?`,
         solution: `Dosadíme všetky prvky: ${vals.map((v, x) => `$f(${x})\\equiv ${v}$`).join(', ')}. `
@@ -539,7 +655,16 @@
       const D = polyDiv(f, g, p);
       const r = D.r.length === 1 ? [0, D.r[0]] : D.r;
       const steps = D.steps.map((s) => `odčítame $${mono(s.c, s.k)}\\cdot(${polyTex(g)})$ a zostane $${polyTex(s.r)}$`).join('; ');
+      // delenie v Z[x] bez redukcie modulo p (g je normovaný)
+      const q1 = f[0], q0 = f[1] - q1 * g[1], ri = [f[2] - q1 * g[2] - q0 * g[1], f[3] - q0 * g[2]];
+      const qq = trim(D.q);
       return {
+        mistakes: ri[0] !== r[0] || ri[1] !== r[1] ? [{ value: ri, msg: `Koeficienty počas delenia aj vo zvyšku treba redukovať modulo $${p}$, aby ležali v $\\{0, \\dots, ${p - 1}\\}$.` }] : [],
+        steps: [
+          { q: 'Aký je koeficient podielu pri $x$?', answer: qq.length > 1 ? qq[0] : 0 },
+          { q: 'Aký je absolútny člen podielu?', answer: qq[qq.length - 1] },
+          { q: 'Zadaj zvyšok v tvare „r₁; r₀“.', type: 'tuple', answer: r, placeholder: 'r₁; r₀' }
+        ],
         type: 'tuple', answer: r, placeholder: 'r₁; r₀',
         q: `V $\\mathbb{Z}_{${p}}[x]$ vydeľ so zvyškom $f=${polyTex(f)}$ polynómom $g=${polyTex(g)}$. Zvyšok má tvar $r_1x+r_0$; zadaj „r₁; r₀“ s hodnotami z $\\{0, \\dots, ${p - 1}\\}$.`,
         solution: `Delíme pod sebou, koeficienty redukujeme modulo $${p}$: ${steps}. Podiel je $q=${polyTex(trim(D.q))}$ a zvyšok $r=${polyTex(D.r)}$, teda $r_1=${r[0]}$, $r_0=${r[1]}$.`,
@@ -553,6 +678,9 @@
       const root = vals.indexOf(0);
       const O = ['ireducibilný', 'reducibilný'];
       return {
+        choiceHints: root < 0
+          ? { [O[1]]: `Polynóm stupňa ${deg} je reducibilný len vtedy, keď má koreň. Over hodnoty vo všetkých prvkoch $\\mathbb{Z}_{${p}}$.` }
+          : { [O[0]]: `Dosaď všetky prvky $\\mathbb{Z}_{${p}}$ a počítaj modulo $${p}$; ak niektorý dá $0$, polynóm má lineárny činiteľ.` },
         type: 'choice', options: O, answer: root < 0 ? O[0] : O[1],
         q: `Je polynóm $${polyTex(f)}$ ireducibilný nad poľom $\\mathbb{Z}_{${p}}$?`,
         solution: `Polynóm má stupeň $${deg}$, preto je reducibilný práve vtedy, keď má v $\\mathbb{Z}_{${p}}$ koreň. Hodnoty: ${vals.map((v, x) => `$f(${x})\\equiv ${v}$`).join(', ')}. `
@@ -565,6 +693,15 @@
     do { r = rnd(-6, 6); s = rnd(-6, 6); t = rnd(-6, 6); } while (s === t || r === s || r === t);
     const f = [1, -(r + s), r * s], g = [1, -(r + t), r * t], dfg = t - s;
     return {
+      mistakes: [
+        { value: s, msg: 'Toto je koreň len polynómu $f$. NSD tvorí spoločný činiteľ oboch polynómov.' },
+        { value: t, msg: 'Toto je koreň len polynómu $g$. NSD tvorí spoločný činiteľ oboch polynómov.' }
+      ],
+      steps: [
+        { q: 'Vypočítaj $f - g$. Aký je jeho koeficient pri $x$?', answer: dfg, signed: true },
+        { q: 'Aký je absolútny člen polynómu $f - g$?', answer: -dfg * r, signed: true },
+        { q: 'Urči $c$.', answer: r, signed: true }
+      ],
       signed: true, answer: r,
       q: `Najväčší spoločný deliteľ polynómov $f=${polyTex(f)}$ a $g=${polyTex(g)}$ v $\\mathbb{Q}[x]$ má tvar $x-c$. Urči $c$.`,
       solution: `Prvý krok Euklidovho algoritmu: $f-g=${polyTex([dfg, -dfg * r])}=${dfg}\\,(${polyTex([1, -r])})$. NSD teda delí $${polyTex([1, -r])}$.`
@@ -616,6 +753,12 @@
       const n = rnd(3, 13), a = rnd(100, 999), b = rnd(100, 999), c = rnd(10, 99), r = (a * b + c) % n;
       const ra = a % n, rb = b % n, rc = c % n;
       return {
+        mistakes: ra * rb + rc !== r ? [{ value: ra * rb + rc, msg: `Po dosadení zvyškov treba výsledok $${ra}\\cdot ${rb}+${rc}$ ešte raz zredukovať modulo $${n}$.` }] : [],
+        steps: [
+          { q: `Aký zvyšok dáva $${a}$ po delení $${n}$?`, answer: ra },
+          { q: `Aký zvyšok dáva $${b}$ po delení $${n}$?`, answer: rb },
+          { q: `Aký zvyšok dáva celé číslo $${a}\\cdot ${b}+${c}$?`, answer: r }
+        ],
         answer: r,
         q: `Aký zvyšok dáva číslo $${a}\\cdot ${b}+${c}$ po delení číslom $${n}$?`,
         solution: `Nahradíme čísla zvyškami: $${a}\\equiv ${ra}$, $${b}\\equiv ${rb}$, $${c}\\equiv ${rc} \\pmod{${n}}$. Potom $${a}\\cdot ${b}+${c}\\equiv ${ra}\\cdot ${rb}+${rc}=${ra * rb + rc}\\equiv ${r} \\pmod{${n}}$.`,
@@ -627,6 +770,14 @@
       do { n = rnd(10, 60); a = rnd(2, n - 1); } while (gcd(a, n) !== 1);
       const x = inv(a, n), [, s, t] = egcd(n, a);
       return {
+        mistakes: [
+          ...(t < 0 ? [{ value: t, msg: `Bézoutov koeficient je správny, ale inverz treba zapísať ako číslo z $\\{0, \\dots, ${n - 1}\\}$: pripočítaj $${n}$.` }] : []),
+          ...(n - x !== x && n - x !== t ? [{ value: n - x, msg: 'Pri spätnom dosadzovaní si sa pomýlil v znamienku. Urob skúšku: $a\\cdot x$ musí dať zvyšok $1$, nie $-1$.' }] : [])
+        ],
+        steps: [
+          { q: `Prvý krok Euklidovho algoritmu: aký zvyšok dáva $${n}$ po delení číslom $${a}$?`, answer: n % a },
+          { q: `Urči inverz $${a}^{-1}$ modulo $${n}$.`, answer: x }
+        ],
         answer: x,
         q: `Nájdi inverz čísla $${a}$ modulo $${n}$, t. j. $x\\in\\{0, \\dots, ${n - 1}\\}$ s $${a}x\\equiv 1 \\pmod{${n}}$.`,
         solution: `Euklidov algoritmus: $${euclid(n, a).join(',\\ ')}$. Spätne $1=${par(s)}\\cdot ${n}+${par(t)}\\cdot ${a}$, teda $${a}^{-1}\\equiv ${t}\\equiv ${x} \\pmod{${n}}$. Skúška: $${a}\\cdot ${x}=${a * x}\\equiv 1$.`,
@@ -638,6 +789,14 @@
       do { n = rnd(7, 40); a = rnd(2, n - 1); } while (gcd(a, n) !== 1);
       const b = rnd(1, n - 1), ai = inv(a, n), x = ai * b % n;
       return {
+        mistakes: [
+          ...(a * b % n !== x ? [{ value: a * b % n, msg: `Obe strany treba vynásobiť inverzom $${a}^{-1}$, nie samotným číslom $${a}$.` }] : []),
+          ...(ai !== x && ai !== a * b % n ? [{ value: ai, msg: `Toto je inverz $${a}^{-1}$. Ešte ním vynásob pravú stranu $${b}$.` }] : [])
+        ],
+        steps: [
+          { q: `Nájdi inverz $${a}^{-1}$ modulo $${n}$.`, answer: ai },
+          { q: `Vypočítaj $x\\equiv ${a}^{-1}\\cdot ${b} \\pmod{${n}}$.`, answer: x }
+        ],
         answer: x,
         q: `Vyrieš kongruenciu $${a}x\\equiv ${b} \\pmod{${n}}$. Zadaj riešenie z $\\{0, \\dots, ${n - 1}\\}$.`,
         solution: `$\\operatorname{NSD}(${a}, ${n})=1$, riešenie je jediné. Inverz k $${a}$ modulo $${n}$ je $${ai}$ ($${a}\\cdot ${ai}=${a * ai}\\equiv 1$). Vynásobením: $x\\equiv ${ai}\\cdot ${b}=${ai * b}\\equiv ${x} \\pmod{${n}}$.`,
@@ -651,6 +810,14 @@
       const sols = [];
       for (let x = 0; x < n; x++) if ((a * x - b) % n === 0) sols.push(x);
       return {
+        mistakes: [
+          ...(sols.length > 1 ? [{ value: 1, msg: `Riešenie nie je jediné: koeficient pri $x$ je súdeliteľný s modulom. Riešení je toľko, koľko je $\\operatorname{NSD}(a, n)$.` }] : []),
+          ...(!sols.length ? [{ value: d, msg: `Riešenia existujú len vtedy, keď $\\operatorname{NSD}(a, n)$ delí pravú stranu $${b}$. Over túto podmienku.` }] : [])
+        ],
+        steps: [
+          { q: `Vypočítaj $d = \\operatorname{NSD}(${a}, ${n})$.`, answer: d },
+          { q: 'Koľko riešení má kongruencia v danej množine?', answer: sols.length }
+        ],
         answer: sols.length,
         q: `Koľko riešení v množine $\\{0, 1, \\dots, ${n - 1}\\}$ má kongruencia $${a}x\\equiv ${b} \\pmod{${n}}$?`,
         solution: `$d=\\operatorname{NSD}(${a}, ${n})=${d}$. ` + (sol
@@ -666,12 +833,25 @@
     const as = ms.map((m) => rnd(0, m - 1));
     if (as.every((a) => a === 0)) as[0] = 1;
     const R = crtSolve(as, ms);
-    return {
+    const o = {
+      mistakes: [
+        ...(mod(as[0] + as[1], ms[0] * ms[1]) !== R.x && !three ? [{ value: mod(as[0] + as[1], ms[0] * ms[1]), msg: 'Zvyšky sa nesčítavajú. Vyjadri $x = a_1 + m_1t$ z prvej kongruencie a dosaď do druhej.' }] : []),
+        { value: R.x + R.M, msg: `Toto číslo sústavu spĺňa, ale nie je najmenšie nezáporné. Riešenie je jednoznačné modulo $${R.M}$, zredukuj ho.` }
+      ],
       answer: R.x,
       q: `Nájdi najmenšie nezáporné $x$, ktoré spĺňa ${ms.map((m, i) => `$x\\equiv ${as[i]} \\pmod{${m}}$`).join(three ? ', ' : ' a ').replace(/, ([^,]*)$/, ' a $1')}.`,
       solution: `Moduly sú po dvoch nesúdeliteľné, podľa čínskej zvyškovej vety je riešenie jednoznačné modulo $${R.M}$. ${R.text} Najmenšie nezáporné riešenie je $x=${R.x}$.`,
       hint: 'Z prvej kongruencie vyjadri $x=a_1+m_1t$, dosaď do ďalšej a vyrieš lineárnu kongruenciu pre $t$.'
     };
+    if (!three) {
+      const [m1, m2] = ms, cM = m1 % m2, rhs = mod(as[1] - as[0], m2), tt = rhs * inv(cM, m2) % m2;
+      o.steps = [
+        { q: `Z prvej kongruencie $x = ${as[0]} + ${m1}t$. Po dosadení do druhej dostaneš $${cM}t\\equiv c \\pmod{${m2}}$. Urči $c$ ako číslo z $\\{0, \\dots, ${m2 - 1}\\}$.`, answer: rhs },
+        { q: `Vyrieš kongruenciu pre $t$ (číslo z $\\{0, \\dots, ${m2 - 1}\\}$).`, answer: tt },
+        { q: 'Urči najmenšie nezáporné $x$.', answer: R.x }
+      ];
+    }
+    return o;
   });
 
   // ===== 60: teória čísel =====
@@ -706,8 +886,13 @@
       const d = rnd(2, 15), a = d * rnd(5, 40), b = d * rnd(3, 30);
       const A = Math.max(a, b), B = Math.min(a, b);
       if (A === B) return { answer: A, q: `Vypočítaj $\\operatorname{NSD}(${A}, ${B})$.`, solution: `Čísla sú rovnaké, $\\operatorname{NSD}=${A}$.`, hint: 'Použi Euklidov algoritmus.' };
-      const g = gcd(A, B);
+      const g = gcd(A, B), r1 = A % B;
       return {
+        mistakes: r1 !== g && r1 !== 0 ? [{ value: r1, msg: 'Toto je len prvý zvyšok. Pokračuj: $\\operatorname{NSD}(a, b) = \\operatorname{NSD}(b, r)$, kým nedostaneš zvyšok $0$; NSD je posledný nenulový zvyšok.' }] : [],
+        steps: [
+          { q: `Aký zvyšok dáva $${A}$ po delení číslom $${B}$?`, answer: r1 },
+          { q: `Pokračuj v algoritme. Aký je $\\operatorname{NSD}(${A}, ${B})$?`, answer: g }
+        ],
         answer: g,
         q: `Euklidovým algoritmom vypočítaj $\\operatorname{NSD}(${A}, ${B})$.`,
         solution: `$${euclid(A, B).join(',\\ ')}$. Posledný nenulový zvyšok je $${g}$, teda $\\operatorname{NSD}(${A}, ${B})=${g}$.`,
@@ -720,6 +905,12 @@
       d = gcd(a, b);
       const [, x0, y0] = egcd(a, b), step = b / d, x = mod(x0, step), y = (d - a * x) / b;
       return {
+        mistakes: x0 !== x ? [{ value: x0, msg: `Našiel si jedno riešenie, ale nie v požadovanom rozsahu. Ostatné riešenia sa líšia o násobky $${step}$ – posuň $x$ do intervalu $\\langle 0; ${step})$.` }] : [],
+        steps: [
+          { q: `Vypočítaj $\\operatorname{NSD}(${a}, ${b})$.`, answer: d },
+          { q: `O koľko sa líšia hodnoty $x$ dvoch susedných riešení?`, answer: step, hint: 'Rozdiel je $\\frac{b}{\\operatorname{NSD}(a, b)}$.' },
+          { q: `Nájdi $x$ s $0\\leq x &lt; ${step}$.`, answer: x }
+        ],
         answer: x,
         q: `Bézoutova rovnosť $${a}x+${b}y=\\operatorname{NSD}(${a}, ${b})$ má nekonečne veľa celočíselných riešení. Nájdi to, pre ktoré $0\\leq x&lt;${step}$, a zadaj hodnotu $x$.`,
         solution: `$${euclid(a, b).join(',\\ ')}$, teda $\\operatorname{NSD}=${d}$. Spätným dosadením $${a}\\cdot ${par(x0)}+${b}\\cdot ${par(y0)}=${d}$.`
@@ -730,7 +921,16 @@
     if (k === 2) {
       const n = pick([12, 15, 18, 20, 21, 24, 28, 30, 36, 40, 42, 45, 48, 50, 60, 63, 72, 84, 90, 100, 105, 120, 126, 144]);
       const F = factor(n), f = phi(n);
+      const wPhi = F.reduce((s, [p, e]) => s * Math.pow(p - 1, e), 1), [p1, e1] = F[0];
       return {
+        mistakes: [
+          ...(wPhi !== f ? [{ value: wPhi, msg: 'Pre mocninu prvočísla platí $\\varphi(p^{e}) = p^{e} - p^{e-1} = p^{e-1}(p-1)$, nie $(p-1)^{e}$.' }] : []),
+          ...(n - 1 !== f ? [{ value: n - 1, msg: `$\\varphi(n) = n - 1$ platí len pre prvočísla. Číslo $${n}$ je zložené, rozlož ho na prvočinitele.` }] : [])
+        ],
+        steps: [
+          { q: `Vypočítaj $\\varphi(${e1 > 1 ? `${p1}^{${e1}}` : p1})$ pre najmenší prvočiniteľ čísla $${n}$ (s jeho exponentom).`, answer: (p1 - 1) * Math.pow(p1, e1 - 1) },
+          { q: `Vypočítaj $\\varphi(${n})$.`, answer: f, hint: 'Pre nesúdeliteľné $m, k$ je $\\varphi(mk) = \\varphi(m)\\varphi(k)$.' }
+        ],
         answer: f,
         q: `Vypočítaj hodnotu Eulerovej funkcie $\\varphi(${n})$.`,
         solution: `$${n}=${factTex(n)}$, teda $\\varphi(${n})=${n}${F.map(([p]) => `\\left(1-\\frac{1}{${p}}\\right)`).join('')}=`
@@ -743,7 +943,14 @@
       do { n = pick([7, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 25]); a = rnd(2, 12); } while (gcd(a, n) !== 1 || a % n === 1);
       const e = rnd(50, 999), f = phi(n), r = e % f, v = powmod(a, e, n);
       const thm = isPrime(n) ? `Malá Fermatova veta: $${a}^{${f}}\\equiv 1 \\pmod{${n}}$` : `$\\varphi(${n})=${f}$ a podľa Eulerovej vety $${a}^{${f}}\\equiv 1 \\pmod{${n}}$`;
+      const wv = powmod(a, e % n, n);
       return {
+        mistakes: wv !== v ? [{ value: wv, msg: `Exponent sa redukuje modulo $\\varphi(${n})$, nie modulo $${n}$.` }] : [],
+        steps: [
+          { q: `Vypočítaj $\\varphi(${n})$.`, answer: f },
+          { q: `Aký zvyšok dáva exponent $${e}$ po delení číslom $\\varphi(${n})$?`, answer: r },
+          { q: `Vypočítaj zvyšok $${a}^{${e}}$ po delení $${n}$.`, answer: v }
+        ],
         answer: v,
         q: `Vypočítaj zvyšok čísla $${a}^{${e}}$ po delení $${n}$.`,
         solution: `$\\operatorname{NSD}(${a}, ${n})=1$. ${thm}. Keďže $${e}=${Math.floor(e / f)}\\cdot ${f}+${r}$, je $${a}^{${e}}\\equiv ${a}^{${r}}$`
@@ -757,8 +964,13 @@
     do { p = pick(P); q = pick(P); f = (p - 1) * (q - 1); e = pick([3, 5, 7, 11, 13, 17]); } while (p === q || gcd(e, f) !== 1 || e >= f);
     const N = p * q;
     if (k === 4) {
-      const d = inv(e, f);
+      const d = inv(e, f), dN = gcd(e, N) === 1 ? inv(e, N) : d;
       return {
+        mistakes: dN !== d ? [{ value: dN, msg: 'Súkromný exponent je inverz $e$ modulo $\\varphi(N) = (p-1)(q-1)$, nie modulo $N$.' }] : [],
+        steps: [
+          { q: 'Vypočítaj $\\varphi(N)$.', answer: f },
+          { q: `Nájdi $d\\equiv ${e}^{-1} \\pmod{\\varphi(N)}$.`, answer: d }
+        ],
         answer: d,
         q: `V šifre RSA sú zvolené prvočísla $p=${p}$, $q=${q}$ a verejný exponent $e=${e}$. Vypočítaj súkromný exponent $d$ ($0&lt;d&lt;\\varphi(N)$).`,
         solution: `$N=${N}$, $\\varphi(N)=(${p}-1)(${q}-1)=${f}$. Hľadáme $d\\equiv ${e}^{-1} \\pmod{${f}}$: Euklidov algoritmus $${euclid(f, e).join(',\\ ')}$ dáva $d=${d}$. Skúška: $${e}\\cdot ${d}=${e * d}=${(e * d - 1) / f}\\cdot ${f}+1$.`,
@@ -767,6 +979,11 @@
     }
     const m = rnd(2, Math.min(N - 1, 60)), c = powmod(m, e, N);
     return {
+      mistakes: m * e % N !== c ? [{ value: m * e % N, msg: 'Šifrovanie v RSA je umocnenie $m^{e}$, nie násobenie $m\\cdot e$.' }] : [],
+      steps: [
+        { q: `Vypočítaj $m^{2} \\bmod ${N}$.`, answer: m * m % N },
+        { q: `Pokračuj umocňovaním na druhú a vypočítaj $c\\equiv ${m}^{${e}} \\pmod{${N}}$.`, answer: c }
+      ],
       answer: c,
       q: `RSA s verejným kľúčom $(N, e)=(${N}, ${e})$. Zašifruj správu $m=${m}$, t. j. vypočítaj $c\\equiv m^{e} \\pmod{N}$ s $0\\leq c&lt;${N}$.`,
       solution: `Počítame modulo $${N}$. ${powSteps(m, e, N)}`,
@@ -813,6 +1030,9 @@
         let b, same = Math.random() < 0.35;
         if (same) b = a * pick([4, 9]); else do { b = pick(SQF); } while (b === a);
         return {
+          mistakes: [same
+            ? { value: 4, msg: `Over, či $${sqrtT(b)}$ už neleží v $\\mathbb{Q}(${sqrtT(a)})$: $${b} = ${b / a}\\cdot ${a}$ a $${b / a}$ je štvorec.` }
+            : { value: 2, msg: `Číslo $${sqrtT(b)}$ neleží v $\\mathbb{Q}(${sqrtT(a)})$, takže pridá ďalší stupeň $2$; stupne sa násobia.` }],
           answer: same ? 2 : 4,
           q: `Urči stupeň rozšírenia $[\\mathbb{Q}(${sqrtT(a)}, ${sqrtT(b)}):\\mathbb{Q}]$.`,
           solution: same
@@ -841,6 +1061,12 @@
       }
       const c = pick([2, 3, 5, 7]);
       return {
+        mistakes: [{ value: 3, msg: `Toto je stupeň $\\mathbb{Q}(\\sqrt[3]{${c}})$. Toto pole je reálne, ostatné dva korene v ňom nie sú – treba pridať ešte $\\omega$.` }],
+        steps: [
+          { q: `Urči $[\\mathbb{Q}(\\sqrt[3]{${c}}):\\mathbb{Q}]$.`, answer: 3 },
+          { q: `Aký stupeň pridá $\\omega = e^{2\\pi i/3}$ nad $\\mathbb{Q}(\\sqrt[3]{${c}})$?`, answer: 2, hint: '$\\omega$ je koreňom $x^2 + x + 1$ a nie je reálne.' },
+          { q: 'Urči stupeň rozkladového poľa.', answer: 6 }
+        ],
         answer: 6,
         q: `Urči stupeň rozkladového poľa polynómu $x^3-${c}$ nad $\\mathbb{Q}$.`,
         solution: `Korene sú $\\sqrt[3]{${c}}, \\sqrt[3]{${c}}\\,\\omega, \\sqrt[3]{${c}}\\,\\omega^2$, rozkladové pole je $\\mathbb{Q}(\\sqrt[3]{${c}}, \\omega)$. $[\\mathbb{Q}(\\sqrt[3]{${c}}):\\mathbb{Q}]=3$ a $\\omega$ (koreň $x^2+x+1$) nie je reálne, pridá stupeň $2$. Spolu $3\\cdot 2=6$.`,
@@ -867,7 +1093,9 @@
         const d = pick([2, 3, 5, 6, 7]); poly = `x^4-${d}`; ans = 8;
         why = `Korene sú $\\pm\\sqrt[4]{${d}}, \\pm i\\sqrt[4]{${d}}$, rozkladové pole je $\\mathbb{Q}(\\sqrt[4]{${d}}, i)$ stupňa $4\\cdot 2=8$; grupa je dihedrálna grupa symetrií štvorca $D_4$.`;
       }
+      const degP = [2, 3, 4, 0, 4][t] || ans + 1;
       return {
+        mistakes: degP !== ans ? [{ value: degP, msg: 'Rád Galoisovej grupy sa rovná stupňu rozkladového poľa, nie stupňu polynómu (počtu koreňov).' }] : [],
         answer: ans,
         q: `Koľko prvkov má Galoisova grupa rozkladového poľa polynómu $${poly}$ nad $\\mathbb{Q}$?`,
         solution: `Pre rozkladové pole $K$ platí $|\\operatorname{Gal}(K/\\mathbb{Q})|=[K:\\mathbb{Q}]$. ${why} Odpoveď: $${ans}$.`,
@@ -895,6 +1123,7 @@
         why = 'Galoisova grupa $\\mathbb{Z}_2$ má len dve podgrupy, medziľahlé polia sú len $\\mathbb{Q}$ a celé rozšírenie.';
       }
       return {
+        mistakes: ans > 2 ? [{ value: ans - 2, msg: 'Započítaj aj krajné polia $\\mathbb{Q}$ a celé rozšírenie – zodpovedajú celej grupe a triviálnej podgrupe.' }] : [],
         answer: ans,
         q: `Koľko medziľahlých polí $L$ s $\\mathbb{Q}\\subseteq L\\subseteq ${what}$ existuje (vrátane $\\mathbb{Q}$ a celého poľa)?`,
         solution: `Podľa hlavnej vety Galoisovej teórie je medziľahlých polí toľko ako podgrúp Galoisovej grupy. ${why} Odpoveď: $${ans}$.`,
@@ -915,6 +1144,9 @@
     ];
     const [eq, ans, why] = pick(L);
     return {
+      choiceHints: { [O[1 - ans]]: ans === 1
+        ? 'Stupeň 5 sám osebe nerozhoduje. Ak je polynóm ireducibilný a má práve tri reálne korene, jeho Galoisova grupa je $S_5$ – je riešiteľná?'
+        : 'Neexistuje len všeobecný vzorec pre stupeň 5. Rovnice stupňa najviac 4 a mnohé konkrétne rovnice vyššieho stupňa riešiteľné sú – rozhoduje Galoisova grupa.' },
       type: 'choice', options: O, answer: O[ans],
       q: `Je rovnica $${eq}$ nad $\\mathbb{Q}$ riešiteľná v radikáloch?`,
       solution: `${why} Odpoveď: <strong>${O[ans]}</strong>.`,

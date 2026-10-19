@@ -1,6 +1,6 @@
 /* Service worker: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu. */
-const CACHE = 'matika-v21';
+const CACHE = 'matika-v20';
 const ASSETS = [
   './',
   './index.html',
@@ -45,7 +45,25 @@ const ASSETS = [
   './js/lang/zh.js',
   './js/content-i18n/en/r1.js',
   './js/content-i18n/en/s1.js',
+  './js/vzorce.js',
+  './js/store.js',
+  './js/keypad.js',
+  './js/scratchpad.js',
+  './js/tts.js',
+  './js/widget.js',
   './js/app.js',
+  './css/features.css',
+  './js/features/odznaky.js',
+  './js/features/opakovanie.js',
+  './js/features/vyzva.js',
+  './js/features/testy.js',
+  './js/features/vstupny.js',
+  './js/features/hladat.js',
+  './js/features/vzorce.js',
+  './js/features/prehlad.js',
+  './js/features/ucitel.js',
+  './js/features/jocadium.js',
+  './js/features/nastavenia.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',

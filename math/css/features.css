@@ -1,0 +1,329 @@
+/* Štýly nových funkcií: menu, panel Dnes, stav zvládnutia, riešenie úloh (kroky, klávesnica, zošit),
+   testy, opakovanie, odznaky, vzorce, hľadanie, prehľad pokroku, režim učiteľa, nastavenia, písmo na čítanie
+   a tlač. Farby len z premenných vzhľadu (svetlý, tmavý, sépia, kontrast). */
+
+/* ---------- menu v hlavičke ---------- */
+.menu-btn { position: relative; font-size: 1.05rem; padding: 6px 12px; }
+.menu-dot {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--warn);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+.menu-dropdown { min-width: 230px; }
+.menu-item { text-decoration: none; }
+.menu-badge {
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+/* ---------- oznámenia ---------- */
+#toasts {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(360px, calc(100vw - 32px));
+}
+.toast {
+  padding: 10px 14px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: toast-in 0.25s ease both;
+  transition: opacity 0.4s, transform 0.4s;
+}
+.toast.out { opacity: 0; transform: translateY(8px); }
+.toast-icon { font-size: 1.2rem; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- panel Dnes na hlavnej stránke ---------- */
+.today { margin: 18px 0 8px; }
+.today h2 { margin-top: 0; }
+.today-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.today-card { display: block; }
+.today-card h3 { margin-bottom: 2px; }
+.today-card p { margin: 2px 0; }
+.today-card.attention { border-color: var(--warn); }
+.today-card.done { border-color: var(--ok); }
+.today-icon { font-size: 1.5rem; line-height: 1; margin-bottom: 6px; }
+.search-card .answer-row { margin: 6px 0 0; }
+.search-card input { flex: 1 1 100px; min-width: 0; padding: 6px 10px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+
+/* ---------- stav zvládnutia ---------- */
+.mstate { display: inline-block; margin-left: 4px; font-size: 0.95em; line-height: 1; }
+.m-none { color: var(--muted); }
+.m-learning { color: var(--warn); }
+.m-mastered { color: var(--ok); }
+.due { margin-left: 3px; font-size: 0.85em; }
+.path-step.s-mastered .step { border-color: var(--ok); color: var(--ok); }
+.path-step.s-learning .step { border-color: var(--warn); color: var(--warn); }
+.level-head { margin: 4px 0 16px; max-width: 560px; }
+.lesson-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: -6px 0 10px; }
+.prereq {
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  font-size: 0.92rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+}
+.prereq.weak { border-left: 4px solid var(--warn); }
+.prereq .muted { display: block; margin-top: 2px; }
+.pw-suggest {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--warn);
+  border-radius: 8px;
+  background: var(--card);
+}
+.pw-mastery { margin: -8px 0 10px; }
+.lesson-link { margin: 6px 0; }
+
+/* ---------- riešenie úloh ---------- */
+.pw-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; color: var(--muted); font-size: 0.92rem; margin-bottom: 6px; }
+.pw-tools { margin-left: auto; display: flex; gap: 6px; }
+.pw-tools .btn { padding: 4px 9px; }
+.pw-tools .btn.active, .tts-btn.active { border-color: var(--primary); background: var(--bg); }
+.pw-timer { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.pw-timer.low { color: var(--bad); }
+.pw-from { margin: -2px 0 6px; }
+.diag { display: block; margin-top: 4px; font-weight: 400; color: var(--text); }
+.feedback em { display: block; margin-top: 4px; font-weight: 400; color: var(--muted); }
+.pw-steps { margin: 10px 0; }
+.steps-title { font-weight: 700; margin-bottom: 6px; }
+.step-list { margin: 0; padding-left: 1.4em; }
+.step-list li { margin: 6px 0; padding: 6px 10px; border-radius: 8px; }
+.step-current { background: var(--bg); border: 1px solid var(--border); }
+.step-done .step-ans { color: var(--ok); }
+.step-done.shown .step-ans { color: var(--warn); }
+.step-q { margin-bottom: 4px; }
+.step-actions { margin: 6px 0 0; }
+.step-form { margin: 6px 0 4px; }
+.step-form input {
+  flex: 1 1 160px;
+  min-width: 0;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* klávesnica na obrazovke */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  max-width: 340px;
+  margin: 8px 0;
+}
+.keypad[hidden] { display: none; }
+.key {
+  min-height: 46px;
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.key:active { background: var(--bg); }
+.key-ok { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+.key-del { color: var(--bad); }
+
+/* poznámkový zošit */
+.scratch { margin-top: 12px; }
+.scratch-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.scratch-bar .active { border-color: var(--primary); }
+.scratch-canvas {
+  display: block;
+  width: 100%;
+  height: 280px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background-color: var(--card);
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 20px 20px;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* ---------- výsledky, testy, opakovanie ---------- */
+.big-score { font-size: 2.2rem; font-weight: 700; margin: 8px 0; }
+.big-lesson { font-size: 1.2rem; font-weight: 600; }
+.lesson-list { padding-left: 1.2em; }
+.lesson-list li { margin: 4px 0; }
+.test-card { display: block; }
+.custom-test fieldset, .settings fieldset { border: 1px solid var(--border); border-radius: 10px; margin: 8px 0; padding: 8px 12px; }
+.custom-test legend, .settings legend { font-weight: 600; padding: 0 4px; }
+.lv-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+label.check { display: flex; align-items: center; gap: 8px; margin: 4px 0; cursor: pointer; }
+label.field { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; font-weight: 600; }
+label.field input, label.field select, label.field textarea {
+  font: inherit;
+  font-weight: 400;
+  padding: 7px 10px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-width: 100%;
+}
+.row { display: flex; flex-wrap: wrap; gap: 0 20px; }
+.test-review { padding-left: 1.4em; }
+.test-review li { margin: 10px 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); }
+.test-review li.ok { border-left: 4px solid var(--ok); }
+.test-review li.bad { border-left: 4px solid var(--bad); }
+.tr-head { font-weight: 600; margin-bottom: 4px; }
+.small-bar { width: 120px; margin: 0; }
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.daily-head { display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: flex-end; }
+
+/* ---------- odznaky ---------- */
+.badges { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  opacity: 0.6;
+}
+.badge.earned { opacity: 1; border-color: var(--ok); }
+.badge-icon { font-size: 1.8rem; line-height: 1.2; }
+.badge-date { color: var(--ok); }
+
+/* ---------- hľadanie a vzorce ---------- */
+.search-row { max-width: 640px; }
+.search-row input { flex: 1 1 220px; min-width: 0; padding: 10px 12px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
+.search-results { list-style: none; padding: 0; }
+.search-results li { padding: 10px 0; border-bottom: 1px solid var(--border); }
+mark { background: color-mix(in srgb, var(--warn) 35%, transparent); color: inherit; border-radius: 2px; }
+.formula-inline { margin-top: 4px; }
+.formula-group { break-inside: avoid; }
+.formula-group dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; margin: 0; }
+.formula {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  break-inside: avoid;
+}
+.formula dt { font-weight: 600; font-size: 0.92rem; }
+.formula dd { margin: 0; overflow-x: auto; }
+.formula dd .katex-display { margin: 0.4em 0; }
+
+/* ---------- prehľad pokroku ---------- */
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }
+.stat { display: flex; flex-direction: column; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.stat-n { font-size: 1.4rem; font-weight: 700; }
+.stat-l { color: var(--muted); font-size: 0.85rem; }
+.chart { width: 100%; max-width: 640px; height: auto; display: block; }
+.chart-ok { fill: var(--ok); }
+.chart-legend .legend { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin-left: 10px; }
+.legend.ok { background: var(--ok); }
+.legend.all { background: color-mix(in srgb, var(--ok) 25%, transparent); border: 1px solid var(--ok); }
+
+/* ---------- režim učiteľa ---------- */
+.pick-list { list-style: none; padding: 0; max-height: 360px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; }
+.pick-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 10px; border-bottom: 1px solid var(--border); }
+.pick-list li:last-child { border-bottom: 0; }
+.pick-list .cnt { width: 64px; padding: 4px 6px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+.result-code {
+  width: 100%;
+  font: 0.85rem/1.4 ui-monospace, Consolas, monospace;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  word-break: break-all;
+}
+.table-wrap { overflow-x: auto; }
+.results-table td.ok { color: var(--ok); text-align: center; }
+.results-table td.bad { color: var(--bad); text-align: center; }
+.results-table tr.avg td { font-weight: 700; }
+.qr-img svg { width: 220px; height: 220px; background: #fff; border-radius: 8px; }
+.worksheet { background: #fff; color: #000; padding: 16px; border-radius: 8px; }
+.worksheet .katex { color: #000; }
+.ws-page { margin-bottom: 32px; }
+.ws-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 12px; }
+.ws-fields { white-space: nowrap; }
+.ws-line { display: inline-block; width: 180px; border-bottom: 1px solid #000; margin: 0 6px; vertical-align: bottom; height: 1.1em; }
+.ws-line.short { width: 90px; }
+.ws-tasks { padding-left: 1.6em; }
+.ws-task { margin: 0 0 18px; break-inside: avoid; }
+.ws-answer { margin-top: 10px; }
+.ws-options { margin: 6px 0; }
+.worksheet svg { max-width: 360px; height: auto; }
+.worksheet .f-text, .worksheet .f-math { fill: #000; }
+
+/* ---------- nastavenia, Jocadium ---------- */
+.settings h2 { margin-top: 0; }
+.settings.danger { border-color: var(--bad); }
+.font-preview { padding: 8px 12px; border: 1px dashed var(--border); border-radius: 8px; }
+.game-break {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--ok);
+  border-radius: 10px;
+  background: var(--card);
+}
+.game-break .muted { display: block; }
+
+/* ---------- písmo a rozostupy pre ľahšie čítanie ---------- */
+html.font-readable body { font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; }
+html.font-lexend body { font-family: 'Lexend', system-ui, sans-serif; }
+html.wide-spacing body { letter-spacing: 0.04em; word-spacing: 0.14em; line-height: 1.9; }
+html.wide-spacing .katex { letter-spacing: normal; word-spacing: normal; }
+
+@media (max-width: 480px) {
+  .menu-btn { padding: 6px 9px; }
+  .today-grid { grid-template-columns: 1fr 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .key { min-height: 52px; }
+  .keypad { max-width: none; }
+  .ws-line { width: 120px; }
+}
+
+/* ---------- tlač (pracovné listy, vzorce, prehľad) ---------- */
+@media print {
+  .topbar, .footer, .no-print, .actions, #toasts, .pw-tools, .crumbs { display: none !important; }
+  body, .container { background: #fff !important; color: #000 !important; padding: 0; max-width: none; }
+  .worksheet { padding: 0; }
+  .ws-page { break-after: page; margin: 0; }
+  .ws-page:last-child { break-after: auto; }
+  .block, .card, .formula, .stat, .figure { box-shadow: none; border-color: #999; background: #fff !important; color: #000 !important; }
+  a { color: #000; text-decoration: none; }
+}

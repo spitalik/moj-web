@@ -1,21 +1,17 @@
-/* Hlavná logika: smerovanie (hash), zobrazenie úrovní, tém, lekcií a precvičovania, uloženie postupu,
-   vzhľad, jazyk rozhrania a inštalácia PWA. Texty rozhrania idú cez I18N.t (js/i18n.js, js/lang/*.js).
+/* Hlavná logika: smerovanie (hash), zobrazenie úrovní, tém, lekcií a precvičovania, vzhľad, jazyk
+   rozhrania, menu a inštalácia PWA. Texty rozhrania idú cez I18N.t (js/i18n.js, js/lang/*.js).
    Obsah lekcie sa zobrazí v jazyku rozhrania, ak má preklad (js/content-i18n.js), inak po slovensky
-   s upozornením; atribút lang zodpovedá jazyku, ktorý sa naozaj zobrazuje. */
+   s upozornením; atribút lang zodpovedá jazyku, ktorý sa naozaj zobrazuje.
+
+   Rozšírenia (js/features/*.js) sa registrujú cez window.APP: vlastné stránky (APP.route), položky menu
+   (APP.addMenu), panely na hlavnej stránke (APP.addHomePanel) a v lekcii (APP.addLessonPanel).
+   Úlohy rieši spoločný komponent PROBLEM (js/widget.js), postup ukladá STORE (js/store.js).
+   Prvé vykreslenie počká na DOMContentLoaded, aby sa rozšírenia stihli zaregistrovať. */
 (function () {
   'use strict';
 
   const app = document.getElementById('app');
-  const PROGRESS_KEY = 'matika.progress.v1';
   const t = I18N.t;
-
-  // Úložisko je len pre pohodlie (postup na zariadení). Výnimka (súkromný režim, blokované dáta) sa ignoruje.
-  function loadProgress() {
-    try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; } catch (e) { return {}; }
-  }
-  function saveProgress(p) {
-    try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); } catch (e) { /* ignorujeme */ }
-  }
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const levelById = (id) => LEVELS.find((x) => x.id === id);
@@ -56,6 +52,40 @@
     return `<p class="notice">${esc(t(missing === ls.length ? 'contentNotice' : 'contentNoticeSome'))}</p>`;
   };
 
+  /* ---------- stav zvládnutia (STORE) ---------- */
+  const STATE_ICON = { none: '○', learning: '◐', mastered: '●' };
+  const STATE_KEY = { none: 'stateNone', learning: 'stateLearning', mastered: 'stateMastered' };
+  // ikonka stavu lekcie (+ hodinky, ak ju treba zopakovať)
+  function stateBadge(id) {
+    const p = STORE.lesson(id), st = STORE.state(id, p);
+    const due = STORE.isDue(p);
+    return `<span class="mstate m-${st}" title="${esc(t(STATE_KEY[st]))}" aria-label="${esc(t(STATE_KEY[st]))}">${STATE_ICON[st]}</span>${due ? `<span class="due" title="${esc(t('dueTitle'))}" aria-label="${esc(t('dueTitle'))}">⏰</span>` : ''}`;
+  }
+  function lessonStat(id) {
+    const p = STORE.lesson(id);
+    if (!p || !p.total) return t('statNone');
+    const rate = t('statRate', { p: Math.round(100 * p.right / p.total), tasks: t('tasks', { n: p.total }) });
+    return `${t(STATE_KEY[STORE.state(id, p)])} · ${rate}`;
+  }
+  const masteredCount = (ls) => ls.filter((l) => STORE.state(l.id) === 'mastered').length;
+  const practicedCount = (ls) => ls.filter((l) => STORE.state(l.id) !== 'none').length;
+  // pruh: zvládnuté (plná farba) a rozpracované (svetlejšia)
+  const progressBar = (ls) => {
+    const n = ls.length || 1, m = masteredCount(ls), p = practicedCount(ls) - m;
+    return `<div class="bar" role="img" aria-label="${esc(t('barLabel', { m, p, n: ls.length }))}"><span style="width:${100 * m / n}%"></span><span class="bar-learning" style="width:${100 * p / n}%"></span></div>`;
+  };
+  const progressMeta = (ls) => t('progressMeta', { m: masteredCount(ls), p: practicedCount(ls) });
+
+  // Predpoklady lekcie: explicitné pole prereq, inak predchádzajúca lekcia v tej istej téme.
+  function prereqs(id) {
+    const L = lessonById(id);
+    if (L && Array.isArray(L.prereq)) return L.prereq.map(lessonById).filter(Boolean);
+    const th = themeOf(id);
+    if (!th) return [];
+    const tl = themeLessons(th), j = tl.findIndex((l) => l.id === id);
+    return j > 0 ? [tl[j - 1]] : [];
+  }
+
   // Zvolené zobrazenie hlavnej stránky (len pohodlie, predvolené sú témy).
   const VIEW_KEY = 'matika.view';
   function loadView() {
@@ -85,46 +115,57 @@
     window.scrollTo(0, 0);
   }
 
-  function lessonStat(p) {
-    return p && p.total
-      ? t('statRate', { p: Math.round(100 * p.right / p.total), tasks: t('tasks', { n: p.total }) })
-      : t('statNone');
+  /* ---------- rozšírenia ---------- */
+  const routes = {};
+  const menu = [];
+  const homePanels = [];
+  const lessonPanels = [];
+
+  // krátka správa v rohu (odznaky, uloženie…)
+  function toast(html, ms = 4500) {
+    let box = document.getElementById('toasts');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'toasts';
+      box.setAttribute('aria-live', 'polite');
+      document.body.appendChild(box);
+    }
+    const d = document.createElement('div');
+    d.className = 'toast';
+    d.innerHTML = html;
+    box.appendChild(d);
+    setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 400); }, ms);
   }
 
-  const practiced = (prog, ls) => ls.filter((l) => prog[l.id] && prog[l.id].total).length;
-  const progressBar = (done, total) =>
-    `<div class="bar"><span style="width:${total ? Math.round(100 * done / total) : 0}%"></span></div>`;
-
-  function homeByThemes(prog) {
+  /* ---------- hlavná stránka ---------- */
+  function homeByThemes() {
     let html = `<p class="muted view-intro">${esc(t('viewIntro'))}</p><div class="grid">`;
     THEME_LIST.forEach((th) => {
       const ls = themeLessons(th);
-      const done = practiced(prog, ls);
       const name = thName(th);
       const from = shortLevel(levelById(ls[0].level)), to = shortLevel(levelById(ls[ls.length - 1].level));
       html += `<a class="card theme-card" href="#/tema/${th.id}">
                  <div class="theme-icon" aria-hidden="true">${th.icon}</div>
                  <h3>${esc(name.title)}</h3><p>${esc(name.desc)}</p>
-                 <div class="meta">${esc(t('lessons', { n: ls.length }))} · ${esc(from === to ? from : `${from} → ${to}`)} · ${esc(t('practicedCount', { n: done }))}</div>
-                 ${progressBar(done, ls.length)}
+                 <div class="meta">${esc(t('lessons', { n: ls.length }))} · ${esc(from === to ? from : `${from} → ${to}`)} · ${esc(progressMeta(ls))}</div>
+                 ${progressBar(ls)}
                </a>`;
     });
     return html + '</div>';
   }
 
-  function homeByLevels(prog) {
+  function homeByLevels() {
     let html = '';
     GROUPS.forEach((g) => {
       const levels = LEVELS.filter((lv) => lv.group === g.id);
       html += `<section class="level"><h2>${esc(grName(g))}</h2><div class="grid">`;
       levels.forEach((lv) => {
         const ls = lessonsOf(lv.id);
-        const done = practiced(prog, ls);
         const name = lvName(lv);
         html += `<a class="card level-card" href="#/uroven/${lv.id}">
                    <h3>${esc(name.title)}</h3><p>${esc(name.desc)}</p>
-                   <div class="meta">${esc(t('lessons', { n: ls.length }))} · ${esc(t('practicedCount', { n: done }))}</div>
-                   ${progressBar(done, ls.length)}
+                   <div class="meta">${esc(t('lessons', { n: ls.length }))} · ${esc(progressMeta(ls))}</div>
+                   ${progressBar(ls)}
                  </a>`;
       });
       html += '</div></section>';
@@ -133,19 +174,20 @@
   }
 
   function showHome() {
-    const prog = loadProgress();
     const view = loadView();
     const tab = (v, label) =>
       `<button type="button" role="tab" class="seg${view === v ? ' active' : ''}" aria-selected="${view === v}" data-view="${v}">${esc(label)}</button>`;
+    const panels = homePanels.map((fn) => { try { return fn() || ''; } catch (e) { console.error(e); return ''; } }).join('');
     let html = `
       <section class="hero">
         <h1>${esc(t('appName'))}</h1>
         <p>${esc(t('heroText'))}</p>
       </section>
+      ${panels ? `<section class="today" aria-label="${esc(t('todayTitle'))}"><h2>${esc(t('todayTitle'))}</h2><div class="today-grid">${panels}</div></section>` : ''}
       <div class="view-switch" role="tablist" aria-label="${esc(t('viewLabel'))}">
         ${tab('temy', t('viewThemes'))}${tab('rocniky', t('viewLevels'))}
       </div>`;
-    html += view === 'temy' ? homeByThemes(prog) : homeByLevels(prog);
+    html += view === 'temy' ? homeByThemes() : homeByLevels();
     html += `<section class="install-note"><p>${t('installNote')}</p></section>`;
     setPage(html);
     app.querySelectorAll('.view-switch .seg').forEach((b) => b.addEventListener('click', () => {
@@ -158,19 +200,25 @@
 
   function showTheme(themeId) {
     const th = themeById(themeId);
-    const prog = loadProgress();
     const ls = themeLessons(th);
-    const next = ls.find((l) => !(prog[l.id] && prog[l.id].total)) || ls[0];
-    const done = practiced(prog, ls);
+    const started = practicedCount(ls) > 0;
+    const placed = STORE.placement(`tema:${th.id}`);
+    // ešte nezačatá téma s vstupným testom začína odporúčanou lekciou
+    const next = (!started && placed && lessonById(placed.lesson)) || ls.find((l) => STORE.state(l.id) !== 'mastered') || ls[0];
     const name = thName(th);
     let html = `<nav class="crumbs"><a href="#/">${esc(t('home'))}</a> / ${esc(t('topicsCrumb'))}</nav>
       <h1><span class="theme-icon inline" aria-hidden="true">${th.icon}</span> ${esc(name.title)}</h1>
       <p class="muted">${esc(name.desc)}</p>
       ${contentNotice(ls)}
       <div class="theme-head">
-        <div class="meta">${esc(t('topicMeta', { lessons: t('lessons', { n: ls.length }), n: done }))}</div>
-        ${progressBar(done, ls.length)}
-        <div class="actions"><a class="btn btn-primary" href="#/lekcia/${next.id}">${esc(done ? t('continue') : t('start'))}: ${lessonTitle(next)}</a></div>
+        <div class="meta">${esc(t('topicMeta', { lessons: t('lessons', { n: ls.length }), n: masteredCount(ls) }))}</div>
+        ${progressBar(ls)}
+        <div class="actions">
+          <a class="btn btn-primary" href="#/lekcia/${next.id}">${esc(started ? t('continue') : t('start'))}: ${lessonTitle(next)}</a>
+          ${routes.vstupny ? `<a class="btn" href="#/vstupny/tema/${th.id}">🧭 ${esc(t('placementBtn'))}</a>` : ''}
+          ${routes.vzorce && window.FORMULAS && FORMULAS[th.id] ? `<a class="btn" href="#/vzorce/${th.id}">📐 ${esc(t('formulasBtn'))}</a>` : ''}
+        </div>
+        ${placed && lessonById(placed.lesson) ? `<p class="muted small">${esc(t('placementResult'))} ${lessonTitle(lessonById(placed.lesson))}</p>` : ''}
       </div>
       <ol class="path">`;
     let lastLevel = null;
@@ -180,12 +228,12 @@
         html += `<li class="path-level">${esc(lv.group === 'zs' ? lvName(lv).title : `${grName(groupById(lv.group))} · ${lvName(lv).title}`)}</li>`;
         lastLevel = l.level;
       }
-      const isDone = prog[l.id] && prog[l.id].total;
-      html += `<li class="path-step${isDone ? ' done' : ''}">
+      const st = STORE.state(l.id);
+      html += `<li class="path-step s-${st}">
           <a href="#/lekcia/${l.id}">
-            <span class="step" aria-hidden="true">${isDone ? '✓' : k + 1}</span>
-            <span class="step-body" lang="${langOf(l)}"><strong>${esc(tr(l).title)}</strong><span class="muted">${esc(tr(l).summary)}</span>
-              <span class="meta">${esc(lessonStat(prog[l.id]))}</span></span>
+            <span class="step" aria-hidden="true">${st === 'mastered' ? '✓' : k + 1}</span>
+            <span class="step-body" lang="${langOf(l)}"><strong>${esc(tr(l).title)} ${stateBadge(l.id)}</strong><span class="muted">${esc(tr(l).summary)}</span>
+              <span class="meta">${esc(lessonStat(l.id))}</span></span>
           </a>
         </li>`;
     });
@@ -198,7 +246,6 @@
 
   function showLevel(levelId) {
     const lv = levelById(levelId);
-    const prog = loadProgress();
     const ls = lessonsOf(levelId);
     const name = lvName(lv);
     let html = `<nav class="crumbs"><a href="#/">${esc(t('home'))}</a> / ${esc(grName(groupById(lv.group)))}</nav>
@@ -209,11 +256,13 @@
       html += `<nav class="chips">${siblings.map((x) =>
         `<a class="chip${x.id === lv.id ? ' active' : ''}" href="#/uroven/${x.id}">${esc(lvName(x).title)}</a>`).join('')}</nav>`;
     }
+    html += `<div class="level-head"><div class="meta">${esc(progressMeta(ls))}</div>${progressBar(ls)}
+      ${routes.vstupny ? `<div class="actions"><a class="btn" href="#/vstupny/uroven/${lv.id}">🧭 ${esc(t('placementBtn'))}</a></div>` : ''}</div>`;
     html += '<div class="grid">';
     ls.forEach((l, k) => {
       html += `<a class="card" href="#/lekcia/${l.id}">
                  <div class="num">${k + 1}</div>
-                 <h3 lang="${langOf(l)}">${esc(tr(l).title)}</h3><p lang="${langOf(l)}">${esc(tr(l).summary)}</p><div class="meta">${esc(lessonStat(prog[l.id]))}</div>
+                 <h3 lang="${langOf(l)}">${esc(tr(l).title)} ${stateBadge(l.id)}</h3><p lang="${langOf(l)}">${esc(tr(l).summary)}</p><div class="meta">${esc(lessonStat(l.id))}</div>
                </a>`;
     });
     html += '</div>';
@@ -226,8 +275,18 @@
     const L = tr(all[i]);
     const lang = langOf(L);
     const level = levelById(L.level);
+    const pre = prereqs(id);
     let html = `<nav class="crumbs"><a href="#/">${esc(t('home'))}</a> / <a href="#/uroven/${level.id}">${esc(lvName(level).title)}</a></nav>
-      <h1 lang="${lang}">${esc(L.title)}</h1>${contentNotice([L])}<div lang="${lang}">`;
+      <h1 lang="${lang}">${esc(L.title)} ${stateBadge(id)}</h1>${contentNotice([L])}
+      <div class="lesson-tools"><span class="muted small">${esc(lessonStat(id))}</span><span class="tts-slot"></span></div>`;
+    // predpoklady: predchádzajúca lekcia v téme (ak ešte nie je zvládnutá, upozorníme)
+    if (pre.length) {
+      const weak = pre.filter((p) => STORE.state(p.id) !== 'mastered');
+      html += `<div class="prereq${weak.length ? ' weak' : ''}"><strong>${esc(t('prereqTitle'))}</strong>
+        ${pre.map((p) => `<a href="#/lekcia/${p.id}">${lessonTitle(p)}</a> ${stateBadge(p.id)}`).join(', ')}
+        ${weak.length ? `<span class="muted small">${esc(t('prereqHint'))}</span>` : ''}</div>`;
+    }
+    html += `<div class="lesson-body" lang="${lang}">`;
     html += L.theory.map((x) => (typeof x === 'string'
       ? `<div class="block theory">${x}</div>`
       : `<figure class="figure" data-fig="${x.fig}"><div class="fig-body"></div>${x.caption ? `<figcaption>${x.caption}</figcaption>` : ''}</figure>`
@@ -243,6 +302,7 @@
       </div>`;
     });
     html += `<div class="actions"><a class="btn btn-primary" href="#/precvicuj/${L.id}">${esc(t('practiceLesson'))}</a></div>`;
+    html += lessonPanels.map((fn) => { try { return fn(all[i]) || ''; } catch (e) { console.error(e); return ''; } }).join('');
     const pager = (label, prev, next) => `<nav class="pager-box"><div class="pager-label">${label}</div><div class="pager">
       ${prev ? `<a href="#/lekcia/${prev.id}">← ${lessonTitle(prev)}</a>` : '<span></span>'}
       ${next ? `<a href="#/lekcia/${next.id}">${lessonTitle(next)} →</a>` : '<span></span>'}
@@ -257,153 +317,52 @@
     const levelLink = `<a href="#/uroven/${level.id}">${esc(lvName(level).title)}</a>`;
     html += pager(esc(t(level.group === 'vs' ? 'navArea' : 'navGrade', { level: '\u0000' })).replace('\u0000', levelLink), all[i - 1], all[i + 1]);
     setPage(html);
+    // čítanie lekcie nahlas (teória a príklady)
+    if (window.TTS) {
+      const b = TTS.button(() => app.querySelector('.lesson-body'), contentLang(id));
+      if (b) app.querySelector('.tts-slot').appendChild(b);
+    }
   }
 
   function showPractice(id) {
     const L = lessonById(id);
-    const cLang = contentLang(id), lang = htmlLang(cLang);
+    const cLang = contentLang(id);
     const level = levelById(L.level);
+    const pre = prereqs(id);
     setPage(`
       <nav class="crumbs"><a href="#/">${esc(t('home'))}</a> / <a href="#/uroven/${level.id}">${esc(lvName(level).title)}</a>
         / <a href="#/lekcia/${L.id}">${lessonTitle(L)}</a> / ${esc(t('practice'))}</nav>
-      <h1>${esc(t('practice'))}</h1>
+      <h1>${esc(t('practice'))} ${stateBadge(id)}</h1>
       ${contentNotice([L])}
-      <div class="practice card-box">
-        <div class="score">${esc(t('sessionScore'))} <span id="s-right">0</span> / <span id="s-total">0</span></div>
-        <div class="question" id="q" aria-live="polite" lang="${lang}"></div>
-        <div id="choices" class="choices" lang="${lang}" hidden></div>
-        <form id="f" class="answer-row" autocomplete="off">
-          <input id="ans" type="text" inputmode="decimal" placeholder="${esc(t('yourAnswer'))}" aria-label="${esc(t('yourAnswer'))}">
-          <button class="btn btn-primary" type="submit">${esc(t('check'))}</button>
-        </form>
-        <div id="fb" class="feedback" aria-live="polite"></div>
-        <div class="actions">
-          <button class="btn" id="hint" type="button">${esc(t('hint'))}</button>
-          <button class="btn" id="show" type="button">${esc(t('showSolution'))}</button>
-          <button class="btn btn-primary" id="nxt" type="button" hidden>${esc(t('next'))}</button>
-        </div>
-        <div id="sol" class="solution" hidden></div>
-        <p class="muted small" id="tip">${esc(t('inputTip'))}</p>
-      </div>`);
-
-    const el = {
-      q: document.getElementById('q'), form: document.getElementById('f'), ans: document.getElementById('ans'),
-      choices: document.getElementById('choices'), tip: document.getElementById('tip'),
-      fb: document.getElementById('fb'), sol: document.getElementById('sol'), hint: document.getElementById('hint'),
-      show: document.getElementById('show'), nxt: document.getElementById('nxt'),
-      right: document.getElementById('s-right'), total: document.getElementById('s-total')
-    };
-    const session = { right: 0, total: 0 };
-    let ex = null;
-    let answered = false;
-
-    function record(correct) {
-      const prog = loadProgress();
-      const p = prog[id] || { right: 0, total: 0 };
-      p.total += 1;
-      if (correct) p.right += 1;
-      prog[id] = p;
-      saveProgress(prog);
-    }
-
-    function newProblem() {
-      ex = EXERCISES.make(id, cLang);
-      answered = false;
-      el.q.innerHTML = `<div class="q-text">${ex.q}</div>`;
-      el.fb.textContent = '';
-      el.fb.className = 'feedback';
-      el.sol.hidden = true;
-      el.sol.innerHTML = '';
-      el.nxt.hidden = true;
-      el.show.disabled = false;
-
-      const isChoice = ex.type === 'choice';
-      el.form.hidden = isChoice;
-      el.choices.hidden = !isChoice;
-      el.tip.hidden = isChoice || ex.type === 'text';
-      el.choices.innerHTML = '';
-      if (isChoice) {
-        el.choices.innerHTML = ex.options.map((o, k) =>
-          `<button type="button" class="btn choice" data-k="${k}">${esc(o)}</button>`).join('');
-        renderMath(el.choices);
-      } else {
-        // číselná klávesnica len tam, kde nie je potrebné mínus ani oddeľovač viacerých čísel
-        el.ans.inputMode = (ex.type === 'num' && !ex.signed) ? 'decimal' : 'text';
-        el.ans.placeholder = ex.placeholder || t('yourAnswer');
-        el.ans.value = '';
-        el.ans.disabled = false;
+      <div class="pw-mastery muted small">${esc(lessonStat(id))}</div>
+      <div class="pw-suggest" hidden></div>
+      <div id="pw"></div>`);
+    const mastery = app.querySelector('.pw-mastery'), suggest = app.querySelector('.pw-suggest');
+    let suggested = false;
+    PROBLEM.mount(document.getElementById('pw'), {
+      mode: 'practice',
+      next: () => ({ id, ex: EXERCISES.make(id, cLang) }),
+      onAnswer: () => {
+        mastery.textContent = lessonStat(id);
+        // keď to opakovane nejde (3 chyby z posledných 4), odporučíme predpoklad – raz za reláciu
+        const p = STORE.lesson(id);
+        const recent = ((p && p.hist) || '').slice(-4);
+        const weakPre = pre.filter((x) => STORE.state(x.id) !== 'mastered');
+        if (!suggested && weakPre.length && (recent.match(/0/g) || []).length >= 3) {
+          suggested = true;
+          suggest.hidden = false;
+          suggest.innerHTML = `💡 ${esc(t('prereqSuggest'))} ${weakPre.map((x) => `<a href="#/lekcia/${x.id}">${lessonTitle(x)}</a>`).join(', ')}`;
+        }
       }
-      renderMath(el.q);
-      if (!isChoice) el.ans.focus();
-    }
-
-    function reveal() {
-      el.sol.hidden = false;
-      el.sol.innerHTML = `<p><strong>${esc(t('correctAnswer'))}</strong> <span lang="${lang}">${esc(EXERCISES.formatAnswer(ex))}</span></p><p lang="${lang}">${ex.solution}</p>`;
-      renderMath(el.sol);
-      el.nxt.hidden = false;
-      el.show.disabled = true;
-      el.ans.disabled = true;
-      el.choices.querySelectorAll('.choice').forEach((b) => {
-        b.disabled = true;
-        if (ex.options[b.dataset.k] === String(ex.answer)) b.classList.add('correct');
-      });
-    }
-
-    function evaluate(input, chosenBtn) {
-      if (answered) return;
-      const res = EXERCISES.check(ex, input);
-      if (res === null) {
-        el.fb.className = 'feedback warn';
-        el.fb.textContent = ex.type === 'text' ? t('enterText') : t('enterNumber');
-        return;
-      }
-      answered = true;
-      session.total += 1;
-      if (res) session.right += 1;
-      record(res);
-      el.fb.className = 'feedback ' + (res ? 'ok' : 'bad');
-      el.fb.textContent = res ? t('correct') : t('wrong');
-      el.right.textContent = session.right;
-      el.total.textContent = session.total;
-      if (chosenBtn && !res) chosenBtn.classList.add('wrong');
-      reveal();
-    }
-
-    el.form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      evaluate(el.ans.value);
     });
-
-    el.choices.addEventListener('click', (e) => {
-      const b = e.target.closest('.choice');
-      if (b) evaluate(ex.options[b.dataset.k], b);
-    });
-
-    el.hint.addEventListener('click', () => {
-      if (answered) return;
-      el.fb.className = 'feedback';
-      el.fb.innerHTML = `${esc(t('hintPrefix'))} <span lang="${lang}">${ex.hint}</span>`;
-      renderMath(el.fb);
-    });
-
-    el.show.addEventListener('click', () => {
-      if (answered) return;
-      answered = true;
-      session.total += 1;
-      el.total.textContent = session.total;
-      record(false);
-      el.fb.className = 'feedback';
-      el.fb.textContent = t('seeSolution');
-      reveal();
-    });
-
-    el.nxt.addEventListener('click', newProblem);
-    newProblem();
   }
 
   function route() {
     const parts = location.hash.replace(/^#\/?/, '').split('/');
+    if (window.TTS) TTS.stop();
+    if (routes[parts[0]]) {
+      try { if (routes[parts[0]](parts.slice(1)) !== false) return; } catch (e) { console.error(e); }
+    }
     if (parts[0] === 'uroven' && levelById(parts[1])) return showLevel(parts[1]);
     if (parts[0] === 'tema' && themeById(parts[1])) return showTheme(parts[1]);
     if (parts[0] === 'lekcia' && lessonById(parts[1])) return showLesson(parts[1]);
@@ -430,10 +389,92 @@
   });
   if (darkQuery && darkQuery.addEventListener) darkQuery.addEventListener('change', syncTheme);
 
-  /* ---------- jazyk rozhrania (ako v Jocadiu): tlačidlo s vlajkou a rozbaľovací zoznam ---------- */
+  /* ---------- písmo pre ľahšie čítanie (nastavenie) ---------- */
+  const FONT_URLS = {
+    readable: 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap',
+    lexend: 'https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap'
+  };
+  function applyReading() {
+    const s = STORE.settings();
+    const root = document.documentElement;
+    root.classList.toggle('font-readable', s.font === 'readable');
+    root.classList.toggle('font-lexend', s.font === 'lexend');
+    root.classList.toggle('wide-spacing', !!s.spacing);
+    if (FONT_URLS[s.font] && !document.querySelector(`link[data-font="${s.font}"]`)) {
+      const l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = FONT_URLS[s.font];
+      l.dataset.font = s.font;
+      document.head.appendChild(l);
+    }
+  }
+  STORE.on('settings', (e) => { if (e.key === 'font' || e.key === 'spacing') applyReading(); });
+
+  /* ---------- rozbaľovacie ponuky v hlavičke (jazyk, menu) ---------- */
+  function dropdown(wrap, btn, list, build) {
+    function setOpen(open) {
+      wrap.classList.toggle('open', open);
+      list.hidden = !open;
+      btn.setAttribute('aria-expanded', String(open));
+      if (open) {
+        build();
+        const first = list.querySelector('.active') || list.querySelector('a, button');
+        if (first) first.focus();
+      }
+    }
+    btn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(list.hidden); });
+    list.addEventListener('keydown', (e) => {
+      const opts = [...list.querySelectorAll('a, button')];
+      const i = opts.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        opts[(i + (e.key === 'ArrowDown' ? 1 : opts.length - 1)) % opts.length].focus();
+      }
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !list.hidden) { setOpen(false); btn.focus(); } });
+    document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) setOpen(false); });
+    return setOpen;
+  }
+
+  // jazyk rozhrania (ako v Jocadiu): tlačidlo s vlajkou a rozbaľovací zoznam
   const langWrap = document.getElementById('lang-wrap');
   const langBtn = document.getElementById('lang-btn');
   const langList = document.getElementById('lang-dropdown');
+  const setLangOpen = dropdown(langWrap, langBtn, langList, () => {
+    const cur = I18N.getLang();
+    langList.innerHTML = I18N.languages().map((code) => {
+      const info = I18N.info(code);
+      return `<button type="button" role="option" class="lang-option${code === cur ? ' active' : ''}" aria-selected="${code === cur}" data-code="${code}" lang="${info.htmlLang}">
+        <span class="flag" aria-hidden="true">${info.flag}</span><span>${esc(info.name)}</span>${code === cur ? '<span class="check" aria-hidden="true">✓</span>' : ''}
+      </button>`;
+    }).join('');
+  });
+  langList.addEventListener('click', (e) => {
+    const opt = e.target.closest('.lang-option');
+    if (!opt) return;
+    I18N.setLang(opt.dataset.code);
+    setLangOpen(false);
+    applyStatic();
+    const y = window.scrollY;
+    route();
+    window.scrollTo(0, y);
+    langBtn.focus();
+  });
+
+  // menu s ďalšími stránkami (opakovanie, testy, vzorce, nastavenia…)
+  const menuWrap = document.getElementById('menu-wrap');
+  const menuBtn = document.getElementById('menu-btn');
+  const menuList = document.getElementById('menu-dropdown');
+  const setMenuOpen = dropdown(menuWrap, menuBtn, menuList, () => {
+    const cur = location.hash;
+    menuList.innerHTML = menu.map((m) => {
+      const badge = m.badge ? m.badge() : '';
+      return `<a class="lang-option menu-item${cur.startsWith(m.href) ? ' active' : ''}" href="${m.href}" role="menuitem">
+        <span class="flag" aria-hidden="true">${m.icon}</span><span>${esc(t(m.key))}</span>${badge ? `<span class="menu-badge">${esc(badge)}</span>` : ''}
+      </a>`;
+    }).join('');
+  });
+  menuList.addEventListener('click', (e) => { if (e.target.closest('a')) setMenuOpen(false); });
 
   // statické texty mimo #app (hlavička, päta, titulok)
   function applyStatic() {
@@ -455,64 +496,45 @@
     document.getElementById('lang-name').textContent = info.name;
     langBtn.setAttribute('aria-label', `${t('langLabel')}: ${info.name}`);
     langList.setAttribute('aria-label', t('langLabel'));
+    menuBtn.setAttribute('aria-label', t('menuLabel'));
+    menuBtn.title = t('menuLabel');
+    menuList.setAttribute('aria-label', t('menuLabel'));
+    // počet lekcií na zopakovanie pri ikonke menu
+    const due = STORE.dueList().length;
+    const dot = document.getElementById('menu-dot');
+    dot.hidden = !due;
+    dot.textContent = due > 99 ? '99+' : String(due);
   }
 
-  function buildLangList() {
-    const cur = I18N.getLang();
-    langList.innerHTML = I18N.languages().map((code) => {
-      const info = I18N.info(code);
-      return `<button type="button" role="option" class="lang-option${code === cur ? ' active' : ''}" aria-selected="${code === cur}" data-code="${code}" lang="${info.htmlLang}">
-        <span class="flag" aria-hidden="true">${info.flag}</span><span>${esc(info.name)}</span>${code === cur ? '<span class="check" aria-hidden="true">✓</span>' : ''}
-      </button>`;
-    }).join('');
-  }
+  /* ---------- API pre rozšírenia ---------- */
+  window.APP = {
+    t, esc, renderMath, setPage, toast, el: app,
+    levelById, lessonById, groupById, lessonsOf, allOrdered,
+    themeById, themeOf, themeLessons, THEMES: THEME_LIST,
+    lvName, thName, grName, shortLevel, tr, lessonTitle, langOf, contentLang, htmlLang, contentNotice,
+    stateBadge, lessonStat, progressBar, progressMeta, prereqs,
+    route: (name, fn) => { routes[name] = fn; },
+    addMenu: (item) => { menu.push(item); },
+    addHomePanel: (fn) => { homePanels.push(fn); },
+    addLessonPanel: (fn) => { lessonPanels.push(fn); },
+    refresh: () => { applyStatic(); route(); },
+    applyStatic
+  };
 
-  function setLangOpen(open) {
-    langWrap.classList.toggle('open', open);
-    langList.hidden = !open;
-    langBtn.setAttribute('aria-expanded', String(open));
-    if (open) {
-      buildLangList();
-      const active = langList.querySelector('.active') || langList.querySelector('.lang-option');
-      if (active) active.focus();
-    }
-  }
-
-  langBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    setLangOpen(langList.hidden);
-  });
-  langList.addEventListener('click', (e) => {
-    const opt = e.target.closest('.lang-option');
-    if (!opt) return;
-    I18N.setLang(opt.dataset.code);
-    setLangOpen(false);
+  function start() {
+    applyReading();
     applyStatic();
-    const y = window.scrollY;
+    syncTheme();
+    window.addEventListener('hashchange', () => { route(); applyStatic(); });
+    STORE.on('import', () => { applyReading(); APP.refresh(); });
+    STORE.on('mastered', (ev) => {
+      const L = lessonById(ev.id);
+      if (L) toast(`🎉 ${esc(t('masteredToast'))} ${lessonTitle(L)}`);
+    });
     route();
-    window.scrollTo(0, y);
-    langBtn.focus();
-  });
-  // klávesnica: šípky v zozname, Escape zavrie
-  langList.addEventListener('keydown', (e) => {
-    const opts = [...langList.querySelectorAll('.lang-option')];
-    const i = opts.indexOf(document.activeElement);
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      opts[(i + (e.key === 'ArrowDown' ? 1 : opts.length - 1)) % opts.length].focus();
-    }
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !langList.hidden) { setLangOpen(false); langBtn.focus(); }
-  });
-  document.addEventListener('click', (e) => {
-    if (!langWrap.contains(e.target)) setLangOpen(false);
-  });
-
-  applyStatic();
-  syncTheme();
-  window.addEventListener('hashchange', route);
-  route();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else setTimeout(start);
 
   /* ---------- inštalácia PWA: Chrome/Edge na desktope a Androide posielajú beforeinstallprompt ---------- */
   const installBtn = document.getElementById('install-btn');

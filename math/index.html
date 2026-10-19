@@ -11,6 +11,7 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/features.css">
   <script>
     // Zvolený vzhľad nastavíme ešte pred vykreslením, aby stránka neblikla inými farbami.
     try {
@@ -24,6 +25,12 @@
     <a href="#/" class="brand"><span class="brand-icon" aria-hidden="true">📐 </span><span id="brand-name">Matematika krok za krokom</span></a>
     <div class="topbar-actions">
       <button id="install-btn" class="btn btn-small" type="button" aria-label="Nainštalovať aplikáciu" hidden><span aria-hidden="true">⬇</span><span class="hide-narrow"> Nainštalovať</span></button>
+      <div class="lang-wrap menu-wrap" id="menu-wrap">
+        <button id="menu-btn" class="lang-btn menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Menu">
+          <span aria-hidden="true">☰</span><span class="menu-dot" id="menu-dot" hidden></span>
+        </button>
+        <div class="lang-dropdown menu-dropdown" id="menu-dropdown" role="menu" aria-label="Menu" hidden></div>
+      </div>
       <select id="theme-select" class="theme-select" aria-label="Vzhľad aplikácie" title="Vzhľad aplikácie">
         <option value="light">☀️ Svetlá</option>
         <option value="dark">🌙 Tmavá</option>
@@ -87,6 +94,23 @@
   <script src="js/lang/zh.js"></script>
   <script src="js/content-i18n/en/r1.js"></script>
   <script src="js/content-i18n/en/s1.js"></script>
+  <script src="js/vzorce.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/keypad.js"></script>
+  <script src="js/scratchpad.js"></script>
+  <script src="js/tts.js"></script>
+  <script src="js/widget.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/features/opakovanie.js"></script>
+  <script src="js/features/vyzva.js"></script>
+  <script src="js/features/testy.js"></script>
+  <script src="js/features/vstupny.js"></script>
+  <script src="js/features/hladat.js"></script>
+  <script src="js/features/vzorce.js"></script>
+  <script src="js/features/prehlad.js"></script>
+  <script src="js/features/odznaky.js"></script>
+  <script src="js/features/ucitel.js"></script>
+  <script src="js/features/jocadium.js"></script>
+  <script src="js/features/nastavenia.js"></script>
 </body>
 </html>
