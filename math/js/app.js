@@ -494,6 +494,11 @@
     const install = document.getElementById('install-btn');
     install.setAttribute('aria-label', t('installAria'));
     install.querySelector('.hide-narrow').textContent = ' ' + t('install');
+    const topQ = document.getElementById('top-q'), topBtn = document.getElementById('top-search-btn');
+    topQ.placeholder = t('searchPlaceholder');
+    topQ.setAttribute('aria-label', t('searchTitle'));
+    topBtn.setAttribute('aria-label', t('searchBtn'));
+    topBtn.title = t('searchTitle');
     document.getElementById('lang-flag').textContent = info.flag;
     document.getElementById('lang-name').textContent = info.name;
     langBtn.setAttribute('aria-label', `${t('langLabel')}: ${info.name}`);

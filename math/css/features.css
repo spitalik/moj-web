@@ -68,8 +68,6 @@
 .today-card.attention { border-color: var(--warn); }
 .today-card.done { border-color: var(--ok); }
 .today-icon { font-size: 1.5rem; line-height: 1; margin-bottom: 6px; }
-.search-card .answer-row { margin: 6px 0 0; }
-.search-card input { flex: 1 1 100px; min-width: 0; padding: 6px 10px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
 
 /* ---------- stav zvládnutia ---------- */
 .mstate { display: inline-block; margin-left: 4px; font-size: 0.95em; line-height: 1; }

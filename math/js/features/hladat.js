@@ -115,12 +115,20 @@
     if (!q) input.focus();
   }
 
-  APP.route('hladat', (p) => page(decodeURIComponent(p.join('/') || '')));
+  APP.route('hladat', (p) => {
+    const q = decodeURIComponent(p.join('/') || '');
+    topQ.value = q;
+    page(q);
+  });
   APP.addMenu({ href: '#/hladat', icon: '🔎', key: 'menuSearch' });
-  // vyhľadávacie pole na hlavnej stránke
-  APP.addHomePanel(() => `<form class="card today-card search-card" onsubmit="event.preventDefault(); location.hash='#/hladat/'+encodeURIComponent(this.q.value.trim());" role="search">
-      <div class="today-icon" aria-hidden="true">🔎</div>
-      <h3>${esc(t('searchTitle'))}</h3>
-      <div class="answer-row"><input name="q" type="search" placeholder="${esc(t('searchPlaceholder'))}" aria-label="${esc(t('searchTitle'))}"><button class="btn btn-small" type="submit">${esc(t('searchBtn'))}</button></div>
-    </form>`);
+
+  // vyhľadávacie pole v hlavičke; na úzkom displeji je pole skryté a tlačidlo otvorí stránku hľadania
+  const topQ = document.getElementById('top-q');
+  document.getElementById('top-search').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = topQ.offsetParent ? topQ.value.trim() : '';
+    location.hash = q ? `#/hladat/${encodeURIComponent(q)}` : '#/hladat';
+  });
+  // mimo stránky hľadania pole nedrží starý dopyt
+  window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/hladat')) topQ.value = ''; });
 })();
