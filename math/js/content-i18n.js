@@ -74,9 +74,12 @@
   }
 
   // hodnota diery: celý slovenský text zo slovníka sa preloží, inak zostane
+  // (tools/i18n_extract.js zapne harvest a zbiera aj diery so slovami bez prekladu – kandidáti na slovník)
+  const harvest = { on: false, values: new Set() };
   function value(v) {
     if (typeof v !== 'string') return v;
     const e = entry(norm(v));
+    if (e === undefined && harvest.on && /[A-Za-zÀ-ž]{3,}/.test(v) && !/[$\\<\d]/.test(v) && !/^[IVXLCDM ,]+$/.test(v)) harvest.values.add(norm(v));
     return typeof e === 'string' ? e : v;
   }
 
@@ -113,8 +116,23 @@
     const k = norm(s);
     if (!k) return s;
     const e = entry(k);
-    if (e === undefined) { if (WORDY.test(k)) miss(k); return s; }
+    // text, ktorý už je prekladom (popis v SVG zložený cez T`…` sa v markup hľadá druhýkrát), nie je chýbajúci
+    if (e === undefined) { if (WORDY.test(k) && !translated(k)) miss(k); return s; }
     return typeof e === 'function' ? e([]) : e;
+  }
+  // množina preložených textov jazyka (hodnoty slovníka), vytvorená až pri prvom použití
+  const done = {};
+  function translated(k) {
+    const p = packs[ctx.lang];
+    if (!p) return false;
+    if (!done[ctx.lang] || done[ctx.lang].n !== Object.keys(p.strings).length) {
+      const set = new Set();
+      const addAll = (d) => Object.values(d).forEach((v) => { if (typeof v === 'string') set.add(norm(v)); });
+      addAll(p.strings);
+      Object.values(p.lessons).forEach((l) => addAll(l.strings || {}));
+      done[ctx.lang] = { n: Object.keys(p.strings).length, set };
+    }
+    return done[ctx.lang].set.has(k);
   }
   function markup(html) {
     if (ctx.lang === SOURCE || typeof html !== 'string') return html;
@@ -124,8 +142,33 @@
       .replace(/aria-label="([^"]*)"/g, (m, txt) => `aria-label="${tr(txt)}"`);
   }
 
+  // preklad pevného textu do jazyka bez hlásenia chýbajúceho prekladu (vzorce)
+  function tr(s, lang) {
+    if (!s || lang === SOURCE || !packs[lang]) return s;
+    const e = packs[lang].strings[norm(s)];
+    return typeof e === 'string' ? e : typeof e === 'function' ? e([]) : s;
+  }
+
+  // Balíky prekladov sa načítajú len pre zvolený jazyk: pri štarte cez document.write v index.html,
+  // pri zmene jazyka dynamicky (load). Zoznam súborov je v js/content-i18n/files.js (generuje tools/i18n_build.js).
+  const loaded = {};
+  const files = (lang) => ((window.CONTENT_I18N_FILES || {})[lang] || []).map((f) => `js/content-i18n/${lang}/${f}.js`);
+  function load(lang) {
+    if (lang === SOURCE) return Promise.resolve();
+    if (!loaded[lang]) {
+      loaded[lang] = Promise.all(files(lang).map((src) => (document.querySelector(`script[src="${src}"]`) ? null : new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = resolve; // bez balíka (offline) zostane slovenčina
+        document.head.appendChild(s);
+      }))));
+    }
+    return loaded[lang];
+  }
+
   window.CONTENT_I18N = {
-    SOURCE, add, has, langFor, lesson, run, T, text, markup, misses,
+    SOURCE, add, has, langFor, lesson, run, T, text, markup, misses, harvest, tr, load, files,
     lang: () => ctx.lang,
     decimal: () => (ctx.lang === SOURCE ? ',' : (packs[ctx.lang] && packs[ctx.lang].decimal) || '.'),
     languages: () => Object.keys(packs),

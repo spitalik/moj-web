@@ -7,10 +7,11 @@
 
   const { rnd, pick, gcd, shuffle } = EXERCISES.util;
   const { plane, curvePath, svg, n1, sk } = FIGURES.util;
+  const { T } = CONTENT_I18N;
   const lesson = (l) => LESSONS.push(Object.assign({ level: 'v4' }, l));
   // odpovede sú už zaokrúhlené na požadovaný počet miest; zobrazíme ich celé (fmt by krátil na 3 miesta)
   const gen = (id, fn) => EXERCISES.register(id, () => {
-    const e = fn(), txt = (v) => String(v).replace('.', ',');
+    const e = fn(), txt = (v) => String(v).replace('.', CONTENT_I18N.decimal());
     if (!e.show && (!e.type || e.type === 'num') && !Number.isInteger(e.answer)) e.show = txt(e.answer);
     if (!e.show && e.type === 'tuple') e.show = e.answer.map(txt).join('; ');
     // kroky riešenia: rovnako zobraziť celé desatinné číslo (bez skracovania na 3 miesta)
@@ -27,10 +28,12 @@
   /* ---------- čísla a zápis ---------- */
 
   const round = (x, d) => { const f = Math.pow(10, d); return Math.sign(x) * Math.round(Math.abs(x) * f + 1e-9) / f; };
-  const nm = (x, d = 4) => String(round(x, d) || 0).replace('.', '{,}');     // KaTeX, bez koncových núl
-  const nt = (x, d = 4) => String(round(x, d) || 0).replace('.', ',');       // obyčajný text
-  const dd = (x, d = 4) => (round(x, d) || 0).toFixed(d).replace('.', '{,}'); // KaTeX, pevný počet miest
-  const dt = (x, d = 4) => (round(x, d) || 0).toFixed(d).replace('.', ',');   // text, pevný počet miest
+  // desatinný oddeľovač podľa jazyka (v slovenčine čiarka, v KaTeXe {,})
+  const dsep = () => (CONTENT_I18N.decimal() === ',' ? '{,}' : '.');
+  const nm = (x, d = 4) => String(round(x, d) || 0).replace('.', dsep());     // KaTeX, bez koncových núl
+  const nt = (x, d = 4) => String(round(x, d) || 0).replace('.', CONTENT_I18N.decimal()); // obyčajný text
+  const dd = (x, d = 4) => (round(x, d) || 0).toFixed(d).replace('.', dsep()); // KaTeX, pevný počet miest
+  const dt = (x, d = 4) => (round(x, d) || 0).toFixed(d).replace('.', CONTENT_I18N.decimal()); // text, pevný počet miest
   const red = (p, q) => { if (q < 0) { p = -p; q = -q; } const g = gcd(p, q) || 1; return [p / g, q / g]; };
   const fTex = (p, q) => { const [a, b] = red(p, q); return b === 1 ? String(a) : `${a < 0 ? '-' : ''}\\frac{${Math.abs(a)}}{${b}}`; };
   const fTxt = (p, q) => { const [a, b] = red(p, q); return b === 1 ? String(a) : `${a}/${b}`; };
@@ -78,7 +81,7 @@
   const phiList = (zs) => {
     const u = [...new Set(zs.map((z) => round(Math.abs(z), 2)))].sort((a, b) => a - b);
     const items = u.map((z) => `$\\Phi(${nm(z, 2)})=${dd(PhiT(z), 4)}$`);
-    return items.length > 1 ? items.slice(0, -1).join(', ') + ' a ' + items[items.length - 1] : items[0];
+    return items.length > 1 ? T`${items.slice(0, -1).join(', ')} a ${items[items.length - 1]}` : items[0];
   };
   // kvantily N(0, 1)
   const ZQ = { 0.9: 1.2816, 0.95: 1.6449, 0.975: 1.96, 0.99: 2.3263, 0.995: 2.5758 };
@@ -147,7 +150,7 @@
         <text class="f-small" x="${ox + S + 22}" y="96">obsah pásu: 60² − 45²</text>
         <text class="f-small" x="${ox + S + 22}" y="118">obsah štvorca: 60²</text>
         <text class="f-text" x="${ox + S + 22}" y="150">P = 1 − (45/60)²</text>
-        <text class="f-text" x="${ox + S + 22}" y="174">   = 0,4375</text></svg>`;
+        <text class="f-text" x="${ox + S + 22}" y="174">   = ${sk(0.4375, 4)}</text></svg>`;
     }
   });
 
@@ -188,44 +191,44 @@
     if (t < 0.3) {
       let p11, p10, p01, p00;
       do { p11 = rnd(5, 30); p10 = rnd(5, 40); p01 = rnd(5, 40); p00 = 100 - p11 - p10 - p01; } while (p00 < 5);
-      const a = p11 + p10, b = p11 + p01, given = `$P(A)=${h(a)}$, $P(B)=${h(b)}$ a $P(A\\cap B)=${h(p11)}$`;
+      const a = p11 + p10, b = p11 + p01, given = T`$P(A)=${h(a)}$, $P(B)=${h(b)}$ a $P(A\\cap B)=${h(p11)}$`;
       const Q = [
         ['P(A\\cup B)', p11 + p10 + p01, `$P(A\\cup B)=P(A)+P(B)-P(A\\cap B)=${h(a)}+${h(b)}-${h(p11)}=${h(p11 + p10 + p01)}$.`],
         ['P(A\\setminus B)', p10, `$P(A\\setminus B)=P(A)-P(A\\cap B)=${h(a)}-${h(p11)}=${h(p10)}$.`],
-        ['P(\\bar{A}\\cap\\bar{B})', p00, `$\\bar{A}\\cap\\bar{B}=\\overline{A\\cup B}$, preto $P(\\bar{A}\\cap\\bar{B})=1-P(A\\cup B)=1-(${h(a)}+${h(b)}-${h(p11)})=${h(p00)}$.`],
-        ['P(\\bar{A}\\cup\\bar{B})', 100 - p11, `$\\bar{A}\\cup\\bar{B}=\\overline{A\\cap B}$, preto $P(\\bar{A}\\cup\\bar{B})=1-P(A\\cap B)=1-${h(p11)}=${h(100 - p11)}$.`],
+        ['P(\\bar{A}\\cap\\bar{B})', p00, T`$\\bar{A}\\cap\\bar{B}=\\overline{A\\cup B}$, preto $P(\\bar{A}\\cap\\bar{B})=1-P(A\\cup B)=1-(${h(a)}+${h(b)}-${h(p11)})=${h(p00)}$.`],
+        ['P(\\bar{A}\\cup\\bar{B})', 100 - p11, T`$\\bar{A}\\cup\\bar{B}=\\overline{A\\cap B}$, preto $P(\\bar{A}\\cup\\bar{B})=1-P(A\\cap B)=1-${h(p11)}=${h(100 - p11)}$.`],
         ['P(B\\setminus A)', p01, `$P(B\\setminus A)=P(B)-P(A\\cap B)=${h(b)}-${h(p11)}=${h(p01)}$.`]
       ];
       if (Math.random() < 0.25) {
         return {
           answer: (p10 + p01) / 100, tol: 0.0001,
-          q: `Pre javy $A$, $B$ platí ${given}. Aká je pravdepodobnosť, že nastane <strong>práve jeden</strong> z javov $A$, $B$?`,
-          solution: `Práve jeden jav nastane, ak nastane $A\\setminus B$ alebo $B\\setminus A$ (disjunktné javy):
+          q: T`Pre javy $A$, $B$ platí ${given}. Aká je pravdepodobnosť, že nastane <strong>práve jeden</strong> z javov $A$, $B$?`,
+          solution: T`Práve jeden jav nastane, ak nastane $A\\setminus B$ alebo $B\\setminus A$ (disjunktné javy):
             $P=(P(A)-P(A\\cap B))+(P(B)-P(A\\cap B))=${h(p10)}+${h(p01)}=${h(p10 + p01)}$.`,
-          hint: 'Rozlož jav na dva disjunktné javy $A\\setminus B$ a $B\\setminus A$.',
-          mistakes: [{ value: (p10 + p01 + p11) / 100, msg: 'To je $P(A\\cup B)$ – zahŕňa aj prípad, keď nastanú oba javy. Prienik treba od súčtu odčítať dvakrát.' }],
+          hint: T`Rozlož jav na dva disjunktné javy $A\\setminus B$ a $B\\setminus A$.`,
+          mistakes: [{ value: (p10 + p01 + p11) / 100, msg: T`To je $P(A\\cup B)$ – zahŕňa aj prípad, keď nastanú oba javy. Prienik treba od súčtu odčítať dvakrát.` }],
           steps: [
-            { q: 'Vypočítaj $P(A\\setminus B)$.', answer: p10 / 100 },
-            { q: 'Vypočítaj $P(B\\setminus A)$.', answer: p01 / 100 },
-            { q: 'Aká je pravdepodobnosť, že nastane práve jeden z javov?', answer: (p10 + p01) / 100, tol: 0.0001 }
+            { q: T`Vypočítaj $P(A\\setminus B)$.`, answer: p10 / 100 },
+            { q: T`Vypočítaj $P(B\\setminus A)$.`, answer: p01 / 100 },
+            { q: T`Aká je pravdepodobnosť, že nastane práve jeden z javov?`, answer: (p10 + p01) / 100, tol: 0.0001 }
           ]
         };
       }
       const picked = pick(Q), qi = Q.indexOf(picked), [lab, ans, sol] = picked;
       const wrongQ = [
-        [{ value: (a + b) / 100, msg: 'Javy $A$ a $B$ nie sú disjunktné – prienik $P(A\\cap B)$ by si započítal dvakrát.' }],
-        [{ value: (a - b) / 100, msg: 'Od $P(A)$ odčítaš len tú časť, ktorá patrí aj do $B$, teda $P(A\\cap B)$, nie celé $P(B)$.' },
-          { value: a * (100 - b) / 10000, msg: 'Vzťah $P(A\\setminus B)=P(A)\\,(1-P(B))$ platí len pre nezávislé javy. Použi $P(A)-P(A\\cap B)$.' }],
-        [{ value: (100 - a - b) / 100, msg: 'Doplnok zjednotenia je $1-P(A\\cup B)$ a v $P(A\\cup B)$ treba prienik odčítať.' },
-          { value: (100 - a) * (100 - b) / 10000, msg: 'Súčin $P(\\bar A)P(\\bar B)$ platí len pre nezávislé javy. Použi De Morganovo pravidlo $\\bar A\\cap\\bar B=\\overline{A\\cup B}$.' }],
-        [{ value: p00 / 100, msg: 'Zamenil si De Morganove pravidlá: $\\bar A\\cup\\bar B=\\overline{A\\cap B}$, nie $\\overline{A\\cup B}$.' }],
-        [{ value: (b - a) / 100, msg: 'Od $P(B)$ odčítaš len tú časť, ktorá patrí aj do $A$, teda $P(A\\cap B)$, nie celé $P(A)$.' }]
+        [{ value: (a + b) / 100, msg: T`Javy $A$ a $B$ nie sú disjunktné – prienik $P(A\\cap B)$ by si započítal dvakrát.` }],
+        [{ value: (a - b) / 100, msg: T`Od $P(A)$ odčítaš len tú časť, ktorá patrí aj do $B$, teda $P(A\\cap B)$, nie celé $P(B)$.` },
+          { value: a * (100 - b) / 10000, msg: T`Vzťah $P(A\\setminus B)=P(A)\\,(1-P(B))$ platí len pre nezávislé javy. Použi $P(A)-P(A\\cap B)$.` }],
+        [{ value: (100 - a - b) / 100, msg: T`Doplnok zjednotenia je $1-P(A\\cup B)$ a v $P(A\\cup B)$ treba prienik odčítať.` },
+          { value: (100 - a) * (100 - b) / 10000, msg: T`Súčin $P(\\bar A)P(\\bar B)$ platí len pre nezávislé javy. Použi De Morganovo pravidlo $\\bar A\\cap\\bar B=\\overline{A\\cup B}$.` }],
+        [{ value: p00 / 100, msg: T`Zamenil si De Morganove pravidlá: $\\bar A\\cup\\bar B=\\overline{A\\cap B}$, nie $\\overline{A\\cup B}$.` }],
+        [{ value: (b - a) / 100, msg: T`Od $P(B)$ odčítaš len tú časť, ktorá patrí aj do $A$, teda $P(A\\cap B)$, nie celé $P(A)$.` }]
       ][qi];
       return {
         answer: ans / 100, tol: 0.0001,
-        q: `Pre javy $A$, $B$ platí ${given}. Vypočítaj $${lab}$.`,
+        q: T`Pre javy $A$, $B$ platí ${given}. Vypočítaj $${lab}$.`,
         solution: sol,
-        hint: 'Použi $P(A\\cup B)=P(A)+P(B)-P(A\\cap B)$, $P(A\\setminus B)=P(A)-P(A\\cap B)$ a De Morganove pravidlá.',
+        hint: T`Použi $P(A\\cup B)=P(A)+P(B)-P(A\\cap B)$, $P(A\\setminus B)=P(A)-P(A\\cap B)$ a De Morganove pravidlá.`,
         mistakes: mis(ans / 100, 0.0001, wrongQ)
       };
     }
@@ -239,20 +242,20 @@
       const askNone = Math.random() < 0.4;
       return {
         answer: (askNone ? none : U) / 100, tol: 0.0001,
-        q: `Pre javy $A$, $B$, $C$ platí $P(A)=${h(PA)}$, $P(B)=${h(PB)}$, $P(C)=${h(PC)}$, $P(A\\cap B)=${h(PAB)}$, $P(A\\cap C)=${h(PAC)}$, $P(B\\cap C)=${h(PBC)}$
-          a $P(A\\cap B\\cap C)=${h(abc)}$. ${askNone ? 'Aká je pravdepodobnosť, že nenastane ani jeden z týchto javov?' : 'Vypočítaj $P(A\\cup B\\cup C)$.'}`,
-        solution: `Princíp inklúzie a exklúzie: $P(A\\cup B\\cup C)=${h(PA)}+${h(PB)}+${h(PC)}-${h(PAB)}-${h(PAC)}-${h(PBC)}+${h(abc)}=${h(U)}$.
-          ${askNone ? `Ani jeden jav nenastane s pravdepodobnosťou $1-P(A\\cup B\\cup C)=${h(none)}$.` : ''}`,
-        hint: 'Sčítaj pravdepodobnosti jednotlivých javov, odčítaj prieniky dvojíc a pripočítaj prienik všetkých troch.',
+        q: T`Pre javy $A$, $B$, $C$ platí $P(A)=${h(PA)}$, $P(B)=${h(PB)}$, $P(C)=${h(PC)}$, $P(A\\cap B)=${h(PAB)}$, $P(A\\cap C)=${h(PAC)}$, $P(B\\cap C)=${h(PBC)}$
+          a $P(A\\cap B\\cap C)=${h(abc)}$. ${askNone ? T`Aká je pravdepodobnosť, že nenastane ani jeden z týchto javov?` : T`Vypočítaj $P(A\\cup B\\cup C)$.`}`,
+        solution: T`Princíp inklúzie a exklúzie: $P(A\\cup B\\cup C)=${h(PA)}+${h(PB)}+${h(PC)}-${h(PAB)}-${h(PAC)}-${h(PBC)}+${h(abc)}=${h(U)}$.
+          ${askNone ? T`Ani jeden jav nenastane s pravdepodobnosťou $1-P(A\\cup B\\cup C)=${h(none)}$.` : ''}`,
+        hint: T`Sčítaj pravdepodobnosti jednotlivých javov, odčítaj prieniky dvojíc a pripočítaj prienik všetkých troch.`,
         mistakes: mis((askNone ? none : U) / 100, 0.0001, [
-          { value: (askNone ? none + abc : U - abc) / 100, msg: 'Nezabudni na posledný člen princípu inklúzie a exklúzie: prienik všetkých troch javov sa na konci pripočíta.' },
-          { value: (askNone ? 100 - (PA + PB + PC) : PA + PB + PC) / 100, msg: 'Javy nie sú disjunktné – prieniky dvojíc treba odčítať, inak ich započítaš viackrát.' }
+          { value: (askNone ? none + abc : U - abc) / 100, msg: T`Nezabudni na posledný člen princípu inklúzie a exklúzie: prienik všetkých troch javov sa na konci pripočíta.` },
+          { value: (askNone ? 100 - (PA + PB + PC) : PA + PB + PC) / 100, msg: T`Javy nie sú disjunktné – prieniky dvojíc treba odčítať, inak ich započítaš viackrát.` }
         ]),
         steps: [
-          { q: 'Vypočítaj $P(A)+P(B)+P(C)$.', answer: (PA + PB + PC) / 100 },
-          { q: 'Vypočítaj súčet pravdepodobností prienikov dvojíc $P(A\\cap B)+P(A\\cap C)+P(B\\cap C)$.', answer: (PAB + PAC + PBC) / 100 },
-          { q: 'Vypočítaj $P(A\\cup B\\cup C)$.', answer: U / 100, tol: 0.0001 },
-          ...(askNone ? [{ q: 'Aká je pravdepodobnosť, že nenastane ani jeden z javov?', answer: none / 100, tol: 0.0001 }] : [])
+          { q: T`Vypočítaj $P(A)+P(B)+P(C)$.`, answer: (PA + PB + PC) / 100 },
+          { q: T`Vypočítaj súčet pravdepodobností prienikov dvojíc $P(A\\cap B)+P(A\\cap C)+P(B\\cap C)$.`, answer: (PAB + PAC + PBC) / 100 },
+          { q: T`Vypočítaj $P(A\\cup B\\cup C)$.`, answer: U / 100, tol: 0.0001 },
+          ...(askNone ? [{ q: T`Aká je pravdepodobnosť, že nenastane ani jeden z javov?`, answer: none / 100, tol: 0.0001 }] : [])
         ]
       };
     }
@@ -261,41 +264,41 @@
       do { a = rnd(50, 90); b = rnd(40, 90); } while (a + b < 106 || a === b);
       const k = rnd(0, 2), A = h(a), B = h(b);
       const Q = [
-        ['najmenšiu možnú hodnotu $P(A\\cap B)$', (a + b - 100) / 100,
-          `Keďže $P(A\\cup B)\\le 1$, platí $P(A\\cap B)=P(A)+P(B)-P(A\\cup B)\\ge ${A}+${B}-1=${h(a + b - 100)}$. Rovnosť nastane, ak $A\\cup B=\\Omega$ (Bonferroniho nerovnosť).`],
-        ['najväčšiu možnú hodnotu $P(A\\cap B)$', Math.min(a, b) / 100,
-          `$A\\cap B$ je podmnožinou $A$ aj $B$, teda $P(A\\cap B)\\le\\min(${A}, ${B})=${h(Math.min(a, b))}$. Rovnosť nastane, ak je menší jav podmnožinou väčšieho.`],
-        ['najmenšiu možnú hodnotu $P(A\\cup B)$', Math.max(a, b) / 100,
-          `$A\\cup B$ obsahuje $A$ aj $B$, teda $P(A\\cup B)\\ge\\max(${A}, ${B})=${h(Math.max(a, b))}$. Rovnosť nastane, ak je menší jav podmnožinou väčšieho.`]
+        [T`najmenšiu možnú hodnotu $P(A\\cap B)$`, (a + b - 100) / 100,
+          T`Keďže $P(A\\cup B)\\le 1$, platí $P(A\\cap B)=P(A)+P(B)-P(A\\cup B)\\ge ${A}+${B}-1=${h(a + b - 100)}$. Rovnosť nastane, ak $A\\cup B=\\Omega$ (Bonferroniho nerovnosť).`],
+        [T`najväčšiu možnú hodnotu $P(A\\cap B)$`, Math.min(a, b) / 100,
+          T`$A\\cap B$ je podmnožinou $A$ aj $B$, teda $P(A\\cap B)\\le\\min(${A}, ${B})=${h(Math.min(a, b))}$. Rovnosť nastane, ak je menší jav podmnožinou väčšieho.`],
+        [T`najmenšiu možnú hodnotu $P(A\\cup B)$`, Math.max(a, b) / 100,
+          T`$A\\cup B$ obsahuje $A$ aj $B$, teda $P(A\\cup B)\\ge\\max(${A}, ${B})=${h(Math.max(a, b))}$. Rovnosť nastane, ak je menší jav podmnožinou väčšieho.`]
       ];
       return {
         answer: Q[k][1], tol: 0.0001,
-        q: `O javoch $A$, $B$ vieme len to, že $P(A)=${A}$ a $P(B)=${B}$. Urči ${Q[k][0]}.`,
+        q: T`O javoch $A$, $B$ vieme len to, že $P(A)=${A}$ a $P(B)=${B}$. Urči ${Q[k][0]}.`,
         solution: Q[k][2],
-        hint: 'Využi monotónnosť pravdepodobnosti ($X\\subseteq Y\\Rightarrow P(X)\\le P(Y)$) a vzťah $P(A\\cup B)=P(A)+P(B)-P(A\\cap B)\\le 1$.',
+        hint: T`Využi monotónnosť pravdepodobnosti ($X\\subseteq Y\\Rightarrow P(X)\\le P(Y)$) a vzťah $P(A\\cup B)=P(A)+P(B)-P(A\\cap B)\\le 1$.`,
         mistakes: mis(Q[k][1], 0.0001, [
-          k < 2 ? { value: a * b / 10000, msg: 'Súčin $P(A)P(B)$ dáva prienik len pre nezávislé javy. Tu sa pýtame na krajnú hodnotu pre ľubovoľné javy.' }
-            : { value: 1, msg: 'To je najväčšia možná hodnota zjednotenia. Najmenšia nastane, keď sa javy prekrývajú čo najviac.' },
-          k === 0 ? { value: 0, msg: 'Javy s pravdepodobnosťami, ktorých súčet presahuje 1, nemôžu byť disjunktné – prienik nemôže byť nulový.' } : null
+          k < 2 ? { value: a * b / 10000, msg: T`Súčin $P(A)P(B)$ dáva prienik len pre nezávislé javy. Tu sa pýtame na krajnú hodnotu pre ľubovoľné javy.` }
+            : { value: 1, msg: T`To je najväčšia možná hodnota zjednotenia. Najmenšia nastane, keď sa javy prekrývajú čo najviac.` },
+          k === 0 ? { value: 0, msg: T`Javy s pravdepodobnosťami, ktorých súčet presahuje 1, nemôžu byť disjunktné – prienik nemôže byť nulový.` } : null
         ])
       };
     }
-    const T = pick([30, 60, 60]), w = T === 30 ? pick([5, 6, 10, 15]) : pick([5, 10, 12, 15, 20, 30]);
-    const res = 1 - ((T - w) / T) ** 2;
-    const hour = T === 60 ? 'medzi 17:00 a 18:00' : 'medzi 12:00 a 12:30';
+    const Tm = pick([30, 60, 60]), w = Tm === 30 ? pick([5, 6, 10, 15]) : pick([5, 10, 12, 15, 20, 30]);
+    const res = 1 - ((Tm - w) / Tm) ** 2;
+    const hour = Tm === 60 ? T`medzi 17:00 a 18:00` : T`medzi 12:00 a 12:30`;
     return {
       answer: round(res, 4), tol: 0.0001,
-      q: `Dvaja kolegovia prídu na dohodnuté miesto nezávisle od seba v náhodnom okamihu ${hour} (rovnomerne rozdelenom). Kto príde prvý, čaká na druhého ${w} minút a potom odíde. Aká je pravdepodobnosť, že sa stretnú? ${R4}`,
-      solution: `Časy príchodov (v minútach) tvoria náhodný bod štvorca $[0, ${T}]^2$. Stretnú sa, ak $|x-y|\\le ${w}$. Doplnok tvoria dva trojuholníky s odvesnami $${T - w}$, ktorých spoločný obsah je $${T - w}^2$.
-        $P=1-\\left(\\frac{${T - w}}{${T}}\\right)^2=${fTex(T * T - (T - w) * (T - w), T * T)}\\approx ${dd(res, 4)}$.`,
-      hint: 'Nakresli štvorec možných dvojíc príchodov a vyznač pás $|x-y|\\le w$. Pravdepodobnosť je pomer obsahov.',
+      q: T`Dvaja kolegovia prídu na dohodnuté miesto nezávisle od seba v náhodnom okamihu ${hour} (rovnomerne rozdelenom). Kto príde prvý, čaká na druhého ${w} minút a potom odíde. Aká je pravdepodobnosť, že sa stretnú? ${T.s(R4)}`,
+      solution: T`Časy príchodov (v minútach) tvoria náhodný bod štvorca $[0, ${Tm}]^2$. Stretnú sa, ak $|x-y|\\le ${w}$. Doplnok tvoria dva trojuholníky s odvesnami $${Tm - w}$, ktorých spoločný obsah je $${Tm - w}^2$.
+        $P=1-\\left(\\frac{${Tm - w}}{${Tm}}\\right)^2=${fTex(Tm * Tm - (Tm - w) * (Tm - w), Tm * Tm)}\\approx ${dd(res, 4)}$.`,
+      hint: T`Nakresli štvorec možných dvojíc príchodov a vyznač pás $|x-y|\\le w$. Pravdepodobnosť je pomer obsahov.`,
       mistakes: mis(round(res, 4), 0.0001, [
-        { value: round(w / T, 4), msg: 'Pravdepodobnosť nie je len pomer času čakania k dĺžke intervalu – pracuj s dvojicou časov príchodov ako s bodom štvorca.' },
-        { value: round(2 * w / T, 4), msg: 'Takto by si dvakrát započítal štvorec v rohu pásu. Ľahšie je vypočítať doplnok – dva trojuholníky.' }
+        { value: round(w / Tm, 4), msg: T`Pravdepodobnosť nie je len pomer času čakania k dĺžke intervalu – pracuj s dvojicou časov príchodov ako s bodom štvorca.` },
+        { value: round(2 * w / Tm, 4), msg: T`Takto by si dvakrát započítal štvorec v rohu pásu. Ľahšie je vypočítať doplnok – dva trojuholníky.` }
       ]),
       steps: [
-        { q: `Aká časť obsahu štvorca pripadá na dva trojuholníky, v ktorých sa nestretnú? ${R4}`, answer: round(((T - w) / T) ** 2, 4), tol: 0.0001, show: dt(((T - w) / T) ** 2, 4) },
-        { q: `Aká je pravdepodobnosť stretnutia? ${R4}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
+        { q: T`Aká časť obsahu štvorca pripadá na dva trojuholníky, v ktorých sa nestretnú? ${T.s(R4)}`, answer: round(((Tm - w) / Tm) ** 2, 4), tol: 0.0001, show: dt(((Tm - w) / Tm) ** 2, 4) },
+        { q: T`Aká je pravdepodobnosť stretnutia? ${T.s(R4)}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
       ]
     };
   });
@@ -305,18 +308,18 @@
   fig('v4-bayes-strom', {
     draw: () => {
       const E = (x1, y1, x2, y2, cls) => `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
-      const T = (x, y, s, cls = 'f-small', anchor = 'middle') => `<text class="${cls}" x="${x}" y="${y}" text-anchor="${anchor}">${s}</text>`;
+      const tx = (x, y, s, cls = 'f-small', anchor = 'middle') => `<text class="${cls}" x="${x}" y="${y}" text-anchor="${anchor}">${s}</text>`;
       return `<svg viewBox="0 0 500 236" role="img" aria-label="Stromový diagram k Bayesovej vete">
         ${E(24, 118, 160, 58, 'f-accent')}${E(24, 118, 160, 178, 'f-line')}
         ${E(184, 58, 300, 26, 'f-accent')}${E(184, 58, 300, 90, 'f-thin')}
         ${E(184, 178, 300, 146, 'f-accent')}${E(184, 178, 300, 210, 'f-thin')}
         <circle class="f-dot" cx="20" cy="118" r="5"/>
-        ${T(172, 64, 'D', 'f-math')}${T(172, 184, 'D̄', 'f-math')}
-        ${T(84, 78, '0,01')}${T(84, 166, '0,99')}
-        ${T(234, 30, '0,95')}${T(234, 92, '0,05')}${T(234, 150, '0,10')}${T(234, 212, '0,90')}
-        ${T(312, 31, '+', 'f-math', 'start')}${T(312, 95, '−', 'f-math', 'start')}${T(312, 151, '+', 'f-math', 'start')}${T(312, 215, '−', 'f-math', 'start')}
-        ${T(334, 30, '0,01 · 0,95 = 0,0095', 'f-text c-accent', 'start')}${T(334, 94, '0,01 · 0,05 = 0,0005', 'f-small', 'start')}
-        ${T(334, 150, '0,99 · 0,10 = 0,0990', 'f-text c-accent', 'start')}${T(334, 214, '0,99 · 0,90 = 0,8910', 'f-small', 'start')}</svg>`;
+        ${tx(172, 64, 'D', 'f-math')}${tx(172, 184, 'D̄', 'f-math')}
+        ${tx(84, 78, sk(0.01))}${tx(84, 166, sk(0.99))}
+        ${tx(234, 30, sk(0.95))}${tx(234, 92, sk(0.05))}${tx(234, 150, sk(0.1))}${tx(234, 212, sk(0.9))}
+        ${tx(312, 31, '+', 'f-math', 'start')}${tx(312, 95, '−', 'f-math', 'start')}${tx(312, 151, '+', 'f-math', 'start')}${tx(312, 215, '−', 'f-math', 'start')}
+        ${tx(334, 30, `${sk(0.01)} · ${sk(0.95)} = ${sk(0.0095, 4)}`, 'f-text c-accent', 'start')}${tx(334, 94, `${sk(0.01)} · ${sk(0.05)} = ${sk(0.0005, 4)}`, 'f-small', 'start')}
+        ${tx(334, 150, `${sk(0.99)} · ${sk(0.1)} = ${sk(0.099, 4)}`, 'f-text c-accent', 'start')}${tx(334, 214, `${sk(0.99)} · ${sk(0.9)} = ${sk(0.891, 4)}`, 'f-small', 'start')}</svg>`;
     }
   });
 
@@ -359,41 +362,41 @@
       do { sh = parts(20, k, 2).map((v) => v * 5); } while (new Set(sh).size < k);
       const df = shuffle([1, 2, 3, 4, 5, 6, 8]).slice(0, k);
       const terms = sh.map((s, i) => s * df[i]), PA = sum(terms) / 10000;
-      const src = pick([['linky', 'linka', 'linke', 'chybný'], ['dodávatelia', 'dodávateľ', 'dodávateľovi', 'chybný'], ['zmeny', 'zmena', 'zmene', 'chybný']]);
+      const src = pick([[T`linky`, T`linka`, T`linke`, T`chybný`], [T`dodávatelia`, T`dodávateľ`, T`dodávateľovi`, T`chybný`], [T`zmeny`, T`zmena`, T`zmene`, T`chybný`]]);
       const names = sh.map((_, i) => `${src[1]} ${i + 1}`);
-      const ctx = `Výrobky na sklade pochádzajú z ${k === 2 ? 'dvoch' : 'troch'} zdrojov: ${names.map((n, i) => `${n} dodáva ${sh[i]} %`).join(', ')} všetkých kusov.
+      const ctx = T`Výrobky na sklade pochádzajú z ${k === 2 ? T`dvoch` : T`troch`} zdrojov: ${names.map((n, i) => T`${n} dodáva ${sh[i]} %`).join(', ')} všetkých kusov.
         Podiel chybných výrobkov je postupne ${df.map((d) => d + ' %').join(', ')}.`;
       const total = `$P(A)=${sh.map((s, i) => `${nm(s / 100, 2)}\\cdot ${nm(df[i] / 100, 2)}`).join('+')}=${nm(PA, 4)}$`;
       if (t < 0.25) {
         return {
           answer: PA, tol: 0.0001,
-          q: `${ctx} Aká je pravdepodobnosť, že náhodne vybraný výrobok je chybný? Výsledok uveď ako desatinné číslo.`,
-          solution: `Hypotézy $H_i$ (výrobok pochádza zo zdroja $i$) tvoria úplný systém. Podľa vety o úplnej pravdepodobnosti ${total}.`,
-          hint: 'Veta o úplnej pravdepodobnosti: $P(A)=\\sum P(H_i)\\,P(A\\mid H_i)$.',
+          q: T`${ctx} Aká je pravdepodobnosť, že náhodne vybraný výrobok je chybný? Výsledok uveď ako desatinné číslo.`,
+          solution: T`Hypotézy $H_i$ (výrobok pochádza zo zdroja $i$) tvoria úplný systém. Podľa vety o úplnej pravdepodobnosti ${total}.`,
+          hint: T`Veta o úplnej pravdepodobnosti: $P(A)=\\sum P(H_i)\\,P(A\\mid H_i)$.`,
           mistakes: mis(PA, 0.0001, [
-            { value: sum(df) / k / 100, msg: 'Podiely chybných kusov nemôžeš jednoducho spriemerovať – každý treba vážiť podielom zdroja na celkovej produkcii.' }
+            { value: sum(df) / k / 100, msg: T`Podiely chybných kusov nemôžeš jednoducho spriemerovať – každý treba vážiť podielom zdroja na celkovej produkcii.` }
           ]),
           steps: [
-            ...sh.map((s, i) => ({ q: `Vypočítaj $P(H_${i + 1})\\,P(A\\mid H_${i + 1})$ pre zdroj ${i + 1}.`, answer: terms[i] / 10000, tol: 0.00001 })),
-            { q: 'Aká je celková pravdepodobnosť, že výrobok je chybný?', answer: PA, tol: 0.0001 }
+            ...sh.map((s, i) => ({ q: T`Vypočítaj $P(H_${i + 1})\\,P(A\\mid H_${i + 1})$ pre zdroj ${i + 1}.`, answer: terms[i] / 10000, tol: 0.00001 })),
+            { q: T`Aká je celková pravdepodobnosť, že výrobok je chybný?`, answer: PA, tol: 0.0001 }
           ]
         };
       }
       const j = rnd(0, k - 1), res = terms[j] / 10000 / PA;
       return {
         answer: round(res, 4), tol: 0.0002,
-        q: `${ctx} Náhodne vybraný výrobok je chybný. Aká je pravdepodobnosť, že ho dodal zdroj ${j + 1} (${names[j]})? ${R4}`,
-        solution: `Najprv ${total}. Podľa Bayesovej vety $P(H_${j + 1}\\mid A)=\\frac{${nm(sh[j] / 100, 2)}\\cdot ${nm(df[j] / 100, 2)}}{${nm(PA, 4)}}=\\frac{${nm(terms[j] / 10000, 4)}}{${nm(PA, 4)}}\\approx ${dd(res, 4)}$.`,
-        hint: 'Bayesova veta: čitateľ je pravdepodobnosť „cesty“ cez danú hypotézu, menovateľ je celková pravdepodobnosť $P(A)$.',
+        q: T`${ctx} Náhodne vybraný výrobok je chybný. Aká je pravdepodobnosť, že ho dodal zdroj ${j + 1} (${names[j]})? ${T.s(R4)}`,
+        solution: T`Najprv ${total}. Podľa Bayesovej vety $P(H_${j + 1}\\mid A)=\\frac{${nm(sh[j] / 100, 2)}\\cdot ${nm(df[j] / 100, 2)}}{${nm(PA, 4)}}=\\frac{${nm(terms[j] / 10000, 4)}}{${nm(PA, 4)}}\\approx ${dd(res, 4)}$.`,
+        hint: T`Bayesova veta: čitateľ je pravdepodobnosť „cesty“ cez danú hypotézu, menovateľ je celková pravdepodobnosť $P(A)$.`,
         mistakes: mis(round(res, 4), 0.0002, [
-          { value: round(terms[j] / 10000, 4), msg: 'To je pravdepodobnosť prieniku $P(H\\cap A)$. Bayesova veta ju ešte normuje – vydeľ celkovou pravdepodobnosťou $P(A)$.' },
-          { value: df[j] / 100, msg: 'Zamenil si $P(A\\mid H)$ a $P(H\\mid A)$: podiel chybných kusov zo zdroja nie je pravdepodobnosť, že chybný kus pochádza z tohto zdroja.' },
-          { value: sh[j] / 100, msg: 'To je apriórna pravdepodobnosť zdroja. Informácia, že výrobok je chybný, ju mení – použi Bayesovu vetu.' }
+          { value: round(terms[j] / 10000, 4), msg: T`To je pravdepodobnosť prieniku $P(H\\cap A)$. Bayesova veta ju ešte normuje – vydeľ celkovou pravdepodobnosťou $P(A)$.` },
+          { value: df[j] / 100, msg: T`Zamenil si $P(A\\mid H)$ a $P(H\\mid A)$: podiel chybných kusov zo zdroja nie je pravdepodobnosť, že chybný kus pochádza z tohto zdroja.` },
+          { value: sh[j] / 100, msg: T`To je apriórna pravdepodobnosť zdroja. Informácia, že výrobok je chybný, ju mení – použi Bayesovu vetu.` }
         ]),
         steps: [
-          { q: 'Vypočítaj celkovú pravdepodobnosť $P(A)$, že výrobok je chybný.', answer: PA, tol: 0.0001 },
-          { q: `Vypočítaj $P(H_${j + 1})\\,P(A\\mid H_${j + 1})$.`, answer: terms[j] / 10000, tol: 0.00001 },
-          { q: `Vypočítaj $P(H_${j + 1}\\mid A)$. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+          { q: T`Vypočítaj celkovú pravdepodobnosť $P(A)$, že výrobok je chybný.`, answer: PA, tol: 0.0001 },
+          { q: T`Vypočítaj $P(H_${j + 1})\\,P(A\\mid H_${j + 1})$.`, answer: terms[j] / 10000, tol: 0.00001 },
+          { q: T`Vypočítaj $P(H_${j + 1}\\mid A)$. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
         ]
       };
     }
@@ -402,25 +405,25 @@
       const pPos = prev * se + (1 - prev) * (1 - sp), pNeg = 1 - pPos;
       const pos = Math.random() < 0.7;
       const res = pos ? prev * se / pPos : (1 - prev) * sp / pNeg;
-      const ctx = `Choroba sa v populácii vyskytuje s pravdepodobnosťou $${nm(prev, 3)}$. Diagnostický test má citlivosť $P(+\\mid D)=${nm(se, 2)}$ a špecificitu $P(-\\mid\\bar{D})=${nm(sp, 2)}$.`;
+      const ctx = T`Choroba sa v populácii vyskytuje s pravdepodobnosťou $${nm(prev, 3)}$. Diagnostický test má citlivosť $P(+\\mid D)=${nm(se, 2)}$ a špecificitu $P(-\\mid\\bar{D})=${nm(sp, 2)}$.`;
       return {
         answer: round(res, 4), tol: 0.0002,
-        q: `${ctx} ${pos ? 'Test vyšiel pozitívne. Aká je pravdepodobnosť, že testovaný je naozaj chorý, teda $P(D\\mid +)$?' : 'Test vyšiel negatívne. Aká je pravdepodobnosť, že testovaný je naozaj zdravý, teda $P(\\bar{D}\\mid -)$?'} ${R4}`,
+        q: `${ctx} ${pos ? T`Test vyšiel pozitívne. Aká je pravdepodobnosť, že testovaný je naozaj chorý, teda $P(D\\mid +)$?` : T`Test vyšiel negatívne. Aká je pravdepodobnosť, že testovaný je naozaj zdravý, teda $P(\\bar{D}\\mid -)$?`} ${T.s(R4)}`,
         solution: pos
-          ? `$P(+)=${nm(prev, 3)}\\cdot ${nm(se, 2)}+${nm(1 - prev, 3)}\\cdot ${nm(1 - sp, 2)}=${nm(pPos, 6)}$. Bayesova veta: $P(D\\mid +)=\\frac{${nm(prev * se, 6)}}{${nm(pPos, 6)}}\\approx ${dd(res, 4)}$.`
-          : `$P(-)=${nm(prev, 3)}\\cdot ${nm(1 - se, 2)}+${nm(1 - prev, 3)}\\cdot ${nm(sp, 2)}=${nm(pNeg, 6)}$. Bayesova veta: $P(\\bar{D}\\mid -)=\\frac{${nm((1 - prev) * sp, 6)}}{${nm(pNeg, 6)}}\\approx ${dd(res, 4)}$.`,
-        hint: 'Nakresli strom: najprv chorý/zdravý, potom výsledok testu. Pravdepodobnosť výsledku testu získaš vetou o úplnej pravdepodobnosti.',
+          ? T`$P(+)=${nm(prev, 3)}\\cdot ${nm(se, 2)}+${nm(1 - prev, 3)}\\cdot ${nm(1 - sp, 2)}=${nm(pPos, 6)}$. Bayesova veta: $P(D\\mid +)=\\frac{${nm(prev * se, 6)}}{${nm(pPos, 6)}}\\approx ${dd(res, 4)}$.`
+          : T`$P(-)=${nm(prev, 3)}\\cdot ${nm(1 - se, 2)}+${nm(1 - prev, 3)}\\cdot ${nm(sp, 2)}=${nm(pNeg, 6)}$. Bayesova veta: $P(\\bar{D}\\mid -)=\\frac{${nm((1 - prev) * sp, 6)}}{${nm(pNeg, 6)}}\\approx ${dd(res, 4)}$.`,
+        hint: T`Nakresli strom: najprv chorý/zdravý, potom výsledok testu. Pravdepodobnosť výsledku testu získaš vetou o úplnej pravdepodobnosti.`,
         mistakes: mis(round(res, 4), 0.0002, pos ? [
-          { value: se, msg: 'Citlivosť $P(+\\mid D)$ nie je $P(D\\mid +)$. Pri zriedkavej chorobe je veľa pozitívnych výsledkov falošných – použi Bayesovu vetu.' },
-          { value: round(prev * se, 4), msg: 'To je $P(D\\cap +)$. Treba ešte vydeliť pravdepodobnosťou pozitívneho testu $P(+)$.' }
+          { value: se, msg: T`Citlivosť $P(+\\mid D)$ nie je $P(D\\mid +)$. Pri zriedkavej chorobe je veľa pozitívnych výsledkov falošných – použi Bayesovu vetu.` },
+          { value: round(prev * se, 4), msg: T`To je $P(D\\cap +)$. Treba ešte vydeliť pravdepodobnosťou pozitívneho testu $P(+)$.` }
         ] : [
-          { value: sp, msg: 'Špecificita $P(-\\mid\\bar D)$ nie je $P(\\bar D\\mid -)$ – použi Bayesovu vetu.' },
-          { value: round((1 - prev) * sp, 4), msg: 'To je $P(\\bar D\\cap -)$. Treba ešte vydeliť pravdepodobnosťou negatívneho testu $P(-)$.' }
+          { value: sp, msg: T`Špecificita $P(-\\mid\\bar D)$ nie je $P(\\bar D\\mid -)$ – použi Bayesovu vetu.` },
+          { value: round((1 - prev) * sp, 4), msg: T`To je $P(\\bar D\\cap -)$. Treba ešte vydeliť pravdepodobnosťou negatívneho testu $P(-)$.` }
         ]),
         steps: [
-          { q: `Vypočítaj pravdepodobnosť ${pos ? 'pozitívneho' : 'negatívneho'} výsledku testu $P(${pos ? '+' : '-'})$. Výsledok zaokrúhli na 6 desatinných miest.`, answer: round(pos ? pPos : pNeg, 6), tol: 0.000001, show: dt(pos ? pPos : pNeg, 6) },
-          { q: `Vypočítaj $P(${pos ? 'D\\cap +' : '\\bar{D}\\cap -'})$. Výsledok zaokrúhli na 6 desatinných miest.`, answer: round(pos ? prev * se : (1 - prev) * sp, 6), tol: 0.000001, show: dt(pos ? prev * se : (1 - prev) * sp, 6) },
-          { q: `Vypočítaj $P(${pos ? 'D\\mid +' : '\\bar{D}\\mid -'})$. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+          { q: T`Vypočítaj pravdepodobnosť ${pos ? T`pozitívneho` : T`negatívneho`} výsledku testu $P(${pos ? '+' : '-'})$. Výsledok zaokrúhli na 6 desatinných miest.`, answer: round(pos ? pPos : pNeg, 6), tol: 0.000001, show: dt(pos ? pPos : pNeg, 6) },
+          { q: T`Vypočítaj $P(${pos ? 'D\\cap +' : '\\bar{D}\\cap -'})$. Výsledok zaokrúhli na 6 desatinných miest.`, answer: round(pos ? prev * se : (1 - prev) * sp, 6), tol: 0.000001, show: dt(pos ? prev * se : (1 - prev) * sp, 6) },
+          { q: T`Vypočítaj $P(${pos ? 'D\\mid +' : '\\bar{D}\\mid -'})$. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
         ]
       };
     }
@@ -430,33 +433,33 @@
         const res = (1 - (1 - p1) * (1 - p2)) * p3;
         return {
           answer: round(res, 4), tol: 0.0001,
-          q: `Systém tvoria súčiastky $S_1$ a $S_2$ zapojené paralelne a k nim sériovo pripojená súčiastka $S_3$. Súčiastky fungujú nezávisle s pravdepodobnosťami $${nm(p1)}$, $${nm(p2)}$ a $${nm(p3)}$. Aká je pravdepodobnosť, že systém funguje? ${R4}`,
-          solution: `Paralelná dvojica zlyhá, len ak zlyhajú obe: funguje s pravdepodobnosťou $1-${nm(1 - p1)}\\cdot ${nm(1 - p2)}=${nm(1 - (1 - p1) * (1 - p2))}$.
+          q: T`Systém tvoria súčiastky $S_1$ a $S_2$ zapojené paralelne a k nim sériovo pripojená súčiastka $S_3$. Súčiastky fungujú nezávisle s pravdepodobnosťami $${nm(p1)}$, $${nm(p2)}$ a $${nm(p3)}$. Aká je pravdepodobnosť, že systém funguje? ${T.s(R4)}`,
+          solution: T`Paralelná dvojica zlyhá, len ak zlyhajú obe: funguje s pravdepodobnosťou $1-${nm(1 - p1)}\\cdot ${nm(1 - p2)}=${nm(1 - (1 - p1) * (1 - p2))}$.
             Sériovo so $S_3$: $${nm(1 - (1 - p1) * (1 - p2))}\\cdot ${nm(p3)}\\approx ${dd(res, 4)}$.`,
-          hint: 'Sériové zapojenie: násob pravdepodobnosti fungovania. Paralelné: systém zlyhá, iba ak zlyhajú všetky vetvy.',
+          hint: T`Sériové zapojenie: násob pravdepodobnosti fungovania. Paralelné: systém zlyhá, iba ak zlyhajú všetky vetvy.`,
           mistakes: mis(round(res, 4), 0.0001, [
-            { value: round(p1 * p2 * p3, 4), msg: 'Súčiastky $S_1$ a $S_2$ sú zapojené paralelne – dvojica funguje, ak funguje aspoň jedna z nich, nie obe.' }
+            { value: round(p1 * p2 * p3, 4), msg: T`Súčiastky $S_1$ a $S_2$ sú zapojené paralelne – dvojica funguje, ak funguje aspoň jedna z nich, nie obe.` }
           ]),
           steps: [
-            { q: 'S akou pravdepodobnosťou funguje paralelná dvojica $S_1$, $S_2$?', answer: round(1 - (1 - p1) * (1 - p2), 6), tol: 0.0001 },
-            { q: `S akou pravdepodobnosťou funguje celý systém? ${R4}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
+            { q: T`S akou pravdepodobnosťou funguje paralelná dvojica $S_1$, $S_2$?`, answer: round(1 - (1 - p1) * (1 - p2), 6), tol: 0.0001 },
+            { q: T`S akou pravdepodobnosťou funguje celý systém? ${T.s(R4)}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
           ]
         };
       }
       const res = 1 - (1 - p1 * p2) * (1 - p3);
       return {
         answer: round(res, 4), tol: 0.0001,
-        q: `Systém má dve paralelné vetvy: v prvej sú sériovo súčiastky $S_1$ a $S_2$, v druhej súčiastka $S_3$. Súčiastky fungujú nezávisle s pravdepodobnosťami $${nm(p1)}$, $${nm(p2)}$ a $${nm(p3)}$. Aká je pravdepodobnosť, že systém funguje? ${R4}`,
-        solution: `Prvá vetva funguje s pravdepodobnosťou $${nm(p1)}\\cdot ${nm(p2)}=${nm(p1 * p2)}$. Systém zlyhá, iba ak zlyhajú obe vetvy:
+        q: T`Systém má dve paralelné vetvy: v prvej sú sériovo súčiastky $S_1$ a $S_2$, v druhej súčiastka $S_3$. Súčiastky fungujú nezávisle s pravdepodobnosťami $${nm(p1)}$, $${nm(p2)}$ a $${nm(p3)}$. Aká je pravdepodobnosť, že systém funguje? ${T.s(R4)}`,
+        solution: T`Prvá vetva funguje s pravdepodobnosťou $${nm(p1)}\\cdot ${nm(p2)}=${nm(p1 * p2)}$. Systém zlyhá, iba ak zlyhajú obe vetvy:
           $P=1-(1-${nm(p1 * p2)})(1-${nm(p3)})=1-${nm(1 - p1 * p2)}\\cdot ${nm(1 - p3)}\\approx ${dd(res, 4)}$.`,
-        hint: 'Najprv vypočítaj spoľahlivosť sériovej vetvy, potom použi pravidlo pre paralelné zapojenie.',
+        hint: T`Najprv vypočítaj spoľahlivosť sériovej vetvy, potom použi pravidlo pre paralelné zapojenie.`,
         mistakes: mis(round(res, 4), 0.0001, [
-          { value: round(p1 * p2 * p3, 4), msg: 'Vetvy sú zapojené paralelne – systém funguje, ak funguje aspoň jedna vetva.' },
-          { value: round(p1 * p2 + p3, 4), msg: 'Pravdepodobnosti vetiev nemôžeš sčítať, javy nie sú disjunktné. Vypočítaj radšej pravdepodobnosť, že zlyhajú obe vetvy.' }
+          { value: round(p1 * p2 * p3, 4), msg: T`Vetvy sú zapojené paralelne – systém funguje, ak funguje aspoň jedna vetva.` },
+          { value: round(p1 * p2 + p3, 4), msg: T`Pravdepodobnosti vetiev nemôžeš sčítať, javy nie sú disjunktné. Vypočítaj radšej pravdepodobnosť, že zlyhajú obe vetvy.` }
         ]),
         steps: [
-          { q: 'S akou pravdepodobnosťou funguje sériová vetva $S_1$, $S_2$?', answer: round(p1 * p2, 6), tol: 0.0001 },
-          { q: `S akou pravdepodobnosťou funguje celý systém? ${R4}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
+          { q: T`S akou pravdepodobnosťou funguje sériová vetva $S_1$, $S_2$?`, answer: round(p1 * p2, 6), tol: 0.0001 },
+          { q: T`S akou pravdepodobnosťou funguje celý systém? ${T.s(R4)}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
         ]
       };
     }
@@ -470,12 +473,14 @@
     }
     const dep = ab !== a * b;
     return {
-      type: 'choice', options: ['nezávislé', 'závislé'], answer: dep ? 'závislé' : 'nezávislé',
-      q: `Pre javy $A$, $B$ platí $P(A)=${nm(a / 10, 1)}$, $P(B)=${nm(b / 10, 1)}$ a $P(A\\cap B)=${nm(ab / 100, 2)}$. Sú javy $A$, $B$ nezávislé?`,
-      solution: `$P(A)\\,P(B)=${nm(a / 10, 1)}\\cdot ${nm(b / 10, 1)}=${nm(a * b / 100, 2)}${dep ? `\\ne ${nm(ab / 100, 2)}=P(A\\cap B)$, javy sú <strong>závislé</strong>. Napríklad $P(A\\mid B)=${nm(ab / (10 * b), 4)}\\ne P(A)$.` : `=P(A\\cap B)$, javy sú <strong>nezávislé</strong>.`}`,
-      hint: 'Porovnaj $P(A\\cap B)$ so súčinom $P(A)\\,P(B)$.',
-      choiceHints: dep ? { 'nezávislé': 'Nezávislosť znamená presnú rovnosť $P(A\\cap B)=P(A)\\,P(B)$. Vypočítaj súčin a porovnaj.' }
-        : { 'závislé': 'Vypočítaj súčin $P(A)\\,P(B)$ a porovnaj ho s $P(A\\cap B)$ – javy sú závislé len pri nerovnosti.' }
+      type: 'choice', options: [T.s('nezávislé'), T.s('závislé')], answer: dep ? T.s('závislé') : T.s('nezávislé'),
+      q: T`Pre javy $A$, $B$ platí $P(A)=${nm(a / 10, 1)}$, $P(B)=${nm(b / 10, 1)}$ a $P(A\\cap B)=${nm(ab / 100, 2)}$. Sú javy $A$, $B$ nezávislé?`,
+      solution: dep
+        ? T`$P(A)\\,P(B)=${nm(a / 10, 1)}\\cdot ${nm(b / 10, 1)}=${nm(a * b / 100, 2)}\\ne ${nm(ab / 100, 2)}=P(A\\cap B)$, javy sú <strong>závislé</strong>. Napríklad $P(A\\mid B)=${nm(ab / (10 * b), 4)}\\ne P(A)$.`
+        : T`$P(A)\\,P(B)=${nm(a / 10, 1)}\\cdot ${nm(b / 10, 1)}=${nm(a * b / 100, 2)}=P(A\\cap B)$, javy sú <strong>nezávislé</strong>.`,
+      hint: T`Porovnaj $P(A\\cap B)$ so súčinom $P(A)\\,P(B)$.`,
+      choiceHints: dep ? { [T.s('nezávislé')]: T`Nezávislosť znamená presnú rovnosť $P(A\\cap B)=P(A)\\,P(B)$. Vypočítaj súčin a porovnaj.` }
+        : { [T.s('závislé')]: T`Vypočítaj súčin $P(A)\\,P(B)$ a porovnaj ho s $P(A\\cap B)$ – javy sú závislé len pri nerovnosti.` }
     };
   });
 
@@ -547,40 +552,40 @@
       const k = xs.length, P = parts(20, k).map((v) => v / 20), miss = rnd(0, k - 1);
       const shown = P.map((p, i) => (i === miss ? 'p' : nm(p, 2)));
       const E = sum(xs.map((x, i) => x * P[i])), E2 = sum(xs.map((x, i) => x * x * P[i])), D = E2 - E * E;
-      const pStep = `Najprv $p=1-(${P.filter((_, i) => i !== miss).map((q) => nm(q, 2)).join('+')})=${nm(P[miss], 2)}$.`;
+      const pStep = T`Najprv $p=1-(${P.filter((_, i) => i !== miss).map((q) => nm(q, 2)).join('+')})=${nm(P[miss], 2)}$.`;
       const Etex = `$E(X)=${xs.map((x, i) => `${par(String(x))}\\cdot ${nm(P[i], 2)}`).join('+')}=${nm(E, 4)}$`;
-      const head = `Náhodná veličina $X$ má pravdepodobnostnú funkciu danú tabuľkou:${pmfTable(xs, shown)}`;
+      const head = T`Náhodná veličina $X$ má pravdepodobnostnú funkciu danú tabuľkou:${pmfTable(xs, shown)}`;
       if (t < 0.3) {
         return {
           answer: round(E, 4), tol: 0.0001, signed: true,
-          q: `${head}Vypočítaj strednú hodnotu $E(X)$.`,
+          q: T`${head}Vypočítaj strednú hodnotu $E(X)$.`,
           solution: `${pStep} ${Etex}.`,
-          hint: 'Chýbajúcu pravdepodobnosť dopočítaj zo vzťahu $\\sum p_i=1$, potom $E(X)=\\sum x_i p_i$.',
+          hint: T`Chýbajúcu pravdepodobnosť dopočítaj zo vzťahu $\\sum p_i=1$, potom $E(X)=\\sum x_i p_i$.`,
           mistakes: mis(round(E, 4), 0.0001, [
-            { value: round(sum(xs) / k, 4), msg: 'Stredná hodnota nie je obyčajný priemer hodnôt – každú hodnotu treba vážiť jej pravdepodobnosťou.' }
+            { value: round(sum(xs) / k, 4), msg: T`Stredná hodnota nie je obyčajný priemer hodnôt – každú hodnotu treba vážiť jej pravdepodobnosťou.` }
           ]),
           steps: [
-            { q: 'Dopočítaj chýbajúcu pravdepodobnosť $p$.', answer: P[miss] },
-            { q: 'Vypočítaj $E(X)$.', answer: round(E, 4), tol: 0.0001, signed: true }
+            { q: T`Dopočítaj chýbajúcu pravdepodobnosť $p$.`, answer: P[miss] },
+            { q: T`Vypočítaj $E(X)$.`, answer: round(E, 4), tol: 0.0001, signed: true }
           ]
         };
       }
       if (t < 0.55) {
         return {
           answer: round(D, 4), tol: 0.0001,
-          q: `${head}Vypočítaj rozptyl $D(X)$. ${R4}`,
+          q: T`${head}Vypočítaj rozptyl $D(X)$. ${T.s(R4)}`,
           solution: `${pStep} ${Etex}. $E(X^2)=${xs.map((x, i) => `${x * x}\\cdot ${nm(P[i], 2)}`).join('+')}=${nm(E2, 4)}$.
             $D(X)=E(X^2)-(E(X))^2=${nm(E2, 4)}-${par(nm(E, 4))}^2=${nm(D, 4)}$.`,
-          hint: 'Použi $D(X)=E(X^2)-(E(X))^2$.',
+          hint: T`Použi $D(X)=E(X^2)-(E(X))^2$.`,
           mistakes: mis(round(D, 4), 0.0001, [
-            { value: round(E2, 4), msg: 'To je $E(X^2)$. Rozptyl je $E(X^2)-(E(X))^2$ – ešte odčítaj druhú mocninu strednej hodnoty.' },
-            { value: round(E2 - E, 4), msg: 'Odčítať treba $(E(X))^2$, nie $E(X)$.' }
+            { value: round(E2, 4), msg: T`To je $E(X^2)$. Rozptyl je $E(X^2)-(E(X))^2$ – ešte odčítaj druhú mocninu strednej hodnoty.` },
+            { value: round(E2 - E, 4), msg: T`Odčítať treba $(E(X))^2$, nie $E(X)$.` }
           ]),
           steps: [
-            { q: 'Dopočítaj chýbajúcu pravdepodobnosť $p$.', answer: P[miss] },
-            { q: 'Vypočítaj $E(X)$.', answer: round(E, 4), tol: 0.0001, signed: true },
-            { q: 'Vypočítaj $E(X^2)$.', answer: round(E2, 4), tol: 0.0001 },
-            { q: `Vypočítaj $D(X)$. ${R4}`, answer: round(D, 4), tol: 0.0001 }
+            { q: T`Dopočítaj chýbajúcu pravdepodobnosť $p$.`, answer: P[miss] },
+            { q: T`Vypočítaj $E(X)$.`, answer: round(E, 4), tol: 0.0001, signed: true },
+            { q: T`Vypočítaj $E(X^2)$.`, answer: round(E2, 4), tol: 0.0001 },
+            { q: T`Vypočítaj $D(X)$. ${T.s(R4)}`, answer: round(D, 4), tol: 0.0001 }
           ]
         };
       }
@@ -590,32 +595,32 @@
         const F = sum(P.slice(0, i + 1));
         return {
           answer: round(F, 4), tol: 0.0001,
-          q: `${head}Urči hodnotu distribučnej funkcie $F(${nm(x0, 1)})$.`,
+          q: T`${head}Urči hodnotu distribučnej funkcie $F(${nm(x0, 1)})$.`,
           solution: `${pStep} $F(${nm(x0, 1)})=P(X\\le ${nm(x0, 1)})=${P.slice(0, i + 1).map((q) => nm(q, 2)).join('+')}=${nm(F, 2)}$.`,
-          hint: '$F(x)=P(X\\le x)$ je súčet pravdepodobností všetkých hodnôt $x_i\\le x$.',
+          hint: T`$F(x)=P(X\\le x)$ je súčet pravdepodobností všetkých hodnôt $x_i\\le x$.`,
           mistakes: mis(round(F, 4), 0.0001, [
-            { value: round(P[i], 4), msg: 'Distribučná funkcia $F(x)=P(X\\le x)$ sčítava pravdepodobnosti všetkých hodnôt až po $x$, nielen najbližšej.' },
-            { value: round(F + P[i + 1], 4), msg: `Hodnota $${xs[i + 1]}$ je väčšia ako $${nm(x0, 1)}$, do $F(${nm(x0, 1)})$ preto nepatrí.` }
+            { value: round(P[i], 4), msg: T`Distribučná funkcia $F(x)=P(X\\le x)$ sčítava pravdepodobnosti všetkých hodnôt až po $x$, nielen najbližšej.` },
+            { value: round(F + P[i + 1], 4), msg: T`Hodnota $${xs[i + 1]}$ je väčšia ako $${nm(x0, 1)}$, do $F(${nm(x0, 1)})$ preto nepatrí.` }
           ]),
           steps: [
-            { q: 'Dopočítaj chýbajúcu pravdepodobnosť $p$.', answer: P[miss] },
-            { q: `Vypočítaj $F(${nm(x0, 1)})$.`, answer: round(F, 4), tol: 0.0001 }
+            { q: T`Dopočítaj chýbajúcu pravdepodobnosť $p$.`, answer: P[miss] },
+            { q: T`Vypočítaj $F(${nm(x0, 1)})$.`, answer: round(F, 4), tol: 0.0001 }
           ]
         };
       }
       const i = rnd(0, k - 2), j = rnd(i + 1, k - 1), F = sum(P.slice(i + 1, j + 1));
       return {
         answer: round(F, 4), tol: 0.0001,
-        q: `${head}Vypočítaj $P(${xs[i]}\\lt X\\le ${xs[j]})$.`,
+        q: T`${head}Vypočítaj $P(${xs[i]}\\lt X\\le ${xs[j]})$.`,
         solution: `${pStep} $P(${xs[i]}\\lt X\\le ${xs[j]})=F(${xs[j]})-F(${xs[i]})=${j > i + 1 ? P.slice(i + 1, j + 1).map((q) => nm(q, 2)).join('+') + '=' : ''}${nm(F, 2)}$.`,
-        hint: 'Sčítaj pravdepodobnosti hodnôt, ktoré sú väčšie ako dolná hranica a nanajvýš rovné hornej hranici.',
+        hint: T`Sčítaj pravdepodobnosti hodnôt, ktoré sú väčšie ako dolná hranica a nanajvýš rovné hornej hranici.`,
         mistakes: mis(round(F, 4), 0.0001, [
-          { value: round(F + P[i], 4), msg: `Nerovnosť $${xs[i]}\\lt X$ je ostrá – hodnota $${xs[i]}$ do súčtu nepatrí.` },
-          { value: round(F - P[j], 4), msg: `Nerovnosť $X\\le ${xs[j]}$ je neostrá – hodnota $${xs[j]}$ do súčtu patrí.` }
+          { value: round(F + P[i], 4), msg: T`Nerovnosť $${xs[i]}\\lt X$ je ostrá – hodnota $${xs[i]}$ do súčtu nepatrí.` },
+          { value: round(F - P[j], 4), msg: T`Nerovnosť $X\\le ${xs[j]}$ je neostrá – hodnota $${xs[j]}$ do súčtu patrí.` }
         ]),
         steps: [
-          { q: 'Dopočítaj chýbajúcu pravdepodobnosť $p$.', answer: P[miss] },
-          { q: `Vypočítaj $P(${xs[i]}\\lt X\\le ${xs[j]})$.`, answer: round(F, 4), tol: 0.0001 }
+          { q: T`Dopočítaj chýbajúcu pravdepodobnosť $p$.`, answer: P[miss] },
+          { q: T`Vypočítaj $P(${xs[i]}\\lt X\\le ${xs[j]})$.`, answer: round(F, 4), tol: 0.0001 }
         ]
       };
     }
@@ -624,22 +629,22 @@
       if (Math.random() < 0.5) {
         return {
           answer: 1 / S, tol: 0.00006, show: `1/${S}`,
-          q: `Náhodná veličina $X$ nadobúda hodnoty $${m <= 4 ? Array.from({ length: m }, (_, i) => i + 1).join(', ') : `1, 2, \\dots, ${m}`}$ a $P(X=k)=c\\,k$. Urči konštantu $c$ (zadaj ako zlomok alebo desatinné číslo na 4 desatinné miesta).`,
-          solution: `$\\sum_{k=1}^{${m}}c\\,k=c\\cdot\\frac{${m}\\cdot ${m + 1}}{2}=${S}c=1$, teda $c=\\frac{1}{${S}}$.`,
-          hint: 'Súčet všetkých pravdepodobností musí byť 1.',
-          mistakes: [{ value: 1 / m, msg: `Pravdepodobnosti nie sú rovnaké – súčet je $c(1+2+\\dots+${m})$, nie $${m}c$.` }]
+          q: T`Náhodná veličina $X$ nadobúda hodnoty $${m <= 4 ? Array.from({ length: m }, (_, i) => i + 1).join(', ') : `1, 2, \\dots, ${m}`}$ a $P(X=k)=c\\,k$. Urči konštantu $c$ (zadaj ako zlomok alebo desatinné číslo na 4 desatinné miesta).`,
+          solution: T`$\\sum_{k=1}^{${m}}c\\,k=c\\cdot\\frac{${m}\\cdot ${m + 1}}{2}=${S}c=1$, teda $c=\\frac{1}{${S}}$.`,
+          hint: T`Súčet všetkých pravdepodobností musí byť 1.`,
+          mistakes: [{ value: 1 / m, msg: T`Pravdepodobnosti nie sú rovnaké – súčet je $c(1+2+\\dots+${m})$, nie $${m}c$.` }]
         };
       }
       const E = (2 * m + 1) / 3;
       return {
         answer: E, tol: 0.0001, show: fTxt(2 * m + 1, 3),
-        q: `Náhodná veličina $X$ nadobúda hodnoty $${m <= 4 ? Array.from({ length: m }, (_, i) => i + 1).join(', ') : `1, 2, \\dots, ${m}`}$ a $P(X=k)=c\\,k$. Vypočítaj $E(X)$ (zlomok alebo desatinné číslo na 4 desatinné miesta).`,
-        solution: `Z podmienky $\\sum c\\,k=1$ je $c=\\frac{1}{${S}}$. $E(X)=\\sum_{k=1}^{${m}}k\\cdot\\frac{k}{${S}}=\\frac{1^2+\\dots+${m}^2}{${S}}=\\frac{${m * (m + 1) * (2 * m + 1) / 6}}{${S}}=${fTex(2 * m + 1, 3)}$.`,
-        hint: 'Najprv urči $c$, potom $E(X)=\\sum k\\,P(X=k)$. Pomôže $1^2+\\dots+m^2=\\frac{m(m+1)(2m+1)}{6}$.',
-        mistakes: [{ value: (m + 1) / 2, msg: 'To by platilo pre rovnaké pravdepodobnosti. Tu sú väčšie hodnoty pravdepodobnejšie – váž ich $P(X=k)=ck$.' }],
+        q: T`Náhodná veličina $X$ nadobúda hodnoty $${m <= 4 ? Array.from({ length: m }, (_, i) => i + 1).join(', ') : `1, 2, \\dots, ${m}`}$ a $P(X=k)=c\\,k$. Vypočítaj $E(X)$ (zlomok alebo desatinné číslo na 4 desatinné miesta).`,
+        solution: T`Z podmienky $\\sum c\\,k=1$ je $c=\\frac{1}{${S}}$. $E(X)=\\sum_{k=1}^{${m}}k\\cdot\\frac{k}{${S}}=\\frac{1^2+\\dots+${m}^2}{${S}}=\\frac{${m * (m + 1) * (2 * m + 1) / 6}}{${S}}=${fTex(2 * m + 1, 3)}$.`,
+        hint: T`Najprv urči $c$, potom $E(X)=\\sum k\\,P(X=k)$. Pomôže $1^2+\\dots+m^2=\\frac{m(m+1)(2m+1)}{6}$.`,
+        mistakes: [{ value: (m + 1) / 2, msg: T`To by platilo pre rovnaké pravdepodobnosti. Tu sú väčšie hodnoty pravdepodobnejšie – váž ich $P(X=k)=ck$.` }],
         steps: [
-          { q: 'Urči konštantu $c$ (zlomok).', answer: 1 / S, tol: 0.00006, show: `1/${S}` },
-          { q: 'Vypočítaj $E(X)$ (zlomok).', answer: E, tol: 0.0001, show: fTxt(2 * m + 1, 3) }
+          { q: T`Urči konštantu $c$ (zlomok).`, answer: 1 / S, tol: 0.00006, show: `1/${S}` },
+          { q: T`Vypočítaj $E(X)$ (zlomok).`, answer: E, tol: 0.0001, show: fTxt(2 * m + 1, 3) }
         ]
       };
     }
@@ -648,15 +653,15 @@
     const lin = `${a === -1 ? '-' : a}X${b === 0 ? '' : b > 0 ? '+' + b : b}`;
     return {
       answer: askE ? a * E + b : a * a * D, tol: 0.0001, signed: askE,
-      q: `Náhodná veličina $X$ má $E(X)=${E}$ a $D(X)=${nm(D)}$. Vypočítaj ${askE ? `$E(${lin})$` : `$D(${lin})$`}.`,
+      q: T`Náhodná veličina $X$ má $E(X)=${E}$ a $D(X)=${nm(D)}$. Vypočítaj ${askE ? `$E(${lin})$` : `$D(${lin})$`}.`,
       solution: askE ? `$E(${lin})=${a}\\cdot ${par(String(E))}${b === 0 ? '' : (b > 0 ? '+' : '') + b}=${a * E + b}$.`
-        : `Posunutie rozptyl nemení: $D(${lin})=${par(String(a))}^2\\cdot ${nm(D)}=${nm(a * a * D)}$.`,
+        : T`Posunutie rozptyl nemení: $D(${lin})=${par(String(a))}^2\\cdot ${nm(D)}=${nm(a * a * D)}$.`,
       hint: '$E(aX+b)=aE(X)+b$, $D(aX+b)=a^2D(X)$.',
       mistakes: mis(askE ? a * E + b : a * a * D, 0.0001, askE ? [
-        { value: a * E, msg: 'Konštanta sa k strednej hodnote pripočíta: $E(aX+b)=aE(X)+b$.' }
+        { value: a * E, msg: T`Konštanta sa k strednej hodnote pripočíta: $E(aX+b)=aE(X)+b$.` }
       ] : [
-        ...(Math.abs(a) !== 1 ? [{ value: a * D, msg: 'Rozptyl sa pri násobení konštantou mení s jej druhou mocninou: $D(aX)=a^2D(X)$.' }] : []),
-        ...(b !== 0 ? [{ value: a * a * D + b, msg: 'Posunutie o konštantu rozptyl nemení – hodnoty sa posunú, ale ich rozptýlenie zostane rovnaké.' }] : [])
+        ...(Math.abs(a) !== 1 ? [{ value: a * D, msg: T`Rozptyl sa pri násobení konštantou mení s jej druhou mocninou: $D(aX)=a^2D(X)$.` }] : []),
+        ...(b !== 0 ? [{ value: a * a * D + b, msg: T`Posunutie o konštantu rozptyl nemení – hodnoty sa posunú, ale ich rozptýlenie zostane rovnaké.` }] : [])
       ])
     };
   });
@@ -691,7 +696,7 @@
         <circle class="f-dot f-dot-ok" cx="${x0 + W - 144}" cy="32" r="5"/><text class="f-small" x="${x0 + W - 132}" y="36">Po(λ)</text></svg>`;
       return {
         svg: s,
-        readout: `p = λ/n = ${sk(p, 3)} · E = λ = ${sk(lam, 1)} · D(Bi) = ${sk(n * p * (1 - p), 2)}, D(Po) = ${sk(lam, 1)} · <span class="c-ok">najväčší rozdiel pravdepodobností ${sk(dmax, 4)}</span>`
+        readout: T`p = λ/n = ${sk(p, 3)} · E = λ = ${sk(lam, 1)} · D(Bi) = ${sk(n * p * (1 - p), 2)}, D(Po) = ${sk(lam, 1)} · <span class="c-ok">najväčší rozdiel pravdepodobností ${sk(dmax, 4)}</span>`
       };
     }
   });
@@ -750,62 +755,64 @@
     if (t < 0.3) {
       const r = pick([2, 3, 4, 6]);
       // sloveso aj podstatné meno sa zhodujú s počtom: prichádzajú 4 autá / prichádza 6 áut
+      // tretí prvok: intenzita je za minútu (nie za hodinu) – rozhoduje príznak, nie preložený text
       const few = r <= 4;
       const ctx = pick([
-        [`Na pohotovosť ${few ? 'prichádzajú' : 'prichádza'} v priemere`, `${few ? 'pacienti' : 'pacientov'} za hodinu`],
-        [`Na kruhový objazd ${few ? 'prichádzajú' : 'prichádza'} v priemere`, `${few ? 'autá' : 'áut'} za minútu`],
-        ['Server prijme v priemere', `${few ? 'chybové hlásenia' : 'chybových hlásení'} za hodinu`]
+        [T`Na pohotovosť ${few ? T.s('prichádzajú') : T.s('prichádza')} v priemere`, T`${few ? T.s('pacienti') : T.s('pacientov')} za hodinu`, false],
+        [T`Na kruhový objazd ${few ? T.s('prichádzajú') : T.s('prichádza')} v priemere`, T`${few ? T.s('autá') : T.s('áut')} za minútu`, true],
+        [T.s('Server prijme v priemere'), T`${few ? T.s('chybové hlásenia') : T.s('chybových hlásení')} za hodinu`, false]
       ]);
-      const tm = ctx[1].includes('minútu') ? pick([1, 2]) : pick([30, 60, 90]);
-      const lam = ctx[1].includes('minútu') ? r * tm : r * tm / 60;
-      const per = ctx[1].includes('minútu') ? `${tm} ${pl(tm, ['minútu', 'minúty', 'minút'])}` : `${tm} minút`;
+      const perMin = ctx[2];
+      const tm = perMin ? pick([1, 2]) : pick([30, 60, 90]);
+      const lam = perMin ? r * tm : r * tm / 60;
+      const per = perMin ? `${tm} ${pl(tm, [T.s('minútu'), T.s('minúty'), T.s('minút')])}` : T`${tm} minút`;
       const kind = rnd(0, 2), k = rnd(0, Math.min(4, Math.round(lam) + 1));
       let res, what, sol;
       if (kind === 0) {
-        res = poisP(lam, k); what = `presne ${k}`;
+        res = poisP(lam, k); what = T`presne ${k}`;
         sol = `$P(X=${k})=e^{-${nm(lam)}}\\frac{${nm(lam)}^{${k}}}{${k}!}\\approx ${dd(res, 4)}$.`;
       } else if (kind === 1) {
         const kk = Math.max(1, Math.min(k, 3));
-        res = sum(Array.from({ length: kk + 1 }, (_, i) => poisP(lam, i))); what = `najviac ${kk}`;
+        res = sum(Array.from({ length: kk + 1 }, (_, i) => poisP(lam, i))); what = T`najviac ${kk}`;
         sol = `$P(X\\le ${kk})=e^{-${nm(lam)}}\\left(${Array.from({ length: kk + 1 }, (_, i) => `\\frac{${nm(lam)}^{${i}}}{${i}!}`).join('+')}\\right)\\approx ${dd(res, 4)}$.`;
       } else {
-        res = 1 - poisP(lam, 0) - poisP(lam, 1); what = 'aspoň 2';
-        sol = `Cez opačný jav: $P(X\\ge 2)=1-P(X=0)-P(X=1)=1-e^{-${nm(lam)}}(1+${nm(lam)})\\approx ${dd(res, 4)}$.`;
+        res = 1 - poisP(lam, 0) - poisP(lam, 1); what = T`aspoň 2`;
+        sol = T`Cez opačný jav: $P(X\\ge 2)=1-P(X=0)-P(X=1)=1-e^{-${nm(lam)}}(1+${nm(lam)})\\approx ${dd(res, 4)}$.`;
       }
       return {
         answer: round(res, 4), tol: 0.0002,
-        q: `${ctx[0]} ${r} ${ctx[1]}; počet je modelovaný Poissonovým rozdelením. Aká je pravdepodobnosť, že za ${per} ich bude ${what}? ${R4}`,
-        solution: `Stredný počet za ${per} je $\\lambda=${nm(lam)}$, teda $X\\sim Po(${nm(lam)})$. ${sol}`,
-        hint: 'Najprv prepočítaj intenzitu na daný časový úsek: $\\lambda$ je úmerné dĺžke intervalu. Potom $P(X=k)=e^{-\\lambda}\\lambda^k/k!$.',
+        q: T`${ctx[0]} ${r} ${ctx[1]}; počet je modelovaný Poissonovým rozdelením. Aká je pravdepodobnosť, že za ${per} ich bude ${what}? ${T.s(R4)}`,
+        solution: T`Stredný počet za ${per} je $\\lambda=${nm(lam)}$, teda $X\\sim Po(${nm(lam)})$. ${sol}`,
+        hint: T`Najprv prepočítaj intenzitu na daný časový úsek: $\\lambda$ je úmerné dĺžke intervalu. Potom $P(X=k)=e^{-\\lambda}\\lambda^k/k!$.`,
         mistakes: mis(round(res, 4), 0.0002, [
           { value: round(kind === 0 ? poisP(r, k) : kind === 1 ? sum(Array.from({ length: Math.max(1, Math.min(k, 3)) + 1 }, (_, i) => poisP(r, i))) : 1 - poisP(r, 0) - poisP(r, 1), 4),
-            msg: `Intenzita ${r} sa vzťahuje na ${ctx[1].includes('minútu') ? 'jednu minútu' : 'jednu hodinu'}. Pre interval ${per} treba $\\lambda$ prepočítať úmerne dĺžke intervalu.` },
-          kind === 2 ? { value: round(1 - poisP(lam, 0), 4), msg: 'Jav „aspoň 2“ je doplnkom javu „0 alebo 1“ – odčítaj aj $P(X=1)$.' } : null
+            msg: T`Intenzita ${r} sa vzťahuje na ${perMin ? T.s('jednu minútu') : T.s('jednu hodinu')}. Pre interval ${per} treba $\\lambda$ prepočítať úmerne dĺžke intervalu.` },
+          kind === 2 ? { value: round(1 - poisP(lam, 0), 4), msg: T`Jav „aspoň 2“ je doplnkom javu „0 alebo 1“ – odčítaj aj $P(X=1)$.` } : null
         ]),
         steps: [
-          { q: `Aký je stredný počet $\\lambda$ za ${per}?`, answer: lam },
-          { q: `Vypočítaj hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+          { q: T`Aký je stredný počet $\\lambda$ za ${per}?`, answer: lam },
+          { q: T`Vypočítaj hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
         ]
       };
     }
     if (t < 0.52) {
       const c = pick([
-        { p: 1 / 6, tex: '\\frac{1}{6}', q: '\\frac{5}{6}', txt: 'Hádžeme hracou kockou, kým prvýkrát nepadne šestka. $X$ je počet hodov (vrátane posledného).' },
-        { p: 0.2, tex: '0{,}2', q: '0{,}8', txt: 'Obchodný zástupca telefonuje zákazníkom; každý hovor nezávisle skončí predajom s pravdepodobnosťou $0{,}2$. $X$ je poradové číslo hovoru, pri ktorom prvýkrát predá.' },
-        { p: 0.3, tex: '0{,}3', q: '0{,}7', txt: 'Strelec zasiahne terč s pravdepodobnosťou $0{,}3$, pokusy sú nezávislé. Strieľa, kým prvýkrát nezasiahne; $X$ je počet výstrelov.' },
-        { p: 0.4, tex: '0{,}4', q: '0{,}6', txt: 'Prihlásenie do preťaženého systému sa podarí s pravdepodobnosťou $0{,}4$ nezávisle pri každom pokuse. $X$ je počet pokusov po prvé úspešné prihlásenie.' }
+        { p: 1 / 6, tex: '\\frac{1}{6}', q: '\\frac{5}{6}', txt: T`Hádžeme hracou kockou, kým prvýkrát nepadne šestka. $X$ je počet hodov (vrátane posledného).` },
+        { p: 0.2, tex: nm(0.2), q: nm(0.8), txt: T`Obchodný zástupca telefonuje zákazníkom; každý hovor nezávisle skončí predajom s pravdepodobnosťou $0{,}2$. $X$ je poradové číslo hovoru, pri ktorom prvýkrát predá.` },
+        { p: 0.3, tex: nm(0.3), q: nm(0.7), txt: T`Strelec zasiahne terč s pravdepodobnosťou $0{,}3$, pokusy sú nezávislé. Strieľa, kým prvýkrát nezasiahne; $X$ je počet výstrelov.` },
+        { p: 0.4, tex: nm(0.4), q: nm(0.6), txt: T`Prihlásenie do preťaženého systému sa podarí s pravdepodobnosťou $0{,}4$ nezávisle pri každom pokuse. $X$ je počet pokusov po prvé úspešné prihlásenie.` }
       ]);
       const kind = rnd(0, 2), k = rnd(2, 5);
       if (kind === 0) {
         const res = Math.pow(1 - c.p, k - 1) * c.p;
         return {
           answer: round(res, 4), tol: 0.0001,
-          q: `${c.txt} Vypočítaj $P(X=${k})$. ${R4}`,
-          solution: `$X$ má geometrické rozdelenie s $p=${c.tex}$: $P(X=${k})=(1-p)^{${k - 1}}p=\\left(${c.q}\\right)^{${k - 1}}\\cdot ${c.tex}\\approx ${dd(res, 4)}$.`,
-          hint: 'Prvých $k-1$ pokusov musí byť neúspešných a $k$-tý úspešný.',
+          q: T`${c.txt} Vypočítaj $P(X=${k})$. ${T.s(R4)}`,
+          solution: T`$X$ má geometrické rozdelenie s $p=${c.tex}$: $P(X=${k})=(1-p)^{${k - 1}}p=\\left(${c.q}\\right)^{${k - 1}}\\cdot ${c.tex}\\approx ${dd(res, 4)}$.`,
+          hint: T`Prvých $k-1$ pokusov musí byť neúspešných a $k$-tý úspešný.`,
           mistakes: mis(round(res, 4), 0.0001, [
-            { value: round(Math.pow(1 - c.p, k) * c.p, 4), msg: `Pred úspechom v ${k}. pokuse je len ${k - 1} neúspešných pokusov, nie ${k}.` },
-            { value: round(Math.pow(c.p, k - 1) * (1 - c.p), 4), msg: 'Zamenil si úspech a neúspech: najprv sú neúspechy s pravdepodobnosťou $1-p$, posledný pokus je úspešný.' }
+            { value: round(Math.pow(1 - c.p, k) * c.p, 4), msg: T`Pred úspechom v ${k}. pokuse je len ${k - 1} neúspešných pokusov, nie ${k}.` },
+            { value: round(Math.pow(c.p, k - 1) * (1 - c.p), 4), msg: T`Zamenil si úspech a neúspech: najprv sú neúspechy s pravdepodobnosťou $1-p$, posledný pokus je úspešný.` }
           ])
         };
       }
@@ -813,26 +820,26 @@
         const res = Math.pow(1 - c.p, k);
         return {
           answer: round(res, 4), tol: 0.0001,
-          q: `${c.txt} Aká je pravdepodobnosť, že bude treba viac ako ${k} ${pl(k, ['pokus', 'pokusy', 'pokusov'])}, teda $P(X&gt;${k})$? ${R4}`,
-          solution: `$X&gt;${k}$ znamená, že prvých ${k} pokusov bolo neúspešných: $P(X&gt;${k})=\\left(${c.q}\\right)^{${k}}\\approx ${dd(res, 4)}$.`,
-          hint: 'Jav $X&gt;k$ nastane práve vtedy, keď je prvých $k$ pokusov neúspešných.',
+          q: T`${c.txt} Aká je pravdepodobnosť, že bude treba viac ako ${k} ${pl(k, [T`pokus`, T`pokusy`, T`pokusov`])}, teda $P(X&gt;${k})$? ${T.s(R4)}`,
+          solution: T`$X&gt;${k}$ znamená, že prvých ${k} pokusov bolo neúspešných: $P(X&gt;${k})=\\left(${c.q}\\right)^{${k}}\\approx ${dd(res, 4)}$.`,
+          hint: T`Jav $X&gt;k$ nastane práve vtedy, keď je prvých $k$ pokusov neúspešných.`,
           mistakes: mis(round(res, 4), 0.0001, [
-            { value: round(Math.pow(1 - c.p, k - 1), 4), msg: `To je $P(X\\ge ${k})$. Pri $X&gt;${k}$ musí byť neúspešných všetkých prvých ${k} pokusov.` },
-            { value: round(1 - Math.pow(1 - c.p, k), 4), msg: `To je pravdepodobnosť opačného javu $X\\le ${k}$.` }
+            { value: round(Math.pow(1 - c.p, k - 1), 4), msg: T`To je $P(X\\ge ${k})$. Pri $X&gt;${k}$ musí byť neúspešných všetkých prvých ${k} pokusov.` },
+            { value: round(1 - Math.pow(1 - c.p, k), 4), msg: T`To je pravdepodobnosť opačného javu $X\\le ${k}$.` }
           ])
         };
       }
       const askD = Math.random() < 0.5, E = 1 / c.p, D = (1 - c.p) / (c.p * c.p);
       return {
         answer: round(askD ? D : E, 4), tol: 0.0001,
-        q: `${c.txt} Vypočítaj ${askD ? 'rozptyl $D(X)$' : 'strednú hodnotu $E(X)$'}. ${askD ? R4 : ''}`,
+        q: T`${c.txt} Vypočítaj ${askD ? T`rozptyl $D(X)$` : T`strednú hodnotu $E(X)$`}. ${askD ? T.s(R4) : ''}`,
         solution: askD ? `$D(X)=\\frac{1-p}{p^2}=\\frac{${c.q}}{\\left(${c.tex}\\right)^2}=${nm(D, 4)}$.` : `$E(X)=\\frac{1}{p}=\\frac{1}{${c.tex}}=${nm(E, 4)}$.`,
-        hint: 'Pre geometrické rozdelenie je $E(X)=1/p$ a $D(X)=(1-p)/p^2$.',
+        hint: T`Pre geometrické rozdelenie je $E(X)=1/p$ a $D(X)=(1-p)/p^2$.`,
         mistakes: mis(round(askD ? D : E, 4), 0.0001, askD ? [
-          { value: round((1 - c.p) / c.p, 4), msg: 'V menovateli vzorca pre rozptyl je $p^2$, nie $p$.' },
-          { value: round(1 / (c.p * c.p), 4), msg: 'Rozptyl geometrického rozdelenia je $\\frac{1-p}{p^2}$ – nezabudni na činiteľ $1-p$ v čitateli.' }
+          { value: round((1 - c.p) / c.p, 4), msg: T`V menovateli vzorca pre rozptyl je $p^2$, nie $p$.` },
+          { value: round(1 / (c.p * c.p), 4), msg: T`Rozptyl geometrického rozdelenia je $\\frac{1-p}{p^2}$ – nezabudni na činiteľ $1-p$ v čitateli.` }
         ] : [
-          { value: round((1 - c.p) / c.p, 4), msg: 'To je stredný počet neúspechov pred prvým úspechom. $X$ počíta aj posledný, úspešný pokus.' }
+          { value: round((1 - c.p) / c.p, 4), msg: T`To je stredný počet neúspechov pred prvým úspechom. $X$ počíta aj posledný, úspešný pokus.` }
         ])
       };
     }
@@ -842,48 +849,48 @@
       const p = lam / n, kind = rnd(0, 2);
       let res, what, sol;
       if (kind === 0) {
-        const k = rnd(0, 3); res = poisP(lam, k); what = `práve ${k} ${pl(k, ['chybná', 'chybné', 'chybných'])}`;
+        const k = rnd(0, 3); res = poisP(lam, k); what = T`práve ${k} ${pl(k, [T`chybná`, T`chybné`, T`chybných`])}`;
         sol = `$P(X=${k})\\approx e^{-${nm(lam)}}\\frac{${nm(lam)}^{${k}}}{${k}!}\\approx ${dd(res, 4)}$.`;
       } else if (kind === 1) {
-        res = poisP(lam, 0) + poisP(lam, 1); what = 'najviac jedna chybná';
+        res = poisP(lam, 0) + poisP(lam, 1); what = T`najviac jedna chybná`;
         sol = `$P(X\\le 1)\\approx e^{-${nm(lam)}}(1+${nm(lam)})\\approx ${dd(res, 4)}$.`;
       } else {
-        res = 1 - poisP(lam, 0); what = 'aspoň jedna chybná';
+        res = 1 - poisP(lam, 0); what = T`aspoň jedna chybná`;
         sol = `$P(X\\ge 1)=1-P(X=0)\\approx 1-e^{-${nm(lam)}}\\approx ${dd(res, 4)}$.`;
       }
       return {
         answer: round(res, 4), tol: 0.0002,
-        q: `Súčiastka je chybná s pravdepodobnosťou $${nm(p, 5)}$ nezávisle od ostatných. Pomocou Poissonovej aproximácie odhadni pravdepodobnosť, že v balení ${n} súčiastok bude ${what}. ${R4}`,
-        solution: `$X\\sim Bi(${n}; ${nm(p, 5)})$, $n$ je veľké a $p$ malé, preto $X\\approx Po(\\lambda)$ s $\\lambda=np=${nm(lam)}$. ${sol}`,
-        hint: 'Nahraď $Bi(n; p)$ rozdelením $Po(np)$.',
+        q: T`Súčiastka je chybná s pravdepodobnosťou $${nm(p, 5)}$ nezávisle od ostatných. Pomocou Poissonovej aproximácie odhadni pravdepodobnosť, že v balení ${n} súčiastok bude ${what}. ${T.s(R4)}`,
+        solution: T`$X\\sim Bi(${n}; ${nm(p, 5)})$, $n$ je veľké a $p$ malé, preto $X\\approx Po(\\lambda)$ s $\\lambda=np=${nm(lam)}$. ${sol}`,
+        hint: T`Nahraď $Bi(n; p)$ rozdelením $Po(np)$.`,
         mistakes: mis(round(res, 4), 0.0002, [
-          kind === 1 ? { value: round(poisP(lam, 1), 4), msg: '„Najviac jedna“ zahŕňa aj prípad, že chybná nie je žiadna – pripočítaj $P(X=0)$.' }
-            : kind === 2 ? { value: round(poisP(lam, 0), 4), msg: 'To je $P(X=0)$. Jav „aspoň jedna“ je jeho doplnok.' } : null
+          kind === 1 ? { value: round(poisP(lam, 1), 4), msg: T`„Najviac jedna“ zahŕňa aj prípad, že chybná nie je žiadna – pripočítaj $P(X=0)$.` }
+            : kind === 2 ? { value: round(poisP(lam, 0), 4), msg: T`To je $P(X=0)$. Jav „aspoň jedna“ je jeho doplnok.` } : null
         ]),
         steps: [
-          { q: 'Aký parameter $\\lambda$ má aproximujúce Poissonovo rozdelenie?', answer: lam },
-          { q: `Vypočítaj hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+          { q: T`Aký parameter $\\lambda$ má aproximujúce Poissonovo rozdelenie?`, answer: lam },
+          { q: T`Vypočítaj hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
         ]
       };
     }
     const [sit, ans] = pick(SITUATIONS);
     return {
-      type: 'choice', options: DISTS, answer: ans,
-      q: `Aké rozdelenie má náhodná veličina: <em>${sit}</em>?`,
+      type: 'choice', options: DISTS.map((d) => T.s(d)), answer: T.s(ans),
+      q: T`Aké rozdelenie má náhodná veličina: <em>${T.s(sit)}</em>?`,
       solution: {
-        'alternatívne': 'Ide o jeden pokus s dvoma výsledkami zakódovanými 0 a 1 — <strong>alternatívne</strong> rozdelenie.',
-        'binomické': 'Počet úspechov v pevnom počte nezávislých pokusov s rovnakou pravdepodobnosťou úspechu — <strong>binomické</strong> rozdelenie.',
-        'geometrické': 'Čakáme na prvý úspech v nezávislých pokusoch, počet pokusov nie je vopred daný — <strong>geometrické</strong> rozdelenie.',
-        'hypergeometrické': 'Výber bez vrátenia z konečného súboru s dvoma druhmi prvkov — <strong>hypergeometrické</strong> rozdelenie (pokusy nie sú nezávislé).',
-        'Poissonovo': 'Počet zriedkavých nezávislých udalostí za pevný čas alebo na pevnej ploche — <strong>Poissonovo</strong> rozdelenie.'
+        'alternatívne': T`Ide o jeden pokus s dvoma výsledkami zakódovanými 0 a 1 — <strong>alternatívne</strong> rozdelenie.`,
+        'binomické': T`Počet úspechov v pevnom počte nezávislých pokusov s rovnakou pravdepodobnosťou úspechu — <strong>binomické</strong> rozdelenie.`,
+        'geometrické': T`Čakáme na prvý úspech v nezávislých pokusoch, počet pokusov nie je vopred daný — <strong>geometrické</strong> rozdelenie.`,
+        'hypergeometrické': T`Výber bez vrátenia z konečného súboru s dvoma druhmi prvkov — <strong>hypergeometrické</strong> rozdelenie (pokusy nie sú nezávislé).`,
+        'Poissonovo': T`Počet zriedkavých nezávislých udalostí za pevný čas alebo na pevnej ploche — <strong>Poissonovo</strong> rozdelenie.`
       }[ans],
-      hint: 'Rozhoduje: je počet pokusov pevný? sú pokusy nezávislé (s vrátením)? čakáme na prvý úspech? počítame udalosti v čase alebo priestore?',
-      choiceHints: Object.fromEntries(DISTS.filter((d) => d !== ans).map((d) => [d, {
-        'alternatívne': 'Alternatívne rozdelenie opisuje jediný pokus s výsledkom 0 alebo 1.',
-        'binomické': 'Binomické rozdelenie vyžaduje pevný počet nezávislých pokusov s rovnakou pravdepodobnosťou úspechu (napr. výber s vrátením).',
-        'geometrické': 'Geometrické rozdelenie opisuje počet pokusov do prvého úspechu – počet pokusov nie je vopred daný.',
-        'hypergeometrické': 'Hypergeometrické rozdelenie patrí k výberu bez vrátenia z konečného súboru s dvoma druhmi prvkov.',
-        'Poissonovo': 'Poissonovo rozdelenie opisuje počet zriedkavých udalostí v čase alebo priestore, nie počet úspechov v daných pokusoch.'
+      hint: T`Rozhoduje: je počet pokusov pevný? sú pokusy nezávislé (s vrátením)? čakáme na prvý úspech? počítame udalosti v čase alebo priestore?`,
+      choiceHints: Object.fromEntries(DISTS.filter((d) => d !== ans).map((d) => [T.s(d), {
+        'alternatívne': T`Alternatívne rozdelenie opisuje jediný pokus s výsledkom 0 alebo 1.`,
+        'binomické': T`Binomické rozdelenie vyžaduje pevný počet nezávislých pokusov s rovnakou pravdepodobnosťou úspechu (napr. výber s vrátením).`,
+        'geometrické': T`Geometrické rozdelenie opisuje počet pokusov do prvého úspechu – počet pokusov nie je vopred daný.`,
+        'hypergeometrické': T`Hypergeometrické rozdelenie patrí k výberu bez vrátenia z konečného súboru s dvoma druhmi prvkov.`,
+        'Poissonovo': T`Poissonovo rozdelenie opisuje počet zriedkavých udalostí v čase alebo priestore, nie počet úspechov v daných pokusoch.`
       }[d]]))
     };
   });
@@ -896,7 +903,7 @@
       const p = plane(-0.3, 2.5, -0.12, 1.7, 420, 260, 24);
       const f = (x) => (x >= 0 && x <= 2 ? 3 * x * x / 8 : 0), med = 2 * Math.cbrt(0.5);
       const back = xAxis(p, 0.5, 2) + `<line class="f-axis" x1="${n1(p.X(0))}" y1="${n1(p.Y(0))}" x2="${n1(p.X(0))}" y2="${n1(p.Y(1.65))}"/>
-        <text class="f-small" x="${n1(p.X(0) - 5)}" y="${n1(p.Y(1.5) + 4)}" text-anchor="end">1,5</text>
+        <text class="f-small" x="${n1(p.X(0) - 5)}" y="${n1(p.Y(1.5) + 4)}" text-anchor="end">${sk(1.5, 1)}</text>
         <line class="f-thin" x1="${n1(p.X(0) - 4)}" y1="${n1(p.Y(1.5))}" x2="${n1(p.X(0))}" y2="${n1(p.Y(1.5))}"/>`;
       const clipped = `<path class="f-fill f-outline" d="${areaPath(p, f, 0, v.x)}"/>
         <path class="f-accent" d="${curvePath(p, f, 0, 2)}"/>
@@ -906,7 +913,7 @@
         <text class="f-math" x="${n1(p.X(1.15))}" y="${n1(p.Y(1.25))}">f(x) = 3x²/8</text>`;
       return {
         svg: svg(p, back, clipped, front, 'Hustota spojitej náhodnej veličiny a plocha pod ňou'),
-        readout: `<span class="c-accent">F(${sk(v.x, 2)}) = P(X ≤ ${sk(v.x, 2)}) = x³/8 = ${sk(v.x ** 3 / 8, 4)}</span> · medián x₀,₅ = 2·∛0,5 ≈ ${sk(med, 4)}`
+        readout: T`<span class="c-accent">F(${sk(v.x, 2)}) = P(X ≤ ${sk(v.x, 2)}) = x³/8 = ${sk(v.x ** 3 / 8, 4)}</span> · medián x₀,₅ = 2·∛${sk(0.5, 1)} ≈ ${sk(med, 4)}`
       };
     }
   });
@@ -942,16 +949,16 @@
     const t = Math.random();
     if (t < 0.85) {
       const k = pick([1, 2, 3]), a = pick([1, 2, 3, 4]), A = Math.pow(a, k + 1);
-      const xk = k === 1 ? 'x' : `x^{${k}}`, fx = `f(x)=c\\,${xk}`, head = `Náhodná veličina $X$ má hustotu $${fx}$ pre $x\\in[0, ${a}]$ a $f(x)=0$ inde.`;
+      const xk = k === 1 ? 'x' : `x^{${k}}`, fx = `f(x)=c\\,${xk}`, head = T`Náhodná veličina $X$ má hustotu $${fx}$ pre $x\\in[0, ${a}]$ a $f(x)=0$ inde.`;
       const cTex = fTex(k + 1, A), Ftex = `F(x)=\\frac{x^{${k + 1}}}{${A}}`;
-      const cStep = `Z podmienky $\\int_0^{${a}}c\\,${xk}\\,\\mathrm{d}x=c\\cdot\\frac{${a}^{${k + 1}}}{${k + 1}}=1$ je $c=${cTex}$ a pre $x\\in[0, ${a}]$ je $${Ftex}$.`;
+      const cStep = T`Z podmienky $\\int_0^{${a}}c\\,${xk}\\,\\mathrm{d}x=c\\cdot\\frac{${a}^{${k + 1}}}{${k + 1}}=1$ je $c=${cTex}$ a pre $x\\in[0, ${a}]$ je $${Ftex}$.`;
       if (t < 0.2) {
         return {
           answer: (k + 1) / A, tol: 0.00006, show: fTxt(k + 1, A),
-          q: `${head} Urči konštantu $c$ (zlomok alebo desatinné číslo na 4 desatinné miesta).`,
-          solution: `$\\int_0^{${a}}c\\,${xk}\\,\\mathrm{d}x=c\\left[\\frac{x^{${k + 1}}}{${k + 1}}\\right]_0^{${a}}=c\\cdot\\frac{${A}}{${k + 1}}=1$, teda $c=${cTex}$.`,
-          hint: 'Integrál hustoty cez celú reálnu os sa rovná 1.',
-          mistakes: [{ value: 1 / A, msg: `Primitívna funkcia k $${xk}$ je $\\frac{x^{${k + 1}}}{${k + 1}}$ – pri integrovaní nezabudni deliť novým exponentom.` }]
+          q: T`${head} Urči konštantu $c$ (zlomok alebo desatinné číslo na 4 desatinné miesta).`,
+          solution: T`$\\int_0^{${a}}c\\,${xk}\\,\\mathrm{d}x=c\\left[\\frac{x^{${k + 1}}}{${k + 1}}\\right]_0^{${a}}=c\\cdot\\frac{${A}}{${k + 1}}=1$, teda $c=${cTex}$.`,
+          hint: T`Integrál hustoty cez celú reálnu os sa rovná 1.`,
+          mistakes: [{ value: 1 / A, msg: T`Primitívna funkcia k $${xk}$ je $\\frac{x^{${k + 1}}}{${k + 1}}$ – pri integrovaní nezabudni deliť novým exponentom.` }]
         };
       }
       if (t < 0.45) {
@@ -964,35 +971,35 @@
           const lo = Math.min(b1, b2), hi = Math.max(b1, b2), res = F(hi) - F(lo);
           return {
             answer: round(res, 4), tol: 0.0001,
-            q: `${head} Vypočítaj $P(${nm(lo)}\\lt X\\lt ${nm(hi)})$. ${R4}`,
+            q: T`${head} Vypočítaj $P(${nm(lo)}\\lt X\\lt ${nm(hi)})$. ${T.s(R4)}`,
             solution: `${cStep} $P(${nm(lo)}\\lt X\\lt ${nm(hi)})=F(${nm(hi)})-F(${nm(lo)})=\\frac{${nm(hi)}^{${k + 1}}-${nm(lo)}^{${k + 1}}}{${A}}\\approx ${dd(res, 4)}$.`,
-            hint: 'Najprv urči $c$ a distribučnú funkciu $F$, potom $P(a\\lt X\\lt b)=F(b)-F(a)$.',
+            hint: T`Najprv urči $c$ a distribučnú funkciu $F$, potom $P(a\\lt X\\lt b)=F(b)-F(a)$.`,
             mistakes: mis(round(res, 4), 0.0001, [
-              { value: round(F(hi), 4), msg: `To je $P(X\\lt ${nm(hi)})$. Od neho treba odčítať $F(${nm(lo)})$.` },
-              { value: round((k + 1) / A * (Math.pow(hi, k) - Math.pow(lo, k)), 4), msg: 'Pravdepodobnosť nie je rozdiel hodnôt hustoty – treba rozdiel hodnôt distribučnej funkcie (integrálu hustoty).' }
+              { value: round(F(hi), 4), msg: T`To je $P(X\\lt ${nm(hi)})$. Od neho treba odčítať $F(${nm(lo)})$.` },
+              { value: round((k + 1) / A * (Math.pow(hi, k) - Math.pow(lo, k)), 4), msg: T`Pravdepodobnosť nie je rozdiel hodnôt hustoty – treba rozdiel hodnôt distribučnej funkcie (integrálu hustoty).` }
             ]),
             steps: [
-              { q: 'Urči konštantu $c$ (zlomok).', answer: (k + 1) / A, tol: 0.00006, show: fTxt(k + 1, A) },
-              { q: `Vypočítaj $F(${nm(hi)})$. ${R4}`, answer: round(F(hi), 4), tol: 0.0001, show: dt(F(hi), 4) },
-              { q: `Vypočítaj $F(${nm(lo)})$. ${R4}`, answer: round(F(lo), 4), tol: 0.0001, show: dt(F(lo), 4) },
-              { q: `Vypočítaj $P(${nm(lo)}\\lt X\\lt ${nm(hi)})$. ${R4}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
+              { q: T`Urči konštantu $c$ (zlomok).`, answer: (k + 1) / A, tol: 0.00006, show: fTxt(k + 1, A) },
+              { q: T`Vypočítaj $F(${nm(hi)})$. ${T.s(R4)}`, answer: round(F(hi), 4), tol: 0.0001, show: dt(F(hi), 4) },
+              { q: T`Vypočítaj $F(${nm(lo)})$. ${T.s(R4)}`, answer: round(F(lo), 4), tol: 0.0001, show: dt(F(lo), 4) },
+              { q: T`Vypočítaj $P(${nm(lo)}\\lt X\\lt ${nm(hi)})$. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
             ]
           };
         }
         const res = kind === 0 ? F(b1) : 1 - F(b1);
         return {
           answer: round(res, 4), tol: 0.0001,
-          q: `${head} Vypočítaj $P(X${kind === 0 ? '\\lt' : '&gt;'}${nm(b1)})$. ${R4}`,
+          q: T`${head} Vypočítaj $P(X${kind === 0 ? '\\lt' : '&gt;'}${nm(b1)})$. ${T.s(R4)}`,
           solution: `${cStep} ${kind === 0 ? `$P(X\\lt ${nm(b1)})=F(${nm(b1)})=` : `$P(X&gt;${nm(b1)})=1-F(${nm(b1)})=1-`}\\frac{${nm(b1)}^{${k + 1}}}{${A}}\\approx ${dd(res, 4)}$.`,
-          hint: 'Najprv urči $c$ a distribučnú funkciu $F(x)=\\int_0^x f(t)\\,\\mathrm{d}t$.',
+          hint: T`Najprv urči $c$ a distribučnú funkciu $F(x)=\\int_0^x f(t)\\,\\mathrm{d}t$.`,
           mistakes: mis(round(res, 4), 0.0001, [
-            { value: round((k + 1) / A * Math.pow(b1, k), 4), msg: 'Hodnota hustoty v bode nie je pravdepodobnosť. Pravdepodobnosť získaš integrovaním hustoty, teda z distribučnej funkcie.' },
-            kind === 1 ? { value: round(F(b1), 4), msg: `To je $P(X\\lt ${nm(b1)})$. Hľadaný jav je jeho doplnok.` } : null
+            { value: round((k + 1) / A * Math.pow(b1, k), 4), msg: T`Hodnota hustoty v bode nie je pravdepodobnosť. Pravdepodobnosť získaš integrovaním hustoty, teda z distribučnej funkcie.` },
+            kind === 1 ? { value: round(F(b1), 4), msg: T`To je $P(X\\lt ${nm(b1)})$. Hľadaný jav je jeho doplnok.` } : null
           ]),
           steps: [
-            { q: 'Urči konštantu $c$ (zlomok).', answer: (k + 1) / A, tol: 0.00006, show: fTxt(k + 1, A) },
-            { q: `Vypočítaj $F(${nm(b1)})$. ${R4}`, answer: round(F(b1), 4), tol: 0.0001, show: dt(F(b1), 4) },
-            ...(kind === 1 ? [{ q: `Vypočítaj $P(X&gt;${nm(b1)})$. ${R4}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }] : [])
+            { q: T`Urči konštantu $c$ (zlomok).`, answer: (k + 1) / A, tol: 0.00006, show: fTxt(k + 1, A) },
+            { q: T`Vypočítaj $F(${nm(b1)})$. ${T.s(R4)}`, answer: round(F(b1), 4), tol: 0.0001, show: dt(F(b1), 4) },
+            ...(kind === 1 ? [{ q: T`Vypočítaj $P(X&gt;${nm(b1)})$. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }] : [])
           ]
         };
       }
@@ -1000,35 +1007,35 @@
         const E = (k + 1) * a / (k + 2), E2 = (k + 1) * a * a / (k + 3), D = E2 - E * E, askD = Math.random() < 0.5;
         return {
           answer: round(askD ? D : E, 4), tol: 0.0001,
-          q: `${head} Vypočítaj ${askD ? 'rozptyl $D(X)$' : 'strednú hodnotu $E(X)$'}. ${R4}`,
+          q: T`${head} Vypočítaj ${askD ? T`rozptyl $D(X)$` : T`strednú hodnotu $E(X)$`}. ${T.s(R4)}`,
           solution: `$c=${cTex}$. $E(X)=\\int_0^{${a}}x\\cdot c\\,${xk}\\,\\mathrm{d}x=c\\cdot\\frac{${a}^{${k + 2}}}{${k + 2}}=${fTex((k + 1) * a, k + 2)}${askD
             ? `$, $E(X^2)=c\\cdot\\frac{${a}^{${k + 3}}}{${k + 3}}=${fTex((k + 1) * a * a, k + 3)}$, $D(X)=E(X^2)-(E(X))^2=${fTex((k + 1) * a * a, k + 3)}-\\left(${fTex((k + 1) * a, k + 2)}\\right)^2\\approx ${dd(D, 4)}$.`
             : `${Number.isInteger(E) ? '' : `\\approx ${dd(E, 4)}`}$.`}`,
-          hint: askD ? 'Vypočítaj $E(X)$ aj $E(X^2)=\\int x^2f(x)\\,\\mathrm{d}x$ a použi $D(X)=E(X^2)-(E(X))^2$.' : '$E(X)=\\int x\\,f(x)\\,\\mathrm{d}x$; najprv urči $c$.',
+          hint: askD ? T`Vypočítaj $E(X)$ aj $E(X^2)=\\int x^2f(x)\\,\\mathrm{d}x$ a použi $D(X)=E(X^2)-(E(X))^2$.` : T`$E(X)=\\int x\\,f(x)\\,\\mathrm{d}x$; najprv urči $c$.`,
           mistakes: mis(round(askD ? D : E, 4), 0.0001, askD ? [
-            { value: round(E2, 4), msg: 'To je $E(X^2)$. Rozptyl je $E(X^2)-(E(X))^2$.' }
+            { value: round(E2, 4), msg: T`To je $E(X^2)$. Rozptyl je $E(X^2)-(E(X))^2$.` }
           ] : [
-            { value: a / 2, msg: 'Stred intervalu je stredná hodnota len pri rovnomernom rozdelení. Tu hustota rastie, treba počítať $\\int x f(x)\\,\\mathrm{d}x$.' }
+            { value: a / 2, msg: T`Stred intervalu je stredná hodnota len pri rovnomernom rozdelení. Tu hustota rastie, treba počítať $\\int x f(x)\\,\\mathrm{d}x$.` }
           ]),
           steps: [
-            { q: 'Urči konštantu $c$ (zlomok).', answer: (k + 1) / A, tol: 0.00006, show: fTxt(k + 1, A) },
-            { q: `Vypočítaj $E(X)$. ${R4}`, answer: round(E, 4), tol: 0.0001, show: dt(E, 4) },
+            { q: T`Urči konštantu $c$ (zlomok).`, answer: (k + 1) / A, tol: 0.00006, show: fTxt(k + 1, A) },
+            { q: T`Vypočítaj $E(X)$. ${T.s(R4)}`, answer: round(E, 4), tol: 0.0001, show: dt(E, 4) },
             ...(askD ? [
-              { q: `Vypočítaj $E(X^2)$. ${R4}`, answer: round(E2, 4), tol: 0.0001, show: dt(E2, 4) },
-              { q: `Vypočítaj $D(X)$. ${R4}`, answer: round(D, 4), tol: 0.0001, show: dt(D, 4) }
+              { q: T`Vypočítaj $E(X^2)$. ${T.s(R4)}`, answer: round(E2, 4), tol: 0.0001, show: dt(E2, 4) },
+              { q: T`Vypočítaj $D(X)$. ${T.s(R4)}`, answer: round(D, 4), tol: 0.0001, show: dt(D, 4) }
             ] : [])
           ]
         };
       }
       const pp = pick([0.1, 0.25, 0.5, 0.75, 0.9]), xp = a * Math.pow(pp, 1 / (k + 1));
-      const name = pp === 0.5 ? 'medián $x_{0{,}5}$' : pp === 0.25 ? 'dolný kvartil $x_{0{,}25}$' : pp === 0.75 ? 'horný kvartil $x_{0{,}75}$' : `kvantil $x_{${nm(pp)}}$`;
+      const name = pp === 0.5 ? T`medián $x_{0{,}5}$` : pp === 0.25 ? T`dolný kvartil $x_{0{,}25}$` : pp === 0.75 ? T`horný kvartil $x_{0{,}75}$` : T`kvantil $x_{${nm(pp)}}$`;
       return {
         answer: round(xp, 4), tol: 0.0002,
-        q: `${head} Urči ${name}. ${R4}`,
-        solution: `${cStep} Riešime $\\frac{x^{${k + 1}}}{${A}}=${nm(pp)}$: $x=${a}\\cdot\\sqrt[${k + 1}]{${nm(pp)}}\\approx ${dd(xp, 4)}$.`,
-        hint: 'Kvantil $x_p$ je riešenie rovnice $F(x)=p$.',
+        q: T`${head} Urči ${name}. ${T.s(R4)}`,
+        solution: T`${cStep} Riešime $\\frac{x^{${k + 1}}}{${A}}=${nm(pp)}$: $x=${a}\\cdot\\sqrt[${k + 1}]{${nm(pp)}}\\approx ${dd(xp, 4)}$.`,
+        hint: T`Kvantil $x_p$ je riešenie rovnice $F(x)=p$.`,
         mistakes: mis(round(xp, 4), 0.0002, [
-          { value: round(a * pp, 4), msg: 'Distribučná funkcia tu nie je lineárna, kvantil preto nie je $p$-násobok dĺžky intervalu. Vyrieš rovnicu $F(x)=p$.' }
+          { value: round(a * pp, 4), msg: T`Distribučná funkcia tu nie je lineárna, kvantil preto nie je $p$-násobok dĺžky intervalu. Vyrieš rovnicu $F(x)=p$.` }
         ])
       };
     }
@@ -1038,25 +1045,25 @@
       const tt = pick([1.5, 2, 3, 4]), res = Math.pow(tt, -al);
       return {
         answer: round(res, 4), tol: 0.0001,
-        q: `Náhodná veličina $X$ (Paretovo rozdelenie) má hustotu $f(x)=\\frac{${al}}{x^{${al + 1}}}$ pre $x\\ge 1$ a $0$ inde. Vypočítaj $P(X&gt;${nm(tt)})$. ${R4}`,
+        q: T`Náhodná veličina $X$ (Paretovo rozdelenie) má hustotu $f(x)=\\frac{${al}}{x^{${al + 1}}}$ pre $x\\ge 1$ a $0$ inde. Vypočítaj $P(X&gt;${nm(tt)})$. ${T.s(R4)}`,
         solution: `$P(X&gt;${nm(tt)})=\\int_{${nm(tt)}}^{\\infty}\\frac{${al}}{x^{${al + 1}}}\\,\\mathrm{d}x=\\left[-x^{-${al}}\\right]_{${nm(tt)}}^{\\infty}=${nm(tt)}^{-${al}}\\approx ${dd(res, 4)}$.`,
-        hint: 'Integruj hustotu od danej hodnoty do nekonečna (nevlastný integrál).',
+        hint: T`Integruj hustotu od danej hodnoty do nekonečna (nevlastný integrál).`,
         mistakes: mis(round(res, 4), 0.0001, [
-          { value: round(1 - res, 4), msg: `To je $P(X\\le ${nm(tt)})=F(${nm(tt)})$. Hľadáš pravdepodobnosť opačného javu.` },
-          { value: round(al * Math.pow(tt, -al - 1), 4), msg: 'Hodnota hustoty v bode nie je pravdepodobnosť – hustotu treba integrovať.' }
+          { value: round(1 - res, 4), msg: T`To je $P(X\\le ${nm(tt)})=F(${nm(tt)})$. Hľadáš pravdepodobnosť opačného javu.` },
+          { value: round(al * Math.pow(tt, -al - 1), 4), msg: T`Hodnota hustoty v bode nie je pravdepodobnosť – hustotu treba integrovať.` }
         ])
       };
     }
     const med = Math.pow(2, 1 / al);
     return {
       answer: round(med, 4), tol: 0.0002,
-      q: `Náhodná veličina $X$ má hustotu $f(x)=\\frac{${al}}{x^{${al + 1}}}$ pre $x\\ge 1$ a $0$ inde. Urči medián. ${R4}`,
-      solution: `$F(x)=1-x^{-${al}}$ pre $x\\ge 1$. Z $1-x^{-${al}}=\\frac{1}{2}$ je $x^{${al}}=2$ a medián $x_{0{,}5}=\\sqrt[${al}]{2}\\approx ${dd(med, 4)}$.`,
-      hint: 'Urči distribučnú funkciu a vyrieš $F(x)=0{,}5$.',
-      mistakes: [{ value: round(Math.pow(0.5, 1 / al), 4), msg: `Z rovnice $x^{-${al}}=\\frac{1}{2}$ plynie $x^{${al}}=2$. Medián musí ležať v obore $x\\ge 1$.` }],
+      q: T`Náhodná veličina $X$ má hustotu $f(x)=\\frac{${al}}{x^{${al + 1}}}$ pre $x\\ge 1$ a $0$ inde. Urči medián. ${T.s(R4)}`,
+      solution: T`$F(x)=1-x^{-${al}}$ pre $x\\ge 1$. Z $1-x^{-${al}}=\\frac{1}{2}$ je $x^{${al}}=2$ a medián $x_{0{,}5}=\\sqrt[${al}]{2}\\approx ${dd(med, 4)}$.`,
+      hint: T`Urči distribučnú funkciu a vyrieš $F(x)=0{,}5$.`,
+      mistakes: [{ value: round(Math.pow(0.5, 1 / al), 4), msg: T`Z rovnice $x^{-${al}}=\\frac{1}{2}$ plynie $x^{${al}}=2$. Medián musí ležať v obore $x\\ge 1$.` }],
       steps: [
-        { q: 'Distribučná funkcia má tvar $F(x)=1-x^{-m}$ pre $x\\ge 1$. Aké je $m$?', answer: al },
-        { q: `Urči medián. ${R4}`, answer: round(med, 4), tol: 0.0002, show: dt(med, 4) }
+        { q: T`Distribučná funkcia má tvar $F(x)=1-x^{-m}$ pre $x\\ge 1$. Aké je $m$?`, answer: al },
+        { q: T`Urči medián. ${T.s(R4)}`, answer: round(med, 4), tol: 0.0002, show: dt(med, 4) }
       ]
     };
   });
@@ -1077,7 +1084,7 @@
       const front = `<text class="f-small" x="${n1(p.X(1 / lam) + 4)}" y="${n1(p.Y(f(1 / lam)) - 6)}">E(X) = 1/λ</text>`;
       return {
         svg: svg(p, back, clipped, front, 'Hustota exponenciálneho rozdelenia'),
-        readout: `<span class="c-accent">P(X &gt; ${sk(v.t, 1)}) = e^(−λt) = ${sk(Math.exp(-lam * v.t), 4)}</span> · E(X) = ${sk(1 / lam, 3)} · medián = ln 2/λ = ${sk(Math.LN2 / lam, 3)}`
+        readout: T`<span class="c-accent">P(X &gt; ${sk(v.t, 1)}) = e^(−λt) = ${sk(Math.exp(-lam * v.t), 4)}</span> · E(X) = ${sk(1 / lam, 3)} · medián = ln 2/λ = ${sk(Math.LN2 / lam, 3)}`
       };
     }
   });
@@ -1120,81 +1127,81 @@
         if (c === a && d === b) d = b - 1;
         return {
           answer: round((d - c) / L, 4), tol: 0.0001, show: fTxt(d - c, L),
-          q: `Náhodná veličina $X$ má rovnomerné rozdelenie $${RT}$. Vypočítaj $P(${c}\\lt X\\lt ${d})$. Výsledok zadaj ako zlomok alebo desatinné číslo na 4 desatinné miesta.`,
-          solution: `Pravdepodobnosť je úmerná dĺžke podintervalu: $P(${c}\\lt X\\lt ${d})=\\frac{${d}-${c}}{${b}-${a}}=${fTex(d - c, L)}$.`,
-          hint: 'Pri rovnomernom rozdelení je pravdepodobnosť podiel dĺžok intervalov.',
+          q: T`Náhodná veličina $X$ má rovnomerné rozdelenie $${RT}$. Vypočítaj $P(${c}\\lt X\\lt ${d})$. Výsledok zadaj ako zlomok alebo desatinné číslo na 4 desatinné miesta.`,
+          solution: T`Pravdepodobnosť je úmerná dĺžke podintervalu: $P(${c}\\lt X\\lt ${d})=\\frac{${d}-${c}}{${b}-${a}}=${fTex(d - c, L)}$.`,
+          hint: T`Pri rovnomernom rozdelení je pravdepodobnosť podiel dĺžok intervalov.`,
           mistakes: mis(round((d - c) / L, 4), 0.0001, [
-            a !== 0 ? { value: round((d - c) / b, 4), msg: `Deliť treba dĺžkou celého intervalu $b-a=${L}$, nie hornou hranicou.` } : null
+            a !== 0 ? { value: round((d - c) / b, 4), msg: T`Deliť treba dĺžkou celého intervalu $b-a=${L}$, nie hornou hranicou.` } : null
           ])
         };
       }
       if (kind === 1) {
         return {
           answer: L * L / 12, tol: 0.0001, show: fTxt(L * L, 12),
-          q: `Náhodná veličina $X$ má rovnomerné rozdelenie $${RT}$. Vypočítaj rozptyl $D(X)$ (zlomok alebo desatinné číslo na 4 desatinné miesta).`,
+          q: T`Náhodná veličina $X$ má rovnomerné rozdelenie $${RT}$. Vypočítaj rozptyl $D(X)$ (zlomok alebo desatinné číslo na 4 desatinné miesta).`,
           solution: `$D(X)=\\frac{(b-a)^2}{12}=\\frac{${L}^2}{12}=${fTex(L * L, 12)}$.`,
-          hint: 'Pre $R(a, b)$ je $D(X)=(b-a)^2/12$.',
+          hint: T`Pre $R(a, b)$ je $D(X)=(b-a)^2/12$.`,
           mistakes: mis(L * L / 12, 0.0001, [
-            { value: L / 12, msg: 'V čitateli vzorca pre rozptyl je druhá mocnina dĺžky intervalu, $(b-a)^2$.' },
-            a !== 0 ? { value: (b * b - a * a) / 12, msg: 'V čitateli je $(b-a)^2$, nie $b^2-a^2$.' } : null
+            { value: L / 12, msg: T`V čitateli vzorca pre rozptyl je druhá mocnina dĺžky intervalu, $(b-a)^2$.` },
+            a !== 0 ? { value: (b * b - a * a) / 12, msg: T`V čitateli je $(b-a)^2$, nie $b^2-a^2$.` } : null
           ])
         };
       }
       return {
         answer: round(L / Math.sqrt(12), 4), tol: 0.0002,
-        q: `Náhodná veličina $X$ má rovnomerné rozdelenie $${RT}$. Vypočítaj smerodajnú odchýlku $\\sigma$. ${R4}`,
+        q: T`Náhodná veličina $X$ má rovnomerné rozdelenie $${RT}$. Vypočítaj smerodajnú odchýlku $\\sigma$. ${T.s(R4)}`,
         solution: `$D(X)=\\frac{${L}^2}{12}=${fTex(L * L, 12)}$, $\\sigma=\\frac{${L}}{\\sqrt{12}}\\approx ${dd(L / Math.sqrt(12), 4)}$.`,
-        hint: 'Najprv rozptyl $(b-a)^2/12$, potom odmocnina.',
+        hint: T`Najprv rozptyl $(b-a)^2/12$, potom odmocnina.`,
         mistakes: mis(round(L / Math.sqrt(12), 4), 0.0002, [
-          { value: round(L * L / 12, 4), msg: 'To je rozptyl. Smerodajná odchýlka je jeho druhá odmocnina.' },
-          { value: round(L / 12, 4), msg: 'Smerodajná odchýlka je $\\sqrt{D(X)}=\\frac{b-a}{\\sqrt{12}}$ – odmocňuje sa aj menovateľ.' }
+          { value: round(L * L / 12, 4), msg: T`To je rozptyl. Smerodajná odchýlka je jeho druhá odmocnina.` },
+          { value: round(L / 12, 4), msg: T`Smerodajná odchýlka je $\\sqrt{D(X)}=\\frac{b-a}{\\sqrt{12}}$ – odmocňuje sa aj menovateľ.` }
         ]),
         steps: [
-          { q: 'Vypočítaj rozptyl $D(X)$ (zlomok).', answer: L * L / 12, tol: 0.0001, show: fTxt(L * L, 12) },
-          { q: `Vypočítaj smerodajnú odchýlku. ${R4}`, answer: round(L / Math.sqrt(12), 4), tol: 0.0002, show: dt(L / Math.sqrt(12), 4) }
+          { q: T`Vypočítaj rozptyl $D(X)$ (zlomok).`, answer: L * L / 12, tol: 0.0001, show: fTxt(L * L, 12) },
+          { q: T`Vypočítaj smerodajnú odchýlku. ${T.s(R4)}`, answer: round(L / Math.sqrt(12), 4), tol: 0.0002, show: dt(L / Math.sqrt(12), 4) }
         ]
       };
     }
-    const m = pick([20, 40, 50, 100, 200, 500]), unit = 'hodín';
+    const m = pick([20, 40, 50, 100, 200, 500]), unit = T`hodín`;
     const ctx = pick([
-      `Doba bezporuchovej prevádzky zariadenia (v hodinách) má exponenciálne rozdelenie so strednou hodnotou ${m} hodín.`,
-      `Životnosť súčiastky (v hodinách) má exponenciálne rozdelenie so strednou hodnotou ${m} hodín.`
+      T`Doba bezporuchovej prevádzky zariadenia (v hodinách) má exponenciálne rozdelenie so strednou hodnotou ${m} hodín.`,
+      T`Životnosť súčiastky (v hodinách) má exponenciálne rozdelenie so strednou hodnotou ${m} hodín.`
     ]);
     if (t < 0.5) {
       if (Math.random() < 0.3) {
-        const lam = pick([0.5, 2, 3, 4]), tt = pick([0.5, 1, 1.5, 2]), res = Math.exp(-lam * tt), mins = tt === 1 ? 'minútu' : 'minúty';
+        const lam = pick([0.5, 2, 3, 4]), tt = pick([0.5, 1, 1.5, 2]), res = Math.exp(-lam * tt), mins = tt === 1 ? T`minútu` : T`minúty`;
         return {
           answer: round(res, 4), tol: 0.0001,
-          q: `Zákazníci prichádzajú k pokladni ako Poissonov proces s intenzitou $\\lambda=${nm(lam)}$ za minútu. Aká je pravdepodobnosť, že na ďalšieho zákazníka budeme čakať dlhšie ako ${nt(tt, 1)} ${mins}? ${R4}`,
-          solution: `Čas do ďalšieho príchodu $T\\sim Exp(${nm(lam)})$, teda $P(T&gt;${nm(tt)})=e^{-${nm(lam)}\\cdot ${nm(tt)}}=e^{-${nm(lam * tt)}}\\approx ${dd(res, 4)}$.
+          q: T`Zákazníci prichádzajú k pokladni ako Poissonov proces s intenzitou $\\lambda=${nm(lam)}$ za minútu. Aká je pravdepodobnosť, že na ďalšieho zákazníka budeme čakať dlhšie ako ${nt(tt, 1)} ${mins}? ${T.s(R4)}`,
+          solution: T`Čas do ďalšieho príchodu $T\\sim Exp(${nm(lam)})$, teda $P(T&gt;${nm(tt)})=e^{-${nm(lam)}\\cdot ${nm(tt)}}=e^{-${nm(lam * tt)}}\\approx ${dd(res, 4)}$.
             (To isté dostaneme z $Po(${nm(lam * tt)})$: pravdepodobnosť, že za ${nt(tt, 1)} ${mins} nepríde nikto.)`,
-          hint: 'Čakacie doby v Poissonovom procese s intenzitou $\\lambda$ majú rozdelenie $Exp(\\lambda)$.',
+          hint: T`Čakacie doby v Poissonovom procese s intenzitou $\\lambda$ majú rozdelenie $Exp(\\lambda)$.`,
           mistakes: mis(round(res, 4), 0.0001, [
-            { value: round(1 - res, 4), msg: 'To je pravdepodobnosť, že zákazník príde skôr. Čakať dlhšie znamená $P(T&gt;t)=e^{-\\lambda t}$.' },
-            { value: round(Math.exp(-tt / lam), 4), msg: 'Parameter $\\lambda$ je intenzita (počet za minútu), nie stredná doba čakania – v exponente je $\\lambda t$.' }
+            { value: round(1 - res, 4), msg: T`To je pravdepodobnosť, že zákazník príde skôr. Čakať dlhšie znamená $P(T&gt;t)=e^{-\\lambda t}$.` },
+            { value: round(Math.exp(-tt / lam), 4), msg: T`Parameter $\\lambda$ je intenzita (počet za minútu), nie stredná doba čakania – v exponente je $\\lambda t$.` }
           ]),
           steps: [
-            { q: 'Vypočítaj súčin $\\lambda t$.', answer: lam * tt },
-            { q: `Vypočítaj hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
+            { q: T`Vypočítaj súčin $\\lambda t$.`, answer: lam * tt },
+            { q: T`Vypočítaj hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
           ]
         };
       }
       const kind = rnd(0, 2), t1 = Math.round(m * pick([0.25, 0.5, 1, 1.5, 2])), t2 = t1 + Math.round(m * pick([0.5, 1]));
       const res = kind === 0 ? Math.exp(-t1 / m) : kind === 1 ? 1 - Math.exp(-t1 / m) : Math.exp(-t1 / m) - Math.exp(-t2 / m);
-      const what = kind === 0 ? `vydrží dlhšie ako ${t1} ${unit}` : kind === 1 ? `sa pokazí do ${t1} ${unit}` : `sa pokazí medzi ${t1}. a ${t2}. hodinou prevádzky`;
+      const what = kind === 0 ? T`vydrží dlhšie ako ${t1} ${unit}` : kind === 1 ? T`sa pokazí do ${t1} ${unit}` : T`sa pokazí medzi ${t1}. a ${t2}. hodinou prevádzky`;
       return {
         answer: round(res, 4), tol: 0.0001,
-        q: `${ctx} Aká je pravdepodobnosť, že ${what}? ${R4}`,
+        q: T`${ctx} Aká je pravdepodobnosť, že ${what}? ${T.s(R4)}`,
         solution: `$\\lambda=\\frac{1}{${m}}$. ${kind === 0 ? `$P(X&gt;${t1})=e^{-${t1}/${m}}` : kind === 1 ? `$P(X\\le ${t1})=1-e^{-${t1}/${m}}` : `$P(${t1}\\lt X\\lt ${t2})=F(${t2})-F(${t1})=e^{-${t1}/${m}}-e^{-${t2}/${m}}`}\\approx ${dd(res, 4)}$.`,
-        hint: 'Pre $Exp(\\lambda)$ je $P(X&gt;x)=e^{-\\lambda x}$ a $\\lambda$ je prevrátená hodnota strednej hodnoty.',
+        hint: T`Pre $Exp(\\lambda)$ je $P(X&gt;x)=e^{-\\lambda x}$ a $\\lambda$ je prevrátená hodnota strednej hodnoty.`,
         mistakes: mis(round(res, 4), 0.0001, kind === 2 ? [
-          { value: round(1 - Math.exp(-(t2 - t1) / m), 4), msg: 'Pravdepodobnosť intervalu je $F(t_2)-F(t_1)$, nie $F(t_2-t_1)$.' }
+          { value: round(1 - Math.exp(-(t2 - t1) / m), 4), msg: T`Pravdepodobnosť intervalu je $F(t_2)-F(t_1)$, nie $F(t_2-t_1)$.` }
         ] : [
-          { value: round(1 - res, 4), msg: kind === 0 ? 'To je pravdepodobnosť poruchy do daného času. „Vydrží dlhšie“ je jav $X&gt;x$.' : 'To je pravdepodobnosť, že vydrží dlhšie. Porucha do času $x$ je jav $X\\le x$.' }
+          { value: round(1 - res, 4), msg: kind === 0 ? T`To je pravdepodobnosť poruchy do daného času. „Vydrží dlhšie“ je jav $X&gt;x$.` : T`To je pravdepodobnosť, že vydrží dlhšie. Porucha do času $x$ je jav $X\\le x$.` }
         ]),
         steps: [
-          { q: 'Aký je parameter $\\lambda$ (za hodinu)?', answer: 1 / m },
-          { q: `Vypočítaj hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
+          { q: T`Aký je parameter $\\lambda$ (za hodinu)?`, answer: 1 / m },
+          { q: T`Vypočítaj hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0001, show: dt(res, 4) }
         ]
       };
     }
@@ -1202,24 +1209,24 @@
       const s = Math.round(m * pick([0.5, 1, 2, 3])), tt = Math.round(m * pick([0.25, 0.5, 1, 1.5])), res = Math.exp(-tt / m);
       return {
         answer: round(res, 4), tol: 0.0001,
-        q: `${ctx} Zariadenie už funguje ${s} ${unit} bez poruchy. Aká je pravdepodobnosť, že vydrží bez poruchy ešte aspoň ďalších ${tt} ${unit}? ${R4}`,
-        solution: `Exponenciálne rozdelenie je bez pamäte: $P(X&gt;${s}+${tt}\\mid X&gt;${s})=P(X&gt;${tt})=e^{-${tt}/${m}}\\approx ${dd(res, 4)}$.
+        q: T`${ctx} Zariadenie už funguje ${s} ${unit} bez poruchy. Aká je pravdepodobnosť, že vydrží bez poruchy ešte aspoň ďalších ${tt} ${unit}? ${T.s(R4)}`,
+        solution: T`Exponenciálne rozdelenie je bez pamäte: $P(X&gt;${s}+${tt}\\mid X&gt;${s})=P(X&gt;${tt})=e^{-${tt}/${m}}\\approx ${dd(res, 4)}$.
           Doterajších ${s} ${unit} na výsledok nemá vplyv.`,
-        hint: 'Použi vlastnosť bez pamäte, alebo priamo $\\frac{P(X&gt;s+t)}{P(X&gt;s)}$.',
+        hint: T`Použi vlastnosť bez pamäte, alebo priamo $\\frac{P(X&gt;s+t)}{P(X&gt;s)}$.`,
         mistakes: mis(round(res, 4), 0.0001, [
-          { value: round(Math.exp(-(s + tt) / m), 4), msg: 'To je nepodmienená pravdepodobnosť $P(X&gt;s+t)$. Vieme však, že zariadenie už $s$ hodín funguje – ide o podmienenú pravdepodobnosť.' }
+          { value: round(Math.exp(-(s + tt) / m), 4), msg: T`To je nepodmienená pravdepodobnosť $P(X&gt;s+t)$. Vieme však, že zariadenie už $s$ hodín funguje – ide o podmienenú pravdepodobnosť.` }
         ])
       };
     }
     const pp = pick([0.5, 0.9, 0.95, 0.25, 0.1]), xp = -m * Math.log(1 - pp);
     return {
       answer: round(xp, 2), tol: 0.01,
-      q: `${ctx} Urči čas, do ktorého sa pokazí ${nt(pp * 100, 0)} % zariadení (kvantil $x_{${nm(pp)}}$). ${R2}`,
-      solution: `Riešime $F(x)=1-e^{-x/${m}}=${nm(pp)}$: $x=-${m}\\ln(1-${nm(pp)})=-${m}\\ln ${nm(1 - pp)}\\approx ${dd(xp, 2)}$ ${unit}.`,
-      hint: 'Kvantil rádu $p$ je riešenie $F(x)=p$, pre exponenciálne rozdelenie $x_p=-\\frac{\\ln(1-p)}{\\lambda}$.',
+      q: T`${ctx} Urči čas, do ktorého sa pokazí ${nt(pp * 100, 0)} % zariadení (kvantil $x_{${nm(pp)}}$). ${T.s(R2)}`,
+      solution: T`Riešime $F(x)=1-e^{-x/${m}}=${nm(pp)}$: $x=-${m}\\ln(1-${nm(pp)})=-${m}\\ln ${nm(1 - pp)}\\approx ${dd(xp, 2)}$ ${unit}.`,
+      hint: T`Kvantil rádu $p$ je riešenie $F(x)=p$, pre exponenciálne rozdelenie $x_p=-\\frac{\\ln(1-p)}{\\lambda}$.`,
       mistakes: mis(round(xp, 2), 0.01, [
-        { value: round(-m * Math.log(pp), 2), msg: 'Z rovnice $1-e^{-x/\\mu}=p$ vyjde $e^{-x/\\mu}=1-p$, teda logaritmuješ $1-p$, nie $p$.' },
-        { value: round(m * pp, 2), msg: 'Distribučná funkcia exponenciálneho rozdelenia nie je lineárna – vyrieš rovnicu $F(x)=p$ logaritmovaním.' }
+        { value: round(-m * Math.log(pp), 2), msg: T`Z rovnice $1-e^{-x/\\mu}=p$ vyjde $e^{-x/\\mu}=1-p$, teda logaritmuješ $1-p$, nie $p$.` },
+        { value: round(m * pp, 2), msg: T`Distribučná funkcia exponenciálneho rozdelenia nie je lineárna – vyrieš rovnicu $F(x)=p$ logaritmovaním.` }
       ])
     };
   });
@@ -1242,7 +1249,7 @@
       const za = (lo - v.mu) / v.s, zb = (hi - v.mu) / v.s, P = Phi(zb) - Phi(za);
       return {
         svg: svg(p, back, clipped, '', 'Hustota normálneho rozdelenia a pravdepodobnosť intervalu'),
-        readout: `z₁ = (a − μ)/σ = ${sk(za, 2)} · z₂ = (b − μ)/σ = ${sk(zb, 2)} · <span class="c-accent">P(a &lt; X &lt; b) = Φ(z₂) − Φ(z₁) = ${sk(P, 4)}</span>`
+        readout: T`z₁ = (a − μ)/σ = ${sk(za, 2)} · z₂ = (b − μ)/σ = ${sk(zb, 2)} · <span class="c-accent">P(a &lt; X &lt; b) = Φ(z₂) − Φ(z₁) = ${sk(P, 4)}</span>`
       };
     }
   });
@@ -1287,24 +1294,24 @@
     const t = Math.random();
     if (t < 0.35) {
       const c = pick(NCTX), s = pick(c.s), mu = c.mu, X = (z) => mu + z * s;
-      const head = `${c.txt} má rozdelenie $N(${mu};\\,${s * s})$.`;
+      const head = T`${c.txt} má rozdelenie $N(${mu};\\,${s * s})$.`;
       const kind = rnd(0, 2);
       if (kind < 2) {
         const z = pick(ZS) * pick([1, -1]), x = X(z), up = kind === 1;
         const Pz = PhiT(Math.abs(z)), F = z >= 0 ? Pz : 1 - Pz, res = up ? 1 - F : F;
         return {
           answer: round(res, 4), tol: 0.0002,
-          q: `${head} Vypočítaj $P(X${up ? '&gt;' : '\\lt'}${ths(nm(x, 2))})$. Použi ${phiList([z])}. ${R4}`,
+          q: T`${head} Vypočítaj $P(X${up ? '&gt;' : '\\lt'}${ths(nm(x, 2))})$. Použi ${phiList([z])}. ${T.s(R4)}`,
           solution: `$z=\\frac{${ths(nm(x, 2))}-${ths(mu)}}{${s}}=${nm(z, 2)}$. ${z >= 0 ? `$\\Phi(${nm(z, 2)})=${dd(Pz, 4)}$` : `$\\Phi(${nm(z, 2)})=1-\\Phi(${nm(-z, 2)})=${dd(1 - Pz, 4)}$`}.
             ${up ? `$P(X&gt;${ths(nm(x, 2))})=1-\\Phi(${nm(z, 2)})=${dd(res, 4)}$.` : `$P(X\\lt ${ths(nm(x, 2))})=\\Phi(${nm(z, 2)})=${dd(res, 4)}$.`}`,
-          hint: 'Štandardizuj: $z=\\frac{x-\\mu}{\\sigma}$. Pre záporné $z$ použi $\\Phi(-z)=1-\\Phi(z)$.',
+          hint: T`Štandardizuj: $z=\\frac{x-\\mu}{\\sigma}$. Pre záporné $z$ použi $\\Phi(-z)=1-\\Phi(z)$.`,
           mistakes: mis(round(res, 4), 0.0002, [
-            { value: round(1 - res, 4), msg: up ? 'To je $P(X\\lt x)=\\Phi(z)$. Pre $P(X&gt;x)$ treba doplnok $1-\\Phi(z)$.' : 'To je $P(X&gt;x)$. Distribučná funkcia $\\Phi(z)$ dáva priamo $P(X\\lt x)$.' },
-            { value: round(up ? 1 - Phi(z / s) : Phi(z / s), 4), msg: `Pri štandardizácii delíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom $\\sigma^2=${s * s}$.` }
+            { value: round(1 - res, 4), msg: up ? T`To je $P(X\\lt x)=\\Phi(z)$. Pre $P(X&gt;x)$ treba doplnok $1-\\Phi(z)$.` : T`To je $P(X&gt;x)$. Distribučná funkcia $\\Phi(z)$ dáva priamo $P(X\\lt x)$.` },
+            { value: round(up ? 1 - Phi(z / s) : Phi(z / s), 4), msg: T`Pri štandardizácii delíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom $\\sigma^2=${s * s}$.` }
           ]),
           steps: [
-            { q: `Štandardizuj hodnotu $${ths(nm(x, 2))}$: aké je $z$?`, answer: z, tol: 0.005, signed: true },
-            { q: `Vypočítaj $P(X${up ? '&gt;' : '\\lt'}${ths(nm(x, 2))})$. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+            { q: T`Štandardizuj hodnotu $${ths(nm(x, 2))}$: aké je $z$?`, answer: z, tol: 0.005, signed: true },
+            { q: T`Vypočítaj $P(X${up ? '&gt;' : '\\lt'}${ths(nm(x, 2))})$. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
           ]
         };
       }
@@ -1314,36 +1321,36 @@
       const res = F(zb) - F(za);
       return {
         answer: round(res, 4), tol: 0.0002,
-        q: `${head} Vypočítaj $P(${ths(nm(X(za), 2))}\\lt X\\lt ${ths(nm(X(zb), 2))})$. Použi ${phiList([za, zb])}. ${R4}`,
-        solution: `Štandardizované hranice: $z_1=${nm(za, 2)}$, $z_2=${nm(zb, 2)}$.
+        q: T`${head} Vypočítaj $P(${ths(nm(X(za), 2))}\\lt X\\lt ${ths(nm(X(zb), 2))})$. Použi ${phiList([za, zb])}. ${T.s(R4)}`,
+        solution: T`Štandardizované hranice: $z_1=${nm(za, 2)}$, $z_2=${nm(zb, 2)}$.
           $P=\\Phi(${nm(zb, 2)})-\\Phi(${nm(za, 2)})=${dd(F(zb), 4)}-${dd(F(za), 4)}=${dd(res, 4)}$.`,
-        hint: 'Obe hranice štandardizuj a odčítaj hodnoty $\\Phi$. Pre záporné $z$ je $\\Phi(z)=1-\\Phi(-z)$.',
+        hint: T`Obe hranice štandardizuj a odčítaj hodnoty $\\Phi$. Pre záporné $z$ je $\\Phi(z)=1-\\Phi(-z)$.`,
         mistakes: mis(round(res, 4), 0.0002, [
-          za < 0 ? { value: round(F(zb) - PhiT(-za), 4), msg: `Pre záporné $z$ nie je $\\Phi(${nm(za, 2)})=\\Phi(${nm(-za, 2)})$, ale $1-\\Phi(${nm(-za, 2)})$.` } : null,
-          { value: round(Phi(zb / s) - Phi(za / s), 4), msg: `Pri štandardizácii delíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom $\\sigma^2=${s * s}$.` }
+          za < 0 ? { value: round(F(zb) - PhiT(-za), 4), msg: T`Pre záporné $z$ nie je $\\Phi(${nm(za, 2)})=\\Phi(${nm(-za, 2)})$, ale $1-\\Phi(${nm(-za, 2)})$.` } : null,
+          { value: round(Phi(zb / s) - Phi(za / s), 4), msg: T`Pri štandardizácii delíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom $\\sigma^2=${s * s}$.` }
         ]),
         steps: [
-          { q: 'Štandardizuj dolnú hranicu: aké je $z_1$?', answer: za, tol: 0.005, signed: true },
-          { q: 'Štandardizuj hornú hranicu: aké je $z_2$?', answer: zb, tol: 0.005, signed: true },
-          { q: `Vypočítaj hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+          { q: T`Štandardizuj dolnú hranicu: aké je $z_1$?`, answer: za, tol: 0.005, signed: true },
+          { q: T`Štandardizuj hornú hranicu: aké je $z_2$?`, answer: zb, tol: 0.005, signed: true },
+          { q: T`Vypočítaj hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
         ]
       };
     }
     if (t < 0.6) {
       const c = pick(NCTX), s = pick(c.s), mu = c.mu, pp = pick([0.9, 0.95, 0.975, 0.99]), z = ZQ[pp];
       const kind = rnd(0, 2);
-      const head = `${c.txt} má rozdelenie $N(${mu};\\,${s * s})$.`;
-      const zq = `Použi kvantil $z_{${nm(pp, 3)}}=${dd(z, 4)}$.`;
+      const head = T`${c.txt} má rozdelenie $N(${mu};\\,${s * s})$.`;
+      const zq = T`Použi kvantil $z_{${nm(pp, 3)}}=${dd(z, 4)}$.`;
       if (kind === 0) {
         const x = mu + z * s;
         return {
           answer: round(x, 2), tol: 0.011,
-          q: `${head} Urči hodnotu $x$, pre ktorú $P(X\\lt x)=${nm(pp, 3)}$. ${zq} ${R2}`,
+          q: T`${head} Urči hodnotu $x$, pre ktorú $P(X\\lt x)=${nm(pp, 3)}$. ${zq} ${T.s(R2)}`,
           solution: `$x=x_{${nm(pp, 3)}}=\\mu+\\sigma z_{${nm(pp, 3)}}=${mu}+${s}\\cdot ${dd(z, 4)}\\approx ${dd(x, 2)}$.`,
-          hint: 'Kvantil normálneho rozdelenia: $x_p=\\mu+\\sigma z_p$.',
+          hint: T`Kvantil normálneho rozdelenia: $x_p=\\mu+\\sigma z_p$.`,
           mistakes: mis(round(x, 2), 0.011, [
-            { value: round(mu - z * s, 2), msg: `Pravdepodobnosť ${nt(pp, 3)} je väčšia ako 0,5, hľadaná hodnota preto leží nad strednou hodnotou: $x=\\mu+\\sigma z_p$.` },
-            { value: round(mu + z * s * s, 2), msg: `Kvantil násobíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom.` }
+            { value: round(mu - z * s, 2), msg: T`Pravdepodobnosť ${nt(pp, 3)} je väčšia ako 0,5, hľadaná hodnota preto leží nad strednou hodnotou: $x=\\mu+\\sigma z_p$.` },
+            { value: round(mu + z * s * s, 2), msg: T`Kvantil násobíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom.` }
           ])
         };
       }
@@ -1351,12 +1358,12 @@
         const x = mu - z * s;
         return {
           answer: round(x, 2), tol: 0.011,
-          q: `${head} Urči hodnotu $x$, pre ktorú $P(X&gt;x)=${nm(pp, 3)}$. ${zq} ${R2}`,
-          solution: `$P(X&gt;x)=${nm(pp, 3)}$ znamená $P(X\\le x)=${nm(1 - pp, 3)}$, teda $x=\\mu+\\sigma z_{${nm(1 - pp, 3)}}=\\mu-\\sigma z_{${nm(pp, 3)}}=${mu}-${s}\\cdot ${dd(z, 4)}\\approx ${dd(x, 2)}$.`,
-          hint: 'Prepíš na $P(X\\le x)=1-p$ a použi $z_{1-p}=-z_p$.',
+          q: T`${head} Urči hodnotu $x$, pre ktorú $P(X&gt;x)=${nm(pp, 3)}$. ${zq} ${T.s(R2)}`,
+          solution: T`$P(X&gt;x)=${nm(pp, 3)}$ znamená $P(X\\le x)=${nm(1 - pp, 3)}$, teda $x=\\mu+\\sigma z_{${nm(1 - pp, 3)}}=\\mu-\\sigma z_{${nm(pp, 3)}}=${mu}-${s}\\cdot ${dd(z, 4)}\\approx ${dd(x, 2)}$.`,
+          hint: T`Prepíš na $P(X\\le x)=1-p$ a použi $z_{1-p}=-z_p$.`,
           mistakes: mis(round(x, 2), 0.011, [
-            { value: round(mu + z * s, 2), msg: `To je hodnota, pod ktorou leží ${nt(pp * 100, 1)} % rozdelenia. Tu sa pýtame na $P(X&gt;x)$ – prejdi na $P(X\\le x)=1-p$.` },
-            { value: round(mu - z * s * s, 2), msg: `Kvantil násobíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom.` }
+            { value: round(mu + z * s, 2), msg: T`To je hodnota, pod ktorou leží ${nt(pp * 100, 1)} % rozdelenia. Tu sa pýtame na $P(X&gt;x)$ – prejdi na $P(X\\le x)=1-p$.` },
+            { value: round(mu - z * s * s, 2), msg: T`Kvantil násobíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom.` }
           ])
         };
       }
@@ -1364,16 +1371,16 @@
       const d = z2 * s;
       return {
         answer: round(d, 2), tol: 0.011,
-        q: `${head} Urči $d$ tak, aby $P(|X-${mu}|\\lt d)=${nm(pp2, 2)}$ (interval súmerný okolo strednej hodnoty). Použi $z_{${nm(q2, 3)}}=${dd(z2, 4)}$. ${R2}`,
-        solution: `$P(|X-\\mu|\\lt d)=2\\Phi\\left(\\frac{d}{\\sigma}\\right)-1=${nm(pp2, 2)}$, teda $\\Phi\\left(\\frac{d}{\\sigma}\\right)=${nm(q2, 3)}$ a $d=\\sigma z_{${nm(q2, 3)}}=${s}\\cdot ${dd(z2, 4)}\\approx ${dd(d, 2)}$.`,
-        hint: 'Pre súmerný interval platí $P(|X-\\mu|\\lt d)=2\\Phi(d/\\sigma)-1$.',
+        q: T`${head} Urči $d$ tak, aby $P(|X-${mu}|\\lt d)=${nm(pp2, 2)}$ (interval súmerný okolo strednej hodnoty). Použi $z_{${nm(q2, 3)}}=${dd(z2, 4)}$. ${T.s(R2)}`,
+        solution: T`$P(|X-\\mu|\\lt d)=2\\Phi\\left(\\frac{d}{\\sigma}\\right)-1=${nm(pp2, 2)}$, teda $\\Phi\\left(\\frac{d}{\\sigma}\\right)=${nm(q2, 3)}$ a $d=\\sigma z_{${nm(q2, 3)}}=${s}\\cdot ${dd(z2, 4)}\\approx ${dd(d, 2)}$.`,
+        hint: T`Pre súmerný interval platí $P(|X-\\mu|\\lt d)=2\\Phi(d/\\sigma)-1$.`,
         mistakes: mis(round(d, 2), 0.011, [
-          { value: round(ZQ[pp2] * s, 2), msg: `Interval je obojstranný: mimo neho je ${nt(round(alpha * 100, 1), 1)} % rozdelenia, polovica na každej strane. Treba kvantil $z_{1-\\alpha/2}$, nie $z_{1-\\alpha}$.` },
-          { value: round(z2 * s * s, 2), msg: `Kvantil násobíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom.` }
+          { value: round(ZQ[pp2] * s, 2), msg: T`Interval je obojstranný: mimo neho je ${nt(round(alpha * 100, 1), 1)} % rozdelenia, polovica na každej strane. Treba kvantil $z_{1-\\alpha/2}$, nie $z_{1-\\alpha}$.` },
+          { value: round(z2 * s * s, 2), msg: T`Kvantil násobíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom.` }
         ]),
         steps: [
-          { q: 'Akú hodnotu musí mať $\\Phi\\left(\\frac{d}{\\sigma}\\right)$?', answer: q2 },
-          { q: `Urči $d$. ${R2}`, answer: round(d, 2), tol: 0.011, show: dt(d, 2) }
+          { q: T`Akú hodnotu musí mať $\\Phi\\left(\\frac{d}{\\sigma}\\right)$?`, answer: q2 },
+          { q: T`Urči $d$. ${T.s(R2)}`, answer: round(d, 2), tol: 0.011, show: dt(d, 2) }
         ]
       };
     }
@@ -1385,19 +1392,19 @@
         const Pz = PhiT(Math.abs(z)), res = z >= 0 ? 1 - Pz : Pz;
         return {
           answer: round(res, 4), tol: 0.0002,
-          q: `Cesta do práce má dve nezávislé časti: doba jazdy autobusom $X\\sim N(${m1};\\,${a * a})$ a doba chôdze $Y\\sim N(${m2};\\,${b * b})$ (v minútach).
-            Aká je pravdepodobnosť, že celá cesta bude trvať dlhšie ako ${nt(cc, 1)} ${Number.isInteger(cc) ? pl(cc, ['minútu', 'minúty', 'minút']) : 'minúty'}? Použi ${phiList([z])}. ${R4}`,
+          q: T`Cesta do práce má dve nezávislé časti: doba jazdy autobusom $X\\sim N(${m1};\\,${a * a})$ a doba chôdze $Y\\sim N(${m2};\\,${b * b})$ (v minútach).
+            Aká je pravdepodobnosť, že celá cesta bude trvať dlhšie ako ${nt(cc, 1)} ${Number.isInteger(cc) ? pl(cc, [T`minútu`, T`minúty`, T`minút`]) : T`minúty`}? Použi ${phiList([z])}. ${T.s(R4)}`,
           solution: `$X+Y\\sim N(${m1 + m2};\\,${a * a}+${b * b})=N(${m1 + m2};\\,${s * s})$, $\\sigma=${s}$.
             $P(X+Y&gt;${nm(cc, 1)})=1-\\Phi\\left(\\frac{${nm(cc, 1)}-${m1 + m2}}{${s}}\\right)=1-\\Phi(${nm(z, 2)})=${dd(res, 4)}$.`,
-          hint: 'Súčet nezávislých normálnych veličín je normálny; stredné hodnoty aj rozptyly sa sčítajú.',
+          hint: T`Súčet nezávislých normálnych veličín je normálny; stredné hodnoty aj rozptyly sa sčítajú.`,
           mistakes: mis(round(res, 4), 0.0002, [
-            { value: round(1 - Phi(z * s / (a + b)), 4), msg: `Sčítavajú sa rozptyly, nie smerodajné odchýlky: $\\sigma=\\sqrt{${a * a}+${b * b}}$, nie $${a}+${b}$.` },
-            { value: round(1 - res, 4), msg: 'To je pravdepodobnosť, že cesta bude kratšia. Pre „dlhšie ako“ treba $1-\\Phi(z)$.' }
+            { value: round(1 - Phi(z * s / (a + b)), 4), msg: T`Sčítavajú sa rozptyly, nie smerodajné odchýlky: $\\sigma=\\sqrt{${a * a}+${b * b}}$, nie $${a}+${b}$.` },
+            { value: round(1 - res, 4), msg: T`To je pravdepodobnosť, že cesta bude kratšia. Pre „dlhšie ako“ treba $1-\\Phi(z)$.` }
           ]),
           steps: [
-            { q: 'Aká je smerodajná odchýlka celkovej doby cesty $X+Y$?', answer: s },
-            { q: 'Štandardizuj hranicu: aké je $z$?', answer: z, tol: 0.005, signed: true },
-            { q: `Vypočítaj hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+            { q: T`Aká je smerodajná odchýlka celkovej doby cesty $X+Y$?`, answer: s },
+            { q: T`Štandardizuj hranicu: aké je $z$?`, answer: z, tol: 0.005, signed: true },
+            { q: T`Vypočítaj hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
           ]
         };
       }
@@ -1406,19 +1413,19 @@
       const Pz = PhiT(Math.abs(z)), res = z >= 0 ? Pz : 1 - Pz;
       return {
         answer: round(res, 4), tol: 0.0002,
-        q: `Výsledky dvoch hráčov v jednom kole sú nezávislé: $X\\sim N(${nm(m1, 1)};\\,${a * a})$ a $Y\\sim N(${m2};\\,${b * b})$. Aká je pravdepodobnosť, že prvý hráč dosiahne viac bodov ako druhý, teda $P(X&gt;Y)$?
-          Použi ${phiList([z])}. ${R4}`,
+        q: T`Výsledky dvoch hráčov v jednom kole sú nezávislé: $X\\sim N(${nm(m1, 1)};\\,${a * a})$ a $Y\\sim N(${m2};\\,${b * b})$. Aká je pravdepodobnosť, že prvý hráč dosiahne viac bodov ako druhý, teda $P(X&gt;Y)$?
+          Použi ${phiList([z])}. ${T.s(R4)}`,
         solution: `$X-Y\\sim N(${nm(m1, 1)}-${m2};\\,${a * a}+${b * b})=N(${nm(diff, 1)};\\,${s * s})$.
           $P(X&gt;Y)=P(X-Y&gt;0)=1-\\Phi\\left(\\frac{0-${par(nm(diff, 1))}}{${s}}\\right)=\\Phi(${nm(z, 2)})=${dd(res, 4)}$.`,
-        hint: 'Prejdi k rozdielu $X-Y$: je normálny so strednou hodnotou $\\mu_1-\\mu_2$ a rozptylom $\\sigma_1^2+\\sigma_2^2$.',
+        hint: T`Prejdi k rozdielu $X-Y$: je normálny so strednou hodnotou $\\mu_1-\\mu_2$ a rozptylom $\\sigma_1^2+\\sigma_2^2$.`,
         mistakes: mis(round(res, 4), 0.0002, [
-          { value: round(Phi(z * s / (a + b)), 4), msg: `Sčítavajú sa rozptyly, nie smerodajné odchýlky: $\\sigma=\\sqrt{${a * a}+${b * b}}$, nie $${a}+${b}$.` },
-          { value: round(Phi(z * s / Math.abs(b * b - a * a) ** 0.5), 4), msg: 'Aj pri rozdiele nezávislých veličín sa rozptyly sčítavajú: $D(X-Y)=D(X)+D(Y)$.' }
+          { value: round(Phi(z * s / (a + b)), 4), msg: T`Sčítavajú sa rozptyly, nie smerodajné odchýlky: $\\sigma=\\sqrt{${a * a}+${b * b}}$, nie $${a}+${b}$.` },
+          { value: round(Phi(z * s / Math.abs(b * b - a * a) ** 0.5), 4), msg: T`Aj pri rozdiele nezávislých veličín sa rozptyly sčítavajú: $D(X-Y)=D(X)+D(Y)$.` }
         ]),
         steps: [
-          { q: 'Aká je stredná hodnota rozdielu $X-Y$?', answer: round(diff, 1), signed: true },
-          { q: 'Aká je smerodajná odchýlka rozdielu $X-Y$?', answer: s },
-          { q: `Vypočítaj $P(X&gt;Y)$. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+          { q: T`Aká je stredná hodnota rozdielu $X-Y$?`, answer: round(diff, 1), signed: true },
+          { q: T`Aká je smerodajná odchýlka rozdielu $X-Y$?`, answer: s },
+          { q: T`Vypočítaj $P(X&gt;Y)$. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
         ]
       };
     }
@@ -1427,29 +1434,29 @@
       const s = pick([2, 3, 4, 5]), cc = pick([500, 250, 1000]), mu = cc + z * s;
       return {
         answer: round(mu, 2), tol: 0.011,
-        q: `Automat plní vrecká; hmotnosť náplne má rozdelenie $N(\\mu, ${s * s})$ v gramoch. Na akú strednú hodnotu $\\mu$ treba automat nastaviť, aby menej ako ${cc} g malo iba ${nt(q * 100, 1)} % vreciek? Použi $z_{${nm(pp, 3)}}=${dd(z, 4)}$. ${R2}`,
-        solution: `Požadujeme $P(X\\lt ${cc})=\\Phi\\left(\\frac{${cc}-\\mu}{${s}}\\right)=${nm(q, 3)}$, teda $\\frac{${cc}-\\mu}{${s}}=z_{${nm(q, 3)}}=-${dd(z, 4)}$.
+        q: T`Automat plní vrecká; hmotnosť náplne má rozdelenie $N(\\mu, ${s * s})$ v gramoch. Na akú strednú hodnotu $\\mu$ treba automat nastaviť, aby menej ako ${cc} g malo iba ${nt(q * 100, 1)} % vreciek? Použi $z_{${nm(pp, 3)}}=${dd(z, 4)}$. ${T.s(R2)}`,
+        solution: T`Požadujeme $P(X\\lt ${cc})=\\Phi\\left(\\frac{${cc}-\\mu}{${s}}\\right)=${nm(q, 3)}$, teda $\\frac{${cc}-\\mu}{${s}}=z_{${nm(q, 3)}}=-${dd(z, 4)}$.
           $\\mu=${cc}+${s}\\cdot ${dd(z, 4)}\\approx ${dd(mu, 2)}$ g.`,
-        hint: 'Zapíš podmienku cez štandardizáciu a použi $z_{1-p}=-z_p$.',
+        hint: T`Zapíš podmienku cez štandardizáciu a použi $z_{1-p}=-z_p$.`,
         mistakes: mis(round(mu, 2), 0.011, [
-          { value: round(cc - z * s, 2), msg: 'Pozor na znamienko: aby bolo ľahkých vreciek málo, musí byť stredná hodnota nad hranicou, teda $\\mu\\gt$ hranica.' },
-          { value: round(cc + z * s * s, 2), msg: `Kvantil násobíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom.` }
+          { value: round(cc - z * s, 2), msg: T`Pozor na znamienko: aby bolo ľahkých vreciek málo, musí byť stredná hodnota nad hranicou, teda $\\mu\\gt$ hranica.` },
+          { value: round(cc + z * s * s, 2), msg: T`Kvantil násobíš smerodajnou odchýlkou $\\sigma=${s}$, nie rozptylom.` }
         ]),
         steps: [
-          { q: `Akú hodnotu musí mať štandardizovaná hranica $\\frac{${cc}-\\mu}{${s}}$?`, answer: -z, tol: 0.0001, signed: true },
-          { q: `Urči $\\mu$. ${R2}`, answer: round(mu, 2), tol: 0.011, show: dt(mu, 2) }
+          { q: T`Akú hodnotu musí mať štandardizovaná hranica $\\frac{${cc}-\\mu}{${s}}$?`, answer: -z, tol: 0.0001, signed: true },
+          { q: T`Urči $\\mu$. ${T.s(R2)}`, answer: round(mu, 2), tol: 0.011, show: dt(mu, 2) }
         ]
       };
     }
     const mu = pick([500, 250, 1000]), gap = pick([5, 6, 8, 10, 12]), sg = gap / z;
     return {
       answer: round(sg, 2), tol: 0.011,
-      q: `Automat plní vrecká so strednou hodnotou ${mu} g; hmotnosť má normálne rozdelenie. Aká môže byť najväčšia smerodajná odchýlka $\\sigma$, aby menej ako ${mu - gap} g malo nanajvýš ${nt(q * 100, 1)} % vreciek? Použi $z_{${nm(pp, 3)}}=${dd(z, 4)}$. ${R2}`,
-      solution: `Požadujeme $\\Phi\\left(\\frac{${mu - gap}-${mu}}{\\sigma}\\right)\\le ${nm(q, 3)}$, teda $-\\frac{${gap}}{\\sigma}\\le -${dd(z, 4)}$ a $\\sigma\\le\\frac{${gap}}{${dd(z, 4)}}\\approx ${dd(sg, 2)}$ g.`,
-      hint: 'Štandardizovaná hranica musí byť najviac $-z_{p}$; vyjadri z nej $\\sigma$.',
+      q: T`Automat plní vrecká so strednou hodnotou ${mu} g; hmotnosť má normálne rozdelenie. Aká môže byť najväčšia smerodajná odchýlka $\\sigma$, aby menej ako ${mu - gap} g malo nanajvýš ${nt(q * 100, 1)} % vreciek? Použi $z_{${nm(pp, 3)}}=${dd(z, 4)}$. ${T.s(R2)}`,
+      solution: T`Požadujeme $\\Phi\\left(\\frac{${mu - gap}-${mu}}{\\sigma}\\right)\\le ${nm(q, 3)}$, teda $-\\frac{${gap}}{\\sigma}\\le -${dd(z, 4)}$ a $\\sigma\\le\\frac{${gap}}{${dd(z, 4)}}\\approx ${dd(sg, 2)}$ g.`,
+      hint: T`Štandardizovaná hranica musí byť najviac $-z_{p}$; vyjadri z nej $\\sigma$.`,
       mistakes: mis(round(sg, 2), 0.011, [
-        ZQ[round(1 - q / 2, 3)] ? { value: round(gap / ZQ[round(1 - q / 2, 3)], 2), msg: 'Podmienka je jednostranná (len príliš ľahké vrecká), preto patrí kvantil $z_{1-q}$, nie $z_{1-q/2}$.' } : null,
-        { value: round(gap * z, 2), msg: 'Zo vzťahu $\\frac{d}{\\sigma}=z$ vyjadri $\\sigma=\\frac{d}{z}$ – deliť, nie násobiť.' }
+        ZQ[round(1 - q / 2, 3)] ? { value: round(gap / ZQ[round(1 - q / 2, 3)], 2), msg: T`Podmienka je jednostranná (len príliš ľahké vrecká), preto patrí kvantil $z_{1-q}$, nie $z_{1-q/2}$.` } : null,
+        { value: round(gap * z, 2), msg: T`Zo vzťahu $\\frac{d}{\\sigma}=z$ vyjadri $\\sigma=\\frac{d}{z}$ – deliť, nie násobiť.` }
       ])
     };
   });
@@ -1471,7 +1478,7 @@
       pts.forEach(([x, y]) => { clipped += `<circle class="f-dot" cx="${n1(p.X(x))}" cy="${n1(p.Y(y))}" r="3.5"/>`; });
       return {
         svg: svg(p, back, clipped, `<text class="f-math" x="${p.W - 26}" y="${n1(p.Y(0) - 6)}">X</text><text class="f-math" x="${n1(p.X(0) + 6)}" y="34">Y</text>`, 'Mračno bodov s daným korelačným koeficientom'),
-        readout: `ρ = ${sk(r, 2)} · výberový korelačný koeficient 60 bodov r = ${sk(rs, 3)}`
+        readout: T`ρ = ${sk(r, 2)} · výberový korelačný koeficient 60 bodov r = ${sk(rs, 3)}`
       };
     }
   });
@@ -1525,41 +1532,41 @@
         P = xs.map((_, i) => flat.slice(i * ys.length, (i + 1) * ys.length));
         m = moments(xs, ys, P);
       } while (Math.abs(m.cov) < 0.004 || m.DX < 1e-9 || m.DY < 1e-9);
-      const head = `Náhodný vektor $(X, Y)$ má spoločné rozdelenie dané tabuľkou (riadky: hodnoty $X$, stĺpce: hodnoty $Y$):${jointTable(xs, ys, P)}`;
-      const base = `Marginálne: $P(X=x_i)$: ${m.px.map((q) => `$${nm(q, 2)}$`).join(', ')}; $P(Y=y_j)$: ${m.py.map((q) => `$${nm(q, 2)}$`).join(', ')}.
+      const head = T`Náhodný vektor $(X, Y)$ má spoločné rozdelenie dané tabuľkou (riadky: hodnoty $X$, stĺpce: hodnoty $Y$):${jointTable(xs, ys, P)}`;
+      const base = T`Marginálne: $P(X=x_i)$: ${m.px.map((q) => `$${nm(q, 2)}$`).join(', ')}; $P(Y=y_j)$: ${m.py.map((q) => `$${nm(q, 2)}$`).join(', ')}.
         $E(X)=${nm(m.EX, 4)}$, $E(Y)=${nm(m.EY, 4)}$, $E(XY)=${nm(m.EXY, 4)}$, $\\operatorname{cov}(X, Y)=${nm(m.EXY, 4)}-${par(nm(m.EX, 4))}\\cdot ${par(nm(m.EY, 4))}=${nm(m.cov, 4)}$.`;
       if (!two) {
         return {
           answer: round(m.cov, 4), tol: 0.0001, signed: true,
-          q: `${head}Vypočítaj kovarianciu $\\operatorname{cov}(X, Y)$. ${R4}`,
+          q: T`${head}Vypočítaj kovarianciu $\\operatorname{cov}(X, Y)$. ${T.s(R4)}`,
           solution: base,
-          hint: '$\\operatorname{cov}(X, Y)=E(XY)-E(X)E(Y)$; $E(XY)=\\sum x_iy_jp_{ij}$, $E(X)$ a $E(Y)$ z marginálnych rozdelení.',
+          hint: T`$\\operatorname{cov}(X, Y)=E(XY)-E(X)E(Y)$; $E(XY)=\\sum x_iy_jp_{ij}$, $E(X)$ a $E(Y)$ z marginálnych rozdelení.`,
           mistakes: mis(round(m.cov, 4), 0.0001, [
-            { value: round(m.EXY, 4), msg: 'To je $E(XY)$. Kovariancia je $E(XY)-E(X)E(Y)$.' }
+            { value: round(m.EXY, 4), msg: T`To je $E(XY)$. Kovariancia je $E(XY)-E(X)E(Y)$.` }
           ]),
           steps: [
-            { q: 'Vypočítaj $E(X)$ z marginálneho rozdelenia.', answer: round(m.EX, 4), tol: 0.0001, signed: true },
-            { q: 'Vypočítaj $E(Y)$ z marginálneho rozdelenia.', answer: round(m.EY, 4), tol: 0.0001, signed: true },
-            { q: 'Vypočítaj $E(XY)=\\sum x_iy_jp_{ij}$.', answer: round(m.EXY, 4), tol: 0.0001, signed: true },
-            { q: `Vypočítaj $\\operatorname{cov}(X, Y)$. ${R4}`, answer: round(m.cov, 4), tol: 0.0001, signed: true }
+            { q: T`Vypočítaj $E(X)$ z marginálneho rozdelenia.`, answer: round(m.EX, 4), tol: 0.0001, signed: true },
+            { q: T`Vypočítaj $E(Y)$ z marginálneho rozdelenia.`, answer: round(m.EY, 4), tol: 0.0001, signed: true },
+            { q: T`Vypočítaj $E(XY)=\\sum x_iy_jp_{ij}$.`, answer: round(m.EXY, 4), tol: 0.0001, signed: true },
+            { q: T`Vypočítaj $\\operatorname{cov}(X, Y)$. ${T.s(R4)}`, answer: round(m.cov, 4), tol: 0.0001, signed: true }
           ]
         };
       }
       const rho = m.cov / Math.sqrt(m.DX * m.DY);
       return {
         answer: round(rho, 4), tol: 0.0003, signed: true,
-        q: `${head}Vypočítaj korelačný koeficient $\\rho(X, Y)$. ${R4}`,
+        q: T`${head}Vypočítaj korelačný koeficient $\\rho(X, Y)$. ${T.s(R4)}`,
         solution: `${base} $D(X)=${nm(m.DX, 4)}$, $D(Y)=${nm(m.DY, 4)}$, $\\rho=\\frac{${nm(m.cov, 4)}}{\\sqrt{${nm(m.DX, 4)}\\cdot ${nm(m.DY, 4)}}}\\approx ${dd(rho, 4)}$.`,
-        hint: 'Vypočítaj kovarianciu a rozptyly z marginálnych rozdelení, potom $\\rho=\\operatorname{cov}/\\sqrt{D(X)D(Y)}$.',
+        hint: T`Vypočítaj kovarianciu a rozptyly z marginálnych rozdelení, potom $\\rho=\\operatorname{cov}/\\sqrt{D(X)D(Y)}$.`,
         mistakes: mis(round(rho, 4), 0.0003, [
-          { value: round(m.cov / (m.DX * m.DY), 4), msg: 'V menovateli je súčin smerodajných odchýlok $\\sqrt{D(X)D(Y)}$, nie súčin rozptylov.' },
-          { value: round(m.cov, 4), msg: 'To je kovariancia. Korelačný koeficient ju ešte normuje súčinom smerodajných odchýlok.' }
+          { value: round(m.cov / (m.DX * m.DY), 4), msg: T`V menovateli je súčin smerodajných odchýlok $\\sqrt{D(X)D(Y)}$, nie súčin rozptylov.` },
+          { value: round(m.cov, 4), msg: T`To je kovariancia. Korelačný koeficient ju ešte normuje súčinom smerodajných odchýlok.` }
         ]),
         steps: [
-          { q: `Vypočítaj $\\operatorname{cov}(X, Y)$. ${R4}`, answer: round(m.cov, 4), tol: 0.0001, signed: true },
-          { q: `Vypočítaj $D(X)$. ${R4}`, answer: round(m.DX, 4), tol: 0.0001 },
-          { q: `Vypočítaj $D(Y)$. ${R4}`, answer: round(m.DY, 4), tol: 0.0001 },
-          { q: `Vypočítaj $\\rho(X, Y)$. ${R4}`, answer: round(rho, 4), tol: 0.0003, signed: true }
+          { q: T`Vypočítaj $\\operatorname{cov}(X, Y)$. ${T.s(R4)}`, answer: round(m.cov, 4), tol: 0.0001, signed: true },
+          { q: T`Vypočítaj $D(X)$. ${T.s(R4)}`, answer: round(m.DX, 4), tol: 0.0001 },
+          { q: T`Vypočítaj $D(Y)$. ${T.s(R4)}`, answer: round(m.DY, 4), tol: 0.0001 },
+          { q: T`Vypočítaj $\\rho(X, Y)$. ${T.s(R4)}`, answer: round(rho, 4), tol: 0.0003, signed: true }
         ]
       };
     }
@@ -1570,18 +1577,18 @@
       const lin = `${a === 1 ? '' : a === -1 ? '-' : a}X${b > 0 ? '+' : '-'}${Math.abs(b) === 1 ? '' : Math.abs(b)}Y`;
       return {
         answer: round(res, 4), tol: 0.0001,
-        q: `Náhodné veličiny $X$, $Y$ majú $D(X)=${sx * sx}$, $D(Y)=${sy * sy}$ a korelačný koeficient $\\rho(X, Y)=${nm(rho, 2)}$. Vypočítaj $D(${lin})$.`,
+        q: T`Náhodné veličiny $X$, $Y$ majú $D(X)=${sx * sx}$, $D(Y)=${sy * sy}$ a korelačný koeficient $\\rho(X, Y)=${nm(rho, 2)}$. Vypočítaj $D(${lin})$.`,
         solution: `$\\operatorname{cov}(X, Y)=\\rho\\,\\sigma_X\\sigma_Y=${nm(rho, 2)}\\cdot ${sx}\\cdot ${sy}=${nm(cov, 4)}$.
           $D(${lin})=${par(String(a))}^2\\cdot ${sx * sx}+${par(String(b))}^2\\cdot ${sy * sy}+2\\cdot ${par(String(a))}\\cdot ${par(String(b))}\\cdot ${par(nm(cov, 4))}=${nm(res, 4)}$.`,
-        hint: '$D(aX+bY)=a^2D(X)+b^2D(Y)+2ab\\operatorname{cov}(X, Y)$ a $\\operatorname{cov}=\\rho\\sqrt{D(X)D(Y)}$.',
+        hint: T.s('$D(aX+bY)=a^2D(X)+b^2D(Y)+2ab\\operatorname{cov}(X, Y)$ a $\\operatorname{cov}=\\rho\\sqrt{D(X)D(Y)}$.'),
         mistakes: mis(round(res, 4), 0.0001, [
-          { value: a * a * sx * sx + b * b * sy * sy, msg: 'Veličiny sú korelované, preto do rozptylu patrí aj člen $2ab\\operatorname{cov}(X, Y)$.' },
-          { value: round(a * a * sx * sx + b * b * sy * sy + 2 * a * b * rho, 4), msg: 'Do vzorca patrí kovariancia, nie korelačný koeficient: $\\operatorname{cov}=\\rho\\,\\sigma_X\\sigma_Y$.' },
-          { value: round(a * sx * sx + b * sy * sy + 2 * a * b * cov, 4), msg: 'Konštanty sa z rozptylu vyberajú v druhej mocnine: $D(aX)=a^2D(X)$.' }
+          { value: a * a * sx * sx + b * b * sy * sy, msg: T`Veličiny sú korelované, preto do rozptylu patrí aj člen $2ab\\operatorname{cov}(X, Y)$.` },
+          { value: round(a * a * sx * sx + b * b * sy * sy + 2 * a * b * rho, 4), msg: T`Do vzorca patrí kovariancia, nie korelačný koeficient: $\\operatorname{cov}=\\rho\\,\\sigma_X\\sigma_Y$.` },
+          { value: round(a * sx * sx + b * sy * sy + 2 * a * b * cov, 4), msg: T`Konštanty sa z rozptylu vyberajú v druhej mocnine: $D(aX)=a^2D(X)$.` }
         ]),
         steps: [
-          { q: 'Vypočítaj $\\operatorname{cov}(X, Y)$.', answer: round(cov, 4), tol: 0.0001, signed: true },
-          { q: `Vypočítaj $D(${lin})$.`, answer: round(res, 4), tol: 0.0001 }
+          { q: T`Vypočítaj $\\operatorname{cov}(X, Y)$.`, answer: round(cov, 4), tol: 0.0001, signed: true },
+          { q: T`Vypočítaj $D(${lin})$.`, answer: round(res, 4), tol: 0.0001 }
         ]
       };
     }
@@ -1600,17 +1607,17 @@
     let bad = '';
     if (dep) {
       outer: for (let i = 0; i < 2; i++) for (let j = 0; j < 3; j++) {
-        if (Math.abs(P[i][j] - px[i] * py[j]) > 1e-9) { bad = `napríklad $P(X=${xs[i]}, Y=${ys[j]})=${nm(P[i][j], 2)}\\ne ${nm(px[i], 2)}\\cdot ${nm(py[j], 2)}=${nm(px[i] * py[j], 4)}$`; break outer; }
+        if (Math.abs(P[i][j] - px[i] * py[j]) > 1e-9) { bad = T`napríklad $P(X=${xs[i]}, Y=${ys[j]})=${nm(P[i][j], 2)}\\ne ${nm(px[i], 2)}\\cdot ${nm(py[j], 2)}=${nm(px[i] * py[j], 4)}$`; break outer; }
       }
     }
     return {
-      type: 'choice', options: ['nezávislé', 'závislé'], answer: dep ? 'závislé' : 'nezávislé',
-      q: `Náhodný vektor $(X, Y)$ má spoločné rozdelenie dané tabuľkou:${jointTable(xs, ys, P.map((r) => r.map((v) => v)))}Sú náhodné veličiny $X$ a $Y$ nezávislé?`,
-      solution: `Marginálne rozdelenia: $P(X=0)=${nm(px[0], 2)}$, $P(X=1)=${nm(px[1], 2)}$; $P(Y=y_j)$: ${py.map((q) => `$${nm(q, 2)}$`).join(', ')}.
-        ${dep ? `Súčinové pravidlo neplatí, ${bad}. Veličiny sú <strong>závislé</strong>.` : 'Každé políčko tabuľky sa rovná súčinu príslušných marginálnych pravdepodobností, veličiny sú <strong>nezávislé</strong>.'}`,
-      hint: 'Vypočítaj súčty riadkov a stĺpcov a over, či $p_{ij}=P(X=x_i)\\,P(Y=y_j)$ pre všetky políčka.',
-      choiceHints: dep ? { 'nezávislé': 'Nezávislosť vyžaduje $p_{ij}=P(X=x_i)\\,P(Y=y_j)$ pre <em>všetky</em> políčka – over ich postupne, nielen jedno.' }
-        : { 'závislé': 'Vypočítaj marginálne rozdelenia (súčty riadkov a stĺpcov) a porovnaj každé políčko so súčinom príslušných marginálnych pravdepodobností.' }
+      type: 'choice', options: [T.s('nezávislé'), T.s('závislé')], answer: dep ? T.s('závislé') : T.s('nezávislé'),
+      q: T`Náhodný vektor $(X, Y)$ má spoločné rozdelenie dané tabuľkou:${jointTable(xs, ys, P.map((r) => r.map((v) => v)))}Sú náhodné veličiny $X$ a $Y$ nezávislé?`,
+      solution: T`Marginálne rozdelenia: $P(X=0)=${nm(px[0], 2)}$, $P(X=1)=${nm(px[1], 2)}$; $P(Y=y_j)$: ${py.map((q) => `$${nm(q, 2)}$`).join(', ')}.
+        ${dep ? T`Súčinové pravidlo neplatí, ${bad}. Veličiny sú <strong>závislé</strong>.` : T`Každé políčko tabuľky sa rovná súčinu príslušných marginálnych pravdepodobností, veličiny sú <strong>nezávislé</strong>.`}`,
+      hint: T`Vypočítaj súčty riadkov a stĺpcov a over, či $p_{ij}=P(X=x_i)\\,P(Y=y_j)$ pre všetky políčka.`,
+      choiceHints: dep ? { [T.s('nezávislé')]: T`Nezávislosť vyžaduje $p_{ij}=P(X=x_i)\\,P(Y=y_j)$ pre <em>všetky</em> políčka – over ich postupne, nielen jedno.` }
+        : { [T.s('závislé')]: T`Vypočítaj marginálne rozdelenia (súčty riadkov a stĺpcov) a porovnaj každé políčko so súčinom príslušných marginálnych pravdepodobností.` }
     };
   });
 
@@ -1649,7 +1656,7 @@
         <line class="f-dash" x1="${n1(p.X(mu))}" y1="${n1(p.Y(0))}" x2="${n1(p.X(mu))}" y2="${n1(p.Y(peak))}"/>`;
       return {
         svg: svg(p, xAxis(p, 1, 1), clipped, '', 'Rozdelenie výberového priemeru a normálna aproximácia'),
-        readout: `${B.name}: μ = ${sk(mu, 3)}, σ² = ${sk(s2, 3)} · <span class="c-accent">výberový priemer: E = μ, σ/√n = ${sk(sd, 3)}</span>`
+        readout: T`${T.s(B.name)}: μ = ${sk(mu, 3)}, σ² = ${sk(s2, 3)} · <span class="c-accent">výberový priemer: E = μ, σ/√n = ${sk(sd, 3)}</span>`
       };
     }
   });
@@ -1688,27 +1695,27 @@
     const t = Math.random();
     if (t < 0.25) {
       const c = pick([
-        { mu: 80, s: 15, unit: 'kg', txt: (n) => `Hmotnosť cestujúceho má strednú hodnotu 80 kg a smerodajnú odchýlku 15 kg. Do lanovky nastúpi ${n} cestujúcich (hmotnosti sú nezávislé).`, what: (c) => `ich celková hmotnosť prekročí $${ths(c)}$ kg` },
-        { mu: 3, s: 2, unit: 'min', txt: (n) => `Obsluha zákazníka trvá v priemere 3 minúty so smerodajnou odchýlkou 2 minúty. Pracovník obslúži ${n} zákazníkov (doby sú nezávislé).`, what: (c) => `mu to bude trvať dlhšie ako $${ths(c)}$ minút` },
-        { mu: 50, s: 4, unit: 'g', txt: (n) => `Hmotnosť jedného výrobku má strednú hodnotu 50 g a smerodajnú odchýlku 4 g. Do krabice sa balí ${n} výrobkov.`, what: (c) => `obsah krabice bude ťažší ako $${ths(c)}$ g` }
+        { mu: 80, s: 15, unit: 'kg', txt: (n) => T`Hmotnosť cestujúceho má strednú hodnotu 80 kg a smerodajnú odchýlku 15 kg. Do lanovky nastúpi ${n} cestujúcich (hmotnosti sú nezávislé).`, what: (c) => T`ich celková hmotnosť prekročí $${ths(c)}$ kg` },
+        { mu: 3, s: 2, unit: T`min`, txt: (n) => T`Obsluha zákazníka trvá v priemere 3 minúty so smerodajnou odchýlkou 2 minúty. Pracovník obslúži ${n} zákazníkov (doby sú nezávislé).`, what: (c) => T`mu to bude trvať dlhšie ako $${ths(c)}$ minút` },
+        { mu: 50, s: 4, unit: 'g', txt: (n) => T`Hmotnosť jedného výrobku má strednú hodnotu 50 g a smerodajnú odchýlku 4 g. Do krabice sa balí ${n} výrobkov.`, what: (c) => T`obsah krabice bude ťažší ako $${ths(c)}$ g` }
       ]);
       const n = pick([16, 25, 36, 49, 64, 100]), sS = c.s * Math.sqrt(n), z = pick([0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25]);
       const cc = c.mu * n + z * sS, res = 1 - PhiT(z);
       return {
         answer: round(res, 4), tol: 0.0002,
-        q: `${c.txt(n)} Pomocou centrálnej limitnej vety odhadni pravdepodobnosť, že ${c.what(nm(cc, 1))}. Použi ${phiList([z])}. ${R4}`,
-        solution: `Súčet $S\\approx N(n\\mu, n\\sigma^2)$: $E(S)=${n}\\cdot ${c.mu}=${ths(c.mu * n)}$, $\\sigma_S=${c.s}\\sqrt{${n}}=${nm(sS)}$.
+        q: T`${c.txt(n)} Pomocou centrálnej limitnej vety odhadni pravdepodobnosť, že ${c.what(nm(cc, 1))}. Použi ${phiList([z])}. ${T.s(R4)}`,
+        solution: T`Súčet $S\\approx N(n\\mu, n\\sigma^2)$: $E(S)=${n}\\cdot ${c.mu}=${ths(c.mu * n)}$, $\\sigma_S=${c.s}\\sqrt{${n}}=${nm(sS)}$.
           $P(S&gt;${ths(nm(cc, 1))})\\approx 1-\\Phi\\left(\\frac{${ths(nm(cc, 1))}-${ths(c.mu * n)}}{${nm(sS)}}\\right)=1-\\Phi(${nm(z, 2)})=${dd(res, 4)}$.`,
-        hint: 'Súčet $n$ nezávislých veličín má približne rozdelenie $N(n\\mu, n\\sigma^2)$; smerodajná odchýlka súčtu je $\\sigma\\sqrt{n}$.',
+        hint: T`Súčet $n$ nezávislých veličín má približne rozdelenie $N(n\\mu, n\\sigma^2)$; smerodajná odchýlka súčtu je $\\sigma\\sqrt{n}$.`,
         mistakes: mis(round(res, 4), 0.0002, [
-          { value: round(1 - Phi(z / Math.sqrt(n)), 4), msg: `Smerodajná odchýlka súčtu je $\\sigma\\sqrt{n}$, nie $n\\sigma$ – sčítavajú sa rozptyly, nie smerodajné odchýlky.` },
-          { value: round(PhiT(z), 4), msg: 'To je pravdepodobnosť, že súčet hranicu neprekročí. Pre „prekročí“ treba $1-\\Phi(z)$.' }
+          { value: round(1 - Phi(z / Math.sqrt(n)), 4), msg: T`Smerodajná odchýlka súčtu je $\\sigma\\sqrt{n}$, nie $n\\sigma$ – sčítavajú sa rozptyly, nie smerodajné odchýlky.` },
+          { value: round(PhiT(z), 4), msg: T`To je pravdepodobnosť, že súčet hranicu neprekročí. Pre „prekročí“ treba $1-\\Phi(z)$.` }
         ]),
         steps: [
-          { q: 'Aká je stredná hodnota súčtu $S$?', answer: c.mu * n },
-          { q: 'Aká je smerodajná odchýlka súčtu $S$?', answer: sS },
-          { q: 'Štandardizuj hranicu: aké je $z$?', answer: z, tol: 0.005 },
-          { q: `Odhadni hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+          { q: T`Aká je stredná hodnota súčtu $S$?`, answer: c.mu * n },
+          { q: T`Aká je smerodajná odchýlka súčtu $S$?`, answer: sS },
+          { q: T`Štandardizuj hranicu: aké je $z$?`, answer: z, tol: 0.005 },
+          { q: T`Odhadni hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
         ]
       };
     }
@@ -1717,29 +1724,29 @@
       const res = 2 * PhiT(z) - 1;
       return {
         answer: round(res, 4), tol: 0.0002,
-        q: `Meranie má náhodnú chybu so strednou hodnotou 0 a smerodajnou odchýlkou $\sigma=${s}$. Urobíme ${n} nezávislých meraní a výsledok spriemerujeme. Aká je (podľa CLV) pravdepodobnosť, že sa priemer od skutočnej hodnoty odchýli o menej ako ${nt(d, 3)}? Použi ${phiList([z])}. ${R4}`,
+        q: T`Meranie má náhodnú chybu so strednou hodnotou 0 a smerodajnou odchýlkou $\\sigma=${s}$. Urobíme ${n} nezávislých meraní a výsledok spriemerujeme. Aká je (podľa CLV) pravdepodobnosť, že sa priemer od skutočnej hodnoty odchýli o menej ako ${nt(d, 3)}? Použi ${phiList([z])}. ${T.s(R4)}`,
         solution: `$\\bar{X}\\approx N\\left(\\mu, \\frac{\\sigma^2}{n}\\right)$, $\\frac{\\sigma}{\\sqrt{n}}=\\frac{${s}}{${Math.sqrt(n)}}=${nm(s / Math.sqrt(n))}$.
           $P(|\\bar{X}-\\mu|\\lt ${nm(d, 3)})\\approx 2\\Phi\\left(\\frac{${nm(d, 3)}}{${nm(s / Math.sqrt(n))}}\\right)-1=2\\Phi(${nm(z, 2)})-1=${dd(res, 4)}$.`,
-        hint: 'Výberový priemer má smerodajnú odchýlku $\\sigma/\\sqrt{n}$; pre súmerný interval použi $2\\Phi(z)-1$.',
+        hint: T`Výberový priemer má smerodajnú odchýlku $\\sigma/\\sqrt{n}$; pre súmerný interval použi $2\\Phi(z)-1$.`,
         mistakes: mis(round(res, 4), 0.0002, [
-          { value: round(2 * Phi(z / Math.sqrt(n)) - 1, 4), msg: 'Priemer $n$ meraní má menšiu smerodajnú odchýlku ako jedno meranie: $\\sigma/\\sqrt{n}$.' },
-          { value: round(PhiT(z), 4), msg: 'Odchýlka „o menej ako $d$“ je obojstranná: $P(|\\bar X-\\mu|\\lt d)=2\\Phi(z)-1$, nie $\\Phi(z)$.' }
+          { value: round(2 * Phi(z / Math.sqrt(n)) - 1, 4), msg: T`Priemer $n$ meraní má menšiu smerodajnú odchýlku ako jedno meranie: $\\sigma/\\sqrt{n}$.` },
+          { value: round(PhiT(z), 4), msg: T`Odchýlka „o menej ako $d$“ je obojstranná: $P(|\\bar X-\\mu|\\lt d)=2\\Phi(z)-1$, nie $\\Phi(z)$.` }
         ]),
         steps: [
-          { q: 'Aká je smerodajná odchýlka priemeru $\\sigma/\\sqrt{n}$?', answer: s / Math.sqrt(n) },
-          { q: 'Štandardizuj odchýlku: aké je $z$?', answer: z, tol: 0.005 },
-          { q: `Odhadni hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
+          { q: T`Aká je smerodajná odchýlka priemeru $\\sigma/\\sqrt{n}$?`, answer: s / Math.sqrt(n) },
+          { q: T`Štandardizuj odchýlku: aké je $z$?`, answer: z, tol: 0.005 },
+          { q: T`Odhadni hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0002, show: dt(res, 4) }
         ]
       };
     }
     if (t < 0.75) {
       const [n, p, ctx] = pick([
-        [100, 0.5, 'Mincou hodíme 100-krát; $X$ je počet znakov.'],
-        [400, 0.5, 'Mincou hodíme 400-krát; $X$ je počet znakov.'],
-        [900, 0.1, 'Výrobok je chybný s pravdepodobnosťou $0{,}1$. Skontrolujeme 900 výrobkov; $X$ je počet chybných.'],
-        [625, 0.2, 'Kandidáta podporuje 20 % voličov. Náhodne oslovíme 625 voličov; $X$ je počet jeho priaznivcov.'],
-        [1600, 0.2, 'Reklamný e-mail otvorí 20 % adresátov. Pošleme ho 1600 adresátom; $X$ je počet otvorení.'],
-        [144, 0.5, 'Mincou hodíme 144-krát; $X$ je počet znakov.']
+        [100, 0.5, T`Mincou hodíme 100-krát; $X$ je počet znakov.`],
+        [400, 0.5, T`Mincou hodíme 400-krát; $X$ je počet znakov.`],
+        [900, 0.1, T`Výrobok je chybný s pravdepodobnosťou $0{,}1$. Skontrolujeme 900 výrobkov; $X$ je počet chybných.`],
+        [625, 0.2, T`Kandidáta podporuje 20 % voličov. Náhodne oslovíme 625 voličov; $X$ je počet jeho priaznivcov.`],
+        [1600, 0.2, T`Reklamný e-mail otvorí 20 % adresátov. Pošleme ho 1600 adresátom; $X$ je počet otvorení.`],
+        [144, 0.5, T`Mincou hodíme 144-krát; $X$ je počet znakov.`]
       ]);
       const mu = n * p, s = Math.sqrt(n * p * (1 - p)), kind = rnd(0, 2);
       if (kind < 2) {
@@ -1748,19 +1755,19 @@
         const F = z >= 0 ? PhiT(z) : 1 - PhiT(-z), res = le ? F : 1 - F;
         return {
           answer: round(res, 4), tol: 0.0003,
-          q: `${ctx} Pomocou normálnej aproximácie s opravou na spojitosť odhadni $P(X${le ? '\\le' : '\\ge'}${k})$. Hodnotu $z$ zaokrúhli na 2 desatinné miesta a použi ${phiList([z])}. ${R4}`,
+          q: T`${ctx} Pomocou normálnej aproximácie s opravou na spojitosť odhadni $P(X${le ? '\\le' : '\\ge'}${k})$. Hodnotu $z$ zaokrúhli na 2 desatinné miesta a použi ${phiList([z])}. ${T.s(R4)}`,
           solution: `$np=${nm(mu)}$, $\\sqrt{np(1-p)}=${nm(s, 4)}$. ${le
             ? `$P(X\\le ${k})\\approx\\Phi\\left(\\frac{${k}+0{,}5-${nm(mu)}}{${nm(s, 4)}}\\right)=\\Phi(${nm(z, 2)})=${dd(res, 4)}$.`
             : `$P(X\\ge ${k})=1-P(X\\le ${k - 1})\\approx 1-\\Phi\\left(\\frac{${k}-0{,}5-${nm(mu)}}{${nm(s, 4)}}\\right)=1-\\Phi(${nm(z, 2)})=${dd(res, 4)}$.`}`,
-          hint: 'Binomické rozdelenie nahraď normálnym $N(np, np(1-p))$; pri $P(X\\le k)$ posuň hranicu na $k+0{,}5$, pri $P(X\\ge k)$ na $k-0{,}5$.',
+          hint: T`Binomické rozdelenie nahraď normálnym $N(np, np(1-p))$; pri $P(X\\le k)$ posuň hranicu na $k+0{,}5$, pri $P(X\\ge k)$ na $k-0{,}5$.`,
           mistakes: mis(round(res, 4), 0.0003, [
-            (() => { const z0 = round((k - mu) / s, 2), F0 = z0 >= 0 ? PhiT(z0) : 1 - PhiT(-z0); return { value: round(le ? F0 : 1 - F0, 4), msg: `Zabudol si na opravu na spojitosť: hranicu treba posunúť na $${k}${le ? '+' : '-'}0{,}5$.` }; })(),
-            { value: round(le ? Phi((k + 0.5 - mu) / (s * s)) : 1 - Phi((k - 0.5 - mu) / (s * s)), 4), msg: 'Pri štandardizácii delíš smerodajnou odchýlkou $\\sqrt{np(1-p)}$, nie rozptylom $np(1-p)$.' }
+            (() => { const z0 = round((k - mu) / s, 2), F0 = z0 >= 0 ? PhiT(z0) : 1 - PhiT(-z0); return { value: round(le ? F0 : 1 - F0, 4), msg: T`Zabudol si na opravu na spojitosť: hranicu treba posunúť na $${k}${le ? '+' : '-'}0{,}5$.` }; })(),
+            { value: round(le ? Phi((k + 0.5 - mu) / (s * s)) : 1 - Phi((k - 0.5 - mu) / (s * s)), 4), msg: T`Pri štandardizácii delíš smerodajnou odchýlkou $\\sqrt{np(1-p)}$, nie rozptylom $np(1-p)$.` }
           ]),
           steps: [
-            { q: 'Aká je smerodajná odchýlka $\\sqrt{np(1-p)}$?', answer: round(s, 4), tol: 0.0001 },
-            { q: 'Štandardizuj hranicu s opravou na spojitosť: aké je $z$ (na 2 desatinné miesta)?', answer: z, tol: 0.005, signed: true },
-            { q: `Odhadni hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0003, show: dt(res, 4) }
+            { q: T`Aká je smerodajná odchýlka $\\sqrt{np(1-p)}$?`, answer: round(s, 4), tol: 0.0001 },
+            { q: T`Štandardizuj hranicu s opravou na spojitosť: aké je $z$ (na 2 desatinné miesta)?`, answer: z, tol: 0.005, signed: true },
+            { q: T`Odhadni hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0003, show: dt(res, 4) }
           ]
         };
       }
@@ -1768,17 +1775,17 @@
       const res = 2 * PhiT(z) - 1;
       return {
         answer: round(res, 4), tol: 0.0003,
-        q: `${ctx} Pomocou normálnej aproximácie s opravou na spojitosť odhadni $P(${nm(k1)}\\le X\\le ${nm(k2)})$. Hodnotu $z$ zaokrúhli na 2 desatinné miesta a použi ${phiList([z])}. ${R4}`,
+        q: T`${ctx} Pomocou normálnej aproximácie s opravou na spojitosť odhadni $P(${nm(k1)}\\le X\\le ${nm(k2)})$. Hodnotu $z$ zaokrúhli na 2 desatinné miesta a použi ${phiList([z])}. ${T.s(R4)}`,
         solution: `$np=${nm(mu)}$, $\\sqrt{np(1-p)}=${nm(s, 4)}$. $P\\approx\\Phi\\left(\\frac{${nm(k2)}+0{,}5-${nm(mu)}}{${nm(s, 4)}}\\right)-\\Phi\\left(\\frac{${nm(k1)}-0{,}5-${nm(mu)}}{${nm(s, 4)}}\\right)=\\Phi(${nm(z, 2)})-\\Phi(-${nm(z, 2)})=2\\Phi(${nm(z, 2)})-1=${dd(res, 4)}$.`,
-        hint: 'Interval rozšír o $0{,}5$ na každú stranu a štandardizuj; interval je súmerný okolo $np$.',
+        hint: T`Interval rozšír o $0{,}5$ na každú stranu a štandardizuj; interval je súmerný okolo $np$.`,
         mistakes: mis(round(res, 4), 0.0003, [
-          { value: round(2 * PhiT(round(d / s, 2)) - 1, 4), msg: 'Zabudol si na opravu na spojitosť: interval treba rozšíriť o $0{,}5$ na každú stranu.' },
-          { value: round(PhiT(z), 4), msg: 'Interval je obojstranný: $P=\\Phi(z)-\\Phi(-z)=2\\Phi(z)-1$.' }
+          { value: round(2 * PhiT(round(d / s, 2)) - 1, 4), msg: T`Zabudol si na opravu na spojitosť: interval treba rozšíriť o $0{,}5$ na každú stranu.` },
+          { value: round(PhiT(z), 4), msg: T`Interval je obojstranný: $P=\\Phi(z)-\\Phi(-z)=2\\Phi(z)-1$.` }
         ]),
         steps: [
-          { q: 'Aká je smerodajná odchýlka $\\sqrt{np(1-p)}$?', answer: round(s, 4), tol: 0.0001 },
-          { q: 'Štandardizuj hornú hranicu s opravou na spojitosť: aké je $z$ (na 2 desatinné miesta)?', answer: z, tol: 0.005 },
-          { q: `Odhadni hľadanú pravdepodobnosť. ${R4}`, answer: round(res, 4), tol: 0.0003, show: dt(res, 4) }
+          { q: T`Aká je smerodajná odchýlka $\\sqrt{np(1-p)}$?`, answer: round(s, 4), tol: 0.0001 },
+          { q: T`Štandardizuj hornú hranicu s opravou na spojitosť: aké je $z$ (na 2 desatinné miesta)?`, answer: z, tol: 0.005 },
+          { q: T`Odhadni hľadanú pravdepodobnosť. ${T.s(R4)}`, answer: round(res, 4), tol: 0.0003, show: dt(res, 4) }
         ]
       };
     }
@@ -1786,24 +1793,24 @@
       const k = pick([1.5, 2, 2.5, 3, 4, 5]), s = pick([2, 3, 4, 5, 10]), eps = k * s, res = 1 / (k * k);
       return {
         answer: round(res, 4), tol: 0.0001,
-        q: `O rozdelení náhodnej veličiny $X$ vieme len to, že $E(X)=${10 * s}$ a $\\sigma=${s}$. Pomocou Čebyševovej nerovnosti urči hornú hranicu pre $P(|X-${10 * s}|\\ge ${nm(eps)})$. ${R4}`,
+        q: T`O rozdelení náhodnej veličiny $X$ vieme len to, že $E(X)=${10 * s}$ a $\\sigma=${s}$. Pomocou Čebyševovej nerovnosti urči hornú hranicu pre $P(|X-${10 * s}|\\ge ${nm(eps)})$. ${T.s(R4)}`,
         solution: `$P(|X-E(X)|\\ge\\varepsilon)\\le\\frac{D(X)}{\\varepsilon^2}=\\frac{${s * s}}{${nm(eps)}^2}=${nm(res, 4)}$.`,
-        hint: 'Čebyševova nerovnosť: $P(|X-\\mu|\\ge\\varepsilon)\\le\\sigma^2/\\varepsilon^2$.',
+        hint: T`Čebyševova nerovnosť: $P(|X-\\mu|\\ge\\varepsilon)\\le\\sigma^2/\\varepsilon^2$.`,
         mistakes: mis(round(res, 4), 0.0001, [
-          { value: round(1 / k, 4), msg: 'V Čebyševovej nerovnosti je rozptyl a druhá mocnina $\\varepsilon$: $\\frac{\\sigma^2}{\\varepsilon^2}$, nie $\\frac{\\sigma}{\\varepsilon}$.' },
-          { value: round(1 - res, 4), msg: 'To je dolná hranica pre doplnkový jav $|X-\\mu|\\lt\\varepsilon$. Pýtame sa na odchýlku aspoň $\\varepsilon$.' }
+          { value: round(1 / k, 4), msg: T`V Čebyševovej nerovnosti je rozptyl a druhá mocnina $\\varepsilon$: $\\frac{\\sigma^2}{\\varepsilon^2}$, nie $\\frac{\\sigma}{\\varepsilon}$.` },
+          { value: round(1 - res, 4), msg: T`To je dolná hranica pre doplnkový jav $|X-\\mu|\\lt\\varepsilon$. Pýtame sa na odchýlku aspoň $\\varepsilon$.` }
         ])
       };
     }
     const s = pick([2, 3, 4, 5, 10]), eps = pick([0.5, 1, 2]), D = pick([10, 20, 50, 100]), n = Math.ceil(s * s * D / (eps * eps) - 1e-9);
     return {
       answer: n, tol: 0,
-      q: `Veličiny $X_1, \\dots, X_n$ sú nezávislé s rovnakou strednou hodnotou $\\mu$ a smerodajnou odchýlkou ${s}. Aké najmenšie $n$ podľa Čebyševovej nerovnosti zaručí, že $P(|\\bar{X}_n-\\mu|\\ge ${nm(eps)})\\le ${nm(1 / D)}$?`,
-      solution: `$P(|\\bar{X}_n-\\mu|\\ge\\varepsilon)\\le\\frac{\\sigma^2}{n\\varepsilon^2}=\\frac{${s * s}}{n\\cdot ${nm(eps * eps)}}$. Stačí $\\frac{${s * s}}{${nm(eps * eps)}\\,n}\\le ${nm(1 / D)}$, teda $n\\ge ${n}$.`,
-      hint: 'Použi $D(\\bar{X}_n)=\\sigma^2/n$ a Čebyševovu nerovnosť; vyrieš nerovnicu pre $n$.',
+      q: T`Veličiny $X_1, \\dots, X_n$ sú nezávislé s rovnakou strednou hodnotou $\\mu$ a smerodajnou odchýlkou ${s}. Aké najmenšie $n$ podľa Čebyševovej nerovnosti zaručí, že $P(|\\bar{X}_n-\\mu|\\ge ${nm(eps)})\\le ${nm(1 / D)}$?`,
+      solution: T`$P(|\\bar{X}_n-\\mu|\\ge\\varepsilon)\\le\\frac{\\sigma^2}{n\\varepsilon^2}=\\frac{${s * s}}{n\\cdot ${nm(eps * eps)}}$. Stačí $\\frac{${s * s}}{${nm(eps * eps)}\\,n}\\le ${nm(1 / D)}$, teda $n\\ge ${n}$.`,
+      hint: T`Použi $D(\\bar{X}_n)=\\sigma^2/n$ a Čebyševovu nerovnosť; vyrieš nerovnicu pre $n$.`,
       mistakes: mis(n, 0, [
-        { value: Math.ceil(s * D / (eps * eps) - 1e-9), msg: 'V nerovnosti vystupuje rozptyl $\\sigma^2$, nie smerodajná odchýlka $\\sigma$.' },
-        eps !== 1 ? { value: Math.ceil(s * s * D / eps - 1e-9), msg: 'V menovateli je $\\varepsilon^2$ – nezabudni $\\varepsilon$ umocniť.' } : null
+        { value: Math.ceil(s * D / (eps * eps) - 1e-9), msg: T`V nerovnosti vystupuje rozptyl $\\sigma^2$, nie smerodajná odchýlka $\\sigma$.` },
+        eps !== 1 ? { value: Math.ceil(s * s * D / eps - 1e-9), msg: T`V menovateli je $\\varepsilon^2$ – nezabudni $\\varepsilon$ umocniť.` } : null
       ])
     };
   });
@@ -1838,9 +1845,9 @@
         <line class="f-accent" x1="${X(20.5)}" y1="${yc - 16}" x2="${X(20.5)}" y2="${yc + 16}"/>
         <circle class="f-vertex" cx="${X(41)}" cy="${yc}" r="5"/>
         <line class="f-dash" x1="${X(34.5)}" y1="${yc - 22}" x2="${X(34.5)}" y2="${yc + 22}"/>
-        <text class="f-small" x="${X(17)}" y="${yc + 32}" text-anchor="middle">Q₁ = 17</text><text class="f-small c-accent" x="${X(20.5)}" y="${yc - 22}" text-anchor="middle">x̃ = 20,5</text>
+        <text class="f-small" x="${X(17)}" y="${yc + 32}" text-anchor="middle">Q₁ = 17</text><text class="f-small c-accent" x="${X(20.5)}" y="${yc - 22}" text-anchor="middle">x̃ = ${sk(20.5, 1)}</text>
         <text class="f-small" x="${X(24)}" y="${yc + 32}" text-anchor="middle">Q₃ = 24</text>
-        <text class="f-small" x="${X(34.5)}" y="${yc + 36}" text-anchor="middle">Q₃ + 1,5·IQR</text>
+        <text class="f-small" x="${X(34.5)}" y="${yc + 36}" text-anchor="middle">Q₃ + ${sk(1.5, 1)}·IQR</text>
         <text class="f-small" x="${X(41)}" y="${yc - 12}" text-anchor="middle">odľahlá</text>`;
       return s + '</svg>';
     }
@@ -1883,19 +1890,19 @@
       const m = sum(x) / n, S = sum(x.map((v) => (v - m) ** 2)), s2 = S / (n - 1), askS = Math.random() < 0.4;
       return {
         answer: round(askS ? Math.sqrt(s2) : s2, 4), tol: 0.0002,
-        q: `Namerali sme hodnoty ${x.join(', ')}. Vypočítaj výberov${askS ? 'ú smerodajnú odchýlku $s$' : 'ý rozptyl $s^2$'} (s delením $n-1$). ${R4}`,
-        solution: `$n=${n}$, $\\bar{x}=\\frac{${sum(x)}}{${n}}=${nm(m, 4)}$. $\\sum x_i^2=${sum(x.map((v) => v * v))}$, teda $\\sum(x_i-\\bar{x})^2=\\sum x_i^2-n\\bar{x}^2=${nm(S, 4)}$.
+        q: T`Namerali sme hodnoty ${x.join(', ')}. Vypočítaj ${askS ? T.s('výberovú smerodajnú odchýlku $s$') : T.s('výberový rozptyl $s^2$')} (s delením $n-1$). ${T.s(R4)}`,
+        solution: T`$n=${n}$, $\\bar{x}=\\frac{${sum(x)}}{${n}}=${nm(m, 4)}$. $\\sum x_i^2=${sum(x.map((v) => v * v))}$, teda $\\sum(x_i-\\bar{x})^2=\\sum x_i^2-n\\bar{x}^2=${nm(S, 4)}$.
           $s^2=\\frac{${nm(S, 4)}}{${n - 1}}${Number.isInteger(round(s2 * 1e4, 6)) ? '=' : '\\approx '}${nm(s2, 4)}$${askS ? `, $s=\\sqrt{s^2}\\approx ${dd(Math.sqrt(s2), 4)}$` : ''}.`,
         hint: '$s^2=\\frac{1}{n-1}\\sum(x_i-\\bar{x})^2=\\frac{1}{n-1}\\left(\\sum x_i^2-n\\bar{x}^2\\right)$.',
         mistakes: mis(round(askS ? Math.sqrt(s2) : s2, 4), 0.0002, [
-          { value: round(askS ? Math.sqrt(S / n) : S / n, 4), msg: 'Výberový rozptyl sa podľa zadania delí $n-1$, nie $n$ (delenie $n$ dáva vychýlený odhad).' },
-          askS ? { value: round(s2, 4), msg: 'To je výberový rozptyl $s^2$. Smerodajná odchýlka je jeho druhá odmocnina.' } : null
+          { value: round(askS ? Math.sqrt(S / n) : S / n, 4), msg: T`Výberový rozptyl sa podľa zadania delí $n-1$, nie $n$ (delenie $n$ dáva vychýlený odhad).` },
+          askS ? { value: round(s2, 4), msg: T`To je výberový rozptyl $s^2$. Smerodajná odchýlka je jeho druhá odmocnina.` } : null
         ]),
         steps: [
-          { q: `Vypočítaj výberový priemer $\\bar{x}$. ${R4}`, answer: round(m, 4), tol: 0.0002 },
-          { q: `Vypočítaj $\\sum(x_i-\\bar{x})^2$. ${R4}`, answer: round(S, 4), tol: 0.002 },
-          { q: `Vypočítaj $s^2$. ${R4}`, answer: round(s2, 4), tol: 0.0002 },
-          ...(askS ? [{ q: `Vypočítaj $s$. ${R4}`, answer: round(Math.sqrt(s2), 4), tol: 0.0002 }] : [])
+          { q: T`Vypočítaj výberový priemer $\\bar{x}$. ${T.s(R4)}`, answer: round(m, 4), tol: 0.0002 },
+          { q: T`Vypočítaj $\\sum(x_i-\\bar{x})^2$. ${T.s(R4)}`, answer: round(S, 4), tol: 0.002 },
+          { q: T`Vypočítaj $s^2$. ${T.s(R4)}`, answer: round(s2, 4), tol: 0.0002 },
+          ...(askS ? [{ q: T`Vypočítaj $s$. ${T.s(R4)}`, answer: round(Math.sqrt(s2), 4), tol: 0.0002 }] : [])
         ]
       };
     }
@@ -1903,42 +1910,42 @@
       const n = rnd(10, 40), m = rnd(5, 60), s2 = rnd(2, 40), Sx = n * m, Sx2 = (n - 1) * s2 + n * m * m, askS = Math.random() < 0.3;
       return {
         answer: round(askS ? Math.sqrt(s2) : s2, 4), tol: 0.0002,
-        q: `Z výberu rozsahu $n=${n}$ poznáme len súčty $\\sum x_i=${ths(Sx)}$ a $\\sum x_i^2=${ths(Sx2)}$. Vypočítaj výberov${askS ? 'ú smerodajnú odchýlku $s$' : 'ý rozptyl $s^2$'}.${askS ? ' ' + R4 : ''}`,
+        q: T`Z výberu rozsahu $n=${n}$ poznáme len súčty $\\sum x_i=${ths(Sx)}$ a $\\sum x_i^2=${ths(Sx2)}$. Vypočítaj ${askS ? T.s('výberovú smerodajnú odchýlku $s$') : T.s('výberový rozptyl $s^2$')}.${askS ? ' ' + T.s(R4) : ''}`,
         solution: `$\\bar{x}=\\frac{${ths(Sx)}}{${n}}=${m}$. $s^2=\\frac{\\sum x_i^2-n\\bar{x}^2}{n-1}=\\frac{${ths(Sx2)}-${n}\\cdot ${m}^2}{${n - 1}}=\\frac{${ths(Sx2 - n * m * m)}}{${n - 1}}=${s2}$${askS ? `, $s=\\sqrt{${s2}}\\approx ${dd(Math.sqrt(s2), 4)}$` : ''}.`,
-        hint: 'Najprv $\\bar{x}=\\frac1n\\sum x_i$, potom $s^2=\\frac{\\sum x_i^2-n\\bar{x}^2}{n-1}$.',
+        hint: T`Najprv $\\bar{x}=\\frac1n\\sum x_i$, potom $s^2=\\frac{\\sum x_i^2-n\\bar{x}^2}{n-1}$.`,
         mistakes: mis(round(askS ? Math.sqrt(s2) : s2, 4), 0.0002, [
-          { value: round(askS ? Math.sqrt((n - 1) * s2 / n) : (n - 1) * s2 / n, 4), msg: 'Výberový rozptyl sa delí $n-1$, nie $n$.' },
-          { value: round(askS ? Math.sqrt(Sx2 / (n - 1)) : Sx2 / (n - 1), 4), msg: 'Od $\\sum x_i^2$ treba najprv odčítať $n\\bar{x}^2$ – rozptyl meria odchýlky od priemeru, nie od nuly.' },
-          askS ? { value: s2, msg: 'To je výberový rozptyl $s^2$. Smerodajná odchýlka je jeho druhá odmocnina.' } : null
+          { value: round(askS ? Math.sqrt((n - 1) * s2 / n) : (n - 1) * s2 / n, 4), msg: T`Výberový rozptyl sa delí $n-1$, nie $n$.` },
+          { value: round(askS ? Math.sqrt(Sx2 / (n - 1)) : Sx2 / (n - 1), 4), msg: T`Od $\\sum x_i^2$ treba najprv odčítať $n\\bar{x}^2$ – rozptyl meria odchýlky od priemeru, nie od nuly.` },
+          askS ? { value: s2, msg: T`To je výberový rozptyl $s^2$. Smerodajná odchýlka je jeho druhá odmocnina.` } : null
         ]),
         steps: [
-          { q: 'Vypočítaj výberový priemer $\\bar{x}$.', answer: m },
-          { q: 'Vypočítaj $\\sum x_i^2-n\\bar{x}^2$.', answer: Sx2 - n * m * m },
-          { q: 'Vypočítaj $s^2$.', answer: s2 },
-          ...(askS ? [{ q: `Vypočítaj $s$. ${R4}`, answer: round(Math.sqrt(s2), 4), tol: 0.0002 }] : [])
+          { q: T`Vypočítaj výberový priemer $\\bar{x}$.`, answer: m },
+          { q: T`Vypočítaj $\\sum x_i^2-n\\bar{x}^2$.`, answer: Sx2 - n * m * m },
+          { q: T`Vypočítaj $s^2$.`, answer: s2 },
+          ...(askS ? [{ q: T`Vypočítaj $s$. ${T.s(R4)}`, answer: round(Math.sqrt(s2), 4), tol: 0.0002 }] : [])
         ]
       };
     }
     if (t < 0.78) {
       const n = rnd(8, 11), x = Array.from({ length: n }, () => rnd(10, 60)), q = quart(x), kind = rnd(0, 2);
-      const what = ['dolný kvartil $Q_1$', 'horný kvartil $Q_3$', 'medzikvartilové rozpätie $IQR=Q_3-Q_1$'][kind];
+      const what = [T`dolný kvartil $Q_1$`, T`horný kvartil $Q_3$`, T`medzikvartilové rozpätie $IQR=Q_3-Q_1$`][kind];
       const ans = [q.Q1, q.Q3, q.Q3 - q.Q1][kind];
       return {
         answer: ans, tol: 0.001,
-        q: `Dáta: ${shuffle(x).join(', ')}. Urči ${what}. Kvartily ber ako mediány dolnej a hornej polovice usporiadaných dát${n % 2 ? ' (medián do polovíc nezahŕňaj)' : ''}.`,
-        solution: `Usporiadané dáta ($n=${n}$): $${list(q.s)}$. Dolná polovica $${list(q.lo)}$ má medián $Q_1=${nm(q.Q1, 2)}$, horná polovica $${list(q.hi)}$ má medián $Q_3=${nm(q.Q3, 2)}$.
+        q: T`Dáta: ${shuffle(x).join(', ')}. Urči ${what}. Kvartily ber ako mediány dolnej a hornej polovice usporiadaných dát${n % 2 ? T` (medián do polovíc nezahŕňaj)` : ''}.`,
+        solution: T`Usporiadané dáta ($n=${n}$): $${list(q.s)}$. Dolná polovica $${list(q.lo)}$ má medián $Q_1=${nm(q.Q1, 2)}$, horná polovica $${list(q.hi)}$ má medián $Q_3=${nm(q.Q3, 2)}$.
           ${kind === 2 ? `$IQR=${nm(q.Q3, 2)}-${nm(q.Q1, 2)}=${nm(q.Q3 - q.Q1, 2)}$.` : ''}`,
-        hint: 'Dáta usporiadaj, rozdeľ na dolnú a hornú polovicu a v každej nájdi medián.',
+        hint: T`Dáta usporiadaj, rozdeľ na dolnú a hornú polovicu a v každej nájdi medián.`,
         mistakes: mis(ans, 0.001, (() => {
-          if (n % 2 === 0) return [kind === 2 ? null : { value: [q.Q3, q.Q1][kind], msg: `Zamenil si kvartily: ${kind === 0 ? '$Q_1$ je medián dolnej' : '$Q_3$ je medián hornej'} polovice dát.` }];
+          if (n % 2 === 0) return [kind === 2 ? null : { value: [q.Q3, q.Q1][kind], msg: kind === 0 ? T.s('Zamenil si kvartily: $Q_1$ je medián dolnej polovice dát.') : T.s('Zamenil si kvartily: $Q_3$ je medián hornej polovice dát.') }];
           // nepárne n: medián omylom zahrnutý do polovíc
           const h = Math.ceil(n / 2), wQ1 = median(q.s.slice(0, h)), wQ3 = median(q.s.slice(n - h));
-          return [{ value: [wQ1, wQ3, wQ3 - wQ1][kind], msg: 'Pri nepárnom počte hodnôt medián do dolnej ani hornej polovice nezahŕňaj.' }];
+          return [{ value: [wQ1, wQ3, wQ3 - wQ1][kind], msg: T`Pri nepárnom počte hodnôt medián do dolnej ani hornej polovice nezahŕňaj.` }];
         })()),
         steps: kind === 2 ? [
-          { q: 'Urči dolný kvartil $Q_1$.', answer: q.Q1, tol: 0.001 },
-          { q: 'Urči horný kvartil $Q_3$.', answer: q.Q3, tol: 0.001 },
-          { q: 'Vypočítaj $IQR$.', answer: q.Q3 - q.Q1, tol: 0.001 }
+          { q: T`Urči dolný kvartil $Q_1$.`, answer: q.Q1, tol: 0.001 },
+          { q: T`Urči horný kvartil $Q_3$.`, answer: q.Q3, tol: 0.001 },
+          { q: T`Vypočítaj $IQR$.`, answer: q.Q3 - q.Q1, tol: 0.001 }
         ] : undefined
       };
     }
@@ -1953,20 +1960,20 @@
     }
     return {
       answer: out.length, tol: 0,
-      q: `Dáta: ${shuffle(x).join(', ')}. Koľko odľahlých hodnôt obsahujú podľa pravidla $1{,}5\\,IQR$? Kvartily ber ako mediány dolnej a hornej polovice usporiadaných dát${x.length % 2 ? ' (medián do polovíc nezahŕňaj)' : ''}.`,
-      solution: `Usporiadané: $${list(q.s)}$. $Q_1=${nm(q.Q1, 2)}$, $Q_3=${nm(q.Q3, 2)}$, $IQR=${nm(q.Q3 - q.Q1, 2)}$.
+      q: T`Dáta: ${shuffle(x).join(', ')}. Koľko odľahlých hodnôt obsahujú podľa pravidla $1{,}5\\,IQR$? Kvartily ber ako mediány dolnej a hornej polovice usporiadaných dát${x.length % 2 ? T` (medián do polovíc nezahŕňaj)` : ''}.`,
+      solution: T`Usporiadané: $${list(q.s)}$. $Q_1=${nm(q.Q1, 2)}$, $Q_3=${nm(q.Q3, 2)}$, $IQR=${nm(q.Q3 - q.Q1, 2)}$.
         Hranice: $${nm(q.Q1, 2)}-1{,}5\\cdot ${nm(q.Q3 - q.Q1, 2)}=${nm(lo, 2)}$ a $${nm(q.Q3, 2)}+1{,}5\\cdot ${nm(q.Q3 - q.Q1, 2)}=${nm(hi, 2)}$.
-        ${out.length ? `Mimo intervalu ležia: ${out.join(', ')} — spolu ${out.length}.` : 'Všetky hodnoty ležia v tomto intervale, odľahlé hodnoty nie sú (odpoveď 0).'}`,
-      hint: 'Vypočítaj $Q_1$, $Q_3$ a hranice $Q_1-1{,}5\\,IQR$, $Q_3+1{,}5\\,IQR$; spočítaj hodnoty mimo nich.',
+        ${out.length ? T`Mimo intervalu ležia: ${out.join(', ')} — spolu ${out.length}.` : T`Všetky hodnoty ležia v tomto intervale, odľahlé hodnoty nie sú (odpoveď 0).`}`,
+      hint: T`Vypočítaj $Q_1$, $Q_3$ a hranice $Q_1-1{,}5\\,IQR$, $Q_3+1{,}5\\,IQR$; spočítaj hodnoty mimo nich.`,
       mistakes: mis(out.length, 0, [
-        { value: x.filter((v) => v < q.Q1 - (q.Q3 - q.Q1) || v > q.Q3 + (q.Q3 - q.Q1)).length, msg: 'Hranice sú vo vzdialenosti $1{,}5\\cdot IQR$ od kvartilov, nie $1\\cdot IQR$.' }
+        { value: x.filter((v) => v < q.Q1 - (q.Q3 - q.Q1) || v > q.Q3 + (q.Q3 - q.Q1)).length, msg: T`Hranice sú vo vzdialenosti $1{,}5\\cdot IQR$ od kvartilov, nie $1\\cdot IQR$.` }
       ]),
       steps: [
-        { q: 'Urči dolný kvartil $Q_1$.', answer: q.Q1, tol: 0.001 },
-        { q: 'Urči horný kvartil $Q_3$.', answer: q.Q3, tol: 0.001 },
-        { q: 'Vypočítaj dolnú hranicu $Q_1-1{,}5\\,IQR$.', answer: lo, tol: 0.001, signed: true },
-        { q: 'Vypočítaj hornú hranicu $Q_3+1{,}5\\,IQR$.', answer: hi, tol: 0.001 },
-        { q: 'Koľko hodnôt leží mimo týchto hraníc?', answer: out.length }
+        { q: T`Urči dolný kvartil $Q_1$.`, answer: q.Q1, tol: 0.001 },
+        { q: T`Urči horný kvartil $Q_3$.`, answer: q.Q3, tol: 0.001 },
+        { q: T`Vypočítaj dolnú hranicu $Q_1-1{,}5\\,IQR$.`, answer: lo, tol: 0.001, signed: true },
+        { q: T`Vypočítaj hornú hranicu $Q_3+1{,}5\\,IQR$.`, answer: hi, tol: 0.001 },
+        { q: T`Koľko hodnôt leží mimo týchto hraníc?`, answer: out.length }
       ]
     };
   });
@@ -1993,7 +2000,7 @@
       });
       return {
         svg: svg(p, back, clipped, `<text class="f-math" x="${n1(p.X(mu) + 5)}" y="18">μ</text>`, 'Intervaly spoľahlivosti z opakovaných výberov'),
-        readout: `${pct} %: z = ${sk(z, 4)} · šírka 2zσ/√n = ${sk(2 * z * se, 2)} · <span class="c-accent">μ nepokrýva ${miss} z 25 intervalov</span>`
+        readout: T`${pct} %: z = ${sk(z, 4)} · šírka 2zσ/√n = ${sk(2 * z * se, 2)} · <span class="c-accent">μ nepokrýva ${miss} z 25 intervalov</span>`
       };
     }
   });
@@ -2036,20 +2043,20 @@
       const r = pick([4, 5, 6, 8, 10]), se = pick([0.5, 1, 1.5, 2, 2.5, 0.25]), sg = se * r, n = r * r;
       const lev = pick([90, 95, 99]), [q, z] = LEVEL[lev], m = round(rnd(200, 900) / 10 + pick([0, 50, 100]), 1), h = z * se;
       return {
-        type: 'tuple', answer: [round(m - h, 2), round(m + h, 2)], tol: 0.011, placeholder: 'dolná; horná',
-        q: `Výber rozsahu $n=${n}$ z normálneho rozdelenia so známou smerodajnou odchýlkou $\\sigma=${nm(sg)}$ má priemer $\\bar{x}=${nm(m, 1)}$.
+        type: 'tuple', answer: [round(m - h, 2), round(m + h, 2)], tol: 0.011, placeholder: T`dolná; horná`,
+        q: T`Výber rozsahu $n=${n}$ z normálneho rozdelenia so známou smerodajnou odchýlkou $\\sigma=${nm(sg)}$ má priemer $\\bar{x}=${nm(m, 1)}$.
           Urči ${lev} % interval spoľahlivosti pre $\\mu$. Použi $z_{${nm(q, 3)}}=${nm(z, 3)}$. Hranice zaokrúhli na 2 desatinné miesta a zadaj ich v tvare „dolná; horná“.`,
-        solution: `$\\frac{\\sigma}{\\sqrt{n}}=\\frac{${nm(sg)}}{${r}}=${nm(se)}$, polovičná šírka $${nm(z, 3)}\\cdot ${nm(se)}=${nm(h, 4)}$.
+        solution: T`$\\frac{\\sigma}{\\sqrt{n}}=\\frac{${nm(sg)}}{${r}}=${nm(se)}$, polovičná šírka $${nm(z, 3)}\\cdot ${nm(se)}=${nm(h, 4)}$.
           Interval: $${nm(m, 1)}\\pm ${nm(h, 4)}$, teda $(${dd(m - h, 2)};\\ ${dd(m + h, 2)})$.`,
-        hint: 'Pri známom $\\sigma$: $\\bar{x}\\pm z_{1-\\alpha/2}\\,\\sigma/\\sqrt{n}$.',
+        hint: T`Pri známom $\\sigma$: $\\bar{x}\\pm z_{1-\\alpha/2}\\,\\sigma/\\sqrt{n}$.`,
         mistakes: misT([round(m - h, 2), round(m + h, 2)], 0.011, [
-          { value: [round(m - z * sg, 2), round(m + z * sg, 2)], msg: 'Pre priemer treba smerodajnú chybu $\\frac{\\sigma}{\\sqrt{n}}$, nie samotné $\\sigma$.' },
-          { value: [round(m - ZQ[lev / 100] * se, 2), round(m + ZQ[lev / 100] * se, 2)], msg: 'Interval je obojstranný, preto patrí kvantil $z_{1-\\alpha/2}$, nie jednostranný $z_{1-\\alpha}$.' }
+          { value: [round(m - z * sg, 2), round(m + z * sg, 2)], msg: T`Pre priemer treba smerodajnú chybu $\\frac{\\sigma}{\\sqrt{n}}$, nie samotné $\\sigma$.` },
+          { value: [round(m - ZQ[lev / 100] * se, 2), round(m + ZQ[lev / 100] * se, 2)], msg: T`Interval je obojstranný, preto patrí kvantil $z_{1-\\alpha/2}$, nie jednostranný $z_{1-\\alpha}$.` }
         ]),
         steps: [
-          { q: 'Vypočítaj smerodajnú chybu priemeru $\\frac{\\sigma}{\\sqrt{n}}$.', answer: se },
-          { q: 'Vypočítaj polovičnú šírku intervalu (na 4 desatinné miesta).', answer: round(h, 4), tol: 0.0006 },
-          { q: 'Zadaj interval v tvare „dolná; horná“ (na 2 desatinné miesta).', answer: [round(m - h, 2), round(m + h, 2)], type: 'tuple', tol: 0.011, show: `${nt(m - h, 2)}; ${nt(m + h, 2)}` }
+          { q: T`Vypočítaj smerodajnú chybu priemeru $\\frac{\\sigma}{\\sqrt{n}}$.`, answer: se },
+          { q: T`Vypočítaj polovičnú šírku intervalu (na 4 desatinné miesta).`, answer: round(h, 4), tol: 0.0006 },
+          { q: T`Zadaj interval v tvare „dolná; horná“ (na 2 desatinné miesta).`, answer: [round(m - h, 2), round(m + h, 2)], type: 'tuple', tol: 0.011, show: `${nt(m - h, 2)}; ${nt(m + h, 2)}` }
         ]
       };
     }
@@ -2058,20 +2065,20 @@
       const tq = lev === 95 ? T975[df - 1] : lev === 90 ? T95[df - 1] : T995[df - 1], q = LEVEL[lev][0];
       const s = rnd(8, 60) / 10, m = round(rnd(100, 800) / 10, 1), se = s / Math.sqrt(n), h = tq * se;
       return {
-        type: 'tuple', answer: [round(m - h, 2), round(m + h, 2)], tol: 0.012, placeholder: 'dolná; horná',
-        q: `Výber rozsahu $n=${n}$ z normálneho rozdelenia má priemer $\\bar{x}=${nm(m, 1)}$ a výberovú smerodajnú odchýlku $s=${nm(s, 1)}$; $\\sigma$ nepoznáme.
+        type: 'tuple', answer: [round(m - h, 2), round(m + h, 2)], tol: 0.012, placeholder: T`dolná; horná`,
+        q: T`Výber rozsahu $n=${n}$ z normálneho rozdelenia má priemer $\\bar{x}=${nm(m, 1)}$ a výberovú smerodajnú odchýlku $s=${nm(s, 1)}$; $\\sigma$ nepoznáme.
           Urči ${lev} % interval spoľahlivosti pre $\\mu$. Použi $t_{${nm(q, 3)}}(${df})=${dd(tq, 3)}$. Hranice zaokrúhli na 2 desatinné miesta a zadaj ich v tvare „dolná; horná“.`,
-        solution: `$\\frac{s}{\\sqrt{n}}=\\frac{${nm(s, 1)}}{\\sqrt{${n}}}\\approx ${dd(se, 4)}$, polovičná šírka $${dd(tq, 3)}\\cdot ${dd(se, 4)}\\approx ${dd(h, 4)}$.
+        solution: T`$\\frac{s}{\\sqrt{n}}=\\frac{${nm(s, 1)}}{\\sqrt{${n}}}\\approx ${dd(se, 4)}$, polovičná šírka $${dd(tq, 3)}\\cdot ${dd(se, 4)}\\approx ${dd(h, 4)}$.
           Interval: $(${dd(m - h, 2)};\\ ${dd(m + h, 2)})$.`,
-        hint: 'Pri neznámom $\\sigma$ nahradíme $\\sigma$ hodnotou $s$ a kvantil $z$ kvantilom t-rozdelenia s $n-1$ stupňami voľnosti.',
+        hint: T`Pri neznámom $\\sigma$ nahradíme $\\sigma$ hodnotou $s$ a kvantil $z$ kvantilom t-rozdelenia s $n-1$ stupňami voľnosti.`,
         mistakes: misT([round(m - h, 2), round(m + h, 2)], 0.012, [
-          { value: [round(m - LEVEL[lev][1] * se, 2), round(m + LEVEL[lev][1] * se, 2)], msg: 'Pri neznámom $\\sigma$ a malom výbere patrí kvantil Studentovho t-rozdelenia, nie normálneho rozdelenia.' },
-          { value: [round(m - tq * s, 2), round(m + tq * s, 2)], msg: 'Pre priemer treba smerodajnú chybu $\\frac{s}{\\sqrt{n}}$, nie samotné $s$.' }
+          { value: [round(m - LEVEL[lev][1] * se, 2), round(m + LEVEL[lev][1] * se, 2)], msg: T`Pri neznámom $\\sigma$ a malom výbere patrí kvantil Studentovho t-rozdelenia, nie normálneho rozdelenia.` },
+          { value: [round(m - tq * s, 2), round(m + tq * s, 2)], msg: T`Pre priemer treba smerodajnú chybu $\\frac{s}{\\sqrt{n}}$, nie samotné $s$.` }
         ]),
         steps: [
-          { q: `Vypočítaj smerodajnú chybu $\\frac{s}{\\sqrt{n}}$. ${R4}`, answer: round(se, 4), tol: 0.0002 },
-          { q: 'Vypočítaj polovičnú šírku intervalu (na 4 desatinné miesta).', answer: round(h, 4), tol: 0.002 },
-          { q: 'Zadaj interval v tvare „dolná; horná“ (na 2 desatinné miesta).', answer: [round(m - h, 2), round(m + h, 2)], type: 'tuple', tol: 0.012, show: `${nt(m - h, 2)}; ${nt(m + h, 2)}` }
+          { q: T`Vypočítaj smerodajnú chybu $\\frac{s}{\\sqrt{n}}$. ${T.s(R4)}`, answer: round(se, 4), tol: 0.0002 },
+          { q: T`Vypočítaj polovičnú šírku intervalu (na 4 desatinné miesta).`, answer: round(h, 4), tol: 0.002 },
+          { q: T`Zadaj interval v tvare „dolná; horná“ (na 2 desatinné miesta).`, answer: [round(m - h, 2), round(m + h, 2)], type: 'tuple', tol: 0.012, show: `${nt(m - h, 2)}; ${nt(m + h, 2)}` }
         ]
       };
     }
@@ -2079,20 +2086,20 @@
       const n = pick([100, 200, 250, 400, 500, 800, 1000]), ph = pick([0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.45, 0.6, 0.35]), k = Math.round(n * ph);
       const lev = pick([95, 95, 90, 99]), [q, z] = LEVEL[lev], se = Math.sqrt(ph * (1 - ph) / n), h = z * se;
       return {
-        type: 'tuple', answer: [round(ph - h, 4), round(ph + h, 4)], tol: 0.0006, placeholder: 'dolná; horná',
-        q: `V prieskume odpovedalo kladne ${k} z ${n} náhodne vybraných respondentov. Urči približný ${lev} % interval spoľahlivosti pre podiel $p$ v populácii.
+        type: 'tuple', answer: [round(ph - h, 4), round(ph + h, 4)], tol: 0.0006, placeholder: T`dolná; horná`,
+        q: T`V prieskume odpovedalo kladne ${k} z ${n} náhodne vybraných respondentov. Urči približný ${lev} % interval spoľahlivosti pre podiel $p$ v populácii.
           Použi $z_{${nm(q, 3)}}=${nm(z, 3)}$. Hranice zaokrúhli na 4 desatinné miesta a zadaj ich v tvare „dolná; horná“.`,
-        solution: `$\\hat{p}=\\frac{${k}}{${n}}=${nm(ph)}$, $\\sqrt{\\frac{\\hat{p}(1-\\hat{p})}{n}}=\\sqrt{\\frac{${nm(ph)}\\cdot ${nm(1 - ph)}}{${n}}}\\approx ${dd(se, 5)}$, polovičná šírka $${nm(z, 3)}\\cdot ${dd(se, 5)}\\approx ${dd(h, 4)}$.
+        solution: T`$\\hat{p}=\\frac{${k}}{${n}}=${nm(ph)}$, $\\sqrt{\\frac{\\hat{p}(1-\\hat{p})}{n}}=\\sqrt{\\frac{${nm(ph)}\\cdot ${nm(1 - ph)}}{${n}}}\\approx ${dd(se, 5)}$, polovičná šírka $${nm(z, 3)}\\cdot ${dd(se, 5)}\\approx ${dd(h, 4)}$.
           Interval: $(${dd(ph - h, 4)};\\ ${dd(ph + h, 4)})$.`,
-        hint: 'Pre podiel: $\\hat{p}\\pm z_{1-\\alpha/2}\\sqrt{\\hat{p}(1-\\hat{p})/n}$.',
+        hint: T`Pre podiel: $\\hat{p}\\pm z_{1-\\alpha/2}\\sqrt{\\hat{p}(1-\\hat{p})/n}$.`,
         mistakes: misT([round(ph - h, 4), round(ph + h, 4)], 0.0006, [
-          { value: [round(ph - ZQ[lev / 100] * se, 4), round(ph + ZQ[lev / 100] * se, 4)], msg: 'Interval je obojstranný, preto patrí kvantil $z_{1-\\alpha/2}$, nie jednostranný $z_{1-\\alpha}$.' },
-          { value: [round(ph - z * ph * (1 - ph) / n, 4), round(ph + z * ph * (1 - ph) / n, 4)], msg: 'Smerodajná chyba podielu je odmocnina: $\\sqrt{\\hat p(1-\\hat p)/n}$.' }
+          { value: [round(ph - ZQ[lev / 100] * se, 4), round(ph + ZQ[lev / 100] * se, 4)], msg: T`Interval je obojstranný, preto patrí kvantil $z_{1-\\alpha/2}$, nie jednostranný $z_{1-\\alpha}$.` },
+          { value: [round(ph - z * ph * (1 - ph) / n, 4), round(ph + z * ph * (1 - ph) / n, 4)], msg: T`Smerodajná chyba podielu je odmocnina: $\\sqrt{\\hat p(1-\\hat p)/n}$.` }
         ]),
         steps: [
-          { q: 'Aký je výberový podiel $\\hat{p}$?', answer: ph },
-          { q: 'Vypočítaj smerodajnú chybu $\\sqrt{\\hat{p}(1-\\hat{p})/n}$ (na 5 desatinných miest).', answer: round(se, 5), tol: 0.00002 },
-          { q: 'Zadaj interval v tvare „dolná; horná“ (na 4 desatinné miesta).', answer: [round(ph - h, 4), round(ph + h, 4)], type: 'tuple', tol: 0.0006, show: `${nt(ph - h, 4)}; ${nt(ph + h, 4)}` }
+          { q: T`Aký je výberový podiel $\\hat{p}$?`, answer: ph },
+          { q: T`Vypočítaj smerodajnú chybu $\\sqrt{\\hat{p}(1-\\hat{p})/n}$ (na 5 desatinných miest).`, answer: round(se, 5), tol: 0.00002 },
+          { q: T`Zadaj interval v tvare „dolná; horná“ (na 4 desatinné miesta).`, answer: [round(ph - h, 4), round(ph + h, 4)], type: 'tuple', tol: 0.0006, show: `${nt(ph - h, 4)}; ${nt(ph + h, 4)}` }
         ]
       };
     }
@@ -2104,16 +2111,16 @@
     const n = Math.ceil(v);
     return {
       answer: n, tol: 0,
-      q: `Smerodajná odchýlka meraní je $\\sigma=${sg}$. Aký najmenší rozsah výberu $n$ zaručí, že ${lev} % interval spoľahlivosti pre $\\mu$ bude mať polovičnú šírku najviac $${nm(D)}$? Použi $z_{${nm(q, 3)}}=${nm(z, 3)}$.`,
-      solution: `Požadujeme $z\\frac{\\sigma}{\\sqrt{n}}\\le\\Delta$, teda $n\\ge\\left(\\frac{${nm(z, 3)}\\cdot ${sg}}{${nm(D)}}\\right)^2\\approx ${dd(v, 2)}$. Najmenšie celé číslo je $n=${n}$.`,
-      hint: 'Z podmienky $z\\,\\sigma/\\sqrt{n}\\le\\Delta$ vyjadri $n$ a zaokrúhli nahor.',
+      q: T`Smerodajná odchýlka meraní je $\\sigma=${sg}$. Aký najmenší rozsah výberu $n$ zaručí, že ${lev} % interval spoľahlivosti pre $\\mu$ bude mať polovičnú šírku najviac $${nm(D)}$? Použi $z_{${nm(q, 3)}}=${nm(z, 3)}$.`,
+      solution: T`Požadujeme $z\\frac{\\sigma}{\\sqrt{n}}\\le\\Delta$, teda $n\\ge\\left(\\frac{${nm(z, 3)}\\cdot ${sg}}{${nm(D)}}\\right)^2\\approx ${dd(v, 2)}$. Najmenšie celé číslo je $n=${n}$.`,
+      hint: T`Z podmienky $z\\,\\sigma/\\sqrt{n}\\le\\Delta$ vyjadri $n$ a zaokrúhli nahor.`,
       mistakes: mis(n, 0, [
-        { value: Math.ceil(z * sg / D - 1e-9), msg: 'Z podmienky $\\sqrt{n}\\ge\\frac{z\\sigma}{\\Delta}$ treba výsledok ešte umocniť na druhú.' },
-        { value: Math.ceil((ZQ[lev / 100] * sg / D) ** 2 - 1e-9), msg: 'Interval je obojstranný, preto patrí kvantil $z_{1-\\alpha/2}$, nie jednostranný $z_{1-\\alpha}$.' }
+        { value: Math.ceil(z * sg / D - 1e-9), msg: T`Z podmienky $\\sqrt{n}\\ge\\frac{z\\sigma}{\\Delta}$ treba výsledok ešte umocniť na druhú.` },
+        { value: Math.ceil((ZQ[lev / 100] * sg / D) ** 2 - 1e-9), msg: T`Interval je obojstranný, preto patrí kvantil $z_{1-\\alpha/2}$, nie jednostranný $z_{1-\\alpha}$.` }
       ]),
       steps: [
-        { q: 'Vypočítaj $\\left(\\frac{z\\sigma}{\\Delta}\\right)^2$ (na 2 desatinné miesta).', answer: round(v, 2), tol: 0.011 },
-        { q: 'Aké je najmenšie vyhovujúce celé $n$?', answer: n }
+        { q: T`Vypočítaj $\\left(\\frac{z\\sigma}{\\Delta}\\right)^2$ (na 2 desatinné miesta).`, answer: round(v, 2), tol: 0.011 },
+        { q: T`Aké je najmenšie vyhovujúce celé $n$?`, answer: n }
       ]
     };
   });
@@ -2128,12 +2135,12 @@
         <line class="f-dash" x1="${n1(p.X(-zc))}" y1="${n1(p.Y(0))}" x2="${n1(p.X(-zc))}" y2="${n1(p.Y(0.33))}"/>
         <line class="f-dash" x1="${n1(p.X(zc))}" y1="${n1(p.Y(0))}" x2="${n1(p.X(zc))}" y2="${n1(p.Y(0.33))}"/>
         <circle class="f-dot" cx="${n1(p.X(-2.2))}" cy="${n1(p.Y(0))}" r="6"/>`;
-      const front = `<text class="f-small" x="${n1(p.X(-zc))}" y="${n1(p.Y(0.35))}" text-anchor="middle">−1,96</text>
-        <text class="f-small" x="${n1(p.X(zc))}" y="${n1(p.Y(0.35))}" text-anchor="middle">1,96</text>
-        <text class="f-small" x="${n1(p.X(-3.1))}" y="${n1(p.Y(0.1))}" text-anchor="middle">α/2 = 0,025</text>
-        <text class="f-small" x="${n1(p.X(3.1))}" y="${n1(p.Y(0.1))}" text-anchor="middle">α/2 = 0,025</text>
+      const front = `<text class="f-small" x="${n1(p.X(-zc))}" y="${n1(p.Y(0.35))}" text-anchor="middle">−${sk(1.96)}</text>
+        <text class="f-small" x="${n1(p.X(zc))}" y="${n1(p.Y(0.35))}" text-anchor="middle">${sk(1.96)}</text>
+        <text class="f-small" x="${n1(p.X(-3.1))}" y="${n1(p.Y(0.1))}" text-anchor="middle">α/2 = ${sk(0.025, 3)}</text>
+        <text class="f-small" x="${n1(p.X(3.1))}" y="${n1(p.Y(0.1))}" text-anchor="middle">α/2 = ${sk(0.025, 3)}</text>
         <text class="f-text" x="${n1(p.X(0))}" y="${n1(p.Y(0.2))}" text-anchor="middle">H₀ nezamietame</text>
-        <text class="f-small c-accent" x="${n1(p.X(-2.2))}" y="${n1(p.Y(0) - 12)}" text-anchor="middle">z = −2,2</text>`;
+        <text class="f-small c-accent" x="${n1(p.X(-2.2))}" y="${n1(p.Y(0) - 12)}" text-anchor="middle">z = −${sk(2.2, 1)}</text>`;
       return svg(p, xAxis(p, 1, 1), clipped, front, 'Kritický obor obojstranného z-testu na hladine 0,05');
     }
   });
@@ -2183,7 +2190,7 @@
     const zData = () => {
       const c = pick(ZTEST_CTX), r = pick([4, 5, 6, 8, 10]), se = pick([0.25, 0.5, 1, 1.5, 2]), sg = se * r, n = r * r;
       const z = round(rnd(5, 32) / 10 * pick([1, -1]), 1), m = round(c.mu + z * se, 3);
-      return { c, n, sg, se, z, m, head: `${c.txt} má normálne rozdelenie so známou smerodajnou odchýlkou $\\sigma=${nm(sg)}$ ${c.unit}. Na výbere rozsahu $n=${n}$ sme namerali priemer $\\bar{x}=${nm(m, 3)}$ ${c.unit}.` };
+      return { c, n, sg, se, z, m, head: T`${c.txt} má normálne rozdelenie so známou smerodajnou odchýlkou $\\sigma=${nm(sg)}$ ${c.unit}. Na výbere rozsahu $n=${n}$ sme namerali priemer $\\bar{x}=${nm(m, 3)}$ ${c.unit}.` };
     };
     if (t < 0.2) {
       if (Math.random() < 0.3) {
@@ -2191,32 +2198,32 @@
         const se = n === 100 ? 0.05 : 0.025, k = Math.round(n * (0.5 + z * se));
         return {
           answer: z, tol: 0.006, signed: true,
-          q: `Overujeme, či je minca pravidelná: $H_0: p=0{,}5$. Z ${n} hodov padol znak ${k}-krát. Vypočítaj hodnotu testovej štatistiky $Z=\\frac{\\hat{p}-p_0}{\\sqrt{p_0(1-p_0)/n}}$. ${R2}`,
+          q: T`Overujeme, či je minca pravidelná: $H_0: p=0{,}5$. Z ${n} hodov padol znak ${k}-krát. Vypočítaj hodnotu testovej štatistiky $Z=\\frac{\\hat{p}-p_0}{\\sqrt{p_0(1-p_0)/n}}$. ${T.s(R2)}`,
           solution: `$\\hat{p}=\\frac{${k}}{${n}}=${nm(k / n)}$, $\\sqrt{\\frac{0{,}5\\cdot 0{,}5}{${n}}}=${nm(se)}$, $Z=\\frac{${nm(k / n)}-0{,}5}{${nm(se)}}=${nm(z, 2)}$.`,
-          hint: 'Dosaď relatívnu početnosť $\\hat{p}=k/n$ a $p_0=0{,}5$ do vzorca.',
+          hint: T`Dosaď relatívnu početnosť $\\hat{p}=k/n$ a $p_0=0{,}5$ do vzorca.`,
           mistakes: mis(z, 0.006, [
-            { value: round((k / n - 0.5) / 0.5, 2), msg: 'V menovateli je smerodajná chyba podielu $\\sqrt{p_0(1-p_0)/n}$ – nezabudni deliť rozsahom $n$.' }
+            { value: round((k / n - 0.5) / 0.5, 2), msg: T`V menovateli je smerodajná chyba podielu $\\sqrt{p_0(1-p_0)/n}$ – nezabudni deliť rozsahom $n$.` }
           ]),
           steps: [
-            { q: 'Aká je relatívna početnosť $\\hat{p}$?', answer: k / n },
-            { q: 'Vypočítaj $\\sqrt{p_0(1-p_0)/n}$.', answer: se },
-            { q: `Vypočítaj $Z$. ${R2}`, answer: z, tol: 0.006, signed: true }
+            { q: T`Aká je relatívna početnosť $\\hat{p}$?`, answer: k / n },
+            { q: T`Vypočítaj $\\sqrt{p_0(1-p_0)/n}$.`, answer: se },
+            { q: T`Vypočítaj $Z$. ${T.s(R2)}`, answer: z, tol: 0.006, signed: true }
           ]
         };
       }
       const d = zData();
       return {
         answer: d.z, tol: 0.006, signed: true,
-        q: `${d.head} Testujeme $H_0: \\mu=${d.c.mu}$. Vypočítaj hodnotu testovej štatistiky $Z=\\frac{\\bar{x}-\\mu_0}{\\sigma}\\sqrt{n}$. ${R2}`,
+        q: T`${d.head} Testujeme $H_0: \\mu=${d.c.mu}$. Vypočítaj hodnotu testovej štatistiky $Z=\\frac{\\bar{x}-\\mu_0}{\\sigma}\\sqrt{n}$. ${T.s(R2)}`,
         solution: `$Z=\\frac{${nm(d.m, 3)}-${d.c.mu}}{${nm(d.sg)}}\\cdot\\sqrt{${d.n}}=\\frac{${nm(d.m - d.c.mu, 3)}}{${nm(d.se)}}=${nm(d.z, 2)}$.`,
-        hint: '$\\frac{\\sigma}{\\sqrt{n}}$ je smerodajná odchýlka priemeru; $Z$ udáva, o koľko takých jednotiek je $\\bar{x}$ vzdialený od $\\mu_0$.',
+        hint: T`$\\frac{\\sigma}{\\sqrt{n}}$ je smerodajná odchýlka priemeru; $Z$ udáva, o koľko takých jednotiek je $\\bar{x}$ vzdialený od $\\mu_0$.`,
         mistakes: mis(d.z, 0.006, [
-          { value: round((d.m - d.c.mu) / d.sg, 2), msg: 'Nezabudni na činiteľ $\\sqrt{n}$: priemer má smerodajnú odchýlku $\\sigma/\\sqrt{n}$.' },
-          { value: round((d.m - d.c.mu) / (d.sg * d.sg) * Math.sqrt(d.n), 2), msg: 'Delíš smerodajnou odchýlkou $\\sigma$, nie rozptylom $\\sigma^2$.' }
+          { value: round((d.m - d.c.mu) / d.sg, 2), msg: T`Nezabudni na činiteľ $\\sqrt{n}$: priemer má smerodajnú odchýlku $\\sigma/\\sqrt{n}$.` },
+          { value: round((d.m - d.c.mu) / (d.sg * d.sg) * Math.sqrt(d.n), 2), msg: T`Delíš smerodajnou odchýlkou $\\sigma$, nie rozptylom $\\sigma^2$.` }
         ]),
         steps: [
-          { q: 'Vypočítaj smerodajnú odchýlku priemeru $\\frac{\\sigma}{\\sqrt{n}}$.', answer: d.se },
-          { q: `Vypočítaj $Z$. ${R2}`, answer: d.z, tol: 0.006, signed: true }
+          { q: T`Vypočítaj smerodajnú odchýlku priemeru $\\frac{\\sigma}{\\sqrt{n}}$.`, answer: d.se },
+          { q: T`Vypočítaj $Z$. ${T.s(R2)}`, answer: d.z, tol: 0.006, signed: true }
         ]
       };
     }
@@ -2226,60 +2233,60 @@
       const m = round(d.c.mu + sz * d.se, 3), Pz = PhiT(Math.abs(sz)), p = side === 0 ? 2 * (1 - Pz) : 1 - Pz;
       return {
         answer: round(p, 4), tol: 0.0002,
-        q: `${d.c.txt} má normálne rozdelenie so známou smerodajnou odchýlkou $\\sigma=${nm(d.sg)}$ ${d.c.unit}. Na výbere rozsahu $n=${d.n}$ sme namerali priemer $\\bar{x}=${nm(m, 3)}$ ${d.c.unit}.
-          Testujeme $H_0: \\mu=${d.c.mu}$ proti $H_1: ${H1TXT(d.c.mu, side)}$. Vypočítaj p-hodnotu z-testu. Použi ${phiList([sz])}. ${R4}`,
+        q: T`${d.c.txt} má normálne rozdelenie so známou smerodajnou odchýlkou $\\sigma=${nm(d.sg)}$ ${d.c.unit}. Na výbere rozsahu $n=${d.n}$ sme namerali priemer $\\bar{x}=${nm(m, 3)}$ ${d.c.unit}.
+          Testujeme $H_0: \\mu=${d.c.mu}$ proti $H_1: ${H1TXT(d.c.mu, side)}$. Vypočítaj p-hodnotu z-testu. Použi ${phiList([sz])}. ${T.s(R4)}`,
         solution: `$z=\\frac{${nm(m, 3)}-${d.c.mu}}{${nm(d.sg)}}\\sqrt{${d.n}}=${nm(sz, 2)}$. ${side === 0
-          ? `Obojstranná alternatíva: $p=2(1-\\Phi(|z|))=2(1-${dd(Pz, 4)})=${dd(p, 4)}$.`
-          : side === 1 ? `Pravostranná alternatíva: $p=P(Z\\ge z)=1-\\Phi(${nm(sz, 2)})=${dd(p, 4)}$.`
-            : `Ľavostranná alternatíva: $p=P(Z\\le z)=\\Phi(${nm(sz, 2)})=1-\\Phi(${nm(-sz, 2)})=${dd(p, 4)}$.`}
-          ${p <= 0.05 ? 'Na hladine $0{,}05$ by sme $H_0$ zamietli.' : 'Na hladine $0{,}05$ by sme $H_0$ nezamietli.'}`,
-        hint: 'Najprv vypočítaj $z$. Pri obojstrannej alternatíve sa p-hodnota počíta z oboch chvostov: $2(1-\\Phi(|z|))$.',
+          ? T`Obojstranná alternatíva: $p=2(1-\\Phi(|z|))=2(1-${dd(Pz, 4)})=${dd(p, 4)}$.`
+          : side === 1 ? T`Pravostranná alternatíva: $p=P(Z\\ge z)=1-\\Phi(${nm(sz, 2)})=${dd(p, 4)}$.`
+            : T`Ľavostranná alternatíva: $p=P(Z\\le z)=\\Phi(${nm(sz, 2)})=1-\\Phi(${nm(-sz, 2)})=${dd(p, 4)}$.`}
+          ${p <= 0.05 ? T`Na hladine $0{,}05$ by sme $H_0$ zamietli.` : T`Na hladine $0{,}05$ by sme $H_0$ nezamietli.`}`,
+        hint: T`Najprv vypočítaj $z$. Pri obojstrannej alternatíve sa p-hodnota počíta z oboch chvostov: $2(1-\\Phi(|z|))$.`,
         mistakes: mis(round(p, 4), 0.0002, [
-          side === 0 ? { value: round(1 - Pz, 4), msg: 'Alternatíva je obojstranná – p-hodnota zahŕňa oba chvosty, $2(1-\\Phi(|z|))$.' }
-            : { value: round(2 * (1 - Pz), 4), msg: 'Alternatíva je jednostranná – p-hodnota zahŕňa len jeden chvost.' },
-          { value: round(Pz, 4), msg: 'p-hodnota je pravdepodobnosť chvosta za pozorovanou hodnotou, nie $\\Phi(|z|)$ – pozri sa, ktorým smerom ukazuje alternatíva.' }
+          side === 0 ? { value: round(1 - Pz, 4), msg: T`Alternatíva je obojstranná – p-hodnota zahŕňa oba chvosty, $2(1-\\Phi(|z|))$.` }
+            : { value: round(2 * (1 - Pz), 4), msg: T`Alternatíva je jednostranná – p-hodnota zahŕňa len jeden chvost.` },
+          { value: round(Pz, 4), msg: T`p-hodnota je pravdepodobnosť chvosta za pozorovanou hodnotou, nie $\\Phi(|z|)$ – pozri sa, ktorým smerom ukazuje alternatíva.` }
         ]),
         steps: [
-          { q: `Vypočítaj hodnotu štatistiky $z$. ${R2}`, answer: sz, tol: 0.006, signed: true },
-          { q: `Vypočítaj p-hodnotu. ${R4}`, answer: round(p, 4), tol: 0.0002, show: dt(p, 4) }
+          { q: T`Vypočítaj hodnotu štatistiky $z$. ${T.s(R2)}`, answer: sz, tol: 0.006, signed: true },
+          { q: T`Vypočítaj p-hodnotu. ${T.s(R4)}`, answer: round(p, 4), tol: 0.0002, show: dt(p, 4) }
         ]
       };
     }
     if (t < 0.6) {
-      let n, df, s, m, T, crit, side, mu0, c;
+      let n, df, s, m, Ts, crit, side, mu0, c;
       do {
         c = pick(ZTEST_CTX); mu0 = c.mu; n = rnd(8, 26); df = n - 1; side = pick([0, 0, 1, 2]);
         crit = side === 0 ? T975[df - 1] : T95[df - 1];
         s = rnd(10, 60) / 10;
         const target = (crit + (Math.random() * 2 - 1) * 1.2) * pick([1, -1]);
         m = round(mu0 + target * s / Math.sqrt(n), 2);
-        T = (m - mu0) / s * Math.sqrt(n);
-      } while (Math.abs(Math.abs(T) - crit) < 0.12 || Math.abs(T) < 0.2);
-      const rej = side === 0 ? Math.abs(T) >= crit : side === 1 ? T >= crit : T <= -crit;
-      const q = side === 0 ? '0{,}975' : '0{,}95';
+        Ts = (m - mu0) / s * Math.sqrt(n);
+      } while (Math.abs(Math.abs(Ts) - crit) < 0.12 || Math.abs(Ts) < 0.2);
+      const rej = side === 0 ? Math.abs(Ts) >= crit : side === 1 ? Ts >= crit : Ts <= -crit;
+      const q = side === 0 ? nm(0.975, 3) : nm(0.95, 2);
       return {
-        type: 'choice', options: ['zamietame H₀', 'nezamietame H₀'], answer: rej ? 'zamietame H₀' : 'nezamietame H₀',
-        q: `${c.txt} má normálne rozdelenie s neznámym rozptylom. Z výberu rozsahu $n=${n}$ máme $\\bar{x}=${nm(m, 2)}$ ${c.unit} a $s=${nm(s, 1)}$ ${c.unit}.
+        type: 'choice', options: [T.s('zamietame H₀'), T.s('nezamietame H₀')], answer: rej ? T.s('zamietame H₀') : T.s('nezamietame H₀'),
+        q: T`${c.txt} má normálne rozdelenie s neznámym rozptylom. Z výberu rozsahu $n=${n}$ máme $\\bar{x}=${nm(m, 2)}$ ${c.unit} a $s=${nm(s, 1)}$ ${c.unit}.
           Na hladine $\\alpha=0{,}05$ testuj $H_0: \\mu=${mu0}$ proti $H_1: ${H1TXT(mu0, side)}$. Kritická hodnota: $t_{${q}}(${df})=${dd(crit, 3)}$.`,
-        solution: `$T=\\frac{\\bar{x}-\\mu_0}{s}\\sqrt{n}=\\frac{${nm(m, 2)}-${mu0}}{${nm(s, 1)}}\\sqrt{${n}}\\approx ${dd(T, 3)}$.
-          ${side === 0 ? `Kritický obor: $|T|\\ge ${dd(crit, 3)}$.` : side === 1 ? `Kritický obor: $T\\ge ${dd(crit, 3)}$.` : `Kritický obor: $T\\le -${dd(crit, 3)}$.`}
-          ${rej ? 'Hodnota v ňom leží, $H_0$ <strong>zamietame</strong>.' : 'Hodnota v ňom neleží, $H_0$ <strong>nezamietame</strong>.'}`,
-        hint: 'Vypočítaj $T=\\frac{\\bar{x}-\\mu_0}{s}\\sqrt{n}$ a porovnaj s kritickou hodnotou podľa tvaru alternatívy.',
-        choiceHints: rej ? { 'nezamietame H₀': `Prepočítaj $T$ (nezabudni na $\\sqrt{n}$) a over, či leží v kritickom obore${side === 0 ? ' – pri obojstrannej alternatíve rozhoduje $|T|$' : side === 2 ? ' – pri ľavostrannej alternatíve je kritický obor $T\\le -t$' : ''}.` }
-          : { 'zamietame H₀': `H₀ zamietame len vtedy, keď štatistika padne do kritického oboru${side === 1 ? ' $T\\ge t$' : side === 2 ? ' $T\\le -t$' : ' $|T|\\ge t$'} – samotná veľká odchýlka opačným smerom nestačí.` },
+        solution: `$T=\\frac{\\bar{x}-\\mu_0}{s}\\sqrt{n}=\\frac{${nm(m, 2)}-${mu0}}{${nm(s, 1)}}\\sqrt{${n}}\\approx ${dd(Ts, 3)}$.
+          ${side === 0 ? T`Kritický obor: $|T|\\ge ${dd(crit, 3)}$.` : side === 1 ? T`Kritický obor: $T\\ge ${dd(crit, 3)}$.` : T`Kritický obor: $T\\le -${dd(crit, 3)}$.`}
+          ${rej ? T`Hodnota v ňom leží, $H_0$ <strong>zamietame</strong>.` : T`Hodnota v ňom neleží, $H_0$ <strong>nezamietame</strong>.`}`,
+        hint: T`Vypočítaj $T=\\frac{\\bar{x}-\\mu_0}{s}\\sqrt{n}$ a porovnaj s kritickou hodnotou podľa tvaru alternatívy.`,
+        choiceHints: rej ? { [T.s('nezamietame H₀')]: T`Prepočítaj $T$ (nezabudni na $\\sqrt{n}$) a over, či leží v kritickom obore${side === 0 ? T` – pri obojstrannej alternatíve rozhoduje $|T|$` : side === 2 ? T` – pri ľavostrannej alternatíve je kritický obor $T\\le -t$` : ''}.` }
+          : { [T.s('zamietame H₀')]: T`H₀ zamietame len vtedy, keď štatistika padne do kritického oboru${side === 1 ? ' $T\\ge t$' : side === 2 ? ' $T\\le -t$' : ' $|T|\\ge t$'} – samotná veľká odchýlka opačným smerom nestačí.` },
         steps: [
-          { q: 'Vypočítaj testovú štatistiku $T$ (na 3 desatinné miesta).', answer: round(T, 3), tol: 0.003, signed: true, show: dt(T, 3) },
-          { q: 'Aké je rozhodnutie testu?', type: 'choice', options: ['zamietame H₀', 'nezamietame H₀'], answer: rej ? 'zamietame H₀' : 'nezamietame H₀' }
+          { q: T`Vypočítaj testovú štatistiku $T$ (na 3 desatinné miesta).`, answer: round(Ts, 3), tol: 0.003, signed: true, show: dt(Ts, 3) },
+          { q: T`Aké je rozhodnutie testu?`, type: 'choice', options: [T.s('zamietame H₀'), T.s('nezamietame H₀')], answer: rej ? T.s('zamietame H₀') : T.s('nezamietame H₀') }
         ]
       };
     }
     if (t < 0.9) {
       const sc = pick([
-        { k: 6, ps: [1, 1, 1, 1, 1, 1], ns: [60, 120, 180, 240], txt: (n) => `Kocku sme hodili ${n}-krát. Čísla 1 až 6 padli postupne`, h0: 'kocka je pravidelná' },
-        { k: 4, ps: [9, 3, 3, 1], ns: [160, 320], txt: (n) => `Pri kontrole ${n} rastlín sme zistili štyri fenotypy s početnosťami`, h0: 'fenotypy sú v pomere 9 : 3 : 3 : 1' },
-        { k: 3, ps: [1, 2, 1], ns: [80, 100, 200], txt: (n) => `Medzi ${n} potomkami sme zistili tri genotypy s početnosťami`, h0: 'genotypy sú v pomere 1 : 2 : 1' },
-        { k: 3, ps: [5, 3, 2], ns: [100, 200, 300], txt: (n) => `Firma tvrdí, že jej trh sa delí v pomere 50 % : 30 % : 20 % medzi produkty A, B, C. Z ${n} predajov pripadlo na A, B, C postupne`, h0: 'podiely sú 50 %, 30 % a 20 %' },
-        { k: 5, ps: [1, 1, 1, 1, 1], ns: [100, 150, 200], txt: (n) => `Z ${n} pracovných úrazov za rok pripadlo na pondelok až piatok postupne`, h0: 'úrazy sú rovnomerne rozdelené medzi pracovné dni' }
+        { k: 6, ps: [1, 1, 1, 1, 1, 1], ns: [60, 120, 180, 240], txt: (n) => T`Kocku sme hodili ${n}-krát. Čísla 1 až 6 padli postupne`, h0: T`kocka je pravidelná` },
+        { k: 4, ps: [9, 3, 3, 1], ns: [160, 320], txt: (n) => T`Pri kontrole ${n} rastlín sme zistili štyri fenotypy s početnosťami`, h0: T`fenotypy sú v pomere 9 : 3 : 3 : 1` },
+        { k: 3, ps: [1, 2, 1], ns: [80, 100, 200], txt: (n) => T`Medzi ${n} potomkami sme zistili tri genotypy s početnosťami`, h0: T`genotypy sú v pomere 1 : 2 : 1` },
+        { k: 3, ps: [5, 3, 2], ns: [100, 200, 300], txt: (n) => T`Firma tvrdí, že jej trh sa delí v pomere 50 % : 30 % : 20 % medzi produkty A, B, C. Z ${n} predajov pripadlo na A, B, C postupne`, h0: T`podiely sú 50 %, 30 % a 20 %` },
+        { k: 5, ps: [1, 1, 1, 1, 1], ns: [100, 150, 200], txt: (n) => T`Z ${n} pracovných úrazov za rok pripadlo na pondelok až piatok postupne`, h0: T`úrazy sú rovnomerne rozdelené medzi pracovné dni` }
       ]);
       const n = pick(sc.ns), tot = sum(sc.ps), E = sc.ps.map((p) => n * p / tot);
       let O, chi;
@@ -2292,55 +2299,57 @@
         if (chi > 0.3) break;
       }
       const crit = CHI95[sc.k - 2], terms = O.map((o, i) => `\\frac{(${o}-${E[i]})^2}{${E[i]}}`).join('+');
-      const base = `${sc.txt(n)} ${O.join(', ')}. Testujeme $H_0$: ${sc.h0}.`;
+      const base = T`${sc.txt(n)} ${O.join(', ')}. Testujeme $H_0$: ${sc.h0}.`;
       if (t < 0.75 || Math.abs(chi - crit) < 0.3) {
         return {
           answer: round(chi, 2), tol: 0.011,
-          q: `${base} Vypočítaj hodnotu štatistiky $\\chi^2$ testu dobrej zhody. ${R2}`,
-          solution: `Očakávané početnosti $np_i$: ${E.join(', ')}. $\\chi^2=${terms}\\approx ${dd(chi, 2)}$.`,
-          hint: 'Očakávané početnosti sú $n\\,p_i$; sčítaj $\\frac{(N_i-np_i)^2}{np_i}$ cez všetky kategórie.',
+          q: T`${base} Vypočítaj hodnotu štatistiky $\\chi^2$ testu dobrej zhody. ${T.s(R2)}`,
+          solution: T`Očakávané početnosti $np_i$: ${E.join(', ')}. $\\chi^2=${terms}\\approx ${dd(chi, 2)}$.`,
+          hint: T`Očakávané početnosti sú $n\\,p_i$; sčítaj $\\frac{(N_i-np_i)^2}{np_i}$ cez všetky kategórie.`,
           mistakes: mis(round(chi, 2), 0.011, [
-            { value: round(sum(O.map((o, i) => (o - E[i]) ** 2 / o)), 2), msg: 'V menovateli sú očakávané početnosti $np_i$, nie pozorované početnosti.' },
-            { value: round(sum(O.map((o, i) => (o - E[i]) ** 2)), 2), msg: 'Každý štvorec rozdielu treba vydeliť očakávanou početnosťou $np_i$.' }
+            { value: round(sum(O.map((o, i) => (o - E[i]) ** 2 / o)), 2), msg: T`V menovateli sú očakávané početnosti $np_i$, nie pozorované početnosti.` },
+            { value: round(sum(O.map((o, i) => (o - E[i]) ** 2)), 2), msg: T`Každý štvorec rozdielu treba vydeliť očakávanou početnosťou $np_i$.` }
           ]),
           steps: [
-            { q: 'Aká je očakávaná početnosť prvej kategórie $np_1$?', answer: E[0] },
-            { q: `Vypočítaj $\\chi^2$. ${R2}`, answer: round(chi, 2), tol: 0.011, show: dt(chi, 2) }
+            { q: T`Aká je očakávaná početnosť prvej kategórie $np_1$?`, answer: E[0] },
+            { q: T`Vypočítaj $\\chi^2$. ${T.s(R2)}`, answer: round(chi, 2), tol: 0.011, show: dt(chi, 2) }
           ]
         };
       }
       const rej = chi >= crit;
       return {
-        type: 'choice', options: ['zamietame H₀', 'nezamietame H₀'], answer: rej ? 'zamietame H₀' : 'nezamietame H₀',
-        q: `${base} Rozhodni na hladine $\\alpha=0{,}05$. Kritická hodnota: $\\chi^2_{0{,}95}(${sc.k - 1})=${dd(crit, 3)}$.`,
-        solution: `Očakávané početnosti: ${E.join(', ')}. $\\chi^2=${terms}\\approx ${dd(chi, 2)}$. Počet stupňov voľnosti $k-1=${sc.k - 1}$.
-          ${rej ? `$${dd(chi, 2)}\\ge ${dd(crit, 3)}$, $H_0$ <strong>zamietame</strong>.` : `$${dd(chi, 2)}\\lt ${dd(crit, 3)}$, $H_0$ <strong>nezamietame</strong>.`}`,
-        hint: 'Vypočítaj $\\chi^2=\\sum\\frac{(N_i-np_i)^2}{np_i}$ a porovnaj ho s kvantilom $\\chi^2_{0{,}95}(k-1)$.',
-        choiceHints: rej ? { 'nezamietame H₀': 'Prepočítaj $\\chi^2$ – v menovateľoch sú očakávané početnosti $np_i$ – a porovnaj s kritickou hodnotou.' }
-          : { 'zamietame H₀': '$H_0$ zamietame, len ak $\\chi^2$ dosiahne kritickú hodnotu. Prepočítaj štatistiku a porovnaj.' },
+        type: 'choice', options: [T.s('zamietame H₀'), T.s('nezamietame H₀')], answer: rej ? T.s('zamietame H₀') : T.s('nezamietame H₀'),
+        q: T`${base} Rozhodni na hladine $\\alpha=0{,}05$. Kritická hodnota: $\\chi^2_{0{,}95}(${sc.k - 1})=${dd(crit, 3)}$.`,
+        solution: T`Očakávané početnosti: ${E.join(', ')}. $\\chi^2=${terms}\\approx ${dd(chi, 2)}$. Počet stupňov voľnosti $k-1=${sc.k - 1}$.
+          ${rej ? T`$${dd(chi, 2)}\\ge ${dd(crit, 3)}$, $H_0$ <strong>zamietame</strong>.` : T`$${dd(chi, 2)}\\lt ${dd(crit, 3)}$, $H_0$ <strong>nezamietame</strong>.`}`,
+        hint: T`Vypočítaj $\\chi^2=\\sum\\frac{(N_i-np_i)^2}{np_i}$ a porovnaj ho s kvantilom $\\chi^2_{0{,}95}(k-1)$.`,
+        choiceHints: rej ? { [T.s('nezamietame H₀')]: T`Prepočítaj $\\chi^2$ – v menovateľoch sú očakávané početnosti $np_i$ – a porovnaj s kritickou hodnotou.` }
+          : { [T.s('zamietame H₀')]: T`$H_0$ zamietame, len ak $\\chi^2$ dosiahne kritickú hodnotu. Prepočítaj štatistiku a porovnaj.` },
         steps: [
-          { q: `Vypočítaj $\\chi^2$. ${R2}`, answer: round(chi, 2), tol: 0.011, show: dt(chi, 2) },
-          { q: 'Aké je rozhodnutie testu?', type: 'choice', options: ['zamietame H₀', 'nezamietame H₀'], answer: rej ? 'zamietame H₀' : 'nezamietame H₀' }
+          { q: T`Vypočítaj $\\chi^2$. ${T.s(R2)}`, answer: round(chi, 2), tol: 0.011, show: dt(chi, 2) },
+          { q: T`Aké je rozhodnutie testu?`, type: 'choice', options: [T.s('zamietame H₀'), T.s('nezamietame H₀')], answer: rej ? T.s('zamietame H₀') : T.s('nezamietame H₀') }
         ]
       };
     }
     const sc = pick([
-      { h0: 'nový liek nemá žiadny účinok', yes: 'liek v skutočnosti účinkuje', no: 'liek v skutočnosti neúčinkuje' },
-      { h0: 'automat plní priemerne 500 g', yes: 'automat v skutočnosti plní menej', no: 'automat v skutočnosti plní priemerne 500 g' },
-      { h0: 'obžalovaný je nevinný', yes: 'obžalovaný je v skutočnosti vinný', no: 'obžalovaný je v skutočnosti nevinný' }
+      { h0: T`nový liek nemá žiadny účinok`, yes: T`liek v skutočnosti účinkuje`, no: T`liek v skutočnosti neúčinkuje` },
+      { h0: T`automat plní priemerne 500 g`, yes: T`automat v skutočnosti plní menej`, no: T`automat v skutočnosti plní priemerne 500 g` },
+      { h0: T`obžalovaný je nevinný`, yes: T`obžalovaný je v skutočnosti vinný`, no: T`obžalovaný je v skutočnosti nevinný` }
     ]);
     const h0true = Math.random() < 0.5, rej = Math.random() < 0.5;
-    const ans = h0true && rej ? 'chyba 1. druhu' : !h0true && !rej ? 'chyba 2. druhu' : 'žiadna chyba';
+    // ans je nepreložené id možnosti (porovnáva sa v logike), zobrazí sa cez T.s
+    const OPTS = ['chyba 1. druhu', 'chyba 2. druhu', 'žiadna chyba'];
+    const ans = h0true && rej ? OPTS[0] : !h0true && !rej ? OPTS[1] : OPTS[2];
     return {
-      type: 'choice', options: ['chyba 1. druhu', 'chyba 2. druhu', 'žiadna chyba'], answer: ans,
-      q: `Testujeme $H_0$: ${sc.h0}. Predpokladajme, že ${h0true ? sc.no : sc.yes}, a test $H_0$ ${rej ? 'zamietol' : 'nezamietol'}. O aký výsledok ide?`,
-      solution: `$H_0$ ${h0true ? 'platí' : 'neplatí'} a test ju ${rej ? 'zamietol' : 'nezamietol'}. ${ans === 'chyba 1. druhu' ? 'Zamietnutie pravdivej $H_0$ je <strong>chyba 1. druhu</strong> (jej pravdepodobnosť kontroluje hladina $\\alpha$).'
-        : ans === 'chyba 2. druhu' ? 'Nezamietnutie nepravdivej $H_0$ je <strong>chyba 2. druhu</strong> (pravdepodobnosť $\\beta$).' : 'Rozhodnutie zodpovedá skutočnosti, ide o <strong>správne rozhodnutie</strong>.'}`,
-      hint: 'Chyba 1. druhu: zamietneme pravdivú $H_0$. Chyba 2. druhu: nezamietneme nepravdivú $H_0$.',
-      choiceHints: Object.fromEntries(['chyba 1. druhu', 'chyba 2. druhu', 'žiadna chyba'].filter((o) => o !== ans).map((o) => [o, {
-        'chyba 1. druhu': 'Chyba 1. druhu nastane len vtedy, keď $H_0$ platí a test ju napriek tomu zamietne. Over najprv, či tu $H_0$ platí.',
-        'chyba 2. druhu': 'Chyba 2. druhu nastane len vtedy, keď $H_0$ neplatí a test ju nezamietne. Over najprv, či tu $H_0$ platí.',
-        'žiadna chyba': 'Porovnaj skutočnosť s rozhodnutím testu: zodpovedá zamietnutie / nezamietnutie tomu, či $H_0$ naozaj platí?'
+      type: 'choice', options: OPTS.map((o) => T.s(o)), answer: T.s(ans),
+      q: T`Testujeme $H_0$: ${sc.h0}. Predpokladajme, že ${h0true ? sc.no : sc.yes}, a test $H_0$ ${rej ? T`zamietol` : T`nezamietol`}. O aký výsledok ide?`,
+      solution: T`$H_0$ ${h0true ? T`platí` : T`neplatí`} a test ju ${rej ? T`zamietol` : T`nezamietol`}. ${ans === 'chyba 1. druhu' ? T`Zamietnutie pravdivej $H_0$ je <strong>chyba 1. druhu</strong> (jej pravdepodobnosť kontroluje hladina $\\alpha$).`
+        : ans === 'chyba 2. druhu' ? T`Nezamietnutie nepravdivej $H_0$ je <strong>chyba 2. druhu</strong> (pravdepodobnosť $\\beta$).` : T`Rozhodnutie zodpovedá skutočnosti, ide o <strong>správne rozhodnutie</strong>.`}`,
+      hint: T`Chyba 1. druhu: zamietneme pravdivú $H_0$. Chyba 2. druhu: nezamietneme nepravdivú $H_0$.`,
+      choiceHints: Object.fromEntries(OPTS.filter((o) => o !== ans).map((o) => [T.s(o), {
+        'chyba 1. druhu': T`Chyba 1. druhu nastane len vtedy, keď $H_0$ platí a test ju napriek tomu zamietne. Over najprv, či tu $H_0$ platí.`,
+        'chyba 2. druhu': T`Chyba 2. druhu nastane len vtedy, keď $H_0$ neplatí a test ju nezamietne. Over najprv, či tu $H_0$ platí.`,
+        'žiadna chyba': T`Porovnaj skutočnosť s rozhodnutím testu: zodpovedá zamietnutie / nezamietnutie tomu, či $H_0$ naozaj platí?`
       }[o]]))
     };
   });
@@ -2367,7 +2376,7 @@
       xs.forEach((x, i) => { clipped += `<circle class="f-dot" cx="${n1(p.X(x))}" cy="${n1(p.Y(ys[i]))}" r="4"/>`; });
       return {
         svg: svg(p, back, clipped, '', 'Bodový graf s regresnou priamkou a rezíduami'),
-        readout: `<span class="c-accent">ŷ = ${sk(a, 2)} + ${sk(b, 3)}x</span> · r = ${sk(r, 3)} · R² = ${sk(r * r, 3)} (skutočná priamka y = 2 + 0,8x)`
+        readout: T`<span class="c-accent">ŷ = ${sk(a, 2)} + ${sk(b, 3)}x</span> · r = ${sk(r, 3)} · R² = ${sk(r * r, 3)} (skutočná priamka y = 2 + ${sk(0.8, 1)}x)`
       };
     }
   });
@@ -2419,40 +2428,40 @@
         ys = xs.map((x) => Math.round(a0 + b0 * x + rnd(-2, 2)));
         st = regStats(xs, ys);
       } while (st.Syy < 4 || Math.abs(st.r) < 0.3);
-      const head = `Pre dvojice $(x_i, y_i)$ z tabuľky${regTable(xs, ys)}`;
+      const head = T`Pre dvojice $(x_i, y_i)$ z tabuľky${regTable(xs, ys)}`;
       const base = `$\\bar{x}=${nm(st.mx)}$, $\\bar{y}=${nm(st.my)}$, $S_{xx}=${nm(st.Sxx)}$, $S_{xy}=${nm(st.Sxy)}$`;
       if (t < 0.28) {
         return {
           type: 'tuple', answer: [round(st.a, 3), round(st.b, 3)], tol: 0.002, placeholder: 'a; b', signed: true,
-          q: `${head}urči metódou najmenších štvorcov koeficienty regresnej priamky $\\hat{y}=a+bx$. Zadaj ich v tvare „a; b“ zaokrúhlené na 3 desatinné miesta.`,
+          q: T`${head}urči metódou najmenších štvorcov koeficienty regresnej priamky $\\hat{y}=a+bx$. Zadaj ich v tvare „a; b“ zaokrúhlené na 3 desatinné miesta.`,
           solution: `${base}. $b=\\frac{S_{xy}}{S_{xx}}=\\frac{${nm(st.Sxy)}}{${nm(st.Sxx)}}\\approx ${dd(st.b, 3)}$, $a=\\bar{y}-b\\bar{x}=${nm(st.my)}-${par(nm(st.b, 6))}\\cdot ${nm(st.mx)}\\approx ${dd(st.a, 3)}$.`,
           hint: '$b=S_{xy}/S_{xx}$, $a=\\bar{y}-b\\bar{x}$.',
           mistakes: misT([round(st.a, 3), round(st.b, 3)], 0.002, [
-            { value: [round(st.my + st.b * st.mx, 3), round(st.b, 3)], msg: 'Priamka prechádza bodom $(\\bar x, \\bar y)$, preto $a=\\bar{y}-b\\bar{x}$ – pozor na znamienko.' },
-            { value: [round(st.my - st.Sxy / st.Syy * st.mx, 3), round(st.Sxy / st.Syy, 3)], msg: 'Smernica regresie $y$ na $x$ je $b=\\frac{S_{xy}}{S_{xx}}$ – v menovateli je súčet štvorcov odchýlok $x$, nie $y$.' }
+            { value: [round(st.my + st.b * st.mx, 3), round(st.b, 3)], msg: T`Priamka prechádza bodom $(\\bar x, \\bar y)$, preto $a=\\bar{y}-b\\bar{x}$ – pozor na znamienko.` },
+            { value: [round(st.my - st.Sxy / st.Syy * st.mx, 3), round(st.Sxy / st.Syy, 3)], msg: T`Smernica regresie $y$ na $x$ je $b=\\frac{S_{xy}}{S_{xx}}$ – v menovateli je súčet štvorcov odchýlok $x$, nie $y$.` }
           ]),
           steps: [
-            { q: 'Vypočítaj $\\bar{x}$ a $\\bar{y}$. Zadaj ich v tvare „x̄; ȳ“.', answer: [st.mx, st.my], type: 'tuple', tol: 0.001, signed: true, show: `${nt(st.mx, 4)}; ${nt(st.my, 4)}` },
-            { q: 'Vypočítaj $S_{xx}=\\sum(x_i-\\bar{x})^2$.', answer: round(st.Sxx, 4), tol: 0.001 },
-            { q: 'Vypočítaj $S_{xy}=\\sum(x_i-\\bar{x})(y_i-\\bar{y})$.', answer: round(st.Sxy, 4), tol: 0.001, signed: true },
-            { q: 'Vypočítaj $b=S_{xy}/S_{xx}$ a $a=\\bar{y}-b\\bar{x}$. Zadaj „a; b“ na 3 desatinné miesta.', answer: [round(st.a, 3), round(st.b, 3)], type: 'tuple', tol: 0.002, signed: true, show: `${nt(st.a, 3)}; ${nt(st.b, 3)}` }
+            { q: T`Vypočítaj $\\bar{x}$ a $\\bar{y}$. Zadaj ich v tvare „x̄; ȳ“.`, answer: [st.mx, st.my], type: 'tuple', tol: 0.001, signed: true, show: `${nt(st.mx, 4)}; ${nt(st.my, 4)}` },
+            { q: T`Vypočítaj $S_{xx}=\\sum(x_i-\\bar{x})^2$.`, answer: round(st.Sxx, 4), tol: 0.001 },
+            { q: T`Vypočítaj $S_{xy}=\\sum(x_i-\\bar{x})(y_i-\\bar{y})$.`, answer: round(st.Sxy, 4), tol: 0.001, signed: true },
+            { q: T`Vypočítaj $b=S_{xy}/S_{xx}$ a $a=\\bar{y}-b\\bar{x}$. Zadaj „a; b“ na 3 desatinné miesta.`, answer: [round(st.a, 3), round(st.b, 3)], type: 'tuple', tol: 0.002, signed: true, show: `${nt(st.a, 3)}; ${nt(st.b, 3)}` }
           ]
         };
       }
       return {
         answer: round(st.r, 4), tol: 0.0003, signed: true,
-        q: `${head}vypočítaj výberový korelačný koeficient $r$. ${R4}`,
+        q: T`${head}vypočítaj výberový korelačný koeficient $r$. ${T.s(R4)}`,
         solution: `${base}, $S_{yy}=${nm(st.Syy)}$. $r=\\frac{${nm(st.Sxy)}}{\\sqrt{${nm(st.Sxx)}\\cdot ${nm(st.Syy)}}}\\approx ${dd(st.r, 4)}$.`,
-        hint: '$r=\\frac{S_{xy}}{\\sqrt{S_{xx}S_{yy}}}$, kde $S_{xy}=\\sum(x_i-\\bar{x})(y_i-\\bar{y})$.',
+        hint: T`$r=\\frac{S_{xy}}{\\sqrt{S_{xx}S_{yy}}}$, kde $S_{xy}=\\sum(x_i-\\bar{x})(y_i-\\bar{y})$.`,
         mistakes: mis(round(st.r, 4), 0.0003, [
-          { value: round(st.b, 4), msg: 'To je smernica regresnej priamky $S_{xy}/S_{xx}$. Korelačný koeficient má v menovateli $\\sqrt{S_{xx}S_{yy}}$.' },
-          { value: round(st.Sxy / (st.Sxx * st.Syy), 4), msg: 'V menovateli je odmocnina súčinu $\\sqrt{S_{xx}S_{yy}}$.' }
+          { value: round(st.b, 4), msg: T`To je smernica regresnej priamky $S_{xy}/S_{xx}$. Korelačný koeficient má v menovateli $\\sqrt{S_{xx}S_{yy}}$.` },
+          { value: round(st.Sxy / (st.Sxx * st.Syy), 4), msg: T`V menovateli je odmocnina súčinu $\\sqrt{S_{xx}S_{yy}}$.` }
         ]),
         steps: [
-          { q: 'Vypočítaj $S_{xx}$.', answer: round(st.Sxx, 4), tol: 0.001 },
-          { q: 'Vypočítaj $S_{yy}$.', answer: round(st.Syy, 4), tol: 0.001 },
-          { q: 'Vypočítaj $S_{xy}$.', answer: round(st.Sxy, 4), tol: 0.001, signed: true },
-          { q: `Vypočítaj $r$. ${R4}`, answer: round(st.r, 4), tol: 0.0003, signed: true }
+          { q: T`Vypočítaj $S_{xx}$.`, answer: round(st.Sxx, 4), tol: 0.001 },
+          { q: T`Vypočítaj $S_{yy}$.`, answer: round(st.Syy, 4), tol: 0.001 },
+          { q: T`Vypočítaj $S_{xy}$.`, answer: round(st.Sxy, 4), tol: 0.001, signed: true },
+          { q: T`Vypočítaj $r$. ${T.s(R4)}`, answer: round(st.r, 4), tol: 0.0003, signed: true }
         ]
       };
     }
@@ -2460,55 +2469,55 @@
       const n = pick([10, 20, 25]), mx = rnd(2, 12), my = rnd(10, 60), Sxx = pick([40, 50, 60, 80, 100, 120]);
       const b = pick([-2, -1.5, -1, -0.5, -0.25, 0.25, 0.5, 0.75, 1.2, 1.5, 2, 2.5]), Sxy = b * Sxx, a = my - b * mx;
       const Sx = n * mx, Sy = n * my, Sx2 = Sxx + n * mx * mx, Sxyr = Sxy + n * mx * my;
-      const head = `Z $n=${n}$ dvojíc poznáme $\\sum x_i=${ths(Sx)}$, $\\sum y_i=${ths(Sy)}$, $\\sum x_i^2=${ths(Sx2)}$ a $\\sum x_iy_i=${ths(nm(Sxyr))}$.`;
+      const head = T`Z $n=${n}$ dvojíc poznáme $\\sum x_i=${ths(Sx)}$, $\\sum y_i=${ths(Sy)}$, $\\sum x_i^2=${ths(Sx2)}$ a $\\sum x_iy_i=${ths(nm(Sxyr))}$.`;
       const base = `$\\bar{x}=${mx}$, $\\bar{y}=${my}$, $S_{xx}=${ths(Sx2)}-${n}\\cdot ${mx}^2=${Sxx}$, $S_{xy}=${ths(nm(Sxyr))}-${n}\\cdot ${mx}\\cdot ${my}=${nm(Sxy)}$, $b=\\frac{${nm(Sxy)}}{${Sxx}}=${nm(b)}$`;
       const kind = rnd(0, 2);
       if (kind === 0) {
         return {
           answer: b, tol: 0.001, signed: true,
-          q: `${head} Urči smernicu $b$ regresnej priamky $\\hat{y}=a+bx$.`,
+          q: T`${head} Urči smernicu $b$ regresnej priamky $\\hat{y}=a+bx$.`,
           solution: `${base}.`,
           hint: '$S_{xx}=\\sum x_i^2-n\\bar{x}^2$, $S_{xy}=\\sum x_iy_i-n\\bar{x}\\bar{y}$, $b=S_{xy}/S_{xx}$.',
           mistakes: mis(b, 0.001, [
-            { value: round(Sxyr / Sx2, 4), msg: 'Súčty $\\sum x_i^2$ a $\\sum x_iy_i$ treba najprv centrovať: $S_{xx}=\\sum x_i^2-n\\bar{x}^2$, $S_{xy}=\\sum x_iy_i-n\\bar{x}\\bar{y}$.' }
+            { value: round(Sxyr / Sx2, 4), msg: T`Súčty $\\sum x_i^2$ a $\\sum x_iy_i$ treba najprv centrovať: $S_{xx}=\\sum x_i^2-n\\bar{x}^2$, $S_{xy}=\\sum x_iy_i-n\\bar{x}\\bar{y}$.` }
           ]),
           steps: [
-            { q: 'Vypočítaj $S_{xx}=\\sum x_i^2-n\\bar{x}^2$.', answer: Sxx },
-            { q: 'Vypočítaj $S_{xy}=\\sum x_iy_i-n\\bar{x}\\bar{y}$.', answer: Sxy, tol: 0.001, signed: true },
-            { q: 'Vypočítaj smernicu $b$.', answer: b, tol: 0.001, signed: true }
+            { q: T`Vypočítaj $S_{xx}=\\sum x_i^2-n\\bar{x}^2$.`, answer: Sxx },
+            { q: T`Vypočítaj $S_{xy}=\\sum x_iy_i-n\\bar{x}\\bar{y}$.`, answer: Sxy, tol: 0.001, signed: true },
+            { q: T`Vypočítaj smernicu $b$.`, answer: b, tol: 0.001, signed: true }
           ]
         };
       }
       if (kind === 1) {
         return {
           answer: a, tol: 0.001, signed: true,
-          q: `${head} Urči absolútny člen $a$ regresnej priamky $\\hat{y}=a+bx$.`,
+          q: T`${head} Urči absolútny člen $a$ regresnej priamky $\\hat{y}=a+bx$.`,
           solution: `${base}, $a=\\bar{y}-b\\bar{x}=${my}-${par(nm(b))}\\cdot ${mx}=${nm(a)}$.`,
-          hint: 'Najprv smernica $b=S_{xy}/S_{xx}$, potom $a=\\bar{y}-b\\bar{x}$ (priamka prechádza bodom $(\\bar{x}, \\bar{y})$).',
+          hint: T`Najprv smernica $b=S_{xy}/S_{xx}$, potom $a=\\bar{y}-b\\bar{x}$ (priamka prechádza bodom $(\\bar{x}, \\bar{y})$).`,
           mistakes: mis(a, 0.001, [
-            { value: my + b * mx, msg: 'Priamka prechádza bodom $(\\bar x, \\bar y)$, preto $a=\\bar{y}-b\\bar{x}$ – pozor na znamienko.' },
-            { value: my, msg: 'Absolútny člen nie je $\\bar y$ – je to hodnota priamky v bode $x=0$, teda $a=\\bar{y}-b\\bar{x}$.' }
+            { value: my + b * mx, msg: T`Priamka prechádza bodom $(\\bar x, \\bar y)$, preto $a=\\bar{y}-b\\bar{x}$ – pozor na znamienko.` },
+            { value: my, msg: T`Absolútny člen nie je $\\bar y$ – je to hodnota priamky v bode $x=0$, teda $a=\\bar{y}-b\\bar{x}$.` }
           ]),
           steps: [
-            { q: 'Vypočítaj smernicu $b$.', answer: b, tol: 0.001, signed: true },
-            { q: 'Vypočítaj absolútny člen $a$.', answer: a, tol: 0.001, signed: true }
+            { q: T`Vypočítaj smernicu $b$.`, answer: b, tol: 0.001, signed: true },
+            { q: T`Vypočítaj absolútny člen $a$.`, answer: a, tol: 0.001, signed: true }
           ]
         };
       }
       const x0 = mx + pick([-3, -2, 2, 3, 4]), y0 = a + b * x0;
       return {
         answer: y0, tol: 0.001, signed: true,
-        q: `${head} Pomocou regresnej priamky $\\hat{y}=a+bx$ odhadni hodnotu $y$ pre $x=${x0}$.`,
+        q: T`${head} Pomocou regresnej priamky $\\hat{y}=a+bx$ odhadni hodnotu $y$ pre $x=${x0}$.`,
         solution: `${base}, $a=${my}-${par(nm(b))}\\cdot ${mx}=${nm(a)}$. $\\hat{y}(${x0})=${nm(a)}+${par(nm(b))}\\cdot ${par(String(x0))}=${nm(y0)}$.`,
-        hint: 'Urči $b$ a $a$ zo súčtov, potom dosaď $x$ do $\\hat{y}=a+bx$.',
+        hint: T`Urči $b$ a $a$ zo súčtov, potom dosaď $x$ do $\\hat{y}=a+bx$.`,
         mistakes: mis(y0, 0.001, [
-          { value: my + b * mx + b * x0, msg: 'Pozor na znamienko v absolútnom člene: $a=\\bar{y}-b\\bar{x}$.' },
-          { value: my + b * x0, msg: 'Absolútny člen nie je $\\bar y$: priamka prechádza bodom $(\\bar x, \\bar y)$, takže $a=\\bar{y}-b\\bar{x}$.' }
+          { value: my + b * mx + b * x0, msg: T`Pozor na znamienko v absolútnom člene: $a=\\bar{y}-b\\bar{x}$.` },
+          { value: my + b * x0, msg: T`Absolútny člen nie je $\\bar y$: priamka prechádza bodom $(\\bar x, \\bar y)$, takže $a=\\bar{y}-b\\bar{x}$.` }
         ]),
         steps: [
-          { q: 'Vypočítaj smernicu $b$.', answer: b, tol: 0.001, signed: true },
-          { q: 'Vypočítaj absolútny člen $a$.', answer: a, tol: 0.001, signed: true },
-          { q: `Vypočítaj $\\hat{y}(${x0})$.`, answer: y0, tol: 0.001, signed: true }
+          { q: T`Vypočítaj smernicu $b$.`, answer: b, tol: 0.001, signed: true },
+          { q: T`Vypočítaj absolútny člen $a$.`, answer: a, tol: 0.001, signed: true },
+          { q: T`Vypočítaj $\\hat{y}(${x0})$.`, answer: y0, tol: 0.001, signed: true }
         ]
       };
     }
@@ -2517,25 +2526,25 @@
       const R2v = Sxy * Sxy / (Sxx * Syy);
       return {
         answer: round(R2v, 4), tol: 0.0002,
-        q: `Pre dáta $(x_i, y_i)$ platí $S_{xx}=${Sxx}$, $S_{yy}=${Syy}$ a $S_{xy}=${Sxy}$. Vypočítaj koeficient determinácie $R^2$ regresnej priamky. ${R4}`,
-        solution: `$r=\\frac{${Sxy}}{\\sqrt{${Sxx}\\cdot ${Syy}}}$ a pri jednoduchej regresii $R^2=r^2=\\frac{${par(String(Sxy))}^2}{${Sxx}\\cdot ${Syy}}=\\frac{${Sxy * Sxy}}{${Sxx * Syy}}\\approx ${dd(R2v, 4)}$.`,
-        hint: 'Pri jednoduchej lineárnej regresii je $R^2=r^2=\\frac{S_{xy}^2}{S_{xx}S_{yy}}$.',
+        q: T`Pre dáta $(x_i, y_i)$ platí $S_{xx}=${Sxx}$, $S_{yy}=${Syy}$ a $S_{xy}=${Sxy}$. Vypočítaj koeficient determinácie $R^2$ regresnej priamky. ${T.s(R4)}`,
+        solution: T`$r=\\frac{${Sxy}}{\\sqrt{${Sxx}\\cdot ${Syy}}}$ a pri jednoduchej regresii $R^2=r^2=\\frac{${par(String(Sxy))}^2}{${Sxx}\\cdot ${Syy}}=\\frac{${Sxy * Sxy}}{${Sxx * Syy}}\\approx ${dd(R2v, 4)}$.`,
+        hint: T`Pri jednoduchej lineárnej regresii je $R^2=r^2=\\frac{S_{xy}^2}{S_{xx}S_{yy}}$.`,
         mistakes: mis(round(R2v, 4), 0.0002, [
-          { value: round(Sxy / Math.sqrt(Sxx * Syy), 4), msg: 'To je korelačný koeficient $r$. Koeficient determinácie je jeho druhá mocnina.' }        ]),
+          { value: round(Sxy / Math.sqrt(Sxx * Syy), 4), msg: T`To je korelačný koeficient $r$. Koeficient determinácie je jeho druhá mocnina.` }        ]),
         steps: [
-          { q: `Vypočítaj korelačný koeficient $r$. ${R4}`, answer: round(Sxy / Math.sqrt(Sxx * Syy), 4), tol: 0.0002, signed: true },
-          { q: `Vypočítaj $R^2$. ${R4}`, answer: round(R2v, 4), tol: 0.0002 }
+          { q: T`Vypočítaj korelačný koeficient $r$. ${T.s(R4)}`, answer: round(Sxy / Math.sqrt(Sxx * Syy), 4), tol: 0.0002, signed: true },
+          { q: T`Vypočítaj $R^2$. ${T.s(R4)}`, answer: round(R2v, 4), tol: 0.0002 }
         ]
       };
     }
     const SST = pick([200, 250, 400, 500, 800]), SSE = rnd(Math.round(SST * 0.05), Math.round(SST * 0.7)), R2v = 1 - SSE / SST;
     return {
       answer: round(R2v, 4), tol: 0.0002,
-      q: `Pri regresii je celkový súčet štvorcov $SST=\\sum(y_i-\\bar{y})^2=${SST}$ a reziduálny súčet štvorcov $SSE=\\sum(y_i-\\hat{y}_i)^2=${SSE}$. Vypočítaj koeficient determinácie $R^2$. ${R4}`,
-      solution: `$R^2=1-\\frac{SSE}{SST}=1-\\frac{${SSE}}{${SST}}=${nm(R2v, 4)}$. Model vysvetľuje ${nt(R2v * 100, 2)} % variability premennej $y$.`,
-      hint: '$R^2=1-SSE/SST$ je podiel vysvetlenej variability.',
+      q: T`Pri regresii je celkový súčet štvorcov $SST=\\sum(y_i-\\bar{y})^2=${SST}$ a reziduálny súčet štvorcov $SSE=\\sum(y_i-\\hat{y}_i)^2=${SSE}$. Vypočítaj koeficient determinácie $R^2$. ${T.s(R4)}`,
+      solution: T`$R^2=1-\\frac{SSE}{SST}=1-\\frac{${SSE}}{${SST}}=${nm(R2v, 4)}$. Model vysvetľuje ${nt(R2v * 100, 2)} % variability premennej $y$.`,
+      hint: T`$R^2=1-SSE/SST$ je podiel vysvetlenej variability.`,
       mistakes: mis(round(R2v, 4), 0.0002, [
-        { value: round(SSE / SST, 4), msg: 'Podiel $SSE/SST$ je nevysvetlená časť variability. Koeficient determinácie je jej doplnok do 1.' }
+        { value: round(SSE / SST, 4), msg: T`Podiel $SSE/SST$ je nevysvetlená časť variability. Koeficient determinácie je jej doplnok do 1.` }
       ])
     };
   });

@@ -3,6 +3,7 @@
 (function () {
   'use strict';
 
+  const { T } = CONTENT_I18N;
   const n1 = (v) => Math.round(v * 10) / 10;
   // číslo s desatinným oddeľovačom jazyka obsahu (slovenčina čiarka)
   const sk = (v, d = 2) => (Math.abs(v) < 1e-9 ? 0 : v).toFixed(d).replace('.', CONTENT_I18N.decimal());
@@ -174,7 +175,7 @@
           <circle class="f-dot" cx="${n1(p.X(c))}" cy="${n1(p.Y(s))}" r="5"/>`;
         return {
           svg: svg(p, axes(p), '', front, 'Jednotková kružnica'),
-          readout: `α = ${v.deg}° · <span class="c-ok">sin α = ${sk(s, 3)}</span> · <span class="c-accent">cos α = ${sk(c, 3)}</span>`
+          readout: T`α = ${v.deg}° · <span class="c-ok">sin α = ${sk(s, 3)}</span> · <span class="c-accent">cos α = ${sk(c, 3)}</span>`
         };
       }
     },
@@ -191,16 +192,16 @@
         if (D >= 0) {
           const r1 = (-P - Math.sqrt(D)) / 2, r2 = (-P + Math.sqrt(D)) / 2;
           [r1, r2].forEach((x) => { dots += `<circle class="f-dot" cx="${n1(p.X(x))}" cy="${n1(p.Y(0))}" r="5"/>`; });
-          roots = D === 0 ? `dvojnásobný koreň x = ${sk(r1)}` : `korene x₁ = ${sk(r1)}, x₂ = ${sk(r2)}`;
+          roots = D === 0 ? T`dvojnásobný koreň x = ${sk(r1)}` : T`korene x₁ = ${sk(r1)}, x₂ = ${sk(r2)}`;
         } else {
-          roots = 'nemá reálne korene (D &lt; 0)';
+          roots = T.s('nemá reálne korene (D &lt; 0)');
         }
         const vx = -P / 2, vy = Q - P * P / 4;
         const clipped = `<path class="f-accent" d="${curvePath(p, (x) => x * x + P * x + Q)}"/>${dots}
           <circle class="f-vertex" cx="${n1(p.X(vx))}" cy="${n1(p.Y(vy))}" r="4"/>`;
         return {
           svg: svg(p, axes(p, 2, 2), clipped, '', 'Graf kvadratickej funkcie'),
-          readout: `y = x²${term(P, 'x')}${term(Q, '')} · D = ${D} · ${roots}`
+          readout: T`y = x²${term(P, 'x')}${term(Q, '')} · D = ${D} · ${roots}`
         };
       }
     },
@@ -252,7 +253,7 @@
           <circle class="f-dot" cx="${n1(p.X(x0))}" cy="${n1(p.Y(y0))}" r="5"/>`;
         return {
           svg: svg(p, axes(p), clipped, '', 'Graf funkcie s dotyčnicou'),
-          readout: `x₀ = ${sk(x0, 1)} · f(x₀) = ${sk(y0)} · <span class="c-accent">f′(x₀) = ${sk(k)}</span> (smernica dotyčnice)`
+          readout: T`x₀ = ${sk(x0, 1)} · f(x₀) = ${sk(y0)} · <span class="c-accent">f′(x₀) = ${sk(k)}</span> (smernica dotyčnice)`
         };
       }
     },
@@ -271,7 +272,7 @@
         const clipped = `<path class="f-fill f-outline" d="${d}"/><path class="f-line" d="${curvePath(p, (x) => x * x)}"/>`;
         return {
           svg: svg(p, axes(p, 1, 2), clipped, '', 'Plocha pod grafom funkcie'),
-          readout: `b = ${sk(b, 1)} · <span class="c-accent">obsah = b³/3 = ${sk(b * b * b / 3, 3)}</span>`
+          readout: T`b = ${sk(b, 1)} · <span class="c-accent">obsah = b³/3 = ${sk(b * b * b / 3, 3)}</span>`
         };
       }
     }

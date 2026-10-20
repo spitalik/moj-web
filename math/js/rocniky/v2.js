@@ -7,6 +7,7 @@
 
   const { rnd, pick, gcd, term, shuffle } = EXERCISES.util;
   const { plane, axes, curvePath, svg, n1, sk } = FIGURES.util;
+  const { T } = CONTENT_I18N;
   const lesson = (l) => LESSONS.push(Object.assign({ level: 'v2' }, l));
   const gen = EXERCISES.register;
   const fig = FIGURES.register;
@@ -17,8 +18,9 @@
   const nz = (a, b) => { let v = 0; while (v === 0) v = rnd(a, b); return v; };
   const par = (v) => (v < 0 ? `(${v})` : String(v));
   const round = (x, d) => Math.round(x * Math.pow(10, d)) / Math.pow(10, d);
-  const dd = (x, d = 3) => round(x, d).toFixed(d).replace('.', '{,}'); // pevný počet miest, pre KaTeX
-  const dt = (x, d = 3) => round(x, d).toFixed(d).replace('.', ',');   // pevný počet miest, obyčajný text
+  const dsep = () => (CONTENT_I18N.decimal() === ',' ? '{,}' : '.'); // desatinný oddeľovač jazyka v KaTeXe
+  const dd = (x, d = 3) => round(x, d).toFixed(d).replace('.', dsep()); // pevný počet miest, pre KaTeX
+  const dt = (x, d = 3) => round(x, d).toFixed(d).replace('.', CONTENT_I18N.decimal());   // pevný počet miest, obyčajný text
   const red = (p, q) => { if (q < 0) { p = -p; q = -q; } const g = gcd(p, q) || 1; return [p / g, q / g]; };
   const fTex = (p, q) => { const [a, b] = red(p, q); return b === 1 ? String(a) : `${a < 0 ? '-' : ''}\\frac{${Math.abs(a)}}{${b}}`; };
   const fTxt = (p, q) => { const [a, b] = red(p, q); return b === 1 ? String(a) : `${a}/${b}`; };
@@ -87,7 +89,7 @@
     return `${a}${b < 0 ? '-' : '+'}${im}`;
   };
   const cMul = (u, v) => [u[0] * v[0] - u[1] * v[1], u[0] * v[1] + u[1] * v[0]];
-  const degT = (x) => String(round(x, 1)).replace('.', '{,}'); // stupne v KaTeX
+  const degT = (x) => String(round(x, 1)).replace('.', dsep()); // stupne v KaTeX
   const SUP = ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶'];
 
   fig('v2-gauss', {
@@ -118,7 +120,7 @@
       const deg = ((v.n * v.phi) % 360 + 360) % 360;
       return {
         svg: svg(p, axes(p, 1), clipped, front, 'Komplexné číslo a jeho mocnina v Gaussovej rovine'),
-        readout: `<span class="c-accent">z ≈ ${sk(a)} ${sg(b)} ${sk(Math.abs(b))}i</span> = ${sk(v.r)}·(cos ${v.phi}° + i sin ${v.phi}°) · `
+        readout: T`<span class="c-accent">z ≈ ${sk(a)} ${sg(b)} ${sk(Math.abs(b))}i</span> = ${sk(v.r)}·(cos ${v.phi}° + i sin ${v.phi}°) · `
           + `<span class="c-ok">z${SUP[v.n]} = ${sk(rn, 3)}·(cos ${deg}° + i sin ${deg}°) ≈ ${sk(an)} ${sg(bn)} ${sk(Math.abs(bn))}i</span>`
       };
     }
@@ -179,12 +181,12 @@
         const sw = Math.random() < 0.5, a = (sw ? q : p) * pick([1, -1]), b = (sw ? p : q) * pick([1, -1]);
         return {
           answer: c,
-          q: `Vypočítaj absolútnu hodnotu komplexného čísla $z=${cTex(a, b)}$.`,
-          solution: `$|z|=\\sqrt{(\\operatorname{Re} z)^2+(\\operatorname{Im} z)^2}=\\sqrt{${par(a)}^2+${par(b)}^2}=\\sqrt{${a * a + b * b}}=${c}$.`,
-          hint: 'Absolútna hodnota čísla $a+b\\mathrm{i}$ je vzdialenosť bodu $[a;b]$ od počiatku: $\\sqrt{a^2+b^2}$.',
+          q: T`Vypočítaj absolútnu hodnotu komplexného čísla $z=${cTex(a, b)}$.`,
+          solution: T`$|z|=\\sqrt{(\\operatorname{Re} z)^2+(\\operatorname{Im} z)^2}=\\sqrt{${par(a)}^2+${par(b)}^2}=\\sqrt{${a * a + b * b}}=${c}$.`,
+          hint: T.s('Absolútna hodnota čísla $a+b\\mathrm{i}$ je vzdialenosť bodu $[a;b]$ od počiatku: $\\sqrt{a^2+b^2}$.'),
           mistakes: [
-            { value: a * a + b * b, msg: 'Súčet štvorcov $a^2+b^2$ je $|z|^2$, nie $|z|$ – ešte ho odmocni.' },
-            { value: Math.abs(a) + Math.abs(b), msg: 'Absolútna hodnota nie je súčet $|a|+|b|$: je to dĺžka prepony, teda $\\sqrt{a^2+b^2}$.' }
+            { value: a * a + b * b, msg: T.s('Súčet štvorcov $a^2+b^2$ je $|z|^2$, nie $|z|$ – ešte ho odmocni.') },
+            { value: Math.abs(a) + Math.abs(b), msg: T.s('Absolútna hodnota nie je súčet $|a|+|b|$: je to dĺžka prepony, teda $\\sqrt{a^2+b^2}$.') }
           ]
         };
       }
@@ -194,29 +196,29 @@
         const val = Math.hypot(a, b);
         return {
           answer: round(val, 3), tol: TOL3, show: dt(val),
-          q: `Vypočítaj $|z|$ pre $z=${cTex(a, b)}$. ${ROUND3}`,
-          solution: `$|z|=\\sqrt{${par(a)}^2+${par(b)}^2}=\\sqrt{${a * a + b * b}}\\approx ${dd(val)}$.`,
-          hint: 'Použi $|a+b\\mathrm{i}|=\\sqrt{a^2+b^2}$.',
+          q: T`Vypočítaj $|z|$ pre $z=${cTex(a, b)}$. ${T.s(ROUND3)}`,
+          solution: T`$|z|=\\sqrt{${par(a)}^2+${par(b)}^2}=\\sqrt{${a * a + b * b}}\\approx ${dd(val)}$.`,
+          hint: T.s('Použi $|a+b\\mathrm{i}|=\\sqrt{a^2+b^2}$.'),
           mistakes: [
-            { value: a * a + b * b, msg: 'Súčet štvorcov $a^2+b^2$ je $|z|^2$, nie $|z|$ – ešte ho odmocni.' },
-            { value: Math.abs(a) + Math.abs(b), msg: 'Absolútna hodnota nie je súčet $|a|+|b|$: je to dĺžka prepony, teda $\\sqrt{a^2+b^2}$.' }
+            { value: a * a + b * b, msg: T.s('Súčet štvorcov $a^2+b^2$ je $|z|^2$, nie $|z|$ – ešte ho odmocni.') },
+            { value: Math.abs(a) + Math.abs(b), msg: T.s('Absolútna hodnota nie je súčet $|a|+|b|$: je to dĺžka prepony, teda $\\sqrt{a^2+b^2}$.') }
           ],
           steps: [
-            { q: `Vypočítaj $(\\operatorname{Re} z)^2+(\\operatorname{Im} z)^2$.`, answer: a * a + b * b },
-            { q: `Odmocni výsledok predchádzajúceho kroku. ${ROUND3}`, answer: round(val, 3), tol: TOL3, show: dt(val) }
+            { q: T`Vypočítaj $(\\operatorname{Re} z)^2+(\\operatorname{Im} z)^2$.`, answer: a * a + b * b },
+            { q: T`Odmocni výsledok predchádzajúceho kroku. ${T.s(ROUND3)}`, answer: round(val, 3), tol: TOL3, show: dt(val) }
           ]
         };
       }
       const a = nz(-3, 3), b = nz(-3, 3), n = pick([2, 4, 6]), m = a * a + b * b, val = Math.pow(m, n / 2);
       return {
         answer: val,
-        q: `Vypočítaj $\\left|\\left(${cTex(a, b)}\\right)^{${n}}\\right|$.`,
-        solution: `Absolútna hodnota súčinu je súčinom absolútnych hodnôt, preto $|z^{${n}}|=|z|^{${n}}=\\left(\\sqrt{${m}}\\right)^{${n}}=${m}^{${n / 2}}=${val}$. Umocňovať v algebraickom tvare netreba.`,
-        hint: 'Využi $|z^n|=|z|^n$.',
-        mistakes: [{ value: Math.pow(m, n), msg: `Umocnil si $|z|^2=a^2+b^2$ namiesto $|z|$. Pamätaj, že $|z|=\\sqrt{a^2+b^2}$.` }],
+        q: T`Vypočítaj $\\left|\\left(${cTex(a, b)}\\right)^{${n}}\\right|$.`,
+        solution: T`Absolútna hodnota súčinu je súčinom absolútnych hodnôt, preto $|z^{${n}}|=|z|^{${n}}=\\left(\\sqrt{${m}}\\right)^{${n}}=${m}^{${n / 2}}=${val}$. Umocňovať v algebraickom tvare netreba.`,
+        hint: T.s('Využi $|z^n|=|z|^n$.'),
+        mistakes: [{ value: Math.pow(m, n), msg: T`Umocnil si $|z|^2=a^2+b^2$ namiesto $|z|$. Pamätaj, že $|z|=\\sqrt{a^2+b^2}$.` }],
         steps: [
-          { q: `Vypočítaj $|z|^2$ pre $z=${cTex(a, b)}$.`, answer: m },
-          { q: `Pomocou $|z^{${n}}|=|z|^{${n}}=\\left(|z|^2\\right)^{${n / 2}}$ dokonči výpočet.`, answer: val }
+          { q: T`Vypočítaj $|z|^2$ pre $z=${cTex(a, b)}$.`, answer: m },
+          { q: T`Pomocou $|z^{${n}}|=|z|^{${n}}=\\left(|z|^2\\right)^{${n / 2}}$ dokonči výpočet.`, answer: val }
         ]
       };
     }
@@ -227,14 +229,14 @@
       const how = ['\\varphi=\\alpha', '\\varphi=180^\\circ-\\alpha', '\\varphi=-180^\\circ+\\alpha', '\\varphi=-\\alpha'][quad - 1];
       return {
         signed: true, answer: round(deg, 1), tol: 0.06, show: dt(deg, 1),
-        q: `Urči hlavnú hodnotu argumentu čísla $z=${cTex(a, b)}$ v stupňoch, t. j. $\\arg z\\in(-180^\\circ;180^\\circ\\rangle$. Zaokrúhli na 1 desatinné miesto.`,
-        solution: `Bod $[${a};${b}]$ leží v ${quad}. kvadrante. Pomocný ostrý uhol je $\\alpha=\\operatorname{arctg}\\frac{${Math.abs(b)}}{${Math.abs(a)}}\\approx ${degT(al)}^\\circ$, a preto $${how}\\approx ${degT(deg)}^\\circ$.`,
-        hint: 'Najprv urči kvadrant bodu $[a;b]$, potom pomocný uhol $\\alpha=\\operatorname{arctg}\\left|\\frac{b}{a}\\right|$ a podľa kvadrantu z neho argument.',
+        q: T`Urči hlavnú hodnotu argumentu čísla $z=${cTex(a, b)}$ v stupňoch, t. j. $\\arg z\\in(-180^\\circ;180^\\circ\\rangle$. Zaokrúhli na 1 desatinné miesto.`,
+        solution: T`Bod $[${a};${b}]$ leží v ${quad}. kvadrante. Pomocný ostrý uhol je $\\alpha=\\operatorname{arctg}\\frac{${Math.abs(b)}}{${Math.abs(a)}}\\approx ${degT(al)}^\\circ$, a preto $${how}\\approx ${degT(deg)}^\\circ$.`,
+        hint: T.s('Najprv urči kvadrant bodu $[a;b]$, potom pomocný uhol $\\alpha=\\operatorname{arctg}\\left|\\frac{b}{a}\\right|$ a podľa kvadrantu z neho argument.'),
         // arctg(b/a) bez opravy podľa kvadrantu (pre a < 0 dáva bod v opačnom kvadrante)
-        mistakes: a < 0 ? [{ value: round(Math.atan(b / a) * 180 / Math.PI, 1), msg: 'Kalkulačka vráti $\\operatorname{arctg}\\frac{b}{a}$ len z intervalu $(-90^\\circ;90^\\circ)$, teda pre bod v opačnom kvadrante. Pri $\\operatorname{Re} z\\lt 0$ treba výsledok opraviť o $\\pm 180^\\circ$.' }] : [],
+        mistakes: a < 0 ? [{ value: round(Math.atan(b / a) * 180 / Math.PI, 1), msg: T.s('Kalkulačka vráti $\\operatorname{arctg}\\frac{b}{a}$ len z intervalu $(-90^\\circ;90^\\circ)$, teda pre bod v opačnom kvadrante. Pri $\\operatorname{Re} z\\lt 0$ treba výsledok opraviť o $\\pm 180^\\circ$.') }] : [],
         steps: [
-          { q: `Urči pomocný ostrý uhol $\\alpha=\\operatorname{arctg}\\frac{${Math.abs(b)}}{${Math.abs(a)}}$ v stupňoch (na 1 desatinné miesto).`, answer: round(al, 1), tol: 0.06, show: dt(al, 1) },
-          { q: `Bod $[${a};${b}]$ leží v ${quad}. kvadrante. Aký je teda $\\arg z$ v stupňoch (na 1 desatinné miesto)?`, answer: round(deg, 1), tol: 0.06, show: dt(deg, 1), signed: true }
+          { q: T`Urči pomocný ostrý uhol $\\alpha=\\operatorname{arctg}\\frac{${Math.abs(b)}}{${Math.abs(a)}}$ v stupňoch (na 1 desatinné miesto).`, answer: round(al, 1), tol: 0.06, show: dt(al, 1) },
+          { q: T`Bod $[${a};${b}]$ leží v ${quad}. kvadrante. Aký je teda $\\arg z$ v stupňoch (na 1 desatinné miesto)?`, answer: round(deg, 1), tol: 0.06, show: dt(deg, 1), signed: true }
         ]
       };
     }
@@ -244,13 +246,13 @@
         const z = [nz(-5, 5), rnd(-5, 5)], w = [rnd(-4, 4), nz(-4, 4)], r = cMul(z, w);
         return {
           type: 'tuple', signed: true, answer: r,
-          q: `Vypočítaj súčin $(${cTex(...z)})(${cTex(...w)})$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
-          solution: `Roznásobíme a použijeme $\\mathrm{i}^2=-1$: $(${cTex(...z)})(${cTex(...w)})=\\bigl(${z[0]}\\cdot ${par(w[0])}-${par(z[1])}\\cdot ${par(w[1])}\\bigr)+\\bigl(${z[0]}\\cdot ${par(w[1])}+${par(z[1])}\\cdot ${par(w[0])}\\bigr)\\mathrm{i}=${cTex(...r)}$. Odpoveď: $${r[0]};\\ ${r[1]}$.`,
-          hint: 'Platí $(a+b\\mathrm{i})(c+d\\mathrm{i})=(ac-bd)+(ad+bc)\\mathrm{i}$.',
-          mistakes: z[1] * w[1] !== 0 ? [{ value: [z[0] * w[0] + z[1] * w[1], r[1]], msg: 'Pri roznásobení vznikne člen $bd\\,\\mathrm{i}^2$ a $\\mathrm{i}^2=-1$, nie $+1$ – reálna časť je $ac-bd$.' }] : [],
+          q: T`Vypočítaj súčin $(${cTex(...z)})(${cTex(...w)})$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+          solution: T`Roznásobíme a použijeme $\\mathrm{i}^2=-1$: $(${cTex(...z)})(${cTex(...w)})=\\bigl(${z[0]}\\cdot ${par(w[0])}-${par(z[1])}\\cdot ${par(w[1])}\\bigr)+\\bigl(${z[0]}\\cdot ${par(w[1])}+${par(z[1])}\\cdot ${par(w[0])}\\bigr)\\mathrm{i}=${cTex(...r)}$. Odpoveď: $${r[0]};\\ ${r[1]}$.`,
+          hint: T.s('Platí $(a+b\\mathrm{i})(c+d\\mathrm{i})=(ac-bd)+(ad+bc)\\mathrm{i}$.'),
+          mistakes: z[1] * w[1] !== 0 ? [{ value: [z[0] * w[0] + z[1] * w[1], r[1]], msg: T.s('Pri roznásobení vznikne člen $bd\\,\\mathrm{i}^2$ a $\\mathrm{i}^2=-1$, nie $+1$ – reálna časť je $ac-bd$.') }] : [],
           steps: [
-            { q: `Reálna časť súčinu je $ac-bd$. Vypočítaj ju.`, answer: r[0], signed: true },
-            { q: `Imaginárna časť súčinu je $ad+bc$. Vypočítaj ju.`, answer: r[1], signed: true }
+            { q: T`Reálna časť súčinu je $ac-bd$. Vypočítaj ju.`, answer: r[0], signed: true },
+            { q: T`Imaginárna časť súčinu je $ad+bc$. Vypočítaj ju.`, answer: r[1], signed: true }
           ]
         };
       }
@@ -258,23 +260,23 @@
         const w = [nz(-4, 4), nz(-3, 3)], q = [rnd(-4, 4), nz(-4, 4)], z = cMul(q, w), m = w[0] * w[0] + w[1] * w[1], num = cMul(z, [w[0], -w[1]]);
         return {
           type: 'tuple', signed: true, answer: q,
-          q: `Vypočítaj podiel $\\dfrac{${cTex(...z)}}{${cTex(...w)}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
-          solution: `Rozšírime číslom združeným k menovateľu: $\\dfrac{${cTex(...z)}}{${cTex(...w)}}=\\dfrac{(${cTex(...z)})(${cTex(w[0], -w[1])})}{${par(w[0])}^2+${par(w[1])}^2}=\\dfrac{${cTex(...num)}}{${m}}=${cTex(...q)}$. Odpoveď: $${q[0]};\\ ${q[1]}$.`,
-          hint: 'Čitateľa aj menovateľa vynásob číslom $\\bar w$ – v menovateli vznikne reálne číslo $|w|^2$.',
-          mistakes: [{ value: num, msg: 'Po rozšírení združeným číslom treba ešte vydeliť menovateľom $|w|^2$.' }],
+          q: T`Vypočítaj podiel $\\dfrac{${cTex(...z)}}{${cTex(...w)}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+          solution: T`Rozšírime číslom združeným k menovateľu: $\\dfrac{${cTex(...z)}}{${cTex(...w)}}=\\dfrac{(${cTex(...z)})(${cTex(w[0], -w[1])})}{${par(w[0])}^2+${par(w[1])}^2}=\\dfrac{${cTex(...num)}}{${m}}=${cTex(...q)}$. Odpoveď: $${q[0]};\\ ${q[1]}$.`,
+          hint: T.s('Čitateľa aj menovateľa vynásob číslom $\\bar w$ – v menovateli vznikne reálne číslo $|w|^2$.'),
+          mistakes: [{ value: num, msg: T.s('Po rozšírení združeným číslom treba ešte vydeliť menovateľom $|w|^2$.') }],
           steps: [
-            { q: `Rozšír zlomok číslom $${cTex(w[0], -w[1])}$. Aký reálny menovateľ vznikne?`, answer: m, hint: 'Platí $w\\bar w=|w|^2$.' },
-            { q: `Vypočítaj čitateľa $(${cTex(...z)})(${cTex(w[0], -w[1])})$. Zadaj Re; Im.`, answer: num, type: 'tuple', signed: true },
-            { q: `Vydeľ čitateľa menovateľom ${m}. Zadaj Re; Im.`, answer: q, type: 'tuple', signed: true }
+            { q: T`Rozšír zlomok číslom $${cTex(w[0], -w[1])}$. Aký reálny menovateľ vznikne?`, answer: m, hint: T.s('Platí $w\\bar w=|w|^2$.') },
+            { q: T`Vypočítaj čitateľa $(${cTex(...z)})(${cTex(w[0], -w[1])})$. Zadaj Re; Im.`, answer: num, type: 'tuple', signed: true },
+            { q: T`Vydeľ čitateľa menovateľom ${m}. Zadaj Re; Im.`, answer: q, type: 'tuple', signed: true }
           ]
         };
       }
       const n = rnd(5, 2030), k = n % 4, r = [[1, 0], [0, 1], [-1, 0], [0, -1]][k];
       return {
         type: 'tuple', signed: true, answer: r,
-        q: `Vypočítaj $\\mathrm{i}^{${n}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
-        solution: `Mocniny čísla $\\mathrm{i}$ sa opakujú s periódou 4: $\\mathrm{i}^1=\\mathrm{i}$, $\\mathrm{i}^2=-1$, $\\mathrm{i}^3=-\\mathrm{i}$, $\\mathrm{i}^4=1$. Keďže $${n}=4\\cdot ${Math.floor(n / 4)}+${k}$, je $\\mathrm{i}^{${n}}=\\mathrm{i}^{${k}}=${cTex(...r)}$. Odpoveď: $${r[0]};\\ ${r[1]}$.`,
-        hint: 'Vydeľ exponent štyrmi so zvyškom; $\\mathrm{i}^4=1$.'
+        q: T`Vypočítaj $\\mathrm{i}^{${n}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+        solution: T`Mocniny čísla $\\mathrm{i}$ sa opakujú s periódou 4: $\\mathrm{i}^1=\\mathrm{i}$, $\\mathrm{i}^2=-1$, $\\mathrm{i}^3=-\\mathrm{i}$, $\\mathrm{i}^4=1$. Keďže $${n}=4\\cdot ${Math.floor(n / 4)}+${k}$, je $\\mathrm{i}^{${n}}=\\mathrm{i}^{${k}}=${cTex(...r)}$. Odpoveď: $${r[0]};\\ ${r[1]}$.`,
+        hint: T.s('Vydeľ exponent štyrmi so zvyškom; $\\mathrm{i}^4=1$.')
       };
     }
     if (t < 0.68) {
@@ -286,17 +288,17 @@
         const mod = n % 2 ? `${Math.pow(2, (n - 1) / 2)}\\sqrt{2}` : String(Math.pow(2, n / 2));
         return {
           type: 'tuple', signed: true, answer: r,
-          q: `Pomocou Moivreovej vety vypočítaj $(${cTex(...s)})^{${n}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
-          solution: `$|z|=\\sqrt{2}$ a $\\arg z=${th}^\\circ$, teda $z=\\sqrt{2}\\,\\bigl(\\cos(${th}^\\circ)+\\mathrm{i}\\sin(${th}^\\circ)\\bigr)$. Podľa Moivreovej vety
+          q: T`Pomocou Moivreovej vety vypočítaj $(${cTex(...s)})^{${n}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+          solution: T`$|z|=\\sqrt{2}$ a $\\arg z=${th}^\\circ$, teda $z=\\sqrt{2}\\,\\bigl(\\cos(${th}^\\circ)+\\mathrm{i}\\sin(${th}^\\circ)\\bigr)$. Podľa Moivreovej vety
             $z^{${n}}=(\\sqrt{2})^{${n}}\\bigl(\\cos(${N}^\\circ)+\\mathrm{i}\\sin(${N}^\\circ)\\bigr)$, kde $(\\sqrt{2})^{${n}}=${mod}$ a uhol $${N}^\\circ$ má rovnakú polohu ako $${Nm}^\\circ$. Výsledok: $z^{${n}}=${cTex(...r)}$, odpoveď $${r[0]};\\ ${r[1]}$.`,
-          hint: 'Preveď číslo do goniometrického tvaru ($|z|=\\sqrt{2}$, argument je násobok $45^\\circ$), umocni absolútnu hodnotu a argument vynásob exponentom.',
+          hint: T.s('Preveď číslo do goniometrického tvaru ($|z|=\\sqrt{2}$, argument je násobok $45^\\circ$), umocni absolútnu hodnotu a argument vynásob exponentom.'),
           mistakes: n % 2 === 0 ? [
-            { value: r.map((x) => x / Math.pow(2, n / 2)), msg: `Podľa Moivreovej vety sa umocňuje aj absolútna hodnota: výsledok treba vynásobiť $(\\sqrt{2})^{${n}}$.` },
-            { value: r.map((x) => x * Math.pow(2, n / 2)), msg: 'Absolútna hodnota je $\\sqrt{2}$, nie $2$ – umocňuješ $(\\sqrt{2})^n$, nie $2^n$.' }
+            { value: r.map((x) => x / Math.pow(2, n / 2)), msg: T`Podľa Moivreovej vety sa umocňuje aj absolútna hodnota: výsledok treba vynásobiť $(\\sqrt{2})^{${n}}$.` },
+            { value: r.map((x) => x * Math.pow(2, n / 2)), msg: T.s('Absolútna hodnota je $\\sqrt{2}$, nie $2$ – umocňuješ $(\\sqrt{2})^n$, nie $2^n$.') }
           ] : [],
           steps: [
-            { q: `Argument čísla je $${th}^\\circ$. Na aký uhol z intervalu $\\langle 0^\\circ;360^\\circ)$ sa zmení po vynásobení exponentom ${n}?`, answer: Nm },
-            { q: `Dokonči výpočet: $z^{${n}}=(\\sqrt{2})^{${n}}\\bigl(\\cos ${Nm}^\\circ+\\mathrm{i}\\sin ${Nm}^\\circ\\bigr)$. Zadaj Re; Im.`, answer: r, type: 'tuple', signed: true }
+            { q: T`Argument čísla je $${th}^\\circ$. Na aký uhol z intervalu $\\langle 0^\\circ;360^\\circ)$ sa zmení po vynásobení exponentom ${n}?`, answer: Nm },
+            { q: T`Dokonči výpočet: $z^{${n}}=(\\sqrt{2})^{${n}}\\bigl(\\cos ${Nm}^\\circ+\\mathrm{i}\\sin ${Nm}^\\circ\\bigr)$. Zadaj Re; Im.`, answer: r, type: 'tuple', signed: true }
           ]
         };
       }
@@ -305,14 +307,14 @@
       const N = th * n, cs = Math.round(Math.cos(N * Math.PI / 180)), re = Math.pow(2, n) * cs;
       return {
         type: 'tuple', signed: true, answer: [re, 0],
-        q: `Vypočítaj $\\left(${s}\\right)^{${n}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
-        solution: `$|z|=\\sqrt{1+3}=2$ a $\\arg z=${th}^\\circ$. Podľa Moivreovej vety $z^{${n}}=2^{${n}}\\bigl(\\cos(${N}^\\circ)+\\mathrm{i}\\sin(${N}^\\circ)\\bigr)=${Math.pow(2, n)}\\cdot(${cs})=${re}$, imaginárna časť je $0$. Odpoveď: $${re};\\ 0$.`,
-        hint: 'Absolútna hodnota je $2$ a argument je násobok $60^\\circ$; použi Moivreovu vetu.',
-        mistakes: [{ value: [cs, 0], msg: `Zabudol si umocniť absolútnu hodnotu: podľa Moivreovej vety je $|z^{${n}}|=|z|^{${n}}$.` }],
+        q: T`Vypočítaj $\\left(${s}\\right)^{${n}}$. Zadaj reálnu a imaginárnu časť oddelené bodkočiarkou (Re; Im).`,
+        solution: T`$|z|=\\sqrt{1+3}=2$ a $\\arg z=${th}^\\circ$. Podľa Moivreovej vety $z^{${n}}=2^{${n}}\\bigl(\\cos(${N}^\\circ)+\\mathrm{i}\\sin(${N}^\\circ)\\bigr)=${Math.pow(2, n)}\\cdot(${cs})=${re}$, imaginárna časť je $0$. Odpoveď: $${re};\\ 0$.`,
+        hint: T.s('Absolútna hodnota je $2$ a argument je násobok $60^\\circ$; použi Moivreovu vetu.'),
+        mistakes: [{ value: [cs, 0], msg: T`Zabudol si umocniť absolútnu hodnotu: podľa Moivreovej vety je $|z^{${n}}|=|z|^{${n}}$.` }],
         steps: [
-          { q: `Urči absolútnu hodnotu $|${s}|$.`, answer: 2 },
-          { q: `Argument $z^{${n}}$ je $${N}^\\circ$. Koľko je $\\cos(${N}^\\circ)$?`, answer: cs, signed: true },
-          { q: `Dokonči výpočet $z^{${n}}$. Zadaj Re; Im.`, answer: [re, 0], type: 'tuple', signed: true }
+          { q: T`Urči absolútnu hodnotu $|${s}|$.`, answer: 2 },
+          { q: T`Argument $z^{${n}}$ je $${N}^\\circ$. Koľko je $\\cos(${N}^\\circ)$?`, answer: cs, signed: true },
+          { q: T`Dokonči výpočet $z^{${n}}$. Zadaj Re; Im.`, answer: [re, 0], type: 'tuple', signed: true }
         ]
       };
     }
@@ -322,23 +324,23 @@
       const args = [];
       for (let k = 0; k < n; k++) args.push((psi + 360 * k) / n);
       const argsT = args.map((x) => degT(x) + '^\\circ').join(',\\ ');
-      const intro = `$${cTex(...w)}=${M}\\,\\mathrm{e}^{\\mathrm{i}\\cdot ${psi}^\\circ}$, takže rovnica má ${n} ${pl(n, ['riešenie', 'riešenia', 'riešení'])} s absolútnou hodnotou $\\sqrt[${n}]{${M}}=${m}$ a s argumentmi $\\frac{${psi}^\\circ+k\\cdot 360^\\circ}{${n}}$, $k=0,\\dots,${n - 1}$: $${argsT}$.`;
+      const intro = T`$${cTex(...w)}=${M}\\,\\mathrm{e}^{\\mathrm{i}\\cdot ${psi}^\\circ}$, takže rovnica má ${n} ${pl(n, ['riešenie', 'riešenia', 'riešení'])} s absolútnou hodnotou $\\sqrt[${n}]{${M}}=${m}$ a s argumentmi $\\frac{${psi}^\\circ+k\\cdot 360^\\circ}{${n}}$, $k=0,\\dots,${n - 1}$: $${argsT}$.`;
       if (Math.random() < 0.5) {
         const cnt = args.filter((x) => x > 1e-9 && x < 90 - 1e-9).length;
         return {
           answer: cnt,
-          q: `Koľko riešení rovnice $z^{${n}}=${cTex(...w)}$ leží v otvorenom prvom kvadrante Gaussovej roviny (t. j. $\\operatorname{Re} z\\gt 0$ a $\\operatorname{Im} z\\gt 0$)?`,
-          solution: `${intro} Do intervalu $(0^\\circ;90^\\circ)$ patrí ${cnt} z nich, odpoveď je <strong>${cnt}</strong>.`,
-          hint: 'Riešenia sú vrcholy pravidelného $n$-uholníka: argumenty $\\frac{\\psi+k\\cdot 360^\\circ}{n}$. Spočítaj, koľko z nich leží medzi $0^\\circ$ a $90^\\circ$.'
+          q: T`Koľko riešení rovnice $z^{${n}}=${cTex(...w)}$ leží v otvorenom prvom kvadrante Gaussovej roviny (t. j. $\\operatorname{Re} z\\gt 0$ a $\\operatorname{Im} z\\gt 0$)?`,
+          solution: T`${intro} Do intervalu $(0^\\circ;90^\\circ)$ patrí ${cnt} z nich, odpoveď je <strong>${cnt}</strong>.`,
+          hint: T.s('Riešenia sú vrcholy pravidelného $n$-uholníka: argumenty $\\frac{\\psi+k\\cdot 360^\\circ}{n}$. Spočítaj, koľko z nich leží medzi $0^\\circ$ a $90^\\circ$.')
         };
       }
       const val = psi > 0 ? psi / n : 360 / n;
       return {
-        answer: round(val, 1), tol: 0.06, show: dt(val, 1).replace(/,0$/, ''),
-        q: `Aký najmenší kladný argument (v stupňoch, z intervalu $(0^\\circ;360^\\circ)$) má niektoré riešenie rovnice $z^{${n}}=${cTex(...w)}$?`,
-        solution: `${intro} Najmenší kladný z nich je $${degT(val)}^\\circ$.`,
-        hint: 'Použi vzorec pre $n$-té odmocniny: argumenty $\\frac{\\psi+2k\\pi}{n}$, $k=0,\\dots,n-1$.',
-        mistakes: [{ value: psi > 0 ? psi : 360, msg: `Argument pravej strany sa pri odmocňovaní delí exponentom ${n}: riešenia majú argumenty $\\frac{\\psi+k\\cdot 360^\\circ}{${n}}$.` }]
+        answer: round(val, 1), tol: 0.06, show: dt(val, 1).replace(/[,.]0$/, ''),
+        q: T`Aký najmenší kladný argument (v stupňoch, z intervalu $(0^\\circ;360^\\circ)$) má niektoré riešenie rovnice $z^{${n}}=${cTex(...w)}$?`,
+        solution: T`${intro} Najmenší kladný z nich je $${degT(val)}^\\circ$.`,
+        hint: T.s('Použi vzorec pre $n$-té odmocniny: argumenty $\\frac{\\psi+2k\\pi}{n}$, $k=0,\\dots,n-1$.'),
+        mistakes: [{ value: psi > 0 ? psi : 360, msg: T`Argument pravej strany sa pri odmocňovaní delí exponentom ${n}: riešenia majú argumenty $\\frac{\\psi+k\\cdot 360^\\circ}{${n}}$.` }]
       };
     }
     if (Math.random() < 0.55) {
@@ -349,17 +351,17 @@
       const den = lin([[1, 'n'], [c, '']]), a1 = fTex(a + b, 1 + c);
       return {
         signed: true, answer: isFirst ? (a + b) / (1 + c) : a, show: isFirst ? fTxt(a + b, 1 + c) : String(a),
-        q: `Urči ${askSup ? 'supremum' : 'infimum'} množiny $A=\\left\\{\\dfrac{${lin([[a, 'n'], [b, '']])}}{${den}}:\\ n\\in\\mathbb{N}\\right\\}$, kde $\\mathbb{N}=\\{1,2,3,\\dots\\}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Upravíme: $\\dfrac{${lin([[a, 'n'], [b, '']])}}{${den}}=${a}${dec ? '+' : '-'}\\dfrac{${Math.abs(d)}}{${den}}$. Zlomok $\\frac{${Math.abs(d)}}{${den}}$ s rastúcim $n$ klesá k nule, prvky preto tvoria ${dec ? 'klesajúcu' : 'rastúcu'} postupnosť s limitou $${a}$.
-          ${dec ? `Najväčší prvok je pre $n=1$, teda $\\sup A=\\max A=${a1}$. Všetky prvky sú väčšie ako $${a}$ a ku každému $\\varepsilon\\gt 0$ existuje prvok menší ako $${a}+\\varepsilon$, preto $\\inf A=${a}$ (minimum neexistuje).`
-    : `Najmenší prvok je pre $n=1$, teda $\\inf A=\\min A=${a1}$. Všetky prvky sú menšie ako $${a}$ a ku každému $\\varepsilon\\gt 0$ existuje prvok väčší ako $${a}-\\varepsilon$, preto $\\sup A=${a}$ (maximum neexistuje).`}
+        q: T`Urči ${askSup ? 'supremum' : 'infimum'} množiny $A=\\left\\{\\dfrac{${lin([[a, 'n'], [b, '']])}}{${den}}:\\ n\\in\\mathbb{N}\\right\\}$, kde $\\mathbb{N}=\\{1,2,3,\\dots\\}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`Upravíme: $\\dfrac{${lin([[a, 'n'], [b, '']])}}{${den}}=${a}${dec ? '+' : '-'}\\dfrac{${Math.abs(d)}}{${den}}$. Zlomok $\\frac{${Math.abs(d)}}{${den}}$ s rastúcim $n$ klesá k nule, prvky preto tvoria ${dec ? 'klesajúcu' : 'rastúcu'} postupnosť s limitou $${a}$.
+          ${dec ? T`Najväčší prvok je pre $n=1$, teda $\\sup A=\\max A=${a1}$. Všetky prvky sú väčšie ako $${a}$ a ku každému $\\varepsilon\\gt 0$ existuje prvok menší ako $${a}+\\varepsilon$, preto $\\inf A=${a}$ (minimum neexistuje).`
+    : T`Najmenší prvok je pre $n=1$, teda $\\inf A=\\min A=${a1}$. Všetky prvky sú menšie ako $${a}$ a ku každému $\\varepsilon\\gt 0$ existuje prvok väčší ako $${a}-\\varepsilon$, preto $\\sup A=${a}$ (maximum neexistuje).`}
           Hľadané ${askSup ? 'supremum' : 'infimum'} je $${isFirst ? a1 : a}$.`,
-        hint: 'Vydeľ čitateľa menovateľom, zisti monotónnosť prvkov. Jedna z hraníc je prvý prvok, druhá je limita.',
-        mistakes: [{ value: isFirst ? a : (a + b) / (1 + c), msg: `To je opačná hranica množiny. Zisti, či prvky rastú alebo klesajú – ${askSup ? 'supremum je horná' : 'infimum je dolná'} hranica.` }],
+        hint: T.s('Vydeľ čitateľa menovateľom, zisti monotónnosť prvkov. Jedna z hraníc je prvý prvok, druhá je limita.'),
+        mistakes: [{ value: isFirst ? a : (a + b) / (1 + c), msg: T`To je opačná hranica množiny. Zisti, či prvky rastú alebo klesajú – ${askSup ? 'supremum je horná' : 'infimum je dolná'} hranica.` }],
         steps: [
-          { q: `Akú limitu majú prvky množiny pre $n\\to\\infty$?`, answer: a },
-          { q: `Aký je prvý prvok (pre $n=1$)? Zadaj celé číslo alebo zlomok.`, answer: (a + b) / (1 + c), show: fTxt(a + b, 1 + c), signed: true },
-          { q: `Prvky sú ${dec ? 'klesajúce' : 'rastúce'}. Aké je teda ${askSup ? 'supremum' : 'infimum'}?`, answer: isFirst ? (a + b) / (1 + c) : a, show: isFirst ? fTxt(a + b, 1 + c) : String(a), signed: true }
+          { q: T`Akú limitu majú prvky množiny pre $n\\to\\infty$?`, answer: a },
+          { q: T`Aký je prvý prvok (pre $n=1$)? Zadaj celé číslo alebo zlomok.`, answer: (a + b) / (1 + c), show: fTxt(a + b, 1 + c), signed: true },
+          { q: T`Prvky sú ${dec ? 'klesajúce' : 'rastúce'}. Aké je teda ${askSup ? 'supremum' : 'infimum'}?`, answer: isFirst ? (a + b) / (1 + c) : a, show: isFirst ? fTxt(a + b, 1 + c) : String(a), signed: true }
         ]
       };
     }
@@ -368,13 +370,13 @@
     const supP = evenMax ? 2 * a + b : 2 * (b - a), supT = fTex(supP, 2);
     return {
       signed: true, answer: askSup ? supP / 2 : -a, show: askSup ? fTxt(supP, 2) : String(-a),
-      q: `Urči ${askSup ? 'supremum' : 'infimum'} množiny $A=\\left\\{(-1)^n${a === 1 ? '' : '\\cdot ' + a}+\\dfrac{${b}}{n}:\\ n\\in\\mathbb{N}\\right\\}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-      solution: `Pre párne $n$ sú prvky $${a}+\\frac{${b}}{n}$ – klesajú, najväčší je pre $n=2$: $${fTex(2 * a + b, 2)}$, a všetky sú väčšie ako $${a}$.
+      q: T`Urči ${askSup ? 'supremum' : 'infimum'} množiny $A=\\left\\{(-1)^n${a === 1 ? '' : '\\cdot ' + a}+\\dfrac{${b}}{n}:\\ n\\in\\mathbb{N}\\right\\}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+      solution: T`Pre párne $n$ sú prvky $${a}+\\frac{${b}}{n}$ – klesajú, najväčší je pre $n=2$: $${fTex(2 * a + b, 2)}$, a všetky sú väčšie ako $${a}$.
         Pre nepárne $n$ sú prvky $-${a}+\\frac{${b}}{n}$ – klesajú k $-${a}$, najväčší je pre $n=1$: $${b - a}$.
         Preto $\\sup A=\\max\\left\\{${fTex(2 * a + b, 2)};\\ ${b - a}\\right\\}=${supT}$ a $\\inf A=-${a}$ (nenadobúda sa: prvky s nepárnym $n$ sú väčšie ako $-${a}$, ale ľubovoľne blízko). Hľadaná hodnota: $${askSup ? supT : -a}$.`,
-      hint: 'Rozdeľ prvky na tie s párnym a nepárnym $n$ a každú skupinu vyšetri zvlášť.',
-      mistakes: askSup && b !== 4 * a ? [{ value: evenMax ? b - a : (2 * a + b) / 2, msg: 'Porovnaj najväčší prvok z párnych aj z nepárnych indexov – supremum je väčší z nich.' }]
-        : !askSup ? [{ value: -a + b, msg: 'Prvý prvok nie je najmenší: prvky s nepárnym $n$ klesajú a blížia sa k svojej limite, tá je infimum.' }] : []
+      hint: T.s('Rozdeľ prvky na tie s párnym a nepárnym $n$ a každú skupinu vyšetri zvlášť.'),
+      mistakes: askSup && b !== 4 * a ? [{ value: evenMax ? b - a : (2 * a + b) / 2, msg: T.s('Porovnaj najväčší prvok z párnych aj z nepárnych indexov – supremum je väčší z nich.') }]
+        : !askSup ? [{ value: -a + b, msg: T.s('Prvý prvok nie je najmenší: prvky s nepárnym $n$ klesajú a blížia sa k svojej limite, tá je infimum.') }] : []
     };
   });
 
@@ -400,7 +402,7 @@
         <text class="f-small" x="${n1(p.X(N) + 4)}" y="${n1(p.Y(3.2) + 12)}">N = ${N}</text>`;
       return {
         svg: svg(p, axes(p, 5, 1), clipped, front, 'Členy postupnosti a ε-pás okolo limity'),
-        readout: `ε = ${sk(e, 2)} · N = ${N} · <span class="c-ok">pre všetky n ≥ ${N} je |aₙ − 1| = 2/n &lt; ε</span>`
+        readout: T`ε = ${sk(e, 2)} · N = ${N} · <span class="c-ok">pre všetky n ≥ ${N} je |aₙ − 1| = 2/n &lt; ε</span>`
       };
     }
   });
@@ -442,15 +444,15 @@
       const M = Math.abs(D0) * k, N = Math.max(1, M - s + 1);
       return {
         answer: N,
-        q: `Postupnosť $a_n=\\dfrac{${lin([[p, 'n'], [q, '']])}}{${lin([[1, 'n'], [s, '']])}}$ má limitu $${p}$. Nájdi najmenšie prirodzené číslo $N$ také, že $|a_n-${p}|\\lt\\frac{1}{${k}}$ pre všetky $n\\ge N$.`,
-        solution: `$a_n-${p}=\\dfrac{${lin([[p, 'n'], [q, '']])}-${p}(${lin([[1, 'n'], [s, '']])})}{n+${s}}=\\dfrac{${D0}}{n+${s}}$, teda $|a_n-${p}|=\\dfrac{${Math.abs(D0)}}{n+${s}}$, čo s rastúcim $n$ klesá.
+        q: T`Postupnosť $a_n=\\dfrac{${lin([[p, 'n'], [q, '']])}}{${lin([[1, 'n'], [s, '']])}}$ má limitu $${p}$. Nájdi najmenšie prirodzené číslo $N$ také, že $|a_n-${p}|\\lt\\frac{1}{${k}}$ pre všetky $n\\ge N$.`,
+        solution: T`$a_n-${p}=\\dfrac{${lin([[p, 'n'], [q, '']])}-${p}(${lin([[1, 'n'], [s, '']])})}{n+${s}}=\\dfrac{${D0}}{n+${s}}$, teda $|a_n-${p}|=\\dfrac{${Math.abs(D0)}}{n+${s}}$, čo s rastúcim $n$ klesá.
           Nerovnosť $\\frac{${Math.abs(D0)}}{n+${s}}\\lt\\frac{1}{${k}}$ je ekvivalentná s $n+${s}\\gt ${M}$, teda $n\\gt ${M - s}$. Najmenšie vyhovujúce $N=${N}$.`,
-        hint: 'Uprav rozdiel $a_n-L$ na jeden zlomok, potom rieš nerovnosť $|a_n-L|\\lt\\varepsilon$ vzhľadom na $n$.',
-        mistakes: M !== N ? [{ value: M, msg: `Nerovnosť dáva podmienku pre $n+${s}$, nie pre $n$: od hranice ešte odčítaj ${s}.` }] : [],
+        hint: T.s('Uprav rozdiel $a_n-L$ na jeden zlomok, potom rieš nerovnosť $|a_n-L|\\lt\\varepsilon$ vzhľadom na $n$.'),
+        mistakes: M !== N ? [{ value: M, msg: T`Nerovnosť dáva podmienku pre $n+${s}$, nie pre $n$: od hranice ešte odčítaj ${s}.` }] : [],
         steps: [
-          { q: `Uprav $a_n-${p}$ na tvar $\\dfrac{c}{n+${s}}$. Aké je $c$?`, answer: D0, signed: true },
-          { q: `Nerovnosť $|a_n-${p}|\\lt\\frac{1}{${k}}$ vedie na $n\\gt m$. Aké je $m$?`, answer: M - s, signed: true },
-          { q: 'Aké je najmenšie vyhovujúce prirodzené $N$?', answer: N }
+          { q: T`Uprav $a_n-${p}$ na tvar $\\dfrac{c}{n+${s}}$. Aké je $c$?`, answer: D0, signed: true },
+          { q: T`Nerovnosť $|a_n-${p}|\\lt\\frac{1}{${k}}$ vedie na $n\\gt m$. Aké je $m$?`, answer: M - s, signed: true },
+          { q: T.s('Aké je najmenšie vyhovujúce prirodzené $N$?'), answer: N }
         ]
       };
     }
@@ -464,14 +466,14 @@
         const xn = rsum([[b, a, 'n']]);
         return {
           signed: true, answer: a * c / b, show: fTxt(a * c, b),
-          q: `Limita $\\lim_{n\\to\\infty}\\left(${base}\\right)^{${cx(c, 'n')}}$ sa rovná $\\mathrm{e}^{k}$. Urči $k$ (celé číslo alebo zlomok).`,
-          solution: `Označme $x_n=${xn}$; potom $|x_n|\\to\\infty$ a $${base}=1+\\frac{1}{x_n}$. Exponent zapíšeme ako $${cx(c, 'n')}=x_n\\cdot ${kT}$, teda
+          q: T`Limita $\\lim_{n\\to\\infty}\\left(${base}\\right)^{${cx(c, 'n')}}$ sa rovná $\\mathrm{e}^{k}$. Urči $k$ (celé číslo alebo zlomok).`,
+          solution: T`Označme $x_n=${xn}$; potom $|x_n|\\to\\infty$ a $${base}=1+\\frac{1}{x_n}$. Exponent zapíšeme ako $${cx(c, 'n')}=x_n\\cdot ${kT}$, teda
             $\\left(${base}\\right)^{${cx(c, 'n')}}=\\left[\\left(1+\\frac{1}{x_n}\\right)^{x_n}\\right]^{${fTex(a * c, b)}}\\to\\mathrm{e}^{${fTex(a * c, b)}}$. Preto $k=${fTex(a * c, b)}$.`,
-          hint: 'Využi $\\left(1+\\frac{1}{x_n}\\right)^{x_n}\\to\\mathrm{e}$ pre $|x_n|\\to\\infty$, prípadne priamo $\\left(1+\\frac{a}{n}\\right)^{n}\\to\\mathrm{e}^{a}$.',
+          hint: T.s('Využi $\\left(1+\\frac{1}{x_n}\\right)^{x_n}\\to\\mathrm{e}$ pre $|x_n|\\to\\infty$, prípadne priamo $\\left(1+\\frac{a}{n}\\right)^{n}\\to\\mathrm{e}^{a}$.'),
           mistakes: [
-            { value: 0, msg: 'Typ $1^\\infty$ nie je rovný 1 – základ sa blíži k 1, ale exponent rastie nad všetky medze. Použi limitu pre číslo $\\mathrm{e}$.' },
-            ...(b !== 1 ? [{ value: a * c, msg: `V základe je $\\frac{${Math.abs(a)}}{${b}n}$, nie $\\frac{${Math.abs(a)}}{n}$ – exponent $k$ treba vydeliť ${b}.` }] : []),
-            ...(c !== 1 ? [{ value: a / b, msg: `Exponent je $${c}n$, nie $n$ – výsledok $k$ treba vynásobiť ${c}.` }] : [])
+            { value: 0, msg: T.s('Typ $1^\\infty$ nie je rovný 1 – základ sa blíži k 1, ale exponent rastie nad všetky medze. Použi limitu pre číslo $\\mathrm{e}$.') },
+            ...(b !== 1 ? [{ value: a * c, msg: T`V základe je $\\frac{${Math.abs(a)}}{${b}n}$, nie $\\frac{${Math.abs(a)}}{n}$ – exponent $k$ treba vydeliť ${b}.` }] : []),
+            ...(c !== 1 ? [{ value: a / b, msg: T`Exponent je $${c}n$, nie $n$ – výsledok $k$ treba vynásobiť ${c}.` }] : [])
           ]
         };
       }
@@ -480,17 +482,17 @@
       const c = rnd(1, 3), d = a - b;
       return {
         signed: true, answer: c * d,
-        q: `Limita $\\lim_{n\\to\\infty}\\left(\\dfrac{${lin([[1, 'n'], [a, '']])}}{n+${b}}\\right)^{${cx(c, 'n')}}$ sa rovná $\\mathrm{e}^{k}$. Urči $k$.`,
-        solution: `$\\dfrac{${lin([[1, 'n'], [a, '']])}}{n+${b}}=1+\\dfrac{${d}}{n+${b}}$. Pre $x_n=${d === 1 ? `n+${b}` : `${d < 0 ? '-' : ''}\\frac{n+${b}}{${Math.abs(d)}}`}$ platí $|x_n|\\to\\infty$ a exponent $${cx(c, 'n')}=x_n\\cdot\\dfrac{${c * d}n}{n+${b}}$, kde $\\dfrac{${c * d}n}{n+${b}}\\to ${c * d}$.
+        q: T`Limita $\\lim_{n\\to\\infty}\\left(\\dfrac{${lin([[1, 'n'], [a, '']])}}{n+${b}}\\right)^{${cx(c, 'n')}}$ sa rovná $\\mathrm{e}^{k}$. Urči $k$.`,
+        solution: T`$\\dfrac{${lin([[1, 'n'], [a, '']])}}{n+${b}}=1+\\dfrac{${d}}{n+${b}}$. Pre $x_n=${d === 1 ? `n+${b}` : `${d < 0 ? '-' : ''}\\frac{n+${b}}{${Math.abs(d)}}`}$ platí $|x_n|\\to\\infty$ a exponent $${cx(c, 'n')}=x_n\\cdot\\dfrac{${c * d}n}{n+${b}}$, kde $\\dfrac{${c * d}n}{n+${b}}\\to ${c * d}$.
           Preto limita je $\\mathrm{e}^{${c * d}}$ a $k=${c * d}$.`,
-        hint: 'Zlomok prepíš na tvar $1+\\frac{\\text{konštanta}}{n+b}$ a použi základnú limitu pre číslo $\\mathrm{e}$.',
+        hint: T.s('Zlomok prepíš na tvar $1+\\frac{\\text{konštanta}}{n+b}$ a použi základnú limitu pre číslo $\\mathrm{e}$.'),
         mistakes: [
-          { value: 0, msg: 'Typ $1^\\infty$ nie je rovný 1 – základ sa blíži k 1, ale exponent rastie nad všetky medze. Použi limitu pre číslo $\\mathrm{e}$.' },
-          ...(c !== 1 ? [{ value: d, msg: `Nezabudni na exponent $${c}n$: výsledok $k$ treba vynásobiť ${c}.` }] : [])
+          { value: 0, msg: T.s('Typ $1^\\infty$ nie je rovný 1 – základ sa blíži k 1, ale exponent rastie nad všetky medze. Použi limitu pre číslo $\\mathrm{e}$.') },
+          ...(c !== 1 ? [{ value: d, msg: T`Nezabudni na exponent $${c}n$: výsledok $k$ treba vynásobiť ${c}.` }] : [])
         ],
         steps: [
-          { q: `Zlomok zapíš ako $1+\\dfrac{m}{n+${b}}$. Aké je $m$?`, answer: d, signed: true },
-          { q: `Ku ktorému číslu $k$ smeruje $\\dfrac{${c * d}n}{n+${b}}$, teda exponent limity $\\mathrm{e}^{k}$?`, answer: c * d, signed: true }
+          { q: T`Zlomok zapíš ako $1+\\dfrac{m}{n+${b}}$. Aké je $m$?`, answer: d, signed: true },
+          { q: T`Ku ktorému číslu $k$ smeruje $\\dfrac{${c * d}n}{n+${b}}$, teda exponent limity $\\mathrm{e}^{k}$?`, answer: c * d, signed: true }
         ]
       };
     }
@@ -499,19 +501,19 @@
       const inner = lin([[1, 'n^2'], [a, 'n'], [b, '']]);
       return {
         signed: true, answer: a / 2, show: fTxt(a, 2),
-        q: `Vypočítaj $\\lim_{n\\to\\infty}\\left(\\sqrt{${inner}}-n\\right)$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Ide o typ $\\infty-\\infty$; rozšírime výrazom $\\sqrt{${inner}}+n$:
+        q: T`Vypočítaj $\\lim_{n\\to\\infty}\\left(\\sqrt{${inner}}-n\\right)$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`Ide o typ $\\infty-\\infty$; rozšírime výrazom $\\sqrt{${inner}}+n$:
           $\\dfrac{${inner}-n^2}{\\sqrt{${inner}}+n}=\\dfrac{${lin([[a, 'n'], [b, '']])}}{\\sqrt{${inner}}+n}$.
           Čitateľa aj menovateľa vydelíme $n$: menovateľ $\\sqrt{1${sfr(a, 'n')}${sfr(b, 'n^2')}}+1\\to 2$, čitateľ $\\to ${a}$. Limita je $${fTex(a, 2)}$.`,
-        hint: 'Rozdiel s odmocninou rozšír na rozdiel štvorcov: $(\\sqrt{A}-B)(\\sqrt{A}+B)=A-B^2$.',
+        hint: T.s('Rozdiel s odmocninou rozšír na rozdiel štvorcov: $(\\sqrt{A}-B)(\\sqrt{A}+B)=A-B^2$.'),
         mistakes: [
-          { value: 0, msg: 'Typ $\\infty-\\infty$ nemusí byť 0 – rozšír výraz súčtom $\\sqrt{\\dots}+n$ a až potom počítaj limitu.' },
-          { value: a, msg: 'Menovateľ $\\sqrt{\\dots}+n$ po vydelení $n$ smeruje k 2, nie k 1.' }
+          { value: 0, msg: T.s('Typ $\\infty-\\infty$ nemusí byť 0 – rozšír výraz súčtom $\\sqrt{\\dots}+n$ a až potom počítaj limitu.') },
+          { value: a, msg: T.s('Menovateľ $\\sqrt{\\dots}+n$ po vydelení $n$ smeruje k 2, nie k 1.') }
         ],
         steps: [
-          { q: `Po rozšírení je čitateľ $${lin([[a, 'n'], [b, '']])}$. K čomu smeruje čitateľ vydelený $n$?`, answer: a, signed: true },
-          { q: `K čomu smeruje menovateľ $\\sqrt{${inner}}+n$ vydelený $n$?`, answer: 2 },
-          { q: 'Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.', answer: a / 2, show: fTxt(a, 2), signed: true }
+          { q: T`Po rozšírení je čitateľ $${lin([[a, 'n'], [b, '']])}$. K čomu smeruje čitateľ vydelený $n$?`, answer: a, signed: true },
+          { q: T`K čomu smeruje menovateľ $\\sqrt{${inner}}+n$ vydelený $n$?`, answer: 2 },
+          { q: T.s('Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.'), answer: a / 2, show: fTxt(a, 2), signed: true }
         ]
       };
     }
@@ -519,17 +521,17 @@
     let b;
     do { b = rnd(-6, 9); } while (b === a * c);
     const d = a * c - b, grows = d > 0;
-    const ans = grows ? 'rastúca' : 'klesajúca';
+    const ans = T.s(grows ? 'rastúca' : 'klesajúca');
     return {
-      type: 'choice', options: ['rastúca', 'klesajúca', 'konštantná'], answer: ans,
-      q: `Rozhodni o monotónnosti postupnosti $a_n=\\dfrac{${lin([[a, 'n'], [b, '']])}}{${lin([[1, 'n'], [c, '']])}}$, $n\\ge 1$.`,
-      solution: `Zlomok rozdelíme: $a_n=${a}${d > 0 ? '-' : '+'}\\dfrac{${Math.abs(d)}}{${lin([[1, 'n'], [c, '']])}}$. Výraz $\\frac{1}{${lin([[1, 'n'], [c, '']])}}$ s rastúcim $n$ klesá.
-        ${grows ? `Od čísla $${a}$ odčítavame stále menšie kladné číslo, postupnosť je preto <strong>rastúca</strong>` : `K číslu $${a}$ pripočítavame stále menšie kladné číslo, postupnosť je preto <strong>klesajúca</strong>`}.
+      type: 'choice', options: [T.s('rastúca'), T.s('klesajúca'), T.s('konštantná')], answer: ans,
+      q: T`Rozhodni o monotónnosti postupnosti $a_n=\\dfrac{${lin([[a, 'n'], [b, '']])}}{${lin([[1, 'n'], [c, '']])}}$, $n\\ge 1$.`,
+      solution: T`Zlomok rozdelíme: $a_n=${a}${d > 0 ? '-' : '+'}\\dfrac{${Math.abs(d)}}{${lin([[1, 'n'], [c, '']])}}$. Výraz $\\frac{1}{${lin([[1, 'n'], [c, '']])}}$ s rastúcim $n$ klesá.
+        ${grows ? T`Od čísla $${a}$ odčítavame stále menšie kladné číslo, postupnosť je preto <strong>rastúca</strong>` : T`K číslu $${a}$ pripočítavame stále menšie kladné číslo, postupnosť je preto <strong>klesajúca</strong>`}.
         Pritom je ohraničená ($a_1$ a $${a}$ sú jej hranice) a $\\lim_{n\\to\\infty} a_n=${a}$.`,
-      hint: 'Vydeľ čitateľa menovateľom (alebo vyšetri znamienko rozdielu $a_{n+1}-a_n$).',
+      hint: T.s('Vydeľ čitateľa menovateľom (alebo vyšetri znamienko rozdielu $a_{n+1}-a_n$).'),
       choiceHints: {
-        [grows ? 'klesajúca' : 'rastúca']: 'Pozri sa na znamienko pred zlomkom $\\frac{\\dots}{n+c}$: odčítanie stále menšieho čísla výsledok zväčšuje, pripočítanie stále menšieho čísla ho zmenšuje.',
-        'konštantná': 'Postupnosť nie je konštantná – po vydelení zostane zlomok, ktorý sa s $n$ mení.'
+        [T.s(grows ? 'klesajúca' : 'rastúca')]: T.s('Pozri sa na znamienko pred zlomkom $\\frac{\\dots}{n+c}$: odčítanie stále menšieho čísla výsledok zväčšuje, pripočítanie stále menšieho čísla ho zmenšuje.'),
+        [T.s('konštantná')]: T.s('Postupnosť nie je konštantná – po vydelení zostane zlomok, ktorý sa s $n$ mení.')
       }
     };
   });
@@ -553,7 +555,7 @@
         <text class="f-small c-ok" x="${n1(p.X(1))}" y="${n1(p.Y(2.6) + 12)}" text-anchor="middle">1 ± δ</text>`;
       return {
         svg: svg(p, axes(p), clipped, front, 'Epsilon-delta definícia limity funkcie x na druhú v bode 1'),
-        readout: `ε = ${sk(e, 2)} · <span class="c-ok">δ = √(1 + ε) − 1 ≈ ${sk(d, 3)}</span> · pre 0 &lt; |x − 1| &lt; δ je |x² − 1| &lt; ε`
+        readout: T`ε = ${sk(e, 2)} · <span class="c-ok">δ = √(1 + ε) − 1 ≈ ${sk(d, 3)}</span> · pre 0 &lt; |x − 1| &lt; δ je |x² − 1| &lt; ε`
       };
     }
   });
@@ -596,18 +598,18 @@
         const a = nz(-4, 4);
         return {
           signed: true, answer: a * a / 2, show: fTxt(a * a, 2),
-          q: `Vypočítaj $\\lim_{x\\to 0}\\dfrac{\\mathrm{e}^{${cx(a)}}-1${term(-a, 'x')}}{x^2}$.`,
-          solution: `Typ $\\frac{0}{0}$. Prvé použitie L’Hospitalovho pravidla dá $\\dfrac{${a === 1 ? '' : a === -1 ? '-' : a}\\mathrm{e}^{${cx(a)}}${term(-a, '')}}{2x}$, opäť typ $\\frac{0}{0}$.
+          q: T`Vypočítaj $\\lim_{x\\to 0}\\dfrac{\\mathrm{e}^{${cx(a)}}-1${term(-a, 'x')}}{x^2}$.`,
+          solution: T`Typ $\\frac{0}{0}$. Prvé použitie L’Hospitalovho pravidla dá $\\dfrac{${a === 1 ? '' : a === -1 ? '-' : a}\\mathrm{e}^{${cx(a)}}${term(-a, '')}}{2x}$, opäť typ $\\frac{0}{0}$.
             Druhé použitie: $\\dfrac{${a * a}\\mathrm{e}^{${cx(a)}}}{2}\\to\\dfrac{${a * a}}{2}$. Limita je $${fTex(a * a, 2)}$.`,
-          hint: 'Typ $\\frac{0}{0}$ – použi L’Hospitalovo pravidlo (aj opakovane).',
+          hint: T.s('Typ $\\frac{0}{0}$ – použi L’Hospitalovo pravidlo (aj opakovane).'),
           mistakes: [
-            ...(Math.abs(a) !== 1 ? [{ value: a / 2, msg: `Pri derivovaní $\\mathrm{e}^{${cx(a)}}$ nezabudni na vnútornú deriváciu – každé derivovanie pridá činiteľ ${a}.` }] : []),
-            { value: a * a, msg: 'Derivácia $x^2$ je $2x$ a druhá derivácia je $2$ – menovateľ nezmizne.' }
+            ...(Math.abs(a) !== 1 ? [{ value: a / 2, msg: T`Pri derivovaní $\\mathrm{e}^{${cx(a)}}$ nezabudni na vnútornú deriváciu – každé derivovanie pridá činiteľ ${a}.` }] : []),
+            { value: a * a, msg: T.s('Derivácia $x^2$ je $2x$ a druhá derivácia je $2$ – menovateľ nezmizne.') }
           ],
           steps: [
-            { q: `Čitateľ zderivuj dvakrát. Aká je hodnota druhej derivácie čitateľa v bode $0$?`, answer: a * a },
-            { q: 'Aká je druhá derivácia menovateľa $x^2$?', answer: 2 },
-            { q: 'Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.', answer: a * a / 2, show: fTxt(a * a, 2), signed: true }
+            { q: T`Čitateľ zderivuj dvakrát. Aká je hodnota druhej derivácie čitateľa v bode $0$?`, answer: a * a },
+            { q: T.s('Aká je druhá derivácia menovateľa $x^2$?'), answer: 2 },
+            { q: T.s('Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.'), answer: a * a / 2, show: fTxt(a * a, 2), signed: true }
           ]
         };
       }
@@ -615,17 +617,17 @@
         const a = rnd(1, 5);
         return {
           answer: a * a / 2, show: fTxt(a * a, 2),
-          q: `Vypočítaj $\\lim_{x\\to 0}\\dfrac{1-\\cos ${cx(a)}}{x^2}$.`,
-          solution: `Typ $\\frac{0}{0}$. Podľa L’Hospitalovho pravidla $\\lim_{x\\to 0}\\dfrac{${a === 1 ? '' : a}\\sin ${cx(a)}}{2x}$, znova $\\frac{0}{0}$; ďalšie použitie dá $\\lim_{x\\to 0}\\dfrac{${a * a}\\cos ${cx(a)}}{2}=${fTex(a * a, 2)}$.`,
-          hint: 'Typ $\\frac{0}{0}$ – derivuj čitateľa aj menovateľa (dvakrát).',
+          q: T`Vypočítaj $\\lim_{x\\to 0}\\dfrac{1-\\cos ${cx(a)}}{x^2}$.`,
+          solution: T`Typ $\\frac{0}{0}$. Podľa L’Hospitalovho pravidla $\\lim_{x\\to 0}\\dfrac{${a === 1 ? '' : a}\\sin ${cx(a)}}{2x}$, znova $\\frac{0}{0}$; ďalšie použitie dá $\\lim_{x\\to 0}\\dfrac{${a * a}\\cos ${cx(a)}}{2}=${fTex(a * a, 2)}$.`,
+          hint: T.s('Typ $\\frac{0}{0}$ – derivuj čitateľa aj menovateľa (dvakrát).'),
           mistakes: [
-            ...(a !== 1 ? [{ value: a / 2, msg: `Pri derivovaní $\\cos ${cx(a)}$ aj $\\sin ${cx(a)}$ nezabudni na vnútornú deriváciu ${a} – pri dvoch derivovaniach dostaneš $${a}^2$.` }] : []),
-            { value: a * a, msg: 'Derivácia $x^2$ je $2x$ a druhá derivácia je $2$ – menovateľ nezmizne.' }
+            ...(a !== 1 ? [{ value: a / 2, msg: T`Pri derivovaní $\\cos ${cx(a)}$ aj $\\sin ${cx(a)}$ nezabudni na vnútornú deriváciu ${a} – pri dvoch derivovaniach dostaneš $${a}^2$.` }] : []),
+            { value: a * a, msg: T.s('Derivácia $x^2$ je $2x$ a druhá derivácia je $2$ – menovateľ nezmizne.') }
           ],
           steps: [
-            { q: `Aká je hodnota druhej derivácie čitateľa $1-\\cos ${cx(a)}$ v bode $0$?`, answer: a * a },
-            { q: 'Aká je druhá derivácia menovateľa $x^2$?', answer: 2 },
-            { q: 'Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.', answer: a * a / 2, show: fTxt(a * a, 2) }
+            { q: T`Aká je hodnota druhej derivácie čitateľa $1-\\cos ${cx(a)}$ v bode $0$?`, answer: a * a },
+            { q: T.s('Aká je druhá derivácia menovateľa $x^2$?'), answer: 2 },
+            { q: T.s('Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.'), answer: a * a / 2, show: fTxt(a * a, 2) }
           ]
         };
       }
@@ -633,28 +635,28 @@
         const a = rnd(1, 3);
         return {
           answer: a * a * a / 6, show: fTxt(a * a * a, 6),
-          q: `Vypočítaj $\\lim_{x\\to 0}\\dfrac{${cx(a)}-\\sin ${cx(a)}}{x^3}$.`,
-          solution: `Trikrát použijeme L’Hospitalovo pravidlo (vždy typ $\\frac{0}{0}$):
+          q: T`Vypočítaj $\\lim_{x\\to 0}\\dfrac{${cx(a)}-\\sin ${cx(a)}}{x^3}$.`,
+          solution: T`Trikrát použijeme L’Hospitalovo pravidlo (vždy typ $\\frac{0}{0}$):
             $\\dfrac{${a}-${a === 1 ? '' : a}\\cos ${cx(a)}}{3x^2}\\ \\to\\ \\dfrac{${a * a === 1 ? '' : a * a}\\sin ${cx(a)}}{6x}\\ \\to\\ \\dfrac{${a * a * a}\\cos ${cx(a)}}{6}\\to ${fTex(a * a * a, 6)}$.`,
-          hint: 'Rozvoj $\\sin u=u-\\frac{u^3}{6}+\\dots$ alebo opakované L’Hospitalovo pravidlo.',
+          hint: T.s('Rozvoj $\\sin u=u-\\frac{u^3}{6}+\\dots$ alebo opakované L’Hospitalovo pravidlo.'),
           mistakes: [
-            ...(a !== 1 ? [{ value: a / 6, msg: `Pri každom derivovaní $\\sin ${cx(a)}$ či $\\cos ${cx(a)}$ pribudne vnútorná derivácia ${a} – spolu $${a}^3$.` }] : []),
-            { value: a * a * a, msg: 'Tretia derivácia menovateľa $x^3$ je $3!=6$, nie 1.' }
+            ...(a !== 1 ? [{ value: a / 6, msg: T`Pri každom derivovaní $\\sin ${cx(a)}$ či $\\cos ${cx(a)}$ pribudne vnútorná derivácia ${a} – spolu $${a}^3$.` }] : []),
+            { value: a * a * a, msg: T.s('Tretia derivácia menovateľa $x^3$ je $3!=6$, nie 1.') }
           ],
           steps: [
-            { q: `Aká je hodnota tretej derivácie čitateľa $${cx(a)}-\\sin ${cx(a)}$ v bode $0$?`, answer: a * a * a },
-            { q: 'Aká je tretia derivácia menovateľa $x^3$?', answer: 6 },
-            { q: 'Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.', answer: a * a * a / 6, show: fTxt(a * a * a, 6) }
+            { q: T`Aká je hodnota tretej derivácie čitateľa $${cx(a)}-\\sin ${cx(a)}$ v bode $0$?`, answer: a * a * a },
+            { q: T.s('Aká je tretia derivácia menovateľa $x^3$?'), answer: 6 },
+            { q: T.s('Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.'), answer: a * a * a / 6, show: fTxt(a * a * a, 6) }
           ]
         };
       }
       const a = nz(-3, 3);
       return {
         signed: true, answer: -a * a / 2, show: fTxt(-a * a, 2),
-        q: `Vypočítaj $\\lim_{x\\to 0}\\dfrac{\\ln(1${term(a, 'x')})${term(-a, 'x')}}{x^2}$.`,
-        solution: `Typ $\\frac{0}{0}$. Po derivovaní: $\\dfrac{\\frac{${a}}{1${term(a, 'x')}}${term(-a, '')}}{2x}=\\dfrac{${-a * a}x}{2x(1${term(a, 'x')})}=\\dfrac{${-a * a}}{2(1${term(a, 'x')})}\\to ${fTex(-a * a, 2)}$.`,
-        hint: 'Použi L’Hospitalovo pravidlo a čitateľa uprav na spoločný menovateľ.',
-        mistakes: [{ value: -a * a, msg: 'Derivácia menovateľa $x^2$ je $2x$ – na dvojku v menovateli nezabudni.' }]
+        q: T`Vypočítaj $\\lim_{x\\to 0}\\dfrac{\\ln(1${term(a, 'x')})${term(-a, 'x')}}{x^2}$.`,
+        solution: T`Typ $\\frac{0}{0}$. Po derivovaní: $\\dfrac{\\frac{${a}}{1${term(a, 'x')}}${term(-a, '')}}{2x}=\\dfrac{${-a * a}x}{2x(1${term(a, 'x')})}=\\dfrac{${-a * a}}{2(1${term(a, 'x')})}\\to ${fTex(-a * a, 2)}$.`,
+        hint: T.s('Použi L’Hospitalovo pravidlo a čitateľa uprav na spoločný menovateľ.'),
+        mistakes: [{ value: -a * a, msg: T.s('Derivácia menovateľa $x^2$ je $2x$ – na dvojku v menovateli nezabudni.') }]
       };
     }
     if (t < 0.55) {
@@ -664,28 +666,28 @@
         const c = rnd(1, 4);
         return {
           signed: true, answer: (a - b) / c, show: fTxt(a - b, c),
-          q: `Vypočítaj $\\lim_{x\\to 0}\\dfrac{\\mathrm{e}^{${cx(a)}}-\\mathrm{e}^{${cx(b)}}}{\\sin ${cx(c)}}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-          solution: `Typ $\\frac{0}{0}$. Podľa L’Hospitalovho pravidla $\\lim_{x\\to 0}\\dfrac{${lin([[a, `\\mathrm{e}^{${cx(a)}}`], [-b, `\\mathrm{e}^{${cx(b)}}`]])}}{${fco(c, true)}\\cos ${cx(c)}}=\\dfrac{${a}-${par(b)}}{${c}}=${fTex(a - b, c)}$.`,
-          hint: 'Typ $\\frac{0}{0}$ – derivuj čitateľa aj menovateľa a dosaď $x=0$.',
-          mistakes: c !== 1 ? [{ value: a - b, msg: `Derivácia $\\sin ${cx(c)}$ je $${c}\\cos ${cx(c)}$ – nezabudni na vnútornú deriváciu.` }] : [],
+          q: T`Vypočítaj $\\lim_{x\\to 0}\\dfrac{\\mathrm{e}^{${cx(a)}}-\\mathrm{e}^{${cx(b)}}}{\\sin ${cx(c)}}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+          solution: T`Typ $\\frac{0}{0}$. Podľa L’Hospitalovho pravidla $\\lim_{x\\to 0}\\dfrac{${lin([[a, `\\mathrm{e}^{${cx(a)}}`], [-b, `\\mathrm{e}^{${cx(b)}}`]])}}{${fco(c, true)}\\cos ${cx(c)}}=\\dfrac{${a}-${par(b)}}{${c}}=${fTex(a - b, c)}$.`,
+          hint: T.s('Typ $\\frac{0}{0}$ – derivuj čitateľa aj menovateľa a dosaď $x=0$.'),
+          mistakes: c !== 1 ? [{ value: a - b, msg: T`Derivácia $\\sin ${cx(c)}$ je $${c}\\cos ${cx(c)}$ – nezabudni na vnútornú deriváciu.` }] : [],
           steps: [
-            { q: 'Aká je hodnota derivácie čitateľa v bode $0$?', answer: a - b, signed: true },
-            { q: 'Aká je hodnota derivácie menovateľa v bode $0$?', answer: c },
-            { q: 'Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.', answer: (a - b) / c, show: fTxt(a - b, c), signed: true }
+            { q: T.s('Aká je hodnota derivácie čitateľa v bode $0$?'), answer: a - b, signed: true },
+            { q: T.s('Aká je hodnota derivácie menovateľa v bode $0$?'), answer: c },
+            { q: T.s('Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.'), answer: (a - b) / c, show: fTxt(a - b, c), signed: true }
           ]
         };
       }
       const a = nz(-4, 4), b = nz(-4, 4);
       return {
         signed: true, answer: a / b, show: fTxt(a, b),
-        q: `Vypočítaj $\\lim_{x\\to 0}\\dfrac{\\ln(1${term(a, 'x')})}{\\mathrm{e}^{${cx(b)}}-1}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Typ $\\frac{0}{0}$. Podľa L’Hospitalovho pravidla $\\lim_{x\\to 0}\\dfrac{${a}/(1${term(a, 'x')})}{${fco(b, true)}\\mathrm{e}^{${cx(b)}}}=\\dfrac{${a}}{${b}}${fTex(a, b) === `\\frac{${a}}{${b}}` ? '' : `=${fTex(a, b)}`}$.`,
-        hint: 'Využi $\\ln(1+u)\\approx u$ a $\\mathrm{e}^u-1\\approx u$ pre malé $u$, alebo L’Hospitalovo pravidlo.',
-        mistakes: a !== b ? [{ value: 1, msg: 'Pri derivovaní $\\ln(1+ax)$ aj $\\mathrm{e}^{bx}$ nezabudni na vnútorné derivácie $a$ a $b$.' }] : [],
+        q: T`Vypočítaj $\\lim_{x\\to 0}\\dfrac{\\ln(1${term(a, 'x')})}{\\mathrm{e}^{${cx(b)}}-1}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`Typ $\\frac{0}{0}$. Podľa L’Hospitalovho pravidla $\\lim_{x\\to 0}\\dfrac{${a}/(1${term(a, 'x')})}{${fco(b, true)}\\mathrm{e}^{${cx(b)}}}=\\dfrac{${a}}{${b}}${fTex(a, b) === `\\frac{${a}}{${b}}` ? '' : `=${fTex(a, b)}`}$.`,
+        hint: T.s('Využi $\\ln(1+u)\\approx u$ a $\\mathrm{e}^u-1\\approx u$ pre malé $u$, alebo L’Hospitalovo pravidlo.'),
+        mistakes: a !== b ? [{ value: 1, msg: T.s('Pri derivovaní $\\ln(1+ax)$ aj $\\mathrm{e}^{bx}$ nezabudni na vnútorné derivácie $a$ a $b$.') }] : [],
         steps: [
-          { q: 'Aká je hodnota derivácie čitateľa v bode $0$?', answer: a, signed: true },
-          { q: 'Aká je hodnota derivácie menovateľa v bode $0$?', answer: b, signed: true },
-          { q: 'Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.', answer: a / b, show: fTxt(a, b), signed: true }
+          { q: T.s('Aká je hodnota derivácie čitateľa v bode $0$?'), answer: a, signed: true },
+          { q: T.s('Aká je hodnota derivácie menovateľa v bode $0$?'), answer: b, signed: true },
+          { q: T.s('Aká je hľadaná limita? Zadaj celé číslo alebo zlomok.'), answer: a / b, show: fTxt(a, b), signed: true }
         ]
       };
     }
@@ -694,35 +696,35 @@
         const a = rnd(1, 5), b = rnd(1, 4);
         return {
           signed: true, answer: a / b, show: fTxt(a, b),
-          q: `Pre aké $c$ je funkcia $f(x)=\\begin{cases}\\dfrac{\\sin ${cx(a)}}{\\ln(1+${cx(b)})}, & x\\gt 0,\\\\ c, & x=0\\end{cases}$ sprava spojitá v bode $0$?`,
-          solution: `Musí platiť $c=\\lim_{x\\to 0^+} f(x)$. Typ $\\frac{0}{0}$, podľa L’Hospitalovho pravidla $\\lim_{x\\to 0^+}\\dfrac{${fco(a, true)}\\cos ${cx(a)}}{${b}/(1+${cx(b)})}=${b === 1 ? a : `\\dfrac{${a}}{${b}}`}$. Teda $c=${fTex(a, b)}$.`,
-          hint: 'Spojitosť sprava v bode $0$ znamená $\\lim_{x\\to 0^+} f(x)=f(0)$.',
+          q: T`Pre aké $c$ je funkcia $f(x)=\\begin{cases}\\dfrac{\\sin ${cx(a)}}{\\ln(1+${cx(b)})}, & x\\gt 0,\\\\ c, & x=0\\end{cases}$ sprava spojitá v bode $0$?`,
+          solution: T`Musí platiť $c=\\lim_{x\\to 0^+} f(x)$. Typ $\\frac{0}{0}$, podľa L’Hospitalovho pravidla $\\lim_{x\\to 0^+}\\dfrac{${fco(a, true)}\\cos ${cx(a)}}{${b}/(1+${cx(b)})}=${b === 1 ? a : `\\dfrac{${a}}{${b}}`}$. Teda $c=${fTex(a, b)}$.`,
+          hint: T.s('Spojitosť sprava v bode $0$ znamená $\\lim_{x\\to 0^+} f(x)=f(0)$.'),
           mistakes: [
-            { value: 0, msg: 'Dosadením $x=0$ dostaneš neurčitý výraz $\\frac{0}{0}$, nie nulu – treba vypočítať limitu.' },
-            ...(a !== b ? [{ value: 1, msg: `Nezabudni na vnútorné derivácie: $(\\sin ${cx(a)})'=${fco(a, true)}\\cos ${cx(a)}$ a $(\\ln(1+${cx(b)}))'=\\frac{${b}}{1+${cx(b)}}$.` }] : [])
+            { value: 0, msg: T.s('Dosadením $x=0$ dostaneš neurčitý výraz $\\frac{0}{0}$, nie nulu – treba vypočítať limitu.') },
+            ...(a !== b ? [{ value: 1, msg: T`Nezabudni na vnútorné derivácie: $(\\sin ${cx(a)})'=${fco(a, true)}\\cos ${cx(a)}$ a $(\\ln(1+${cx(b)}))'=\\frac{${b}}{1+${cx(b)}}$.` }] : [])
           ],
           steps: [
-            { q: 'Aká je hodnota derivácie čitateľa v bode $0$?', answer: a },
-            { q: 'Aká je hodnota derivácie menovateľa v bode $0$?', answer: b },
-            { q: 'Aké musí byť $c$? Zadaj celé číslo alebo zlomok.', answer: a / b, show: fTxt(a, b) }
+            { q: T.s('Aká je hodnota derivácie čitateľa v bode $0$?'), answer: a },
+            { q: T.s('Aká je hodnota derivácie menovateľa v bode $0$?'), answer: b },
+            { q: T.s('Aké musí byť $c$? Zadaj celé číslo alebo zlomok.'), answer: a / b, show: fTxt(a, b) }
           ]
         };
       }
       const a = rnd(1, 4), b = rnd(1, 4);
       return {
         answer: a * a / (2 * b), show: fTxt(a * a, 2 * b),
-        q: `Pre aké $c$ je funkcia $f(x)=\\begin{cases}\\dfrac{1-\\cos ${cx(a)}}{${cx(b, 'x^2')}}, & x\\neq 0,\\\\ c, & x=0\\end{cases}$ spojitá na $\\mathbb{R}$?`,
-        solution: `Mimo nuly je $f$ spojitá ako podiel spojitých funkcií. V nule potrebujeme $c=\\lim_{x\\to 0}\\dfrac{1-\\cos ${cx(a)}}{${cx(b, 'x^2')}}$.
+        q: T`Pre aké $c$ je funkcia $f(x)=\\begin{cases}\\dfrac{1-\\cos ${cx(a)}}{${cx(b, 'x^2')}}, & x\\neq 0,\\\\ c, & x=0\\end{cases}$ spojitá na $\\mathbb{R}$?`,
+        solution: T`Mimo nuly je $f$ spojitá ako podiel spojitých funkcií. V nule potrebujeme $c=\\lim_{x\\to 0}\\dfrac{1-\\cos ${cx(a)}}{${cx(b, 'x^2')}}$.
           Dvakrát použijeme L’Hospitalovo pravidlo: $\\dfrac{${a === 1 ? '' : a}\\sin ${cx(a)}}{${2 * b}x}\\to\\dfrac{${a * a}\\cos ${cx(a)}}{${2 * b}}\\to\\dfrac{${a * a}}{${2 * b}}$. Teda $c=${fTex(a * a, 2 * b)}$.`,
-        hint: 'Funkcia je spojitá v nule práve vtedy, keď sa limita v nule rovná funkčnej hodnote $c$.',
+        hint: T.s('Funkcia je spojitá v nule práve vtedy, keď sa limita v nule rovná funkčnej hodnote $c$.'),
         mistakes: [
-          { value: a * a / b, msg: `Druhá derivácia menovateľa $${cx(b, 'x^2')}$ je $${2 * b}$, nie $${b}$.` },
-          ...(a !== 1 ? [{ value: a / (2 * b), msg: `Pri derivovaní $\\cos ${cx(a)}$ aj $\\sin ${cx(a)}$ nezabudni na vnútornú deriváciu ${a} – spolu $${a}^2$.` }] : [])
+          { value: a * a / b, msg: T`Druhá derivácia menovateľa $${cx(b, 'x^2')}$ je $${2 * b}$, nie $${b}$.` },
+          ...(a !== 1 ? [{ value: a / (2 * b), msg: T`Pri derivovaní $\\cos ${cx(a)}$ aj $\\sin ${cx(a)}$ nezabudni na vnútornú deriváciu ${a} – spolu $${a}^2$.` }] : [])
         ],
         steps: [
-          { q: `Aká je hodnota druhej derivácie čitateľa $1-\\cos ${cx(a)}$ v bode $0$?`, answer: a * a },
-          { q: `Aká je druhá derivácia menovateľa $${cx(b, 'x^2')}$?`, answer: 2 * b },
-          { q: 'Aké musí byť $c$? Zadaj celé číslo alebo zlomok.', answer: a * a / (2 * b), show: fTxt(a * a, 2 * b) }
+          { q: T`Aká je hodnota druhej derivácie čitateľa $1-\\cos ${cx(a)}$ v bode $0$?`, answer: a * a },
+          { q: T`Aká je druhá derivácia menovateľa $${cx(b, 'x^2')}$?`, answer: 2 * b },
+          { q: T.s('Aké musí byť $c$? Zadaj celé číslo alebo zlomok.'), answer: a * a / (2 * b), show: fTxt(a * a, 2 * b) }
         ]
       };
     }
@@ -730,32 +732,32 @@
       const a = nz(-4, 4), b = nz(-3, 3);
       return {
         signed: true, answer: a * b,
-        q: `Limita $\\lim_{x\\to 0}(1${term(a, 'x')})^{${b}/x}$ sa rovná $\\mathrm{e}^{k}$. Urči $k$.`,
-        solution: `Typ $1^\\infty$. Zapíšeme $(1${term(a, 'x')})^{${b}/x}=\\mathrm{e}^{\\frac{${fco(b, true)}\\ln(1${term(a, 'x')})}{x}}$.
+        q: T`Limita $\\lim_{x\\to 0}(1${term(a, 'x')})^{${b}/x}$ sa rovná $\\mathrm{e}^{k}$. Urči $k$.`,
+        solution: T`Typ $1^\\infty$. Zapíšeme $(1${term(a, 'x')})^{${b}/x}=\\mathrm{e}^{\\frac{${fco(b, true)}\\ln(1${term(a, 'x')})}{x}}$.
           Limita exponentu: $\\lim_{x\\to 0}\\dfrac{${fco(b, true)}\\ln(1${term(a, 'x')})}{x}=\\lim_{x\\to 0}\\dfrac{${b}\\cdot ${par(a)}}{1${term(a, 'x')}}=${a * b}$ (L’Hospitalovo pravidlo). Teda $k=${a * b}$.`,
-        hint: 'Použi $f^g=\\mathrm{e}^{g\\ln f}$ a vypočítaj limitu exponentu.',
+        hint: T.s('Použi $f^g=\\mathrm{e}^{g\\ln f}$ a vypočítaj limitu exponentu.'),
         mistakes: [
-          { value: 0, msg: 'Typ $1^\\infty$ nie je rovný 1 (teda $k\\neq 0$ vo všeobecnosti) – prepíš mocninu ako $\\mathrm{e}^{g\\ln f}$.' },
-          ...(Math.abs(b) !== 1 ? [{ value: a, msg: `Nezabudni na konštantu ${b} v exponente – limitu exponentu treba ňou vynásobiť.` }] : []),
-          ...(Math.abs(a) !== 1 && a !== b ? [{ value: b, msg: `Derivácia $\\ln(1${term(a, 'x')})$ je $\\frac{${a}}{1${term(a, 'x')}}$ – nezabudni na vnútornú deriváciu.` }] : [])
+          { value: 0, msg: T.s('Typ $1^\\infty$ nie je rovný 1 (teda $k\\neq 0$ vo všeobecnosti) – prepíš mocninu ako $\\mathrm{e}^{g\\ln f}$.') },
+          ...(Math.abs(b) !== 1 ? [{ value: a, msg: T`Nezabudni na konštantu ${b} v exponente – limitu exponentu treba ňou vynásobiť.` }] : []),
+          ...(Math.abs(a) !== 1 && a !== b ? [{ value: b, msg: T`Derivácia $\\ln(1${term(a, 'x')})$ je $\\frac{${a}}{1${term(a, 'x')}}$ – nezabudni na vnútornú deriváciu.` }] : [])
         ]
       };
     }
     const a = rnd(1, 3), b = rnd(1, 4);
     return {
       signed: true, answer: -a * a * b / 2, show: fTxt(-a * a * b, 2),
-      q: `Limita $\\lim_{x\\to 0}(\\cos ${cx(a)})^{${b}/x^2}$ sa rovná $\\mathrm{e}^{k}$. Urči $k$ (celé číslo alebo zlomok).`,
-      solution: `Typ $1^\\infty$. Exponent: $\\lim_{x\\to 0}\\dfrac{${fco(b, true)}\\ln\\cos ${cx(a)}}{x^2}$, typ $\\frac{0}{0}$. L’Hospitalovo pravidlo dá
+      q: T`Limita $\\lim_{x\\to 0}(\\cos ${cx(a)})^{${b}/x^2}$ sa rovná $\\mathrm{e}^{k}$. Urči $k$ (celé číslo alebo zlomok).`,
+      solution: T`Typ $1^\\infty$. Exponent: $\\lim_{x\\to 0}\\dfrac{${fco(b, true)}\\ln\\cos ${cx(a)}}{x^2}$, typ $\\frac{0}{0}$. L’Hospitalovo pravidlo dá
         $\\lim_{x\\to 0}\\dfrac{-${b * a === 1 ? '' : b * a}\\operatorname{tg} ${cx(a)}}{2x}=-\\dfrac{${b * a}\\cdot ${a}}{2}=${fTex(-a * a * b, 2)}$, lebo $\\frac{\\operatorname{tg} u}{u}\\to 1$. Teda $k=${fTex(-a * a * b, 2)}$.`,
-      hint: 'Použi $f^g=\\mathrm{e}^{g\\ln f}$; pri derivovaní $\\ln\\cos u$ dostaneš $-\\operatorname{tg} u\\cdot u\'$.',
+      hint: T.s('Použi $f^g=\\mathrm{e}^{g\\ln f}$; pri derivovaní $\\ln\\cos u$ dostaneš $-\\operatorname{tg} u\\cdot u\'$.'),
       mistakes: [
-        { value: 0, msg: 'Typ $1^\\infty$ nie je rovný 1 (teda $k\\neq 0$ vo všeobecnosti) – prepíš mocninu ako $\\mathrm{e}^{g\\ln f}$.' },
-        { value: -a * a * b, msg: 'Derivácia menovateľa $x^2$ je $2x$ – na dvojku nezabudni.' },
-        ...(a !== 1 ? [{ value: -a * b / 2, msg: `Pri derivovaní $\\ln\\cos ${cx(a)}$ vznikne $-${a}\\operatorname{tg} ${cx(a)}$ a $\\frac{\\operatorname{tg} ${cx(a)}}{x}\\to ${a}$ – činiteľ ${a} sa objaví dvakrát.` }] : [])
+        { value: 0, msg: T.s('Typ $1^\\infty$ nie je rovný 1 (teda $k\\neq 0$ vo všeobecnosti) – prepíš mocninu ako $\\mathrm{e}^{g\\ln f}$.') },
+        { value: -a * a * b, msg: T.s('Derivácia menovateľa $x^2$ je $2x$ – na dvojku nezabudni.') },
+        ...(a !== 1 ? [{ value: -a * b / 2, msg: T`Pri derivovaní $\\ln\\cos ${cx(a)}$ vznikne $-${a}\\operatorname{tg} ${cx(a)}$ a $\\frac{\\operatorname{tg} ${cx(a)}}{x}\\to ${a}$ – činiteľ ${a} sa objaví dvakrát.` }] : [])
       ],
       steps: [
-        { q: `Exponent je $\\dfrac{${fco(b, true)}\\ln\\cos ${cx(a)}}{x^2}$. Po prvom L’Hospitalovom pravidle dostaneš $\\dfrac{-${b * a === 1 ? '' : b * a}\\operatorname{tg} ${cx(a)}}{2x}$. K čomu smeruje $\\dfrac{\\operatorname{tg} ${cx(a)}}{x}$?`, answer: a },
-        { q: 'Aké je teda $k$? Zadaj celé číslo alebo zlomok.', answer: -a * a * b / 2, show: fTxt(-a * a * b, 2), signed: true }
+        { q: T`Exponent je $\\dfrac{${fco(b, true)}\\ln\\cos ${cx(a)}}{x^2}$. Po prvom L’Hospitalovom pravidle dostaneš $\\dfrac{-${b * a === 1 ? '' : b * a}\\operatorname{tg} ${cx(a)}}{2x}$. K čomu smeruje $\\dfrac{\\operatorname{tg} ${cx(a)}}{x}$?`, answer: a },
+        { q: T.s('Aké je teda $k$? Zadaj celé číslo alebo zlomok.'), answer: -a * a * b / 2, show: fTxt(-a * a * b, 2), signed: true }
       ]
     };
   });
@@ -797,50 +799,50 @@
       const fam = rnd(0, 3), a = rnd(2, 4), C = '+C';
       let f, ok, wrong, sol, why;
       if (fam === 0) {
-        why = ['Pozor na znamienko: vzorec per partes je $uv-\\int u\'v\\,dx$, mínus pred integrálom sa prenesie aj do druhého člena.',
-          `Primitívna funkcia k $\\mathrm{e}^{${a}x}$ je $\\frac{1}{${a}}\\mathrm{e}^{${a}x}$ – nezabudni deliť vnútornou deriváciou.`,
-          'Integrál súčinu nie je súčin integrálov – použi per partes. Overiť to môžeš derivovaním.'];
+        why = [T.s('Pozor na znamienko: vzorec per partes je $uv-\\int u\'v\\,dx$, mínus pred integrálom sa prenesie aj do druhého člena.'),
+          T`Primitívna funkcia k $\\mathrm{e}^{${a}x}$ je $\\frac{1}{${a}}\\mathrm{e}^{${a}x}$ – nezabudni deliť vnútornou deriváciou.`,
+          T.s('Integrál súčinu nie je súčin integrálov – použi per partes. Overiť to môžeš derivovaním.')];
         const E = `\\mathrm{e}^{${a}x}`;
         f = `x\\,${E}`;
         ok = `${E}\\left(${rsum([[1, a, 'x'], [-1, a * a, '']])}\\right)${C}`;
         wrong = [`${E}\\left(${rsum([[1, a, 'x'], [1, a * a, '']])}\\right)${C}`, `${E}\\left(${rsum([[1, 1, 'x'], [-1, a, '']])}\\right)${C}`,
           `\\frac{x^2}{${2 * a}}${E}${C}`];
-        sol = `$u=x$, $v'=${E}$, teda $u'=1$, $v=\\frac{1}{${a}}${E}$: $\\int x\\,${E}\\,dx=\\frac{x}{${a}}${E}-\\frac{1}{${a}}\\int ${E}\\,dx=\\frac{x}{${a}}${E}-\\frac{1}{${a * a}}${E}+C$.`;
+        sol = T`$u=x$, $v'=${E}$, teda $u'=1$, $v=\\frac{1}{${a}}${E}$: $\\int x\\,${E}\\,dx=\\frac{x}{${a}}${E}-\\frac{1}{${a}}\\int ${E}\\,dx=\\frac{x}{${a}}${E}-\\frac{1}{${a * a}}${E}+C$.`;
       } else if (fam === 1) {
-        why = [`Primitívna funkcia k $\\sin ${a}x$ je $-\\frac{1}{${a}}\\cos ${a}x$ – pozor na znamienko v druhom člene.`,
-          `Primitívna funkcia k $\\cos ${a}x$ je $+\\frac{1}{${a}}\\sin ${a}x$, nie so záporným znamienkom.`,
-          `Pri druhom integrovaní znova deliš vnútornou deriváciou ${a}, preto vznikne $\\frac{1}{${a * a}}$.`];
+        why = [T`Primitívna funkcia k $\\sin ${a}x$ je $-\\frac{1}{${a}}\\cos ${a}x$ – pozor na znamienko v druhom člene.`,
+          T`Primitívna funkcia k $\\cos ${a}x$ je $+\\frac{1}{${a}}\\sin ${a}x$, nie so záporným znamienkom.`,
+          T`Pri druhom integrovaní znova deliš vnútornou deriváciou ${a}, preto vznikne $\\frac{1}{${a * a}}$.`];
         f = `x\\cos ${a}x`;
         ok = `\\frac{x}{${a}}\\sin ${a}x+\\frac{1}{${a * a}}\\cos ${a}x${C}`;
         wrong = [`\\frac{x}{${a}}\\sin ${a}x-\\frac{1}{${a * a}}\\cos ${a}x${C}`, `-\\frac{x}{${a}}\\sin ${a}x+\\frac{1}{${a * a}}\\cos ${a}x${C}`,
           `\\frac{x}{${a}}\\sin ${a}x+\\frac{1}{${a}}\\cos ${a}x${C}`];
-        sol = `$u=x$, $v'=\\cos ${a}x$, teda $u'=1$, $v=\\frac{1}{${a}}\\sin ${a}x$: $\\int x\\cos ${a}x\\,dx=\\frac{x}{${a}}\\sin ${a}x-\\frac{1}{${a}}\\int\\sin ${a}x\\,dx=\\frac{x}{${a}}\\sin ${a}x+\\frac{1}{${a * a}}\\cos ${a}x+C$.`;
+        sol = T`$u=x$, $v'=\\cos ${a}x$, teda $u'=1$, $v=\\frac{1}{${a}}\\sin ${a}x$: $\\int x\\cos ${a}x\\,dx=\\frac{x}{${a}}\\sin ${a}x-\\frac{1}{${a}}\\int\\sin ${a}x\\,dx=\\frac{x}{${a}}\\sin ${a}x+\\frac{1}{${a * a}}\\cos ${a}x+C$.`;
       } else if (fam === 2) {
-        why = ['Pozor na znamienko: $v=-\\frac{1}{a}\\cos ax$ a vo vzorci $uv-\\int u\'v\\,dx$ sa dve mínusy vyrušia.',
-          `Primitívna funkcia k $\\sin ${a}x$ je $-\\frac{1}{${a}}\\cos ${a}x$ – so záporným znamienkom.`,
-          `Pri druhom integrovaní znova deliš vnútornou deriváciou ${a}, preto vznikne $\\frac{1}{${a * a}}$.`];
+        why = [T.s('Pozor na znamienko: $v=-\\frac{1}{a}\\cos ax$ a vo vzorci $uv-\\int u\'v\\,dx$ sa dve mínusy vyrušia.'),
+          T`Primitívna funkcia k $\\sin ${a}x$ je $-\\frac{1}{${a}}\\cos ${a}x$ – so záporným znamienkom.`,
+          T`Pri druhom integrovaní znova deliš vnútornou deriváciou ${a}, preto vznikne $\\frac{1}{${a * a}}$.`];
         f = `x\\sin ${a}x`;
         ok = `-\\frac{x}{${a}}\\cos ${a}x+\\frac{1}{${a * a}}\\sin ${a}x${C}`;
         wrong = [`-\\frac{x}{${a}}\\cos ${a}x-\\frac{1}{${a * a}}\\sin ${a}x${C}`, `\\frac{x}{${a}}\\cos ${a}x+\\frac{1}{${a * a}}\\sin ${a}x${C}`,
           `-\\frac{x}{${a}}\\cos ${a}x+\\frac{1}{${a}}\\sin ${a}x${C}`];
-        sol = `$u=x$, $v'=\\sin ${a}x$, teda $u'=1$, $v=-\\frac{1}{${a}}\\cos ${a}x$: $\\int x\\sin ${a}x\\,dx=-\\frac{x}{${a}}\\cos ${a}x+\\frac{1}{${a}}\\int\\cos ${a}x\\,dx=-\\frac{x}{${a}}\\cos ${a}x+\\frac{1}{${a * a}}\\sin ${a}x+C$.`;
+        sol = T`$u=x$, $v'=\\sin ${a}x$, teda $u'=1$, $v=-\\frac{1}{${a}}\\cos ${a}x$: $\\int x\\sin ${a}x\\,dx=-\\frac{x}{${a}}\\cos ${a}x+\\frac{1}{${a}}\\int\\cos ${a}x\\,dx=-\\frac{x}{${a}}\\cos ${a}x+\\frac{1}{${a * a}}\\sin ${a}x+C$.`;
       } else {
         const n = rnd(1, 3), m = n + 1, xn = n === 1 ? 'x' : `x^{${n}}`;
-        why = ['Pozor na znamienko: vzorec per partes je $uv-\\int u\'v\\,dx$.',
-          `Integrál $\\int\\frac{x^{${n}}}{${m}}\\,dx$ je $\\frac{x^{${m}}}{${m}\\cdot ${m}}$ – exponent sa zvýši a znova delíš.`,
-          'Zabudol si na druhú časť vzorca per partes, $-\\int u\'v\\,dx$.'];
+        why = [T.s('Pozor na znamienko: vzorec per partes je $uv-\\int u\'v\\,dx$.'),
+          T`Integrál $\\int\\frac{x^{${n}}}{${m}}\\,dx$ je $\\frac{x^{${m}}}{${m}\\cdot ${m}}$ – exponent sa zvýši a znova delíš.`,
+          T.s('Zabudol si na druhú časť vzorca per partes, $-\\int u\'v\\,dx$.')];
         f = `${xn}\\ln x`;
         ok = `\\frac{x^{${m}}}{${m}}\\ln x-\\frac{x^{${m}}}{${m * m}}${C}`;
         wrong = [`\\frac{x^{${m}}}{${m}}\\ln x+\\frac{x^{${m}}}{${m * m}}${C}`, `\\frac{x^{${m}}}{${m}}\\ln x-\\frac{x^{${m}}}{${m}}${C}`,
           `\\frac{x^{${m}}}{${m}}\\ln x${C}`];
-        sol = `$u=\\ln x$, $v'=${xn}$, teda $u'=\\frac{1}{x}$, $v=\\frac{x^{${m}}}{${m}}$: $\\int ${xn}\\ln x\\,dx=\\frac{x^{${m}}}{${m}}\\ln x-\\int\\frac{${xn === 'x' ? 'x' : xn}}{${m}}\\,dx=\\frac{x^{${m}}}{${m}}\\ln x-\\frac{x^{${m}}}{${m * m}}+C$.`;
+        sol = T`$u=\\ln x$, $v'=${xn}$, teda $u'=\\frac{1}{x}$, $v=\\frac{x^{${m}}}{${m}}$: $\\int ${xn}\\ln x\\,dx=\\frac{x^{${m}}}{${m}}\\ln x-\\int\\frac{${xn === 'x' ? 'x' : xn}}{${m}}\\,dx=\\frac{x^{${m}}}{${m}}\\ln x-\\frac{x^{${m}}}{${m * m}}+C$.`;
       }
       const opts = shuffle([ok, ...wrong].map((s) => `$${s}$`));
       return {
         type: 'choice', options: opts, answer: `$${ok}$`,
-        q: `Ktorá funkcia je neurčitým integrálom $\\int ${f}\\,dx$?`,
-        solution: `Metóda per partes: ${sol} Správnosť overíš derivovaním.`,
-        hint: 'Per partes: $\\int u v\'\\,dx=uv-\\int u\'v\\,dx$. Za $u$ zvoľ polynóm, pri logaritme naopak $u=\\ln x$.',
+        q: T`Ktorá funkcia je neurčitým integrálom $\\int ${f}\\,dx$?`,
+        solution: T`Metóda per partes: ${sol} Správnosť overíš derivovaním.`,
+        hint: T.s('Per partes: $\\int u v\'\\,dx=uv-\\int u\'v\\,dx$. Za $u$ zvoľ polynóm, pri logaritme naopak $u=\\ln x$.'),
         choiceHints: Object.fromEntries(wrong.map((w, i) => [`$${w}$`, why[i]]))
       };
     }
@@ -850,18 +852,18 @@
         const a = rnd(1, 3), val = ((a - 1) * Math.exp(a) + 1) / (a * a);
         return {
           answer: round(val, 3), tol: TOL3, show: dt(val),
-          q: `Vypočítaj $\\displaystyle\\int_0^1 x\\,\\mathrm{e}^{${cx(a)}}\\,dx$. ${ROUND3}`,
-          solution: `Per partes ($u=x$, $v'=\\mathrm{e}^{${cx(a)}}$): $\\displaystyle\\int_0^1 x\\,\\mathrm{e}^{${cx(a)}}\\,dx=\\left[${a === 1 ? 'x\\,\\mathrm{e}^{x}' : `\\frac{x}{${a}}\\mathrm{e}^{${a}x}`}\\right]_0^1-${a === 1 ? '' : `\\frac{1}{${a}}`}\\int_0^1\\mathrm{e}^{${cx(a)}}\\,dx
+          q: T`Vypočítaj $\\displaystyle\\int_0^1 x\\,\\mathrm{e}^{${cx(a)}}\\,dx$. ${T.s(ROUND3)}`,
+          solution: T`Per partes ($u=x$, $v'=\\mathrm{e}^{${cx(a)}}$): $\\displaystyle\\int_0^1 x\\,\\mathrm{e}^{${cx(a)}}\\,dx=\\left[${a === 1 ? 'x\\,\\mathrm{e}^{x}' : `\\frac{x}{${a}}\\mathrm{e}^{${a}x}`}\\right]_0^1-${a === 1 ? '' : `\\frac{1}{${a}}`}\\int_0^1\\mathrm{e}^{${cx(a)}}\\,dx
             =${a === 1 ? '\\mathrm{e}-(\\mathrm{e}-1)=1' : `\\frac{\\mathrm{e}^{${a}}}{${a}}-\\frac{\\mathrm{e}^{${a}}-1}{${a * a}}=\\frac{${a - 1}\\,\\mathrm{e}^{${a}}+1}{${a * a}}\\approx ${dd(val)}`}$.`,
-          hint: 'Per partes v určitom integráli: $\\int_a^b uv\'\\,dx=[uv]_a^b-\\int_a^b u\'v\\,dx$.',
+          hint: T.s('Per partes v určitom integráli: $\\int_a^b uv\'\\,dx=[uv]_a^b-\\int_a^b u\'v\\,dx$.'),
           mistakes: [
-            { value: round(Math.exp(a) / a + (Math.exp(a) - 1) / (a * a), 3), msg: 'Pozor na znamienko: vzorec je $[uv]_0^1-\\int_0^1 u\'v\\,dx$, druhý člen sa odčíta.' },
-            ...(a !== 1 ? [{ value: round(Math.exp(a) / a - (Math.exp(a) - 1) / a, 3), msg: `V integráli $\\frac{1}{${a}}\\int_0^1\\mathrm{e}^{${a}x}\\,dx$ znova deliš vnútornou deriváciou ${a}, spolu teda $\\frac{1}{${a * a}}$.` }] : [])
+            { value: round(Math.exp(a) / a + (Math.exp(a) - 1) / (a * a), 3), msg: T.s('Pozor na znamienko: vzorec je $[uv]_0^1-\\int_0^1 u\'v\\,dx$, druhý člen sa odčíta.') },
+            ...(a !== 1 ? [{ value: round(Math.exp(a) / a - (Math.exp(a) - 1) / a, 3), msg: T`V integráli $\\frac{1}{${a}}\\int_0^1\\mathrm{e}^{${a}x}\\,dx$ znova deliš vnútornou deriváciou ${a}, spolu teda $\\frac{1}{${a * a}}$.` }] : [])
           ],
           steps: [
-            { q: `Vypočítaj $\\left[uv\\right]_0^1=\\left[${a === 1 ? 'x\\,\\mathrm{e}^{x}' : `\\frac{x}{${a}}\\mathrm{e}^{${a}x}`}\\right]_0^1$. ${ROUND3}`, answer: round(Math.exp(a) / a, 3), tol: TOL3, show: dt(Math.exp(a) / a) },
-            { q: `Vypočítaj $\\displaystyle\\int_0^1 u'v\\,dx=${a === 1 ? '' : `\\frac{1}{${a}}`}\\int_0^1\\mathrm{e}^{${cx(a)}}\\,dx$. ${ROUND3}`, answer: round((Math.exp(a) - 1) / (a * a), 3), tol: TOL3, show: dt((Math.exp(a) - 1) / (a * a)) },
-            { q: `Odčítaj: aká je hodnota celého integrálu? ${ROUND3}`, answer: round(val, 3), tol: TOL3, show: dt(val) }
+            { q: T`Vypočítaj $\\left[uv\\right]_0^1=\\left[${a === 1 ? 'x\\,\\mathrm{e}^{x}' : `\\frac{x}{${a}}\\mathrm{e}^{${a}x}`}\\right]_0^1$. ${T.s(ROUND3)}`, answer: round(Math.exp(a) / a, 3), tol: TOL3, show: dt(Math.exp(a) / a) },
+            { q: T`Vypočítaj $\\displaystyle\\int_0^1 u'v\\,dx=${a === 1 ? '' : `\\frac{1}{${a}}`}\\int_0^1\\mathrm{e}^{${cx(a)}}\\,dx$. ${T.s(ROUND3)}`, answer: round((Math.exp(a) - 1) / (a * a), 3), tol: TOL3, show: dt((Math.exp(a) - 1) / (a * a)) },
+            { q: T`Odčítaj: aká je hodnota celého integrálu? ${T.s(ROUND3)}`, answer: round(val, 3), tol: TOL3, show: dt(val) }
           ]
         };
       }
@@ -869,31 +871,31 @@
         const n = rnd(1, 3), m = n + 1, val = (n * Math.exp(m) + 1) / (m * m), xn = n === 1 ? 'x' : `x^{${n}}`;
         return {
           answer: round(val, 3), tol: TOL3, show: dt(val),
-          q: `Vypočítaj $\\displaystyle\\int_1^{\\mathrm{e}} ${xn}\\ln x\\,dx$. ${ROUND3}`,
-          solution: `Per partes ($u=\\ln x$, $v'=${xn}$): $\\displaystyle\\left[\\frac{x^{${m}}}{${m}}\\ln x\\right]_1^{\\mathrm{e}}-\\int_1^{\\mathrm{e}}\\frac{${xn}}{${m}}\\,dx=\\frac{\\mathrm{e}^{${m}}}{${m}}-\\frac{\\mathrm{e}^{${m}}-1}{${m * m}}=\\frac{${n === 1 ? '' : n}\\mathrm{e}^{${m}}+1}{${m * m}}\\approx ${dd(val)}$.`,
-          hint: 'Za $u$ zvoľ $\\ln x$, potom $u\'=\\frac{1}{x}$ a integrál sa zjednoduší na integrál z mocniny.',
+          q: T`Vypočítaj $\\displaystyle\\int_1^{\\mathrm{e}} ${xn}\\ln x\\,dx$. ${T.s(ROUND3)}`,
+          solution: T`Per partes ($u=\\ln x$, $v'=${xn}$): $\\displaystyle\\left[\\frac{x^{${m}}}{${m}}\\ln x\\right]_1^{\\mathrm{e}}-\\int_1^{\\mathrm{e}}\\frac{${xn}}{${m}}\\,dx=\\frac{\\mathrm{e}^{${m}}}{${m}}-\\frac{\\mathrm{e}^{${m}}-1}{${m * m}}=\\frac{${n === 1 ? '' : n}\\mathrm{e}^{${m}}+1}{${m * m}}\\approx ${dd(val)}$.`,
+          hint: T.s('Za $u$ zvoľ $\\ln x$, potom $u\'=\\frac{1}{x}$ a integrál sa zjednoduší na integrál z mocniny.'),
           mistakes: [
-            { value: round(Math.exp(m) / m + (Math.exp(m) - 1) / (m * m), 3), msg: 'Pozor na znamienko: vzorec je $[uv]_1^{\\mathrm{e}}-\\int_1^{\\mathrm{e}} u\'v\\,dx$, druhý člen sa odčíta.' },
-            { value: round(Math.exp(m) / m - (Math.exp(m) - 1) / m, 3), msg: `Integrál $\\int\\frac{${xn}}{${m}}\\,dx$ je $\\frac{x^{${m}}}{${m * m}}$ – pri integrovaní mocniny znova deliš ${m}.` }
+            { value: round(Math.exp(m) / m + (Math.exp(m) - 1) / (m * m), 3), msg: T.s('Pozor na znamienko: vzorec je $[uv]_1^{\\mathrm{e}}-\\int_1^{\\mathrm{e}} u\'v\\,dx$, druhý člen sa odčíta.') },
+            { value: round(Math.exp(m) / m - (Math.exp(m) - 1) / m, 3), msg: T`Integrál $\\int\\frac{${xn}}{${m}}\\,dx$ je $\\frac{x^{${m}}}{${m * m}}$ – pri integrovaní mocniny znova deliš ${m}.` }
           ],
           steps: [
-            { q: `Vypočítaj $\\left[\\frac{x^{${m}}}{${m}}\\ln x\\right]_1^{\\mathrm{e}}$. ${ROUND3}`, answer: round(Math.exp(m) / m, 3), tol: TOL3, show: dt(Math.exp(m) / m) },
-            { q: `Vypočítaj $\\displaystyle\\int_1^{\\mathrm{e}}\\frac{${xn}}{${m}}\\,dx$. ${ROUND3}`, answer: round((Math.exp(m) - 1) / (m * m), 3), tol: TOL3, show: dt((Math.exp(m) - 1) / (m * m)) },
-            { q: `Odčítaj: aká je hodnota celého integrálu? ${ROUND3}`, answer: round(val, 3), tol: TOL3, show: dt(val) }
+            { q: T`Vypočítaj $\\left[\\frac{x^{${m}}}{${m}}\\ln x\\right]_1^{\\mathrm{e}}$. ${T.s(ROUND3)}`, answer: round(Math.exp(m) / m, 3), tol: TOL3, show: dt(Math.exp(m) / m) },
+            { q: T`Vypočítaj $\\displaystyle\\int_1^{\\mathrm{e}}\\frac{${xn}}{${m}}\\,dx$. ${T.s(ROUND3)}`, answer: round((Math.exp(m) - 1) / (m * m), 3), tol: TOL3, show: dt((Math.exp(m) - 1) / (m * m)) },
+            { q: T`Odčítaj: aká je hodnota celého integrálu? ${T.s(ROUND3)}`, answer: round(val, 3), tol: TOL3, show: dt(val) }
           ]
         };
       }
       const k = rnd(1, 4), val = (k % 2 ? 1 : -1) * Math.PI / k;
       return {
         signed: true, answer: round(val, 3), tol: TOL3, show: dt(val),
-        q: `Vypočítaj $\\displaystyle\\int_0^{\\pi} x\\sin ${cx(k)}\\,dx$. ${ROUND3}`,
-        solution: `Per partes ($u=x$, $v'=\\sin ${cx(k)}$, $v=-\\frac{1}{${k}}\\cos ${cx(k)}$):
+        q: T`Vypočítaj $\\displaystyle\\int_0^{\\pi} x\\sin ${cx(k)}\\,dx$. ${T.s(ROUND3)}`,
+        solution: T`Per partes ($u=x$, $v'=\\sin ${cx(k)}$, $v=-\\frac{1}{${k}}\\cos ${cx(k)}$):
           $\\displaystyle\\left[-\\frac{x}{${k}}\\cos ${cx(k)}\\right]_0^{\\pi}+\\frac{1}{${k}}\\int_0^{\\pi}\\cos ${cx(k)}\\,dx=-\\frac{\\pi\\cos ${k}\\pi}{${k}}+0=${k % 2 ? '' : '-'}\\frac{\\pi}{${k}}\\approx ${dd(val)}$.`,
-        hint: 'Per partes s $u=x$; pamätaj, že $\\cos k\\pi=(-1)^k$ a $\\sin k\\pi=0$.',
-        mistakes: k !== 1 ? [{ value: round(val * k, 3), msg: `Primitívna funkcia k $\\sin ${k}x$ je $-\\frac{1}{${k}}\\cos ${k}x$ – nezabudni deliť vnútornou deriváciou.` }] : [],
+        hint: T.s('Per partes s $u=x$; pamätaj, že $\\cos k\\pi=(-1)^k$ a $\\sin k\\pi=0$.'),
+        mistakes: k !== 1 ? [{ value: round(val * k, 3), msg: T`Primitívna funkcia k $\\sin ${k}x$ je $-\\frac{1}{${k}}\\cos ${k}x$ – nezabudni deliť vnútornou deriváciou.` }] : [],
         steps: [
-          { q: `Vypočítaj zvyšný integrál $\\displaystyle\\int_0^{\\pi}\\cos ${cx(k)}\\,dx$.`, answer: 0 },
-          { q: `Vypočítaj $\\left[-\\frac{x}{${k}}\\cos ${cx(k)}\\right]_0^{\\pi}$, čo je už hodnota celého integrálu. ${ROUND3}`, answer: round(val, 3), tol: TOL3, show: dt(val), signed: true }
+          { q: T`Vypočítaj zvyšný integrál $\\displaystyle\\int_0^{\\pi}\\cos ${cx(k)}\\,dx$.`, answer: 0 },
+          { q: T`Vypočítaj $\\left[-\\frac{x}{${k}}\\cos ${cx(k)}\\right]_0^{\\pi}$, čo je už hodnota celého integrálu. ${T.s(ROUND3)}`, answer: round(val, 3), tol: TOL3, show: dt(val), signed: true }
         ]
       };
     }
@@ -902,18 +904,18 @@
       const n = rnd(2, 5), m = n + 1;
       return {
         answer: (Math.pow(2, m) - 1) / (2 * m), show: fTxt(Math.pow(2, m) - 1, 2 * m),
-        q: `Vypočítaj $\\displaystyle\\int_0^1 x\\,(x^2+1)^{${n}}\\,dx$. Výsledok zadaj ako zlomok.`,
-        solution: `Substitúcia $t=x^2+1$, $dt=2x\\,dx$; hranice $0\\mapsto 1$, $1\\mapsto 2$:
+        q: T`Vypočítaj $\\displaystyle\\int_0^1 x\\,(x^2+1)^{${n}}\\,dx$. Výsledok zadaj ako zlomok.`,
+        solution: T`Substitúcia $t=x^2+1$, $dt=2x\\,dx$; hranice $0\\mapsto 1$, $1\\mapsto 2$:
           $\\displaystyle\\frac{1}{2}\\int_1^2 t^{${n}}\\,dt=\\frac{1}{2}\\left[\\frac{t^{${m}}}{${m}}\\right]_1^2=\\frac{${Math.pow(2, m)}-1}{${2 * m}}=${fTex(Math.pow(2, m) - 1, 2 * m)}$.`,
-        hint: 'Derivácia výrazu v zátvorke je až na konštantu rovná činiteľu pred ňou – substituuj $t=x^2+1$.',
+        hint: T.s('Derivácia výrazu v zátvorke je až na konštantu rovná činiteľu pred ňou – substituuj $t=x^2+1$.'),
         mistakes: [
-          { value: (Math.pow(2, m) - 1) / m, msg: 'Z $dt=2x\\,dx$ plynie $x\\,dx=\\frac{1}{2}dt$ – nezabudni na činiteľ $\\frac{1}{2}$.' },
-          { value: 1 / (2 * m), msg: 'Po substitúcii treba prepočítať aj hranice: $t=x^2+1$ ide od 1 po 2, nie od 0 po 1.' }
+          { value: (Math.pow(2, m) - 1) / m, msg: T.s('Z $dt=2x\\,dx$ plynie $x\\,dx=\\frac{1}{2}dt$ – nezabudni na činiteľ $\\frac{1}{2}$.') },
+          { value: 1 / (2 * m), msg: T.s('Po substitúcii treba prepočítať aj hranice: $t=x^2+1$ ide od 1 po 2, nie od 0 po 1.') }
         ],
         steps: [
-          { q: 'Po substitúcii $t=x^2+1$: aká je nová dolná hranica?', answer: 1 },
-          { q: 'Aká je nová horná hranica?', answer: 2 },
-          { q: `Vypočítaj $\\displaystyle\\frac{1}{2}\\int_1^2 t^{${n}}\\,dt$. Zadaj zlomok.`, answer: (Math.pow(2, m) - 1) / (2 * m), show: fTxt(Math.pow(2, m) - 1, 2 * m) }
+          { q: T.s('Po substitúcii $t=x^2+1$: aká je nová dolná hranica?'), answer: 1 },
+          { q: T.s('Aká je nová horná hranica?'), answer: 2 },
+          { q: T`Vypočítaj $\\displaystyle\\frac{1}{2}\\int_1^2 t^{${n}}\\,dt$. Zadaj zlomok.`, answer: (Math.pow(2, m) - 1) / (2 * m), show: fTxt(Math.pow(2, m) - 1, 2 * m) }
         ]
       };
     }
@@ -921,34 +923,34 @@
       const n = rnd(2, 6);
       return {
         answer: 1 / (n + 1), show: `1/${n + 1}`,
-        q: `Vypočítaj $\\displaystyle\\int_0^{\\pi/2}\\sin^{${n}}x\\,\\cos x\\,dx$. Výsledok zadaj ako zlomok.`,
-        solution: `Substitúcia $t=\\sin x$, $dt=\\cos x\\,dx$; hranice $0\\mapsto 0$, $\\frac{\\pi}{2}\\mapsto 1$: $\\displaystyle\\int_0^1 t^{${n}}\\,dt=\\frac{1}{${n + 1}}$.`,
-        hint: 'Polož $t=\\sin x$ a prepočítaj hranice.',
-        mistakes: [{ value: 1 / n, msg: `Primitívna funkcia k $t^{${n}}$ je $\\frac{t^{${n + 1}}}{${n + 1}}$ – exponent sa zvýši o 1 a tým aj delíš.` }]
+        q: T`Vypočítaj $\\displaystyle\\int_0^{\\pi/2}\\sin^{${n}}x\\,\\cos x\\,dx$. Výsledok zadaj ako zlomok.`,
+        solution: T`Substitúcia $t=\\sin x$, $dt=\\cos x\\,dx$; hranice $0\\mapsto 0$, $\\frac{\\pi}{2}\\mapsto 1$: $\\displaystyle\\int_0^1 t^{${n}}\\,dt=\\frac{1}{${n + 1}}$.`,
+        hint: T.s('Polož $t=\\sin x$ a prepočítaj hranice.'),
+        mistakes: [{ value: 1 / n, msg: T`Primitívna funkcia k $t^{${n}}$ je $\\frac{t^{${n + 1}}}{${n + 1}}$ – exponent sa zvýši o 1 a tým aj delíš.` }]
       };
     }
     if (fam === 2) {
       const n = rnd(1, 5);
       return {
         answer: 1 / (n + 1), show: `1/${n + 1}`,
-        q: `Vypočítaj $\\displaystyle\\int_1^{\\mathrm{e}}\\frac{(\\ln x)^{${n}}}{x}\\,dx$. Výsledok zadaj ako zlomok.`,
-        solution: `Substitúcia $t=\\ln x$, $dt=\\frac{dx}{x}$; hranice $1\\mapsto 0$, $\\mathrm{e}\\mapsto 1$: $\\displaystyle\\int_0^1 t^{${n}}\\,dt=\\frac{1}{${n + 1}}$.`,
-        hint: 'Výraz $\\frac{1}{x}$ je derivácia $\\ln x$ – substituuj $t=\\ln x$.',
-        mistakes: n > 1 ? [{ value: 1 / n, msg: `Primitívna funkcia k $t^{${n}}$ je $\\frac{t^{${n + 1}}}{${n + 1}}$ – exponent sa zvýši o 1 a tým aj delíš.` }] : []
+        q: T`Vypočítaj $\\displaystyle\\int_1^{\\mathrm{e}}\\frac{(\\ln x)^{${n}}}{x}\\,dx$. Výsledok zadaj ako zlomok.`,
+        solution: T`Substitúcia $t=\\ln x$, $dt=\\frac{dx}{x}$; hranice $1\\mapsto 0$, $\\mathrm{e}\\mapsto 1$: $\\displaystyle\\int_0^1 t^{${n}}\\,dt=\\frac{1}{${n + 1}}$.`,
+        hint: T.s('Výraz $\\frac{1}{x}$ je derivácia $\\ln x$ – substituuj $t=\\ln x$.'),
+        mistakes: n > 1 ? [{ value: 1 / n, msg: T`Primitívna funkcia k $t^{${n}}$ je $\\frac{t^{${n + 1}}}{${n + 1}}$ – exponent sa zvýši o 1 a tým aj delíš.` }] : []
       };
     }
     const [a, b, c] = pick([[3, 4, 5], [4, 3, 5], [5, 12, 13], [12, 5, 13], [8, 6, 10], [6, 8, 10], [15, 8, 17]]);
     return {
       answer: c - b,
-      q: `Vypočítaj $\\displaystyle\\int_0^{${a}}\\frac{x}{\\sqrt{x^2+${b * b}}}\\,dx$.`,
-      solution: `Substitúcia $t=x^2+${b * b}$, $dt=2x\\,dx$; hranice $0\\mapsto ${b * b}$, $${a}\\mapsto ${c * c}$:
+      q: T`Vypočítaj $\\displaystyle\\int_0^{${a}}\\frac{x}{\\sqrt{x^2+${b * b}}}\\,dx$.`,
+      solution: T`Substitúcia $t=x^2+${b * b}$, $dt=2x\\,dx$; hranice $0\\mapsto ${b * b}$, $${a}\\mapsto ${c * c}$:
         $\\displaystyle\\frac{1}{2}\\int_{${b * b}}^{${c * c}} t^{-1/2}\\,dt=\\left[\\sqrt{t}\\right]_{${b * b}}^{${c * c}}=${c}-${b}=${c - b}$.`,
-      hint: 'Substituuj výraz pod odmocninou; jeho derivácia je $2x$.',
-      mistakes: [{ value: 2 * (c - b), msg: 'Primitívna funkcia k $t^{-1/2}$ je $2\\sqrt{t}$ a pred integrálom je $\\frac{1}{2}$ z $dt=2x\\,dx$ – tieto činitele sa vykrátia, nezabudni na žiadny z nich.' }],
+      hint: T.s('Substituuj výraz pod odmocninou; jeho derivácia je $2x$.'),
+      mistakes: [{ value: 2 * (c - b), msg: T.s('Primitívna funkcia k $t^{-1/2}$ je $2\\sqrt{t}$ a pred integrálom je $\\frac{1}{2}$ z $dt=2x\\,dx$ – tieto činitele sa vykrátia, nezabudni na žiadny z nich.') }],
       steps: [
-        { q: `Po substitúcii $t=x^2+${b * b}$: aká je nová dolná hranica?`, answer: b * b },
-        { q: 'Aká je nová horná hranica?', answer: c * c },
-        { q: `Vypočítaj $\\left[\\sqrt{t}\\right]_{${b * b}}^{${c * c}}$.`, answer: c - b }
+        { q: T`Po substitúcii $t=x^2+${b * b}$: aká je nová dolná hranica?`, answer: b * b },
+        { q: T.s('Aká je nová horná hranica?'), answer: c * c },
+        { q: T`Vypočítaj $\\left[\\sqrt{t}\\right]_{${b * b}}^{${c * c}}$.`, answer: c - b }
       ]
     };
   });
@@ -992,15 +994,15 @@
       const den = `${fac(a)}${fac(b)}`;
       if (t < 0.32) {
         return {
-          type: 'tuple', signed: true, answer: [A, B], placeholder: 'A; B',
-          q: `Rozlož na parciálne zlomky: $\\dfrac{${num}}{${den}}=\\dfrac{A}{${fx(a)}}+\\dfrac{B}{${fx(b)}}$. Zadaj $A;\\,B$.`,
-          solution: `Po vynásobení menovateľom: $${num}=A${fac(b)}+B${fac(a)}$.
+          type: 'tuple', signed: true, answer: [A, B], placeholder: T.s('A; B'),
+          q: T`Rozlož na parciálne zlomky: $\\dfrac{${num}}{${den}}=\\dfrac{A}{${fx(a)}}+\\dfrac{B}{${fx(b)}}$. Zadaj $A;\\,B$.`,
+          solution: T`Po vynásobení menovateľom: $${num}=A${fac(b)}+B${fac(a)}$.
             Dosadíme $x=${a}$: $${(A + B) * a - (A * b + B * a)}=A\\cdot ${par(a - b)}$, teda $A=${A}$. Dosadíme $x=${b}$: $${(A + B) * b - (A * b + B * a)}=B\\cdot ${par(b - a)}$, teda $B=${B}$.`,
-          hint: 'Rovnosť vynásob menovateľom a dosaď postupne korene menovateľa.',
-          mistakes: [{ value: [-A, -B], msg: `Pozor na znamienko: po dosadení $x=${a}$ zostane $A\\cdot(${a}-${par(b)})$, teda deliš číslom ${a - b}.` }],
+          hint: T.s('Rovnosť vynásob menovateľom a dosaď postupne korene menovateľa.'),
+          mistakes: [{ value: [-A, -B], msg: T`Pozor na znamienko: po dosadení $x=${a}$ zostane $A\\cdot(${a}-${par(b)})$, teda deliš číslom ${a - b}.` }],
           steps: [
-            { q: `Po vynásobení menovateľom: $${num}=A${fac(b)}+B${fac(a)}$. Dosaď $x=${a}$ a urči $A$.`, answer: A, signed: true },
-            { q: `Dosaď $x=${b}$ a urči $B$.`, answer: B, signed: true }
+            { q: T`Po vynásobení menovateľom: $${num}=A${fac(b)}+B${fac(a)}$. Dosaď $x=${a}$ a urči $A$.`, answer: A, signed: true },
+            { q: T`Dosaď $x=${b}$ a urči $B$.`, answer: B, signed: true }
           ]
         };
       }
@@ -1008,19 +1010,19 @@
       const val = A * Math.log((d - a) / (c - a)) + B * Math.log((d - b) / (c - b));
       return {
         signed: true, answer: round(val, 3), tol: TOL3, show: dt(val),
-        q: `Vypočítaj $\\displaystyle\\int_{${c}}^{${d}}\\frac{${num}}{${den}}\\,dx$. ${ROUND3}`,
-        solution: `Rozklad: $\\dfrac{${num}}{${den}}=\\dfrac{${A}}{${fx(a)}}${B > 0 ? '+' : '-'}\\dfrac{${Math.abs(B)}}{${fx(b)}}$ (dosadením koreňov menovateľa).
+        q: T`Vypočítaj $\\displaystyle\\int_{${c}}^{${d}}\\frac{${num}}{${den}}\\,dx$. ${T.s(ROUND3)}`,
+        solution: T`Rozklad: $\\dfrac{${num}}{${den}}=\\dfrac{${A}}{${fx(a)}}${B > 0 ? '+' : '-'}\\dfrac{${Math.abs(B)}}{${fx(b)}}$ (dosadením koreňov menovateľa).
           Primitívna funkcia je $${fco(A, true)}\\ln|${fx(a)}|${fco(B)}\\ln|${fx(b)}|$, teda
           $\\displaystyle\\int_{${c}}^{${d}}=${fco(A, true)}\\ln ${fTex(d - a, c - a)}${fco(B)}\\ln ${fTex(d - b, c - b)}\\approx ${dd(val)}$.`,
-        hint: 'Najprv rozlož integrand na parciálne zlomky, potom integruj: $\\int\\frac{dx}{x-a}=\\ln|x-a|$.',
+        hint: T.s('Najprv rozlož integrand na parciálne zlomky, potom integruj: $\\int\\frac{dx}{x-a}=\\ln|x-a|$.'),
         mistakes: (() => {
           const swap = A * Math.log((d - b) / (c - b)) + B * Math.log((d - a) / (c - a));
-          return Math.abs(round(swap, 3) - round(val, 3)) > 0.002 ? [{ value: round(swap, 3), msg: `Koeficient $A$ patrí k zlomku s menovateľom $${fx(a)}$ – vymenil si koeficienty parciálnych zlomkov.` }] : [];
+          return Math.abs(round(swap, 3) - round(val, 3)) > 0.002 ? [{ value: round(swap, 3), msg: T`Koeficient $A$ patrí k zlomku s menovateľom $${fx(a)}$ – vymenil si koeficienty parciálnych zlomkov.` }] : [];
         })(),
         steps: [
-          { q: `Rozklad: $\\dfrac{${num}}{${den}}=\\dfrac{A}{${fx(a)}}+\\dfrac{B}{${fx(b)}}$. Urči $A$.`, answer: A, signed: true },
-          { q: 'Urči $B$.', answer: B, signed: true },
-          { q: `Integruj a dosaď hranice. ${ROUND3}`, answer: round(val, 3), tol: TOL3, show: dt(val), signed: true }
+          { q: T`Rozklad: $\\dfrac{${num}}{${den}}=\\dfrac{A}{${fx(a)}}+\\dfrac{B}{${fx(b)}}$. Urči $A$.`, answer: A, signed: true },
+          { q: T.s('Urči $B$.'), answer: B, signed: true },
+          { q: T`Integruj a dosaď hranice. ${T.s(ROUND3)}`, answer: round(val, 3), tol: TOL3, show: dt(val), signed: true }
         ]
       };
     }
@@ -1032,33 +1034,33 @@
       const opts = plus ? [at, at1, at2, ln] : [ln, ln1, ln2, at];
       return {
         type: 'choice', options: shuffle(opts.map((s) => `$${s}$`)), answer: `$${ok}$`,
-        q: `Ktorá funkcia je neurčitým integrálom $\\displaystyle\\int\\frac{dx}{x^2${plus ? '+' : '-'}${k * k}}$?`,
+        q: T`Ktorá funkcia je neurčitým integrálom $\\displaystyle\\int\\frac{dx}{x^2${plus ? '+' : '-'}${k * k}}$?`,
         solution: plus
-          ? `Vyberieme $${k * k}$: $\\frac{1}{x^2+${k * k}}=\\frac{1}{${k * k}}\\cdot\\frac{1}{(x/${k})^2+1}$. Substitúcia $t=\\frac{x}{${k}}$, $dx=${k}\\,dt$ dá $\\frac{${k}}{${k * k}}\\int\\frac{dt}{t^2+1}=\\frac{1}{${k}}\\operatorname{arctg}\\frac{x}{${k}}+C$.`
-          : `Menovateľ má korene $\\pm ${k}$: $\\frac{1}{x^2-${k * k}}=\\frac{1}{${2 * k}}\\left(\\frac{1}{x-${k}}-\\frac{1}{x+${k}}\\right)$. Integrovaním $\\frac{1}{${2 * k}}\\left(\\ln|x-${k}|-\\ln|x+${k}|\\right)+C=\\frac{1}{${2 * k}}\\ln\\left|\\frac{x-${k}}{x+${k}}\\right|+C$.`,
-        hint: plus ? 'Menovateľ nemá reálne korene – výsledkom bude arkustangens.' : 'Menovateľ je rozdiel štvorcov – rozlož ho na parciálne zlomky.',
+          ? T`Vyberieme $${k * k}$: $\\frac{1}{x^2+${k * k}}=\\frac{1}{${k * k}}\\cdot\\frac{1}{(x/${k})^2+1}$. Substitúcia $t=\\frac{x}{${k}}$, $dx=${k}\\,dt$ dá $\\frac{${k}}{${k * k}}\\int\\frac{dt}{t^2+1}=\\frac{1}{${k}}\\operatorname{arctg}\\frac{x}{${k}}+C$.`
+          : T`Menovateľ má korene $\\pm ${k}$: $\\frac{1}{x^2-${k * k}}=\\frac{1}{${2 * k}}\\left(\\frac{1}{x-${k}}-\\frac{1}{x+${k}}\\right)$. Integrovaním $\\frac{1}{${2 * k}}\\left(\\ln|x-${k}|-\\ln|x+${k}|\\right)+C=\\frac{1}{${2 * k}}\\ln\\left|\\frac{x-${k}}{x+${k}}\\right|+C$.`,
+        hint: plus ? T.s('Menovateľ nemá reálne korene – výsledkom bude arkustangens.') : T.s('Menovateľ je rozdiel štvorcov – rozlož ho na parciálne zlomky.'),
         choiceHints: plus ? {
-          [`$${at1}$`]: `Po substitúcii $t=\\frac{x}{${k}}$ ostane pred integrálom $\\frac{${k}}{${k * k}}=\\frac{1}{${k}}$ – nezabudni naň.`,
-          [`$${at2}$`]: `Nezabudni na $dx=${k}\\,dt$ – jedno $${k}$ sa z menovateľa $${k * k}$ vykráti.`,
-          [`$${ln}$`]: `Výraz $x^2+${k * k}$ nemá reálne korene, nedá sa rozložiť na súčin lineárnych činiteľov.`
+          [`$${at1}$`]: T`Po substitúcii $t=\\frac{x}{${k}}$ ostane pred integrálom $\\frac{${k}}{${k * k}}=\\frac{1}{${k}}$ – nezabudni naň.`,
+          [`$${at2}$`]: T`Nezabudni na $dx=${k}\\,dt$ – jedno $${k}$ sa z menovateľa $${k * k}$ vykráti.`,
+          [`$${ln}$`]: T`Výraz $x^2+${k * k}$ nemá reálne korene, nedá sa rozložiť na súčin lineárnych činiteľov.`
         } : {
-          [`$${ln1}$`]: `Pozor na znamienka: $\\frac{1}{x^2-${k * k}}=\\frac{1}{${2 * k}}\\left(\\frac{1}{x-${k}}-\\frac{1}{x+${k}}\\right)$, takže $\\ln|x-${k}|$ je s plusom.`,
-          [`$${ln2}$`]: `Koeficienty parciálnych zlomkov sú $\\pm\\frac{1}{${2 * k}}$ – over ich dosadením koreňov $\\pm ${k}$.`,
-          [`$${at}$`]: `Arkustangens patrí k $x^2+k^2$. Tu je menovateľ rozdiel štvorcov s reálnymi koreňmi $\\pm ${k}$.`
+          [`$${ln1}$`]: T`Pozor na znamienka: $\\frac{1}{x^2-${k * k}}=\\frac{1}{${2 * k}}\\left(\\frac{1}{x-${k}}-\\frac{1}{x+${k}}\\right)$, takže $\\ln|x-${k}|$ je s plusom.`,
+          [`$${ln2}$`]: T`Koeficienty parciálnych zlomkov sú $\\pm\\frac{1}{${2 * k}}$ – over ich dosadením koreňov $\\pm ${k}$.`,
+          [`$${at}$`]: T`Arkustangens patrí k $x^2+k^2$. Tu je menovateľ rozdiel štvorcov s reálnymi koreňmi $\\pm ${k}$.`
         }
       };
     }
     const A = nz(-4, 4), B = nz(-5, 5), a = nz(-3, 3);
     const num = lin([[A, 'x'], [B - A * a, '']]);
     return {
-      type: 'tuple', signed: true, answer: [A, B], placeholder: 'A; B',
-      q: `Rozlož na parciálne zlomky: $\\dfrac{${num}}{${fac(a)}^2}=\\dfrac{A}{${fx(a)}}+\\dfrac{B}{${fac(a)}^2}$. Zadaj $A;\\,B$.`,
-      solution: `Po vynásobení $${fac(a)}^2$: $${num}=A${fac(a)}+B$. Porovnaním koeficientov pri $x$: $A=${A}$. Dosadením $x=${a}$: $B=${A}\\cdot${par(a)}${term(B - A * a, '')}=${B}$.`,
-      hint: 'Rovnosť vynásob $(x-a)^2$; koeficient pri $x$ dá $A$, dosadenie $x=a$ dá $B$.',
-      mistakes: [{ value: [A, B - A * a], msg: `Absolútny člen čitateľa nie je $B$: z $A${fac(a)}+B$ vznikne absolútny člen $B${term(-A * a, '')}$ – dosaď radšej $x=${a}$.` }],
+      type: 'tuple', signed: true, answer: [A, B], placeholder: T.s('A; B'),
+      q: T`Rozlož na parciálne zlomky: $\\dfrac{${num}}{${fac(a)}^2}=\\dfrac{A}{${fx(a)}}+\\dfrac{B}{${fac(a)}^2}$. Zadaj $A;\\,B$.`,
+      solution: T`Po vynásobení $${fac(a)}^2$: $${num}=A${fac(a)}+B$. Porovnaním koeficientov pri $x$: $A=${A}$. Dosadením $x=${a}$: $B=${A}\\cdot${par(a)}${term(B - A * a, '')}=${B}$.`,
+      hint: T.s('Rovnosť vynásob $(x-a)^2$; koeficient pri $x$ dá $A$, dosadenie $x=a$ dá $B$.'),
+      mistakes: [{ value: [A, B - A * a], msg: T`Absolútny člen čitateľa nie je $B$: z $A${fac(a)}+B$ vznikne absolútny člen $B${term(-A * a, '')}$ – dosaď radšej $x=${a}$.` }],
       steps: [
-        { q: `Po vynásobení: $${num}=A${fac(a)}+B$. Porovnaj koeficienty pri $x$: aké je $A$?`, answer: A, signed: true },
-        { q: `Dosaď $x=${a}$: aké je $B$?`, answer: B, signed: true }
+        { q: T`Po vynásobení: $${num}=A${fac(a)}+B$. Porovnaj koeficienty pri $x$: aké je $A$?`, answer: A, signed: true },
+        { q: T`Dosaď $x=${a}$: aké je $B$?`, answer: B, signed: true }
       ]
     };
   });
@@ -1079,7 +1081,7 @@
       const clipped = `${rects}<path class="f-line" d="${curvePath(p, f)}"/>`;
       return {
         svg: svg(p, axes(p), clipped, '', 'Ľavé integrálne súčty funkcie x na druhú na intervale od 0 do 2'),
-        readout: `n = ${n} · <span class="c-accent">ľavý súčet Lₙ = ${sk(L, 4)}</span> · ∫₀² x² dx = 8/3 ≈ 2,6667 · rozdiel ${sk(8 / 3 - L, 4)}`
+        readout: T`n = ${n} · <span class="c-accent">ľavý súčet Lₙ = ${sk(L, 4)}</span> · ∫₀² x² dx = 8/3 ≈ ${sk(8 / 3, 4)} · rozdiel ${sk(8 / 3 - L, 4)}`
       };
     }
   });
@@ -1122,17 +1124,17 @@
       const pts = Array.from({ length: n }, (_, i) => `\\frac{${left ? i : i + 1}}{${n}}`).join(',\\ ');
       return {
         answer: P / Q, show: fTxt(P, Q),
-        q: `Vypočítaj ${left ? 'ľavý' : 'pravý'} integrálny súčet funkcie $f(x)=x^2$ na intervale $\\langle 0;1\\rangle$ pri rozdelení na $${n}$ rovnakých dielikov (funkčné hodnoty berieme v ${left ? 'ľavých' : 'pravých'} koncových bodoch dielikov). Výsledok zadaj ako zlomok.`,
-        solution: `Dĺžka dielika je $\\frac{1}{${n}}$, body sú $${pts}$. Súčet je $\\frac{1}{${n}}\\sum_{k=${left ? 0 : 1}}^{${left ? n - 1 : n}}\\left(\\frac{k}{${n}}\\right)^2=\\frac{1}{${n * n * n}}\\sum_{k=1}^{${left ? n - 1 : n}}k^2=\\frac{${S0}}{${n * n * n}}${gcd(S0, n * n * n) > 1 ? `=${fTex(P, Q)}` : ''}$
+        q: T`Vypočítaj ${left ? 'ľavý' : 'pravý'} integrálny súčet funkcie $f(x)=x^2$ na intervale $\\langle 0;1\\rangle$ pri rozdelení na $${n}$ rovnakých dielikov (funkčné hodnoty berieme v ${left ? 'ľavých' : 'pravých'} koncových bodoch dielikov). Výsledok zadaj ako zlomok.`,
+        solution: T`Dĺžka dielika je $\\frac{1}{${n}}$, body sú $${pts}$. Súčet je $\\frac{1}{${n}}\\sum_{k=${left ? 0 : 1}}^{${left ? n - 1 : n}}\\left(\\frac{k}{${n}}\\right)^2=\\frac{1}{${n * n * n}}\\sum_{k=1}^{${left ? n - 1 : n}}k^2=\\frac{${S0}}{${n * n * n}}${gcd(S0, n * n * n) > 1 ? `=${fTex(P, Q)}` : ''}$
           (použili sme $\\sum_{k=1}^{m}k^2=\\frac{m(m+1)(2m+1)}{6}$). Presná hodnota integrálu je $\\frac{1}{3}$.`,
-        hint: 'Súčet je $\\sum f(\\xi_i)\\,\\Delta x$ s $\\Delta x=\\frac{1}{n}$; použi vzorec pre súčet druhých mocnín.',
+        hint: T.s('Súčet je $\\sum f(\\xi_i)\\,\\Delta x$ s $\\Delta x=\\frac{1}{n}$; použi vzorec pre súčet druhých mocnín.'),
         mistakes: [
-          { value: left ? (n + 1) * (2 * n + 1) / Q : (n - 1) * (2 * n - 1) / Q, msg: `Vzal si funkčné hodnoty v ${left ? 'pravých' : 'ľavých'} koncových bodoch dielikov. Pri ${left ? 'ľavom' : 'pravom'} súčte ${left ? 'začínaš bodom 0 a končíš bodom $\\frac{n-1}{n}$' : 'začínaš bodom $\\frac{1}{n}$ a končíš bodom 1'}.` },
-          { value: 1 / 3, msg: 'To je presná hodnota integrálu $\\int_0^1 x^2\\,dx$. Integrálny súčet pri konečnom počte dielikov sa od nej líši.' }
+          { value: left ? (n + 1) * (2 * n + 1) / Q : (n - 1) * (2 * n - 1) / Q, msg: T`Vzal si funkčné hodnoty v ${left ? 'pravých' : 'ľavých'} koncových bodoch dielikov. Pri ${left ? 'ľavom' : 'pravom'} súčte ${left ? T.s('začínaš bodom 0 a končíš bodom $\\frac{n-1}{n}$') : T.s('začínaš bodom $\\frac{1}{n}$ a končíš bodom 1')}.` },
+          { value: 1 / 3, msg: T.s('To je presná hodnota integrálu $\\int_0^1 x^2\\,dx$. Integrálny súčet pri konečnom počte dielikov sa od nej líši.') }
         ],
         steps: [
-          { q: `Vypočítaj $\\sum_{k=1}^{${left ? n - 1 : n}}k^2$.`, answer: S0, hint: 'Použi $\\sum_{k=1}^{m}k^2=\\frac{m(m+1)(2m+1)}{6}$.' },
-          { q: `Súčet je $\\frac{1}{${n * n * n}}\\sum k^2$. Zadaj ho ako zlomok.`, answer: P / Q, show: fTxt(P, Q) }
+          { q: T`Vypočítaj $\\sum_{k=1}^{${left ? n - 1 : n}}k^2$.`, answer: S0, hint: T.s('Použi $\\sum_{k=1}^{m}k^2=\\frac{m(m+1)(2m+1)}{6}$.') },
+          { q: T`Súčet je $\\frac{1}{${n * n * n}}\\sum k^2$. Zadaj ho ako zlomok.`, answer: P / Q, show: fTxt(P, Q) }
         ]
       };
     }
@@ -1146,16 +1148,16 @@
       }
       return {
         answer: P / Q, show: fTxt(P, Q),
-        q: `Oblasť pod grafom funkcie $f(x)=${f}$, $x\\in\\langle 0;${a}\\rangle$, rotuje okolo osi $x$. Objem vzniknutého telesa má tvar $V=k\\pi$. Urči $k$ (celé číslo alebo zlomok).`,
-        solution: `$V=\\pi\\displaystyle\\int_0^{${a}} f^2(x)\\,dx=\\pi\\int_0^{${a}} ${integ}\\,dx=${fTex(P, Q)}\\,\\pi$, teda $k=${fTex(P, Q)}$.`,
-        hint: 'Objem rotačného telesa: $V=\\pi\\int_a^b f^2(x)\\,dx$.',
+        q: T`Oblasť pod grafom funkcie $f(x)=${f}$, $x\\in\\langle 0;${a}\\rangle$, rotuje okolo osi $x$. Objem vzniknutého telesa má tvar $V=k\\pi$. Urči $k$ (celé číslo alebo zlomok).`,
+        solution: T`$V=\\pi\\displaystyle\\int_0^{${a}} f^2(x)\\,dx=\\pi\\int_0^{${a}} ${integ}\\,dx=${fTex(P, Q)}\\,\\pi$, teda $k=${fTex(P, Q)}$.`,
+        hint: T.s('Objem rotačného telesa: $V=\\pi\\int_a^b f^2(x)\\,dx$.'),
         mistakes: (() => {
           const ms = [];
           if (kind !== 2) {
             const v = c * Math.pow(a, kind + 2) / (kind + 2);
-            if (Math.abs(v - P / Q) > 1e-6) ms.push({ value: v, msg: 'Do vzorca pre objem patrí druhá mocnina funkcie: $V=\\pi\\int f^2(x)\\,dx$, nie $\\pi\\int f(x)\\,dx$.' });
+            if (Math.abs(v - P / Q) > 1e-6) ms.push({ value: v, msg: T.s('Do vzorca pre objem patrí druhá mocnina funkcie: $V=\\pi\\int f^2(x)\\,dx$, nie $\\pi\\int f(x)\\,dx$.') });
           }
-          if (c === 2) ms.push({ value: P / Q / 2, msg: 'Pri umocňovaní $f^2$ umocni aj konštantu pred funkciou: $(2g)^2=4g^2$.' });
+          if (c === 2) ms.push({ value: P / Q / 2, msg: T.s('Pri umocňovaní $f^2$ umocni aj konštantu pred funkciou: $(2g)^2=4g^2$.') });
           return ms;
         })()
       };
@@ -1164,15 +1166,15 @@
       const s = rnd(2, 5), a = s * s - 1;
       return {
         answer: 2 * (s * s * s - 1) / 3, show: fTxt(2 * (s * s * s - 1), 3),
-        q: `Vypočítaj dĺžku grafu funkcie $f(x)=\\frac{2}{3}x\\sqrt{x}$ na intervale $\\langle 0;${a}\\rangle$. Výsledok zadaj ako zlomok.`,
-        solution: `$f(x)=\\frac{2}{3}x^{3/2}$, teda $f'(x)=\\sqrt{x}$ a $\\sqrt{1+f'^2(x)}=\\sqrt{1+x}$.
+        q: T`Vypočítaj dĺžku grafu funkcie $f(x)=\\frac{2}{3}x\\sqrt{x}$ na intervale $\\langle 0;${a}\\rangle$. Výsledok zadaj ako zlomok.`,
+        solution: T`$f(x)=\\frac{2}{3}x^{3/2}$, teda $f'(x)=\\sqrt{x}$ a $\\sqrt{1+f'^2(x)}=\\sqrt{1+x}$.
           $\\ell=\\displaystyle\\int_0^{${a}}\\sqrt{1+x}\\,dx=\\frac{2}{3}\\left[(1+x)^{3/2}\\right]_0^{${a}}=\\frac{2}{3}\\left(${s * s}^{3/2}-1\\right)=\\frac{2}{3}(${s * s * s}-1)=${fTex(2 * (s * s * s - 1), 3)}$.`,
-        hint: 'Dĺžka krivky: $\\ell=\\int_a^b\\sqrt{1+f\'^2(x)}\\,dx$.',
-        mistakes: [{ value: 2 * s * s * s / 3, msg: 'Primitívna funkcia $\\frac{2}{3}(1+x)^{3/2}$ nie je v dolnej hranici nulová: pre $x=0$ je $(1+0)^{3/2}=1$.' }],
+        hint: T.s('Dĺžka krivky: $\\ell=\\int_a^b\\sqrt{1+f\'^2(x)}\\,dx$.'),
+        mistakes: [{ value: 2 * s * s * s / 3, msg: T.s('Primitívna funkcia $\\frac{2}{3}(1+x)^{3/2}$ nie je v dolnej hranici nulová: pre $x=0$ je $(1+0)^{3/2}=1$.') }],
         steps: [
-          { q: `Integrand je $\\sqrt{1+f'^2(x)}$. Aká je jeho hodnota v bode $x=${a}$?`, answer: s },
-          { q: `Primitívna funkcia je $\\frac{2}{3}(1+x)^{3/2}$. Koľko je $(1+${a})^{3/2}$?`, answer: s * s * s },
-          { q: 'Aká je dĺžka grafu? Zadaj zlomok.', answer: 2 * (s * s * s - 1) / 3, show: fTxt(2 * (s * s * s - 1), 3) }
+          { q: T`Integrand je $\\sqrt{1+f'^2(x)}$. Aká je jeho hodnota v bode $x=${a}$?`, answer: s },
+          { q: T`Primitívna funkcia je $\\frac{2}{3}(1+x)^{3/2}$. Koľko je $(1+${a})^{3/2}$?`, answer: s * s * s },
+          { q: T.s('Aká je dĺžka grafu? Zadaj zlomok.'), answer: 2 * (s * s * s - 1) / 3, show: fTxt(2 * (s * s * s - 1), 3) }
         ]
       };
     }
@@ -1182,29 +1184,29 @@
         const p = rnd(2, 4), c = rnd(1, 6);
         return {
           answer: c / (p - 1), show: fTxt(c, p - 1),
-          q: `Vypočítaj nevlastný integrál $\\displaystyle\\int_1^{\\infty}\\frac{${c}}{x^{${p}}}\\,dx$.`,
-          solution: `$\\displaystyle\\int_1^{b}${c}x^{-${p}}\\,dx=\\left[-\\frac{${c}}{${p - 1}x^{${p - 1}}}\\right]_1^b=\\frac{${c}}{${p - 1}}-\\frac{${c}}{${p - 1}b^{${p - 1}}}\\to\\frac{${c}}{${p - 1}}$ pre $b\\to\\infty$. Výsledok: $${fTex(c, p - 1)}$.`.replace(/x\^\{1\}/g, 'x').replace(/b\^\{1\}/g, 'b'),
-          hint: 'Vypočítaj integrál od 1 po $b$ a potom limitu pre $b\\to\\infty$.',
-          mistakes: [{ value: c / (p + 1), msg: `Pri integrovaní $x^{-${p}}$ sa exponent zvýši o 1, teda na $-${p - 1}$, a tým číslom aj delíš.` }]
+          q: T`Vypočítaj nevlastný integrál $\\displaystyle\\int_1^{\\infty}\\frac{${c}}{x^{${p}}}\\,dx$.`,
+          solution: T`$\\displaystyle\\int_1^{b}${c}x^{-${p}}\\,dx=\\left[-\\frac{${c}}{${p - 1}x^{${p - 1}}}\\right]_1^b=\\frac{${c}}{${p - 1}}-\\frac{${c}}{${p - 1}b^{${p - 1}}}\\to\\frac{${c}}{${p - 1}}$ pre $b\\to\\infty$. Výsledok: $${fTex(c, p - 1)}$.`.replace(/x\^\{1\}/g, 'x').replace(/b\^\{1\}/g, 'b'),
+          hint: T.s('Vypočítaj integrál od 1 po $b$ a potom limitu pre $b\\to\\infty$.'),
+          mistakes: [{ value: c / (p + 1), msg: T`Pri integrovaní $x^{-${p}}$ sa exponent zvýši o 1, teda na $-${p - 1}$, a tým číslom aj delíš.` }]
         };
       }
       if (kind === 1) {
         const q = rnd(2, 4), c = rnd(1, 5);
         return {
           answer: c * q / (q - 1), show: fTxt(c * q, q - 1),
-          q: `Vypočítaj nevlastný integrál $\\displaystyle\\int_0^{1}\\frac{${c}}{${q === 2 ? '\\sqrt{x}' : `\\sqrt[${q}]{x}`}}\\,dx$.`,
-          solution: `Integrand je neohraničený pri $x\\to 0^+$. $\\displaystyle\\int_\\varepsilon^1 ${c}x^{-1/${q}}\\,dx=\\left[${fTex(c * q, q - 1)}\\,x^{${q - 1}/${q}}\\right]_\\varepsilon^1\\to ${fTex(c * q, q - 1)}$ pre $\\varepsilon\\to 0^+$.`,
-          hint: 'Zapíš odmocninu ako mocninu $x^{-1/q}$; ide o integrál $\\int_0^1 x^{-p}\\,dx$ s $p\\lt 1$.',
-          mistakes: [{ value: c * q / (q + 1), msg: `Exponent $-\\frac{1}{${q}}$ sa pri integrovaní zvýši o 1 na $\\frac{${q - 1}}{${q}}$, nie na $\\frac{${q + 1}}{${q}}$.` }]
+          q: T`Vypočítaj nevlastný integrál $\\displaystyle\\int_0^{1}\\frac{${c}}{${q === 2 ? '\\sqrt{x}' : `\\sqrt[${q}]{x}`}}\\,dx$.`,
+          solution: T`Integrand je neohraničený pri $x\\to 0^+$. $\\displaystyle\\int_\\varepsilon^1 ${c}x^{-1/${q}}\\,dx=\\left[${fTex(c * q, q - 1)}\\,x^{${q - 1}/${q}}\\right]_\\varepsilon^1\\to ${fTex(c * q, q - 1)}$ pre $\\varepsilon\\to 0^+$.`,
+          hint: T.s('Zapíš odmocninu ako mocninu $x^{-1/q}$; ide o integrál $\\int_0^1 x^{-p}\\,dx$ s $p\\lt 1$.'),
+          mistakes: [{ value: c * q / (q + 1), msg: T`Exponent $-\\frac{1}{${q}}$ sa pri integrovaní zvýši o 1 na $\\frac{${q - 1}}{${q}}$, nie na $\\frac{${q + 1}}{${q}}$.` }]
         };
       }
       const a = rnd(1, 4);
       return {
         answer: 1 / (a * a), show: `1/${a * a}`,
-        q: `Vypočítaj nevlastný integrál $\\displaystyle\\int_0^{\\infty} x\\,\\mathrm{e}^{${cx(-a)}}\\,dx$.`,
-        solution: `Per partes: $\\displaystyle\\int_0^b x\\,\\mathrm{e}^{${cx(-a)}}\\,dx=\\left[-\\left(${rsum([[1, a, 'x'], [1, a * a, '']])}\\right)\\mathrm{e}^{${cx(-a)}}\\right]_0^b=\\frac{1}{${a * a}}-\\left(${rsum([[1, a, 'b'], [1, a * a, '']])}\\right)\\mathrm{e}^{${cx(-a, 'b')}}\\to\\frac{1}{${a * a}}$, lebo exponenciála klesá rýchlejšie, než rastie polynóm.`,
-        hint: 'Per partes s $u=x$ a potom limita $b\\to\\infty$; $\\lim_{b\\to\\infty} b\\,\\mathrm{e}^{-ab}=0$.',
-        mistakes: a !== 1 ? [{ value: 1 / a, msg: `V per partes integruješ $\\mathrm{e}^{${cx(-a)}}$ dvakrát a zakaždým deliš vnútornou deriváciou ${a}.` }] : []
+        q: T`Vypočítaj nevlastný integrál $\\displaystyle\\int_0^{\\infty} x\\,\\mathrm{e}^{${cx(-a)}}\\,dx$.`,
+        solution: T`Per partes: $\\displaystyle\\int_0^b x\\,\\mathrm{e}^{${cx(-a)}}\\,dx=\\left[-\\left(${rsum([[1, a, 'x'], [1, a * a, '']])}\\right)\\mathrm{e}^{${cx(-a)}}\\right]_0^b=\\frac{1}{${a * a}}-\\left(${rsum([[1, a, 'b'], [1, a * a, '']])}\\right)\\mathrm{e}^{${cx(-a, 'b')}}\\to\\frac{1}{${a * a}}$, lebo exponenciála klesá rýchlejšie, než rastie polynóm.`,
+        hint: T.s('Per partes s $u=x$ a potom limita $b\\to\\infty$; $\\lim_{b\\to\\infty} b\\,\\mathrm{e}^{-ab}=0$.'),
+        mistakes: a !== 1 ? [{ value: 1 / a, msg: T`V per partes integruješ $\\mathrm{e}^{${cx(-a)}}$ dvakrát a zakaždým deliš vnútornou deriváciou ${a}.` }] : []
       };
     }
     const atInf = Math.random() < 0.5;
@@ -1212,13 +1214,13 @@
     const conv = atInf ? pv > 1 : pv < 1;
     const pt = pv === 0.5 ? '\\frac{1}{2}' : pv === 1.5 ? '\\frac{3}{2}' : pv === 1 / 3 ? '\\frac{1}{3}' : pv === 2 / 3 ? '\\frac{2}{3}' : String(pv);
     return {
-      type: 'choice', options: [...CONV], answer: conv ? CONV[0] : CONV[1],
-      q: `Rozhodni, či nevlastný integrál $\\displaystyle\\int_${atInf ? '1^{\\infty}' : '0^{1}'}\\frac{dx}{${pTex}}$ konverguje.`,
-      solution: `Integrand je $x^{-p}$ s $p=${pt}$. ${atInf ? `Integrál $\\int_1^\\infty x^{-p}\\,dx$ konverguje práve pre $p\\gt 1$` : `Integrál $\\int_0^1 x^{-p}\\,dx$ konverguje práve pre $p\\lt 1$`}, preto tento integrál <strong>${conv ? 'konverguje' : 'diverguje'}</strong>.`,
-      hint: 'Porovnaj s integrálmi $\\int_1^\\infty\\frac{dx}{x^p}$ (konverguje pre $p\\gt 1$) a $\\int_0^1\\frac{dx}{x^p}$ (konverguje pre $p\\lt 1$).',
-      choiceHints: { [conv ? CONV[1] : CONV[0]]: pv === 1 ? 'Pre $p=1$ je primitívna funkcia $\\ln x$ – pozri sa, čo robí v hranici, kde je integrál nevlastný.'
-        : atInf ? 'Na intervale $\\langle 1;\\infty)$ rozhoduje, ako rýchlo integrand klesá k nule: $\\int_1^\\infty x^{-p}\\,dx$ konverguje len pre $p\\gt 1$. Podmienka pre interval $(0;1\\rangle$ je opačná.'
-          : 'Pri singularite v nule je podmienka opačná ako na $\\langle 1;\\infty)$: $\\int_0^1 x^{-p}\\,dx$ konverguje len pre $p\\lt 1$.' }
+      type: 'choice', options: CONV.map(T.s), answer: T.s(conv ? CONV[0] : CONV[1]),
+      q: T`Rozhodni, či nevlastný integrál $\\displaystyle\\int_${atInf ? '1^{\\infty}' : '0^{1}'}\\frac{dx}{${pTex}}$ konverguje.`,
+      solution: T`Integrand je $x^{-p}$ s $p=${pt}$. ${atInf ? T`Integrál $\\int_1^\\infty x^{-p}\\,dx$ konverguje práve pre $p\\gt 1$` : T`Integrál $\\int_0^1 x^{-p}\\,dx$ konverguje práve pre $p\\lt 1$`}, preto tento integrál <strong>${conv ? 'konverguje' : 'diverguje'}</strong>.`,
+      hint: T.s('Porovnaj s integrálmi $\\int_1^\\infty\\frac{dx}{x^p}$ (konverguje pre $p\\gt 1$) a $\\int_0^1\\frac{dx}{x^p}$ (konverguje pre $p\\lt 1$).'),
+      choiceHints: { [T.s(conv ? CONV[1] : CONV[0])]: pv === 1 ? T.s('Pre $p=1$ je primitívna funkcia $\\ln x$ – pozri sa, čo robí v hranici, kde je integrál nevlastný.')
+        : atInf ? T.s('Na intervale $\\langle 1;\\infty)$ rozhoduje, ako rýchlo integrand klesá k nule: $\\int_1^\\infty x^{-p}\\,dx$ konverguje len pre $p\\gt 1$. Podmienka pre interval $(0;1\\rangle$ je opačná.')
+          : T.s('Pri singularite v nule je podmienka opačná ako na $\\langle 1;\\infty)$: $\\int_0^1 x^{-p}\\,dx$ konverguje len pre $p\\lt 1$.') }
     };
   });
 
@@ -1243,7 +1245,7 @@
       const front = `<text class="f-small" x="${n1(p.X(20.5))}" y="${n1(p.Y(s) - 6)}" text-anchor="end">s = 1/(1 − q)</text>`;
       return {
         svg: svg(p, axes(p, 5, ymax > 6 ? 2 : 1), clipped, front, 'Čiastočné súčty geometrického radu'),
-        readout: `q = ${sk(q, 1)} · súčet s = ${sk(s, 4)} · <span class="c-accent">s<sub>${v.n}</sub> = ${sk(sn, 4)}</span> · s − s<sub>${v.n}</sub> = ${sk(s - sn, 4)}`
+        readout: T`q = ${sk(q, 1)} · súčet s = ${sk(s, 4)} · <span class="c-accent">s<sub>${v.n}</sub> = ${sk(sn, 4)}</span> · s − s<sub>${v.n}</sub> = ${sk(s - sn, 4)}`
       };
     }
   });
@@ -1287,19 +1289,19 @@
         const qT = fTex(p, r), first = fTex(c * Math.pow(p, k), Math.pow(r, k));
         return {
           signed: true, answer: num / den, show: fTxt(num, den),
-          q: `Vypočítaj súčet radu $\\displaystyle\\sum_{n=${k}}^{\\infty}${c === 1 ? '' : c}\\left(${qT}\\right)^{n}$. Výsledok zadaj ako zlomok.`,
-          solution: `Ide o geometrický rad s kvocientom $q=${qT}$, $|q|\\lt 1$, teda konverguje. Prvý člen (pre $n=${k}$) je $${first}$.
+          q: T`Vypočítaj súčet radu $\\displaystyle\\sum_{n=${k}}^{\\infty}${c === 1 ? '' : c}\\left(${qT}\\right)^{n}$. Výsledok zadaj ako zlomok.`,
+          solution: T`Ide o geometrický rad s kvocientom $q=${qT}$, $|q|\\lt 1$, teda konverguje. Prvý člen (pre $n=${k}$) je $${first}$.
             Súčet: $\\dfrac{${first}}{1-${p < 0 ? `\\left(${qT}\\right)` : qT}}=${fTex(num, den)}$.`,
-          hint: 'Súčet geometrického radu je prvý člen delený $1-q$; pozor, od ktorého $n$ sa sčítava.',
+          hint: T.s('Súčet geometrického radu je prvý člen delený $1-q$; pozor, od ktorého $n$ sa sčítava.'),
           mistakes: [
-            ...(k !== 0 ? [{ value: c * r / (r - p), msg: `Rad začína až od $n=${k}$, takže prvý člen nie je ${c}, ale $${c === 1 ? '' : c}q${k === 1 ? '' : `^{${k}}`}$.` }] : []),
-            { value: num * p / den / r, msg: 'V čitateli vzorca je prvý člen radu, nie člen nasledujúci – skontroluj, pre ktoré $n$ rad začína.' },
-            { value: c * Math.pow(p, k) * r / (Math.pow(r, k) * (r + p)), msg: 'Súčet geometrického radu je $\\frac{a_1}{1-q}$, nie $\\frac{a_1}{1+q}$.' }
+            ...(k !== 0 ? [{ value: c * r / (r - p), msg: T`Rad začína až od $n=${k}$, takže prvý člen nie je ${c}, ale $${c === 1 ? '' : c}q${k === 1 ? '' : `^{${k}}`}$.` }] : []),
+            { value: num * p / den / r, msg: T.s('V čitateli vzorca je prvý člen radu, nie člen nasledujúci – skontroluj, pre ktoré $n$ rad začína.') },
+            { value: c * Math.pow(p, k) * r / (Math.pow(r, k) * (r + p)), msg: T.s('Súčet geometrického radu je $\\frac{a_1}{1-q}$, nie $\\frac{a_1}{1+q}$.') }
           ],
           steps: [
-            { q: 'Aký je kvocient $q$ radu? Zadaj zlomok.', answer: p / r, show: fTxt(p, r), signed: true },
-            { q: `Aký je prvý člen radu (pre $n=${k}$)? Zadaj celé číslo alebo zlomok.`, answer: c * Math.pow(p, k) / Math.pow(r, k), show: fTxt(c * Math.pow(p, k), Math.pow(r, k)), signed: true },
-            { q: 'Aký je súčet radu? Zadaj zlomok.', answer: num / den, show: fTxt(num, den), signed: true }
+            { q: T.s('Aký je kvocient $q$ radu? Zadaj zlomok.'), answer: p / r, show: fTxt(p, r), signed: true },
+            { q: T`Aký je prvý člen radu (pre $n=${k}$)? Zadaj celé číslo alebo zlomok.`, answer: c * Math.pow(p, k) / Math.pow(r, k), show: fTxt(c * Math.pow(p, k), Math.pow(r, k)), signed: true },
+            { q: T.s('Aký je súčet radu? Zadaj zlomok.'), answer: num / den, show: fTxt(num, den), signed: true }
           ]
         };
       }
@@ -1308,15 +1310,15 @@
       const P = a * (c - b) + b * (c - a), Q = (c - a) * (c - b);
       return {
         answer: P / Q, show: fTxt(P, Q),
-        q: `Vypočítaj súčet radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${a === 1 ? '1' : `${a}^n`}+${b}^n}{${c}^n}$. Výsledok zadaj ako zlomok.`,
-        solution: `Rad je súčtom dvoch konvergentných geometrických radov s kvocientmi $\\frac{${a}}{${c}}$ a $\\frac{${b}}{${c}}$:
+        q: T`Vypočítaj súčet radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${a === 1 ? '1' : `${a}^n`}+${b}^n}{${c}^n}$. Výsledok zadaj ako zlomok.`,
+        solution: T`Rad je súčtom dvoch konvergentných geometrických radov s kvocientmi $\\frac{${a}}{${c}}$ a $\\frac{${b}}{${c}}$:
           $\\dfrac{${a}/${c}}{1-${a}/${c}}+\\dfrac{${b}/${c}}{1-${b}/${c}}=\\frac{${a}}{${c - a}}+\\frac{${b}}{${c - b}}=${fTex(P, Q)}$.`,
-        hint: 'Rozdeľ zlomok na dva geometrické rady a sčítaj ich súčty.',
-        mistakes: [{ value: c / (c - a) + c / (c - b), msg: 'Rad začína od $n=1$, prvý člen každého geometrického radu je teda $q$, nie 1.' }],
+        hint: T.s('Rozdeľ zlomok na dva geometrické rady a sčítaj ich súčty.'),
+        mistakes: [{ value: c / (c - a) + c / (c - b), msg: T.s('Rad začína od $n=1$, prvý člen každého geometrického radu je teda $q$, nie 1.') }],
         steps: [
-          { q: `Vypočítaj súčet $\\sum_{n=1}^{\\infty}\\left(\\frac{${a}}{${c}}\\right)^n$. Zadaj zlomok.`, answer: a / (c - a), show: fTxt(a, c - a) },
-          { q: `Vypočítaj súčet $\\sum_{n=1}^{\\infty}\\left(\\frac{${b}}{${c}}\\right)^n$. Zadaj zlomok.`, answer: b / (c - b), show: fTxt(b, c - b) },
-          { q: 'Aký je súčet celého radu? Zadaj zlomok.', answer: P / Q, show: fTxt(P, Q) }
+          { q: T`Vypočítaj súčet $\\sum_{n=1}^{\\infty}\\left(\\frac{${a}}{${c}}\\right)^n$. Zadaj zlomok.`, answer: a / (c - a), show: fTxt(a, c - a) },
+          { q: T`Vypočítaj súčet $\\sum_{n=1}^{\\infty}\\left(\\frac{${b}}{${c}}\\right)^n$. Zadaj zlomok.`, answer: b / (c - b), show: fTxt(b, c - b) },
+          { q: T.s('Aký je súčet celého radu? Zadaj zlomok.'), answer: P / Q, show: fTxt(P, Q) }
         ]
       };
     }
@@ -1325,23 +1327,23 @@
       const H = [[1, 1], [3, 2], [11, 6], [25, 12]][k - 1];
       const num = c * H[0], den = k * H[1];
       const cf = fTex(c, k) === '1' ? '' : fTex(c, k);
-      const which = k === 1 ? 'prvého kladného a posledného záporného' : `prvých ${k} kladných a posledných ${k} záporných`;
+      const which = k === 1 ? T.s('prvého kladného a posledného záporného') : T`prvých ${k} kladných a posledných ${k} záporných`;
       const parts = Array.from({ length: k }, (_, i) => `\\frac{1}{${i + 1}}`).join('+').replace('\\frac{1}{1}', '1');
       const tail = Array.from({ length: k }, (_, i) => `\\frac{1}{n+${i + 1}}`).join('-');
       return {
         answer: num / den, show: fTxt(num, den),
-        q: `Vypočítaj súčet radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${c}}{n(n+${k})}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Rozklad: $\\frac{${c}}{n(n+${k})}=${cf}\\left(\\frac{1}{n}-\\frac{1}{n+${k}}\\right)$. V čiastočnom súčte $s_n$ (pre $n\\ge ${k}$) sa zrušia všetky členy okrem ${which}:
+        q: T`Vypočítaj súčet radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${c}}{n(n+${k})}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`Rozklad: $\\frac{${c}}{n(n+${k})}=${cf}\\left(\\frac{1}{n}-\\frac{1}{n+${k}}\\right)$. V čiastočnom súčte $s_n$ (pre $n\\ge ${k}$) sa zrušia všetky členy okrem ${which}:
           $s_n=${cf}\\left(${parts}-${tail}\\right)\\to ${k === 1 ? (cf ? cf + '\\cdot 1' : '1') : `${cf}\\left(${parts}\\right)`}=${fTex(num, den)}$.`,
-        hint: 'Rozlož člen na parciálne zlomky $\\frac{1}{n}-\\frac{1}{n+k}$ a sleduj, ktoré členy sa v $s_n$ navzájom zrušia.',
+        hint: T.s('Rozlož člen na parciálne zlomky $\\frac{1}{n}-\\frac{1}{n+k}$ a sleduj, ktoré členy sa v $s_n$ navzájom zrušia.'),
         mistakes: k > 1 ? [
-          { value: c * H[0] / H[1], msg: `Pri rozklade $\\frac{1}{n(n+${k})}=\\frac{1}{${k}}\\left(\\frac{1}{n}-\\frac{1}{n+${k}}\\right)$ nezabudni na činiteľ $\\frac{1}{${k}}$.` },
-          { value: c / k, msg: `Pri posune o ${k} sa nezruší iba prvý člen – zostane prvých ${k} kladných členov.` }
+          { value: c * H[0] / H[1], msg: T`Pri rozklade $\\frac{1}{n(n+${k})}=\\frac{1}{${k}}\\left(\\frac{1}{n}-\\frac{1}{n+${k}}\\right)$ nezabudni na činiteľ $\\frac{1}{${k}}$.` },
+          { value: c / k, msg: T`Pri posune o ${k} sa nezruší iba prvý člen – zostane prvých ${k} kladných členov.` }
         ] : [],
         steps: k > 1 ? [
-          { q: `Rozklad: $\\frac{${c}}{n(n+${k})}=K\\left(\\frac{1}{n}-\\frac{1}{n+${k}}\\right)$. Aké je $K$?`, answer: c / k, show: fTxt(c, k) },
-          { q: `Vypočítaj súčet členov, ktoré sa nezrušia: $${parts}$. Zadaj zlomok.`, answer: H[0] / H[1], show: fTxt(H[0], H[1]) },
-          { q: 'Aký je súčet radu?', answer: num / den, show: fTxt(num, den) }
+          { q: T`Rozklad: $\\frac{${c}}{n(n+${k})}=K\\left(\\frac{1}{n}-\\frac{1}{n+${k}}\\right)$. Aké je $K$?`, answer: c / k, show: fTxt(c, k) },
+          { q: T`Vypočítaj súčet členov, ktoré sa nezrušia: $${parts}$. Zadaj zlomok.`, answer: H[0] / H[1], show: fTxt(H[0], H[1]) },
+          { q: T.s('Aký je súčet radu?'), answer: num / den, show: fTxt(num, den) }
         ] : undefined
       };
     }
@@ -1354,24 +1356,24 @@
       ['\\sqrt[n]{n}', '\\lim a_n=1\\neq 0', DIV, ''],
       ['\\cos\\frac{1}{n}', '\\lim a_n=1\\neq 0', DIV, ''],
       ['(-1)^n\\frac{n}{n+1}', 'postupnosť $a_n$ nemá limitu (párne členy sa blížia k 1, nepárne k −1), teda $a_n\\not\\to 0$', DIV, ''],
-      ['\\frac{1}{n}', '\\lim a_n=0', UND, 'Tento (harmonický) rad v skutočnosti diverguje.'],
-      ['\\frac{1}{n^2}', '\\lim a_n=0', UND, 'Tento rad v skutočnosti konverguje (rad $\\sum\\frac{1}{n^p}$ s $p=2\\gt 1$).'],
-      ['\\frac{1}{\\sqrt{n}}', '\\lim a_n=0', UND, 'Tento rad v skutočnosti diverguje (porovnaj s harmonickým radom).'],
-      ['\\ln\\left(1+\\frac{1}{n}\\right)', '\\lim a_n=\\ln 1=0', UND, 'Tento rad v skutočnosti diverguje: $s_n=\\ln(n+1)\\to\\infty$.'],
-      ['\\frac{n}{n^2+1}', '\\lim a_n=0', UND, 'Tento rad v skutočnosti diverguje (správa sa ako $\\sum\\frac{1}{n}$).'],
-      ['\\sin\\frac{1}{n^2}', '\\lim a_n=0', UND, 'Tento rad v skutočnosti konverguje (správa sa ako $\\sum\\frac{1}{n^2}$).']
+      ['\\frac{1}{n}', '\\lim a_n=0', UND, T.s('Tento (harmonický) rad v skutočnosti diverguje.')],
+      ['\\frac{1}{n^2}', '\\lim a_n=0', UND, T.s('Tento rad v skutočnosti konverguje (rad $\\sum\\frac{1}{n^p}$ s $p=2\\gt 1$).')],
+      ['\\frac{1}{\\sqrt{n}}', '\\lim a_n=0', UND, T.s('Tento rad v skutočnosti diverguje (porovnaj s harmonickým radom).')],
+      ['\\ln\\left(1+\\frac{1}{n}\\right)', '\\lim a_n=\\ln 1=0', UND, T.s('Tento rad v skutočnosti diverguje: $s_n=\\ln(n+1)\\to\\infty$.')],
+      ['\\frac{n}{n^2+1}', '\\lim a_n=0', UND, T.s('Tento rad v skutočnosti diverguje (správa sa ako $\\sum\\frac{1}{n}$).')],
+      ['\\sin\\frac{1}{n^2}', '\\lim a_n=0', UND, T.s('Tento rad v skutočnosti konverguje (správa sa ako $\\sum\\frac{1}{n^2}$).')]
     ];
     const [an, why, ans, more] = pick(cases);
-    const whyTex = why.includes('postupnosť') ? why : `$${why}$`;
+    const whyTex = why.includes('postupnosť') ? T.s(why) : `$${why}$`;
     return {
-      type: 'choice', options: [DIV, CON, UND], answer: ans,
-      q: `Čo vyplýva o rade $\\displaystyle\\sum_{n=1}^{\\infty}${an}$ <em>iba</em> z nutnej podmienky konvergencie?`,
-      solution: `Platí ${whyTex}. ${ans === DIV ? 'Nutná podmienka nie je splnená, preto <strong>rad diverguje</strong>.'
-        : `Nutná podmienka je splnená, ale nie je postačujúca, preto sama o sebe <strong>nerozhoduje</strong>. ${more}`} Z nutnej podmienky nikdy nemožno usúdiť, že rad konverguje.`,
-      hint: 'Vypočítaj $\\lim_{n\\to\\infty} a_n$. Ak nie je nulová (alebo neexistuje), rad diverguje; nulová limita o konvergencii nerozhoduje.',
-      choiceHints: Object.assign({ [CON]: 'Nutná podmienka $a_n\\to 0$ nikdy nedokazuje konvergenciu – nanajvýš dokáže divergenciu.' },
-        ans === DIV ? { [UND]: 'Over limitu členov: ak $a_n$ nesmeruje k nule (alebo limita neexistuje), nutná podmienka nie je splnená, a to už rozhoduje.' }
-          : { [DIV]: 'Ak $a_n\\to 0$, nutná podmienka je splnená – divergenciu z nej teda vyvodiť nemožno.' })
+      type: 'choice', options: [DIV, CON, UND].map(T.s), answer: T.s(ans),
+      q: T`Čo vyplýva o rade $\\displaystyle\\sum_{n=1}^{\\infty}${an}$ <em>iba</em> z nutnej podmienky konvergencie?`,
+      solution: T`Platí ${whyTex}. ${ans === DIV ? T.s('Nutná podmienka nie je splnená, preto <strong>rad diverguje</strong>.')
+        : T`Nutná podmienka je splnená, ale nie je postačujúca, preto sama o sebe <strong>nerozhoduje</strong>. ${more}`} Z nutnej podmienky nikdy nemožno usúdiť, že rad konverguje.`,
+      hint: T.s('Vypočítaj $\\lim_{n\\to\\infty} a_n$. Ak nie je nulová (alebo neexistuje), rad diverguje; nulová limita o konvergencii nerozhoduje.'),
+      choiceHints: Object.assign({ [T.s(CON)]: T.s('Nutná podmienka $a_n\\to 0$ nikdy nedokazuje konvergenciu – nanajvýš dokáže divergenciu.') },
+        ans === DIV ? { [T.s(UND)]: T.s('Over limitu členov: ak $a_n$ nesmeruje k nule (alebo limita neexistuje), nutná podmienka nie je splnená, a to už rozhoduje.') }
+          : { [T.s(DIV)]: T.s('Ak $a_n\\to 0$, nutná podmienka je splnená – divergenciu z nej teda vyvodiť nemožno.') })
     };
   });
 
@@ -1389,7 +1391,7 @@
       const conv = e > 1 + 1e-9;
       return {
         svg: svg(p, axes(p, 1, 1), clipped, '', 'Porovnanie radu 1 lomeno n na p s integrálom'),
-        readout: `p = ${sk(e, 1)} · s₁₀ = ${sk(s, 3)} · <span class="c-accent">∫<sub>1</sub><sup>∞</sup> x<sup>−p</sup> dx ${conv ? '= 1/(p − 1) = ' + sk(1 / (e - 1), 3) : 'diverguje'}</span> · rad ${conv ? 'konverguje' : 'diverguje'}`
+        readout: T`p = ${sk(e, 1)} · s₁₀ = ${sk(s, 3)} · <span class="c-accent">∫<sub>1</sub><sup>∞</sup> x<sup>−p</sup> dx ${conv ? '= 1/(p − 1) = ' + sk(1 / (e - 1), 3) : 'diverguje'}</span> · rad ${conv ? 'konverguje' : 'diverguje'}`
       };
     }
   });
@@ -1426,12 +1428,12 @@
       if (Math.random() < 0.25) {
         const k = rnd(1, 4), conv = k < Math.E;
         return {
-          type: 'choice', options: [...CONV], answer: conv ? CONV[0] : CONV[1],
-          q: `Rozhodni o konvergencii radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${k === 1 ? '' : `${k}^n\\,`}n!}{n^n}$.`,
-          solution: `D’Alembertovo kritérium: $\\dfrac{a_{n+1}}{a_n}=\\dfrac{${k === 1 ? '' : k}(n+1)!\\,n^n}{(n+1)^{n+1}\\,n!}=${k === 1 ? '' : k}\\left(\\dfrac{n}{n+1}\\right)^n=\\dfrac{${k}}{\\left(1+\\frac{1}{n}\\right)^n}\\to\\dfrac{${k}}{\\mathrm{e}}$.
-            Keďže $\\mathrm{e}\\approx 2{,}718$, je $q ${conv ? '\\lt' : '\\gt'} 1$ a rad <strong>${conv ? 'konverguje' : 'diverguje'}</strong>.`,
-          hint: 'Použi podielové kritérium a limitu $\\left(1+\\frac{1}{n}\\right)^n\\to\\mathrm{e}$.',
-          choiceHints: { [conv ? CONV[1] : CONV[0]]: 'Pozor: $\\left(\\frac{n}{n+1}\\right)^n$ nesmeruje k 1, ale k $\\frac{1}{\\mathrm{e}}$. Limitu podielu porovnaj s 1, pričom $\\mathrm{e}\\approx 2{,}718$.' }
+          type: 'choice', options: CONV.map(T.s), answer: T.s(conv ? CONV[0] : CONV[1]),
+          q: T`Rozhodni o konvergencii radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${k === 1 ? '' : `${k}^n\\,`}n!}{n^n}$.`,
+          solution: T`D’Alembertovo kritérium: $\\dfrac{a_{n+1}}{a_n}=\\dfrac{${k === 1 ? '' : k}(n+1)!\\,n^n}{(n+1)^{n+1}\\,n!}=${k === 1 ? '' : k}\\left(\\dfrac{n}{n+1}\\right)^n=\\dfrac{${k}}{\\left(1+\\frac{1}{n}\\right)^n}\\to\\dfrac{${k}}{\\mathrm{e}}$.
+            Keďže $\\mathrm{e}\\approx 2${dsep()}718$, je $q ${conv ? '\\lt' : '\\gt'} 1$ a rad <strong>${conv ? 'konverguje' : 'diverguje'}</strong>.`,
+          hint: T.s('Použi podielové kritérium a limitu $\\left(1+\\frac{1}{n}\\right)^n\\to\\mathrm{e}$.'),
+          choiceHints: { [T.s(conv ? CONV[1] : CONV[0])]: T`Pozor: $\\left(\\frac{n}{n+1}\\right)^n$ nesmeruje k 1, ale k $\\frac{1}{\\mathrm{e}}$. Limitu podielu porovnaj s 1, pričom $\\mathrm{e}\\approx 2${dsep()}718$.` }
         };
       }
       const AL = [[0, ''], [0.5, '\\sqrt{n}'], [1, 'n'], [2, 'n^2']], BE = [[1, 'n'], [1.5, 'n\\sqrt{n}'], [2, 'n^2'], [3, 'n^3']];
@@ -1442,13 +1444,13 @@
       const L = A[0] === 0 ? c : 1, d = B[0] - A[0], conv = d > 1;
       const dT = fTex(Math.round(2 * d), 2);
       return {
-        type: 'choice', options: [...CONV], answer: conv ? CONV[0] : CONV[1],
-        q: `Rozhodni o konvergencii radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${num}}{${B[1]}+${dd0}}$.`,
-        solution: `Pre veľké $n$ sa člen správa ako $\\frac{${A[0] === 0 ? c : A[1]}}{${B[1]}}${A[0] === 0 ? '' : `=\\frac{1}{n^{${dT}}}`}$. Porovnáme s radom $\\sum\\frac{1}{n^{${dT}}}$:
-          $\\lim_{n\\to\\infty}\\dfrac{a_n}{1/n^{${dT}}}=${L}\\in(0;\\infty)$. Podľa limitného porovnávacieho kritéria sa oba rady správajú rovnako; rad $\\sum\\frac{1}{n^p}$ s $p=${dT}$ ${conv ? 'konverguje, lebo $p\\gt 1$' : 'diverguje, lebo $p\\le 1$'}. Rad teda <strong>${conv ? 'konverguje' : 'diverguje'}</strong>.`,
-        hint: 'Porovnaj vedúce mocniny čitateľa a menovateľa a použi limitné porovnávacie kritérium s radom $\\sum\\frac{1}{n^p}$.',
-        choiceHints: { [conv ? CONV[1] : CONV[0]]: conv ? 'To, že čitateľ rastie, ešte neznamená divergenciu: rozhoduje rozdiel exponentov $p$ menovateľa a čitateľa. Rad $\\sum\\frac{1}{n^p}$ konverguje pre $p\\gt 1$.'
-          : 'Členy síce idú k nule, ale to nestačí. Rozhoduje rozdiel exponentov $p$ menovateľa a čitateľa – rad $\\sum\\frac{1}{n^p}$ s $p\\le 1$ diverguje (napr. harmonický rad).' }
+        type: 'choice', options: CONV.map(T.s), answer: T.s(conv ? CONV[0] : CONV[1]),
+        q: T`Rozhodni o konvergencii radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${num}}{${B[1]}+${dd0}}$.`,
+        solution: T`Pre veľké $n$ sa člen správa ako $\\frac{${A[0] === 0 ? c : A[1]}}{${B[1]}}${A[0] === 0 ? '' : `=\\frac{1}{n^{${dT}}}`}$. Porovnáme s radom $\\sum\\frac{1}{n^{${dT}}}$:
+          $\\lim_{n\\to\\infty}\\dfrac{a_n}{1/n^{${dT}}}=${L}\\in(0;\\infty)$. Podľa limitného porovnávacieho kritéria sa oba rady správajú rovnako; rad $\\sum\\frac{1}{n^p}$ s $p=${dT}$ ${conv ? T.s('konverguje, lebo $p\\gt 1$') : T.s('diverguje, lebo $p\\le 1$')}. Rad teda <strong>${conv ? T.s('konverguje') : T.s('diverguje')}</strong>.`,
+        hint: T.s('Porovnaj vedúce mocniny čitateľa a menovateľa a použi limitné porovnávacie kritérium s radom $\\sum\\frac{1}{n^p}$.'),
+        choiceHints: { [T.s(conv ? CONV[1] : CONV[0])]: conv ? T.s('To, že čitateľ rastie, ešte neznamená divergenciu: rozhoduje rozdiel exponentov $p$ menovateľa a čitateľa. Rad $\\sum\\frac{1}{n^p}$ konverguje pre $p\\gt 1$.')
+          : T.s('Členy síce idú k nule, ale to nestačí. Rozhoduje rozdiel exponentov $p$ menovateľa a čitateľa – rad $\\sum\\frac{1}{n^p}$ s $p\\le 1$ diverguje (napr. harmonický rad).') }
       };
     }
     if (t < 0.7) {
@@ -1460,12 +1462,12 @@
         const nk = k === 1 ? 'n' : `n^{${k}}`;
         return {
           answer: p / r, show: fTxt(p, r),
-          q: `Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${nk}${p === 1 ? '' : `\\cdot ${p}^n`}}{${r}^n}$ vypočítaj $q=\\lim_{n\\to\\infty}\\frac{a_{n+1}}{a_n}$ (d’Alembertovo kritérium). Výsledok zadaj ako zlomok.`,
-          solution: `$\\dfrac{a_{n+1}}{a_n}=\\left(\\dfrac{n+1}{n}\\right)^{${k}}\\cdot\\dfrac{${p}}{${r}}\\to ${fTex(p, r)}$. Keďže $q ${p < r ? '\\lt' : '\\gt'} 1$, rad ${p < r ? 'konverguje' : 'diverguje'}.`,
-          hint: 'Vydeľ $a_{n+1}$ členom $a_n$: mocniny $n$ dajú v limite 1, exponenciálne časti dajú podiel základov.',
+          q: T`Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${nk}${p === 1 ? '' : `\\cdot ${p}^n`}}{${r}^n}$ vypočítaj $q=\\lim_{n\\to\\infty}\\frac{a_{n+1}}{a_n}$ (d’Alembertovo kritérium). Výsledok zadaj ako zlomok.`,
+          solution: T`$\\dfrac{a_{n+1}}{a_n}=\\left(\\dfrac{n+1}{n}\\right)^{${k}}\\cdot\\dfrac{${p}}{${r}}\\to ${fTex(p, r)}$. Keďže $q ${p < r ? '\\lt' : '\\gt'} 1$, rad ${p < r ? 'konverguje' : 'diverguje'}.`,
+          hint: T.s('Vydeľ $a_{n+1}$ členom $a_n$: mocniny $n$ dajú v limite 1, exponenciálne časti dajú podiel základov.'),
           steps: [
-            { q: `K čomu smeruje $\\left(\\dfrac{n+1}{n}\\right)^{${k}}$ pre $n\\to\\infty$?`, answer: 1 },
-            { q: `Exponenciálne časti dajú v podiele $\\frac{a_{n+1}}{a_n}$ konštantu. Aké je teda $q$? Zadaj zlomok.`, answer: p / r, show: fTxt(p, r) }
+            { q: T`K čomu smeruje $\\left(\\dfrac{n+1}{n}\\right)^{${k}}$ pre $n\\to\\infty$?`, answer: 1 },
+            { q: T`Exponenciálne časti dajú v podiele $\\frac{a_{n+1}}{a_n}$ konštantu. Aké je teda $q$? Zadaj zlomok.`, answer: p / r, show: fTxt(p, r) }
           ]
         };
       }
@@ -1473,24 +1475,24 @@
         const c = rnd(1, 7);
         return {
           answer: c / 4, show: fTxt(c, 4),
-          q: `Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{(n!)^2${c === 1 ? '' : `\\,${c}^n`}}{(2n)!}$ vypočítaj $q=\\lim_{n\\to\\infty}\\frac{a_{n+1}}{a_n}$. Výsledok zadaj ako zlomok.`,
-          solution: `$\\dfrac{a_{n+1}}{a_n}=\\dfrac{(n+1)^2\\cdot ${c}}{(2n+1)(2n+2)}\\to\\dfrac{${c}}{4}${gcd(c, 4) > 1 ? `=${fTex(c, 4)}` : ''}$, lebo čitateľ aj menovateľ sú kvadratické s vedúcimi koeficientmi $${c}$ a $4$.
-            ${c < 4 ? 'Keďže $q\\lt 1$, rad konverguje.' : c > 4 ? 'Keďže $q\\gt 1$, rad diverguje.' : 'Pre $q=1$ podielové kritérium nerozhoduje.'}`,
-          hint: 'Využi $(n+1)!=(n+1)\\cdot n!$ a $(2n+2)!=(2n+2)(2n+1)\\cdot(2n)!$.',
-          mistakes: [{ value: c, msg: 'Podiel $\\frac{(2n+2)!}{(2n)!}=(2n+1)(2n+2)$ má vedúci koeficient $4$, nie $1$.' }],
+          q: T`Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{(n!)^2${c === 1 ? '' : `\\,${c}^n`}}{(2n)!}$ vypočítaj $q=\\lim_{n\\to\\infty}\\frac{a_{n+1}}{a_n}$. Výsledok zadaj ako zlomok.`,
+          solution: T`$\\dfrac{a_{n+1}}{a_n}=\\dfrac{(n+1)^2\\cdot ${c}}{(2n+1)(2n+2)}\\to\\dfrac{${c}}{4}${gcd(c, 4) > 1 ? `=${fTex(c, 4)}` : ''}$, lebo čitateľ aj menovateľ sú kvadratické s vedúcimi koeficientmi $${c}$ a $4$.
+            ${c < 4 ? T.s('Keďže $q\\lt 1$, rad konverguje.') : c > 4 ? T.s('Keďže $q\\gt 1$, rad diverguje.') : T.s('Pre $q=1$ podielové kritérium nerozhoduje.')}`,
+          hint: T.s('Využi $(n+1)!=(n+1)\\cdot n!$ a $(2n+2)!=(2n+2)(2n+1)\\cdot(2n)!$.'),
+          mistakes: [{ value: c, msg: T.s('Podiel $\\frac{(2n+2)!}{(2n)!}=(2n+1)(2n+2)$ má vedúci koeficient $4$, nie $1$.') }],
           steps: [
-            { q: `Podiel je $\\dfrac{(n+1)^2\\cdot ${c}}{(2n+1)(2n+2)}$. Aký je vedúci koeficient (pri $n^2$) menovateľa?`, answer: 4 },
-            { q: 'Aké je $q$? Zadaj zlomok.', answer: c / 4, show: fTxt(c, 4) }
+            { q: T`Podiel je $\\dfrac{(n+1)^2\\cdot ${c}}{(2n+1)(2n+2)}$. Aký je vedúci koeficient (pri $n^2$) menovateľa?`, answer: 4 },
+            { q: T.s('Aké je $q$? Zadaj zlomok.'), answer: c / 4, show: fTxt(c, 4) }
           ]
         };
       }
       const c = rnd(2, 9);
       return {
         answer: 0,
-        q: `Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${c}^n}{n!}$ vypočítaj $q=\\lim_{n\\to\\infty}\\frac{a_{n+1}}{a_n}$.`,
-        solution: `$\\dfrac{a_{n+1}}{a_n}=\\dfrac{${c}^{n+1}}{(n+1)!}\\cdot\\dfrac{n!}{${c}^n}=\\dfrac{${c}}{n+1}\\to 0$. Keďže $q=0\\lt 1$, rad konverguje (jeho súčet je $\\mathrm{e}^{${c}}-1$).`,
-        hint: 'Využi $(n+1)!=(n+1)\\cdot n!$.',
-        mistakes: [{ value: c, msg: `Podiel faktoriálov $\\frac{n!}{(n+1)!}=\\frac{1}{n+1}$ nezanedbaj – v podiele zostane $\\frac{${c}}{n+1}$.` }]
+        q: T`Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${c}^n}{n!}$ vypočítaj $q=\\lim_{n\\to\\infty}\\frac{a_{n+1}}{a_n}$.`,
+        solution: T`$\\dfrac{a_{n+1}}{a_n}=\\dfrac{${c}^{n+1}}{(n+1)!}\\cdot\\dfrac{n!}{${c}^n}=\\dfrac{${c}}{n+1}\\to 0$. Keďže $q=0\\lt 1$, rad konverguje (jeho súčet je $\\mathrm{e}^{${c}}-1$).`,
+        hint: T.s('Využi $(n+1)!=(n+1)\\cdot n!$.'),
+        mistakes: [{ value: c, msg: T`Podiel faktoriálov $\\frac{n!}{(n+1)!}=\\frac{1}{n+1}$ nezanedbaj – v podiele zostane $\\frac{${c}}{n+1}$.` }]
       };
     }
     if (Math.random() < 0.7) {
@@ -1499,19 +1501,19 @@
       const b = rnd(1, 9), d = rnd(1, 9);
       return {
         answer: a / c, show: fTxt(a, c),
-        q: `Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\left(\\frac{${lin([[a, 'n'], [b, '']])}}{${lin([[c, 'n'], [d, '']])}}\\right)^{n}$ vypočítaj $q=\\lim_{n\\to\\infty}\\sqrt[n]{a_n}$ (Cauchyho kritérium). Výsledok zadaj ako zlomok.`,
-        solution: `$\\sqrt[n]{a_n}=\\dfrac{${lin([[a, 'n'], [b, '']])}}{${lin([[c, 'n'], [d, '']])}}\\to ${fTex(a, c)}$. Keďže $q ${a < c ? '\\lt' : '\\gt'} 1$, rad ${a < c ? 'konverguje' : 'diverguje'}.`,
-        hint: 'Odmocnina $n$-tého stupňa zruší exponent $n$; zostane limita racionálnej funkcie.',
-        mistakes: b * c !== a * d ? [{ value: b / d, msg: 'Pre $n\\to\\infty$ rozhodujú vedúce členy (pri $n$), nie absolútne členy.' }] : []
+        q: T`Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\left(\\frac{${lin([[a, 'n'], [b, '']])}}{${lin([[c, 'n'], [d, '']])}}\\right)^{n}$ vypočítaj $q=\\lim_{n\\to\\infty}\\sqrt[n]{a_n}$ (Cauchyho kritérium). Výsledok zadaj ako zlomok.`,
+        solution: T`$\\sqrt[n]{a_n}=\\dfrac{${lin([[a, 'n'], [b, '']])}}{${lin([[c, 'n'], [d, '']])}}\\to ${fTex(a, c)}$. Keďže $q ${a < c ? '\\lt' : '\\gt'} 1$, rad ${a < c ? 'konverguje' : 'diverguje'}.`,
+        hint: T.s('Odmocnina $n$-tého stupňa zruší exponent $n$; zostane limita racionálnej funkcie.'),
+        mistakes: b * c !== a * d ? [{ value: b / d, msg: T.s('Pre $n\\to\\infty$ rozhodujú vedúce členy (pri $n$), nie absolútne členy.') }] : []
       };
     }
     const k = rnd(1, 4), r = rnd(2, 9);
     return {
       answer: 1 / r, show: `1/${r}`,
-      q: `Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{n^{${k}}}{${r}^n}$ vypočítaj $q=\\lim_{n\\to\\infty}\\sqrt[n]{a_n}$. Výsledok zadaj ako zlomok.`,
-      solution: `$\\sqrt[n]{a_n}=\\dfrac{\\left(\\sqrt[n]{n}\\right)^{${k}}}{${r}}\\to\\dfrac{1}{${r}}$, lebo $\\sqrt[n]{n}\\to 1$. Keďže $q\\lt 1$, rad konverguje.`,
-      hint: 'Využi $\\lim_{n\\to\\infty}\\sqrt[n]{n}=1$.',
-      mistakes: k > 1 ? [{ value: k / r, msg: `Platí $\\sqrt[n]{n^{${k}}}=\\left(\\sqrt[n]{n}\\right)^{${k}}\\to 1^{${k}}$ – exponent ${k} sa nenásobí.` }] : []
+      q: T`Pre rad $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{n^{${k}}}{${r}^n}$ vypočítaj $q=\\lim_{n\\to\\infty}\\sqrt[n]{a_n}$. Výsledok zadaj ako zlomok.`,
+      solution: T`$\\sqrt[n]{a_n}=\\dfrac{\\left(\\sqrt[n]{n}\\right)^{${k}}}{${r}}\\to\\dfrac{1}{${r}}$, lebo $\\sqrt[n]{n}\\to 1$. Keďže $q\\lt 1$, rad konverguje.`,
+      hint: T.s('Využi $\\lim_{n\\to\\infty}\\sqrt[n]{n}=1$.'),
+      mistakes: k > 1 ? [{ value: k / r, msg: T`Platí $\\sqrt[n]{n^{${k}}}=\\left(\\sqrt[n]{n}\\right)^{${k}}\\to 1^{${k}}$ – exponent ${k} sa nenásobí.` }] : []
     };
   });
 
@@ -1532,7 +1534,7 @@
       const front = `<text class="f-small" x="${n1(p.X(30.5))}" y="${n1(p.Y(L2) - 6)}" text-anchor="end">ln 2</text>`;
       return {
         svg: svg(p, frame(p, [0, 5, 10, 15, 20, 25, 30], [0.5, 0.6, 0.7, 0.8, 0.9, 1]), clipped, front, 'Čiastočné súčty alternujúceho harmonického radu'),
-        readout: `<span class="c-accent">s<sub>${v.n}</sub> = ${sk(sn, 4)}</span> · ln 2 ≈ 0,6931 · skutočná chyba ${sk(Math.abs(L2 - sn), 4)} ≤ a<sub>${v.n + 1}</sub> = 1/${v.n + 1} ≈ ${sk(r, 4)}`
+        readout: T`<span class="c-accent">s<sub>${v.n}</sub> = ${sk(sn, 4)}</span> · ln 2 ≈ ${sk(L2, 4)} · skutočná chyba ${sk(Math.abs(L2 - sn), 4)} ≤ a<sub>${v.n + 1}</sub> = 1/${v.n + 1} ≈ ${sk(r, 4)}`
       };
     }
   });
@@ -1567,34 +1569,34 @@
     const ABS = 'konverguje absolútne', REL = 'konverguje relatívne (neabsolútne)', DIV = 'diverguje';
     if (t < 0.45) {
       const cases = [
-        ['\\frac{(-1)^n}{\\sqrt{n}}', REL, '$\\sum\\frac{1}{\\sqrt{n}}$ diverguje ($p=\\frac{1}{2}$), ale $\\frac{1}{\\sqrt{n}}$ klesá k nule, takže platí Leibnizovo kritérium.'],
-        ['\\frac{(-1)^n}{\\sqrt[3]{n}}', REL, '$\\sum\\frac{1}{\\sqrt[3]{n}}$ diverguje ($p=\\frac{1}{3}$), ale $\\frac{1}{\\sqrt[3]{n}}$ klesá k nule, takže platí Leibnizovo kritérium.'],
-        ['\\frac{(-1)^n}{n}', REL, 'harmonický rad $\\sum\\frac{1}{n}$ diverguje, ale $\\frac{1}{n}$ klesá k nule, takže platí Leibnizovo kritérium.'],
-        ['\\frac{(-1)^n}{n^2}', ABS, '$\\sum\\frac{1}{n^2}$ konverguje ($p=2\\gt 1$).'],
-        ['\\frac{(-1)^n}{n\\sqrt{n}}', ABS, '$\\sum\\frac{1}{n^{3/2}}$ konverguje ($p=\\frac{3}{2}\\gt 1$).'],
-        ['(-1)^n\\frac{n}{n^2+1}', REL, '$\\sum\\frac{n}{n^2+1}$ diverguje (správa sa ako $\\sum\\frac{1}{n}$), ale $\\frac{n}{n^2+1}$ je od $n=1$ klesajúca s limitou $0$, takže platí Leibnizovo kritérium.'],
-        ['(-1)^n\\frac{n}{n^3+1}', ABS, '$\\sum\\frac{n}{n^3+1}$ konverguje (správa sa ako $\\sum\\frac{1}{n^2}$).'],
-        ['(-1)^n\\frac{n}{n+1}', DIV, '$|a_n|=\\frac{n}{n+1}\\to 1$, nie je splnená nutná podmienka konvergencie.'],
-        ['\\frac{(-1)^n}{2^n}', ABS, '$\\sum\\frac{1}{2^n}$ je konvergentný geometrický rad.'],
-        ['(-1)^n\\frac{2^n}{n^2}', DIV, '$\\frac{2^n}{n^2}\\to\\infty$, nie je splnená nutná podmienka konvergencie.'],
-        ['\\frac{(-1)^n\\,n!}{n^n}', ABS, 'pre $\\sum\\frac{n!}{n^n}$ dáva podielové kritérium $q=\\frac{1}{\\mathrm{e}}\\lt 1$.'],
-        ['(-1)^n\\sin\\frac{1}{n}', REL, '$\\sin\\frac{1}{n}$ sa správa ako $\\frac{1}{n}$, rad absolútnych hodnôt diverguje; $\\sin\\frac{1}{n}$ však klesá k nule, takže platí Leibnizovo kritérium.']
+        ['\\frac{(-1)^n}{\\sqrt{n}}', REL, T.s('$\\sum\\frac{1}{\\sqrt{n}}$ diverguje ($p=\\frac{1}{2}$), ale $\\frac{1}{\\sqrt{n}}$ klesá k nule, takže platí Leibnizovo kritérium.')],
+        ['\\frac{(-1)^n}{\\sqrt[3]{n}}', REL, T.s('$\\sum\\frac{1}{\\sqrt[3]{n}}$ diverguje ($p=\\frac{1}{3}$), ale $\\frac{1}{\\sqrt[3]{n}}$ klesá k nule, takže platí Leibnizovo kritérium.')],
+        ['\\frac{(-1)^n}{n}', REL, T.s('harmonický rad $\\sum\\frac{1}{n}$ diverguje, ale $\\frac{1}{n}$ klesá k nule, takže platí Leibnizovo kritérium.')],
+        ['\\frac{(-1)^n}{n^2}', ABS, T.s('$\\sum\\frac{1}{n^2}$ konverguje ($p=2\\gt 1$).')],
+        ['\\frac{(-1)^n}{n\\sqrt{n}}', ABS, T.s('$\\sum\\frac{1}{n^{3/2}}$ konverguje ($p=\\frac{3}{2}\\gt 1$).')],
+        ['(-1)^n\\frac{n}{n^2+1}', REL, T.s('$\\sum\\frac{n}{n^2+1}$ diverguje (správa sa ako $\\sum\\frac{1}{n}$), ale $\\frac{n}{n^2+1}$ je od $n=1$ klesajúca s limitou $0$, takže platí Leibnizovo kritérium.')],
+        ['(-1)^n\\frac{n}{n^3+1}', ABS, T.s('$\\sum\\frac{n}{n^3+1}$ konverguje (správa sa ako $\\sum\\frac{1}{n^2}$).')],
+        ['(-1)^n\\frac{n}{n+1}', DIV, T.s('$|a_n|=\\frac{n}{n+1}\\to 1$, nie je splnená nutná podmienka konvergencie.')],
+        ['\\frac{(-1)^n}{2^n}', ABS, T.s('$\\sum\\frac{1}{2^n}$ je konvergentný geometrický rad.')],
+        ['(-1)^n\\frac{2^n}{n^2}', DIV, T.s('$\\frac{2^n}{n^2}\\to\\infty$, nie je splnená nutná podmienka konvergencie.')],
+        ['\\frac{(-1)^n\\,n!}{n^n}', ABS, T.s('pre $\\sum\\frac{n!}{n^n}$ dáva podielové kritérium $q=\\frac{1}{\\mathrm{e}}\\lt 1$.')],
+        ['(-1)^n\\sin\\frac{1}{n}', REL, T.s('$\\sin\\frac{1}{n}$ sa správa ako $\\frac{1}{n}$, rad absolútnych hodnôt diverguje; $\\sin\\frac{1}{n}$ však klesá k nule, takže platí Leibnizovo kritérium.')]
       ];
       const [an, ans, why] = pick(cases);
       return {
-        type: 'choice', options: [ABS, REL, DIV], answer: ans,
-        q: `Rozhodni o konvergencii radu $\\displaystyle\\sum_{n=1}^{\\infty}${an}$.`,
-        solution: `Platí: ${why} Rad teda <strong>${ans}</strong>.`,
-        hint: 'Najprv over nutnú podmienku, potom konvergenciu radu $\\sum|a_n|$ a nakoniec Leibnizovo kritérium.',
+        type: 'choice', options: [ABS, REL, DIV].map(T.s), answer: T.s(ans),
+        q: T`Rozhodni o konvergencii radu $\\displaystyle\\sum_{n=1}^{\\infty}${an}$.`,
+        solution: T`Platí: ${why} Rad teda <strong>${ans}</strong>.`,
+        hint: T.s('Najprv over nutnú podmienku, potom konvergenciu radu $\\sum|a_n|$ a nakoniec Leibnizovo kritérium.'),
         choiceHints: ans === REL ? {
-          [ABS]: 'Absolútna konvergencia znamená, že konverguje rad $\\sum|a_n|$. Over ho porovnaním s radom $\\sum\\frac{1}{n^p}$.',
-          [DIV]: 'Nutná podmienka je splnená. Zisti, či $|a_n|$ monotónne klesá k nule – potom pomôže Leibnizovo kritérium.'
+          [T.s(ABS)]: T.s('Absolútna konvergencia znamená, že konverguje rad $\\sum|a_n|$. Over ho porovnaním s radom $\\sum\\frac{1}{n^p}$.'),
+          [T.s(DIV)]: T.s('Nutná podmienka je splnená. Zisti, či $|a_n|$ monotónne klesá k nule – potom pomôže Leibnizovo kritérium.')
         } : ans === ABS ? {
-          [REL]: 'Najprv over rad absolútnych hodnôt $\\sum|a_n|$ – ak konverguje, konvergencia je absolútna, čo je silnejšie tvrdenie.',
-          [DIV]: 'Členy smerujú k nule a rad absolútnych hodnôt sa dá porovnať so známym radom – vyskúšaj to.'
+          [T.s(REL)]: T.s('Najprv over rad absolútnych hodnôt $\\sum|a_n|$ – ak konverguje, konvergencia je absolútna, čo je silnejšie tvrdenie.'),
+          [T.s(DIV)]: T.s('Členy smerujú k nule a rad absolútnych hodnôt sa dá porovnať so známym radom – vyskúšaj to.')
         } : {
-          [ABS]: 'Najprv over nutnú podmienku konvergencie: smeruje $a_n$ k nule?',
-          [REL]: 'Leibnizovo kritérium vyžaduje $|a_n|\\to 0$. Over nutnú podmienku konvergencie.'
+          [T.s(ABS)]: T.s('Najprv over nutnú podmienku konvergencie: smeruje $a_n$ k nule?'),
+          [T.s(REL)]: T.s('Leibnizovo kritérium vyžaduje $|a_n|\\to 0$. Over nutnú podmienku konvergencie.')
         }
       };
     }
@@ -1615,23 +1617,23 @@
       const aT = fam === 3 ? '\\frac{1}{(n+1)!}' : fam === 0 ? '\\frac{1}{n+1}' : `\\frac{1}{(n+1)^{${fam + 1}}}`;
       return {
         answer: n,
-        q: `Koľko najmenej členov radu $\\displaystyle\\sum_{n=1}^{\\infty}${an}$ treba sčítať, aby Leibnizov odhad zaručil chybu menšiu ako $${epsT}$?`,
-        solution: `Podľa Leibnizovho kritéria $|s-s_n|\\le a_{n+1}=${aT}$. Hľadáme najmenšie $n$, pre ktoré $${aT}\\lt\\frac{1}{${M}}$, teda ${fam === 3 ? '$(n+1)!' : fam === 0 ? '$n+1' : `$(n+1)^{${fam + 1}}`}\\gt ${M}$.
+        q: T`Koľko najmenej členov radu $\\displaystyle\\sum_{n=1}^{\\infty}${an}$ treba sčítať, aby Leibnizov odhad zaručil chybu menšiu ako $${epsT}$?`,
+        solution: T`Podľa Leibnizovho kritéria $|s-s_n|\\le a_{n+1}=${aT}$. Hľadáme najmenšie $n$, pre ktoré $${aT}\\lt\\frac{1}{${M}}$, teda ${fam === 3 ? '$(n+1)!' : fam === 0 ? '$n+1' : `$(n+1)^{${fam + 1}}`}\\gt ${M}$.
           Pre $n=${n}$ je ľavá strana $${f(n + 1)}$, pre $n=${n - 1}$ len $${f(n)}$. Treba sčítať <strong>${n} ${pl(n, ['člen', 'členy', 'členov'])}</strong>.`,
-        hint: 'Chyba čiastočného súčtu $s_n$ je najviac $a_{n+1}$, prvý vynechaný člen.'
+        hint: T.s('Chyba čiastočného súčtu $s_n$ je najviac $a_{n+1}$, prvý vynechaný člen.')
       };
     }
     if (Math.random() < 0.5) {
       const r = rnd(2, 6), c = rnd(1, 5);
       return {
         answer: c * r / (r + 1), show: fTxt(c * r, r + 1),
-        q: `Vypočítaj súčet radu $\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(-1)^n${c === 1 ? '' : `\\cdot ${c}`}}{${r}^n}$. Výsledok zadaj ako zlomok.`,
-        solution: `Geometrický rad s kvocientom $q=-\\frac{1}{${r}}$ konverguje absolútne. Súčet: $\\dfrac{${c}}{1+\\frac{1}{${r}}}=\\dfrac{${c * r}}{${r + 1}}${gcd(c * r, r + 1) > 1 ? `=${fTex(c * r, r + 1)}` : ''}$.`,
-        hint: 'Ide o geometrický rad so záporným kvocientom.',
-        mistakes: [{ value: c * r / (r - 1), msg: `Kvocient je záporný, $q=-\\frac{1}{${r}}$, takže v menovateli $1-q$ vznikne súčet, nie rozdiel.` }],
+        q: T`Vypočítaj súčet radu $\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(-1)^n${c === 1 ? '' : `\\cdot ${c}`}}{${r}^n}$. Výsledok zadaj ako zlomok.`,
+        solution: T`Geometrický rad s kvocientom $q=-\\frac{1}{${r}}$ konverguje absolútne. Súčet: $\\dfrac{${c}}{1+\\frac{1}{${r}}}=\\dfrac{${c * r}}{${r + 1}}${gcd(c * r, r + 1) > 1 ? `=${fTex(c * r, r + 1)}` : ''}$.`,
+        hint: T.s('Ide o geometrický rad so záporným kvocientom.'),
+        mistakes: [{ value: c * r / (r - 1), msg: T`Kvocient je záporný, $q=-\\frac{1}{${r}}$, takže v menovateli $1-q$ vznikne súčet, nie rozdiel.` }],
         steps: [
-          { q: 'Aký je kvocient $q$ radu? Zadaj zlomok.', answer: -1 / r, show: `-1/${r}`, signed: true },
-          { q: 'Aký je súčet radu? Zadaj zlomok.', answer: c * r / (r + 1), show: fTxt(c * r, r + 1) }
+          { q: T.s('Aký je kvocient $q$ radu? Zadaj zlomok.'), answer: -1 / r, show: `-1/${r}`, signed: true },
+          { q: T.s('Aký je súčet radu? Zadaj zlomok.'), answer: c * r / (r + 1), show: fTxt(c * r, r + 1) }
         ]
       };
     }
@@ -1641,10 +1643,10 @@
     const terms = Array.from({ length: N }, (_, i) => (i === 0 ? '1' : `${i % 2 ? '-' : '+'}\\frac{1}{${i + 1}}`)).join('');
     return {
       answer: P / Q, show: fTxt(P, Q),
-      q: `Vypočítaj čiastočný súčet $s_{${N}}$ radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{(-1)^{n+1}}{n}$ a zadaj ho ako zlomok.`,
-      solution: `$s_{${N}}=${terms}=${fTex(P, Q)}\\approx ${dd(P / Q)}$. Podľa Leibnizovho odhadu sa od súčtu $\\ln 2\\approx 0{,}693$ líši najviac o $\\frac{1}{${N + 1}}$.`,
-      hint: 'Sčítaj prvých niekoľko členov so striedavými znamienkami na spoločného menovateľa.',
-      mistakes: [{ value: Array.from({ length: N }, (_, i) => 1 / (i + 1)).reduce((s, x) => s + x, 0), msg: 'Členy majú striedavé znamienka: $(-1)^{n+1}$ dáva pre párne $n$ záporný člen.' }]
+      q: T`Vypočítaj čiastočný súčet $s_{${N}}$ radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{(-1)^{n+1}}{n}$ a zadaj ho ako zlomok.`,
+      solution: T`$s_{${N}}=${terms}=${fTex(P, Q)}\\approx ${dd(P / Q)}$. Podľa Leibnizovho odhadu sa od súčtu $\\ln 2\\approx 0${dsep()}693$ líši najviac o $\\frac{1}{${N + 1}}$.`,
+      hint: T.s('Sčítaj prvých niekoľko členov so striedavými znamienkami na spoločného menovateľa.'),
+      mistakes: [{ value: Array.from({ length: N }, (_, i) => 1 / (i + 1)).reduce((s, x) => s + x, 0), msg: T.s('Členy majú striedavé znamienka: $(-1)^{n+1}$ dáva pre párne $n$ záporný člen.') }]
     };
   });
 
@@ -1700,50 +1702,50 @@
         const nk = k === 0 ? '' : k === 1 ? 'n\\,' : 'n^2\\,';
         return {
           answer: b,
-          q: `Urči polomer konvergencie radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${nk}${X(c)}^n}{${b}^n}$.`,
-          solution: `$a_n=\\frac{${k === 0 ? '1' : k === 1 ? 'n' : 'n^2'}}{${b}^n}$, $\\left|\\dfrac{a_n}{a_{n+1}}\\right|=${k === 0 ? '' : `\\left(\\dfrac{n}{n+1}\\right)^{${k}}\\cdot `}${b}\\to ${b}$. Polomer konvergencie je $R=${b}$ (stred radu je $x_0=${c}$).`,
-          hint: 'Použi $R=\\lim\\left|\\frac{a_n}{a_{n+1}}\\right|$, kde $a_n$ je koeficient pri $(x-x_0)^n$.',
-          mistakes: c !== 0 ? [{ value: c + b, msg: `Polomer je vzdialenosť od stredu $x_0=${c}$, nie koncový bod intervalu konvergencie.` }] : []
+          q: T`Urči polomer konvergencie radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${nk}${X(c)}^n}{${b}^n}$.`,
+          solution: T`$a_n=\\frac{${k === 0 ? '1' : k === 1 ? 'n' : 'n^2'}}{${b}^n}$, $\\left|\\dfrac{a_n}{a_{n+1}}\\right|=${k === 0 ? '' : `\\left(\\dfrac{n}{n+1}\\right)^{${k}}\\cdot `}${b}\\to ${b}$. Polomer konvergencie je $R=${b}$ (stred radu je $x_0=${c}$).`,
+          hint: T.s('Použi $R=\\lim\\left|\\frac{a_n}{a_{n+1}}\\right|$, kde $a_n$ je koeficient pri $(x-x_0)^n$.'),
+          mistakes: c !== 0 ? [{ value: c + b, msg: T`Polomer je vzdialenosť od stredu $x_0=${c}$, nie koncový bod intervalu konvergencie.` }] : []
         };
       }
       if (fam === 1) {
         const b = rnd(2, 5);
         return {
           answer: 1 / b, show: `1/${b}`,
-          q: `Urči polomer konvergencie radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${b}^n}{n}\\,x^n$. Výsledok zadaj ako zlomok.`,
-          solution: `$a_n=\\frac{${b}^n}{n}$, $\\left|\\dfrac{a_n}{a_{n+1}}\\right|=\\dfrac{${b}^n(n+1)}{n\\cdot ${b}^{n+1}}=\\dfrac{n+1}{${b}n}\\to\\dfrac{1}{${b}}$. Teda $R=\\frac{1}{${b}}$.`,
-          hint: 'Použi $R=\\lim\\left|\\frac{a_n}{a_{n+1}}\\right|$.'
+          q: T`Urči polomer konvergencie radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${b}^n}{n}\\,x^n$. Výsledok zadaj ako zlomok.`,
+          solution: T`$a_n=\\frac{${b}^n}{n}$, $\\left|\\dfrac{a_n}{a_{n+1}}\\right|=\\dfrac{${b}^n(n+1)}{n\\cdot ${b}^{n+1}}=\\dfrac{n+1}{${b}n}\\to\\dfrac{1}{${b}}$. Teda $R=\\frac{1}{${b}}$.`,
+          hint: T.s('Použi $R=\\lim\\left|\\frac{a_n}{a_{n+1}}\\right|$.')
         };
       }
       if (fam === 2) {
         const s = rnd(2, 4);
         return {
           answer: s,
-          q: `Urči polomer konvergencie radu $\\displaystyle\\sum_{n=0}^{\\infty}\\frac{x^{2n}}{${s * s}^n}$.`,
-          solution: `Rad obsahuje len párne mocniny, použijeme podielové kritérium na $\\sum|u_n|$ s $u_n=\\frac{x^{2n}}{${s * s}^n}$: $\\left|\\dfrac{u_{n+1}}{u_n}\\right|=\\dfrac{x^2}{${s * s}}$.
+          q: T`Urči polomer konvergencie radu $\\displaystyle\\sum_{n=0}^{\\infty}\\frac{x^{2n}}{${s * s}^n}$.`,
+          solution: T`Rad obsahuje len párne mocniny, použijeme podielové kritérium na $\\sum|u_n|$ s $u_n=\\frac{x^{2n}}{${s * s}^n}$: $\\left|\\dfrac{u_{n+1}}{u_n}\\right|=\\dfrac{x^2}{${s * s}}$.
             Rad konverguje pre $\\frac{x^2}{${s * s}}\\lt 1$, teda $|x|\\lt ${s}$, a diverguje pre $|x|\\gt ${s}$. Preto $R=${s}$.`,
-          hint: 'Pozor, nejde o $\\sum a_n x^n$ so všetkými mocninami. Použi podielové kritérium priamo, alebo substitúciu $t=x^2$.',
-          mistakes: [{ value: s * s, msg: `To je polomer pre premennú $t=x^2$. Z podmienky $x^2\\lt ${s * s}$ ešte urči, pre aké $|x|$ platí.` }],
+          hint: T.s('Pozor, nejde o $\\sum a_n x^n$ so všetkými mocninami. Použi podielové kritérium priamo, alebo substitúciu $t=x^2$.'),
+          mistakes: [{ value: s * s, msg: T`To je polomer pre premennú $t=x^2$. Z podmienky $x^2\\lt ${s * s}$ ešte urči, pre aké $|x|$ platí.` }],
           steps: [
-            { q: `Rad konverguje pre $x^2\\lt m$. Aké je $m$?`, answer: s * s },
-            { q: 'Aký je polomer konvergencie vzhľadom na $x$?', answer: s }
+            { q: T`Rad konverguje pre $x^2\\lt m$. Aké je $m$?`, answer: s * s },
+            { q: T.s('Aký je polomer konvergencie vzhľadom na $x$?'), answer: s }
           ]
         };
       }
       if (fam === 3) {
         return {
           answer: 0,
-          q: 'Urči polomer konvergencie radu $\\displaystyle\\sum_{n=0}^{\\infty} n!\\,x^n$.',
-          solution: '$\\left|\\dfrac{a_n}{a_{n+1}}\\right|=\\dfrac{n!}{(n+1)!}=\\dfrac{1}{n+1}\\to 0$, teda $R=0$: rad konverguje iba v bode $x=0$.',
-          hint: 'Použi $R=\\lim\\left|\\frac{a_n}{a_{n+1}}\\right|$ a $(n+1)!=(n+1)\\cdot n!$.'
+          q: T.s('Urči polomer konvergencie radu $\\displaystyle\\sum_{n=0}^{\\infty} n!\\,x^n$.'),
+          solution: T.s('$\\left|\\dfrac{a_n}{a_{n+1}}\\right|=\\dfrac{n!}{(n+1)!}=\\dfrac{1}{n+1}\\to 0$, teda $R=0$: rad konverguje iba v bode $x=0$.'),
+          hint: T.s('Použi $R=\\lim\\left|\\frac{a_n}{a_{n+1}}\\right|$ a $(n+1)!=(n+1)\\cdot n!$.')
         };
       }
       return {
         answer: 0.25, show: '1/4',
-        q: 'Urči polomer konvergencie radu $\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(2n)!}{(n!)^2}\\,x^n$. Výsledok zadaj ako zlomok.',
-        solution: '$\\left|\\dfrac{a_n}{a_{n+1}}\\right|=\\dfrac{(2n)!}{(n!)^2}\\cdot\\dfrac{((n+1)!)^2}{(2n+2)!}=\\dfrac{(n+1)^2}{(2n+1)(2n+2)}\\to\\dfrac{1}{4}$. Teda $R=\\frac{1}{4}$.',
-        hint: 'Využi $(2n+2)!=(2n+2)(2n+1)\\cdot(2n)!$.',
-        mistakes: [{ value: 1, msg: 'Vedúci koeficient súčinu $(2n+1)(2n+2)$ je $4$, nie $1$ – limita podielu nie je 1.' }]
+        q: T.s('Urči polomer konvergencie radu $\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(2n)!}{(n!)^2}\\,x^n$. Výsledok zadaj ako zlomok.'),
+        solution: T.s('$\\left|\\dfrac{a_n}{a_{n+1}}\\right|=\\dfrac{(2n)!}{(n!)^2}\\cdot\\dfrac{((n+1)!)^2}{(2n+2)!}=\\dfrac{(n+1)^2}{(2n+1)(2n+2)}\\to\\dfrac{1}{4}$. Teda $R=\\frac{1}{4}$.'),
+        hint: T.s('Využi $(2n+2)!=(2n+2)(2n+1)\\cdot(2n)!$.'),
+        mistakes: [{ value: 1, msg: T.s('Vedúci koeficient súčinu $(2n+1)(2n+2)$ je $4$, nie $1$ – limita podielu nie je 1.') }]
       };
     }
     if (t < 0.72) {
@@ -1762,14 +1764,14 @@
       const okR = kind === 2 || kind === 3, okL = kind === 1 || kind === 2;
       return {
         type: 'choice', options: opts, answer: ans,
-        q: `Urči obor konvergencie radu $\\displaystyle\\sum_{n=${p === 0 ? 0 : 1}}^{\\infty}${termT}$.`,
-        solution: `Polomer konvergencie je $R=${b}$ (napr. $\\left|\\frac{a_n}{a_{n+1}}\\right|\\to ${b}$), stred $x_0=${c}$, rad teda absolútne konverguje na $(${L};\\,${R})$.
-          Pre $x=${R}$ dostaneme $${atR}$, ktorý ${verdict(okR)}${okR && !alt ? ' ($p=2\\gt 1$)' : okR ? ' (Leibnizovo kritérium)' : p === 0 ? ' (členy nejdú k nule)' : ' (harmonický rad)'}.
-          Pre $x=${L}$ dostaneme $${atL}$, ktorý ${verdict(okL)}${okL && p === 2 ? ' (absolútne)' : okL ? ' (Leibnizovo kritérium)' : p === 0 ? ' (členy nejdú k nule)' : ' (harmonický rad)'}. Obor konvergencie je ${ans}.`,
-        hint: 'Najprv urči polomer, potom dosaď oba koncové body a vyšetri vzniknuté číselné rady.',
+        q: T`Urči obor konvergencie radu $\\displaystyle\\sum_{n=${p === 0 ? 0 : 1}}^{\\infty}${termT}$.`,
+        solution: T`Polomer konvergencie je $R=${b}$ (napr. $\\left|\\frac{a_n}{a_{n+1}}\\right|\\to ${b}$), stred $x_0=${c}$, rad teda absolútne konverguje na $(${L};\\,${R})$.
+          Pre $x=${R}$ dostaneme $${atR}$, ktorý ${verdict(okR)}${okR && !alt ? ' ($p=2\\gt 1$)' : okR ? T.s(' (Leibnizovo kritérium)') : p === 0 ? T.s(' (členy nejdú k nule)') : T.s(' (harmonický rad)')}.
+          Pre $x=${L}$ dostaneme $${atL}$, ktorý ${verdict(okL)}${okL && p === 2 ? T.s(' (absolútne)') : okL ? T.s(' (Leibnizovo kritérium)') : p === 0 ? T.s(' (členy nejdú k nule)') : T.s(' (harmonický rad)')}. Obor konvergencie je ${ans}.`,
+        hint: T.s('Najprv urči polomer, potom dosaď oba koncové body a vyšetri vzniknuté číselné rady.'),
         choiceHints: Object.fromEntries(opts.map((o, i) => [o, (i & 1) === 1, (i & 2) === 2]).filter(([o]) => o !== ans).map(([o, l, r]) => [o,
-          l !== okL ? `Over ľavý koncový bod $x=${L}$: dosadením vznikne rad $${atL}$ – rozhodni o jeho konvergencii.`
-            : `Over pravý koncový bod $x=${R}$: dosadením vznikne rad $${atR}$ – rozhodni o jeho konvergencii.`]))
+          l !== okL ? T`Over ľavý koncový bod $x=${L}$: dosadením vznikne rad $${atL}$ – rozhodni o jeho konvergencii.`
+            : T`Over pravý koncový bod $x=${R}$: dosadením vznikne rad $${atR}$ – rozhodni o jeho konvergencii.`]))
       };
     }
     const q = rnd(2, 5);
@@ -1779,42 +1781,42 @@
     if (fam === 0) {
       return {
         signed: true, answer: p * q / ((q - p) * (q - p)), show: fTxt(p * q, (q - p) * (q - p)),
-        q: `Vypočítaj súčet radu $\\displaystyle\\sum_{n=1}^{\\infty} n\\,x^n$ pre $x=${xT}$. Výsledok zadaj ako zlomok.`,
-        solution: `Pre $|x|\\lt 1$ je $\\sum_{n=1}^{\\infty} n x^n=x\\left(\\sum_{n=0}^{\\infty}x^n\\right)'=\\frac{x}{(1-x)^2}$. Pre $x=${xT}$: $\\dfrac{${xT}}{\\left(${fTex(q - p, q)}\\right)^2}=${fTex(p * q, (q - p) * (q - p))}$.`,
-        hint: 'Derivuj geometrický rad $\\sum x^n=\\frac{1}{1-x}$ a výsledok vynásob $x$.',
+        q: T`Vypočítaj súčet radu $\\displaystyle\\sum_{n=1}^{\\infty} n\\,x^n$ pre $x=${xT}$. Výsledok zadaj ako zlomok.`,
+        solution: T`Pre $|x|\\lt 1$ je $\\sum_{n=1}^{\\infty} n x^n=x\\left(\\sum_{n=0}^{\\infty}x^n\\right)'=\\frac{x}{(1-x)^2}$. Pre $x=${xT}$: $\\dfrac{${xT}}{\\left(${fTex(q - p, q)}\\right)^2}=${fTex(p * q, (q - p) * (q - p))}$.`,
+        hint: T.s('Derivuj geometrický rad $\\sum x^n=\\frac{1}{1-x}$ a výsledok vynásob $x$.'),
         mistakes: [
-          { value: q * q / ((q - p) * (q - p)), msg: 'Derivácia $\\sum x^n$ dá $\\sum n x^{n-1}$ – na získanie $\\sum n x^n$ ju ešte vynásob $x$.' },
-          { value: p / (q - p), msg: 'Rad $\\sum n x^n$ nie je geometrický – koeficient $n$ získaš derivovaním $\\sum x^n$.' }
+          { value: q * q / ((q - p) * (q - p)), msg: T.s('Derivácia $\\sum x^n$ dá $\\sum n x^{n-1}$ – na získanie $\\sum n x^n$ ju ešte vynásob $x$.') },
+          { value: p / (q - p), msg: T.s('Rad $\\sum n x^n$ nie je geometrický – koeficient $n$ získaš derivovaním $\\sum x^n$.') }
         ],
         steps: [
-          { q: `Vypočítaj $(1-x)^2$ pre $x=${xT}$. Zadaj zlomok.`, answer: (q - p) * (q - p) / (q * q), show: fTxt((q - p) * (q - p), q * q) },
-          { q: 'Dosaď do vzorca $\\frac{x}{(1-x)^2}$. Zadaj zlomok.', answer: p * q / ((q - p) * (q - p)), show: fTxt(p * q, (q - p) * (q - p)), signed: true }
+          { q: T`Vypočítaj $(1-x)^2$ pre $x=${xT}$. Zadaj zlomok.`, answer: (q - p) * (q - p) / (q * q), show: fTxt((q - p) * (q - p), q * q) },
+          { q: T.s('Dosaď do vzorca $\\frac{x}{(1-x)^2}$. Zadaj zlomok.'), answer: p * q / ((q - p) * (q - p)), show: fTxt(p * q, (q - p) * (q - p)), signed: true }
         ]
       };
     }
     if (fam === 1) {
       return {
         answer: q * q / ((q - p) * (q - p)), show: fTxt(q * q, (q - p) * (q - p)),
-        q: `Vypočítaj súčet radu $\\displaystyle\\sum_{n=0}^{\\infty}(n+1)\\,x^n$ pre $x=${xT}$. Výsledok zadaj ako zlomok.`,
-        solution: `Pre $|x|\\lt 1$ je $\\sum_{n=0}^{\\infty}(n+1)x^n=\\left(\\sum_{n=0}^{\\infty}x^{n+1}\\right)'=\\left(\\frac{x}{1-x}\\right)'=\\frac{1}{(1-x)^2}$. Pre $x=${xT}$: $\\dfrac{1}{\\left(${fTex(q - p, q)}\\right)^2}=${fTex(q * q, (q - p) * (q - p))}$.`,
-        hint: 'Rad je deriváciou radu $\\sum x^{n+1}=\\frac{x}{1-x}$.',
+        q: T`Vypočítaj súčet radu $\\displaystyle\\sum_{n=0}^{\\infty}(n+1)\\,x^n$ pre $x=${xT}$. Výsledok zadaj ako zlomok.`,
+        solution: T`Pre $|x|\\lt 1$ je $\\sum_{n=0}^{\\infty}(n+1)x^n=\\left(\\sum_{n=0}^{\\infty}x^{n+1}\\right)'=\\left(\\frac{x}{1-x}\\right)'=\\frac{1}{(1-x)^2}$. Pre $x=${xT}$: $\\dfrac{1}{\\left(${fTex(q - p, q)}\\right)^2}=${fTex(q * q, (q - p) * (q - p))}$.`,
+        hint: T.s('Rad je deriváciou radu $\\sum x^{n+1}=\\frac{x}{1-x}$.'),
         mistakes: [
-          { value: p * q / ((q - p) * (q - p)), msg: 'Vzorec $\\frac{x}{(1-x)^2}$ platí pre $\\sum n x^n$. Tu je $\\sum (n+1)x^n=\\left(\\sum x^{n+1}\\right)\'$ – zderivuj $\\frac{x}{1-x}$.' },
-          { value: q / (q - p), msg: 'Rad $\\sum (n+1)x^n$ nie je geometrický – koeficient $n+1$ získaš derivovaním.' }
+          { value: p * q / ((q - p) * (q - p)), msg: T.s('Vzorec $\\frac{x}{(1-x)^2}$ platí pre $\\sum n x^n$. Tu je $\\sum (n+1)x^n=\\left(\\sum x^{n+1}\\right)\'$ – zderivuj $\\frac{x}{1-x}$.') },
+          { value: q / (q - p), msg: T.s('Rad $\\sum (n+1)x^n$ nie je geometrický – koeficient $n+1$ získaš derivovaním.') }
         ],
         steps: [
-          { q: `Vypočítaj $1-x$ pre $x=${xT}$. Zadaj zlomok.`, answer: (q - p) / q, show: fTxt(q - p, q) },
-          { q: 'Dosaď do vzorca $\\frac{1}{(1-x)^2}$. Zadaj zlomok.', answer: q * q / ((q - p) * (q - p)), show: fTxt(q * q, (q - p) * (q - p)) }
+          { q: T`Vypočítaj $1-x$ pre $x=${xT}$. Zadaj zlomok.`, answer: (q - p) / q, show: fTxt(q - p, q) },
+          { q: T.s('Dosaď do vzorca $\\frac{1}{(1-x)^2}$. Zadaj zlomok.'), answer: q * q / ((q - p) * (q - p)), show: fTxt(q * q, (q - p) * (q - p)) }
         ]
       };
     }
     const val = -Math.log(1 - p / q);
     return {
       signed: true, answer: round(val, 3), tol: TOL3, show: dt(val),
-      q: `Vypočítaj súčet radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{x^n}{n}$ pre $x=${xT}$. ${ROUND3}`,
-      solution: `Integrovaním geometrického radu: $\\sum_{n=1}^{\\infty}\\frac{x^n}{n}=\\int_0^x\\frac{dt}{1-t}=-\\ln(1-x)$ pre $|x|\\lt 1$. Pre $x=${xT}$: $-\\ln${fTex(q - p, q).startsWith('\\frac') ? fTex(q - p, q) : `(${fTex(q - p, q)})`}=\\ln${fTex(q, q - p).startsWith('\\frac') ? fTex(q, q - p) : ` ${fTex(q, q - p)}`}\\approx ${dd(val)}$.`,
-      hint: 'Rad vznikne integrovaním $\\sum x^{n-1}=\\frac{1}{1-x}$ od 0 po $x$.',
-      mistakes: [{ value: round(Math.log(1 + p / q), 3), msg: 'Primitívna funkcia k $\\frac{1}{1-t}$ je $-\\ln(1-t)$, nie $\\ln(1+t)$ – pozor na vnútornú deriváciu $-1$.' }]
+      q: T`Vypočítaj súčet radu $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{x^n}{n}$ pre $x=${xT}$. ${T.s(ROUND3)}`,
+      solution: T`Integrovaním geometrického radu: $\\sum_{n=1}^{\\infty}\\frac{x^n}{n}=\\int_0^x\\frac{dt}{1-t}=-\\ln(1-x)$ pre $|x|\\lt 1$. Pre $x=${xT}$: $-\\ln${fTex(q - p, q).startsWith('\\frac') ? fTex(q - p, q) : `(${fTex(q - p, q)})`}=\\ln${fTex(q, q - p).startsWith('\\frac') ? fTex(q, q - p) : ` ${fTex(q, q - p)}`}\\approx ${dd(val)}$.`,
+      hint: T.s('Rad vznikne integrovaním $\\sum x^{n-1}=\\frac{1}{1-x}$ od 0 po $x$.'),
+      mistakes: [{ value: round(Math.log(1 + p / q), 3), msg: T.s('Primitívna funkcia k $\\frac{1}{1-t}$ je $-\\ln(1-t)$, nie $\\ln(1+t)$ – pozor na vnútornú deriváciu $-1$.') }]
     };
   });
 
@@ -1823,15 +1825,15 @@
     draw: (v) => {
       const p = plane(-7, 7, -2.5, 2.5, 440, 260);
       const n = v.n;
-      const T = (x) => { let s = 0, term0 = x; for (let k = 1; k <= n; k += 2) { s += term0; term0 *= -x * x / ((k + 1) * (k + 2)); } return s; };
+      const tpol = (x) => { let s = 0, term0 = x; for (let k = 1; k <= n; k += 2) { s += term0; term0 *= -x * x / ((k + 1) * (k + 2)); } return s; };
       const sup = (k) => String(k).split('').map((d) => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]).join('');
       const parts = [];
       for (let k = 1; k <= n; k += 2) parts.push(k === 1 ? 'x' : `${(k - 1) / 2 % 2 ? ' − ' : ' + '}x${sup(k)}/${k}!`);
       const poly = parts.length > 3 ? parts.slice(0, 3).join('') + (parts.length > 4 ? ' … ' : '') + parts[parts.length - 1] : parts.join('');
-      const clipped = `<path class="f-line" d="${curvePath(p, Math.sin)}"/><path class="f-accent" d="${curvePath(p, T, -7, 7, 400)}"/>`;
+      const clipped = `<path class="f-line" d="${curvePath(p, Math.sin)}"/><path class="f-accent" d="${curvePath(p, tpol, -7, 7, 400)}"/>`;
       return {
         svg: svg(p, axes(p, 2, 1), clipped, '', 'Funkcia sínus a jej Taylorov polynóm'),
-        readout: `<span class="c-accent">T<sub>${n}</sub>(x) = ${poly}</span> · chyba v bode x = π: |sin π − T<sub>${n}</sub>(π)| = ${sk(Math.abs(T(Math.PI)), 4)}`
+        readout: T`<span class="c-accent">T<sub>${n}</sub>(x) = ${poly}</span> · chyba v bode x = π: |sin π − T<sub>${n}</sub>(π)| = ${sk(Math.abs(tpol(Math.PI)), 4)}`
       };
     }
   });
@@ -1873,30 +1875,30 @@
       if (fam === 0) {
         const a = pick([1, 2, 3, -1, -2]); k = rnd(2, 5);
         fT = `\\mathrm{e}^{${cx(a)}}`; num = Math.pow(a, k); den = fact(k);
-        how = `$\\mathrm{e}^{u}=\\sum\\frac{u^n}{n!}$ s $u=${cx(a)}$: koeficient pri $x^{${k}}$ je $\\frac{${par(a)}^{${k}}}{${k}!}$`;
+        how = T`$\\mathrm{e}^{u}=\\sum\\frac{u^n}{n!}$ s $u=${cx(a)}$: koeficient pri $x^{${k}}$ je $\\frac{${par(a)}^{${k}}}{${k}!}$`;
       } else if (fam === 1) {
         const a = rnd(1, 3); k = pick([3, 5]);
         fT = `\\sin ${cx(a)}`; num = (k === 3 ? -1 : 1) * Math.pow(a, k); den = fact(k);
-        how = `$\\sin u=u-\\frac{u^3}{3!}+\\frac{u^5}{5!}-\\cdots$ s $u=${cx(a)}$: koeficient pri $x^{${k}}$ je $${k === 3 ? '-' : ''}\\frac{${a}^{${k}}}{${k}!}$`;
+        how = T`$\\sin u=u-\\frac{u^3}{3!}+\\frac{u^5}{5!}-\\cdots$ s $u=${cx(a)}$: koeficient pri $x^{${k}}$ je $${k === 3 ? '-' : ''}\\frac{${a}^{${k}}}{${k}!}$`;
       } else if (fam === 2) {
         const a = rnd(1, 3); k = pick([2, 4]);
         fT = `\\cos ${cx(a)}`; num = (k === 2 ? -1 : 1) * Math.pow(a, k); den = fact(k);
-        how = `$\\cos u=1-\\frac{u^2}{2!}+\\frac{u^4}{4!}-\\cdots$ s $u=${cx(a)}$: koeficient pri $x^{${k}}$ je $${k === 2 ? '-' : ''}\\frac{${a}^{${k}}}{${k}!}$`;
+        how = T`$\\cos u=1-\\frac{u^2}{2!}+\\frac{u^4}{4!}-\\cdots$ s $u=${cx(a)}$: koeficient pri $x^{${k}}$ je $${k === 2 ? '-' : ''}\\frac{${a}^{${k}}}{${k}!}$`;
       } else {
         const a = pick([1, 2, 3, -1, -2]); k = rnd(2, 4);
         fT = `\\ln(1${term(a, 'x')})`; num = (k % 2 ? 1 : -1) * Math.pow(a, k); den = k;
-        how = `$\\ln(1+u)=\\sum\\frac{(-1)^{n+1}u^n}{n}$ s $u=${cx(a)}$: koeficient pri $x^{${k}}$ je $\\frac{(-1)^{${k + 1}}\\cdot ${par(a)}^{${k}}}{${k}}$`;
+        how = T`$\\ln(1+u)=\\sum\\frac{(-1)^{n+1}u^n}{n}$ s $u=${cx(a)}$: koeficient pri $x^{${k}}$ je $\\frac{(-1)^{${k + 1}}\\cdot ${par(a)}^{${k}}}{${k}}$`;
       }
       return {
         signed: true, answer: num / den, show: fTxt(num, den),
-        q: `Urči koeficient pri $x^{${k}}$ v Maclaurinovom rade funkcie $f(x)=${fT}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Do známeho rozvoja dosadíme: ${how.slice(0, -1)}=${fTex(num, den)}$.`,
-        hint: 'Netreba derivovať – dosaď $u=ax$ do známeho rozvoja a vyber člen s $x^k$.',
+        q: T`Urči koeficient pri $x^{${k}}$ v Maclaurinovom rade funkcie $f(x)=${fT}$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`Do známeho rozvoja dosadíme: ${how.replace(/\$$/, '')}=${fTex(num, den)}$.`,
+        hint: T.s('Netreba derivovať – dosaď $u=ax$ do známeho rozvoja a vyber člen s $x^k$.'),
         mistakes: (() => {
           const ms = [], sg = Math.sign(num), A = Math.round(Math.pow(Math.abs(num), 1 / k));
-          if (fam < 3) ms.push({ value: num, msg: `V Maclaurinovom rade je pri $x^{${k}}$ ešte delenie $${k}!$.` });
-          else if (k > 2) ms.push({ value: num / fact(k), msg: `Rozvoj $\\ln(1+u)$ má v menovateli $n$, nie $n!$.` });
-          if (A !== 1) ms.push({ value: sg / den, msg: `Do rozvoja dosadzuješ celé $u=ax$, preto sa aj konštanta $a$ umocní na ${k}.` });
+          if (fam < 3) ms.push({ value: num, msg: T`V Maclaurinovom rade je pri $x^{${k}}$ ešte delenie $${k}!$.` });
+          else if (k > 2) ms.push({ value: num / fact(k), msg: T`Rozvoj $\\ln(1+u)$ má v menovateli $n$, nie $n!$.` });
+          if (A !== 1) ms.push({ value: sg / den, msg: T`Do rozvoja dosadzuješ celé $u=ax$, preto sa aj konštanta $a$ umocní na ${k}.` });
           return ms;
         })()
       };
@@ -1908,14 +1910,14 @@
         const xm = m === 1 ? 'x' : 'x^2';
         return {
           signed: true, answer: val,
-          q: `Pre $f(x)=${xm}\\,\\mathrm{e}^{${cx(a)}}$ vypočítaj $f^{(${n})}(0)$.`,
-          solution: `$f(x)=${xm}\\sum_{k=0}^{\\infty}\\frac{${a === 1 ? '' : par(a) + '^k'}${a === 1 ? 'x^k' : 'x^k'}}{k!}$, koeficient pri $x^{${n}}$ je ${a === 1 ? `$\\frac{1}{${j}!}$` : `$\\frac{${par(a)}^{${j}}}{${j}!}$`}.
+          q: T`Pre $f(x)=${xm}\\,\\mathrm{e}^{${cx(a)}}$ vypočítaj $f^{(${n})}(0)$.`,
+          solution: T`$f(x)=${xm}\\sum_{k=0}^{\\infty}\\frac{${a === 1 ? '' : par(a) + '^k'}${a === 1 ? 'x^k' : 'x^k'}}{k!}$, koeficient pri $x^{${n}}$ je ${a === 1 ? `$\\frac{1}{${j}!}$` : `$\\frac{${par(a)}^{${j}}}{${j}!}$`}.
             Keďže koeficient pri $x^n$ je $\\frac{f^{(n)}(0)}{n!}$, platí $f^{(${n})}(0)=${n}!\\cdot ${a === 1 ? `\\frac{1}{${j}!}` : `\\frac{${par(a)}^{${j}}}{${j}!}`}=${val}$.`,
-          hint: 'Rozviň funkciu do Maclaurinovho radu a využi, že koeficient pri $x^n$ sa rovná $\\frac{f^{(n)}(0)}{n!}$.',
-          mistakes: [{ value: Math.pow(a, j) / fact(j), msg: `To je koeficient pri $x^{${n}}$. Derivácia je $f^{(${n})}(0)=${n}!\\cdot$ koeficient.` }],
+          hint: T.s('Rozviň funkciu do Maclaurinovho radu a využi, že koeficient pri $x^n$ sa rovná $\\frac{f^{(n)}(0)}{n!}$.'),
+          mistakes: [{ value: Math.pow(a, j) / fact(j), msg: T`To je koeficient pri $x^{${n}}$. Derivácia je $f^{(${n})}(0)=${n}!\\cdot$ koeficient.` }],
           steps: [
-            { q: `Aký je koeficient pri $x^{${n}}$ v Maclaurinovom rade funkcie $f$? Zadaj celé číslo alebo zlomok.`, answer: Math.pow(a, j) / fact(j), show: fTxt(Math.pow(a, j), fact(j)), signed: true },
-            { q: `Vypočítaj $f^{(${n})}(0)$.`, answer: val, signed: true }
+            { q: T`Aký je koeficient pri $x^{${n}}$ v Maclaurinovom rade funkcie $f$? Zadaj celé číslo alebo zlomok.`, answer: Math.pow(a, j) / fact(j), show: fTxt(Math.pow(a, j), fact(j)), signed: true },
+            { q: T`Vypočítaj $f^{(${n})}(0)$.`, answer: val, signed: true }
           ]
         };
       }
@@ -1924,14 +1926,14 @@
       const xm = m === 1 ? 'x' : 'x^2';
       return {
         signed: true, answer: val,
-        q: `Pre $f(x)=${xm}\\cos x$ vypočítaj $f^{(${n})}(0)$.`,
-        solution: `$f(x)=${xm}\\left(1-\\frac{x^2}{2!}+\\frac{x^4}{4!}-\\cdots\\right)$, koeficient pri $x^{${n}}$ je $${j === 2 ? '-' : ''}\\frac{1}{${j}!}$.
+        q: T`Pre $f(x)=${xm}\\cos x$ vypočítaj $f^{(${n})}(0)$.`,
+        solution: T`$f(x)=${xm}\\left(1-\\frac{x^2}{2!}+\\frac{x^4}{4!}-\\cdots\\right)$, koeficient pri $x^{${n}}$ je $${j === 2 ? '-' : ''}\\frac{1}{${j}!}$.
           Preto $f^{(${n})}(0)=${n}!\\cdot\\left(${j === 2 ? '-' : ''}\\frac{1}{${j}!}\\right)=${val}$.`,
-        hint: 'Koeficient pri $x^n$ v Maclaurinovom rade je $\\frac{f^{(n)}(0)}{n!}$.',
-        mistakes: [{ value: (j === 2 ? -1 : 1) / fact(j), msg: `To je koeficient pri $x^{${n}}$. Derivácia je $f^{(${n})}(0)=${n}!\\cdot$ koeficient.` }],
+        hint: T.s('Koeficient pri $x^n$ v Maclaurinovom rade je $\\frac{f^{(n)}(0)}{n!}$.'),
+        mistakes: [{ value: (j === 2 ? -1 : 1) / fact(j), msg: T`To je koeficient pri $x^{${n}}$. Derivácia je $f^{(${n})}(0)=${n}!\\cdot$ koeficient.` }],
         steps: [
-          { q: `Aký je koeficient pri $x^{${n}}$ v Maclaurinovom rade funkcie $f$? Zadaj zlomok.`, answer: (j === 2 ? -1 : 1) / fact(j), show: fTxt(j === 2 ? -1 : 1, fact(j)), signed: true },
-          { q: `Vypočítaj $f^{(${n})}(0)$.`, answer: val, signed: true }
+          { q: T`Aký je koeficient pri $x^{${n}}$ v Maclaurinovom rade funkcie $f$? Zadaj zlomok.`, answer: (j === 2 ? -1 : 1) / fact(j), show: fTxt(j === 2 ? -1 : 1, fact(j)), signed: true },
+          { q: T`Vypočítaj $f^{(${n})}(0)$.`, answer: val, signed: true }
         ]
       };
     }
@@ -1944,12 +1946,12 @@
       const gT = atOne ? '(n+1)!' : '2^n\\,(n+1)!';
       return {
         answer: n,
-        q: `Aký najmenší stupeň $n$ Maclaurinovho polynómu funkcie $\\mathrm{e}^x$ zaručí podľa odhadu zvyšku v Lagrangeovom tvare výpočet ${atOne ? 'čísla $\\mathrm{e}=\\mathrm{e}^1$' : 'čísla $\\sqrt{\\mathrm{e}}=\\mathrm{e}^{1/2}$'} s chybou menšou ako $10^{-${m}}$?${atOne ? ' Použi odhad $\\mathrm{e}\\lt 3$.' : ' Použi odhad $\\sqrt{\\mathrm{e}}\\lt 2$.'}`,
-        solution: `$|R_n(x)|=\\frac{\\mathrm{e}^{\\xi}}{(n+1)!}|x|^{n+1}$ pre $\\xi$ medzi $0$ a $x$. ${atOne
-          ? 'Pre $x=1$ je $\\mathrm{e}^{\\xi}\\lt 3$, teda $|R_n(1)|\\lt\\frac{3}{(n+1)!}$.'
-          : 'Pre $x=\\frac{1}{2}$ je $\\mathrm{e}^{\\xi}\\lt 2$, teda $|R_n(\\tfrac{1}{2})|\\lt\\frac{2}{2^{n+1}(n+1)!}=\\frac{1}{2^n\\,(n+1)!}$.'}
+        q: T`Aký najmenší stupeň $n$ Maclaurinovho polynómu funkcie $\\mathrm{e}^x$ zaručí podľa odhadu zvyšku v Lagrangeovom tvare výpočet ${atOne ? T.s('čísla $\\mathrm{e}=\\mathrm{e}^1$') : T.s('čísla $\\sqrt{\\mathrm{e}}=\\mathrm{e}^{1/2}$')} s chybou menšou ako $10^{-${m}}$?${atOne ? T.s(' Použi odhad $\\mathrm{e}\\lt 3$.') : T.s(' Použi odhad $\\sqrt{\\mathrm{e}}\\lt 2$.')}`,
+        solution: T`$|R_n(x)|=\\frac{\\mathrm{e}^{\\xi}}{(n+1)!}|x|^{n+1}$ pre $\\xi$ medzi $0$ a $x$. ${atOne
+          ? T.s('Pre $x=1$ je $\\mathrm{e}^{\\xi}\\lt 3$, teda $|R_n(1)|\\lt\\frac{3}{(n+1)!}$.')
+          : T.s('Pre $x=\\frac{1}{2}$ je $\\mathrm{e}^{\\xi}\\lt 2$, teda $|R_n(\\tfrac{1}{2})|\\lt\\frac{2}{2^{n+1}(n+1)!}=\\frac{1}{2^n\\,(n+1)!}$.')}
           Chceme $${gT}\\gt ${atOne ? '3\\cdot ' : ''}10^{${m}}$. Pre $n=${n - 1}$ je ľavá strana $${G(n - 1)}$, pre $n=${n}$ už $${G(n)}$. Preto $n=${n}$.`,
-        hint: 'Odhad zvyšku: $|R_n(x)|\\le\\frac{M}{(n+1)!}|x|^{n+1}$, kde $M$ ohraničuje $(n+1)$-vú deriváciu.'
+        hint: T.s('Odhad zvyšku: $|R_n(x)|\\le\\frac{M}{(n+1)!}|x|^{n+1}$, kde $M$ ohraničuje $(n+1)$-vú deriváciu.')
       };
     }
     const fam = rnd(0, 2), h = pick([0.1, 0.2, 0.3, -0.1, -0.2]);
@@ -1960,12 +1962,12 @@
     else { val = 1 - h * h / 2 + h * h * h * h / 24; fT = `\\cos ${dd(Math.abs(h), 1)}`; poly = `1-\\frac{${dd(Math.abs(h), 1)}^2}{2}+\\frac{${dd(Math.abs(h), 1)}^4}{24}`; deg = 4; }
     return {
       signed: true, answer: round(val, 4), tol: 0.00006, show: dt(val, 4),
-      q: `Pomocou Maclaurinovho polynómu stupňa $${deg}$ odhadni $${fT}$. Výsledok zaokrúhli na 4 desatinné miesta.`,
-      solution: `$T_${deg}=${poly}\\approx ${dd(val, 4)}$.`,
-      hint: 'Dosaď hodnotu do prvých členov známeho rozvoja ($\\mathrm{e}^x$, $\\ln(1+x)$ alebo $\\cos x$).',
-      mistakes: [fam === 0 ? { value: round(1 + h + h * h + h * h * h, 4), msg: 'Členy rozvoja $\\mathrm{e}^x$ majú v menovateli faktoriály: $\\frac{x^n}{n!}$.' }
-        : fam === 1 ? { value: round(h + h * h / 2 + h * h * h / 3, 4), msg: 'Rozvoj $\\ln(1+x)$ má striedavé znamienka: $x-\\frac{x^2}{2}+\\frac{x^3}{3}-\\cdots$' }
-          : { value: round(1 - h * h + h * h * h * h, 4), msg: 'Členy rozvoja $\\cos x$ majú v menovateli faktoriály: $\\frac{x^2}{2!}$, $\\frac{x^4}{4!}$.' }]
+      q: T`Pomocou Maclaurinovho polynómu stupňa $${deg}$ odhadni $${fT}$. Výsledok zaokrúhli na 4 desatinné miesta.`,
+      solution: T`$T_${deg}=${poly}\\approx ${dd(val, 4)}$.`,
+      hint: T.s('Dosaď hodnotu do prvých členov známeho rozvoja ($\\mathrm{e}^x$, $\\ln(1+x)$ alebo $\\cos x$).'),
+      mistakes: [fam === 0 ? { value: round(1 + h + h * h + h * h * h, 4), msg: T.s('Členy rozvoja $\\mathrm{e}^x$ majú v menovateli faktoriály: $\\frac{x^n}{n!}$.') }
+        : fam === 1 ? { value: round(h + h * h / 2 + h * h * h / 3, 4), msg: T.s('Rozvoj $\\ln(1+x)$ má striedavé znamienka: $x-\\frac{x^2}{2}+\\frac{x^3}{3}-\\cdots$') }
+          : { value: round(1 - h * h + h * h * h * h, 4), msg: T.s('Členy rozvoja $\\cos x$ majú v menovateli faktoriály: $\\frac{x^2}{2!}$, $\\frac{x^4}{4!}$.') }]
     };
   });
 
@@ -1984,7 +1986,7 @@
       const clipped = `${back}${ELL(p, c, 'f-accent')}<circle class="f-dot" cx="${n1(p.X(a))}" cy="${n1(p.Y(0))}" r="4"/><circle class="f-dot" cx="${n1(p.X(0))}" cy="${n1(p.Y(b))}" r="4"/>`;
       return {
         svg: svg(p, axes(p), clipped, '', 'Vrstevnice funkcie x na druhú lomeno 4 plus y na druhú'),
-        readout: `<span class="c-accent">vrstevnica x²/4 + y² = ${sk(c, 2)}</span> · elipsa s poloosami a = 2√c ≈ ${sk(a)} a b = √c ≈ ${sk(b)}`
+        readout: T`<span class="c-accent">vrstevnica x²/4 + y² = ${sk(c, 2)}</span> · elipsa s poloosami a = 2√c ≈ ${sk(a)} a b = √c ≈ ${sk(b)}`
       };
     }
   });
@@ -2024,15 +2026,15 @@
         const a = nz(-4, 4);
         return {
           signed: true, answer: a * m / (1 + m * m), show: fTxt(a * m, 1 + m * m),
-          q: `Vypočítaj limitu funkcie $f(x,y)=\\dfrac{${cx(a, 'xy')}}{x^2+y^2}$ pre $(x,y)\\to(0,0)$ po priamke $y=${cx(m)}$. Výsledok zadaj ako zlomok.`,
-          solution: `Po dosadení $y=${cx(m)}$ ($x\\neq 0$): $f(x,${cx(m)})=\\dfrac{${cx(a * m, 'x^2')}}{x^2+${cx(m * m, 'x^2')}}=\\dfrac{${a * m}}{${1 + m * m}}${gcd(Math.abs(a * m), 1 + m * m) > 1 ? `=${fTex(a * m, 1 + m * m)}` : ''}$.
+          q: T`Vypočítaj limitu funkcie $f(x,y)=\\dfrac{${cx(a, 'xy')}}{x^2+y^2}$ pre $(x,y)\\to(0,0)$ po priamke $y=${cx(m)}$. Výsledok zadaj ako zlomok.`,
+          solution: T`Po dosadení $y=${cx(m)}$ ($x\\neq 0$): $f(x,${cx(m)})=\\dfrac{${cx(a * m, 'x^2')}}{x^2+${cx(m * m, 'x^2')}}=\\dfrac{${a * m}}{${1 + m * m}}${gcd(Math.abs(a * m), 1 + m * m) > 1 ? `=${fTex(a * m, 1 + m * m)}` : ''}$.
             Výsledok závisí od smernice priamky, preto dvojná limita v bode $(0,0)$ neexistuje.`,
-          hint: 'Dosaď $y=kx$ a vykráť $x^2$.',
-          mistakes: Math.abs(m) > 1 ? [{ value: a * m / (1 + m), msg: `Po dosadení je $y^2=(${cx(m)})^2=${m * m}x^2$ – umocni aj koeficient.` }] : [],
+          hint: T.s('Dosaď $y=kx$ a vykráť $x^2$.'),
+          mistakes: Math.abs(m) > 1 ? [{ value: a * m / (1 + m), msg: T`Po dosadení je $y^2=(${cx(m)})^2=${m * m}x^2$ – umocni aj koeficient.` }] : [],
           steps: [
-            { q: `Po dosadení $y=${cx(m)}$ a vykrátení $x^2$: aký je čitateľ?`, answer: a * m, signed: true },
-            { q: 'Aký je menovateľ?', answer: 1 + m * m },
-            { q: 'Aká je limita po priamke? Zadaj zlomok.', answer: a * m / (1 + m * m), show: fTxt(a * m, 1 + m * m), signed: true }
+            { q: T`Po dosadení $y=${cx(m)}$ a vykrátení $x^2$: aký je čitateľ?`, answer: a * m, signed: true },
+            { q: T.s('Aký je menovateľ?'), answer: 1 + m * m },
+            { q: T.s('Aká je limita po priamke? Zadaj zlomok.'), answer: a * m / (1 + m * m), show: fTxt(a * m, 1 + m * m), signed: true }
           ]
         };
       }
@@ -2041,40 +2043,40 @@
       do { b = nz(-4, 4); } while (b === -a);
       return {
         signed: true, answer: (a - b * m * m) / (1 + m * m), show: fTxt(a - b * m * m, 1 + m * m),
-        q: `Vypočítaj limitu funkcie $f(x,y)=\\dfrac{${lin([[a, 'x^2'], [-b, 'y^2']])}}{x^2+y^2}$ pre $(x,y)\\to(0,0)$ po priamke $y=${cx(m)}$. Výsledok zadaj ako zlomok.`,
-        solution: `Po dosadení $y=${cx(m)}$: $\\dfrac{${lin([[a, 'x^2'], [-b * m * m, 'x^2']])}}{x^2+${cx(m * m, 'x^2')}}=\\dfrac{${a - b * m * m}}{${1 + m * m}}${gcd(Math.abs(a - b * m * m), 1 + m * m) > 1 ? `=${fTex(a - b * m * m, 1 + m * m)}` : ''}$.
+        q: T`Vypočítaj limitu funkcie $f(x,y)=\\dfrac{${lin([[a, 'x^2'], [-b, 'y^2']])}}{x^2+y^2}$ pre $(x,y)\\to(0,0)$ po priamke $y=${cx(m)}$. Výsledok zadaj ako zlomok.`,
+        solution: T`Po dosadení $y=${cx(m)}$: $\\dfrac{${lin([[a, 'x^2'], [-b * m * m, 'x^2']])}}{x^2+${cx(m * m, 'x^2')}}=\\dfrac{${a - b * m * m}}{${1 + m * m}}${gcd(Math.abs(a - b * m * m), 1 + m * m) > 1 ? `=${fTex(a - b * m * m, 1 + m * m)}` : ''}$.
           Po osi $x$ ($y=0$) je limita $${a}$, po osi $y$ je $${-b}$; keďže sa líšia, dvojná limita v bode $(0,0)$ neexistuje.`,
-        hint: 'Dosaď $y=kx$ a vykráť $x^2$.',
+        hint: T.s('Dosaď $y=kx$ a vykráť $x^2$.'),
         mistakes: Math.abs(m) > 1 && Math.abs((a - b * m) / (1 + m) - (a - b * m * m) / (1 + m * m)) > 1e-6
-          ? [{ value: (a - b * m) / (1 + m), msg: `Po dosadení je $y^2=(${cx(m)})^2=${m * m}x^2$ – umocni aj koeficient.` }] : [],
+          ? [{ value: (a - b * m) / (1 + m), msg: T`Po dosadení je $y^2=(${cx(m)})^2=${m * m}x^2$ – umocni aj koeficient.` }] : [],
         steps: [
-          { q: `Po dosadení $y=${cx(m)}$ a vykrátení $x^2$: aký je čitateľ?`, answer: a - b * m * m, signed: true },
-          { q: 'Aký je menovateľ?', answer: 1 + m * m },
-          { q: 'Aká je limita po priamke? Zadaj zlomok.', answer: (a - b * m * m) / (1 + m * m), show: fTxt(a - b * m * m, 1 + m * m), signed: true }
+          { q: T`Po dosadení $y=${cx(m)}$ a vykrátení $x^2$: aký je čitateľ?`, answer: a - b * m * m, signed: true },
+          { q: T.s('Aký je menovateľ?'), answer: 1 + m * m },
+          { q: T.s('Aká je limita po priamke? Zadaj zlomok.'), answer: (a - b * m * m) / (1 + m * m), show: fTxt(a - b * m * m, 1 + m * m), signed: true }
         ]
       };
     }
     if (t < 0.55) {
       const YES = 'limita existuje', NO = 'limita neexistuje';
       const cases = [
-        ['\\frac{x^2y}{x^2+y^2}', YES, '$\\left|\\frac{x^2y}{x^2+y^2}\\right|\\le|y|\\to 0$, limita je $0$.'],
-        ['\\frac{xy}{x^2+y^2}', NO, 'po priamke $y=kx$ vychádza $\\frac{k}{1+k^2}$, čo závisí od $k$.'],
-        ['\\frac{x^2y^2}{x^2+y^2}', YES, '$0\\le\\frac{x^2y^2}{x^2+y^2}\\le y^2\\to 0$, limita je $0$.'],
-        ['\\frac{xy^2}{x^2+y^4}', NO, 'po priamkach $y=kx$ je limita $0$, ale po parabole $x=y^2$ je hodnota $\\frac{y^4}{2y^4}=\\frac{1}{2}$.'],
-        ['\\frac{x^2-y^2}{x^2+y^2}', NO, 'po osi $x$ je limita $1$, po osi $y$ je $-1$.'],
-        ['\\frac{x^3+y^3}{x^2+y^2}', YES, 'v polárnych súradniciach $|f|=r\\,|\\cos^3\\varphi+\\sin^3\\varphi|\\le 2r\\to 0$, limita je $0$.'],
-        ['\\frac{\\sin(x^2+y^2)}{x^2+y^2}', YES, 'pre $t=x^2+y^2\\to 0^+$ je $\\frac{\\sin t}{t}\\to 1$, limita je $1$.'],
-        ['\\frac{xy}{\\sqrt{x^2+y^2}}', YES, '$\\left|\\frac{xy}{\\sqrt{x^2+y^2}}\\right|\\le|x|\\to 0$, lebo $|y|\\le\\sqrt{x^2+y^2}$; limita je $0$.'],
-        ['\\frac{x^2}{x^2+y^2}', NO, 'po osi $x$ je hodnota $1$, po osi $y$ je $0$.']
+        ['\\frac{x^2y}{x^2+y^2}', YES, T.s('$\\left|\\frac{x^2y}{x^2+y^2}\\right|\\le|y|\\to 0$, limita je $0$.')],
+        ['\\frac{xy}{x^2+y^2}', NO, T.s('po priamke $y=kx$ vychádza $\\frac{k}{1+k^2}$, čo závisí od $k$.')],
+        ['\\frac{x^2y^2}{x^2+y^2}', YES, T.s('$0\\le\\frac{x^2y^2}{x^2+y^2}\\le y^2\\to 0$, limita je $0$.')],
+        ['\\frac{xy^2}{x^2+y^4}', NO, T.s('po priamkach $y=kx$ je limita $0$, ale po parabole $x=y^2$ je hodnota $\\frac{y^4}{2y^4}=\\frac{1}{2}$.')],
+        ['\\frac{x^2-y^2}{x^2+y^2}', NO, T.s('po osi $x$ je limita $1$, po osi $y$ je $-1$.')],
+        ['\\frac{x^3+y^3}{x^2+y^2}', YES, T.s('v polárnych súradniciach $|f|=r\\,|\\cos^3\\varphi+\\sin^3\\varphi|\\le 2r\\to 0$, limita je $0$.')],
+        ['\\frac{\\sin(x^2+y^2)}{x^2+y^2}', YES, T.s('pre $t=x^2+y^2\\to 0^+$ je $\\frac{\\sin t}{t}\\to 1$, limita je $1$.')],
+        ['\\frac{xy}{\\sqrt{x^2+y^2}}', YES, T.s('$\\left|\\frac{xy}{\\sqrt{x^2+y^2}}\\right|\\le|x|\\to 0$, lebo $|y|\\le\\sqrt{x^2+y^2}$; limita je $0$.')],
+        ['\\frac{x^2}{x^2+y^2}', NO, T.s('po osi $x$ je hodnota $1$, po osi $y$ je $0$.')]
       ];
       const [f, ans, why] = pick(cases);
       return {
-        type: 'choice', options: [YES, NO], answer: ans,
-        q: `Rozhodni, či existuje $\\displaystyle\\lim_{(x,y)\\to(0,0)}${f}$.`,
-        solution: `${ans === YES ? 'Limita existuje: ' : 'Limita neexistuje: '}${why}`,
-        hint: 'Skús priblíženie po priamkach $y=kx$ (prípadne po parabole). Ak výsledok nezávisí od cesty, skús odhad absolútnej hodnoty.',
-        choiceHints: ans === YES ? { [NO]: 'Po rôznych cestách vychádza rovnaká hodnota. Skús funkciu zhora odhadnúť výrazom, ktorý ide k nule (napr. $|y|$ alebo $r$ v polárnych súradniciach).' }
-          : { [YES]: 'Rovnaká hodnota po niekoľkých priamkach ešte nestačí. Porovnaj limity po osiach, po priamkach $y=kx$ s rôznym $k$, prípadne po parabole.' }
+        type: 'choice', options: [YES, NO].map(T.s), answer: T.s(ans),
+        q: T`Rozhodni, či existuje $\\displaystyle\\lim_{(x,y)\\to(0,0)}${f}$.`,
+        solution: ans === YES ? T`Limita existuje: ${why}` : T`Limita neexistuje: ${why}`,
+        hint: T.s('Skús priblíženie po priamkach $y=kx$ (prípadne po parabole). Ak výsledok nezávisí od cesty, skús odhad absolútnej hodnoty.'),
+        choiceHints: ans === YES ? { [T.s(NO)]: T.s('Po rôznych cestách vychádza rovnaká hodnota. Skús funkciu zhora odhadnúť výrazom, ktorý ide k nule (napr. $|y|$ alebo $r$ v polárnych súradniciach).') }
+          : { [T.s(YES)]: T.s('Rovnaká hodnota po niekoľkých priamkach ešte nestačí. Porovnaj limity po osiach, po priamkach $y=kx$ s rôznym $k$, prípadne po parabole.') }
       };
     }
     if (t < 0.78) {
@@ -2087,39 +2089,39 @@
       const s = Math.sqrt(c);
       return {
         answer: s,
-        q: `Vrstevnica funkcie $f(x,y)=x^2+${k}y^2$, ktorá prechádza bodom $[${px};\\,${py}]$, je elipsa. Aká dlhá je jej poloos v smere osi $x$?`,
-        solution: `$f(${px},${py})=${px * px}+${k}\\cdot ${py * py}=${c}$, vrstevnica je $x^2+${k}y^2=${c}$, teda $\\dfrac{x^2}{${c}}+\\dfrac{y^2}{${fTex(c, k)}}=1$.
+        q: T`Vrstevnica funkcie $f(x,y)=x^2+${k}y^2$, ktorá prechádza bodom $[${px};\\,${py}]$, je elipsa. Aká dlhá je jej poloos v smere osi $x$?`,
+        solution: T`$f(${px},${py})=${px * px}+${k}\\cdot ${py * py}=${c}$, vrstevnica je $x^2+${k}y^2=${c}$, teda $\\dfrac{x^2}{${c}}+\\dfrac{y^2}{${fTex(c, k)}}=1$.
           Poloos v smere osi $x$ je $\\sqrt{${c}}=${s}$ (v smere osi $y$ je $\\sqrt{${fTex(c, k)}}$).`,
-        hint: 'Najprv vypočítaj úroveň $c=f(x_0,y_0)$, potom rovnicu $f(x,y)=c$ uprav na stredový tvar elipsy.',
-        mistakes: [{ value: c, msg: 'V stredovom tvare $\\frac{x^2}{a^2}+\\frac{y^2}{b^2}=1$ je v menovateli štvorec poloosi – ešte odmocni.' }],
+        hint: T.s('Najprv vypočítaj úroveň $c=f(x_0,y_0)$, potom rovnicu $f(x,y)=c$ uprav na stredový tvar elipsy.'),
+        mistakes: [{ value: c, msg: T.s('V stredovom tvare $\\frac{x^2}{a^2}+\\frac{y^2}{b^2}=1$ je v menovateli štvorec poloosi – ešte odmocni.') }],
         steps: [
-          { q: `Akú úroveň $c=f(${px},${py})$ má vrstevnica?`, answer: c },
-          { q: 'Aká dlhá je poloos v smere osi $x$?', answer: s }
+          { q: T`Akú úroveň $c=f(${px},${py})$ má vrstevnica?`, answer: c },
+          { q: T.s('Aká dlhá je poloos v smere osi $x$?'), answer: s }
         ]
       };
     }
     const r = rnd(1, 5), r2 = r * r;
     const S = [['\\lt', 'x^2+y^2\\lt'], ['\\le', 'x^2+y^2\\le'], ['\\gt', 'x^2+y^2\\gt'], ['\\ge', 'x^2+y^2\\ge']];
     const cases = [
-      [`\\sqrt{${r2}-x^2-y^2}`, 1, 'odmocnina vyžaduje nezáporný výraz'],
-      [`\\ln(${r2}-x^2-y^2)`, 0, 'logaritmus vyžaduje kladný argument'],
-      [`\\frac{1}{\\sqrt{${r2}-x^2-y^2}}`, 0, 'výraz pod odmocninou v menovateli musí byť kladný'],
-      [`\\sqrt{x^2+y^2-${r2}}`, 3, 'odmocnina vyžaduje nezáporný výraz'],
-      [`\\ln(x^2+y^2-${r2})`, 2, 'logaritmus vyžaduje kladný argument'],
-      [`\\frac{1}{\\sqrt{x^2+y^2-${r2}}}`, 2, 'výraz pod odmocninou v menovateli musí byť kladný']
+      [`\\sqrt{${r2}-x^2-y^2}`, 1, T.s('odmocnina vyžaduje nezáporný výraz')],
+      [`\\ln(${r2}-x^2-y^2)`, 0, T.s('logaritmus vyžaduje kladný argument')],
+      [`\\frac{1}{\\sqrt{${r2}-x^2-y^2}}`, 0, T.s('výraz pod odmocninou v menovateli musí byť kladný')],
+      [`\\sqrt{x^2+y^2-${r2}}`, 3, T.s('odmocnina vyžaduje nezáporný výraz')],
+      [`\\ln(x^2+y^2-${r2})`, 2, T.s('logaritmus vyžaduje kladný argument')],
+      [`\\frac{1}{\\sqrt{x^2+y^2-${r2}}}`, 2, T.s('výraz pod odmocninou v menovateli musí byť kladný')]
     ];
     const [f, i, why] = pick(cases);
     const opt = (j) => `$\\{(x,y): ${S[j][1]} ${r2}\\}$`;
     const desc = ['otvorený kruh', 'uzavretý kruh', 'vonkajšok kruhu bez hraničnej kružnice', 'vonkajšok kruhu spolu s hraničnou kružnicou'][i];
     return {
       type: 'choice', options: [0, 1, 2, 3].map(opt), answer: opt(i),
-      q: `Ktorá množina je definičným oborom funkcie $f(x,y)=${f}$?`,
-      solution: `Podmienka: ${why}, teda ${i < 2 ? `$${r2}-x^2-y^2 ${i === 1 ? '\\ge' : '\\gt'} 0$` : `$x^2+y^2-${r2} ${i === 3 ? '\\ge' : '\\gt'} 0$`}, čiže $${S[i][1]} ${r2}$.
+      q: T`Ktorá množina je definičným oborom funkcie $f(x,y)=${f}$?`,
+      solution: T`Podmienka: ${why}, teda ${i < 2 ? `$${r2}-x^2-y^2 ${i === 1 ? '\\ge' : '\\gt'} 0$` : `$x^2+y^2-${r2} ${i === 3 ? '\\ge' : '\\gt'} 0$`}, čiže $${S[i][1]} ${r2}$.
         Je to ${desc} so stredom v počiatku a polomerom $${r}$.`,
-      hint: 'Zapíš podmienku existencie výrazu (odmocnina, logaritmus, menovateľ) a uprav ju na nerovnosť pre $x^2+y^2$.',
+      hint: T.s('Zapíš podmienku existencie výrazu (odmocnina, logaritmus, menovateľ) a uprav ju na nerovnosť pre $x^2+y^2$.'),
       choiceHints: Object.fromEntries([0, 1, 2, 3].filter((j) => j !== i).map((j) => [opt(j), (j < 2) === (i < 2)
-        ? `Pozor na hraničnú kružnicu: ${why}. Rozhodni, či je nerovnosť ostrá.`
-        : 'Pri úprave podmienky na tvar s $x^2+y^2$ si zameň strany správne – leží definičný obor vnútri, alebo zvonka kružnice?']))
+        ? T`Pozor na hraničnú kružnicu: ${why}. Rozhodni, či je nerovnosť ostrá.`
+        : T.s('Pri úprave podmienky na tvar s $x^2+y^2$ si zameň strany správne – leží definičný obor vnútri, alebo zvonka kružnice?')]))
     };
   });
 
@@ -2136,7 +2138,7 @@
         ${arrow(p, x, y, x + gx, y + gy)}<circle class="f-dot" cx="${n1(p.X(x))}" cy="${n1(p.Y(y))}" r="5"/>`;
       return {
         svg: svg(p, axes(p), clipped, '', 'Gradient funkcie je kolmý na vrstevnicu'),
-        readout: `P = [${sk(x)}; ${sk(y)}] · <span class="c-accent">∇f(P) = (${sk(gx)}; ${sk(gy)})</span> · |∇f(P)| = ${sk(g)} · gradient je kolmý na dotyčnicu k vrstevnici`
+        readout: T`P = [${sk(x)}; ${sk(y)}] · <span class="c-accent">∇f(P) = (${sk(gx)}; ${sk(gy)})</span> · |∇f(P)| = ${sk(g)} · gradient je kolmý na dotyčnicu k vrstevnici`
       };
     }
   });
@@ -2175,18 +2177,18 @@
     const F = (x, y) => al * x * x * y + be * x * y + ga * y * y + de * x;
     const fx = 2 * al * x0 * y0 + be * y0 + de, fy = al * x0 * x0 + be * x0 + 2 * ga * y0, f0 = F(x0, y0);
     const fxT = lin([[2 * al, 'xy'], [be, 'y'], [de, '']]), fyT = lin([[al, 'x^2'], [be, 'x'], [2 * ga, 'y']]);
-    const derivs = `$f'_x=${fxT}$, $f'_y=${fyT}$; v bode $[${x0};\\,${y0}]$: $f'_x=${fx}$, $f'_y=${fy}$`;
+    const derivs = T`$f'_x=${fxT}$, $f'_y=${fyT}$; v bode $[${x0};\\,${y0}]$: $f'_x=${fx}$, $f'_y=${fy}$`;
     const t = Math.random();
     if (t < 0.28) {
       return {
-        type: 'tuple', signed: true, answer: [fx, fy], placeholder: 'f′x; f′y',
-        q: `Vypočítaj gradient funkcie $f(x,y)=${fT}$ v bode $[${x0};\\,${y0}]$. Zadaj obe zložky oddelené bodkočiarkou.`,
-        solution: `${derivs}. Teda $\\nabla f(${x0},${y0})=(${fx};\\,${fy})$.`,
-        hint: 'Pri derivovaní podľa $x$ považuj $y$ za konštantu a naopak.',
-        mistakes: ga * y0 !== 0 || de !== 0 ? [{ value: [fx + 2 * ga * y0, fy + de], msg: 'Pri parciálnej derivácii podľa $x$ je $y$ konštanta, takže člen obsahujúci iba $y$ má deriváciu 0 (a podobne člen iba s $x$ pri derivovaní podľa $y$).' }] : [],
+        type: 'tuple', signed: true, answer: [fx, fy], placeholder: T.s('f′x; f′y'),
+        q: T`Vypočítaj gradient funkcie $f(x,y)=${fT}$ v bode $[${x0};\\,${y0}]$. Zadaj obe zložky oddelené bodkočiarkou.`,
+        solution: T`${derivs}. Teda $\\nabla f(${x0},${y0})=(${fx};\\,${fy})$.`,
+        hint: T.s('Pri derivovaní podľa $x$ považuj $y$ za konštantu a naopak.'),
+        mistakes: ga * y0 !== 0 || de !== 0 ? [{ value: [fx + 2 * ga * y0, fy + de], msg: T.s('Pri parciálnej derivácii podľa $x$ je $y$ konštanta, takže člen obsahujúci iba $y$ má deriváciu 0 (a podobne člen iba s $x$ pri derivovaní podľa $y$).') }] : [],
         steps: [
-          { q: `Vypočítaj $f'_x(${x0},${y0})$.`, answer: fx, signed: true },
-          { q: `Vypočítaj $f'_y(${x0},${y0})$.`, answer: fy, signed: true }
+          { q: T`Vypočítaj $f'_x(${x0},${y0})$.`, answer: fx, signed: true },
+          { q: T`Vypočítaj $f'_y(${x0},${y0})$.`, answer: fy, signed: true }
         ]
       };
     }
@@ -2195,33 +2197,33 @@
       const L = Math.hypot(v1, v2), num = fx * v1 + fy * v2;
       return {
         signed: true, answer: num / L, show: fTxt(num, L),
-        q: `Vypočítaj deriváciu funkcie $f(x,y)=${fT}$ v bode $[${x0};\\,${y0}]$ v smere vektora $\\vec v=(${v1},\\,${v2})$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `${derivs}. Jednotkový vektor $\\vec u=\\frac{\\vec v}{|\\vec v|}=\\left(${fTex(v1, L)},\\,${fTex(v2, L)}\\right)$.
+        q: T`Vypočítaj deriváciu funkcie $f(x,y)=${fT}$ v bode $[${x0};\\,${y0}]$ v smere vektora $\\vec v=(${v1},\\,${v2})$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`${derivs}. Jednotkový vektor $\\vec u=\\frac{\\vec v}{|\\vec v|}=\\left(${fTex(v1, L)},\\,${fTex(v2, L)}\\right)$.
           $\\frac{\\partial f}{\\partial\\vec u}=\\nabla f\\cdot\\vec u=\\dfrac{${fx}\\cdot${par(v1)}+${par(fy)}\\cdot${par(v2)}}{${L}}=${fTex(num, L)}$.`,
-        hint: 'Vektor najprv znormuj na dĺžku 1, potom ho skalárne vynásob gradientom.',
-        mistakes: num !== 0 && L !== 1 && L !== 10 ? [{ value: num, msg: 'Smerový vektor treba najprv znormovať – skalárny súčin vydeľ jeho dĺžkou $|\\vec v|$.' }] : [],
+        hint: T.s('Vektor najprv znormuj na dĺžku 1, potom ho skalárne vynásob gradientom.'),
+        mistakes: num !== 0 && L !== 1 && L !== 10 ? [{ value: num, msg: T.s('Smerový vektor treba najprv znormovať – skalárny súčin vydeľ jeho dĺžkou $|\\vec v|$.') }] : [],
         steps: [
-          { q: `Vypočítaj $f'_x(${x0},${y0})$.`, answer: fx, signed: true },
-          { q: `Vypočítaj $f'_y(${x0},${y0})$.`, answer: fy, signed: true },
-          { q: 'Aká je dĺžka vektora $\\vec v$?', answer: L },
-          { q: 'Vypočítaj deriváciu v smere $\\vec v$. Zadaj celé číslo alebo zlomok.', answer: num / L, show: fTxt(num, L), signed: true }
+          { q: T`Vypočítaj $f'_x(${x0},${y0})$.`, answer: fx, signed: true },
+          { q: T`Vypočítaj $f'_y(${x0},${y0})$.`, answer: fy, signed: true },
+          { q: T.s('Aká je dĺžka vektora $\\vec v$?'), answer: L },
+          { q: T.s('Vypočítaj deriváciu v smere $\\vec v$. Zadaj celé číslo alebo zlomok.'), answer: num / L, show: fTxt(num, L), signed: true }
         ]
       };
     }
     if (t < 0.76) {
       const C = f0 - fx * x0 - fy * y0;
       return {
-        type: 'tuple', signed: true, answer: [fx, fy, C], placeholder: 'A; B; C',
-        q: `Dotyková rovina ku grafu funkcie $f(x,y)=${fT}$ v bode $[${x0};\\,${y0};\\,z_0]$ má rovnicu $z=Ax+By+C$. Zadaj $A;\\,B;\\,C$.`,
-        solution: `$z_0=f(${x0},${y0})=${f0}$. ${derivs}.
+        type: 'tuple', signed: true, answer: [fx, fy, C], placeholder: T.s('A; B; C'),
+        q: T`Dotyková rovina ku grafu funkcie $f(x,y)=${fT}$ v bode $[${x0};\\,${y0};\\,z_0]$ má rovnicu $z=Ax+By+C$. Zadaj $A;\\,B;\\,C$.`,
+        solution: T`$z_0=f(${x0},${y0})=${f0}$. ${derivs}.
           Rovina: $z=${lin([[f0, ''], [fx, x0 === 0 ? 'x' : `(${lin([[1, 'x'], [-x0, '']])})`], [fy, y0 === 0 ? 'y' : `(${lin([[1, 'y'], [-y0, '']])})`]])}$, po úprave $z=${lin([[fx, 'x'], [fy, 'y'], [C, '']])}$.`,
-        hint: 'Rovnica dotykovej roviny: $z=z_0+f\'_x(x_0,y_0)(x-x_0)+f\'_y(x_0,y_0)(y-y_0)$.',
-        mistakes: C !== f0 ? [{ value: [fx, fy, f0], msg: 'Rovnica je $z=z_0+A(x-x_0)+B(y-y_0)$ – po roznásobení zátvoriek sa zmení aj absolútny člen.' }] : [],
+        hint: T.s('Rovnica dotykovej roviny: $z=z_0+f\'_x(x_0,y_0)(x-x_0)+f\'_y(x_0,y_0)(y-y_0)$.'),
+        mistakes: C !== f0 ? [{ value: [fx, fy, f0], msg: T.s('Rovnica je $z=z_0+A(x-x_0)+B(y-y_0)$ – po roznásobení zátvoriek sa zmení aj absolútny člen.') }] : [],
         steps: [
-          { q: `Vypočítaj $z_0=f(${x0},${y0})$.`, answer: f0, signed: true },
-          { q: `Vypočítaj $f'_x(${x0},${y0})$.`, answer: fx, signed: true },
-          { q: `Vypočítaj $f'_y(${x0},${y0})$.`, answer: fy, signed: true },
-          { q: 'Roznásob a zadaj $A;\\,B;\\,C$.', answer: [fx, fy, C], type: 'tuple', signed: true }
+          { q: T`Vypočítaj $z_0=f(${x0},${y0})$.`, answer: f0, signed: true },
+          { q: T`Vypočítaj $f'_x(${x0},${y0})$.`, answer: fx, signed: true },
+          { q: T`Vypočítaj $f'_y(${x0},${y0})$.`, answer: fy, signed: true },
+          { q: T.s('Roznásob a zadaj $A;\\,B;\\,C$.'), answer: [fx, fy, C], type: 'tuple', signed: true }
         ]
       };
     }
@@ -2229,16 +2231,16 @@
     const val = round(f0 + (fx * H + fy * K) / 100, 2);
     return {
       signed: true, answer: val, tol: 0.001, show: dt(val, 2),
-      q: `Pomocou totálneho diferenciálu odhadni hodnotu $f(${dd(x0 + H / 100, 2)};\\,${dd(y0 + K / 100, 2)})$ pre $f(x,y)=${fT}$. Výsledok zadaj na 2 desatinné miesta.`,
-      solution: `Bod $[${x0};\\,${y0}]$, prírastky $h=${dd(H / 100, 2)}$, $k=${dd(K / 100, 2)}$. $f(${x0},${y0})=${f0}$, ${derivs}.
+      q: T`Pomocou totálneho diferenciálu odhadni hodnotu $f(${dd(x0 + H / 100, 2)};\\,${dd(y0 + K / 100, 2)})$ pre $f(x,y)=${fT}$. Výsledok zadaj na 2 desatinné miesta.`,
+      solution: T`Bod $[${x0};\\,${y0}]$, prírastky $h=${dd(H / 100, 2)}$, $k=${dd(K / 100, 2)}$. $f(${x0},${y0})=${f0}$, ${derivs}.
         $f\\approx ${f0}+${par(fx)}\\cdot${H < 0 ? `(${dd(H / 100, 2)})` : dd(H / 100, 2)}+${par(fy)}\\cdot${K < 0 ? `(${dd(K / 100, 2)})` : dd(K / 100, 2)}=${dd(val, 2)}$.`,
-      hint: 'Použi $f(a+h,b+k)\\approx f(a,b)+f\'_x(a,b)\\,h+f\'_y(a,b)\\,k$ s celočíselným bodom $(a,b)$ najbližšie k zadanému.',
-      mistakes: Math.abs(val - f0) > 0.002 ? [{ value: f0, msg: 'To je len hodnota v blízkom celočíselnom bode. Pripočítaj ešte diferenciál $f\'_x h+f\'_y k$.' }] : [],
+      hint: T.s('Použi $f(a+h,b+k)\\approx f(a,b)+f\'_x(a,b)\\,h+f\'_y(a,b)\\,k$ s celočíselným bodom $(a,b)$ najbližšie k zadanému.'),
+      mistakes: Math.abs(val - f0) > 0.002 ? [{ value: f0, msg: T.s('To je len hodnota v blízkom celočíselnom bode. Pripočítaj ešte diferenciál $f\'_x h+f\'_y k$.') }] : [],
       steps: [
-        { q: `Vypočítaj $f(${x0},${y0})$.`, answer: f0, signed: true },
-        { q: `Vypočítaj $f'_x(${x0},${y0})$.`, answer: fx, signed: true },
-        { q: `Vypočítaj $f'_y(${x0},${y0})$.`, answer: fy, signed: true },
-        { q: 'Dosaď do totálneho diferenciálu. Výsledok zadaj na 2 desatinné miesta.', answer: val, tol: 0.001, show: dt(val, 2), signed: true }
+        { q: T`Vypočítaj $f(${x0},${y0})$.`, answer: f0, signed: true },
+        { q: T`Vypočítaj $f'_x(${x0},${y0})$.`, answer: fx, signed: true },
+        { q: T`Vypočítaj $f'_y(${x0},${y0})$.`, answer: fy, signed: true },
+        { q: T.s('Dosaď do totálneho diferenciálu. Výsledok zadaj na 2 desatinné miesta.'), answer: val, tol: 0.001, show: dt(val, 2), signed: true }
       ]
     };
   });
@@ -2251,14 +2253,14 @@
       const p = plane(-8, 8, -8, 8, 320, 320);
       const c = v.c, r = p.X(5) - p.X(0);
       const L = (x) => (c - 3 * x) / 4;
-      const state = Math.abs(c) < 25 ? 'priamka pretína kružnicu – hodnotu c ešte možno zväčšiť aj zmenšiť'
-        : Math.abs(c) === 25 ? `dotyk: ${c > 0 ? 'maximum' : 'minimum'} f = ${c} v bode [${c > 0 ? '3; 4' : '−3; −4'}], ∇f ∥ ∇g` : 'priamka nemá s kružnicou spoločný bod';
+      const state = Math.abs(c) < 25 ? T.s('priamka pretína kružnicu – hodnotu c ešte možno zväčšiť aj zmenšiť')
+        : Math.abs(c) === 25 ? T`dotyk: ${c > 0 ? 'maximum' : 'minimum'} f = ${c} v bode [${c > 0 ? '3; 4' : '−3; −4'}], ∇f ∥ ∇g` : T.s('priamka nemá s kružnicou spoločný bod');
       const touch = Math.abs(c) === 25 ? `<circle class="f-vertex" cx="${n1(p.X(3 * c / 25))}" cy="${n1(p.Y(4 * c / 25))}" r="6"/>` : '';
       const clipped = `<circle class="f-ok" fill="none" cx="${n1(p.X(0))}" cy="${n1(p.Y(0))}" r="${n1(r)}"/>
         <line class="f-accent" x1="${n1(p.X(-8))}" y1="${n1(p.Y(L(-8)))}" x2="${n1(p.X(8))}" y2="${n1(p.Y(L(8)))}"/>${touch}`;
       return {
         svg: svg(p, axes(p, 2, 2), clipped, '', 'Vrstevnica lineárnej funkcie a kružnica väzby'),
-        readout: `<span class="c-accent">3x + 4y = ${c}</span> · <span class="c-ok">x² + y² = 25</span> · ${state}`
+        readout: T`<span class="c-accent">3x + 4y = ${c}</span> · <span class="c-ok">x² + y² = 25</span> · ${state}`
       };
     }
   });
@@ -2300,11 +2302,11 @@
     const MIN = 'lokálne minimum', MAX = 'lokálne maximum', SAD = 'sedlový bod (extrém nenastáva)';
     // nápovedy k nesprávnym typom stacionárneho bodu
     const typeHints = (fxx, D) => (D < 0 ? {
-      [MIN]: 'O extréme rozhoduje najprv znamienko determinantu $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$ – znamienko $f\'\'_{xx}$ je dôležité až pri $D\\gt 0$.',
-      [MAX]: 'O extréme rozhoduje najprv znamienko determinantu $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$ – znamienko $f\'\'_{xx}$ je dôležité až pri $D\\gt 0$.'
+      [T.s(MIN)]: T.s('O extréme rozhoduje najprv znamienko determinantu $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$ – znamienko $f\'\'_{xx}$ je dôležité až pri $D\\gt 0$.'),
+      [T.s(MAX)]: T.s('O extréme rozhoduje najprv znamienko determinantu $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$ – znamienko $f\'\'_{xx}$ je dôležité až pri $D\\gt 0$.')
     } : {
-      [fxx > 0 ? MAX : MIN]: 'Pri $D\\gt 0$ rozhoduje znamienko $f\'\'_{xx}$ – ako v jednorozmernom prípade: kladná druhá derivácia znamená konvexný graf v okolí bodu.',
-      [SAD]: 'Sedlový bod nastáva pri $D\\lt 0$. Prepočítaj $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$.'
+      [T.s(fxx > 0 ? MAX : MIN)]: T.s('Pri $D\\gt 0$ rozhoduje znamienko $f\'\'_{xx}$ – ako v jednorozmernom prípade: kladná druhá derivácia znamená konvexný graf v okolí bodu.'),
+      [T.s(SAD)]: T.s('Sedlový bod nastáva pri $D\\lt 0$. Prepočítaj $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$.')
     });
     if (t < 0.5) {
       let a, b, c;
@@ -2316,21 +2318,21 @@
       const sys = `$f'_x=${lin([[2 * a, 'x'], [b, 'y'], [d, '']])}=0$, $f'_y=${lin([[b, 'x'], [2 * c, 'y'], [e, '']])}=0$`;
       if (t < 0.25) {
         return {
-          type: 'tuple', signed: true, answer: [x0, y0], placeholder: 'x; y',
-          q: `Nájdi stacionárny bod funkcie $f(x,y)=${fT}$. Zadaj jeho súradnice v tvare x; y.`,
-          solution: `${sys}. Determinant sústavy je $${2 * a}\\cdot${par(2 * c)}-${par(b)}^2=${D}\\neq 0$, sústava má jediné riešenie $x=${x0}$, $y=${y0}$.`,
-          hint: 'Polož obe parciálne derivácie rovné nule a vyrieš lineárnu sústavu.',
+          type: 'tuple', signed: true, answer: [x0, y0], placeholder: T.s('x; y'),
+          q: T`Nájdi stacionárny bod funkcie $f(x,y)=${fT}$. Zadaj jeho súradnice v tvare x; y.`,
+          solution: T`${sys}. Determinant sústavy je $${2 * a}\\cdot${par(2 * c)}-${par(b)}^2=${D}\\neq 0$, sústava má jediné riešenie $x=${x0}$, $y=${y0}$.`,
+          hint: T.s('Polož obe parciálne derivácie rovné nule a vyrieš lineárnu sústavu.'),
           mistakes: (() => {
             // derivácia x² a y² ako x, y (bez dvojky): sústava a x + b y = −d, b x + c y = −e
             const det = a * c - b * b;
             if (det === 0) return [];
             const wx = (-d * c + e * b) / det, wy = (-a * e + b * d) / det;
-            return Math.abs(wx - x0) + Math.abs(wy - y0) > 1e-6 ? [{ value: [wx, wy], msg: 'Pozor na derivácie kvadratických členov: $(x^2)\'=2x$ a $(y^2)\'=2y$.' }] : [];
+            return Math.abs(wx - x0) + Math.abs(wy - y0) > 1e-6 ? [{ value: [wx, wy], msg: T.s('Pozor na derivácie kvadratických členov: $(x^2)\'=2x$ a $(y^2)\'=2y$.') }] : [];
           })(),
           steps: [
-            { q: `Rovnica $f'_x=0$ má tvar $${lin([[2 * a, 'x'], [b, 'y']])}=k$. Aké je $k$?`, answer: -d, signed: true },
-            { q: `Rovnica $f'_y=0$ má tvar $${lin([[b, 'x'], [2 * c, 'y']])}=m$. Aké je $m$?`, answer: -e, signed: true },
-            { q: 'Vyrieš sústavu. Zadaj x; y.', answer: [x0, y0], type: 'tuple', signed: true }
+            { q: T`Rovnica $f'_x=0$ má tvar $${lin([[2 * a, 'x'], [b, 'y']])}=k$. Aké je $k$?`, answer: -d, signed: true },
+            { q: T`Rovnica $f'_y=0$ má tvar $${lin([[b, 'x'], [2 * c, 'y']])}=m$. Aké je $m$?`, answer: -e, signed: true },
+            { q: T.s('Vyrieš sústavu. Zadaj x; y.'), answer: [x0, y0], type: 'tuple', signed: true }
           ]
         };
       }
@@ -2338,15 +2340,15 @@
       return {
         choiceHints: typeHints(2 * a, D),
         steps: [
-          { q: 'Vypočítaj $f\'\'_{xx}$.', answer: 2 * a, signed: true },
-          { q: 'Vypočítaj determinant Hessovej matice $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$.', answer: D, signed: true },
-          { q: 'Aký je typ stacionárneho bodu?', type: 'choice', options: [MIN, MAX, SAD], answer: ans }
+          { q: T.s('Vypočítaj $f\'\'_{xx}$.'), answer: 2 * a, signed: true },
+          { q: T.s('Vypočítaj determinant Hessovej matice $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$.'), answer: D, signed: true },
+          { q: T.s('Aký je typ stacionárneho bodu?'), type: 'choice', options: [MIN, MAX, SAD].map(T.s), answer: T.s(ans) }
         ],
-        type: 'choice', options: [MIN, MAX, SAD], answer: ans,
-        q: `Funkcia $f(x,y)=${fT}$ má stacionárny bod $[${x0};\\,${y0}]$. Rozhodni o jeho type.`,
-        solution: `$f''_{xx}=${2 * a}$, $f''_{xy}=${b}$, $f''_{yy}=${2 * c}$, teda $D=${2 * a}\\cdot${par(2 * c)}-${par(b)}^2=${D}$.
-          ${D < 0 ? 'Keďže $D\\lt 0$, ide o sedlový bod.' : `Keďže $D\\gt 0$ a $f''_{xx}${a > 0 ? '\\gt' : '\\lt'} 0$, ide o ${ans}.`}`,
-        hint: 'Vypočítaj druhé parciálne derivácie a determinant Hessovej matice $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$.'
+        type: 'choice', options: [MIN, MAX, SAD].map(T.s), answer: T.s(ans),
+        q: T`Funkcia $f(x,y)=${fT}$ má stacionárny bod $[${x0};\\,${y0}]$. Rozhodni o jeho type.`,
+        solution: T`$f''_{xx}=${2 * a}$, $f''_{xy}=${b}$, $f''_{yy}=${2 * c}$, teda $D=${2 * a}\\cdot${par(2 * c)}-${par(b)}^2=${D}$.
+          ${D < 0 ? T.s('Keďže $D\\lt 0$, ide o sedlový bod.') : T`Keďže $D\\gt 0$ a $f''_{xx}${a > 0 ? '\\gt' : '\\lt'} 0$, ide o ${ans}.`}`,
+        hint: T.s('Vypočítaj druhé parciálne derivácie a determinant Hessovej matice $D=f\'\'_{xx}f\'\'_{yy}-(f\'\'_{xy})^2$.')
       };
     }
     if (t < 0.7) {
@@ -2355,16 +2357,16 @@
       const fxx = 6 * x0, D = fxx * 2 * c;
       const ans = D < 0 ? SAD : fxx > 0 ? MIN : MAX;
       return {
-        type: 'choice', options: [MIN, MAX, SAD], answer: ans,
-        q: `Funkcia $f(x,y)=${fT}$ má stacionárne body $[${p};\\,${q}]$ a $[${-p};\\,${q}]$. Rozhodni o type bodu $[${x0};\\,${q}]$.`,
-        solution: `$f'_x=3x^2-${3 * p * p}$, $f'_y=${lin([[2 * c, 'y'], [-2 * c * q, '']])}$. Druhé derivácie: $f''_{xx}=6x$, $f''_{xy}=0$, $f''_{yy}=${2 * c}$.
-          V bode $[${x0};\\,${q}]$: $f''_{xx}=${fxx}$, $D=${fxx}\\cdot${par(2 * c)}-0=${D}$. ${D < 0 ? 'Keďže $D\\lt 0$, ide o sedlový bod.' : `Keďže $D\\gt 0$ a $f''_{xx}${fxx > 0 ? '\\gt' : '\\lt'} 0$, ide o ${ans}.`}`,
-        hint: 'V danom bode vypočítaj $f\'\'_{xx}$ a determinant Hessovej matice.',
+        type: 'choice', options: [MIN, MAX, SAD].map(T.s), answer: T.s(ans),
+        q: T`Funkcia $f(x,y)=${fT}$ má stacionárne body $[${p};\\,${q}]$ a $[${-p};\\,${q}]$. Rozhodni o type bodu $[${x0};\\,${q}]$.`,
+        solution: T`$f'_x=3x^2-${3 * p * p}$, $f'_y=${lin([[2 * c, 'y'], [-2 * c * q, '']])}$. Druhé derivácie: $f''_{xx}=6x$, $f''_{xy}=0$, $f''_{yy}=${2 * c}$.
+          V bode $[${x0};\\,${q}]$: $f''_{xx}=${fxx}$, $D=${fxx}\\cdot${par(2 * c)}-0=${D}$. ${D < 0 ? T.s('Keďže $D\\lt 0$, ide o sedlový bod.') : T`Keďže $D\\gt 0$ a $f''_{xx}${fxx > 0 ? '\\gt' : '\\lt'} 0$, ide o ${ans}.`}`,
+        hint: T.s('V danom bode vypočítaj $f\'\'_{xx}$ a determinant Hessovej matice.'),
         choiceHints: typeHints(fxx, D),
         steps: [
-          { q: `Vypočítaj $f''_{xx}$ v bode $[${x0};\\,${q}]$.`, answer: fxx, signed: true },
-          { q: 'Vypočítaj determinant Hessovej matice $D$ v tomto bode.', answer: D, signed: true },
-          { q: 'Aký je typ bodu?', type: 'choice', options: [MIN, MAX, SAD], answer: ans }
+          { q: T`Vypočítaj $f''_{xx}$ v bode $[${x0};\\,${q}]$.`, answer: fxx, signed: true },
+          { q: T.s('Vypočítaj determinant Hessovej matice $D$ v tomto bode.'), answer: D, signed: true },
+          { q: T.s('Aký je typ bodu?'), type: 'choice', options: [MIN, MAX, SAD].map(T.s), answer: T.s(ans) }
         ]
       };
     }
@@ -2374,30 +2376,30 @@
       const r = rnd(1, 3), wantMax = Math.random() < 0.5, val = (wantMax ? 1 : -1) * r * L0;
       return {
         signed: true, answer: val,
-        q: `Nájdi ${wantMax ? 'maximum' : 'minimum'} funkcie $f(x,y)=${lin([[a, 'x'], [b, 'y']])}$ na kružnici $x^2+y^2=${r * r}$.`,
-        solution: `$L=${lin([[a, 'x'], [b, 'y']])}-\\lambda(x^2+y^2-${r * r})$: $${a}-2\\lambda x=0$, $${b}-2\\lambda y=0$, teda $(x,y)=\\frac{1}{2\\lambda}(${a},${b})$ – bod leží na priamke v smere gradientu $(${a},${b})$.
+        q: T`Nájdi ${wantMax ? 'maximum' : 'minimum'} funkcie $f(x,y)=${lin([[a, 'x'], [b, 'y']])}$ na kružnici $x^2+y^2=${r * r}$.`,
+        solution: T`$L=${lin([[a, 'x'], [b, 'y']])}-\\lambda(x^2+y^2-${r * r})$: $${a}-2\\lambda x=0$, $${b}-2\\lambda y=0$, teda $(x,y)=\\frac{1}{2\\lambda}(${a},${b})$ – bod leží na priamke v smere gradientu $(${a},${b})$.
           Z väzby: $(x,y)=\\pm\\frac{${r}}{${L0}}(${a},${b})$, hodnoty $f=\\pm\\frac{${r}}{${L0}}(${a * a}+${b * b})=\\pm ${r * L0}$. ${wantMax ? 'Maximum' : 'Minimum'} je $${val}$.`,
-        hint: 'Lagrangeova funkcia $L=f-\\lambda g$; z rovníc vyplýva, že bod extrému je násobkom vektora $(a,b)$.',
+        hint: T.s('Lagrangeova funkcia $L=f-\\lambda g$; z rovníc vyplýva, že bod extrému je násobkom vektora $(a,b)$.'),
         mistakes: r !== 1 ? [
-          { value: val / r, msg: `Polomer kružnice je $${r}$ – bod extrému je $\\pm\\frac{${r}}{|(a,b)|}(a,b)$, nie jednotkový vektor.` },
-          { value: val * r, msg: `Polomer je $\\sqrt{${r * r}}=${r}$, nie $${r * r}$.` }
+          { value: val / r, msg: T`Polomer kružnice je $${r}$ – bod extrému je $\\pm\\frac{${r}}{|(a,b)|}(a,b)$, nie jednotkový vektor.` },
+          { value: val * r, msg: T`Polomer je $\\sqrt{${r * r}}=${r}$, nie $${r * r}$.` }
         ] : [],
         steps: [
-          { q: `Aká je dĺžka vektora $(${a},${b})$?`, answer: L0 },
-          { q: `Bod extrému je $\\pm\\frac{${r}}{${L0}}(${a},${b})$. Aké je ${wantMax ? 'maximum' : 'minimum'} $f$?`, answer: val, signed: true }
+          { q: T`Aká je dĺžka vektora $(${a},${b})$?`, answer: L0 },
+          { q: T`Bod extrému je $\\pm\\frac{${r}}{${L0}}(${a},${b})$. Aké je ${wantMax ? 'maximum' : 'minimum'} $f$?`, answer: val, signed: true }
         ]
       };
     }
     const a = nz(-3, 3), b = nz(-3, 3), c = nz(-6, 6), N = a * a + b * b;
     return {
-      type: 'tuple', signed: true, answer: [a * c / N, b * c / N], show: `${fTxt(a * c, N)}; ${fTxt(b * c, N)}`, placeholder: 'x; y',
-      q: `Funkcia $f(x,y)=x^2+y^2$ nadobúda na priamke $${lin([[a, 'x'], [b, 'y']])}=${c}$ minimum. V ktorom bode? Zadaj x; y (zlomky v tvare p/q).`,
-      solution: `$L=x^2+y^2-\\lambda(${lin([[a, 'x'], [b, 'y'], [-c, '']])})$: $2x=${a === 1 ? '' : a === -1 ? '-' : a}\\lambda$, $2y=${b === 1 ? '' : b === -1 ? '-' : b}\\lambda$. Dosadením do väzby $\\frac{\\lambda}{2}(${a * a}+${b * b})=${c}$, teda $\\lambda=${fTex(2 * c, N)}$.
+      type: 'tuple', signed: true, answer: [a * c / N, b * c / N], show: `${fTxt(a * c, N)}; ${fTxt(b * c, N)}`, placeholder: T.s('x; y'),
+      q: T`Funkcia $f(x,y)=x^2+y^2$ nadobúda na priamke $${lin([[a, 'x'], [b, 'y']])}=${c}$ minimum. V ktorom bode? Zadaj x; y (zlomky v tvare p/q).`,
+      solution: T`$L=x^2+y^2-\\lambda(${lin([[a, 'x'], [b, 'y'], [-c, '']])})$: $2x=${a === 1 ? '' : a === -1 ? '-' : a}\\lambda$, $2y=${b === 1 ? '' : b === -1 ? '-' : b}\\lambda$. Dosadením do väzby $\\frac{\\lambda}{2}(${a * a}+${b * b})=${c}$, teda $\\lambda=${fTex(2 * c, N)}$.
         Bod: $x=${fTex(a * c, N)}$, $y=${fTex(b * c, N)}$ (päta kolmice z počiatku na priamku), minimum $f=${fTex(c * c, N)}$.`,
-      hint: 'Z rovníc $L\'_x=L\'_y=0$ vyjadri $x$ a $y$ pomocou $\\lambda$ a dosaď do väzby.',
+      hint: T.s('Z rovníc $L\'_x=L\'_y=0$ vyjadri $x$ a $y$ pomocou $\\lambda$ a dosaď do väzby.'),
       steps: [
-        { q: 'Z rovníc vyjadri $x$, $y$ pomocou $\\lambda$ a dosaď do väzby. Aké je $\\lambda$? Zadaj zlomok.', answer: 2 * c / N, show: fTxt(2 * c, N), signed: true },
-        { q: 'Aký je bod minima? Zadaj x; y.', answer: [a * c / N, b * c / N], show: `${fTxt(a * c, N)}; ${fTxt(b * c, N)}`, type: 'tuple', signed: true }
+        { q: T.s('Z rovníc vyjadri $x$, $y$ pomocou $\\lambda$ a dosaď do väzby. Aké je $\\lambda$? Zadaj zlomok.'), answer: 2 * c / N, show: fTxt(2 * c, N), signed: true },
+        { q: T.s('Aký je bod minima? Zadaj x; y.'), answer: [a * c / N, b * c / N], show: `${fTxt(a * c, N)}; ${fTxt(b * c, N)}`, type: 'tuple', signed: true }
       ]
     };
   });
@@ -2483,16 +2485,16 @@
       const P = c * Math.pow(a, m + 1) * Math.pow(b, n + 1), Q = (m + 1) * (n + 1);
       return {
         answer: P / Q, show: fTxt(P, Q),
-        q: `Vypočítaj $\\displaystyle\\iint_D ${mono}\\,dx\\,dy$, kde $D=\\langle 0;${a}\\rangle\\times\\langle 0;${b}\\rangle$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Integrand je súčinom funkcie $x$ a funkcie $y$, podľa Fubiniho vety:
+        q: T`Vypočítaj $\\displaystyle\\iint_D ${mono}\\,dx\\,dy$, kde $D=\\langle 0;${a}\\rangle\\times\\langle 0;${b}\\rangle$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`Integrand je súčinom funkcie $x$ a funkcie $y$, podľa Fubiniho vety:
           $${c === 1 ? '' : c}\\displaystyle\\int_0^{${a}} ${['1', 'x', 'x^2'][m]}\\,dx\\cdot\\int_0^{${b}} ${['1', 'y', 'y^2'][n]}\\,dy=${c === 1 ? '' : c + '\\cdot'}\\frac{${a}^{${m + 1}}}{${m + 1}}\\cdot\\frac{${b}^{${n + 1}}}{${n + 1}}=${fTex(P, Q)}$.`,
-        hint: 'Na obdĺžniku a pre súčin $g(x)h(y)$ sa dvojný integrál rovná súčinu dvoch jednoduchých integrálov.',
-        mistakes: [m > 0 ? { value: P / Q * (m + 1), msg: `Primitívna funkcia k $${['1', 'x', 'x^2'][m]}$ je $\\frac{x^{${m + 1}}}{${m + 1}}$ – pri integrovaní podľa $x$ nezabudni deliť.` }
-          : { value: P / Q * (n + 1), msg: `Primitívna funkcia k $${['1', 'y', 'y^2'][n]}$ je $\\frac{y^{${n + 1}}}{${n + 1}}$ – pri integrovaní podľa $y$ nezabudni deliť.` }],
+        hint: T.s('Na obdĺžniku a pre súčin $g(x)h(y)$ sa dvojný integrál rovná súčinu dvoch jednoduchých integrálov.'),
+        mistakes: [m > 0 ? { value: P / Q * (m + 1), msg: T`Primitívna funkcia k $${['1', 'x', 'x^2'][m]}$ je $\\frac{x^{${m + 1}}}{${m + 1}}$ – pri integrovaní podľa $x$ nezabudni deliť.` }
+          : { value: P / Q * (n + 1), msg: T`Primitívna funkcia k $${['1', 'y', 'y^2'][n]}$ je $\\frac{y^{${n + 1}}}{${n + 1}}$ – pri integrovaní podľa $y$ nezabudni deliť.` }],
         steps: [
-          { q: `Vypočítaj $\\int_0^{${a}} ${['1', 'x', 'x^2'][m]}\\,dx$. Zadaj celé číslo alebo zlomok.`, answer: Math.pow(a, m + 1) / (m + 1), show: fTxt(Math.pow(a, m + 1), m + 1) },
-          { q: `Vypočítaj $\\int_0^{${b}} ${['1', 'y', 'y^2'][n]}\\,dy$. Zadaj celé číslo alebo zlomok.`, answer: Math.pow(b, n + 1) / (n + 1), show: fTxt(Math.pow(b, n + 1), n + 1) },
-          { q: 'Aká je hodnota dvojného integrálu?', answer: P / Q, show: fTxt(P, Q) }
+          { q: T`Vypočítaj $\\int_0^{${a}} ${['1', 'x', 'x^2'][m]}\\,dx$. Zadaj celé číslo alebo zlomok.`, answer: Math.pow(a, m + 1) / (m + 1), show: fTxt(Math.pow(a, m + 1), m + 1) },
+          { q: T`Vypočítaj $\\int_0^{${b}} ${['1', 'y', 'y^2'][n]}\\,dy$. Zadaj celé číslo alebo zlomok.`, answer: Math.pow(b, n + 1) / (n + 1), show: fTxt(Math.pow(b, n + 1), n + 1) },
+          { q: T.s('Aká je hodnota dvojného integrálu?'), answer: P / Q, show: fTxt(P, Q) }
         ]
       };
     }
@@ -2504,13 +2506,13 @@
         const P = Math.pow(a, 3) * (2 * p + q), Q = 6;
         return {
           answer: P / Q, show: fTxt(P, Q),
-          q: `Vypočítaj $\\displaystyle\\iint_D (${lin([[p, 'x'], [q, 'y']])})\\,dx\\,dy$, kde $D$ je trojuholník s vrcholmi $[0;0]$, $[${a};0]$ a $[${a};${a}]$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-          solution: `$D=\\{0\\le x\\le ${a},\\ 0\\le y\\le x\\}$. $\\displaystyle\\int_0^{${a}}\\int_0^{x}(${lin([[p, 'x'], [q, 'y']])})\\,dy\\,dx=\\int_0^{${a}}\\left(${rsum([[p, 1, 'x^2'], [q, 2, 'x^2']])}\\right)dx=${fTex((2 * p + q), 2)}\\cdot\\frac{${a}^3}{3}=${fTex(P, Q)}$.`,
-          hint: 'Zapíš trojuholník ako elementárnu oblasť: pre pevné $x$ je $0\\le y\\le x$.',
-          mistakes: p !== q ? [{ value: Math.pow(a, 3) * (p + 2 * q) / 6, msg: `Integroval si cez trojuholník nad uhlopriečkou. Vrcholy $[0;0]$, $[${a};0]$, $[${a};${a}]$ určujú oblasť pod priamkou $y=x$.` }] : [],
+          q: T`Vypočítaj $\\displaystyle\\iint_D (${lin([[p, 'x'], [q, 'y']])})\\,dx\\,dy$, kde $D$ je trojuholník s vrcholmi $[0;0]$, $[${a};0]$ a $[${a};${a}]$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+          solution: T`$D=\\{0\\le x\\le ${a},\\ 0\\le y\\le x\\}$. $\\displaystyle\\int_0^{${a}}\\int_0^{x}(${lin([[p, 'x'], [q, 'y']])})\\,dy\\,dx=\\int_0^{${a}}\\left(${rsum([[p, 1, 'x^2'], [q, 2, 'x^2']])}\\right)dx=${fTex((2 * p + q), 2)}\\cdot\\frac{${a}^3}{3}=${fTex(P, Q)}$.`,
+          hint: T.s('Zapíš trojuholník ako elementárnu oblasť: pre pevné $x$ je $0\\le y\\le x$.'),
+          mistakes: p !== q ? [{ value: Math.pow(a, 3) * (p + 2 * q) / 6, msg: T`Integroval si cez trojuholník nad uhlopriečkou. Vrcholy $[0;0]$, $[${a};0]$, $[${a};${a}]$ určujú oblasť pod priamkou $y=x$.` }] : [],
           steps: [
-            { q: `Vnútorný integrál $\\int_0^{x}(${lin([[p, 'x'], [q, 'y']])})\\,dy$ dá $Kx^2$. Aké je $K$? Zadaj celé číslo alebo zlomok.`, answer: (2 * p + q) / 2, show: fTxt(2 * p + q, 2) },
-            { q: `Vypočítaj vonkajší integrál $\\int_0^{${a}} Kx^2\\,dx$. Zadaj celé číslo alebo zlomok.`, answer: P / Q, show: fTxt(P, Q) }
+            { q: T`Vnútorný integrál $\\int_0^{x}(${lin([[p, 'x'], [q, 'y']])})\\,dy$ dá $Kx^2$. Aké je $K$? Zadaj celé číslo alebo zlomok.`, answer: (2 * p + q) / 2, show: fTxt(2 * p + q, 2) },
+            { q: T`Vypočítaj vonkajší integrál $\\int_0^{${a}} Kx^2\\,dx$. Zadaj celé číslo alebo zlomok.`, answer: P / Q, show: fTxt(P, Q) }
           ]
         };
       }
@@ -2519,11 +2521,11 @@
       const fT = k === 1 ? f : f === '1' ? String(k) : `${k}${f}`;
       return {
         answer: k * P0 / Q0, show: fTxt(k * P0, Q0),
-        q: `Vypočítaj $\\displaystyle\\iint_D ${fT}\\,dx\\,dy$, kde $D$ je ohraničená krivkami $y=x^2$ a $y=x$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `$D=\\{0\\le x\\le 1,\\ x^2\\le y\\le x\\}$. Vnútorný integrál podľa $y$ dá $${k === 1 ? '' : k + '\\cdot '}\\left(${inner}\\right)$, potom
+        q: T`Vypočítaj $\\displaystyle\\iint_D ${fT}\\,dx\\,dy$, kde $D$ je ohraničená krivkami $y=x^2$ a $y=x$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`$D=\\{0\\le x\\le 1,\\ x^2\\le y\\le x\\}$. Vnútorný integrál podľa $y$ dá $${k === 1 ? '' : k + '\\cdot '}\\left(${inner}\\right)$, potom
           $\\displaystyle${k === 1 ? '' : k}\\int_0^1\\left(${inner}\\right)dx=${k === 1 ? '' : `${k}\\cdot `}\\frac{1}{${Q0}}=${fTex(k * P0, Q0)}$.`,
-        hint: 'Krivky sa pretínajú v bodoch $x=0$ a $x=1$; pre pevné $x$ je $x^2\\le y\\le x$.',
-        mistakes: [{ value: k / { 1: 1, x: 2, y: 2, xy: 4 }[f], msg: 'Oblasť nie je štvorec $\\langle 0;1\\rangle^2$: pre pevné $x$ ide $y$ od paraboly $x^2$ po priamku $x$.' }]
+        hint: T.s('Krivky sa pretínajú v bodoch $x=0$ a $x=1$; pre pevné $x$ je $x^2\\le y\\le x$.'),
+        mistakes: [{ value: k / { 1: 1, x: 2, y: 2, xy: 4 }[f], msg: T.s('Oblasť nie je štvorec $\\langle 0;1\\rangle^2$: pre pevné $x$ ide $y$ od paraboly $x^2$ po priamku $x$.') }]
       };
     }
     if (t < 0.82) {
@@ -2532,13 +2534,13 @@
         const R2 = rnd(2, 4), val = 2 * Math.log(R2);
         return {
           answer: round(val, 3), tol: TOL3, show: dt(val),
-          q: `Vypočítaj $\\displaystyle\\iint_D\\frac{dx\\,dy}{x^2+y^2}$, kde $D$ je medzikružie $1\\le x^2+y^2\\le ${R2 * R2}$. Výsledok má tvar $k\\pi$; zadaj $k$ zaokrúhlené na 3 desatinné miesta.`,
-          solution: `V polárnych súradniciach: $\\displaystyle\\int_0^{2\\pi}\\int_1^{${R2}}\\frac{1}{r^2}\\,r\\,dr\\,d\\varphi=2\\pi\\,[\\ln r]_1^{${R2}}=2\\pi\\ln ${R2}$, teda $k=2\\ln ${R2}\\approx ${dd(val)}$.`,
-          hint: 'Prejdi do polárnych súradníc, nezabudni na jakobián $r$.',
-          mistakes: [{ value: round(2 * (1 - 1 / R2), 3), msg: 'Zabudol si na jakobián: $dx\\,dy=r\\,dr\\,d\\varphi$, integrand v polárnych súradniciach je $\\frac{1}{r^2}\\cdot r$.' }],
+          q: T`Vypočítaj $\\displaystyle\\iint_D\\frac{dx\\,dy}{x^2+y^2}$, kde $D$ je medzikružie $1\\le x^2+y^2\\le ${R2 * R2}$. Výsledok má tvar $k\\pi$; zadaj $k$ zaokrúhlené na 3 desatinné miesta.`,
+          solution: T`V polárnych súradniciach: $\\displaystyle\\int_0^{2\\pi}\\int_1^{${R2}}\\frac{1}{r^2}\\,r\\,dr\\,d\\varphi=2\\pi\\,[\\ln r]_1^{${R2}}=2\\pi\\ln ${R2}$, teda $k=2\\ln ${R2}\\approx ${dd(val)}$.`,
+          hint: T.s('Prejdi do polárnych súradníc, nezabudni na jakobián $r$.'),
+          mistakes: [{ value: round(2 * (1 - 1 / R2), 3), msg: T.s('Zabudol si na jakobián: $dx\\,dy=r\\,dr\\,d\\varphi$, integrand v polárnych súradniciach je $\\frac{1}{r^2}\\cdot r$.') }],
           steps: [
-            { q: `Vypočítaj vnútorný integrál $\\int_1^{${R2}}\\frac{1}{r^2}\\,r\\,dr$. ${ROUND3}`, answer: round(Math.log(R2), 3), tol: TOL3, show: dt(Math.log(R2)) },
-            { q: `Vynásob výsledok integrálom cez $\\varphi$ a zadaj $k$. ${ROUND3}`, answer: round(val, 3), tol: TOL3, show: dt(val) }
+            { q: T`Vypočítaj vnútorný integrál $\\int_1^{${R2}}\\frac{1}{r^2}\\,r\\,dr$. ${T.s(ROUND3)}`, answer: round(Math.log(R2), 3), tol: TOL3, show: dt(Math.log(R2)) },
+            { q: T`Vynásob výsledok integrálom cez $\\varphi$ a zadaj $k$. ${T.s(ROUND3)}`, answer: round(val, 3), tol: TOL3, show: dt(val) }
           ]
         };
       }
@@ -2548,19 +2550,19 @@
       const inner = fam === 0 ? `\\frac{R^4}{4}` : fam === 1 ? `\\frac{R^3}{3}` : `\\frac{R^2}{2}`;
       return {
         answer: P2 / Q2, show: fTxt(P2, Q2),
-        q: `Vypočítaj $\\displaystyle\\iint_D ${f === '1' ? '1' : f}\\,dx\\,dy$, kde $D$ je ${half ? 'polkruh' : 'kruh'} $x^2+y^2\\le ${R * R}${half ? ',\\ y\\ge 0' : ''}$. Výsledok má tvar $k\\pi$; zadaj $k$ (celé číslo alebo zlomok).`,
-        solution: `Polárne súradnice: $${half ? '0\\le\\varphi\\le\\pi' : '0\\le\\varphi\\le 2\\pi'}$, $0\\le r\\le ${R}$, $dx\\,dy=r\\,dr\\,d\\varphi$.
+        q: T`Vypočítaj $\\displaystyle\\iint_D ${f === '1' ? '1' : f}\\,dx\\,dy$, kde $D$ je ${half ? 'polkruh' : 'kruh'} $x^2+y^2\\le ${R * R}${half ? ',\\ y\\ge 0' : ''}$. Výsledok má tvar $k\\pi$; zadaj $k$ (celé číslo alebo zlomok).`,
+        solution: T`Polárne súradnice: $${half ? '0\\le\\varphi\\le\\pi' : '0\\le\\varphi\\le 2\\pi'}$, $0\\le r\\le ${R}$, $dx\\,dy=r\\,dr\\,d\\varphi$.
           $\\displaystyle\\int_0^{${half ? '\\pi' : '2\\pi'}}\\int_0^{${R}} ${fr === '1' ? '' : fr + '\\cdot '}r\\,dr\\,d\\varphi=${half ? '\\pi' : '2\\pi'}\\cdot ${inner.replace('R', String(R))}=${fTex(P2, Q2)}\\,\\pi$, teda $k=${fTex(P2, Q2)}$.`,
-        hint: 'V polárnych súradniciach je $x^2+y^2=r^2$ a $dx\\,dy=r\\,dr\\,d\\varphi$.',
+        hint: T.s('V polárnych súradniciach je $x^2+y^2=r^2$ a $dx\\,dy=r\\,dr\\,d\\varphi$.'),
         mistakes: (() => {
           const ms = [], noJ = (half ? 1 : 2) * [Math.pow(R, 3) / 3, Math.pow(R, 2) / 2, R][fam];
-          if (Math.abs(noJ - P2 / Q2) > 1e-6) ms.push({ value: noJ, msg: 'Zabudol si na jakobián: $dx\\,dy=r\\,dr\\,d\\varphi$, integrand treba vynásobiť $r$.' });
-          if (half) ms.push({ value: 2 * P2 / Q2, msg: 'Polkruh $y\\ge 0$ zodpovedá uhlom $0\\le\\varphi\\le\\pi$, nie celému $2\\pi$.' });
+          if (Math.abs(noJ - P2 / Q2) > 1e-6) ms.push({ value: noJ, msg: T.s('Zabudol si na jakobián: $dx\\,dy=r\\,dr\\,d\\varphi$, integrand treba vynásobiť $r$.') });
+          if (half) ms.push({ value: 2 * P2 / Q2, msg: T.s('Polkruh $y\\ge 0$ zodpovedá uhlom $0\\le\\varphi\\le\\pi$, nie celému $2\\pi$.') });
           return ms;
         })(),
         steps: [
-          { q: `Vypočítaj vnútorný integrál $\\int_0^{${R}} ${fr === '1' ? '' : fr + '\\cdot '}r\\,dr$. Zadaj celé číslo alebo zlomok.`, answer: P / (2 * Q), show: fTxt(P, 2 * Q) },
-          { q: `Vynásob ho dĺžkou intervalu pre $\\varphi$ a zadaj $k$.`, answer: P2 / Q2, show: fTxt(P2, Q2) }
+          { q: T`Vypočítaj vnútorný integrál $\\int_0^{${R}} ${fr === '1' ? '' : fr + '\\cdot '}r\\,dr$. Zadaj celé číslo alebo zlomok.`, answer: P / (2 * Q), show: fTxt(P, 2 * Q) },
+          { q: T`Vynásob ho dĺžkou intervalu pre $\\varphi$ a zadaj $k$.`, answer: P2 / Q2, show: fTxt(P2, Q2) }
         ]
       };
     }
@@ -2579,24 +2581,24 @@
       ok = `\\int_0^{${a * a}}\\int_{\\sqrt{y}}^{${a}} ${F}\\,dx\\,dy`;
       wrong = [`\\int_0^{${a * a}}\\int_0^{\\sqrt{y}} ${F}\\,dx\\,dy`, `\\int_0^{${a}}\\int_{\\sqrt{y}}^{${a}} ${F}\\,dx\\,dy`, `\\int_0^{${a * a}}\\int_{y^2}^{${a}} ${F}\\,dx\\,dy`];
     }
-    const desc = fam === 0 ? `trojuholník $0\\le y\\le x\\le ${a}$; pri pevnom $y\\in\\langle 0;${a}\\rangle$ je $y\\le x\\le ${a}$`
-      : fam === 1 ? 'oblasť medzi $y=x^2$ a $y=x$; pri pevnom $y\\in\\langle 0;1\\rangle$ je $y\\le x\\le\\sqrt{y}$ (priamka je vľavo, parabola vpravo)'
-        : `oblasť pod parabolou $y=x^2$ pre $0\\le x\\le ${a}$; $y$ prebieha $\\langle 0;${a * a}\\rangle$ a pri pevnom $y$ je $\\sqrt{y}\\le x\\le ${a}$`;
+    const desc = fam === 0 ? T`trojuholník $0\\le y\\le x\\le ${a}$; pri pevnom $y\\in\\langle 0;${a}\\rangle$ je $y\\le x\\le ${a}$`
+      : fam === 1 ? T.s('oblasť medzi $y=x^2$ a $y=x$; pri pevnom $y\\in\\langle 0;1\\rangle$ je $y\\le x\\le\\sqrt{y}$ (priamka je vľavo, parabola vpravo)')
+        : T`oblasť pod parabolou $y=x^2$ pre $0\\le x\\le ${a}$; $y$ prebieha $\\langle 0;${a * a}\\rangle$ a pri pevnom $y$ je $\\sqrt{y}\\le x\\le ${a}$`;
     return {
       type: 'choice', options: shuffle([ok, ...wrong].map((s) => `$${s}$`)), answer: `$${ok}$`,
-      q: `Zameň poradie integrovania: $\\displaystyle ${given}=\\;?$`,
-      solution: `Oblasť integrovania je ${desc}. Preto $\\displaystyle ${given}=${ok}$.`,
-      hint: 'Nakresli si oblasť. Potom urči rozsah $y$ a pre pevné $y$ zisti, medzi ktorými krivkami leží $x$.',
+      q: T`Zameň poradie integrovania: $\\displaystyle ${given}=\\;?$`,
+      solution: T`Oblasť integrovania je ${desc}. Preto $\\displaystyle ${given}=${ok}$.`,
+      hint: T.s('Nakresli si oblasť. Potom urči rozsah $y$ a pre pevné $y$ zisti, medzi ktorými krivkami leží $x$.'),
       choiceHints: Object.fromEntries(wrong.map((w, i) => [`$${w}$`, [
-        ['Pri pevnom $y$ leží $x$ medzi priamkou $x=y$ a pravou hranicou oblasti – nakresli si trojuholník.',
-          'Oblasť je trojuholník, nie štvorec – vnútorné hranice musia závisieť od $y$.',
-          'Šikmá hranica oblasti je priamka $y=x$, teda $x=y$, nie $x=' + a + '-y$.'],
-        ['Pre $y\\in\\langle 0;1\\rangle$ je $y\\le\\sqrt{y}$ – dolná hranica vnútorného integrálu musí byť menšia.',
-          'Z rovnice paraboly $y=x^2$ vyjadri $x$: dostaneš $x=\\sqrt{y}$, nie $y^2$.',
-          'Z rovnice paraboly $y=x^2$ vyjadri $x$: dostaneš $x=\\sqrt{y}$, nie $y^2$.'],
-        ['Oblasť leží pod parabolou: pri pevnom $y$ je $x$ napravo od paraboly, teda od $\\sqrt{y}$ po pravú hranicu.',
-          `Pri zámene poradia sa mení aj rozsah vonkajšej premennej: $y$ ide od 0 po $${a}^2=${a * a}$.`,
-          'Z rovnice paraboly $y=x^2$ vyjadri $x$: dostaneš $x=\\sqrt{y}$, nie $y^2$.']
+        [T.s('Pri pevnom $y$ leží $x$ medzi priamkou $x=y$ a pravou hranicou oblasti – nakresli si trojuholník.'),
+          T.s('Oblasť je trojuholník, nie štvorec – vnútorné hranice musia závisieť od $y$.'),
+          T`Šikmá hranica oblasti je priamka $y=x$, teda $x=y$, nie $x=${a}-y$.`],
+        [T.s('Pre $y\\in\\langle 0;1\\rangle$ je $y\\le\\sqrt{y}$ – dolná hranica vnútorného integrálu musí byť menšia.'),
+          T.s('Z rovnice paraboly $y=x^2$ vyjadri $x$: dostaneš $x=\\sqrt{y}$, nie $y^2$.'),
+          T.s('Z rovnice paraboly $y=x^2$ vyjadri $x$: dostaneš $x=\\sqrt{y}$, nie $y^2$.')],
+        [T.s('Oblasť leží pod parabolou: pri pevnom $y$ je $x$ napravo od paraboly, teda od $\\sqrt{y}$ po pravú hranicu.'),
+          T`Pri zámene poradia sa mení aj rozsah vonkajšej premennej: $y$ ide od 0 po $${a}^2=${a * a}$.`,
+          T.s('Z rovnice paraboly $y=x^2$ vyjadri $x$: dostaneš $x=\\sqrt{y}$, nie $y^2$.')]
       ][fam][i]]))
     };
   });
@@ -2654,7 +2656,7 @@
       const front = `<text class="f-small" x="${n1(p.X(2.3))}" y="${n1(p.Y(1.35))}" text-anchor="end">r = 1 + cos φ</text>`;
       return {
         svg: svg(p, axes(p), clipped, front, 'Kardioida v polárnych súradniciach a polpriamka s pevným uhlom'),
-        readout: `φ = ${v.phi}° · <span class="c-ok">r prebieha od 0 po 1 + cos φ ≈ ${sk(r)}</span> · S = ½∫(1 + cos φ)² dφ = 3π/2 ≈ ${sk(1.5 * Math.PI)}`
+        readout: T`φ = ${v.phi}° · <span class="c-ok">r prebieha od 0 po 1 + cos φ ≈ ${sk(r)}</span> · S = ½∫(1 + cos φ)² dφ = 3π/2 ≈ ${sk(1.5 * Math.PI)}`
       };
     }
   });
@@ -2697,7 +2699,7 @@
 
   gen('v2-viacnasobne', () => {
     const t = Math.random();
-    const KPI = 'Výsledok má tvar $k\\pi$; zadaj $k$ (celé číslo alebo zlomok).';
+    const KPI = T.s('Výsledok má tvar $k\\pi$; zadaj $k$ (celé číslo alebo zlomok).');
     if (t < 0.18) {
       const c = rnd(1, 4), A = [rnd(1, 3), rnd(1, 3), rnd(1, 3)];
       let e;
@@ -2707,33 +2709,33 @@
       const vals = VARS.map((v, i) => `\\frac{${A[i]}^{${e[i] + 1}}}{${e[i] + 1}}`).join('\\cdot ');
       return {
         answer: P / Q, show: fTxt(P, Q),
-        q: `Vypočítaj $\\displaystyle\\iiint_V ${c === 1 ? '' : c}${mStr(e)}\\,dx\\,dy\\,dz$, kde $V=\\langle 0;${A[0]}\\rangle\\times\\langle 0;${A[1]}\\rangle\\times\\langle 0;${A[2]}\\rangle$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Oblasť je kváder a integrand je súčinom funkcií jednotlivých premenných, podľa Fubiniho vety sa integrál rozpadne na súčin:
+        q: T`Vypočítaj $\\displaystyle\\iiint_V ${c === 1 ? '' : c}${mStr(e)}\\,dx\\,dy\\,dz$, kde $V=\\langle 0;${A[0]}\\rangle\\times\\langle 0;${A[1]}\\rangle\\times\\langle 0;${A[2]}\\rangle$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`Oblasť je kváder a integrand je súčinom funkcií jednotlivých premenných, podľa Fubiniho vety sa integrál rozpadne na súčin:
           $\\displaystyle ${c === 1 ? '' : c + '\\cdot '}${ints}=${c === 1 ? '' : c + '\\cdot '}${vals}=${fTex(P, Q)}$.`,
-        hint: 'Na kvádri a pre integrand $g(x)h(y)k(z)$ je trojný integrál súčinom troch jednoduchých integrálov.',
-        mistakes: [{ value: P, msg: 'Pri integrovaní mocniny sa exponent zvýši o 1 a týmto číslom aj delíš: $\\int_0^a x\\,dx=\\frac{a^2}{2}$.' }]
+        hint: T.s('Na kvádri a pre integrand $g(x)h(y)k(z)$ je trojný integrál súčinom troch jednoduchých integrálov.'),
+        mistakes: [{ value: P, msg: T.s('Pri integrovaní mocniny sa exponent zvýši o 1 a týmto číslom aj delíš: $\\int_0^a x\\,dx=\\frac{a^2}{2}$.') }]
       };
     }
     if (t < 0.4) {
       const u = Math.random();
       if (u < 0.5) {
-        const [bp, bq, where, bT] = pick([[1, 2, ' v prvom kvadrante ($x\\ge 0$, $y\\ge 0$)', '\\frac{\\pi}{2}'], [1, 1, ' v hornej polrovine ($y\\ge 0$)', '\\pi'], [2, 1, '', '2\\pi']]);
+        const [bp, bq, where, bT] = pick([[1, 2, T.s(' v prvom kvadrante ($x\\ge 0$, $y\\ge 0$)'), '\\frac{\\pi}{2}'], [1, 1, T.s(' v hornej polrovine ($y\\ge 0$)'), '\\pi'], [2, 1, '', '2\\pi']]);
         const R1 = rnd(1, 2), R2 = rnd(R1 + 1, 4);
         const [f, fr, ex] = pick([['1', '', 2], ['(x^2+y^2)', 'r^2\\cdot ', 4], ['\\sqrt{x^2+y^2}', 'r\\cdot ', 3]]);
         const num = bp * (Math.pow(R2, ex) - Math.pow(R1, ex)), den = bq * ex;
         return {
           answer: num / den, show: fTxt(num, den),
-          q: `Vypočítaj $\\displaystyle\\iint_D ${f}\\,dx\\,dy$, kde $D$ je ${where ? 'časť medzikružia' : 'medzikružie'} $${R1 * R1}\\le x^2+y^2\\le ${R2 * R2}$${where}. ${KPI}`,
-          solution: `V polárnych súradniciach je $D'=\\{${R1}\\le r\\le ${R2},\\ 0\\le\\varphi\\le ${bT}\\}$ a $dx\\,dy=r\\,dr\\,d\\varphi$:
+          q: T`Vypočítaj $\\displaystyle\\iint_D ${f}\\,dx\\,dy$, kde $D$ je ${where ? 'časť medzikružia' : 'medzikružie'} $${R1 * R1}\\le x^2+y^2\\le ${R2 * R2}$${where}. ${KPI}`,
+          solution: T`V polárnych súradniciach je $D'=\\{${R1}\\le r\\le ${R2},\\ 0\\le\\varphi\\le ${bT}\\}$ a $dx\\,dy=r\\,dr\\,d\\varphi$:
             $\\displaystyle\\int_0^{${bT}}\\int_{${R1}}^{${R2}} ${fr}r\\,dr\\,d\\varphi=${bT}\\cdot\\left[\\frac{r^{${ex}}}{${ex}}\\right]_{${R1}}^{${R2}}=${bT}\\cdot\\frac{${R2}^{${ex}}-${R1}^{${ex}}}{${ex}}=${fTex(num, den)}\\,\\pi$, teda $k=${fTex(num, den)}$.`,
-          hint: 'Medzikružie je v polárnych súradniciach obdĺžnik $r_1\\le r\\le r_2$, $\\alpha\\le\\varphi\\le\\beta$. Nezabudni na jakobián $r$.',
+          hint: T.s('Medzikružie je v polárnych súradniciach obdĺžnik $r_1\\le r\\le r_2$, $\\alpha\\le\\varphi\\le\\beta$. Nezabudni na jakobián $r$.'),
           mistakes: (() => {
             const v = bp * (Math.pow(R2, ex - 1) - Math.pow(R1, ex - 1)) / (bq * (ex - 1));
-            return Math.abs(v - num / den) > 1e-6 ? [{ value: v, msg: 'Zabudol si na jakobián: $dx\\,dy=r\\,dr\\,d\\varphi$.' }] : [];
+            return Math.abs(v - num / den) > 1e-6 ? [{ value: v, msg: T.s('Zabudol si na jakobián: $dx\\,dy=r\\,dr\\,d\\varphi$.') }] : [];
           })(),
           steps: [
-            { q: `Vypočítaj radiálny integrál $\\int_{${R1}}^{${R2}} ${fr}r\\,dr$. Zadaj celé číslo alebo zlomok.`, answer: (Math.pow(R2, ex) - Math.pow(R1, ex)) / ex, show: fTxt(Math.pow(R2, ex) - Math.pow(R1, ex), ex) },
-            { q: `Vynásob ho dĺžkou intervalu pre $\\varphi$ (čo je $${bT}$) a zadaj $k$.`, answer: num / den, show: fTxt(num, den) }
+            { q: T`Vypočítaj radiálny integrál $\\int_{${R1}}^{${R2}} ${fr}r\\,dr$. Zadaj celé číslo alebo zlomok.`, answer: (Math.pow(R2, ex) - Math.pow(R1, ex)) / ex, show: fTxt(Math.pow(R2, ex) - Math.pow(R1, ex), ex) },
+            { q: T`Vynásob ho dĺžkou intervalu pre $\\varphi$ (čo je $${bT}$) a zadaj $k$.`, answer: num / den, show: fTxt(num, den) }
           ]
         };
       }
@@ -2741,40 +2743,40 @@
         const a = rnd(1, 4);
         return {
           answer: 3 * a * a / 2, show: fTxt(3 * a * a, 2),
-          q: `Vypočítaj obsah oblasti ohraničenej kardioidou $r=${a === 1 ? '' : a}(1+\\cos\\varphi)$, $\\varphi\\in\\langle 0;2\\pi\\rangle$ (polárne súradnice). ${KPI}`,
-          solution: `$\\displaystyle S=\\int_0^{2\\pi}\\int_0^{${a === 1 ? '' : a}(1+\\cos\\varphi)} r\\,dr\\,d\\varphi=\\frac{${a * a}}{2}\\int_0^{2\\pi}\\left(1+2\\cos\\varphi+\\cos^2\\varphi\\right)d\\varphi$.
+          q: T`Vypočítaj obsah oblasti ohraničenej kardioidou $r=${a === 1 ? '' : a}(1+\\cos\\varphi)$, $\\varphi\\in\\langle 0;2\\pi\\rangle$ (polárne súradnice). ${KPI}`,
+          solution: T`$\\displaystyle S=\\int_0^{2\\pi}\\int_0^{${a === 1 ? '' : a}(1+\\cos\\varphi)} r\\,dr\\,d\\varphi=\\frac{${a * a}}{2}\\int_0^{2\\pi}\\left(1+2\\cos\\varphi+\\cos^2\\varphi\\right)d\\varphi$.
             Keďže $\\int_0^{2\\pi}\\cos\\varphi\\,d\\varphi=0$ a $\\int_0^{2\\pi}\\cos^2\\varphi\\,d\\varphi=\\pi$, je $S=\\frac{${a * a}}{2}(2\\pi+\\pi)=${fTex(3 * a * a, 2)}\\,\\pi$, teda $k=${fTex(3 * a * a, 2)}$.`,
-          hint: 'Obsah oblasti $0\\le r\\le r(\\varphi)$ je $\\frac{1}{2}\\int r(\\varphi)^2\\,d\\varphi$; použi $\\cos^2\\varphi=\\frac{1+\\cos 2\\varphi}{2}$.',
+          hint: T.s('Obsah oblasti $0\\le r\\le r(\\varphi)$ je $\\frac{1}{2}\\int r(\\varphi)^2\\,d\\varphi$; použi $\\cos^2\\varphi=\\frac{1+\\cos 2\\varphi}{2}$.'),
           mistakes: [
-            { value: a * a, msg: 'Integrál $\\int_0^{2\\pi}\\cos^2\\varphi\\,d\\varphi$ nie je nulový – je to $\\pi$ (použi $\\cos^2\\varphi=\\frac{1+\\cos 2\\varphi}{2}$).' },
-            { value: 3 * a * a, msg: 'Vnútorný integrál $\\int_0^{r(\\varphi)} r\\,dr$ je $\\frac{r(\\varphi)^2}{2}$ – nezabudni na polovicu.' }
+            { value: a * a, msg: T.s('Integrál $\\int_0^{2\\pi}\\cos^2\\varphi\\,d\\varphi$ nie je nulový – je to $\\pi$ (použi $\\cos^2\\varphi=\\frac{1+\\cos 2\\varphi}{2}$).') },
+            { value: 3 * a * a, msg: T.s('Vnútorný integrál $\\int_0^{r(\\varphi)} r\\,dr$ je $\\frac{r(\\varphi)^2}{2}$ – nezabudni na polovicu.') }
           ],
           steps: [
-            { q: 'Integrál $\\int_0^{2\\pi}(1+\\cos\\varphi)^2\\,d\\varphi$ má tvar $m\\pi$. Aké je $m$?', answer: 3 },
-            { q: 'Aké je $k$ v obsahu $S=k\\pi$?', answer: 3 * a * a / 2, show: fTxt(3 * a * a, 2) }
+            { q: T.s('Integrál $\\int_0^{2\\pi}(1+\\cos\\varphi)^2\\,d\\varphi$ má tvar $m\\pi$. Aké je $m$?'), answer: 3 },
+            { q: T.s('Aké je $k$ v obsahu $S=k\\pi$?'), answer: 3 * a * a / 2, show: fTxt(3 * a * a, 2) }
           ]
         };
       }
       const R = rnd(1, 4), kind = rnd(0, 2);
       const [f, where, P, Q, sol] = [
-        ['y', 'polkruh $x^2+y^2\\le ' + R * R + '$, $y\\ge 0$', 2 * Math.pow(R, 3), 3, `\\int_0^{\\pi}\\sin\\varphi\\,d\\varphi\\cdot\\int_0^{${R}} r^2\\,dr=2\\cdot\\frac{${R}^3}{3}`],
-        ['x', 'štvrťkruh $x^2+y^2\\le ' + R * R + '$, $x\\ge 0$, $y\\ge 0$', Math.pow(R, 3), 3, `\\int_0^{\\pi/2}\\cos\\varphi\\,d\\varphi\\cdot\\int_0^{${R}} r^2\\,dr=1\\cdot\\frac{${R}^3}{3}`],
-        ['xy', 'štvrťkruh $x^2+y^2\\le ' + R * R + '$, $x\\ge 0$, $y\\ge 0$', Math.pow(R, 4), 8, `\\int_0^{\\pi/2}\\sin\\varphi\\cos\\varphi\\,d\\varphi\\cdot\\int_0^{${R}} r^3\\,dr=\\frac{1}{2}\\cdot\\frac{${R}^4}{4}`]
+        ['y', T`polkruh $x^2+y^2\\le ${R * R}$, $y\\ge 0$`, 2 * Math.pow(R, 3), 3, `\\int_0^{\\pi}\\sin\\varphi\\,d\\varphi\\cdot\\int_0^{${R}} r^2\\,dr=2\\cdot\\frac{${R}^3}{3}`],
+        ['x', T`štvrťkruh $x^2+y^2\\le ${R * R}$, $x\\ge 0$, $y\\ge 0$`, Math.pow(R, 3), 3, `\\int_0^{\\pi/2}\\cos\\varphi\\,d\\varphi\\cdot\\int_0^{${R}} r^2\\,dr=1\\cdot\\frac{${R}^3}{3}`],
+        ['xy', T`štvrťkruh $x^2+y^2\\le ${R * R}$, $x\\ge 0$, $y\\ge 0$`, Math.pow(R, 4), 8, `\\int_0^{\\pi/2}\\sin\\varphi\\cos\\varphi\\,d\\varphi\\cdot\\int_0^{${R}} r^3\\,dr=\\frac{1}{2}\\cdot\\frac{${R}^4}{4}`]
       ][kind];
       return {
         answer: P / Q, show: fTxt(P, Q),
-        q: `Vypočítaj $\\displaystyle\\iint_D ${f}\\,dx\\,dy$, kde $D$ je ${where}. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `V polárnych súradniciach je $x=r\\cos\\varphi$, $y=r\\sin\\varphi$, $dx\\,dy=r\\,dr\\,d\\varphi$ a oblasť je obdĺžnik v premenných $r$, $\\varphi$; integrál sa rozpadne na súčin:
+        q: T`Vypočítaj $\\displaystyle\\iint_D ${f}\\,dx\\,dy$, kde $D$ je ${where}. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`V polárnych súradniciach je $x=r\\cos\\varphi$, $y=r\\sin\\varphi$, $dx\\,dy=r\\,dr\\,d\\varphi$ a oblasť je obdĺžnik v premenných $r$, $\\varphi$; integrál sa rozpadne na súčin:
           $\\displaystyle ${sol}=${fTex(P, Q)}$.`,
-        hint: 'Prejdi do polárnych súradníc; integrand aj s jakobiánom $r$ je súčinom funkcie $r$ a funkcie $\\varphi$.',
+        hint: T.s('Prejdi do polárnych súradníc; integrand aj s jakobiánom $r$ je súčinom funkcie $r$ a funkcie $\\varphi$.'),
         mistakes: (() => {
           const v = [R * R, R * R / 2, Math.pow(R, 3) / 6][kind];
-          return Math.abs(v - P / Q) > 1e-6 ? [{ value: v, msg: 'Zabudol si na jakobián: $dx\\,dy=r\\,dr\\,d\\varphi$, radiálny integrál má o jednu mocninu $r$ viac.' }] : [];
+          return Math.abs(v - P / Q) > 1e-6 ? [{ value: v, msg: T.s('Zabudol si na jakobián: $dx\\,dy=r\\,dr\\,d\\varphi$, radiálny integrál má o jednu mocninu $r$ viac.') }] : [];
         })(),
         steps: [
-          { q: 'Vypočítaj uhlovú časť integrálu (integrál podľa $\\varphi$). Zadaj celé číslo alebo zlomok.', answer: [2, 1, 0.5][kind], show: ['2', '1', '1/2'][kind] },
-          { q: 'Vypočítaj radiálnu časť (integrál podľa $r$ aj s jakobiánom). Zadaj celé číslo alebo zlomok.', answer: kind === 2 ? Math.pow(R, 4) / 4 : Math.pow(R, 3) / 3, show: kind === 2 ? fTxt(Math.pow(R, 4), 4) : fTxt(Math.pow(R, 3), 3) },
-          { q: 'Aká je hodnota integrálu?', answer: P / Q, show: fTxt(P, Q) }
+          { q: T.s('Vypočítaj uhlovú časť integrálu (integrál podľa $\\varphi$). Zadaj celé číslo alebo zlomok.'), answer: [2, 1, 0.5][kind], show: ['2', '1', '1/2'][kind] },
+          { q: T.s('Vypočítaj radiálnu časť (integrál podľa $r$ aj s jakobiánom). Zadaj celé číslo alebo zlomok.'), answer: kind === 2 ? Math.pow(R, 4) / 4 : Math.pow(R, 3) / 3, show: kind === 2 ? fTxt(Math.pow(R, 4), 4) : fTxt(Math.pow(R, 3), 3) },
+          { q: T.s('Aká je hodnota integrálu?'), answer: P / Q, show: fTxt(P, Q) }
         ]
       };
     }
@@ -2784,14 +2786,14 @@
         const h = rnd(1, 6);
         return {
           answer: h * h / 2, show: fTxt(h * h, 2),
-          q: `Vypočítaj objem telesa ohraničeného paraboloidom $z=x^2+y^2$ a rovinou $z=${h}$. ${KPI}`,
-          solution: `Priemet telesa do roviny $xy$ je kruh $x^2+y^2\\le ${h}$. V cylindrických súradniciach $0\\le\\varphi\\le 2\\pi$, $0\\le r\\le\\sqrt{${h}}$, $r^2\\le z\\le ${h}$ a $dV=r\\,dz\\,dr\\,d\\varphi$:
+          q: T`Vypočítaj objem telesa ohraničeného paraboloidom $z=x^2+y^2$ a rovinou $z=${h}$. ${KPI}`,
+          solution: T`Priemet telesa do roviny $xy$ je kruh $x^2+y^2\\le ${h}$. V cylindrických súradniciach $0\\le\\varphi\\le 2\\pi$, $0\\le r\\le\\sqrt{${h}}$, $r^2\\le z\\le ${h}$ a $dV=r\\,dz\\,dr\\,d\\varphi$:
             $\\displaystyle V=\\int_0^{2\\pi}\\int_0^{\\sqrt{${h}}}(${h}-r^2)\\,r\\,dr\\,d\\varphi=2\\pi\\left[\\frac{${h}r^2}{2}-\\frac{r^4}{4}\\right]_0^{\\sqrt{${h}}}=2\\pi\\cdot\\frac{${h * h}}{4}=${fTex(h * h, 2)}\\,\\pi$, teda $k=${fTex(h * h, 2)}$.`,
-          hint: 'Použi cylindrické súradnice: pri pevnom $r$ prebieha $z$ od paraboloidu $r^2$ po rovinu.',
-          mistakes: [{ value: h * h, msg: 'To je objem celého valca. Pri pevnom $r$ ide $z$ od paraboloidu $r^2$, nie od nuly – integrand je $(h-r^2)\\,r$.' }],
+          hint: T.s('Použi cylindrické súradnice: pri pevnom $r$ prebieha $z$ od paraboloidu $r^2$ po rovinu.'),
+          mistakes: [{ value: h * h, msg: T.s('To je objem celého valca. Pri pevnom $r$ ide $z$ od paraboloidu $r^2$, nie od nuly – integrand je $(h-r^2)\\,r$.') }],
           steps: [
-            { q: `Polomer priemetu telesa do roviny $xy$ je $\\sqrt{${h}}$. Vypočítaj $\\int_0^{\\sqrt{${h}}}(${h}-r^2)\\,r\\,dr$. Zadaj celé číslo alebo zlomok.`, answer: h * h / 4, show: fTxt(h * h, 4) },
-            { q: 'Vynásob integrálom cez $\\varphi$ a zadaj $k$.', answer: h * h / 2, show: fTxt(h * h, 2) }
+            { q: T`Polomer priemetu telesa do roviny $xy$ je $\\sqrt{${h}}$. Vypočítaj $\\int_0^{\\sqrt{${h}}}(${h}-r^2)\\,r\\,dr$. Zadaj celé číslo alebo zlomok.`, answer: h * h / 4, show: fTxt(h * h, 4) },
+            { q: T.s('Vynásob integrálom cez $\\varphi$ a zadaj $k$.'), answer: h * h / 2, show: fTxt(h * h, 2) }
           ]
         };
       }
@@ -2799,29 +2801,29 @@
         const k = rnd(1, 3), R = rnd(1, 3), h = k * R;
         return {
           answer: k * Math.pow(R, 3) / 3, show: fTxt(k * Math.pow(R, 3), 3),
-          q: `Vypočítaj objem telesa ohraničeného kužeľovou plochou $z=${k === 1 ? '' : k}\\sqrt{x^2+y^2}$ a rovinou $z=${h}$. ${KPI}`,
-          solution: `V cylindrických súradniciach je kužeľová plocha $z=${cx(k, 'r')}$, ktorá pretína rovinu $z=${h}$ pre $r=${R}$. Teda $0\\le r\\le ${R}$, $${cx(k, 'r')}\\le z\\le ${h}$:
+          q: T`Vypočítaj objem telesa ohraničeného kužeľovou plochou $z=${k === 1 ? '' : k}\\sqrt{x^2+y^2}$ a rovinou $z=${h}$. ${KPI}`,
+          solution: T`V cylindrických súradniciach je kužeľová plocha $z=${cx(k, 'r')}$, ktorá pretína rovinu $z=${h}$ pre $r=${R}$. Teda $0\\le r\\le ${R}$, $${cx(k, 'r')}\\le z\\le ${h}$:
             $\\displaystyle V=\\int_0^{2\\pi}\\int_0^{${R}}(${h}-${cx(k, 'r')})\\,r\\,dr\\,d\\varphi=2\\pi\\left(\\frac{${h}\\cdot ${R}^2}{2}-\\frac{${k}\\cdot ${R}^3}{3}\\right)=${fTex(k * Math.pow(R, 3), 3)}\\,\\pi$, teda $k=${fTex(k * Math.pow(R, 3), 3)}$
             (súhlasí so vzorcom $\\frac{1}{3}\\pi R^2 v$ pre kužeľ).`,
-          hint: 'V cylindrických súradniciach je $\\sqrt{x^2+y^2}=r$; zisti, pre aké $r$ sa plochy pretínajú.',
-          mistakes: [{ value: k * Math.pow(R, 3), msg: `To je objem valca. Pri pevnom $r$ ide $z$ od kužeľovej plochy $${cx(k, 'r')}$, nie od nuly.` }],
+          hint: T.s('V cylindrických súradniciach je $\\sqrt{x^2+y^2}=r$; zisti, pre aké $r$ sa plochy pretínajú.'),
+          mistakes: [{ value: k * Math.pow(R, 3), msg: T`To je objem valca. Pri pevnom $r$ ide $z$ od kužeľovej plochy $${cx(k, 'r')}$, nie od nuly.` }],
           steps: [
-            { q: `Pre aké $r$ sa kužeľová plocha pretína s rovinou $z=${h}$?`, answer: R },
-            { q: `Vypočítaj $k$ v objeme $V=k\\pi$.`, answer: k * Math.pow(R, 3) / 3, show: fTxt(k * Math.pow(R, 3), 3) }
+            { q: T`Pre aké $r$ sa kužeľová plocha pretína s rovinou $z=${h}$?`, answer: R },
+            { q: T`Vypočítaj $k$ v objeme $V=k\\pi$.`, answer: k * Math.pow(R, 3) / 3, show: fTxt(k * Math.pow(R, 3), 3) }
           ]
         };
       }
       const R = rnd(1, 3), H = rnd(1, 4), P = Math.pow(R, 4) * H;
       return {
         answer: P / 2, show: fTxt(P, 2),
-        q: `Vypočítaj hmotnosť valca $x^2+y^2\\le ${R * R}$, $0\\le z\\le ${H}$ s hustotou $\\mu(x,y,z)=x^2+y^2$. ${KPI}`,
-        solution: `V cylindrických súradniciach je $\\mu=r^2$, $dV=r\\,dr\\,d\\varphi\\,dz$ a valec je „kváder“ $0\\le r\\le ${R}$, $0\\le\\varphi\\le 2\\pi$, $0\\le z\\le ${H}$:
+        q: T`Vypočítaj hmotnosť valca $x^2+y^2\\le ${R * R}$, $0\\le z\\le ${H}$ s hustotou $\\mu(x,y,z)=x^2+y^2$. ${KPI}`,
+        solution: T`V cylindrických súradniciach je $\\mu=r^2$, $dV=r\\,dr\\,d\\varphi\\,dz$ a valec je „kváder“ $0\\le r\\le ${R}$, $0\\le\\varphi\\le 2\\pi$, $0\\le z\\le ${H}$:
           $\\displaystyle m=\\int_0^{2\\pi}d\\varphi\\int_0^{${H}}dz\\int_0^{${R}} r^3\\,dr=2\\pi\\cdot ${H}\\cdot\\frac{${R}^4}{4}=${fTex(P, 2)}\\,\\pi$, teda $k=${fTex(P, 2)}$.`,
-        hint: 'Hmotnosť je $\\iiint_V\\mu\\,dV$; v cylindrických súradniciach je $x^2+y^2=r^2$ a $dV=r\\,dr\\,d\\varphi\\,dz$.',
-        mistakes: [{ value: 2 * H * Math.pow(R, 3) / 3, msg: 'Zabudol si na jakobián: $dV=r\\,dr\\,d\\varphi\\,dz$, integrand je $r^2\\cdot r=r^3$.' }],
+        hint: T.s('Hmotnosť je $\\iiint_V\\mu\\,dV$; v cylindrických súradniciach je $x^2+y^2=r^2$ a $dV=r\\,dr\\,d\\varphi\\,dz$.'),
+        mistakes: [{ value: 2 * H * Math.pow(R, 3) / 3, msg: T.s('Zabudol si na jakobián: $dV=r\\,dr\\,d\\varphi\\,dz$, integrand je $r^2\\cdot r=r^3$.') }],
         steps: [
-          { q: `Vypočítaj $\\int_0^{${R}} r^3\\,dr$. Zadaj celé číslo alebo zlomok.`, answer: Math.pow(R, 4) / 4, show: fTxt(Math.pow(R, 4), 4) },
-          { q: `Vynásob integrálmi cez $\\varphi$ a $z$ a zadaj $k$.`, answer: P / 2, show: fTxt(P, 2) }
+          { q: T`Vypočítaj $\\int_0^{${R}} r^3\\,dr$. Zadaj celé číslo alebo zlomok.`, answer: Math.pow(R, 4) / 4, show: fTxt(Math.pow(R, 4), 4) },
+          { q: T`Vynásob integrálmi cez $\\varphi$ a $z$ a zadaj $k$.`, answer: P / 2, show: fTxt(P, 2) }
         ]
       };
     }
@@ -2830,36 +2832,36 @@
         const R1 = rnd(1, 3), R2 = rnd(R1 + 1, 4), P = 4 * (Math.pow(R2, 3) - Math.pow(R1, 3));
         return {
           answer: P / 3, show: fTxt(P, 3),
-          q: `Vypočítaj objem guľovej vrstvy $${R1 * R1}\\le x^2+y^2+z^2\\le ${R2 * R2}$. ${KPI}`,
-          solution: `Sférické súradnice: $${R1}\\le\\rho\\le ${R2}$, $0\\le\\theta\\le\\pi$, $0\\le\\varphi\\le 2\\pi$, $dV=\\rho^2\\sin\\theta\\,d\\rho\\,d\\theta\\,d\\varphi$:
+          q: T`Vypočítaj objem guľovej vrstvy $${R1 * R1}\\le x^2+y^2+z^2\\le ${R2 * R2}$. ${KPI}`,
+          solution: T`Sférické súradnice: $${R1}\\le\\rho\\le ${R2}$, $0\\le\\theta\\le\\pi$, $0\\le\\varphi\\le 2\\pi$, $dV=\\rho^2\\sin\\theta\\,d\\rho\\,d\\theta\\,d\\varphi$:
             $\\displaystyle V=2\\pi\\cdot 2\\cdot\\int_{${R1}}^{${R2}}\\rho^2\\,d\\rho=4\\pi\\cdot\\frac{${R2}^3-${R1}^3}{3}=${fTex(P, 3)}\\,\\pi$, teda $k=${fTex(P, 3)}$.`,
-          hint: 'V sférických súradniciach je guľová vrstva „kváder“ v premenných $\\rho$, $\\theta$, $\\varphi$.',
-          mistakes: [{ value: 4 * (R2 - R1), msg: 'Zabudol si na jakobián $\\rho^2\\sin\\theta$ – radiálny integrál je $\\int\\rho^2\\,d\\rho$.' }],
+          hint: T.s('V sférických súradniciach je guľová vrstva „kváder“ v premenných $\\rho$, $\\theta$, $\\varphi$.'),
+          mistakes: [{ value: 4 * (R2 - R1), msg: T.s('Zabudol si na jakobián $\\rho^2\\sin\\theta$ – radiálny integrál je $\\int\\rho^2\\,d\\rho$.') }],
           steps: [
-            { q: 'Vypočítaj $\\int_0^{\\pi}\\sin\\theta\\,d\\theta$.', answer: 2 },
-            { q: `Vypočítaj $\\int_{${R1}}^{${R2}}\\rho^2\\,d\\rho$. Zadaj celé číslo alebo zlomok.`, answer: (Math.pow(R2, 3) - Math.pow(R1, 3)) / 3, show: fTxt(Math.pow(R2, 3) - Math.pow(R1, 3), 3) },
-            { q: 'Vynásob aj integrálom cez $\\varphi$ a zadaj $k$.', answer: P / 3, show: fTxt(P, 3) }
+            { q: T.s('Vypočítaj $\\int_0^{\\pi}\\sin\\theta\\,d\\theta$.'), answer: 2 },
+            { q: T`Vypočítaj $\\int_{${R1}}^{${R2}}\\rho^2\\,d\\rho$. Zadaj celé číslo alebo zlomok.`, answer: (Math.pow(R2, 3) - Math.pow(R1, 3)) / 3, show: fTxt(Math.pow(R2, 3) - Math.pow(R1, 3), 3) },
+            { q: T.s('Vynásob aj integrálom cez $\\varphi$ a zadaj $k$.'), answer: P / 3, show: fTxt(P, 3) }
           ]
         };
       }
       const s = rnd(0, 2), R = rnd(1, 3), c = s === 0 ? rnd(1, 3) : 1;
       const P = 4 * c * Math.pow(R, s + 3), Q = s + 3;
-      const dens = ['$\\mu=' + c + '$ (konštantná)', '$\\mu(x,y,z)=\\sqrt{x^2+y^2+z^2}$', '$\\mu(x,y,z)=x^2+y^2+z^2$'][s];
+      const dens = [T`$\\mu=${c}$ (konštantná)`, '$\\mu(x,y,z)=\\sqrt{x^2+y^2+z^2}$', '$\\mu(x,y,z)=x^2+y^2+z^2$'][s];
       const mu = [String(c), '\\rho', '\\rho^2'][s];
       return {
         answer: P / Q, show: fTxt(P, Q),
-        q: `Vypočítaj hmotnosť gule $x^2+y^2+z^2\\le ${R * R}$ s hustotou ${dens}. ${KPI}`,
-        solution: `V sférických súradniciach je $\\mu=${mu}$, $dV=\\rho^2\\sin\\theta\\,d\\rho\\,d\\theta\\,d\\varphi$ a guľa je $0\\le\\rho\\le ${R}$, $0\\le\\theta\\le\\pi$, $0\\le\\varphi\\le 2\\pi$:
+        q: T`Vypočítaj hmotnosť gule $x^2+y^2+z^2\\le ${R * R}$ s hustotou ${dens}. ${KPI}`,
+        solution: T`V sférických súradniciach je $\\mu=${mu}$, $dV=\\rho^2\\sin\\theta\\,d\\rho\\,d\\theta\\,d\\varphi$ a guľa je $0\\le\\rho\\le ${R}$, $0\\le\\theta\\le\\pi$, $0\\le\\varphi\\le 2\\pi$:
           $\\displaystyle m=\\int_0^{2\\pi}d\\varphi\\int_0^{\\pi}\\sin\\theta\\,d\\theta\\int_0^{${R}} ${s === 0 ? c + '\\rho^2' : s === 1 ? '\\rho^3' : '\\rho^4'}\\,d\\rho=2\\pi\\cdot 2\\cdot\\frac{${c === 1 ? '' : c + '\\cdot '}${R}^{${s + 3}}}{${s + 3}}=${fTex(P, Q)}\\,\\pi$, teda $k=${fTex(P, Q)}$.`,
-        hint: 'Prejdi do sférických súradníc: $x^2+y^2+z^2=\\rho^2$, jakobián $\\rho^2\\sin\\theta$.',
+        hint: T.s('Prejdi do sférických súradníc: $x^2+y^2+z^2=\\rho^2$, jakobián $\\rho^2\\sin\\theta$.'),
         mistakes: (() => {
           const v = 4 * c * Math.pow(R, s + 1) / (s + 1);
-          return Math.abs(v - P / Q) > 1e-6 ? [{ value: v, msg: 'Zabudol si na jakobián $\\rho^2\\sin\\theta$ – hustotu treba vynásobiť $\\rho^2$.' }] : [];
+          return Math.abs(v - P / Q) > 1e-6 ? [{ value: v, msg: T.s('Zabudol si na jakobián $\\rho^2\\sin\\theta$ – hustotu treba vynásobiť $\\rho^2$.') }] : [];
         })(),
         steps: [
-          { q: 'Vypočítaj $\\int_0^{\\pi}\\sin\\theta\\,d\\theta$.', answer: 2 },
-          { q: `Vypočítaj radiálny integrál $\\int_0^{${R}} ${s === 0 ? c + '\\rho^2' : s === 1 ? '\\rho^3' : '\\rho^4'}\\,d\\rho$. Zadaj celé číslo alebo zlomok.`, answer: c * Math.pow(R, s + 3) / (s + 3), show: fTxt(c * Math.pow(R, s + 3), s + 3) },
-          { q: 'Vynásob aj integrálom cez $\\varphi$ a zadaj $k$.', answer: P / Q, show: fTxt(P, Q) }
+          { q: T.s('Vypočítaj $\\int_0^{\\pi}\\sin\\theta\\,d\\theta$.'), answer: 2 },
+          { q: T`Vypočítaj radiálny integrál $\\int_0^{${R}} ${s === 0 ? c + '\\rho^2' : s === 1 ? '\\rho^3' : '\\rho^4'}\\,d\\rho$. Zadaj celé číslo alebo zlomok.`, answer: c * Math.pow(R, s + 3) / (s + 3), show: fTxt(c * Math.pow(R, s + 3), s + 3) },
+          { q: T.s('Vynásob aj integrálom cez $\\varphi$ a zadaj $k$.'), answer: P / Q, show: fTxt(P, Q) }
         ]
       };
     }
@@ -2871,41 +2873,41 @@
       const dens = lin(w.map((c, i) => [c, VARS[i]]));
       return {
         answer: vol * S / 2, show: fTxt(vol * S, 2),
-        q: `Kváder $V=\\langle 0;${A[0]}\\rangle\\times\\langle 0;${A[1]}\\rangle\\times\\langle 0;${A[2]}\\rangle$ má hustotu $\\mu(x,y,z)=${dens}$. Vypočítaj jeho hmotnosť (celé číslo alebo zlomok).`,
-        solution: `$m=\\iiint_V (${dens})\\,dV$. Pre každý člen použijeme Fubiniho vetu, napr. $\\iiint_V x\\,dV=\\frac{${A[0]}^2}{2}\\cdot ${A[1]}\\cdot ${A[2]}$; spolu
+        q: T`Kváder $V=\\langle 0;${A[0]}\\rangle\\times\\langle 0;${A[1]}\\rangle\\times\\langle 0;${A[2]}\\rangle$ má hustotu $\\mu(x,y,z)=${dens}$. Vypočítaj jeho hmotnosť (celé číslo alebo zlomok).`,
+        solution: T`$m=\\iiint_V (${dens})\\,dV$. Pre každý člen použijeme Fubiniho vetu, napr. $\\iiint_V x\\,dV=\\frac{${A[0]}^2}{2}\\cdot ${A[1]}\\cdot ${A[2]}$; spolu
           $m=\\dfrac{${A[0]}\\cdot ${A[1]}\\cdot ${A[2]}}{2}\\,(${w.map((c, i) => (c ? `${c}\\cdot ${A[i]}` : '')).filter(Boolean).join('+')})=\\frac{${vol}\\cdot ${S}}{2}=${fTex(vol * S, 2)}$.`,
-        hint: 'Integrál súčtu je súčet integrálov; $\\iiint_V x\\,dV$ na kvádri je $\\frac{a^2}{2}\\cdot b\\cdot c$.',
-        mistakes: [{ value: vol * S, msg: 'Pri integrovaní $x$ podľa $x$ vznikne $\\frac{x^2}{2}$ – nezabudni na polovicu.' }]
+        hint: T.s('Integrál súčtu je súčet integrálov; $\\iiint_V x\\,dV$ na kvádri je $\\frac{a^2}{2}\\cdot b\\cdot c$.'),
+        mistakes: [{ value: vol * S, msg: T.s('Pri integrovaní $x$ podľa $x$ vznikne $\\frac{x^2}{2}$ – nezabudni na polovicu.') }]
       };
     }
     const a = rnd(2, 4);
     let b;
     do { b = rnd(2, 5); } while (b === a);
     const items = [
-      ['polárnych súradníc $x=r\\cos\\varphi$, $y=r\\sin\\varphi$', 'r', '$J=\\det\\begin{pmatrix}\\cos\\varphi & -r\\sin\\varphi\\\\ \\sin\\varphi & r\\cos\\varphi\\end{pmatrix}=r\\cos^2\\varphi+r\\sin^2\\varphi=r$'],
-      ['cylindrických súradníc $x=r\\cos\\varphi$, $y=r\\sin\\varphi$, $z=z$', 'r', 'súradnica $z$ sa nemení, determinant sa zredukuje na polárny prípad, teda $J=r$'],
-      ['sférických súradníc $x=\\rho\\sin\\theta\\cos\\varphi$, $y=\\rho\\sin\\theta\\sin\\varphi$, $z=\\rho\\cos\\theta$', '\\rho^2\\sin\\theta', 'výpočtom determinantu $3\\times 3$ dostaneme $|J|=\\rho^2\\sin\\theta$ (na $\\theta\\in\\langle 0;\\pi\\rangle$ je $\\sin\\theta\\ge 0$)'],
-      [`zovšeobecnených polárnych súradníc $x=${a}r\\cos\\varphi$, $y=${b}r\\sin\\varphi$`, `${a * b}r`, `$J=\\det\\begin{pmatrix}${a}\\cos\\varphi & -${a}r\\sin\\varphi\\\\ ${b}\\sin\\varphi & ${b}r\\cos\\varphi\\end{pmatrix}=${a * b}r$`],
-      [`posunutia $x=u+${a}$, $y=v-${b}$`, '1', 'parciálne derivácie tvoria jednotkovú maticu, $J=1$ – posunutie nemení obsah'],
-      [`zmeny mierky $x=${a}u$, $y=${b}v$`, String(a * b), `$J=\\det\\begin{pmatrix}${a} & 0\\\\ 0 & ${b}\\end{pmatrix}=${a * b}$`]
+      [T.s('polárnych súradníc $x=r\\cos\\varphi$, $y=r\\sin\\varphi$'), 'r', '$J=\\det\\begin{pmatrix}\\cos\\varphi & -r\\sin\\varphi\\\\ \\sin\\varphi & r\\cos\\varphi\\end{pmatrix}=r\\cos^2\\varphi+r\\sin^2\\varphi=r$'],
+      [T.s('cylindrických súradníc $x=r\\cos\\varphi$, $y=r\\sin\\varphi$, $z=z$'), 'r', T.s('súradnica $z$ sa nemení, determinant sa zredukuje na polárny prípad, teda $J=r$')],
+      [T.s('sférických súradníc $x=\\rho\\sin\\theta\\cos\\varphi$, $y=\\rho\\sin\\theta\\sin\\varphi$, $z=\\rho\\cos\\theta$'), '\\rho^2\\sin\\theta', T.s('výpočtom determinantu $3\\times 3$ dostaneme $|J|=\\rho^2\\sin\\theta$ (na $\\theta\\in\\langle 0;\\pi\\rangle$ je $\\sin\\theta\\ge 0$)')],
+      [T`zovšeobecnených polárnych súradníc $x=${a}r\\cos\\varphi$, $y=${b}r\\sin\\varphi$`, `${a * b}r`, `$J=\\det\\begin{pmatrix}${a}\\cos\\varphi & -${a}r\\sin\\varphi\\\\ ${b}\\sin\\varphi & ${b}r\\cos\\varphi\\end{pmatrix}=${a * b}r$`],
+      [T`posunutia $x=u+${a}$, $y=v-${b}$`, '1', T.s('parciálne derivácie tvoria jednotkovú maticu, $J=1$ – posunutie nemení obsah')],
+      [T`zmeny mierky $x=${a}u$, $y=${b}v$`, String(a * b), `$J=\\det\\begin{pmatrix}${a} & 0\\\\ 0 & ${b}\\end{pmatrix}=${a * b}$`]
     ];
     const [what, ok, why] = pick(items);
     const pool = ['r', 'r^2', '\\rho^2\\sin\\theta', '\\rho\\sin\\theta', '1', `${a * b}r`, `${a + b}r`, String(a * b)].filter((x) => x !== ok);
     const opts = shuffle([ok, ...shuffle(pool).slice(0, 3)]).map((x) => `$${x}$`);
     return {
       type: 'choice', options: opts, answer: `$${ok}$`,
-      q: `Aká je absolútna hodnota jakobiánu $|J|$ transformácie ${what}?`,
-      solution: `Jakobián je determinant matice parciálnych derivácií starých premenných podľa nových: ${why}. Preto $|J|=${ok}$.`,
-      hint: 'Zostav maticu parciálnych derivácií $x$, $y$ (prípadne $z$) podľa nových premenných a vypočítaj jej determinant.',
+      q: T`Aká je absolútna hodnota jakobiánu $|J|$ transformácie ${what}?`,
+      solution: T`Jakobián je determinant matice parciálnych derivácií starých premenných podľa nových: ${why}. Preto $|J|=${ok}$.`,
+      hint: T.s('Zostav maticu parciálnych derivácií $x$, $y$ (prípadne $z$) podľa nových premenných a vypočítaj jej determinant.'),
       choiceHints: Object.fromEntries(opts.filter((o) => o !== `$${ok}$`).map((o) => [o, {
-        r: 'Jakobián $r$ patrí polárnym (a cylindrickým) súradniciam. Pre túto transformáciu vypočítaj determinant znova.',
-        'r^2': 'Determinant polárnej transformácie je $r\\cos^2\\varphi+r\\sin^2\\varphi$ – premenná $r$ v ňom vystupuje len v prvej mocnine.',
-        '\\rho^2\\sin\\theta': 'To je jakobián sférických súradníc. Pre túto transformáciu vypočítaj determinant znova.',
-        '\\rho\\sin\\theta': 'V sférických súradniciach vystupuje $\\rho$ v dvoch stĺpcoch matice, v determinante preto dostaneš $\\rho^2$.',
-        1: 'Jakobián 1 má len transformácia, ktorá zachováva obsah (napr. posunutie).',
-        [`${a * b}r`]: 'To je jakobián zovšeobecnených polárnych súradníc. Pre túto transformáciu vypočítaj determinant znova.',
-        [`${a + b}r`]: 'Determinant nie je súčet koeficientov – po výpočte sa koeficienty $a$, $b$ násobia.',
-        [String(a * b)]: 'To je jakobián lineárnej zmeny mierky. Pre túto transformáciu vypočítaj determinant znova.'
+        r: T.s('Jakobián $r$ patrí polárnym (a cylindrickým) súradniciam. Pre túto transformáciu vypočítaj determinant znova.'),
+        'r^2': T.s('Determinant polárnej transformácie je $r\\cos^2\\varphi+r\\sin^2\\varphi$ – premenná $r$ v ňom vystupuje len v prvej mocnine.'),
+        '\\rho^2\\sin\\theta': T.s('To je jakobián sférických súradníc. Pre túto transformáciu vypočítaj determinant znova.'),
+        '\\rho\\sin\\theta': T.s('V sférických súradniciach vystupuje $\\rho$ v dvoch stĺpcoch matice, v determinante preto dostaneš $\\rho^2$.'),
+        1: T.s('Jakobián 1 má len transformácia, ktorá zachováva obsah (napr. posunutie).'),
+        [`${a * b}r`]: T.s('To je jakobián zovšeobecnených polárnych súradníc. Pre túto transformáciu vypočítaj determinant znova.'),
+        [`${a + b}r`]: T.s('Determinant nie je súčet koeficientov – po výpočte sa koeficienty $a$, $b$ násobia.'),
+        [String(a * b)]: T.s('To je jakobián lineárnej zmeny mierky. Pre túto transformáciu vypočítaj determinant znova.')
       }[o.slice(1, -1)]]))
     };
   });
@@ -2932,7 +2934,7 @@
       const c = (x) => sk(x, 2);
       return {
         svg: svg(p, axes(p), s, '', 'Šípkový graf vektorového poľa – kombinácia zdroja a víru'),
-        readout: `F(x, y) = (${c(k)}x − ${c(1 - k)}y; ${c(1 - k)}x + ${c(k)}y) · <span class="c-accent">div F = ${c(2 * k)}</span> · <span class="c-ok">rot F = (0; 0; ${c(2 * (1 - k))})</span>`
+        readout: T`F(x, y) = (${c(k)}x − ${c(1 - k)}y; ${c(1 - k)}x + ${c(k)}y) · <span class="c-accent">div F = ${c(2 * k)}</span> · <span class="c-ok">rot F = (0; 0; ${c(2 * (1 - k))})</span>`
       };
     }
   });
@@ -2981,7 +2983,7 @@
     const t = Math.random();
     const vec = (cs) => `\\left(${cs.join(';\\ ')}\\right)`;
     const NAMES = ['P', 'Q', 'R'];
-    const VPI = 'Výsledok je násobkom čísla $\\pi$; zadaj len koeficient pri $\\pi$ (celé číslo).';
+    const VPI = T.s('Výsledok je násobkom čísla $\\pi$; zadaj len koeficient pri $\\pi$ (celé číslo).');
     const dName = (i, q) => `\\frac{\\partial ${NAMES[i]}}{\\partial ${VARS[q]}}`;
     if (t < 0.14) {
       const F = [0, 1, 2].map(() => rPoly(3, 3, 1));
@@ -2989,14 +2991,14 @@
       const D = [0, 1, 2].map((i) => pD(F[i], i)), vals = D.map((d) => pEval(d, pt)), div = vals[0] + vals[1] + vals[2];
       return {
         signed: true, answer: div,
-        q: `Vypočítaj divergenciu poľa $\\mathbf{F}=${vec(F.map(pTex))}$ v bode $A=[${pt.join(';')}]$.`,
-        solution: `$\\operatorname{div}\\mathbf{F}=${dName(0, 0)}+${dName(1, 1)}+${dName(2, 2)}=(${pTex(D[0])})+(${pTex(D[1])})+(${pTex(D[2])})$. V bode $A$: $${vals.map(par).join('+')}=${div}$.`,
-        hint: 'Prvú zložku derivuj podľa $x$, druhú podľa $y$, tretiu podľa $z$ a výsledky sčítaj.',
+        q: T`Vypočítaj divergenciu poľa $\\mathbf{F}=${vec(F.map(pTex))}$ v bode $A=[${pt.join(';')}]$.`,
+        solution: T`$\\operatorname{div}\\mathbf{F}=${dName(0, 0)}+${dName(1, 1)}+${dName(2, 2)}=(${pTex(D[0])})+(${pTex(D[1])})+(${pTex(D[2])})$. V bode $A$: $${vals.map(par).join('+')}=${div}$.`,
+        hint: T.s('Prvú zložku derivuj podľa $x$, druhú podľa $y$, tretiu podľa $z$ a výsledky sčítaj.'),
         steps: [
-          { q: `Vypočítaj $${dName(0, 0)}$ v bode $A$.`, answer: vals[0], signed: true },
-          { q: `Vypočítaj $${dName(1, 1)}$ v bode $A$.`, answer: vals[1], signed: true },
-          { q: `Vypočítaj $${dName(2, 2)}$ v bode $A$.`, answer: vals[2], signed: true },
-          { q: 'Aká je divergencia v bode $A$?', answer: div, signed: true }
+          { q: T`Vypočítaj $${dName(0, 0)}$ v bode $A$.`, answer: vals[0], signed: true },
+          { q: T`Vypočítaj $${dName(1, 1)}$ v bode $A$.`, answer: vals[1], signed: true },
+          { q: T`Vypočítaj $${dName(2, 2)}$ v bode $A$.`, answer: vals[2], signed: true },
+          { q: T.s('Aká je divergencia v bode $A$?'), answer: div, signed: true }
         ]
       };
     }
@@ -3010,14 +3012,14 @@
       const r = parts.map((x) => x.val);
       return {
         type: 'tuple', signed: true, answer: r,
-        q: `Vypočítaj rotáciu poľa $\\mathbf{F}=${vec(F.map(pTex))}$ v bode $A=[${pt.join(';')}]$. Zadaj tri zložky oddelené bodkočiarkou.`,
-        solution: `Zložky rotácie: $${parts[0].tex}$, $${parts[1].tex}$, $${parts[2].tex}$. Po dosadení bodu $A$: $\\operatorname{rot}\\mathbf{F}(A)=(${r.join(';\\ ')})$.`,
-        hint: 'Použi $\\operatorname{rot}\\mathbf{F}=(R_y-Q_z;\\ P_z-R_x;\\ Q_x-P_y)$, napr. ako symbolický determinant s riadkom $\\nabla$.',
-        mistakes: r[1] !== 0 ? [{ value: [r[0], -r[1], r[2]], msg: 'Pozor na druhú zložku: pri rozvoji symbolického determinantu má prostredný člen opačné znamienko, je to $P_z-R_x$.' }] : [],
+        q: T`Vypočítaj rotáciu poľa $\\mathbf{F}=${vec(F.map(pTex))}$ v bode $A=[${pt.join(';')}]$. Zadaj tri zložky oddelené bodkočiarkou.`,
+        solution: T`Zložky rotácie: $${parts[0].tex}$, $${parts[1].tex}$, $${parts[2].tex}$. Po dosadení bodu $A$: $\\operatorname{rot}\\mathbf{F}(A)=(${r.join(';\\ ')})$.`,
+        hint: T.s('Použi $\\operatorname{rot}\\mathbf{F}=(R_y-Q_z;\\ P_z-R_x;\\ Q_x-P_y)$, napr. ako symbolický determinant s riadkom $\\nabla$.'),
+        mistakes: r[1] !== 0 ? [{ value: [r[0], -r[1], r[2]], msg: T.s('Pozor na druhú zložku: pri rozvoji symbolického determinantu má prostredný člen opačné znamienko, je to $P_z-R_x$.') }] : [],
         steps: [
-          { q: 'Vypočítaj prvú zložku $R_y-Q_z$ v bode $A$.', answer: r[0], signed: true },
-          { q: 'Vypočítaj druhú zložku $P_z-R_x$ v bode $A$.', answer: r[1], signed: true },
-          { q: 'Vypočítaj tretiu zložku $Q_x-P_y$ v bode $A$.', answer: r[2], signed: true }
+          { q: T.s('Vypočítaj prvú zložku $R_y-Q_z$ v bode $A$.'), answer: r[0], signed: true },
+          { q: T.s('Vypočítaj druhú zložku $P_z-R_x$ v bode $A$.'), answer: r[1], signed: true },
+          { q: T.s('Vypočítaj tretiu zložku $Q_x-P_y$ v bode $A$.'), answer: r[2], signed: true }
         ]
       };
     }
@@ -3030,23 +3032,23 @@
         do { B = [rnd(-2, 3), rnd(-2, 3)]; } while (B[0] === A[0] && B[1] === A[1]);
         const d = [B[0] - A[0], B[1] - A[1]];
         xs = [[A[0], d[0]], [A[1], d[1]]]; dx = [d[0]]; dy = [d[1]];
-        desc = `orientovaná úsečka z bodu $[${A[0]};${A[1]}]$ do bodu $[${B[0]};${B[1]}]$`;
+        desc = T`orientovaná úsečka z bodu $[${A[0]};${A[1]}]$ do bodu $[${B[0]};${B[1]}]$`;
         prm = `$x=${lin([[A[0], ''], [d[0], 't']])}$, $y=${lin([[A[1], ''], [d[1], 't']])}$`;
       } else {
         xs = [[0, 1], [0, 0, 1]]; dx = [1]; dy = [0, 2];
-        desc = 'oblúk paraboly $y=x^2$ z bodu $[0;0]$ do bodu $[1;1]$';
+        desc = T.s('oblúk paraboly $y=x^2$ z bodu $[0;0]$ do bodu $[1;1]$');
         prm = '$x=t$, $y=t^2$';
       }
       const g = tAdd(tMul(tSub(P, xs), dx), tMul(tSub(Q, xs), dy)), N = tInt60(g);
       return {
         signed: true, answer: N / 60, show: fTxt(N, 60),
-        q: `Vypočítaj krivkový integrál $\\displaystyle\\int_k (${pTex(P)})\\,dx+(${pTex(Q)})\\,dy$, kde $k$ je ${desc}. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Parametrizácia: ${prm}, $t\\in\\langle 0;1\\rangle$, teda $dx=${tTex(dx)}\\,dt$ a $dy=${tTex(dy)}\\,dt$. Po dosadení
+        q: T`Vypočítaj krivkový integrál $\\displaystyle\\int_k (${pTex(P)})\\,dx+(${pTex(Q)})\\,dy$, kde $k$ je ${desc}. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`Parametrizácia: ${prm}, $t\\in\\langle 0;1\\rangle$, teda $dx=${tTex(dx)}\\,dt$ a $dy=${tTex(dy)}\\,dt$. Po dosadení
           $\\displaystyle\\int_k P\\,dx+Q\\,dy=\\int_0^1\\left(${tTex(g)}\\right)dt=${fTex(N, 60)}$.`,
-        hint: 'Parametrizuj krivku, dosaď $x(t)$, $y(t)$ do $P$ a $Q$, vynásob deriváciami $x\'(t)$, $y\'(t)$ a integruj podľa $t$.',
+        hint: T.s('Parametrizuj krivku, dosaď $x(t)$, $y(t)$ do $P$ a $Q$, vynásob deriváciami $x\'(t)$, $y\'(t)$ a integruj podľa $t$.'),
         mistakes: (() => {
           const N2 = tInt60(tAdd(tSub(P, xs), tSub(Q, xs)));
-          return N2 !== N ? [{ value: N2 / 60, msg: 'Po parametrizácii je $dx=x\'(t)\\,dt$ a $dy=y\'(t)\\,dt$ – zložky $P$ a $Q$ treba vynásobiť deriváciami parametrizácie.' }] : [];
+          return N2 !== N ? [{ value: N2 / 60, msg: T.s('Po parametrizácii je $dx=x\'(t)\\,dt$ a $dy=y\'(t)\\,dt$ – zložky $P$ a $Q$ treba vynásobiť deriváciami parametrizácie.') }] : [];
         })()
       };
     }
@@ -3054,19 +3056,19 @@
       const a = nz(-4, 4), b = nz(-4, 4), R = rnd(1, 3), k = (b - a) * R * R;
       return {
         signed: true, answer: k,
-        q: `Vypočítaj $\\displaystyle\\oint_k ${cx(a, 'y')}\\,dx${b > 0 ? '+' : '-'}${cx(Math.abs(b), 'x')}\\,dy$, kde $k$ je kružnica $x^2+y^2=${R * R}$ orientovaná proti smeru hodinových ručičiek. ${VPI}`,
-        solution: `Parametrizácia $x=${R === 1 ? '' : R}\\cos t$, $y=${R === 1 ? '' : R}\\sin t$, $t\\in\\langle 0;2\\pi\\rangle$, $dx=-${R === 1 ? '' : R}\\sin t\\,dt$, $dy=${R === 1 ? '' : R}\\cos t\\,dt$. Integrand je
+        q: T`Vypočítaj $\\displaystyle\\oint_k ${cx(a, 'y')}\\,dx${b > 0 ? '+' : '-'}${cx(Math.abs(b), 'x')}\\,dy$, kde $k$ je kružnica $x^2+y^2=${R * R}$ orientovaná proti smeru hodinových ručičiek. ${VPI}`,
+        solution: T`Parametrizácia $x=${R === 1 ? '' : R}\\cos t$, $y=${R === 1 ? '' : R}\\sin t$, $t\\in\\langle 0;2\\pi\\rangle$, $dx=-${R === 1 ? '' : R}\\sin t\\,dt$, $dy=${R === 1 ? '' : R}\\cos t\\,dt$. Integrand je
           $${par(a)}\\cdot ${R * R}\\cdot(-\\sin^2 t)+${par(b)}\\cdot ${R * R}\\cos^2 t$ a keďže $\\int_0^{2\\pi}\\sin^2 t\\,dt=\\int_0^{2\\pi}\\cos^2 t\\,dt=\\pi$, výsledok je $(${b}-${par(a)})\\cdot ${R * R}\\,\\pi=${k}\\pi$
           (rovnako podľa Greenovej vety: $(Q_x-P_y)\\cdot S=(${b}-${par(a)})\\cdot ${R * R}\\pi$). Koeficient pri $\\pi$ je $${k}$.`,
-        hint: 'Parametrizuj kružnicu $x=R\\cos t$, $y=R\\sin t$ alebo použi Greenovu vetu.',
+        hint: T.s('Parametrizuj kružnicu $x=R\\cos t$, $y=R\\sin t$ alebo použi Greenovu vetu.'),
         mistakes: [
-          { value: (b + a) * R * R, msg: 'V Greenovej vete je rozdiel $Q_x-P_y$, nie súčet – pozor na znamienko pri $P_y$.' },
-          ...(R !== 1 && k !== 0 ? [{ value: b - a, msg: `Výraz $Q_x-P_y$ treba ešte vynásobiť obsahom kruhu $${R * R}\\pi$.` }] : [])
+          { value: (b + a) * R * R, msg: T.s('V Greenovej vete je rozdiel $Q_x-P_y$, nie súčet – pozor na znamienko pri $P_y$.') },
+          ...(R !== 1 && k !== 0 ? [{ value: b - a, msg: T`Výraz $Q_x-P_y$ treba ešte vynásobiť obsahom kruhu $${R * R}\\pi$.` }] : [])
         ],
         steps: [
-          { q: 'Vypočítaj $Q_x-P_y$.', answer: b - a, signed: true },
-          { q: 'Obsah kruhu je $m\\pi$. Aké je $m$?', answer: R * R },
-          { q: 'Aký je koeficient pri $\\pi$ vo výsledku?', answer: k, signed: true }
+          { q: T.s('Vypočítaj $Q_x-P_y$.'), answer: b - a, signed: true },
+          { q: T.s('Obsah kruhu je $m\\pi$. Aké je $m$?'), answer: R * R },
+          { q: T.s('Aký je koeficient pri $\\pi$ vo výsledku?'), answer: k, signed: true }
         ]
       };
     }
@@ -3074,29 +3076,30 @@
       let U, P, Q;
       do { U = rPoly(2, 3, 1, 3); P = pD(U, 0); Q = pD(U, 1); } while (!P.length || !Q.length);
       const bad = Math.random() < 0.45;
+      const POT_YES = T.s('áno, je potenciálové'), POT_NO = T.s('nie, nie je potenciálové');
       const POT_HINTS = {
-        'áno, je potenciálové': 'Na $\\mathbb{R}^2$ je pole potenciálové práve vtedy, keď $\\frac{\\partial P}{\\partial y}=\\frac{\\partial Q}{\\partial x}$ – porovnaj obe derivácie člen po člene.',
-        'nie, nie je potenciálové': 'Vypočítaj $\\frac{\\partial P}{\\partial y}$ a $\\frac{\\partial Q}{\\partial x}$ a porovnaj ich – rovnosť stačí na potenciálovosť v $\\mathbb{R}^2$.'
+        [POT_YES]: T.s('Na $\\mathbb{R}^2$ je pole potenciálové práve vtedy, keď $\\frac{\\partial P}{\\partial y}=\\frac{\\partial Q}{\\partial x}$ – porovnaj obe derivácie člen po člene.'),
+        [POT_NO]: T.s('Vypočítaj $\\frac{\\partial P}{\\partial y}$ a $\\frac{\\partial Q}{\\partial x}$ a porovnaj ich – rovnosť stačí na potenciálovosť v $\\mathbb{R}^2$.')
       };
       if (bad && Math.random() < 0.55) {
         P = pNorm([...P, { c: nz(-3, 3), e: [rnd(0, 1), rnd(1, 2), 0] }]);
         const same = pKey(pD(P, 1)) === pKey(pD(Q, 0));
-        const ans = same ? 'áno, je potenciálové' : 'nie, nie je potenciálové';
+        const ans = same ? POT_YES : POT_NO;
         return {
-          type: 'choice', options: ['áno, je potenciálové', 'nie, nie je potenciálové'], answer: ans,
-          q: `Je pole $\\mathbf{F}=${vec([pTex(P), pTex(Q)])}$ potenciálové v $\\mathbb{R}^2$?`,
-          solution: `$\\mathbb{R}^2$ je jednoducho súvislá oblasť, stačí porovnať $\\frac{\\partial P}{\\partial y}=${pTex(pD(P, 1))}$ a $\\frac{\\partial Q}{\\partial x}=${pTex(pD(Q, 0))}$. ${same ? 'Derivácie sa rovnajú, pole <strong>je</strong> potenciálové.' : 'Derivácie sa líšia, pole <strong>nie je</strong> potenciálové (rot F ≠ 0).'}`,
-          hint: 'Rovinné pole $(P;\\,Q)$ na $\\mathbb{R}^2$ je potenciálové práve vtedy, keď $P_y=Q_x$.',
-          choiceHints: { [same ? 'nie, nie je potenciálové' : 'áno, je potenciálové']: POT_HINTS[same ? 'nie, nie je potenciálové' : 'áno, je potenciálové'] }
+          type: 'choice', options: [POT_YES, POT_NO], answer: ans,
+          q: T`Je pole $\\mathbf{F}=${vec([pTex(P), pTex(Q)])}$ potenciálové v $\\mathbb{R}^2$?`,
+          solution: T`$\\mathbb{R}^2$ je jednoducho súvislá oblasť, stačí porovnať $\\frac{\\partial P}{\\partial y}=${pTex(pD(P, 1))}$ a $\\frac{\\partial Q}{\\partial x}=${pTex(pD(Q, 0))}$. ${same ? T.s('Derivácie sa rovnajú, pole <strong>je</strong> potenciálové.') : T.s('Derivácie sa líšia, pole <strong>nie je</strong> potenciálové (rot F ≠ 0).')}`,
+          hint: T.s('Rovinné pole $(P;\\,Q)$ na $\\mathbb{R}^2$ je potenciálové práve vtedy, keď $P_y=Q_x$.'),
+          choiceHints: { [same ? POT_NO : POT_YES]: POT_HINTS[same ? POT_NO : POT_YES] }
         };
       }
       if (bad) {
         return {
-          type: 'choice', options: ['áno, je potenciálové', 'nie, nie je potenciálové'], answer: 'áno, je potenciálové',
-          q: `Je pole $\\mathbf{F}=${vec([pTex(P), pTex(Q)])}$ potenciálové v $\\mathbb{R}^2$?`,
-          solution: `$\\frac{\\partial P}{\\partial y}=${pTex(pD(P, 1))}=\\frac{\\partial Q}{\\partial x}$, takže pole <strong>je</strong> potenciálové; potenciál je napr. $U=${pTex(U)}$.`,
-          hint: 'Rovinné pole $(P;\\,Q)$ na $\\mathbb{R}^2$ je potenciálové práve vtedy, keď $P_y=Q_x$.',
-          choiceHints: { 'nie, nie je potenciálové': POT_HINTS['nie, nie je potenciálové'] }
+          type: 'choice', options: [POT_YES, POT_NO], answer: POT_YES,
+          q: T`Je pole $\\mathbf{F}=${vec([pTex(P), pTex(Q)])}$ potenciálové v $\\mathbb{R}^2$?`,
+          solution: T`$\\frac{\\partial P}{\\partial y}=${pTex(pD(P, 1))}=\\frac{\\partial Q}{\\partial x}$, takže pole <strong>je</strong> potenciálové; potenciál je napr. $U=${pTex(U)}$.`,
+          hint: T.s('Rovinné pole $(P;\\,Q)$ na $\\mathbb{R}^2$ je potenciálové práve vtedy, keď $P_y=Q_x$.'),
+          choiceHints: { [POT_NO]: POT_HINTS[POT_NO] }
         };
       }
       const A = [rnd(-2, 2), rnd(-2, 2)];
@@ -3105,15 +3108,15 @@
       const uA = pEval(U, A), uB = pEval(U, B);
       return {
         signed: true, answer: uB - uA,
-        q: `Pole $\\mathbf{F}=${vec([pTex(P), pTex(Q)])}$ je potenciálové. Vypočítaj $\\displaystyle\\int_k \\mathbf{F}\\cdot d\\mathbf{r}$ pozdĺž ľubovoľnej krivky $k$ z bodu $A=[${A.join(';')}]$ do bodu $B=[${B.join(';')}]$.`,
-        solution: `Overenie: $\\frac{\\partial P}{\\partial y}=${pTex(pD(P, 1))}=\\frac{\\partial Q}{\\partial x}$. Integrovaním $P$ podľa $x$ a doplnením členov závislých len od $y$ dostaneme potenciál $U(x,y)=${pTex(U)}$ (platí $U_x=P$, $U_y=Q$).
+        q: T`Pole $\\mathbf{F}=${vec([pTex(P), pTex(Q)])}$ je potenciálové. Vypočítaj $\\displaystyle\\int_k \\mathbf{F}\\cdot d\\mathbf{r}$ pozdĺž ľubovoľnej krivky $k$ z bodu $A=[${A.join(';')}]$ do bodu $B=[${B.join(';')}]$.`,
+        solution: T`Overenie: $\\frac{\\partial P}{\\partial y}=${pTex(pD(P, 1))}=\\frac{\\partial Q}{\\partial x}$. Integrovaním $P$ podľa $x$ a doplnením členov závislých len od $y$ dostaneme potenciál $U(x,y)=${pTex(U)}$ (platí $U_x=P$, $U_y=Q$).
           Integrál nezávisí od cesty: $U(B)-U(A)=${uB}-${par(uA)}=${uB - uA}$.`,
-        hint: 'Nájdi potenciál $U$ s $\\nabla U=\\mathbf{F}$; integrál sa rovná $U(B)-U(A)$.',
-        mistakes: uA !== 0 ? [{ value: uB, msg: 'Integrál potenciálového poľa je rozdiel $U(B)-U(A)$ – hodnotu v začiatočnom bode treba odčítať.' }] : [],
+        hint: T.s('Nájdi potenciál $U$ s $\\nabla U=\\mathbf{F}$; integrál sa rovná $U(B)-U(A)$.'),
+        mistakes: uA !== 0 ? [{ value: uB, msg: T.s('Integrál potenciálového poľa je rozdiel $U(B)-U(A)$ – hodnotu v začiatočnom bode treba odčítať.') }] : [],
         steps: [
-          { q: 'Nájdi potenciál $U$ (s nulovým absolútnym členom) a vypočítaj $U(A)$.', answer: uA, signed: true },
-          { q: 'Vypočítaj $U(B)$.', answer: uB, signed: true },
-          { q: 'Aká je hodnota integrálu?', answer: uB - uA, signed: true }
+          { q: T.s('Nájdi potenciál $U$ (s nulovým absolútnym členom) a vypočítaj $U(A)$.'), answer: uA, signed: true },
+          { q: T.s('Vypočítaj $U(B)$.'), answer: uB, signed: true },
+          { q: T.s('Aká je hodnota integrálu?'), answer: uB - uA, signed: true }
         ]
       };
     }
@@ -3122,11 +3125,11 @@
         const a = rnd(1, 5), b = rnd(1, 5);
         return {
           answer: a * b,
-          q: `Pomocou vzorca $S=\\frac{1}{2}\\oint_k x\\,dy-y\\,dx$ vypočítaj obsah elipsy $\\dfrac{x^2}{${a * a}}+\\dfrac{y^2}{${b * b}}=1$. ${VPI}`,
-          solution: `Parametrizácia $x=${a === 1 ? '' : a}\\cos t$, $y=${b === 1 ? '' : b}\\sin t$, $t\\in\\langle 0;2\\pi\\rangle$ (kladná orientácia): $x\\,dy-y\\,dx=${a * b}(\\cos^2 t+\\sin^2 t)\\,dt=${a * b}\\,dt$.
+          q: T`Pomocou vzorca $S=\\frac{1}{2}\\oint_k x\\,dy-y\\,dx$ vypočítaj obsah elipsy $\\dfrac{x^2}{${a * a}}+\\dfrac{y^2}{${b * b}}=1$. ${VPI}`,
+          solution: T`Parametrizácia $x=${a === 1 ? '' : a}\\cos t$, $y=${b === 1 ? '' : b}\\sin t$, $t\\in\\langle 0;2\\pi\\rangle$ (kladná orientácia): $x\\,dy-y\\,dx=${a * b}(\\cos^2 t+\\sin^2 t)\\,dt=${a * b}\\,dt$.
             Preto $S=\\frac{1}{2}\\int_0^{2\\pi}${a * b}\\,dt=${a * b}\\pi$, koeficient pri $\\pi$ je $${a * b}$ (všeobecne $S=\\pi ab$).`,
-          hint: 'Elipsu parametrizuj $x=a\\cos t$, $y=b\\sin t$.',
-          mistakes: [{ value: 2 * a * b, msg: 'Vo vzorci pre obsah je pred integrálom $\\frac{1}{2}$ – nezabudni naň.' }]
+          hint: T.s('Elipsu parametrizuj $x=a\\cos t$, $y=b\\sin t$.'),
+          mistakes: [{ value: 2 * a * b, msg: T.s('Vo vzorci pre obsah je pred integrálom $\\frac{1}{2}$ – nezabudni naň.') }]
         };
       }
       const c1 = rnd(-4, 4);
@@ -3136,24 +3139,24 @@
       const Pt = c1 === 0 ? gx : `${cx(c1, 'y')}+${gx}`, Qt = c2 === 0 ? hy : `${cx(c2, 'x')}+${hy}`;
       const reg = rnd(0, 2), a = rnd(1, 4), b = rnd(1, 4), R = rnd(1, 3);
       const [desc, Sn, Sd, Stex, isPi] = [
-        [`obdĺžnika s vrcholmi $[0;0]$, $[${a};0]$, $[${a};${b}]$, $[0;${b}]$`, a * b, 1, `${a}\\cdot ${b}`, false],
-        [`trojuholníka s vrcholmi $[0;0]$, $[${a};0]$, $[0;${b}]$`, a * b, 2, `\\frac{${a}\\cdot ${b}}{2}`, false],
-        [`kruhu $x^2+y^2\\le ${R * R}$`, R * R, 1, `${R * R}\\pi`, true]
+        [T`obdĺžnika s vrcholmi $[0;0]$, $[${a};0]$, $[${a};${b}]$, $[0;${b}]$`, a * b, 1, `${a}\\cdot ${b}`, false],
+        [T`trojuholníka s vrcholmi $[0;0]$, $[${a};0]$, $[0;${b}]$`, a * b, 2, `\\frac{${a}\\cdot ${b}}{2}`, false],
+        [T`kruhu $x^2+y^2\\le ${R * R}$`, R * R, 1, `${R * R}\\pi`, true]
       ][reg];
       const d = c2 - c1;
       return {
         signed: true, answer: d * Sn / Sd, show: fTxt(d * Sn, Sd),
-        q: `Pomocou Greenovej vety vypočítaj $\\displaystyle\\oint_k (${Pt})\\,dx+(${Qt})\\,dy$, kde $k$ je kladne orientovaná hranica ${desc}. ${isPi ? VPI : 'Výsledok zadaj ako celé číslo alebo zlomok.'}`,
-        solution: `$\\frac{\\partial Q}{\\partial x}-\\frac{\\partial P}{\\partial y}=${c2}-${par(c1)}=${d}$ (členy $${gx}$ a $${hy}$ k rozdielu neprispejú). Podľa Greenovej vety je integrál rovný $${d}\\cdot S(D)=${d}\\cdot ${Stex}=${isPi ? (d * Sn) + '\\pi' : fTex(d * Sn, Sd)}$${isPi ? `, koeficient pri $\\pi$ je $${d * Sn}$` : ''}.`,
-        hint: 'Vypočítaj $Q_x-P_y$ – vyjde konštanta, takže dvojný integrál je jej násobok obsahu oblasti.',
+        q: T`Pomocou Greenovej vety vypočítaj $\\displaystyle\\oint_k (${Pt})\\,dx+(${Qt})\\,dy$, kde $k$ je kladne orientovaná hranica ${desc}. ${isPi ? VPI : T.s('Výsledok zadaj ako celé číslo alebo zlomok.')}`,
+        solution: T`$\\frac{\\partial Q}{\\partial x}-\\frac{\\partial P}{\\partial y}=${c2}-${par(c1)}=${d}$ (členy $${gx}$ a $${hy}$ k rozdielu neprispejú). Podľa Greenovej vety je integrál rovný $${d}\\cdot S(D)=${d}\\cdot ${Stex}=${isPi ? (d * Sn) + '\\pi' : fTex(d * Sn, Sd)}$${isPi ? T`, koeficient pri $\\pi$ je $${d * Sn}$` : ''}.`,
+        hint: T.s('Vypočítaj $Q_x-P_y$ – vyjde konštanta, takže dvojný integrál je jej násobok obsahu oblasti.'),
         mistakes: [
-          ...(c1 + c2 !== d ? [{ value: (c1 + c2) * Sn / Sd, msg: 'V Greenovej vete je rozdiel $Q_x-P_y$, nie súčet.' }] : []),
-          ...(Sn !== Sd && d !== 0 ? [{ value: d, msg: `Konštantu $Q_x-P_y$ treba vynásobiť obsahom oblasti${isPi ? ' (bez $\\pi$)' : ''}.` }] : [])
+          ...(c1 + c2 !== d ? [{ value: (c1 + c2) * Sn / Sd, msg: T.s('V Greenovej vete je rozdiel $Q_x-P_y$, nie súčet.') }] : []),
+          ...(Sn !== Sd && d !== 0 ? [{ value: d, msg: T`Konštantu $Q_x-P_y$ treba vynásobiť obsahom oblasti${isPi ? T.s(' (bez $\\pi$)') : ''}.` }] : [])
         ],
         steps: [
-          { q: 'Vypočítaj $Q_x-P_y$.', answer: d, signed: true },
-          { q: isPi ? 'Obsah kruhu je $m\\pi$. Aké je $m$?' : 'Aký je obsah oblasti? Zadaj celé číslo alebo zlomok.', answer: Sn / Sd, show: fTxt(Sn, Sd) },
-          { q: isPi ? 'Aký je koeficient pri $\\pi$ vo výsledku?' : 'Aká je hodnota integrálu?', answer: d * Sn / Sd, show: fTxt(d * Sn, Sd), signed: true }
+          { q: T.s('Vypočítaj $Q_x-P_y$.'), answer: d, signed: true },
+          { q: isPi ? T.s('Obsah kruhu je $m\\pi$. Aké je $m$?') : T.s('Aký je obsah oblasti? Zadaj celé číslo alebo zlomok.'), answer: Sn / Sd, show: fTxt(Sn, Sd) },
+          { q: isPi ? T.s('Aký je koeficient pri $\\pi$ vo výsledku?') : T.s('Aká je hodnota integrálu?'), answer: d * Sn / Sd, show: fTxt(d * Sn, Sd), signed: true }
         ]
       };
     }
@@ -3165,30 +3168,30 @@
       const fA = fv(A), fB = fv(B);
       return {
         signed: true, answer: L * (fA + fB) / 2, show: fTxt(L * (fA + fB), 2),
-        q: `Vypočítaj krivkový integrál 1. druhu $\\displaystyle\\int_k (${f})\\,ds$, kde $k$ je úsečka s krajnými bodmi $A=[${A.join(';')}]$ a $B=[${B.join(';')}]$. Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Parametrizácia $\\mathbf{r}(t)=A+t(B-A)$, $t\\in\\langle 0;1\\rangle$, má $|\\mathbf{r}'(t)|=|B-A|=\\sqrt{${(B[0] - A[0]) ** 2}+${(B[1] - A[1]) ** 2}}=${L}$. Funkcia je lineárna, preto $\\int_0^1 f(\\mathbf{r}(t))\\,dt$ je aritmetický priemer hodnôt v krajných bodoch:
+        q: T`Vypočítaj krivkový integrál 1. druhu $\\displaystyle\\int_k (${f})\\,ds$, kde $k$ je úsečka s krajnými bodmi $A=[${A.join(';')}]$ a $B=[${B.join(';')}]$. Výsledok zadaj ako celé číslo alebo zlomok.`,
+        solution: T`Parametrizácia $\\mathbf{r}(t)=A+t(B-A)$, $t\\in\\langle 0;1\\rangle$, má $|\\mathbf{r}'(t)|=|B-A|=\\sqrt{${(B[0] - A[0]) ** 2}+${(B[1] - A[1]) ** 2}}=${L}$. Funkcia je lineárna, preto $\\int_0^1 f(\\mathbf{r}(t))\\,dt$ je aritmetický priemer hodnôt v krajných bodoch:
           $\\displaystyle\\int_k f\\,ds=${L}\\cdot\\frac{f(A)+f(B)}{2}=${L}\\cdot\\frac{${fA}+${par(fB)}}{2}=${fTex(L * (fA + fB), 2)}$.`,
-        hint: 'Pri parametrizácii úsečky je $ds=|B-A|\\,dt$.',
-        mistakes: fA + fB !== 0 ? [{ value: (fA + fB) / 2, msg: 'Pri integrále 1. druhu je $ds=|\\mathbf{r}\'(t)|\\,dt$ – výsledok treba vynásobiť dĺžkou úsečky.' }] : [],
+        hint: T.s('Pri parametrizácii úsečky je $ds=|B-A|\\,dt$.'),
+        mistakes: fA + fB !== 0 ? [{ value: (fA + fB) / 2, msg: T.s('Pri integrále 1. druhu je $ds=|\\mathbf{r}\'(t)|\\,dt$ – výsledok treba vynásobiť dĺžkou úsečky.') }] : [],
         steps: [
-          { q: 'Aká je dĺžka úsečky $|B-A|$?', answer: L },
-          { q: 'Vypočítaj $f(A)$.', answer: fA, signed: true },
-          { q: 'Vypočítaj $f(B)$.', answer: fB, signed: true },
-          { q: 'Aká je hodnota integrálu? Zadaj celé číslo alebo zlomok.', answer: L * (fA + fB) / 2, show: fTxt(L * (fA + fB), 2), signed: true }
+          { q: T.s('Aká je dĺžka úsečky $|B-A|$?'), answer: L },
+          { q: T.s('Vypočítaj $f(A)$.'), answer: fA, signed: true },
+          { q: T.s('Vypočítaj $f(B)$.'), answer: fB, signed: true },
+          { q: T.s('Aká je hodnota integrálu? Zadaj celé číslo alebo zlomok.'), answer: L * (fA + fB) / 2, show: fTxt(L * (fA + fB), 2), signed: true }
         ]
       };
     }
     const [R, c, L] = pick(TRI);
     return {
       answer: 2 * L,
-      q: `Vypočítaj dĺžku jedného závitu skrutkovice $x=${R}\\cos t$, $y=${R}\\sin t$, $z=${c}t$, $t\\in\\langle 0;2\\pi\\rangle$. ${VPI}`,
-      solution: `$\\mathbf{r}'(t)=(-${R}\\sin t;\\ ${R}\\cos t;\\ ${c})$, teda $|\\mathbf{r}'(t)|=\\sqrt{${R * R}\\sin^2 t+${R * R}\\cos^2 t+${c * c}}=\\sqrt{${R * R + c * c}}=${L}$.
+      q: T`Vypočítaj dĺžku jedného závitu skrutkovice $x=${R}\\cos t$, $y=${R}\\sin t$, $z=${c}t$, $t\\in\\langle 0;2\\pi\\rangle$. ${VPI}`,
+      solution: T`$\\mathbf{r}'(t)=(-${R}\\sin t;\\ ${R}\\cos t;\\ ${c})$, teda $|\\mathbf{r}'(t)|=\\sqrt{${R * R}\\sin^2 t+${R * R}\\cos^2 t+${c * c}}=\\sqrt{${R * R + c * c}}=${L}$.
         Dĺžka je $\\int_0^{2\\pi}${L}\\,dt=${2 * L}\\pi$, koeficient pri $\\pi$ je $${2 * L}$.`,
-      hint: 'Dĺžka krivky je $\\int_a^b|\\mathbf{r}\'(t)|\\,dt$; využi $\\sin^2 t+\\cos^2 t=1$.',
-      mistakes: [{ value: 2 * R, msg: 'To je len obvod priemetu do roviny $xy$. Do $|\\mathbf{r}\'(t)|$ patrí aj zložka $z\'(t)$.' }],
+      hint: T.s('Dĺžka krivky je $\\int_a^b|\\mathbf{r}\'(t)|\\,dt$; využi $\\sin^2 t+\\cos^2 t=1$.'),
+      mistakes: [{ value: 2 * R, msg: T.s('To je len obvod priemetu do roviny $xy$. Do $|\\mathbf{r}\'(t)|$ patrí aj zložka $z\'(t)$.') }],
       steps: [
-        { q: 'Vypočítaj $|\\mathbf{r}\'(t)|$.', answer: L },
-        { q: 'Aký je koeficient pri $\\pi$ v dĺžke závitu?', answer: 2 * L }
+        { q: T.s('Vypočítaj $|\\mathbf{r}\'(t)|$.'), answer: L },
+        { q: T.s('Aký je koeficient pri $\\pi$ v dĺžke závitu?'), answer: 2 * L }
       ]
     };
   });

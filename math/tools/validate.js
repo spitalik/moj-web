@@ -1,7 +1,8 @@
 /* Kontrola obsahu bez prehliadača: node tools/validate.js
    Načíta skripty v poradí z index.html (okrem app.js), skontroluje lekcie, obrázky, generátory úloh a preklady.
    Chýbajúci súbor ročníka je len upozornenie (súbory môžu vznikať postupne). Návratový kód 1 = chyby.
-   node tools/validate.js --missing en  vypíše texty bez anglického prekladu (kostra slovníka). */
+   node tools/validate.js --missing en  vypíše texty bez anglického prekladu (kostra slovníka).
+   node tools/validate.js --lang it  skontroluje z prekladov len taliančinu (--no-strings: bez textov generátorov a obrázkov). */
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -20,6 +21,13 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 // skripty rozhrania (potrebujú prehliadač) – validátor načíta len obsah a logiku úloh
 const UI_SCRIPTS = ['js/app.js', 'js/store.js', 'js/keypad.js', 'js/scratchpad.js', 'js/tts.js', 'js/widget.js'];
 const scripts = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map((m) => m[1]).filter((s) => !UI_SCRIPTS.includes(s) && !s.startsWith('js/features/'));
+// preklady obsahu sa v prehliadači načítajú len pre zvolený jazyk; validátor načíta všetky (--lang <kód> = len jeden)
+const noStrings = process.argv.includes('--no-strings');
+const onlyLang = (() => { const k = process.argv.indexOf('--lang'); return k > 0 ? process.argv[k + 1] : missingFor; })();
+const ciDir = path.join(root, 'js', 'content-i18n');
+const packFiles = fs.readdirSync(ciDir, { withFileTypes: true }).filter((d) => d.isDirectory() && (!onlyLang || d.name === onlyLang || d.name === missingFor))
+  .flatMap((d) => fs.readdirSync(path.join(ciDir, d.name)).filter((f) => f.endsWith('.js')).sort().map((f) => `js/content-i18n/${d.name}/${f}`));
+scripts.splice(scripts.indexOf('js/content-i18n/files.js') + 1, 0, ...packFiles);
 for (const rel of scripts) {
   const file = path.join(root, rel);
   if (!fs.existsSync(file)) { warnings.push(`chýba súbor ${rel}`); continue; }
@@ -214,13 +222,14 @@ if (global.THEMES) {
 // opäť 400 behov s kontrolou odpovede. Chýbajúce preklady textov (T`…`, T.s, popisy v SVG) sú chyby.
 // node tools/validate.js --missing en  vypíše chýbajúce kľúče ako kostru slovníka.
 const CI = global.CONTENT_I18N;
+if (CI) console.log('Preklady obsahu: ' + (CI.languages().map((l) => `${l} (${Object.keys(CI.pack(l).lessons).length} lekcií)`).join(', ') || 'žiadne'));
 const missingDump = new Map(); // lekcia → Set kľúčov
 if (CI) {
   const lessonIds = new Set(LESSONS.map((l) => l.id));
   for (const lang of CI.languages()) {
     const pack = CI.pack(lang);
-    // angličtina nesmie obsahovať žiadne slovenské písmená s diakritikou, iné jazyky aspoň mäkčene
-    const LEAK = lang === 'en' ? /[áäčďéíĺľňóôŕšťúýž]/i : /[čďĺľňŕšťž]/i;
+    // angličtina nesmie obsahovať slovenské písmená s diakritikou (okrem é, ó – mená ako Lévy, Bézout), iné jazyky aspoň mäkčene
+    const LEAK = lang === 'en' ? /[áäčďíĺľňôŕšťúýž]/i : /[čďĺľňŕšťž]/i;
     const leak = (where, s) => {
       const m = String(s).replace(/<[^>]*>/g, ' ').match(LEAK);
       if (m) err(where, `slovenský text v preklade („${m[0]}“): ${String(s).replace(/<svg[\s\S]*?<\/svg>/g, '[svg]').slice(0, 120)}`);
@@ -255,6 +264,8 @@ if (CI) {
           else ex.steps.forEach((s, j) => txt(`${w} príklad ${i + 1} krok ${j + 1}`, s));
         });
       }
+      // --no-strings: kontrola len statického obsahu (texty generátorov a obrázkov sa prekladajú zvlášť)
+      if (noStrings) continue;
       const m0 = CI.misses.length;
       // obrázky v preklade: popisy v SVG a dynamické texty (readout) pri krajných hodnotách posuvníkov
       L.theory.filter((x) => typeof x !== 'string').forEach((x) => {

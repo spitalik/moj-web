@@ -10,6 +10,7 @@
   const lesson = (l) => LESSONS.push(Object.assign({ level: 'v2' }, l, { order: 300 + l.order }));
   const gen = EXERCISES.register;
   const fig = FIGURES.register;
+  const { T } = CONTENT_I18N;
 
   // Tvar podstatného mena podľa počtu: 1 rok, 2 roky, 5 rokov.
   const pl = (n, f) => (n === 1 ? f[0] : n >= 2 && n <= 4 ? f[1] : f[2]);
@@ -17,9 +18,10 @@
   const nz = (a, b) => { let v = 0; while (v === 0) v = rnd(a, b); return v; };
   const par = (v) => (v < 0 ? `(${v})` : String(v));
   const round = (x, d) => Math.round(x * Math.pow(10, d)) / Math.pow(10, d);
-  const dd = (x, d = 2) => round(x, d).toFixed(d).replace('.', '{,}'); // pevný počet miest, pre KaTeX
+  const dsep = () => (CONTENT_I18N.decimal() === ',' ? '{,}' : '.');     // desatinný oddeľovač v KaTeXe
+  const dd = (x, d = 2) => round(x, d).toFixed(d).replace('.', dsep()); // pevný počet miest, pre KaTeX
   const dc3 = (x) => fmt(x).replace(',', '{,}');                       // najviac 3 desatinné miesta, pre KaTeX
-  const dt = (x, d = 2) => round(x, d).toFixed(d).replace('.', ',');   // pevný počet miest, obyčajný text
+  const dt = (x, d = 2) => round(x, d).toFixed(d).replace('.', CONTENT_I18N.decimal()); // pevný počet miest, obyčajný text
   const red = (p, q) => { if (q < 0) { p = -p; q = -q; } const g = gcd(p, q) || 1; return [p / g, q / g]; };
   const fTex = (p, q) => { const [a, b] = red(p, q); return b === 1 ? String(a) : `${a < 0 ? '-' : ''}\\frac{${Math.abs(a)}}{${b}}`; };
   const fTxt = (p, q) => { const [a, b] = red(p, q); return b === 1 ? String(a) : `${a}/${b}`; };
@@ -105,7 +107,7 @@
       return {
         svg: svg(p, back, clipped, '', "Smerové pole rovnice y' = x − y s integrálnou krivkou"),
         readout: `<span class="c-accent">y = x − 1 ${c >= 0 ? '+' : '−'} ${sk(Math.abs(c))}·e<sup>−x</sup></span> · y(0) = ${sk(y0)}`
-          + (Math.abs(c) < 1e-9 ? ' · riešením je priamka y = x − 1' : '')
+          + (Math.abs(c) < 1e-9 ? T.s(' · riešením je priamka y = x − 1') : '')
       };
     }
   });
@@ -162,12 +164,12 @@
       const [eq, n, e] = pick(ORD);
       return {
         // typická chyba: za rád sa považuje exponent (mocnina), nie rád derivácie
-        mistakes: e && e !== n ? [{ value: e, msg: 'Toto je exponent (mocnina), nie rád derivácie. Rád určuje najvyššia derivácia, ktorá sa v rovnici vyskytuje.' }] : [],
+        mistakes: e && e !== n ? [{ value: e, msg: T`Toto je exponent (mocnina), nie rád derivácie. Rád určuje najvyššia derivácia, ktorá sa v rovnici vyskytuje.` }] : [],
         answer: n,
-        q: `Urči rád diferenciálnej rovnice $${eq}$.`,
-        solution: `Rád je určený najvyššou deriváciou, ktorá sa v rovnici vyskytuje, nie mocninou, na ktorú je derivácia umocnená.
-          Najvyššia derivácia v rovnici je ${n === 1 ? 'prvá' : n === 2 ? 'druhá' : n === 3 ? 'tretia' : 'štvrtá'}, rovnica je teda <strong>${n}. rádu</strong>.`,
-        hint: 'Hľadaj najvyšší rád derivácie. Exponent nad zátvorkou, napríklad $(y\')^{3}$, rád nezvyšuje.'
+        q: T`Urči rád diferenciálnej rovnice $${eq}$.`,
+        solution: T`Rád je určený najvyššou deriváciou, ktorá sa v rovnici vyskytuje, nie mocninou, na ktorú je derivácia umocnená.
+          Najvyššia derivácia v rovnici je ${n === 1 ? T`prvá` : n === 2 ? T`druhá` : n === 3 ? T`tretia` : T`štvrtá`}, rovnica je teda <strong>${n}. rádu</strong>.`,
+        hint: T`Hľadaj najvyšší rád derivácie. Exponent nad zátvorkou, napríklad $(y')^{3}$, rád nezvyšuje.`
       };
     }
     if (t < 0.5) {
@@ -181,12 +183,12 @@
       ]);
       const val = F[1](x0, y0), swp = F[1](y0, x0);
       return {
-        mistakes: swp !== val ? [{ value: swp, msg: 'Zamenil si súradnice: v bode $[x; y]$ je prvá súradnica $x$ a druhá $y$. Dosaď ich do $f(x, y)$ na správne miesta.' }] : [],
+        mistakes: swp !== val ? [{ value: swp, msg: T`Zamenil si súradnice: v bode $[x; y]$ je prvá súradnica $x$ a druhá $y$. Dosaď ich do $f(x, y)$ na správne miesta.` }] : [],
         signed: true, answer: val,
-        q: `Akú smernicu má úsečka smerového poľa rovnice $y' = ${F[0]}$ v bode $[${x0}; ${y0}]$?`,
-        solution: `Smernica poľa v bode $[x; y]$ je hodnota pravej strany $f(x, y)$: $f(${x0}, ${y0}) = ${F[2](x0, y0)} = ${val}$.
+        q: T`Akú smernicu má úsečka smerového poľa rovnice $y' = ${F[0]}$ v bode $[${x0}; ${y0}]$?`,
+        solution: T`Smernica poľa v bode $[x; y]$ je hodnota pravej strany $f(x, y)$: $f(${x0}, ${y0}) = ${F[2](x0, y0)} = ${val}$.
           Integrálna krivka prechádzajúca bodom $[${x0}; ${y0}]$ má v ňom dotyčnicu so smernicou $${val}$.`,
-        hint: 'Rovnica $y\' = f(x, y)$ hovorí, že smernica dotyčnice v bode $[x; y]$ je $f(x, y)$. Dosaď súradnice bodu.'
+        hint: T`Rovnica $y' = f(x, y)$ hovorí, že smernica dotyčnice v bode $[x; y]$ je $f(x, y)$. Dosaď súradnice bodu.`
       };
     }
     if (t < 0.75) {
@@ -195,15 +197,15 @@
         const k = nz(-3, 3), m = rnd(-4, 4), y0 = rnd(-5, 5), C = y0 - m;
         return {
           mistakes: m !== 0 ? [
-            { value: y0, msg: `Pri $x = 0$ je $C\\cdot\\mathrm{e}^{0} = C$, ale v riešení je ešte konštantný člen $${m}$, ktorý musíš od $y_0$ odčítať.` },
-            { value: y0 + m, msg: 'Pri prenášaní konštantného člena na druhú stranu rovnice si mu nezmenil znamienko.' }
+            { value: y0, msg: T`Pri $x = 0$ je $C\\cdot\\mathrm{e}^{0} = C$, ale v riešení je ešte konštantný člen $${m}$, ktorý musíš od $y_0$ odčítať.` },
+            { value: y0 + m, msg: T`Pri prenášaní konštantného člena na druhú stranu rovnice si mu nezmenil znamienko.` }
           ] : [],
           signed: true, answer: C,
-          q: `Všeobecné riešenie rovnice $y' = ${cf(k, 'y')}${term(-k * m)}$ je $y = C${ex(k)}${term(m)}$.
+          q: T`Všeobecné riešenie rovnice $y' = ${cf(k, 'y')}${term(-k * m)}$ je $y = C${ex(k)}${term(m)}$.
             Urči konštantu $C$ tak, aby riešenie spĺňalo začiatočnú podmienku $y(0) = ${y0}$.`,
-          solution: `Dosadíme $x = 0$: $y(0) = C\\cdot\\mathrm{e}^{0}${term(m)} = C${term(m)} = ${y0}$, odkiaľ $C = ${C}$.
+          solution: T`Dosadíme $x = 0$: $y(0) = C\\cdot\\mathrm{e}^{0}${term(m)} = C${term(m)} = ${y0}$, odkiaľ $C = ${C}$.
             Riešenie Cauchyho úlohy je $y = ${C === 0 ? (m === 0 ? '0' : String(m)) : `${cf(C, ex(k))}${term(m)}`}$.`,
-          hint: 'Do všeobecného riešenia dosaď $x = 0$ a $y = y_0$ a vyjadri $C$.'
+          hint: T`Do všeobecného riešenia dosaď $x = 0$ a $y = y_0$ a vyjadri $C$.`
         };
       }
       if (kind === 1) {
@@ -211,15 +213,15 @@
         const r0 = y0 - a * p0;
         return {
           mistakes: [
-            ...(p0 !== 1 && r0 !== C ? [{ value: r0, msg: `Vyjadril si $\\frac{C}{${p0}}$, ale nie samotné $C$: rovnicu ešte vynásob číslom $${p0}$.` }] : []),
-            ...(p0 * p0 !== 1 && r0 / p0 !== C ? [{ value: r0 / p0, msg: 'Pri vyjadrení $C$ zo zlomku $\\frac{C}{x_0}$ treba násobiť číslom $x_0$, nie deliť.' }] : [])
+            ...(p0 !== 1 && r0 !== C ? [{ value: r0, msg: T`Vyjadril si $\\frac{C}{${p0}}$, ale nie samotné $C$: rovnicu ešte vynásob číslom $${p0}$.` }] : []),
+            ...(p0 * p0 !== 1 && r0 / p0 !== C ? [{ value: r0 / p0, msg: T`Pri vyjadrení $C$ zo zlomku $\\frac{C}{x_0}$ treba násobiť číslom $x_0$, nie deliť.` }] : [])
           ],
           signed: true, answer: C,
-          q: `Všeobecné riešenie rovnice $xy' + y =${cf(2 * a, 'x')}$ na intervale, ktorý neobsahuje nulu, je $y = ${cf(a, 'x')} + \\frac{C}{x}$.
+          q: T`Všeobecné riešenie rovnice $xy' + y =${cf(2 * a, 'x')}$ na intervale, ktorý neobsahuje nulu, je $y = ${cf(a, 'x')} + \\frac{C}{x}$.
             Urči $C$ pre začiatočnú podmienku $y(${p0}) = ${y0}$.`,
-          solution: `Dosadíme: $${a}\\cdot ${par(p0)} + \\frac{C}{${p0}} = ${y0}$, teda $\\frac{C}{${p0}} = ${y0 - a * p0}$ a $C = ${C}$.
+          solution: T`Dosadíme: $${a}\\cdot ${par(p0)} + \\frac{C}{${p0}} = ${y0}$, teda $\\frac{C}{${p0}} = ${y0 - a * p0}$ a $C = ${C}$.
             (Kontrola: ľavá strana rovnice je $(xy)'$ a $xy = ${cf(a, 'x^{2}')} + C$.)`,
-          hint: 'Dosaď $x = x_0$, $y = y_0$ do všeobecného riešenia a vyrieš lineárnu rovnicu pre $C$.'
+          hint: T`Dosaď $x = x_0$, $y = y_0$ do všeobecného riešenia a vyrieš lineárnu rovnicu pre $C$.`
         };
       }
       const b = rnd(-4, 4), p0 = pick([1, 2, 3, -1, -2]), y0 = rnd(-6, 6);
@@ -227,14 +229,14 @@
       const C = (yy - b) / (p0 * p0);
       return {
         mistakes: [
-          ...(b !== 0 ? [{ value: yy / (p0 * p0), msg: `Zabudol si na konštantný člen $${b}$ vo všeobecnom riešení; najprv ho prenes na druhú stranu.` }] : []),
-          ...(p0 * p0 !== 1 && Math.abs((yy - b) / p0 - C) > 1e-9 ? [{ value: (yy - b) / p0, msg: `Delil si len číslom $${p0}$, ale v riešení je $x^{2}$, teda $x_0^{2}$.` }] : [])
+          ...(b !== 0 ? [{ value: yy / (p0 * p0), msg: T`Zabudol si na konštantný člen $${b}$ vo všeobecnom riešení; najprv ho prenes na druhú stranu.` }] : []),
+          ...(p0 * p0 !== 1 && Math.abs((yy - b) / p0 - C) > 1e-9 ? [{ value: (yy - b) / p0, msg: T`Delil si len číslom $${p0}$, ale v riešení je $x^{2}$, teda $x_0^{2}$.` }] : [])
         ],
         signed: true, answer: C, show: fTxt(yy - b, p0 * p0),
-        q: `Všeobecné riešenie rovnice $xy' = 2y${term(-2 * b)}$ je $y = Cx^{2}${term(b)}$. Urči $C$ pre začiatočnú podmienku $y(${p0}) = ${yy}$.
+        q: T`Všeobecné riešenie rovnice $xy' = 2y${term(-2 * b)}$ je $y = Cx^{2}${term(b)}$. Urči $C$ pre začiatočnú podmienku $y(${p0}) = ${yy}$.
           Výsledok zadaj ako celé číslo alebo zlomok.`,
-        solution: `Dosadíme: $C\\cdot ${par(p0)}^{2}${term(b)} = ${yy}$, teda $${p0 * p0}C = ${yy - b}$ a $C = ${fTex(yy - b, p0 * p0)}$.`,
-        hint: 'Dosaď $x = x_0$, $y = y_0$ do všeobecného riešenia a vyjadri $C$.'
+        solution: T`Dosadíme: $C\\cdot ${par(p0)}^{2}${term(b)} = ${yy}$, teda $${p0 * p0}C = ${yy - b}$ a $C = ${fTex(yy - b, p0 * p0)}$.`,
+        hint: T`Dosaď $x = x_0$, $y = y_0$ do všeobecného riešenia a vyjadri $C$.`
       };
     }
     const k = rnd(2, 5), kind = rnd(0, 2);
@@ -242,26 +244,26 @@
     if (kind === 0) {
       eq = `y'' + ${k * k}y = 0`;
       ok = `\\cos ${k}x`; wrong = [`\\cos ${k * k}x`, `\\mathrm{e}^{${k}x}`, `\\sin x + ${k}`];
-      why = `Pre $y = \\cos ${k}x$ je $y'' = -${k * k}\\cos ${k}x$, a teda $y'' + ${k * k}y = 0$. Pri $\\cos ${k * k}x$ by vyšlo $y'' = -${k ** 4}\\cos ${k * k}x$, exponenciála má kladnú druhú deriváciu.`;
+      why = T`Pre $y = \\cos ${k}x$ je $y'' = -${k * k}\\cos ${k}x$, a teda $y'' + ${k * k}y = 0$. Pri $\\cos ${k * k}x$ by vyšlo $y'' = -${k ** 4}\\cos ${k * k}x$, exponenciála má kladnú druhú deriváciu.`;
     } else if (kind === 1) {
       eq = `y'' - ${k * k}y = 0`;
       ok = `\\mathrm{e}^{-${k}x}`; wrong = [`\\mathrm{e}^{${k * k}x}`, `\\sin ${k}x`, `x\\,\\mathrm{e}^{${k}x}`];
-      why = `Pre $y = \\mathrm{e}^{-${k}x}$ je $y'' = ${k * k}\\mathrm{e}^{-${k}x}$, a teda $y'' - ${k * k}y = 0$. Pre $\\sin ${k}x$ vyjde $y'' - ${k * k}y = -${2 * k * k}\\sin ${k}x \\neq 0$.`;
+      why = T`Pre $y = \\mathrm{e}^{-${k}x}$ je $y'' = ${k * k}\\mathrm{e}^{-${k}x}$, a teda $y'' - ${k * k}y = 0$. Pre $\\sin ${k}x$ vyjde $y'' - ${k * k}y = -${2 * k * k}\\sin ${k}x \\neq 0$.`;
     } else {
       eq = `xy' = ${k}y`;
       ok = `x^{${k}}`; wrong = [`x^{${k + 1}}`, `\\mathrm{e}^{${k}x}`, `${k}x`];
-      why = `Pre $y = x^{${k}}$ je $xy' = x\\cdot ${k}x^{${k - 1}} = ${k}x^{${k}} = ${k}y$. Pre $y = ${k}x$ by vyšlo $xy' = ${k}x$, ale $${k}y = ${k * k}x$.`;
+      why = T`Pre $y = x^{${k}}$ je $xy' = x\\cdot ${k}x^{${k - 1}} = ${k}x^{${k}} = ${k}y$. Pre $y = ${k}x$ by vyšlo $xy' = ${k}x$, ale $${k}y = ${k * k}x$.`;
     }
     const choiceHints = {};
-    if (kind === 0) choiceHints[`$y = \\cos ${k * k}x$`] = `Pri $y = \\cos \\omega x$ je $y'' = -\\omega^{2}y$; koeficient $${k * k}$ v rovnici je $\\omega^{2}$, nie $\\omega$.`;
-    if (kind === 1) choiceHints[`$y = \\mathrm{e}^{${k * k}x}$`] = `Pri $y = \\mathrm{e}^{rx}$ je $y'' = r^{2}y$; koeficient $${k * k}$ v rovnici je $r^{2}$, nie $r$.`;
-    if (kind === 2) choiceHints[`$y = ${k}x$`] = `Over dosadením: pre $y = ${k}x$ je $xy' = ${k}x$, no pravá strana $${k}y$ je iná.`;
+    if (kind === 0) choiceHints[`$y = \\cos ${k * k}x$`] = T`Pri $y = \\cos \\omega x$ je $y'' = -\\omega^{2}y$; koeficient $${k * k}$ v rovnici je $\\omega^{2}$, nie $\\omega$.`;
+    if (kind === 1) choiceHints[`$y = \\mathrm{e}^{${k * k}x}$`] = T`Pri $y = \\mathrm{e}^{rx}$ je $y'' = r^{2}y$; koeficient $${k * k}$ v rovnici je $r^{2}$, nie $r$.`;
+    if (kind === 2) choiceHints[`$y = ${k}x$`] = T`Over dosadením: pre $y = ${k}x$ je $xy' = ${k}x$, no pravá strana $${k}y$ je iná.`;
     return {
       choiceHints,
       type: 'choice', options: shuffle([ok, ...wrong].map((s) => `$y = ${s}$`)), answer: `$y = ${ok}$`,
-      q: `Ktorá z funkcií je riešením rovnice $${eq}$?`,
+      q: T`Ktorá z funkcií je riešením rovnice $${eq}$?`,
       solution: why,
-      hint: 'Každú funkciu zderivuj a dosaď do rovnice. Riešenie musí rovnicu spĺňať pre všetky $x$.'
+      hint: T`Každú funkciu zderivuj a dosaď do rovnice. Riešenie musí rovnicu spĺňať pre všetky $x$.`
     };
   });
 
@@ -325,20 +327,20 @@
       const noDiv = b * Math.exp(a * Math.pow(x1, n + 1)), noC = Math.exp(E);
       return {
         mistakes: [
-          ...(n > 0 && Math.abs(noDiv - val) > T2 ? [{ value: noDiv, msg: `Pri integrovaní $${cf(a, xp(n))}$ si zabudol deliť exponentom: $\\int x^{${n}}\\,dx = \\frac{x^{${n + 1}}}{${n + 1}}$.` }] : []),
-          ...(Math.abs(noC - val) > T2 ? [{ value: noC, msg: 'Zabudol si na konštantu $C$: zo začiatočnej podmienky $y(0)$ vyjde $C$, ktorým treba exponenciálu vynásobiť.' }] : [])
+          ...(n > 0 && Math.abs(noDiv - val) > T2 ? [{ value: noDiv, msg: T`Pri integrovaní $${cf(a, xp(n))}$ si zabudol deliť exponentom: $\\int x^{${n}}\\,dx = \\frac{x^{${n + 1}}}{${n + 1}}$.` }] : []),
+          ...(Math.abs(noC - val) > T2 ? [{ value: noC, msg: T`Zabudol si na konštantu $C$: zo začiatočnej podmienky $y(0)$ vyjde $C$, ktorým treba exponenciálu vynásobiť.` }] : [])
         ],
         steps: [
-          { q: `Riešenie má tvar $y = C\\mathrm{e}^{G(x)}$ s $G(0) = 0$. Urči $C$ zo začiatočnej podmienky.`, answer: b, signed: true },
-          { q: `Urči hodnotu exponentu $G(${x1})$, kde $G(x) = \\int_0^x g(t)\\,dt$. ${ROUND2}`, answer: E, tol: T2, show: dt(E), signed: true, hint: 'Primitívna funkcia k $ax^{n}$ je $\\frac{a}{n+1}x^{n+1}$.' },
-          { q: `Vypočítaj $y(${x1}) = C\\mathrm{e}^{G(${x1})}$. ${ROUND2}`, answer: val, tol: T2, show: dt(val), signed: true }
+          { q: T`Riešenie má tvar $y = C\\mathrm{e}^{G(x)}$ s $G(0) = 0$. Urči $C$ zo začiatočnej podmienky.`, answer: b, signed: true },
+          { q: T`Urči hodnotu exponentu $G(${x1})$, kde $G(x) = \\int_0^x g(t)\\,dt$. ${T.s(ROUND2)}`, answer: E, tol: T2, show: dt(E), signed: true, hint: T`Primitívna funkcia k $ax^{n}$ je $\\frac{a}{n+1}x^{n+1}$.` },
+          { q: T`Vypočítaj $y(${x1}) = C\\mathrm{e}^{G(${x1})}$. ${T.s(ROUND2)}`, answer: val, tol: T2, show: dt(val), signed: true }
         ],
         signed: true, answer: val, tol: T2, show: dt(val),
-        q: `Vyrieš Cauchyho úlohu $y' = ${cf(a, xp(n) + 'y')}$, $y(0) = ${b}$, a vypočítaj $y(${x1})$. ${ROUND2}`,
-        solution: `Pre $y\\neq 0$ oddelíme premenné: $\\frac{dy}{y} = ${n === 0 ? (a === 1 ? '' : a === -1 ? '-' : a) : cf(a, xp(n))}\\,dx$, teda $\\ln|y| = ${expo} + c$ a $y = C\\mathrm{e}^{${expo}}$
+        q: T`Vyrieš Cauchyho úlohu $y' = ${cf(a, xp(n) + 'y')}$, $y(0) = ${b}$, a vypočítaj $y(${x1})$. ${T.s(ROUND2)}`,
+        solution: T`Pre $y\\neq 0$ oddelíme premenné: $\\frac{dy}{y} = ${n === 0 ? (a === 1 ? '' : a === -1 ? '-' : a) : cf(a, xp(n))}\\,dx$, teda $\\ln|y| = ${expo} + c$ a $y = C\\mathrm{e}^{${expo}}$
           (riešenie $y = 0$ je zahrnuté pre $C = 0$). Z podmienky $C = ${b}$, takže $y = ${cf(b, `\\mathrm{e}^{${expo}}`)}$ a
           $y(${x1}) = ${b === 1 ? '' : b === -1 ? '-' : b + '\\,'}\\mathrm{e}^{${fTex(a * Math.pow(x1, n + 1), n + 1)}} \\approx ${dd(val)}$.`,
-        hint: 'Rovnica má tvar $y\' = g(x)\\,y$. Oddeľ premenné $\\frac{dy}{y} = g(x)\\,dx$ a integruj; dostaneš $y = C\\mathrm{e}^{G(x)}$.'
+        hint: T`Rovnica má tvar $y' = g(x)\\,y$. Oddeľ premenné $\\frac{dy}{y} = g(x)\\,dx$ a integruj; dostaneš $y = C\\mathrm{e}^{G(x)}$.`
       };
     }
     if (t < 0.55) {
@@ -346,18 +348,18 @@
       const A = sw ? tr[1] : tr[0], B = sw ? tr[0] : tr[1], c = tr[2];
       const s = pick([1, 2, 3, 4].filter((d) => A % d === 0)), x1 = A / s, k = s * s;
       return {
-        mistakes: [{ value: A + B, msg: 'Odmocnina súčtu nie je súčet odmocnín: $\\sqrt{a + b} \\neq \\sqrt{a} + \\sqrt{b}$. Najprv sčítaj pod odmocninou.' }],
+        mistakes: [{ value: A + B, msg: T`Odmocnina súčtu nie je súčet odmocnín: $\\sqrt{a + b} \\neq \\sqrt{a} + \\sqrt{b}$. Najprv sčítaj pod odmocninou.` }],
         steps: [
-          { q: `Po integrácii a vynásobení dvoma dostaneš $y^{2} = ${cf(k, 'x^{2}')} + K$. Urči konštantu $K$ zo začiatočnej podmienky.`, answer: B * B },
-          { q: `Koľko je $y(${x1})^{2}$?`, answer: c * c },
-          { q: `Urči $y(${x1})$ (znamienko podľa začiatočnej podmienky).`, answer: c }
+          { q: T`Po integrácii a vynásobení dvoma dostaneš $y^{2} = ${cf(k, 'x^{2}')} + K$. Urči konštantu $K$ zo začiatočnej podmienky.`, answer: B * B },
+          { q: T`Koľko je $y(${x1})^{2}$?`, answer: c * c },
+          { q: T`Urči $y(${x1})$ (znamienko podľa začiatočnej podmienky).`, answer: c }
         ],
         answer: c,
-        q: `Vyrieš Cauchyho úlohu $yy' = ${cf(k, 'x')}$, $y(0) = ${B}$, a vypočítaj $y(${x1})$.`,
-        solution: `Oddelíme premenné: $y\\,dy = ${cf(k, 'x')}\\,dx$, teda $\\frac{y^{2}}{2} = ${cfr(k, 2, 'x^{2}')} + C$, čiže $y^{2} = ${cf(k, 'x^{2}')} + 2C$.
+        q: T`Vyrieš Cauchyho úlohu $yy' = ${cf(k, 'x')}$, $y(0) = ${B}$, a vypočítaj $y(${x1})$.`,
+        solution: T`Oddelíme premenné: $y\\,dy = ${cf(k, 'x')}\\,dx$, teda $\\frac{y^{2}}{2} = ${cfr(k, 2, 'x^{2}')} + C$, čiže $y^{2} = ${cf(k, 'x^{2}')} + 2C$.
           Z podmienky $2C = ${B * B}$, takže $y^{2} = ${cf(k, 'x^{2}')} + ${B * B}$. Keďže $y(0) \\gt 0$, berieme kladnú odmocninu:
           $y = \\sqrt{${cf(k, 'x^{2}')} + ${B * B}}$ a $y(${x1}) = \\sqrt{${k * x1 * x1} + ${B * B}} = \\sqrt{${c * c}} = ${c}$.`,
-        hint: 'Oddeľ premenné $y\\,dy = kx\\,dx$ a integruj. Znamienko odmocniny urči zo začiatočnej podmienky.'
+        hint: T`Oddeľ premenné $y\\,dy = kx\\,dx$ a integruj. Znamienko odmocniny urči zo začiatočnej podmienky.`
       };
     }
     if (t < 0.8) {
@@ -365,33 +367,33 @@
       do { k = nz(-2, 2); y0 = nz(-3, 3); } while (k * y0 >= 0);
       const x1 = rnd(1, 3), den = 1 - k * y0 * x1, den2 = 1 + k * y0 * x1;
       return {
-        mistakes: den2 !== 0 && Math.abs(y0 / den2 - y0 / den) > 1e-4 ? [{ value: y0 / den2, msg: 'Pozor na znamienko: $\\int y^{-2}\\,dy = -\\frac{1}{y}$, nie $\\frac{1}{y}$.' }] : [],
+        mistakes: den2 !== 0 && Math.abs(y0 / den2 - y0 / den) > 1e-4 ? [{ value: y0 / den2, msg: T`Pozor na znamienko: $\\int y^{-2}\\,dy = -\\frac{1}{y}$, nie $\\frac{1}{y}$.` }] : [],
         steps: [
-          { q: `Po integrácii máš $-\\frac{1}{y} = ${cf(k, 'x')} + C$. Urči $C$ zo začiatočnej podmienky (zlomok alebo celé číslo).`, answer: -1 / y0, show: fTxt(-1, y0), tol: 1e-4, signed: true },
-          { q: `Vyjadri $y$ a vypočítaj $y(${x1})$ (zlomok alebo celé číslo).`, answer: y0 / den, show: fTxt(y0, den), tol: 1e-4, signed: true }
+          { q: T`Po integrácii máš $-\\frac{1}{y} = ${cf(k, 'x')} + C$. Urči $C$ zo začiatočnej podmienky (zlomok alebo celé číslo).`, answer: -1 / y0, show: fTxt(-1, y0), tol: 1e-4, signed: true },
+          { q: T`Vyjadri $y$ a vypočítaj $y(${x1})$ (zlomok alebo celé číslo).`, answer: y0 / den, show: fTxt(y0, den), tol: 1e-4, signed: true }
         ],
         signed: true, answer: y0 / den, show: fTxt(y0, den), tol: 1e-4,
-        q: `Vyrieš Cauchyho úlohu $y' = ${cf(k, 'y^{2}')}$, $y(0) = ${y0}$, a vypočítaj $y(${x1})$. Výsledok zadaj ako zlomok alebo celé číslo.`,
-        solution: `Stacionárne riešenie $y = 0$ podmienku nespĺňa. Pre $y\\neq 0$: $\\frac{dy}{y^{2}} = ${k}\\,dx$, teda $-\\frac{1}{y} = ${cf(k, 'x')} + C$.
+        q: T`Vyrieš Cauchyho úlohu $y' = ${cf(k, 'y^{2}')}$, $y(0) = ${y0}$, a vypočítaj $y(${x1})$. Výsledok zadaj ako zlomok alebo celé číslo.`,
+        solution: T`Stacionárne riešenie $y = 0$ podmienku nespĺňa. Pre $y\\neq 0$: $\\frac{dy}{y^{2}} = ${k}\\,dx$, teda $-\\frac{1}{y} = ${cf(k, 'x')} + C$.
           Z podmienky $C = ${fTex(-1, y0)}$. Odtiaľ $y = \\frac{${y0}}{1${term(-k * y0, 'x')}}$, čo je na intervale $\\langle 0; ${x1}\\rangle$ definované
           (menovateľ je tam kladný). Dosadením $y(${x1}) = \\frac{${y0}}{${den}}${fTxt(y0, den) === `${y0}/${den}` ? '' : ` = ${fTex(y0, den)}`}$.`,
-        hint: 'Oddeľ premenné $\\frac{dy}{y^{2}} = k\\,dx$ a pamätaj, že $\\int y^{-2}\\,dy = -\\frac{1}{y}$.'
+        hint: T`Oddeľ premenné $\\frac{dy}{y^{2}} = k\\,dx$ a pamätaj, že $\\int y^{-2}\\,dy = -\\frac{1}{y}$.`
       };
     }
     const k = rnd(1, 4), kx = cf(k, 'x');
     const ok = `y = \\mathrm{tg}(${kx} + C)`;
     return {
       choiceHints: {
-        [`$y = \\mathrm{tg}(${kx}) + C$`]: 'Konštanta vzniká pri integrovaní, teda v rovnosti $\\mathrm{arctg}\\,y = \\dots + C$. Keď z nej vyjadríš $y$, kam sa $C$ dostane?',
-        [`$y = C\\,\\mathrm{tg}(${kx})$`]: 'Multiplikatívna konštanta vzniká pri rovniciach $y\' = g(x)y$ (cez logaritmus). Tu integruješ $\\frac{1}{1 + y^{2}}$, teda konštanta je aditívna v argumente.',
-        [`$y = \\mathrm{arctg}(${kx} + C)$`]: 'Integrál dáva $\\mathrm{arctg}\\,y = \\dots$; na vyjadrenie $y$ treba použiť inverznú funkciu k arkustangensu.'
+        [`$y = \\mathrm{tg}(${kx}) + C$`]: T`Konštanta vzniká pri integrovaní, teda v rovnosti $\\mathrm{arctg}\\,y = \\dots + C$. Keď z nej vyjadríš $y$, kam sa $C$ dostane?`,
+        [`$y = C\\,\\mathrm{tg}(${kx})$`]: T`Multiplikatívna konštanta vzniká pri rovniciach $y' = g(x)y$ (cez logaritmus). Tu integruješ $\\frac{1}{1 + y^{2}}$, teda konštanta je aditívna v argumente.`,
+        [`$y = \\mathrm{arctg}(${kx} + C)$`]: T`Integrál dáva $\\mathrm{arctg}\\,y = \\dots$; na vyjadrenie $y$ treba použiť inverznú funkciu k arkustangensu.`
       },
       type: 'choice', answer: `$${ok}$`,
       options: shuffle([ok, `y = \\mathrm{tg}(${kx}) + C`, `y = C\\,\\mathrm{tg}(${kx})`, `y = \\mathrm{arctg}(${kx} + C)`].map((s) => `$${s}$`)),
-      q: `Ktorá funkcia je všeobecným riešením rovnice $y' = ${k === 1 ? '' : k}(1 + y^{2})$?`,
-      solution: `Funkcia $1 + y^{2}$ nemá nulové body, stacionárne riešenia neexistujú. Oddelíme premenné: $\\frac{dy}{1 + y^{2}} = ${k === 1 ? '' : k}\\,dx$,
+      q: T`Ktorá funkcia je všeobecným riešením rovnice $y' = ${k === 1 ? '' : k}(1 + y^{2})$?`,
+      solution: T`Funkcia $1 + y^{2}$ nemá nulové body, stacionárne riešenia neexistujú. Oddelíme premenné: $\\frac{dy}{1 + y^{2}} = ${k === 1 ? '' : k}\\,dx$,
         teda $\\mathrm{arctg}\\,y = ${kx} + C$ a $y = \\mathrm{tg}(${kx} + C)$. Konštanta je vnútri argumentu; napríklad $y = \\mathrm{tg}(${kx}) + C$ rovnicu pre $C\\neq 0$ nespĺňa.`,
-      hint: 'Využi $\\int\\frac{dy}{1 + y^{2}} = \\mathrm{arctg}\\,y$ a vyjadri $y$.'
+      hint: T`Využi $\\int\\frac{dy}{1 + y^{2}} = \\mathrm{arctg}\\,y$ a vyjadri $y$.`
     };
   });
 
@@ -456,18 +458,18 @@
       const eq = Math.random() < 0.5 ? `y' = \\frac{y}{x}${term(a)}` : `xy' = y${term(a, 'x')}`;
       const u1 = a * Math.log(x1) + b;
       return {
-        mistakes: Math.abs(u1 - val) > T2 ? [{ value: u1, msg: 'Vypočítal si hodnotu pomocnej funkcie $u = \\frac{y}{x}$, nie $y$. Nezabudni na spätnú substitúciu $y = ux$.' }] : [],
+        mistakes: Math.abs(u1 - val) > T2 ? [{ value: u1, msg: T`Vypočítal si hodnotu pomocnej funkcie $u = \\frac{y}{x}$, nie $y$. Nezabudni na spätnú substitúciu $y = ux$.` }] : [],
         steps: [
-          { q: `Po substitúcii $y = ux$ dostaneš $u = ${cf(a, '\\ln x')} + C$. Urči $C$ zo začiatočnej podmienky.`, answer: b, signed: true, hint: 'Pri $x = 1$ je $u(1) = y(1)$.' },
-          { q: `Vypočítaj $u(${x1})$. ${ROUND2}`, answer: u1, tol: T2, show: dt(u1), signed: true },
-          { q: `Vypočítaj $y(${x1})$. ${ROUND2}`, answer: val, tol: T2, show: dt(val), signed: true }
+          { q: T`Po substitúcii $y = ux$ dostaneš $u = ${cf(a, '\\ln x')} + C$. Urči $C$ zo začiatočnej podmienky.`, answer: b, signed: true, hint: T`Pri $x = 1$ je $u(1) = y(1)$.` },
+          { q: T`Vypočítaj $u(${x1})$. ${T.s(ROUND2)}`, answer: u1, tol: T2, show: dt(u1), signed: true },
+          { q: T`Vypočítaj $y(${x1})$. ${T.s(ROUND2)}`, answer: val, tol: T2, show: dt(val), signed: true }
         ],
         signed: true, answer: val, tol: T2, show: dt(val),
-        q: `Vyrieš Cauchyho úlohu $${eq}$, $y(1) = ${b}$ (pre $x \\gt 0$), a vypočítaj $y(${x1})$. ${ROUND2}`,
-        solution: `Rovnica je homogénna: $y' = \\frac{y}{x}${term(a)}$. Substitúcia $y = ux$ dáva $u + xu' = u${term(a)}$, teda $u' = ${a < 0 ? '-' : ''}\\frac{${Math.abs(a)}}{x}$
+        q: T`Vyrieš Cauchyho úlohu $${eq}$, $y(1) = ${b}$ (pre $x \\gt 0$), a vypočítaj $y(${x1})$. ${T.s(ROUND2)}`,
+        solution: T`Rovnica je homogénna: $y' = \\frac{y}{x}${term(a)}$. Substitúcia $y = ux$ dáva $u + xu' = u${term(a)}$, teda $u' = ${a < 0 ? '-' : ''}\\frac{${Math.abs(a)}}{x}$
           a $u = ${cf(a, '\\ln x')} + C$. Z podmienky $u(1) = ${b}$ je $C = ${b}$, preto $y = x(${cf(a, '\\ln x')}${term(b)})$ a
           $y(${x1}) = ${x1}(${cf(a, `\\ln ${x1}`)}${term(b)}) \\approx ${dd(val)}$.`,
-        hint: 'Zapíš rovnicu v tvare $y\' = \\frac{y}{x} + a$, dosaď $y = ux$, $y\' = u + xu\'$ a integruj.'
+        hint: T`Zapíš rovnicu v tvare $y' = \\frac{y}{x} + a$, dosaď $y = ux$, $y' = u + xu'$ a integruj.`
       };
     }
     if (t < 0.52) {
@@ -476,20 +478,20 @@
       const no2 = x1 * Math.sqrt(k * Math.log(x1) + c * c);
       return {
         mistakes: [
-          { value: no2, msg: 'Po integrovaní máš $\\frac{u^{2}}{2}$; pri vyjadrení $u^{2}$ musíš dvoma vynásobiť obe strany, teda aj člen s logaritmom.' },
-          { value: Math.sqrt(u2), msg: 'Vypočítal si $u = \\frac{y}{x}$, nie $y$. Nezabudni na spätnú substitúciu $y = ux$.' }
+          { value: no2, msg: T`Po integrovaní máš $\\frac{u^{2}}{2}$; pri vyjadrení $u^{2}$ musíš dvoma vynásobiť obe strany, teda aj člen s logaritmom.` },
+          { value: Math.sqrt(u2), msg: T`Vypočítal si $u = \\frac{y}{x}$, nie $y$. Nezabudni na spätnú substitúciu $y = ux$.` }
         ],
         steps: [
-          { q: `Po substitúcii $y = ux$ a integrovaní vyjadri $u^{2}$ a vypočítaj $u(${x1})^{2}$. ${ROUND2}`, answer: u2, tol: T2, show: dt(u2) },
-          { q: `Vypočítaj $u(${x1})$. ${ROUND2}`, answer: Math.sqrt(u2), tol: T2, show: dt(Math.sqrt(u2)) },
-          { q: `Vypočítaj $y(${x1})$. ${ROUND2}`, answer: val, tol: T2, show: dt(val) }
+          { q: T`Po substitúcii $y = ux$ a integrovaní vyjadri $u^{2}$ a vypočítaj $u(${x1})^{2}$. ${T.s(ROUND2)}`, answer: u2, tol: T2, show: dt(u2) },
+          { q: T`Vypočítaj $u(${x1})$. ${T.s(ROUND2)}`, answer: Math.sqrt(u2), tol: T2, show: dt(Math.sqrt(u2)) },
+          { q: T`Vypočítaj $y(${x1})$. ${T.s(ROUND2)}`, answer: val, tol: T2, show: dt(val) }
         ],
         answer: val, tol: T2, show: dt(val),
-        q: `Vyrieš Cauchyho úlohu $xyy' = y^{2}${term(k, 'x^{2}')}$, $y(1) = ${c}$ (pre $x \\gt 0$), a vypočítaj $y(${x1})$. ${ROUND2}`,
-        solution: `Po vydelení $xy$: $y' = \\frac{y}{x} + ${k === 1 ? '' : k}\\frac{x}{y}$. Substitúcia $y = ux$: $u + xu' = u + \\frac{${k}}{u}$, teda $u\\,du = ${k === 1 ? '' : k}\\frac{dx}{x}$
+        q: T`Vyrieš Cauchyho úlohu $xyy' = y^{2}${term(k, 'x^{2}')}$, $y(1) = ${c}$ (pre $x \\gt 0$), a vypočítaj $y(${x1})$. ${T.s(ROUND2)}`,
+        solution: T`Po vydelení $xy$: $y' = \\frac{y}{x} + ${k === 1 ? '' : k}\\frac{x}{y}$. Substitúcia $y = ux$: $u + xu' = u + \\frac{${k}}{u}$, teda $u\\,du = ${k === 1 ? '' : k}\\frac{dx}{x}$
           a $\\frac{u^{2}}{2} = ${cf(k, '\\ln x')} + C$. Z podmienky $u(1) = ${c}$ máme $u^{2} = ${cf(2 * k, '\\ln x')} + ${c * c}$, a keďže $y \\gt 0$,
           $y = x\\sqrt{${cf(2 * k, '\\ln x')} + ${c * c}}$. Potom $y(${x1}) = ${x1}\\sqrt{${cf(2 * k, `\\ln ${x1}`)} + ${c * c}} \\approx ${dd(val)}$.`,
-        hint: 'Vydeľ rovnicu výrazom $xy$, dostaneš $y\' = \\frac{y}{x} + k\\frac{x}{y}$. Potom použi substitúciu $y = ux$.'
+        hint: T`Vydeľ rovnicu výrazom $xy$, dostaneš $y' = \\frac{y}{x} + k\\frac{x}{y}$. Potom použi substitúciu $y = ux$.`
       };
     }
     if (t < 0.77) {
@@ -497,20 +499,20 @@
       const val = b * x1 / (1 - b * Math.log(x1)), u1 = b / (1 - b * Math.log(x1)), wr = b * x1 / (1 + b * Math.log(x1));
       return {
         mistakes: [
-          ...(Math.abs(u1 - val) > T2 ? [{ value: u1, msg: 'Vypočítal si hodnotu $u = \\frac{y}{x}$, nie $y$. Nezabudni na spätnú substitúciu $y = ux$.' }] : []),
-          ...(Number.isFinite(wr) && Math.abs(wr - val) > T2 ? [{ value: wr, msg: 'Pozor na znamienko: $\\int u^{-2}\\,du = -\\frac{1}{u}$.' }] : [])
+          ...(Math.abs(u1 - val) > T2 ? [{ value: u1, msg: T`Vypočítal si hodnotu $u = \\frac{y}{x}$, nie $y$. Nezabudni na spätnú substitúciu $y = ux$.` }] : []),
+          ...(Number.isFinite(wr) && Math.abs(wr - val) > T2 ? [{ value: wr, msg: T`Pozor na znamienko: $\\int u^{-2}\\,du = -\\frac{1}{u}$.` }] : [])
         ],
         steps: [
-          { q: 'Po integrovaní máš $-\\frac{1}{u} = \\ln x + C$. Urči $C$ (zlomok alebo celé číslo).', answer: -1 / b, show: fTxt(-1, b), tol: 1e-4, signed: true },
-          { q: `Vypočítaj $u(${x1})$. ${ROUND2}`, answer: u1, tol: T2, show: dt(u1), signed: true },
-          { q: `Vypočítaj $y(${x1})$. ${ROUND2}`, answer: val, tol: T2, show: dt(val), signed: true }
+          { q: T`Po integrovaní máš $-\\frac{1}{u} = \\ln x + C$. Urči $C$ (zlomok alebo celé číslo).`, answer: -1 / b, show: fTxt(-1, b), tol: 1e-4, signed: true },
+          { q: T`Vypočítaj $u(${x1})$. ${T.s(ROUND2)}`, answer: u1, tol: T2, show: dt(u1), signed: true },
+          { q: T`Vypočítaj $y(${x1})$. ${T.s(ROUND2)}`, answer: val, tol: T2, show: dt(val), signed: true }
         ],
         signed: true, answer: val, tol: T2, show: dt(val),
-        q: `Vyrieš Cauchyho úlohu $x^{2}y' = y^{2} + xy$, $y(1) = ${b}$ (pre $x \\gt 0$), a vypočítaj $y(${x1})$. ${ROUND2}`,
-        solution: `Po vydelení $x^{2}$: $y' = \\left(\\frac{y}{x}\\right)^{2} + \\frac{y}{x}$. Substitúcia $y = ux$: $u + xu' = u^{2} + u$, teda $\\frac{du}{u^{2}} = \\frac{dx}{x}$
+        q: T`Vyrieš Cauchyho úlohu $x^{2}y' = y^{2} + xy$, $y(1) = ${b}$ (pre $x \\gt 0$), a vypočítaj $y(${x1})$. ${T.s(ROUND2)}`,
+        solution: T`Po vydelení $x^{2}$: $y' = \\left(\\frac{y}{x}\\right)^{2} + \\frac{y}{x}$. Substitúcia $y = ux$: $u + xu' = u^{2} + u$, teda $\\frac{du}{u^{2}} = \\frac{dx}{x}$
           (riešenie $u = 0$ podmienku nespĺňa). Integrujeme: $-\\frac{1}{u} = \\ln x + C$, z podmienky $C = ${fTex(-1, b)}$.
           Odtiaľ $u = \\frac{${b}}{1${term(-b, '\\ln x')}}$ a $y = \\frac{${cf(b, 'x')}}{1${term(-b, '\\ln x')}}$, takže $y(${x1}) \\approx ${dd(val)}$.`,
-        hint: 'Vydeľ rovnicu $x^{2}$, dosaď $y = ux$ a oddeľ premenné $\\frac{du}{u^{2}} = \\frac{dx}{x}$.'
+        hint: T`Vydeľ rovnicu $x^{2}$, dosaď $y = ux$ a oddeľ premenné $\\frac{du}{u^{2}} = \\frac{dx}{x}$.`
       };
     }
     const a = rnd(1, 4), b = nz(-3, 3), c = rnd(1, 3), d = nz(-3, 3);
@@ -522,10 +524,10 @@
       `${cf(c, 'xy')}${term(b, 'y^{2}')}`
     ]).slice(0, 3);
     const HH = {
-      [`\\frac{${cf(a, 'x^{2}')}${term(b, 'y')}}{xy}`]: 'V čitateli sú členy rôznych stupňov ($x^{2}$ je stupňa 2, $y$ stupňa 1), takže sa $t$ po dosadení nevykráti.',
-      [`\\frac{x${term(b, 'y')}${term(c)}}{x${term(d, 'y')}}`]: 'Absolútny člen v čitateli kazí homogenitu. Takú rovnicu treba najprv posunúť do priesečníka priamok.',
-      [`\\frac{y}{x}${term(a, 'x')}`]: 'Člen $\\frac{y}{x}$ je v poriadku, ale druhý člen nezávisí len od podielu $\\frac{y}{x}$.',
-      [`${cf(c, 'xy')}${term(b, 'y^{2}')}`]: 'Pravá strana je homogénna stupňa 2, nie 0: po dosadení $tx$, $ty$ sa vynásobí $t^{2}$. Tvar $\\varphi\\left(\\frac{y}{x}\\right)$ vyžaduje stupeň 0.'
+      [`\\frac{${cf(a, 'x^{2}')}${term(b, 'y')}}{xy}`]: T`V čitateli sú členy rôznych stupňov ($x^{2}$ je stupňa 2, $y$ stupňa 1), takže sa $t$ po dosadení nevykráti.`,
+      [`\\frac{x${term(b, 'y')}${term(c)}}{x${term(d, 'y')}}`]: T`Absolútny člen v čitateli kazí homogenitu. Takú rovnicu treba najprv posunúť do priesečníka priamok.`,
+      [`\\frac{y}{x}${term(a, 'x')}`]: T`Člen $\\frac{y}{x}$ je v poriadku, ale druhý člen nezávisí len od podielu $\\frac{y}{x}$.`,
+      [`${cf(c, 'xy')}${term(b, 'y^{2}')}`]: T`Pravá strana je homogénna stupňa 2, nie 0: po dosadení $tx$, $ty$ sa vynásobí $t^{2}$. Tvar $\\varphi\\left(\\frac{y}{x}\\right)$ vyžaduje stupeň 0.`
     };
     const choiceHints = {};
     other.forEach((s) => { if (HH[s]) choiceHints[`$y' = ${s}$`] = HH[s]; });
@@ -533,11 +535,11 @@
       choiceHints,
       type: 'choice', answer: `$y' = ${homog}$`,
       options: shuffle([homog, ...other].map((s) => `$y' = ${s}$`)),
-      q: 'Ktorá z rovníc je homogénna, teda dá sa zapísať v tvare $y\' = \\varphi\\left(\\frac{y}{x}\\right)$?',
-      solution: `Rovnica $y' = ${homog}$ má v čitateli aj v menovateli homogénne funkcie rovnakého stupňa, preto po dosadení $x \\to tx$, $y \\to ty$
+      q: T`Ktorá z rovníc je homogénna, teda dá sa zapísať v tvare $y' = \\varphi\\left(\\frac{y}{x}\\right)$?`,
+      solution: T`Rovnica $y' = ${homog}$ má v čitateli aj v menovateli homogénne funkcie rovnakého stupňa, preto po dosadení $x \\to tx$, $y \\to ty$
         sa $t$ vykráti a pravá strana závisí len od $\\frac{y}{x}$. Ostatné rovnice obsahujú členy rôznych stupňov alebo absolútny člen,
         po dosadení $tx$ a $ty$ sa preto $t$ nevykráti.`,
-      hint: 'Dosaď $tx$ namiesto $x$ a $ty$ namiesto $y$. Pri homogénnej rovnici sa pravá strana nezmení.'
+      hint: T`Dosaď $tx$ namiesto $x$ a $ty$ namiesto $y$. Pri homogénnej rovnici sa pravá strana nezmení.`
     };
   });
 
@@ -582,36 +584,36 @@
       const Aw = c !== a ? b / (c - a) : NaN;
       return {
         mistakes: [
-          ...(Number.isFinite(Aw) && Math.abs(Aw - A) > 1e-6 ? [{ value: [Aw, y0 - Aw], msg: `Po dosadení $y_p = A${ex(c)}$ dostaneš $A(c + a) = b$: derivácia dá $c$ a člen $${cf(a, 'y')}$ pridá $+a$, nie $-a$.` }] : []),
-          { value: [A, y0], msg: 'Pri $x = 0$ sú obe exponenciály rovné 1, takže $y(0) = A + B$. Hodnotu $A$ treba od $y(0)$ odčítať.' }
+          ...(Number.isFinite(Aw) && Math.abs(Aw - A) > 1e-6 ? [{ value: [Aw, y0 - Aw], msg: T`Po dosadení $y_p = A${ex(c)}$ dostaneš $A(c + a) = b$: derivácia dá $c$ a člen $${cf(a, 'y')}$ pridá $+a$, nie $-a$.` }] : []),
+          { value: [A, y0], msg: T`Pri $x = 0$ sú obe exponenciály rovné 1, takže $y(0) = A + B$. Hodnotu $A$ treba od $y(0)$ odčítať.` }
         ],
         steps: [
-          { q: `Dosaď $y_p = A${ex(c)}$ do rovnice a urči $A$.`, answer: A, signed: true },
-          { q: 'Zo začiatočnej podmienky urči $B$.', answer: B, signed: true }
+          { q: T`Dosaď $y_p = A${ex(c)}$ do rovnice a urči $A$.`, answer: A, signed: true },
+          { q: T`Zo začiatočnej podmienky urči $B$.`, answer: B, signed: true }
         ],
         type: 'tuple', signed: true, answer: [A, B], placeholder: 'A; B',
-        q: `Riešenie Cauchyho úlohy $y'${term(a, 'y')} = ${cf(b, ex(c))}$, $y(0) = ${y0}$ má tvar $y = A${ex(c)} + B${ex(-a)}$. Urči $A$ a $B$.`,
-        solution: `Integračný faktor je $\\mu = ${ex(a)}$: $(y${ex(a)})' = ${cf(b, ex(a + c))}$. Integrovaním $y${ex(a)} = ${cfr(b, a + c, ex(a + c))} + B$,
+        q: T`Riešenie Cauchyho úlohy $y'${term(a, 'y')} = ${cf(b, ex(c))}$, $y(0) = ${y0}$ má tvar $y = A${ex(c)} + B${ex(-a)}$. Urči $A$ a $B$.`,
+        solution: T`Integračný faktor je $\\mu = ${ex(a)}$: $(y${ex(a)})' = ${cf(b, ex(a + c))}$. Integrovaním $y${ex(a)} = ${cfr(b, a + c, ex(a + c))} + B$,
           teda $y = ${cf(A, ex(c))} + B${ex(-a)}$ (partikulárne riešenie môžeme nájsť aj dosadením $y_p = A${ex(c)}$: $A(${c}${term(a)}) = ${b}$, $A = ${A}$).
           Z podmienky $${A} + B = ${y0}$, teda $B = ${B}$. Odpoveď: $A = ${A}$, $B = ${B}$.`,
-        hint: 'Partikulárne riešenie hľadaj v tvare $A\\mathrm{e}^{cx}$ (dosaď do rovnice), konštantu $B$ urči zo začiatočnej podmienky.'
+        hint: T`Partikulárne riešenie hľadaj v tvare $A\\mathrm{e}^{cx}$ (dosaď do rovnice), konštantu $B$ urči zo začiatočnej podmienky.`
       };
     }
     if (t < 0.55) {
       const n = rnd(1, 3), m = rnd(0, 3), C = rnd(-4, 4), y0 = 1 + C;
       const num = Math.pow(2, m + n) + C, den = Math.pow(2, n);
       return {
-        mistakes: C !== 0 ? [{ value: Math.pow(2, m) + C, msg: `Konštanta $C$ v riešení je delená integračným faktorom $${xp(n)}$; pri $x = 2$ ju treba tiež vydeliť.` }] : [],
+        mistakes: C !== 0 ? [{ value: Math.pow(2, m) + C, msg: T`Konštanta $C$ v riešení je delená integračným faktorom $${xp(n)}$; pri $x = 2$ ju treba tiež vydeliť.` }] : [],
         steps: [
-          { q: `Integračný faktor je $${xp(n)}$ a riešenie má tvar $y = ${m === 0 ? '1' : xp(m)} + \\frac{C}{${xp(n)}}$. Urči $C$ zo začiatočnej podmienky.`, answer: C, signed: true },
-          { q: 'Vypočítaj $y(2)$ (zlomok alebo desatinné číslo).', answer: num / den, show: fTxt(num, den), tol: 1e-4, signed: true }
+          { q: T`Integračný faktor je $${xp(n)}$ a riešenie má tvar $y = ${m === 0 ? '1' : xp(m)} + \\frac{C}{${xp(n)}}$. Urči $C$ zo začiatočnej podmienky.`, answer: C, signed: true },
+          { q: T`Vypočítaj $y(2)$ (zlomok alebo desatinné číslo).`, answer: num / den, show: fTxt(num, den), tol: 1e-4, signed: true }
         ],
         signed: true, answer: num / den, show: fTxt(num, den), tol: 1e-4,
-        q: `Vyrieš Cauchyho úlohu $xy'${term(n, 'y')} = ${cf(m + n, xp(m))}$, $y(1) = ${y0}$, pre $x \\gt 0$ a vypočítaj $y(2)$. Výsledok zadaj presne (zlomok alebo desatinné číslo).`,
-        solution: `Po vydelení $x$: $y' + \\frac{${n}}{x}y = ${m === 0 ? `\\frac{${n}}{x}` : cf(m + n, xp(m - 1))}$. Integračný faktor je $\\mathrm{e}^{${n}\\ln x} = ${xp(n)}$,
+        q: T`Vyrieš Cauchyho úlohu $xy'${term(n, 'y')} = ${cf(m + n, xp(m))}$, $y(1) = ${y0}$, pre $x \\gt 0$ a vypočítaj $y(2)$. Výsledok zadaj presne (zlomok alebo desatinné číslo).`,
+        solution: T`Po vydelení $x$: $y' + \\frac{${n}}{x}y = ${m === 0 ? `\\frac{${n}}{x}` : cf(m + n, xp(m - 1))}$. Integračný faktor je $\\mathrm{e}^{${n}\\ln x} = ${xp(n)}$,
           rovnica prejde na $(${xp(n)}y)' = ${cf(m + n, xp(m + n - 1))}$, teda $${xp(n)}y = ${xp(m + n)} + C$ a $y = ${m === 0 ? '1' : xp(m)} + \\frac{C}{${xp(n)}}$.
           Z podmienky $1 + C = ${y0}$, $C = ${C}$. Potom $y(2) = ${Math.pow(2, m)}${C === 0 ? '' : `${sg(fTex(C, den))} = ${fTex(num, den)}`}$.`,
-        hint: 'Vydeľ rovnicu $x$ a použi integračný faktor $\\mu = \\mathrm{e}^{\\int p\\,dx}$; pri $p = \\frac{n}{x}$ je $\\mu = x^{n}$.'
+        hint: T`Vydeľ rovnicu $x$ a použi integračný faktor $\\mu = \\mathrm{e}^{\\int p\\,dx}$; pri $p = \\frac{n}{x}$ je $\\mu = x^{n}$.`
       };
     }
     if (t < 0.8) {
@@ -622,22 +624,22 @@
       const nTex = fTex(N[0], N[1]);
       return {
         mistakes: [
-          { value: [kn / kd, p, q], msg: 'Po dosadení $z\' = (1-n)y^{-n}y\'$ treba celú rovnicu vynásobiť číslom $1 - n$, teda aj koeficienty $p$ a $q$.' },
-          { value: [-kn / kd, -kn * p / kd, -kn * q / kd], msg: 'Substitúcia je $z = y^{1-n}$, nie $y^{n-1}$: exponent má odstrániť mocninu $y^{n}$ po vydelení rovnice.' }
+          { value: [kn / kd, p, q], msg: T`Po dosadení $z' = (1-n)y^{-n}y'$ treba celú rovnicu vynásobiť číslom $1 - n$, teda aj koeficienty $p$ a $q$.` },
+          { value: [-kn / kd, -kn * p / kd, -kn * q / kd], msg: T`Substitúcia je $z = y^{1-n}$, nie $y^{n-1}$: exponent má odstrániť mocninu $y^{n}$ po vydelení rovnice.` }
         ],
         steps: [
-          { q: 'Urči exponent $k$ v substitúcii $z = y^{k}$ (zlomok v tvare $a/b$).', answer: kn / kd, show: fTxt(kn, kd), tol: 1e-6, signed: true },
-          { q: 'Urči koeficient $P$ pri $z$.', answer: kn * p / kd, show: fTxt(kn * p, kd), signed: true },
-          { q: 'Urči pravú stranu $Q$.', answer: kn * q / kd, show: fTxt(kn * q, kd), signed: true }
+          { q: T`Urči exponent $k$ v substitúcii $z = y^{k}$ (zlomok v tvare $a/b$).`, answer: kn / kd, show: fTxt(kn, kd), tol: 1e-6, signed: true },
+          { q: T`Urči koeficient $P$ pri $z$.`, answer: kn * p / kd, show: fTxt(kn * p, kd), signed: true },
+          { q: T`Urči pravú stranu $Q$.`, answer: kn * q / kd, show: fTxt(kn * q, kd), signed: true }
         ],
         type: 'tuple', signed: true, answer: [kn / kd, kn * p / kd, kn * q / kd], placeholder: 'k; P; Q',
         show: `${fTxt(kn, kd)}; ${fTxt(kn * p, kd)}; ${fTxt(kn * q, kd)}`,
-        q: `Bernoulliho rovnicu $y'${term(p, 'y')} = ${rhs}$ prevedieme substitúciou $z = y^{k}$ na lineárnu rovnicu $z' + Pz = Q$ s konštantnými koeficientmi.
+        q: T`Bernoulliho rovnicu $y'${term(p, 'y')} = ${rhs}$ prevedieme substitúciou $z = y^{k}$ na lineárnu rovnicu $z' + Pz = Q$ s konštantnými koeficientmi.
           Urči $k$, $P$ a $Q$ (zlomky zapisuj v tvare $a/b$).`,
-        solution: `Tu $n = ${nTex}$, substitúcia je $z = y^{1-n}$, teda $k = 1 - ${par(nTex)} = ${fTex(kn, kd)}$. Vydelením rovnice $y^{${nTex}}$ dostaneme
+        solution: T`Tu $n = ${nTex}$, substitúcia je $z = y^{1-n}$, teda $k = 1 - ${par(nTex)} = ${fTex(kn, kd)}$. Vydelením rovnice $y^{${nTex}}$ dostaneme
           $y^{-n}y'${term(p, 'y^{1-n}')} = ${q}$. Keďže $z' = (1-n)y^{-n}y'$, po vynásobení rovnice číslom $1 - n = ${fTex(kn, kd)}$ máme $z'${sg(cfr(kn * p, kd, 'z'))} = ${fTex(kn * q, kd)}$.
           Teda $P = (1-n)p = ${fTex(kn * p, kd)}$ a $Q = (1-n)q = ${fTex(kn * q, kd)}$.`,
-        hint: 'Pre $y\' + py = qy^{n}$ je $z = y^{1-n}$ a $z\' + (1-n)pz = (1-n)q$.'
+        hint: T`Pre $y' + py = qy^{n}$ je $z = y^{1-n}$ a $z' + (1-n)pz = (1-n)q$.`
       };
     }
     const a = nz(-4, 4), b = nz(-6, 6);
@@ -645,15 +647,15 @@
     const opts = [ok, `y = ${fTex(b, a)} + C${ex(a)}`, `y = ${fTex(-b, a)} + C${ex(-a)}`, `y = \\left(${fTex(b, a)} + C\\right)${ex(-a)}`];
     return {
       choiceHints: {
-        [`$${opts[1]}$`]: `Homogénna rovnica $y'${term(a, 'y')} = 0$ dáva $y' = ${cf(-a, 'y')}$; skontroluj znamienko v exponente.`,
-        [`$${opts[2]}$`]: 'Dosaď konštantu $y_p = K$ do rovnice ($y_p\' = 0$) a pozorne vyjadri $K$.',
-        [`$${opts[3]}$`]: 'Riešenie je súčet $y_h + y_p$: konštantné partikulárne riešenie sa exponenciálou nenásobí.'
+        [`$${opts[1]}$`]: T`Homogénna rovnica $y'${term(a, 'y')} = 0$ dáva $y' = ${cf(-a, 'y')}$; skontroluj znamienko v exponente.`,
+        [`$${opts[2]}$`]: T`Dosaď konštantu $y_p = K$ do rovnice ($y_p' = 0$) a pozorne vyjadri $K$.`,
+        [`$${opts[3]}$`]: T`Riešenie je súčet $y_h + y_p$: konštantné partikulárne riešenie sa exponenciálou nenásobí.`
       },
       type: 'choice', answer: `$${ok}$`, options: shuffle(opts.map((s) => `$${s}$`)),
-      q: `Ktorá funkcia je všeobecným riešením rovnice $y'${term(a, 'y')} = ${b}$?`,
-      solution: `Homogénna rovnica $y'${term(a, 'y')} = 0$ má riešenie $y_h = C${ex(-a)}$. Partikulárne riešenie hľadáme ako konštantu $y_p = K$:
+      q: T`Ktorá funkcia je všeobecným riešením rovnice $y'${term(a, 'y')} = ${b}$?`,
+      solution: T`Homogénna rovnica $y'${term(a, 'y')} = 0$ má riešenie $y_h = C${ex(-a)}$. Partikulárne riešenie hľadáme ako konštantu $y_p = K$:
         $${a}K = ${b}$, teda $K = ${fTex(b, a)}$. Všeobecné riešenie je $${ok}$.`,
-      hint: 'Riešenie je súčet $y_h$ (exponenciála so záporne vzatým koeficientom pri $y$) a konštantného partikulárneho riešenia.'
+      hint: T`Riešenie je súčet $y_h$ (exponenciála so záporne vzatým koeficientom pri $y$) a konštantného partikulárneho riešenia.`
     };
   });
 
@@ -736,23 +738,23 @@
       const cX = evalXY(withX, x0, y0), cY = evalXY(onlyY, x0, y0), dbl = cX + evalXY(F.filter((s) => s.py > 0), x0, y0);
       const o = {
         mistakes: [
-          ...(cY !== 0 ? [{ value: cX, msg: 'Zabudol si na funkciu $\\varphi(y)$: po integrovaní $M$ podľa $x$ ju treba dourčiť z podmienky $F_y = N$.' }] : []),
-          ...(dbl !== C ? [{ value: dbl, msg: 'Nesčítavaj integrál $M$ podľa $x$ a integrál $N$ podľa $y$: zmiešané členy by si tak započítal dvakrát. Z $N$ ber len členy, ktoré ešte chýbajú.' }] : [])
+          ...(cY !== 0 ? [{ value: cX, msg: T`Zabudol si na funkciu $\\varphi(y)$: po integrovaní $M$ podľa $x$ ju treba dourčiť z podmienky $F_y = N$.` }] : []),
+          ...(dbl !== C ? [{ value: dbl, msg: T`Nesčítavaj integrál $M$ podľa $x$ a integrál $N$ podľa $y$: zmiešané členy by si tak započítal dvakrát. Z $N$ ber len členy, ktoré ešte chýbajú.` }] : [])
         ],
         signed: true, answer: C,
-        q: `Rovnica $(${polyXY(M)})\\,dx + (${polyXY(N)})\\,dy = 0$ je exaktná. Jej všeobecný integrál zapíšeme v tvare $F(x, y) = C$, kde $F(0, 0) = 0$.
+        q: T`Rovnica $(${polyXY(M)})\\,dx + (${polyXY(N)})\\,dy = 0$ je exaktná. Jej všeobecný integrál zapíšeme v tvare $F(x, y) = C$, kde $F(0, 0) = 0$.
           Urči $C$ pre integrálnu krivku, ktorá prechádza bodom $[${x0}; ${y0}]$.`,
-        solution: `Overenie: $\\frac{\\partial M}{\\partial y} = ${polyXY(dY(M))} = \\frac{\\partial N}{\\partial x}$.
+        solution: T`Overenie: $\\frac{\\partial M}{\\partial y} = ${polyXY(dY(M))} = \\frac{\\partial N}{\\partial x}$.
           Integrovaním $M$ podľa $x$: $F = ${polyXY(withX)} + \\varphi(y)$. Z podmienky $F_y = N$ vyjde
-          ${onlyY.length ? `$\\varphi'(y) = ${polyXY(dY(onlyY))}$, teda $\\varphi(y) = ${polyXY(onlyY)}$` : '$\\varphi\'(y) = 0$, teda $\\varphi$ je konštanta, ktorú volíme nulovú'}.
+          ${onlyY.length ? T`$\\varphi'(y) = ${polyXY(dY(onlyY))}$, teda $\\varphi(y) = ${polyXY(onlyY)}$` : T`$\\varphi'(y) = 0$, teda $\\varphi$ je konštanta, ktorú volíme nulovú`}.
           Preto $F(x, y) = ${polyXY(F)}$ a $C = F(${x0}, ${y0}) = ${C}$.`,
-        hint: 'Integruj $M$ podľa $x$, doplň neznámu funkciu $\\varphi(y)$ a urči ju porovnaním $F_y$ s $N$. Nakoniec dosaď bod.'
+        hint: T`Integruj $M$ podľa $x$, doplň neznámu funkciu $\\varphi(y)$ a urči ju porovnaním $F_y$ s $N$. Nakoniec dosaď bod.`
       };
       if (onlyY.length) {
         o.steps = [
-          { q: `Integruj $M$ podľa $x$ (bez $\\varphi(y)$) a túto časť $F$ vyčísli v bode $[${x0}; ${y0}]$.`, answer: cX, signed: true },
-          { q: `Urči $\\varphi(y)$ s $\\varphi(0) = 0$ z podmienky $F_y = N$ a vypočítaj $\\varphi(${y0})$.`, answer: cY, signed: true },
-          { q: `Urči $C = F(${x0}, ${y0})$.`, answer: C, signed: true }
+          { q: T`Integruj $M$ podľa $x$ (bez $\\varphi(y)$) a túto časť $F$ vyčísli v bode $[${x0}; ${y0}]$.`, answer: cX, signed: true },
+          { q: T`Urči $\\varphi(y)$ s $\\varphi(0) = 0$ z podmienky $F_y = N$ a vypočítaj $\\varphi(${y0})$.`, answer: cY, signed: true },
+          { q: T`Urči $C = F(${x0}, ${y0})$.`, answer: C, signed: true }
         ];
       }
       return o;
@@ -765,13 +767,13 @@
       const Nshow = rest.length ? `${aTerm}${sg(polyXY(rest))}` : aTerm;
       const mon = mono(s.px - 1, s.py - 1);
       return {
-        mistakes: s.px !== 1 ? [{ value: s.c * s.px * s.py, msg: `Pri derivovaní $${aTerm}$ podľa $x$ vznikne koeficient $${s.px}a$; rovnosť koeficientov treba ešte vydeliť číslom $${s.px}$.` }] : [],
+        mistakes: s.px !== 1 ? [{ value: s.c * s.px * s.py, msg: T`Pri derivovaní $${aTerm}$ podľa $x$ vznikne koeficient $${s.px}a$; rovnosť koeficientov treba ešte vydeliť číslom $${s.px}$.` }] : [],
         signed: true, answer: s.c * s.py,
-        q: `Pre akú hodnotu parametra $a$ je rovnica $(${polyXY(M)})\\,dx + (${Nshow})\\,dy = 0$ exaktná?`,
-        solution: `Podmienka exaktnosti je $M_y = N_x$. Máme $M_y = ${polyXY(dY(M))}$ a $N_x = ${s.px === 1 ? '' : s.px}a${mon}${rest.length && dX(rest).length ? sg(polyXY(dX(rest))) : ''}$.
-          Porovnaním koeficientov pri ${mon ? `$${mon}$` : 'absolútnom člene'} dostaneme $${s.px === 1 ? '' : s.px}a = ${s.c * s.px * s.py}$${s.px === 1 ? '' : `, teda $a = ${s.c * s.py}$`}.
+        q: T`Pre akú hodnotu parametra $a$ je rovnica $(${polyXY(M)})\\,dx + (${Nshow})\\,dy = 0$ exaktná?`,
+        solution: T`Podmienka exaktnosti je $M_y = N_x$. Máme $M_y = ${polyXY(dY(M))}$ a $N_x = ${s.px === 1 ? '' : s.px}a${mon}${rest.length && dX(rest).length ? sg(polyXY(dX(rest))) : ''}$.
+          Porovnaním koeficientov pri ${mon ? `$${mon}$` : T`absolútnom člene`} dostaneme $${s.px === 1 ? '' : s.px}a = ${s.c * s.px * s.py}$${s.px === 1 ? '' : T`, teda $a = ${s.c * s.py}$`}.
           Kmeňová funkcia je potom $F = ${polyXY(F)}$.`,
-        hint: 'Vypočítaj $\\frac{\\partial M}{\\partial y}$ a $\\frac{\\partial N}{\\partial x}$ a porovnaj koeficienty pri rovnakých mocninách.'
+        hint: T`Vypočítaj $\\frac{\\partial M}{\\partial y}$ a $\\frac{\\partial N}{\\partial x}$ a porovnaj koeficienty pri rovnakých mocninách.`
       };
     }
     let a, b;
@@ -779,17 +781,17 @@
     const k = (a - b) / b, c = nz(-3, 3), s = rnd(0, 2);
     const Mtex = lin([[a, 'y'], [c, xp(s)]]);
     return {
-      mistakes: b !== 1 && a - b !== k ? [{ value: a - b, msg: `Rozdiel $M_y - N_x$ treba ešte vydeliť funkciou $N = ${cf(b, 'x')}$, nie len premennou $x$.` }] : [],
+      mistakes: b !== 1 && a - b !== k ? [{ value: a - b, msg: T`Rozdiel $M_y - N_x$ treba ešte vydeliť funkciou $N = ${cf(b, 'x')}$, nie len premennou $x$.` }] : [],
       steps: [
-        { q: 'Vypočítaj $M_y - N_x$.', answer: a - b, signed: true },
-        { q: 'Výraz $\\frac{M_y - N_x}{N}$ má tvar $\\frac{k}{x}$. Urči $k$.', answer: k, signed: true }
+        { q: T`Vypočítaj $M_y - N_x$.`, answer: a - b, signed: true },
+        { q: T`Výraz $\\frac{M_y - N_x}{N}$ má tvar $\\frac{k}{x}$. Urči $k$.`, answer: k, signed: true }
       ],
       signed: true, answer: k,
-      q: `Rovnica $(${Mtex})\\,dx ${b > 0 ? '+' : '-'} ${cf(Math.abs(b), 'x')}\\,dy = 0$ ($x \\gt 0$) nie je exaktná. Má integračný faktor tvaru $\\mu = x^{k}$. Urči $k$.`,
-      solution: `$M_y = ${a}$, $N_x = ${b}$, teda $\\frac{M_y - N_x}{N} = \\frac{${a} - ${par(b)}}{${cf(b, 'x')}} = ${k < 0 ? '-' : ''}\\frac{${Math.abs(k)}}{x}$ závisí len od $x$.
+      q: T`Rovnica $(${Mtex})\\,dx ${b > 0 ? '+' : '-'} ${cf(Math.abs(b), 'x')}\\,dy = 0$ ($x \\gt 0$) nie je exaktná. Má integračný faktor tvaru $\\mu = x^{k}$. Urči $k$.`,
+      solution: T`$M_y = ${a}$, $N_x = ${b}$, teda $\\frac{M_y - N_x}{N} = \\frac{${a} - ${par(b)}}{${cf(b, 'x')}} = ${k < 0 ? '-' : ''}\\frac{${Math.abs(k)}}{x}$ závisí len od $x$.
         Preto $\\mu = \\mathrm{e}^{\\int ${k}/x\\,dx} = \\mathrm{e}^{${cf(k, '\\ln x')}} = x^{${k}}$, $k = ${k}$.
         Kontrola: $(\\mu M)_y = ${a === 0 ? '0' : cf(a, `x^{${k}}`)}$ a $(\\mu N)_x = ${k + 1 === 0 ? `(${b})_x = 0` : `(${cf(b, xp(k + 1))})_x = ${cf(b * (k + 1), `x^{${k}}`)}`}$.`,
-      hint: 'Vypočítaj $\\frac{M_y - N_x}{N}$. Ak vyjde $\\frac{k}{x}$, integračný faktor je $\\mathrm{e}^{k\\ln x} = x^{k}$.'
+      hint: T`Vypočítaj $\\frac{M_y - N_x}{N}$. Ak vyjde $\\frac{k}{x}$, integračný faktor je $\\mathrm{e}^{k\\ln x} = x^{k}$.`
     };
   });
 
@@ -810,12 +812,12 @@
         <path class="f-accent" d="${curvePath(p, expo, 0, 10)}"/>
         <circle class="f-dot" cx="${n1(p.X(0))}" cy="${n1(p.Y(1))}" r="5"/>`;
       let info;
-      if (Math.abs(k) < 1e-9) info = 'k = 0: veličina sa nemení';
-      else if (k > 0) info = `čas zdvojnásobenia ln 2 / k = ${sk(Math.log(2) / k)}`;
-      else info = `polčas ln 2 / |k| = ${sk(Math.log(2) / -k)}`;
+      if (Math.abs(k) < 1e-9) info = T.s('k = 0: veličina sa nemení');
+      else if (k > 0) info = T`čas zdvojnásobenia ln 2 / k = ${sk(Math.log(2) / k)}`;
+      else info = T`polčas ln 2 / |k| = ${sk(Math.log(2) / -k)}`;
       return {
         svg: svg(p, axes(p, 2, 2), clipped, '', 'Exponenciálny a logistický rast'),
-        readout: `<span class="c-accent">y = e<sup>${sk(k)}·t</sup></span> · ${info} · <span class="c-ok">logistická krivka s K = ${sk(K, 1)}</span>`
+        readout: `<span class="c-accent">y = e<sup>${sk(k)}·t</sup></span> · ${info} · <span class="c-ok">${T`logistická krivka s K = ${sk(K, 1)}`}</span>`
       };
     }
   });
@@ -859,99 +861,99 @@
   gen('v3-aplikacie', () => {
     const t = Math.random();
     if (t < 0.2) {
-      const U = pick(UNITS), T = pick([5, 8, 10, 12, 30]), m0 = pick([10, 20, 50, 80, 100, 200]);
+      const U = pick(UNITS), Th = pick([5, 8, 10, 12, 30]), m0 = pick([10, 20, 50, 80, 100, 200]);
       if (Math.random() < 0.5) {
-        const tt = rnd(2, 3 * T), val = m0 * Math.pow(2, -tt / T), wE = m0 * Math.exp(-tt / T);
+        const tt = rnd(2, 3 * Th), val = m0 * Math.pow(2, -tt / Th), wE = m0 * Math.exp(-tt / Th);
         return {
-          mistakes: [{ value: wE, msg: 'Konštanta rozpadu nie je $\\frac{1}{T}$, ale $k = \\frac{\\ln 2}{T}$: za čas $T$ musí množstvo klesnúť presne na polovicu.' }],
+          mistakes: [{ value: wE, msg: T`Konštanta rozpadu nie je $\\frac{1}{T}$, ale $k = \\frac{\\ln 2}{T}$: za čas $T$ musí množstvo klesnúť presne na polovicu.` }],
           steps: [
-            { q: `Koľko polčasov rozpadu uplynie za $${tt}$ ${pl(tt, U)}? ${ROUND2}`, answer: tt / T, tol: T2, show: dt(tt / T) },
-            { q: `Koľko gramov izotopu zostane? ${ROUND2}`, answer: val, tol: T2, show: dt(val) }
+            { q: T`Koľko polčasov rozpadu uplynie za $${tt}$ ${pl(tt, U)}? ${T.s(ROUND2)}`, answer: tt / Th, tol: T2, show: dt(tt / Th) },
+            { q: T`Koľko gramov izotopu zostane? ${T.s(ROUND2)}`, answer: val, tol: T2, show: dt(val) }
           ],
           answer: val, tol: T2, show: dt(val),
-          q: `Polčas rozpadu rádioaktívneho izotopu je $${T}$ ${pl(T, U)}. Vzorka obsahuje na začiatku $${m0}\\,\\mathrm{g}$ izotopu. Koľko gramov izotopu zostane za $${tt}$ ${pl(tt, U)}? ${ROUND2}`,
-          solution: `Rozpad sa riadi rovnicou $m' = -km$, teda $m(t) = m_0\\mathrm{e}^{-kt}$ s $k = \\frac{\\ln 2}{T}$, čiže $m(t) = m_0\\cdot 2^{-t/T}$.
-            $m(${tt}) = ${m0}\\cdot 2^{-${tt}/${T}} \\approx ${dd(val)}\\,\\mathrm{g}$.`,
-          hint: 'Za každý polčas klesne množstvo na polovicu: $m(t) = m_0\\cdot 2^{-t/T}$.'
+          q: T`Polčas rozpadu rádioaktívneho izotopu je $${Th}$ ${pl(Th, U)}. Vzorka obsahuje na začiatku $${m0}\\,\\mathrm{g}$ izotopu. Koľko gramov izotopu zostane za $${tt}$ ${pl(tt, U)}? ${T.s(ROUND2)}`,
+          solution: T`Rozpad sa riadi rovnicou $m' = -km$, teda $m(t) = m_0\\mathrm{e}^{-kt}$ s $k = \\frac{\\ln 2}{T}$, čiže $m(t) = m_0\\cdot 2^{-t/T}$.
+            $m(${tt}) = ${m0}\\cdot 2^{-${tt}/${Th}} \\approx ${dd(val)}\\,\\mathrm{g}$.`,
+          hint: T`Za každý polčas klesne množstvo na polovicu: $m(t) = m_0\\cdot 2^{-t/T}$.`
         };
       }
-      const pc = pick([10, 20, 25, 30, 40, 60, 75, 80, 90]), val = T * Math.log2(100 / pc);
+      const pc = pick([10, 20, 25, 30, 40, 60, 75, 80, 90]), val = Th * Math.log2(100 / pc);
       return {
-        mistakes: [{ value: T * Math.log(100 / pc), msg: 'Pri riešení $2^{-t/T} = p$ treba logaritmus podieliť číslom $\\ln 2$ (alebo použiť logaritmus so základom 2).' }],
+        mistakes: [{ value: Th * Math.log(100 / pc), msg: T`Pri riešení $2^{-t/T} = p$ treba logaritmus podieliť číslom $\\ln 2$ (alebo použiť logaritmus so základom 2).` }],
         answer: val, tol: T2, show: dt(val),
-        q: `Polčas rozpadu rádioaktívneho izotopu je $${T}$ ${pl(T, U)}. Za koľko ${U[2]} klesne jeho množstvo na $${pc}\\,\\%$ pôvodného množstva? ${ROUND2}`,
-        solution: `$m(t) = m_0\\cdot 2^{-t/${T}}$. Z podmienky $2^{-t/${T}} = ${dd(pc / 100)}$ logaritmovaním $t = ${T}\\cdot\\frac{\\ln(100/${pc})}{\\ln 2} \\approx ${dd(val)}$.`,
-        hint: 'Riešte rovnicu $2^{-t/T} = p$ logaritmovaním: $t = T\\,\\frac{\\ln(1/p)}{\\ln 2}$.'
+        q: T`Polčas rozpadu rádioaktívneho izotopu je $${Th}$ ${pl(Th, U)}. Za koľko ${U[2]} klesne jeho množstvo na $${pc}\\,\\%$ pôvodného množstva? ${T.s(ROUND2)}`,
+        solution: T`$m(t) = m_0\\cdot 2^{-t/${Th}}$. Z podmienky $2^{-t/${Th}} = ${dd(pc / 100)}$ logaritmovaním $t = ${Th}\\cdot\\frac{\\ln(100/${pc})}{\\ln 2} \\approx ${dd(val)}$.`,
+        hint: T`Riešte rovnicu $2^{-t/T} = p$ logaritmovaním: $t = T\\,\\frac{\\ln(1/p)}{\\ln 2}$.`
       };
     }
     if (t < 0.4) {
       const To = pick([18, 20, 22, 25]), T0 = pick([80, 85, 90, 95, 100]), t1 = pick([5, 10, 15]);
       const T1 = To + Math.round((T0 - To) * (0.5 + 0.35 * Math.random()));
       const kTex = `\\frac{1}{${t1}}\\ln\\frac{${T0 - To}}{${T1 - To}}`, k = Math.log((T0 - To) / (T1 - To)) / t1;
-      const intro = `Teleso s teplotou $${T0}${CEL}$ položíme do miestnosti s teplotou $${To}${CEL}$. Po $${t1}$ minútach má teplotu $${T1}${CEL}$.`;
+      const intro = T`Teleso s teplotou $${T0}${CEL}$ položíme do miestnosti s teplotou $${To}${CEL}$. Po $${t1}$ minútach má teplotu $${T1}${CEL}$.`;
       if (Math.random() < 0.5) {
         const t2 = rnd(t1 + 2, 4 * t1), val = To + (T0 - To) * Math.exp(-k * t2);
         const noAmb = T0 * Math.pow(T1 / T0, t2 / t1), q2 = Math.exp(-k * t2);
         return {
-          mistakes: Math.abs(noAmb - val) > 0.06 ? [{ value: noAmb, msg: 'Exponenciálne neklesá samotná teplota telesa, ale jej rozdiel od teploty okolia $T - T_o$.' }] : [],
+          mistakes: Math.abs(noAmb - val) > 0.06 ? [{ value: noAmb, msg: T`Exponenciálne neklesá samotná teplota telesa, ale jej rozdiel od teploty okolia $T - T_o$.` }] : [],
           steps: [
-            { q: 'Z merania urči konštantu $k$ v $T(t) = T_o + (T_0 - T_o)\\mathrm{e}^{-kt}$. Zaokrúhli na 4 desatinné miesta.', answer: k, tol: 0.00006, show: dt(k, 4) },
-            { q: `Vypočítaj $\\mathrm{e}^{-${t2}k}$. Zaokrúhli na 4 desatinné miesta.`, answer: q2, tol: 0.00006, show: dt(q2, 4) },
-            { q: 'Akú teplotu bude mať teleso? Zaokrúhli na desatiny stupňa.', answer: val, tol: 0.06, show: dt(val, 1) }
+            { q: T`Z merania urči konštantu $k$ v $T(t) = T_o + (T_0 - T_o)\\mathrm{e}^{-kt}$. Zaokrúhli na 4 desatinné miesta.`, answer: k, tol: 0.00006, show: dt(k, 4) },
+            { q: T`Vypočítaj $\\mathrm{e}^{-${t2}k}$. Zaokrúhli na 4 desatinné miesta.`, answer: q2, tol: 0.00006, show: dt(q2, 4) },
+            { q: T`Akú teplotu bude mať teleso? Zaokrúhli na desatiny stupňa.`, answer: val, tol: 0.06, show: dt(val, 1) }
           ],
           answer: val, tol: 0.06, show: dt(val, 1),
-          q: `${intro} Akú teplotu bude mať $${t2}$ minút po položení? Výsledok zaokrúhli na desatiny stupňa.`,
-          solution: `Podľa Newtonovho zákona $T(t) = ${To} + ${T0 - To}\\,\\mathrm{e}^{-kt}$. Z merania $\\mathrm{e}^{-${t1}k} = \\frac{${T1 - To}}{${T0 - To}}$, teda $k = ${kTex} \\approx ${dd(k, 4)}$.
+          q: T`${intro} Akú teplotu bude mať $${t2}$ minút po položení? Výsledok zaokrúhli na desatiny stupňa.`,
+          solution: T`Podľa Newtonovho zákona $T(t) = ${To} + ${T0 - To}\\,\\mathrm{e}^{-kt}$. Z merania $\\mathrm{e}^{-${t1}k} = \\frac{${T1 - To}}{${T0 - To}}$, teda $k = ${kTex} \\approx ${dd(k, 4)}$.
             $T(${t2}) = ${To} + ${T0 - To}\\left(\\frac{${T1 - To}}{${T0 - To}}\\right)^{${t2}/${t1}} \\approx ${dd(val, 1)}${CEL}$.`,
-          hint: 'Riešenie je $T(t) = T_o + (T_0 - T_o)\\mathrm{e}^{-kt}$; $\\mathrm{e}^{-k}$ urči z druhého merania.'
+          hint: T`Riešenie je $T(t) = T_o + (T_0 - T_o)\\mathrm{e}^{-kt}$; $\\mathrm{e}^{-k}$ urči z druhého merania.`
         };
       }
       const Ts = rnd(To + 4, T1 - 3), val = Math.log((T0 - To) / (Ts - To)) / k;
       const noAmb = t1 * Math.log(T0 / Ts) / Math.log(T0 / T1);
       return {
-        mistakes: Math.abs(noAmb - val) > 0.06 ? [{ value: noAmb, msg: 'Exponenciálne neklesá samotná teplota telesa, ale jej rozdiel od teploty okolia $T - T_o$.' }] : [],
+        mistakes: Math.abs(noAmb - val) > 0.06 ? [{ value: noAmb, msg: T`Exponenciálne neklesá samotná teplota telesa, ale jej rozdiel od teploty okolia $T - T_o$.` }] : [],
         steps: [
-          { q: 'Z merania urči konštantu $k$ v $T(t) = T_o + (T_0 - T_o)\\mathrm{e}^{-kt}$. Zaokrúhli na 4 desatinné miesta.', answer: k, tol: 0.00006, show: dt(k, 4) },
-          { q: 'Za koľko minút klesne teplota na požadovanú hodnotu? Zaokrúhli na desatiny minúty.', answer: val, tol: 0.06, show: dt(val, 1) }
+          { q: T`Z merania urči konštantu $k$ v $T(t) = T_o + (T_0 - T_o)\\mathrm{e}^{-kt}$. Zaokrúhli na 4 desatinné miesta.`, answer: k, tol: 0.00006, show: dt(k, 4) },
+          { q: T`Za koľko minút klesne teplota na požadovanú hodnotu? Zaokrúhli na desatiny minúty.`, answer: val, tol: 0.06, show: dt(val, 1) }
         ],
         answer: val, tol: 0.06, show: dt(val, 1),
-        q: `${intro} Za koľko minút od položenia klesne teplota telesa na $${Ts}${CEL}$? Výsledok zaokrúhli na desatiny minúty.`,
-        solution: `$T(t) = ${To} + ${T0 - To}\\,\\mathrm{e}^{-kt}$, z merania $k = ${kTex} \\approx ${dd(k, 4)}$.
+        q: T`${intro} Za koľko minút od položenia klesne teplota telesa na $${Ts}${CEL}$? Výsledok zaokrúhli na desatiny minúty.`,
+        solution: T`$T(t) = ${To} + ${T0 - To}\\,\\mathrm{e}^{-kt}$, z merania $k = ${kTex} \\approx ${dd(k, 4)}$.
           Z podmienky $${To} + ${T0 - To}\\,\\mathrm{e}^{-kt} = ${Ts}$ máme $t = \\frac{1}{k}\\ln\\frac{${T0 - To}}{${Ts - To}} = ${t1}\\cdot\\frac{\\ln(${T0 - To}/${Ts - To})}{\\ln(${T0 - To}/${T1 - To})} \\approx ${dd(val, 1)}$ minúty.`,
-        hint: 'Najprv urči $k$ z merania, potom vyrieš $T(t) = T^{*}$ logaritmovaním.'
+        hint: T`Najprv urči $k$ z merania, potom vyrieš $T(t) = T^{*}$ logaritmovaním.`
       };
     }
     if (t < 0.6) {
       const K = pick([1000, 2000, 5000]), P0 = pick([50, 100, 200, 250]), r = pick([0.2, 0.3, 0.4, 0.5]);
       const A = (K - P0) / P0, rT = dd(r, 1);
-      const intro = `Populácia sa riadi logistickou rovnicou $P' = ${rT}\\,P\\left(1 - \\frac{P}{${K}}\\right)$ ($t$ v rokoch), na začiatku má $${P0}$ jedincov.`;
+      const intro = T`Populácia sa riadi logistickou rovnicou $P' = ${rT}\\,P\\left(1 - \\frac{P}{${K}}\\right)$ ($t$ v rokoch), na začiatku má $${P0}$ jedincov.`;
       if (Math.random() < 0.5) {
         const tt = rnd(3, 12), val = K / (1 + A * Math.exp(-r * tt)), wA = K / (1 + K / P0 * Math.exp(-r * tt));
         return {
-          mistakes: Math.abs(wA - val) > 0.51 ? [{ value: wA, msg: 'Konštanta $A$ vychádza z podmienky $P(0) = \\frac{K}{1 + A} = P_0$, teda $A = \\frac{K - P_0}{P_0}$, nie $\\frac{K}{P_0}$.' }] : [],
+          mistakes: Math.abs(wA - val) > 0.51 ? [{ value: wA, msg: T`Konštanta $A$ vychádza z podmienky $P(0) = \\frac{K}{1 + A} = P_0$, teda $A = \\frac{K - P_0}{P_0}$, nie $\\frac{K}{P_0}$.` }] : [],
           steps: [
-            { q: 'Urči konštantu $A$ v riešení $P(t) = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$.', answer: A, tol: 0.006, show: dt(A) },
-            { q: 'Koľko jedincov bude mať populácia? Zaokrúhli na celé číslo.', answer: val, tol: 0.51, show: String(Math.round(val)) }
+            { q: T`Urči konštantu $A$ v riešení $P(t) = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$.`, answer: A, tol: 0.006, show: dt(A) },
+            { q: T`Koľko jedincov bude mať populácia? Zaokrúhli na celé číslo.`, answer: val, tol: 0.51, show: String(Math.round(val)) }
           ],
           answer: val, tol: 0.51, show: String(Math.round(val)),
-          q: `${intro} Koľko jedincov bude mať populácia po $${tt}$ rokoch? Výsledok zaokrúhli na celé číslo.`,
-          solution: `$P(t) = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$ s $A = \\frac{K - P_0}{P_0} = \\frac{${K - P0}}{${P0}} = ${dc3(A)}$.
+          q: T`${intro} Koľko jedincov bude mať populácia po $${tt}$ rokoch? Výsledok zaokrúhli na celé číslo.`,
+          solution: T`$P(t) = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$ s $A = \\frac{K - P_0}{P_0} = \\frac{${K - P0}}{${P0}} = ${dc3(A)}$.
             $P(${tt}) = \\frac{${K}}{1 + ${dc3(A)}\\,\\mathrm{e}^{-${dd(r * tt, 1)}}} \\approx ${dd(val, 1)}$, teda asi $${Math.round(val)}$ jedincov.`,
-          hint: 'Použi vzorec $P(t) = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$, kde $A = \\frac{K - P_0}{P_0}$.'
+          hint: T`Použi vzorec $P(t) = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$, kde $A = \\frac{K - P_0}{P_0}$.`
         };
       }
       const val = Math.log(A) / r, wA = Math.log(K / P0) / r;
       return {
-        mistakes: Math.abs(wA - val) > T2 ? [{ value: wA, msg: 'Konštanta $A$ vychádza z podmienky $P(0) = \\frac{K}{1 + A} = P_0$, teda $A = \\frac{K - P_0}{P_0}$, nie $\\frac{K}{P_0}$.' }] : [],
+        mistakes: Math.abs(wA - val) > T2 ? [{ value: wA, msg: T`Konštanta $A$ vychádza z podmienky $P(0) = \\frac{K}{1 + A} = P_0$, teda $A = \\frac{K - P_0}{P_0}$, nie $\\frac{K}{P_0}$.` }] : [],
         steps: [
-          { q: 'Urči konštantu $A$ v riešení $P(t) = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$.', answer: A, tol: 0.006, show: dt(A) },
-          { q: `Za koľko rokov dosiahne populácia polovicu nosnej kapacity? ${ROUND2}`, answer: val, tol: T2, show: dt(val) }
+          { q: T`Urči konštantu $A$ v riešení $P(t) = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$.`, answer: A, tol: 0.006, show: dt(A) },
+          { q: T`Za koľko rokov dosiahne populácia polovicu nosnej kapacity? ${T.s(ROUND2)}`, answer: val, tol: T2, show: dt(val) }
         ],
         answer: val, tol: T2, show: dt(val),
-        q: `${intro} Za koľko rokov dosiahne polovicu nosnej kapacity (vtedy rastie najrýchlejšie)? ${ROUND2}`,
-        solution: `$P(t) = \\frac{${K}}{1 + A\\mathrm{e}^{-${rT}t}}$, $A = \\frac{${K - P0}}{${P0}}$. Podmienka $P = \\frac{K}{2}$ znamená $A\\mathrm{e}^{-${rT}t} = 1$,
+        q: T`${intro} Za koľko rokov dosiahne polovicu nosnej kapacity (vtedy rastie najrýchlejšie)? ${T.s(ROUND2)}`,
+        solution: T`$P(t) = \\frac{${K}}{1 + A\\mathrm{e}^{-${rT}t}}$, $A = \\frac{${K - P0}}{${P0}}$. Podmienka $P = \\frac{K}{2}$ znamená $A\\mathrm{e}^{-${rT}t} = 1$,
           teda $t = \\frac{\\ln A}{${rT}} = \\frac{\\ln ${dc3(A)}}{${rT}} \\approx ${dd(val)}$ roka.`,
-        hint: 'Dosaď $P = \\frac{K}{2}$ do riešenia $P = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$; dostaneš $A\\mathrm{e}^{-rt} = 1$.'
+        hint: T`Dosaď $P = \\frac{K}{2}$ do riešenia $P = \\frac{K}{1 + A\\mathrm{e}^{-rt}}$; dostaneš $A\\mathrm{e}^{-rt} = 1$.`
       };
     }
     if (t < 0.8) {
@@ -959,61 +961,61 @@
       let x0 = pick([0, 5, 10, 20, 40]);
       if (Math.abs(x0 - c * V) < 1e-9) x0 += 5;
       const tt = pick([10, 20, 30, 45, 60]), val = c * V + (x0 - c * V) * Math.exp(-q * tt / V);
-      const rate = `rýchlosťou $${q}$ ${pl(q, ['liter', 'litre', 'litrov'])} za minútu`;
-      const inflow = c === 0 ? `čistá voda ${rate}` : `roztok s koncentráciou $${dc3(c)}\\,\\mathrm{kg/l}$ ${rate}`;
+      const rate = T`rýchlosťou $${q}$ ${pl(q, ['liter', 'litre', 'litrov'])} za minútu`;
+      const inflow = c === 0 ? T`čistá voda ${rate}` : T`roztok s koncentráciou $${dc3(c)}\\,\\mathrm{kg/l}$ ${rate}`;
       // x(t) = cV + (x0 - cV) e^{...}, pri c = 0 len x0 e^{...}
       const sol = (ex1) => (c === 0 ? `${x0}\\,${ex1}` : `${dc3(c * V)}${sg(dc3(x0 - c * V))}\\,${ex1}`);
       const noIn = x0 * Math.exp(-q * tt / V), noQ = c * V + (x0 - c * V) * Math.exp(-tt / V);
       const o = {
         mistakes: [
-          ...(c > 0 && Math.abs(noIn - val) > T2 ? [{ value: noIn, msg: 'Zabudol si na prítok soli $cq$: bez neho by soľ z nádrže len ubúdala. Riešenie sa blíži k rovnovážnej hodnote $cV$.' }] : []),
-          ...(Math.abs(noQ - val) > T2 ? [{ value: noQ, msg: 'Odtok soli je koncentrácia krát prietok, teda $\\frac{x}{V}\\cdot q$. V exponente preto musí byť aj prietok $q$.' }] : [])
+          ...(c > 0 && Math.abs(noIn - val) > T2 ? [{ value: noIn, msg: T`Zabudol si na prítok soli $cq$: bez neho by soľ z nádrže len ubúdala. Riešenie sa blíži k rovnovážnej hodnote $cV$.` }] : []),
+          ...(Math.abs(noQ - val) > T2 ? [{ value: noQ, msg: T`Odtok soli je koncentrácia krát prietok, teda $\\frac{x}{V}\\cdot q$. V exponente preto musí byť aj prietok $q$.` }] : [])
         ],
         answer: val, tol: T2, show: dt(val),
-        q: `Nádrž obsahuje $${V}$ litrov ${x0 === 0 ? 'čistej vody' : `roztoku, v ktorom je $${x0}\\,\\mathrm{kg}$ soli`}. Priteká do nej ${inflow}
-          a dokonale premiešaný roztok rovnako rýchlo odteká. Koľko kilogramov soli bude v nádrži po $${tt}$ minútach? ${ROUND2}`,
-        solution: `Objem sa nemení, koncentrácia v nádrži je $\\frac{x}{${V}}$. Bilancia: $x' = ${c === 0 ? '' : dc3(c * q) + ' '}-\\frac{${q}}{${V}}x$, $x(0) = ${x0}$.
+        q: T`Nádrž obsahuje $${V}$ litrov ${x0 === 0 ? T`čistej vody` : T`roztoku, v ktorom je $${x0}\\,\\mathrm{kg}$ soli`}. Priteká do nej ${inflow}
+          a dokonale premiešaný roztok rovnako rýchlo odteká. Koľko kilogramov soli bude v nádrži po $${tt}$ minútach? ${T.s(ROUND2)}`,
+        solution: T`Objem sa nemení, koncentrácia v nádrži je $\\frac{x}{${V}}$. Bilancia: $x' = ${c === 0 ? '' : dc3(c * q) + ' '}-\\frac{${q}}{${V}}x$, $x(0) = ${x0}$.
           Rovnovážna hodnota je $cV = ${dc3(c * V)}$, preto $x(t) = ${sol(`\\mathrm{e}^{-${q}t/${V}}`)}$ a
           $x(${tt}) = ${sol(`\\mathrm{e}^{-${dc3(q * tt / V)}}`)} \\approx ${dd(val)}\\,\\mathrm{kg}$.`,
-        hint: 'Zostav bilanciu $x\' = (\\text{prítok látky}) - (\\text{odtok látky}) = cq - \\frac{q}{V}x$ a vyrieš lineárnu rovnicu.'
+        hint: T`Zostav bilanciu $x' = (\\text{prítok látky}) - (\\text{odtok látky}) = cq - \\frac{q}{V}x$ a vyrieš lineárnu rovnicu.`
       };
       if (c > 0) {
         o.steps = [
-          { q: 'Aké množstvo soli (v kg) je rovnovážne, teda pri ňom je $x\' = 0$?', answer: c * V, tol: T2 },
-          { q: `Koľko kilogramov soli bude v nádrži po $${tt}$ minútach? ${ROUND2}`, answer: val, tol: T2, show: dt(val) }
+          { q: T`Aké množstvo soli (v kg) je rovnovážne, teda pri ňom je $x' = 0$?`, answer: c * V, tol: T2 },
+          { q: T`Koľko kilogramov soli bude v nádrži po $${tt}$ minútach? ${T.s(ROUND2)}`, answer: val, tol: T2, show: dt(val) }
         ];
       }
       return o;
     }
     const U = pick([5, 9, 12, 24]), R = pick([1, 2, 5, 10]), Cc = pick([10, 47, 100, 220]), tau = R * Cc;
-    const intro = `Nenabitý kondenzátor s kapacitou $${Cc}\\,\\mu\\mathrm{F}$ nabíjame zo zdroja s napätím $${U}\\,\\mathrm{V}$ cez rezistor s odporom $${R}\\,\\mathrm{k\\Omega}$.`;
+    const intro = T`Nenabitý kondenzátor s kapacitou $${Cc}\\,\\mu\\mathrm{F}$ nabíjame zo zdroja s napätím $${U}\\,\\mathrm{V}$ cez rezistor s odporom $${R}\\,\\mathrm{k\\Omega}$.`;
     if (Math.random() < 0.5) {
       const tt = rnd(Math.max(1, Math.round(tau / 4)), 3 * tau), val = U * (1 - Math.exp(-tt / tau)), dis = U * Math.exp(-tt / tau);
       return {
-        mistakes: Math.abs(dis - val) > T2 ? [{ value: dis, msg: 'Toto je vybíjanie kondenzátora. Pri nabíjaní napätie rastie od nuly k $U$: $u_C = U(1 - \\mathrm{e}^{-t/\\tau})$.' }] : [],
+        mistakes: Math.abs(dis - val) > T2 ? [{ value: dis, msg: T`Toto je vybíjanie kondenzátora. Pri nabíjaní napätie rastie od nuly k $U$: $u_C = U(1 - \\mathrm{e}^{-t/\\tau})$.` }] : [],
         steps: [
-          { q: 'Vypočítaj časovú konštantu $\\tau = RC$ v milisekundách.', answer: tau },
-          { q: `Aké napätie (vo voltoch) bude na kondenzátore? ${ROUND2}`, answer: val, tol: T2, show: dt(val) }
+          { q: T`Vypočítaj časovú konštantu $\\tau = RC$ v milisekundách.`, answer: tau },
+          { q: T`Aké napätie (vo voltoch) bude na kondenzátore? ${T.s(ROUND2)}`, answer: val, tol: T2, show: dt(val) }
         ],
         answer: val, tol: T2, show: dt(val),
-        q: `${intro} Aké napätie bude na kondenzátore $${tt}\\,\\mathrm{ms}$ po zapnutí? Výsledok vo voltoch zaokrúhli na 2 desatinné miesta.`,
-        solution: `Časová konštanta $\\tau = RC = ${R}\\cdot 10^{3}\\,\\Omega\\cdot ${Cc}\\cdot 10^{-6}\\,\\mathrm{F} = ${tau}\\,\\mathrm{ms}$.
+        q: T`${intro} Aké napätie bude na kondenzátore $${tt}\\,\\mathrm{ms}$ po zapnutí? Výsledok vo voltoch zaokrúhli na 2 desatinné miesta.`,
+        solution: T`Časová konštanta $\\tau = RC = ${R}\\cdot 10^{3}\\,\\Omega\\cdot ${Cc}\\cdot 10^{-6}\\,\\mathrm{F} = ${tau}\\,\\mathrm{ms}$.
           $u_C(t) = U\\left(1 - \\mathrm{e}^{-t/\\tau}\\right)$, teda $u_C = ${U}\\left(1 - \\mathrm{e}^{-${tt}/${tau}}\\right) \\approx ${dd(val)}\\,\\mathrm{V}$.`,
-        hint: 'Vypočítaj $\\tau = RC$ (kiloohmy krát mikrofarady dávajú milisekundy) a dosaď do $u_C = U(1 - \\mathrm{e}^{-t/\\tau})$.'
+        hint: T`Vypočítaj $\\tau = RC$ (kiloohmy krát mikrofarady dávajú milisekundy) a dosaď do $u_C = U(1 - \\mathrm{e}^{-t/\\tau})$.`
       };
     }
     const pc = pick([50, 63, 80, 90, 95, 99]), val = tau * Math.log(100 / (100 - pc));
     return {
-      mistakes: pc !== 50 ? [{ value: tau * Math.log(100 / pc), msg: `Podiel $${pc}\\,\\%$ patrí výrazu $1 - \\mathrm{e}^{-t/\\tau}$, nie samotnej exponenciále.` }] : [],
+      mistakes: pc !== 50 ? [{ value: tau * Math.log(100 / pc), msg: T`Podiel $${pc}\\,\\%$ patrí výrazu $1 - \\mathrm{e}^{-t/\\tau}$, nie samotnej exponenciále.` }] : [],
       steps: [
-        { q: 'Vypočítaj časovú konštantu $\\tau = RC$ v milisekundách.', answer: tau },
-        { q: `Za koľko milisekúnd dosiahne napätie požadovanú hodnotu? ${ROUND2}`, answer: val, tol: T2, show: dt(val) }
+        { q: T`Vypočítaj časovú konštantu $\\tau = RC$ v milisekundách.`, answer: tau },
+        { q: T`Za koľko milisekúnd dosiahne napätie požadovanú hodnotu? ${T.s(ROUND2)}`, answer: val, tol: T2, show: dt(val) }
       ],
       answer: val, tol: T2, show: dt(val),
-      q: `${intro} Za koľko milisekúnd dosiahne napätie na kondenzátore $${pc}\\,\\%$ napätia zdroja? ${ROUND2}`,
-      solution: `$\\tau = RC = ${tau}\\,\\mathrm{ms}$. Z podmienky $1 - \\mathrm{e}^{-t/\\tau} = ${dd(pc / 100)}$ máme $\\mathrm{e}^{-t/\\tau} = ${dd(1 - pc / 100)}$,
+      q: T`${intro} Za koľko milisekúnd dosiahne napätie na kondenzátore $${pc}\\,\\%$ napätia zdroja? ${T.s(ROUND2)}`,
+      solution: T`$\\tau = RC = ${tau}\\,\\mathrm{ms}$. Z podmienky $1 - \\mathrm{e}^{-t/\\tau} = ${dd(pc / 100)}$ máme $\\mathrm{e}^{-t/\\tau} = ${dd(1 - pc / 100)}$,
         teda $t = \\tau\\ln\\frac{100}{${100 - pc}} \\approx ${dd(val)}\\,\\mathrm{ms}$.`,
-      hint: 'Vyrieš $1 - \\mathrm{e}^{-t/\\tau} = p$ pre $t$: $t = -\\tau\\ln(1 - p)$.'
+      hint: T`Vyrieš $1 - \\mathrm{e}^{-t/\\tau} = p$ pre $t$: $t = -\\tau\\ln(1 - p)$.`
     };
   });
 
@@ -1038,9 +1040,9 @@
         if (Math.abs(y) > 100) break;
       }
       let roots;
-      if (D > 1e-9) roots = `λ₁ = ${sk((-P - Math.sqrt(D)) / 2)}, λ₂ = ${sk((-P + Math.sqrt(D)) / 2)} (rôzne reálne korene)`;
-      else if (D > -1e-9) roots = `λ = ${sk(-P / 2)} (dvojnásobný koreň)`;
-      else roots = `λ = ${sk(-P / 2)} ± ${sk(Math.sqrt(-D) / 2)}i (komplexné korene)`;
+      if (D > 1e-9) roots = T`λ₁ = ${sk((-P - Math.sqrt(D)) / 2)}, λ₂ = ${sk((-P + Math.sqrt(D)) / 2)} (rôzne reálne korene)`;
+      else if (D > -1e-9) roots = T`λ = ${sk(-P / 2)} (dvojnásobný koreň)`;
+      else roots = T`λ = ${sk(-P / 2)} ± ${sk(Math.sqrt(-D) / 2)}i (komplexné korene)`;
       return {
         svg: svg(p, axes(p, 1, 1), `<path class="f-accent" d="${ptsPath(p, pts)}"/><circle class="f-dot" cx="${n1(p.X(0))}" cy="${n1(p.Y(1))}" r="5"/>`, '', 'Riešenie rovnice y″ + py′ + qy = 0'),
         readout: `λ² ${P < 0 ? '−' : '+'} ${sk(Math.abs(P), 1)}λ ${Q < 0 ? '−' : '+'} ${sk(Math.abs(Q), 1)} = 0 · <span class="c-accent">${roots}</span>`
@@ -1106,7 +1108,7 @@
     return `y = ${ef(c.al)}${c.al === 0 ? '' : '('}C_1${co} + C_2${si}${c.al === 0 ? '' : ')'}`;
   };
   const rootsTex = (c) => (c.kind === 0 ? `$\\lambda_1 = ${c.r1}$, $\\lambda_2 = ${c.r2}$`
-    : c.kind === 1 ? `$\\lambda = ${c.r}$ (dvojnásobný koreň)`
+    : c.kind === 1 ? T`$\\lambda = ${c.r}$ (dvojnásobný koreň)`
       : `$\\lambda = ${c.al === 0 ? '' : c.al}\\pm ${c.be === 1 ? '' : c.be}\\mathrm{i}$`);
 
   gen('v3-charakteristicka', () => {
@@ -1116,48 +1118,48 @@
       const eq = `${m === 1 ? '' : m}y''${term(m * c.p, "y'")}${term(m * c.q, 'y')} = 0`;
       return {
         steps: [
-          { q: `Charakteristická rovnica (po vydelení koeficientom pri $y''$) je $\\lambda^{2} + p\\lambda + q = 0$. Aký je súčet jej koreňov?`, answer: c.r1 + c.r2, signed: true, hint: 'Podľa Vietových vzťahov je súčet koreňov $-p$.' },
-          { q: 'Aký je súčin koreňov?', answer: c.r1 * c.r2, signed: true },
-          { q: 'Urči oba korene (oddelené bodkočiarkou).', type: 'set', answer: [c.r1, c.r2], signed: true, placeholder: 'λ₁; λ₂' }
+          { q: T`Charakteristická rovnica (po vydelení koeficientom pri $y''$) je $\\lambda^{2} + p\\lambda + q = 0$. Aký je súčet jej koreňov?`, answer: c.r1 + c.r2, signed: true, hint: T`Podľa Vietových vzťahov je súčet koreňov $-p$.` },
+          { q: T`Aký je súčin koreňov?`, answer: c.r1 * c.r2, signed: true },
+          { q: T`Urči oba korene (oddelené bodkočiarkou).`, type: 'set', answer: [c.r1, c.r2], signed: true, placeholder: 'λ₁; λ₂' }
         ],
         type: 'set', signed: true, answer: [c.r1, c.r2], placeholder: 'λ₁; λ₂',
-        q: `Nájdi korene charakteristickej rovnice diferenciálnej rovnice $${eq}$. Zadaj ich oddelené bodkočiarkou.`,
-        solution: `Dosadením $y = \\mathrm{e}^{\\lambda x}$ dostaneme ${m === 1 ? '' : `po vydelení číslom $${m}$ `}$${charEq(c.p, c.q)}$.
+        q: T`Nájdi korene charakteristickej rovnice diferenciálnej rovnice $${eq}$. Zadaj ich oddelené bodkočiarkou.`,
+        solution: T`Dosadením $y = \\mathrm{e}^{\\lambda x}$ dostaneme ${m === 1 ? '' : T`po vydelení číslom $${m}$ `}$${charEq(c.p, c.q)}$.
           Podľa Vietových vzťahov $\\lambda_1 + \\lambda_2 = ${-c.p}$ a $\\lambda_1\\lambda_2 = ${c.q}$, korene sú ${rootsTex(c)}.
           Všeobecné riešenie je $${genSol(c)}$.`,
-        hint: 'Zameň $y\'\'$ za $\\lambda^{2}$, $y\'$ za $\\lambda$ a $y$ za $1$ a vyrieš kvadratickú rovnicu.'
+        hint: T`Zameň $y''$ za $\\lambda^{2}$, $y'$ za $\\lambda$ a $y$ za $1$ a vyrieš kvadratickú rovnicu.`
       };
     }
     if (t < 0.5) {
       const c = charCase(rnd(0, 2), true);
       const ok = genSol(c);
       let wrong, why;
-      const SIGN = 'Riešenie má tvar $\\mathrm{e}^{\\lambda x}$, kde $\\lambda$ je koreň charakteristickej rovnice; skontroluj znamienka koreňov.';
+      const SIGN = T`Riešenie má tvar $\\mathrm{e}^{\\lambda x}$, kde $\\lambda$ je koreň charakteristickej rovnice; skontroluj znamienka koreňov.`;
       if (c.kind === 0) {
         wrong = [genSol({ kind: 0, r1: -c.r1, r2: -c.r2 }), `y = (C_1 + C_2x)${ef(c.r1)}`,
           `y = ${ef(c.r1)}(C_1\\cos ${cf(Math.abs(c.r2), 'x')} + C_2\\sin ${cf(Math.abs(c.r2), 'x')})`];
-        why = [c.r1 !== -c.r2 ? SIGN : null, 'Tvar $(C_1 + C_2x)\\mathrm{e}^{\\lambda x}$ patrí len dvojnásobnému koreňu ($D = 0$). Aký je tu diskriminant?',
-          'Goniometrické funkcie patria ku komplexným koreňom ($D \\lt 0$). Aký je tu diskriminant?'];
+        why = [c.r1 !== -c.r2 ? SIGN : null, T`Tvar $(C_1 + C_2x)\\mathrm{e}^{\\lambda x}$ patrí len dvojnásobnému koreňu ($D = 0$). Aký je tu diskriminant?`,
+          T`Goniometrické funkcie patria ku komplexným koreňom ($D \\lt 0$). Aký je tu diskriminant?`];
       } else if (c.kind === 1) {
         wrong = [`y = C_1${ex(c.r)} + C_2${ex(-c.r)}`, `y = (C_1 + C_2x)${ef(-c.r)}`, `y = C_1${ex(c.r)} + C_2x^{2}${ef(c.r)}`];
-        why = ['Pri dvojnásobnom koreni máš len jednu exponenciálu; druhé nezávislé riešenie dostaneš vynásobením $x$.', SIGN,
-          'Pri dvojnásobnom koreni sa exponenciála násobí $x$, nie $x^{2}$ (to by bolo pri trojnásobnom koreni).'];
+        why = [T`Pri dvojnásobnom koreni máš len jednu exponenciálu; druhé nezávislé riešenie dostaneš vynásobením $x$.`, SIGN,
+          T`Pri dvojnásobnom koreni sa exponenciála násobí $x$, nie $x^{2}$ (to by bolo pri trojnásobnom koreni).`];
       } else {
         const [co, si] = trig(Math.abs(c.al));
         wrong = [`y = ${ef(c.be)}(C_1${co} + C_2${si})`, genSol({ kind: 2, al: -c.al, be: c.be }), `y = C_1${ex(c.al)} + C_2${ex(c.be)}`];
-        why = ['Pri koreňoch $\\alpha\\pm\\beta\\mathrm{i}$ je v exponente reálna časť $\\alpha$ a v goniometrických funkciách imaginárna časť $\\beta$; zamenil si ich.',
-          'Exponent je reálna časť koreňov $\\alpha = -\\frac{p}{2}$; skontroluj jej znamienko.',
-          'Pri komplexných koreňoch nie sú riešeniami reálne exponenciály; použi tvar $\\mathrm{e}^{\\alpha x}(C_1\\cos\\beta x + C_2\\sin\\beta x)$.'];
+        why = [T`Pri koreňoch $\\alpha\\pm\\beta\\mathrm{i}$ je v exponente reálna časť $\\alpha$ a v goniometrických funkciách imaginárna časť $\\beta$; zamenil si ich.`,
+          T`Exponent je reálna časť koreňov $\\alpha = -\\frac{p}{2}$; skontroluj jej znamienko.`,
+          T`Pri komplexných koreňoch nie sú riešeniami reálne exponenciály; použi tvar $\\mathrm{e}^{\\alpha x}(C_1\\cos\\beta x + C_2\\sin\\beta x)$.`];
       }
       const choiceHints = {};
       wrong.forEach((w, i) => { if (why[i] && w !== ok) choiceHints[`$${w}$`] = why[i]; });
       return {
         choiceHints,
         type: 'choice', answer: `$${ok}$`, options: shuffle([ok, ...wrong].map((s) => `$${s}$`)),
-        q: `Ktorá funkcia je všeobecným riešením rovnice $${lhs2(c.p, c.q)} = 0$?`,
-        solution: `Charakteristická rovnica $${charEq(c.p, c.q)}$ má diskriminant $D = ${c.p * c.p - 4 * c.q}$ a korene ${rootsTex(c)}.
-          ${['Pre dva rôzne reálne korene', 'Pre dvojnásobný koreň', 'Pre komplexne združené korene $\\alpha\\pm\\beta\\mathrm{i}$'][c.kind]} je všeobecné riešenie $${ok}$.`,
-        hint: 'Zostav charakteristickú rovnicu, urči typ koreňov podľa diskriminantu a použi príslušný tvar riešenia.'
+        q: T`Ktorá funkcia je všeobecným riešením rovnice $${lhs2(c.p, c.q)} = 0$?`,
+        solution: T`Charakteristická rovnica $${charEq(c.p, c.q)}$ má diskriminant $D = ${c.p * c.p - 4 * c.q}$ a korene ${rootsTex(c)}.
+          ${[T`Pre dva rôzne reálne korene`, T`Pre dvojnásobný koreň`, T`Pre komplexne združené korene $\\alpha\\pm\\beta\\mathrm{i}$`][c.kind]} je všeobecné riešenie $${ok}$.`,
+        hint: T`Zostav charakteristickú rovnicu, urči typ koreňov podľa diskriminantu a použi príslušný tvar riešenia.`
       };
     }
     if (t < 0.78) {
@@ -1167,28 +1169,28 @@
       let y0, y1, sys;
       if (c.kind === 0) {
         y0 = C1 + C2; y1 = c.r1 * C1 + c.r2 * C2;
-        sys = `$C_1 + C_2 = ${y0}$ a $${lin([[c.r1, 'C_1'], [c.r2, 'C_2']])} = ${y1}$`;
+        sys = T`$C_1 + C_2 = ${y0}$ a $${lin([[c.r1, 'C_1'], [c.r2, 'C_2']])} = ${y1}$`;
       } else if (c.kind === 1) {
         y0 = C1; y1 = c.r * C1 + C2;
-        sys = `$C_1 = ${y0}$ a $${lin([[c.r, 'C_1'], [1, 'C_2']])} = ${y1}$`;
+        sys = T`$C_1 = ${y0}$ a $${lin([[c.r, 'C_1'], [1, 'C_2']])} = ${y1}$`;
       } else {
         y0 = C1; y1 = c.al * C1 + c.be * C2;
-        sys = `$C_1 = ${y0}$ a $${lin([[c.al, 'C_1'], [c.be, 'C_2']])} = ${y1}$`;
+        sys = T`$C_1 = ${y0}$ a $${lin([[c.al, 'C_1'], [c.be, 'C_2']])} = ${y1}$`;
       }
       const mis = [];
-      if (c.kind === 1 && c.r * C1 !== 0) mis.push({ value: [C1, y1], msg: `Derivácia $(C_1 + C_2x)${ef(c.r)}$ má pri $x = 0$ hodnotu $${c.r}C_1 + C_2$; zabudol si na člen z derivácie exponenciály.` });
-      if (c.kind === 2 && c.al * C1 !== 0 && Math.abs(y1 / c.be - C2) > 1e-6) mis.push({ value: [C1, y1 / c.be], msg: `Pri derivovaní súčinu $${ef(c.al)}\\cdot(\\dots)$ vznikne aj člen $${c.al}C_1$ z derivácie exponenciály.` });
+      if (c.kind === 1 && c.r * C1 !== 0) mis.push({ value: [C1, y1], msg: T`Derivácia $(C_1 + C_2x)${ef(c.r)}$ má pri $x = 0$ hodnotu $${c.r}C_1 + C_2$; zabudol si na člen z derivácie exponenciály.` });
+      if (c.kind === 2 && c.al * C1 !== 0 && Math.abs(y1 / c.be - C2) > 1e-6) mis.push({ value: [C1, y1 / c.be], msg: T`Pri derivovaní súčinu $${ef(c.al)}\\cdot(\\dots)$ vznikne aj člen $${c.al}C_1$ z derivácie exponenciály.` });
       return {
         mistakes: mis,
         steps: [
-          { q: 'Dosaď $x = 0$ do všeobecného riešenia a jeho derivácie a z vzniknutej sústavy urči $C_1$.', answer: C1, signed: true },
-          { q: 'Urči $C_2$.', answer: C2, signed: true }
+          { q: T`Dosaď $x = 0$ do všeobecného riešenia a jeho derivácie a z vzniknutej sústavy urči $C_1$.`, answer: C1, signed: true },
+          { q: T`Urči $C_2$.`, answer: C2, signed: true }
         ],
         type: 'tuple', signed: true, answer: [C1, C2], placeholder: 'C₁; C₂',
-        q: `Riešenie Cauchyho úlohy $${lhs2(c.p, c.q)} = 0$, $y(0) = ${y0}$, $y'(0) = ${y1}$ zapíšeme v tvare $${genSol(c)}$. Urči $C_1$ a $C_2$.`,
-        solution: `Charakteristická rovnica $${charEq(c.p, c.q)}$ má korene ${rootsTex(c)}, preto $${genSol(c)}$.
+        q: T`Riešenie Cauchyho úlohy $${lhs2(c.p, c.q)} = 0$, $y(0) = ${y0}$, $y'(0) = ${y1}$ zapíšeme v tvare $${genSol(c)}$. Urči $C_1$ a $C_2$.`,
+        solution: T`Charakteristická rovnica $${charEq(c.p, c.q)}$ má korene ${rootsTex(c)}, preto $${genSol(c)}$.
           Dosadením $x = 0$ do $y$ a $y'$ dostaneme sústavu ${sys}, ktorej riešenie je $C_1 = ${C1}$, $C_2 = ${C2}$.`,
-        hint: 'Zderivuj všeobecné riešenie, dosaď $x = 0$ do $y$ aj $y\'$ a vyrieš sústavu dvoch lineárnych rovníc.'
+        hint: T`Zderivuj všeobecné riešenie, dosaď $x = 0$ do $y$ aj $y'$ a vyrieš sústavu dvoch lineárnych rovníc.`
       };
     }
     const c = charCase(rnd(0, 2), true);
@@ -1206,18 +1208,18 @@
     }
     return {
       mistakes: [
-        ...(m !== 0 ? [{ value: [K, -m], msg: 'Podľa Liouvilleovho vzorca je $W(x) = W(0)\\mathrm{e}^{-px}$; skontroluj znamienko exponentu.' }] : []),
-        ...(c.kind === 0 ? [{ value: [-K, m], msg: 'Wronskián je $W = y_1y_2\' - y_1\'y_2$; poradie členov rozhoduje o znamienku $K$.' }] : []),
-        ...(c.kind === 2 && c.al !== 0 ? [{ value: [K, c.al], msg: 'Wronskián je súčinom dvoch funkcií s činiteľom $\\mathrm{e}^{\\alpha x}$, preto má v exponente $2\\alpha$.' }] : [])
+        ...(m !== 0 ? [{ value: [K, -m], msg: T`Podľa Liouvilleovho vzorca je $W(x) = W(0)\\mathrm{e}^{-px}$; skontroluj znamienko exponentu.` }] : []),
+        ...(c.kind === 0 ? [{ value: [-K, m], msg: T`Wronskián je $W = y_1y_2' - y_1'y_2$; poradie členov rozhoduje o znamienku $K$.` }] : []),
+        ...(c.kind === 2 && c.al !== 0 ? [{ value: [K, c.al], msg: T`Wronskián je súčinom dvoch funkcií s činiteľom $\\mathrm{e}^{\\alpha x}$, preto má v exponente $2\\alpha$.` }] : [])
       ],
       steps: [
-        { q: 'Vypočítaj $W(0)$, teda hodnotu $K$.', answer: K, signed: true, hint: 'Dosaď $x = 0$ do $y_1, y_2, y_1\', y_2\'$.' },
-        { q: 'Urči exponent $m$.', answer: m, signed: true, hint: 'Liouvilleov vzorec: $W(x) = W(0)\\mathrm{e}^{-px}$.' }
+        { q: T`Vypočítaj $W(0)$, teda hodnotu $K$.`, answer: K, signed: true, hint: T`Dosaď $x = 0$ do $y_1, y_2, y_1', y_2'$.` },
+        { q: T`Urči exponent $m$.`, answer: m, signed: true, hint: T`Liouvilleov vzorec: $W(x) = W(0)\\mathrm{e}^{-px}$.` }
       ],
       type: 'tuple', signed: true, answer: [K, m], placeholder: 'K; m',
-      q: `Funkcie $${pair}$ tvoria fundamentálny systém rovnice $${lhs2(c.p, c.q)} = 0$. Ich wronskián má tvar $W(x) = K\\mathrm{e}^{mx}$. Urči $K$ a $m$.`,
-      solution: `$${calc}$, teda $K = ${K}$ a $m = ${m}$. Súhlasí to s Liouvilleovým vzorcom: $W(x) = W(0)\\,\\mathrm{e}^{-px}$ s $p = ${c.p}$.`,
-      hint: 'Použi $W = y_1y_2\' - y_1\'y_2$. Exponent si môžeš overiť Liouvilleovým vzorcom $W(x) = W(0)\\mathrm{e}^{-px}$.'
+      q: T`Funkcie $${pair}$ tvoria fundamentálny systém rovnice $${lhs2(c.p, c.q)} = 0$. Ich wronskián má tvar $W(x) = K\\mathrm{e}^{mx}$. Urči $K$ a $m$.`,
+      solution: T`$${calc}$, teda $K = ${K}$ a $m = ${m}$. Súhlasí to s Liouvilleovým vzorcom: $W(x) = W(0)\\,\\mathrm{e}^{-px}$ s $p = ${c.p}$.`,
+      hint: T`Použi $W = y_1y_2' - y_1'y_2$. Exponent si môžeš overiť Liouvilleovým vzorcom $W(x) = W(0)\\mathrm{e}^{-px}$.`
     };
   });
 
@@ -1266,32 +1268,32 @@
       if (Math.random() < 0.5) {
         const rhs = poly([q * A, q * B + p * A]);
         return {
-          mistakes: p !== 0 ? [{ value: [A, B + p * A / q], msg: `Pri porovnaní absolútnych členov si zabudol na člen $${cf(p, "y_p'")} = ${cf(p, 'A')}$, ktorý pochádza z derivácie.` }] : [],
+          mistakes: p !== 0 ? [{ value: [A, B + p * A / q], msg: T`Pri porovnaní absolútnych členov si zabudol na člen $${cf(p, "y_p'")} = ${cf(p, 'A')}$, ktorý pochádza z derivácie.` }] : [],
           steps: [
-            { q: 'Porovnaj koeficienty pri $x$ a urči $A$.', answer: A, signed: true },
-            { q: 'Porovnaj absolútne členy a urči $B$.', answer: B, signed: true }
+            { q: T`Porovnaj koeficienty pri $x$ a urči $A$.`, answer: A, signed: true },
+            { q: T`Porovnaj absolútne členy a urči $B$.`, answer: B, signed: true }
           ],
           type: 'tuple', signed: true, answer: [A, B], placeholder: 'A; B',
-          q: `Partikulárne riešenie rovnice $${lhs2(p, q)} = ${rhs}$ hľadáme v tvare $y_p = Ax + B$. Urči $A$ a $B$.`,
-          solution: `$y_p' = A$, $y_p'' = 0$. Dosadíme: $${p === 0 ? '' : `${cf(p, 'A')} `}${p === 0 ? cf(q, '(Ax + B)') : sg(cf(q, '(Ax + B)')).trim()} = ${rhs}$.
+          q: T`Partikulárne riešenie rovnice $${lhs2(p, q)} = ${rhs}$ hľadáme v tvare $y_p = Ax + B$. Urči $A$ a $B$.`,
+          solution: T`$y_p' = A$, $y_p'' = 0$. Dosadíme: $${p === 0 ? '' : `${cf(p, 'A')} `}${p === 0 ? cf(q, `(Ax + B)`) : sg(cf(q, `(Ax + B)`)).trim()} = ${rhs}$.
             Porovnaním koeficientov: pri $x$ je $${cf(q, 'A')} = ${q * A}$, teda $A = ${A}$; absolútny člen $${lin([[p, 'A'], [q, 'B']])} = ${q * B + p * A}$, teda $B = ${B}$.`,
-          hint: 'Dosaď $y_p = Ax + B$ do rovnice a porovnaj koeficienty pri $x$ a absolútne členy.'
+          hint: T`Dosaď $y_p = Ax + B$ do rovnice a porovnaj koeficienty pri $x$ a absolútne členy.`
         };
       }
       const C = rnd(-3, 3), rhs = poly([q * A, 2 * p * A + q * B, 2 * A + p * B + q * C]);
       return {
-        mistakes: [{ value: [A, B, C + 2 * A / q], msg: 'Pri absolútnom člene si zabudol na $y_p\'\' = 2A$: aj druhá derivácia prispieva konštantou.' }],
+        mistakes: [{ value: [A, B, C + 2 * A / q], msg: T`Pri absolútnom člene si zabudol na $y_p'' = 2A$: aj druhá derivácia prispieva konštantou.` }],
         steps: [
-          { q: 'Porovnaj koeficienty pri $x^{2}$ a urči $A$.', answer: A, signed: true },
-          { q: 'Porovnaj koeficienty pri $x$ a urči $B$.', answer: B, signed: true },
-          { q: 'Porovnaj absolútne členy a urči $C$.', answer: C, signed: true }
+          { q: T`Porovnaj koeficienty pri $x^{2}$ a urči $A$.`, answer: A, signed: true },
+          { q: T`Porovnaj koeficienty pri $x$ a urči $B$.`, answer: B, signed: true },
+          { q: T`Porovnaj absolútne členy a urči $C$.`, answer: C, signed: true }
         ],
         type: 'tuple', signed: true, answer: [A, B, C], placeholder: 'A; B; C',
-        q: `Partikulárne riešenie rovnice $${lhs2(p, q)} = ${rhs}$ hľadáme v tvare $y_p = Ax^{2} + Bx + C$. Urči $A$, $B$ a $C$.`,
-        solution: `$y_p' = 2Ax + B$, $y_p'' = 2A$. Po dosadení a porovnaní koeficientov:
+        q: T`Partikulárne riešenie rovnice $${lhs2(p, q)} = ${rhs}$ hľadáme v tvare $y_p = Ax^{2} + Bx + C$. Urči $A$, $B$ a $C$.`,
+        solution: T`$y_p' = 2Ax + B$, $y_p'' = 2A$. Po dosadení a porovnaní koeficientov:
           pri $x^{2}$: $${cf(q, 'A')} = ${q * A}$, $A = ${A}$; pri $x$: $${lin([[2 * p, 'A'], [q, 'B']])} = ${2 * p * A + q * B}$, $B = ${B}$;
           absolútny člen: $${lin([[2, 'A'], [p, 'B'], [q, 'C']])} = ${2 * A + p * B + q * C}$, $C = ${C}$.`,
-        hint: 'Koeficienty počítaj postupne od najvyššej mocniny: najprv $A$ z člena s $x^{2}$, potom $B$, nakoniec $C$.'
+        hint: T`Koeficienty počítaj postupne od najvyššej mocniny: najprv $A$ z člena s $x^{2}$, potom $B$, nakoniec $C$.`
       };
     }
     if (t < 0.42) {
@@ -1299,16 +1301,16 @@
       do { p = rnd(-4, 4); q = rnd(-4, 4); c = nz(-3, 3); P = c * c + p * c + q; } while (P === 0);
       const A = nz(-3, 3), k = A * P;
       return {
-        mistakes: q !== 0 && Math.abs(k / q - A) > 1e-6 ? [{ value: k / q, msg: `Derivácie $y_p$ nie sú nulové: $y_p' = ${c}A${ex(c)}$ a $y_p'' = ${c * c}A${ex(c)}$ treba tiež dosadiť.` }] : [],
+        mistakes: q !== 0 && Math.abs(k / q - A) > 1e-6 ? [{ value: k / q, msg: T`Derivácie $y_p$ nie sú nulové: $y_p' = ${c}A${ex(c)}$ a $y_p'' = ${c * c}A${ex(c)}$ treba tiež dosadiť.` }] : [],
         steps: [
-          { q: `Po dosadení $y_p = A${ex(c)}$ dostaneš $A(c^{2} + pc + q)${ex(c)}$. Vypočítaj hodnotu zátvorky.`, answer: P, signed: true },
-          { q: 'Urči $A$.', answer: A, signed: true }
+          { q: T`Po dosadení $y_p = A${ex(c)}$ dostaneš $A(c^{2} + pc + q)${ex(c)}$. Vypočítaj hodnotu zátvorky.`, answer: P, signed: true },
+          { q: T`Urči $A$.`, answer: A, signed: true }
         ],
         signed: true, answer: A,
-        q: `Rovnica $${lhs2(p, q)} = ${cf(k, ex(c))}$ má partikulárne riešenie tvaru $y_p = A${ex(c)}$. Urči $A$.`,
-        solution: `Číslo $${c}$ nie je koreňom charakteristickej rovnice, lebo $${par(c)}^{2}${term(p, `\\cdot ${par(c)}`)}${term(q)} = ${P}\\neq 0$.
+        q: T`Rovnica $${lhs2(p, q)} = ${cf(k, ex(c))}$ má partikulárne riešenie tvaru $y_p = A${ex(c)}$. Urči $A$.`,
+        solution: T`Číslo $${c}$ nie je koreňom charakteristickej rovnice, lebo $${par(c)}^{2}${term(p, `\\cdot ${par(c)}`)}${term(q)} = ${P}\\neq 0$.
           Pre $y_p = A${ex(c)}$ je $y_p' = ${c}A${ex(c)}$ a $y_p'' = ${c * c}A${ex(c)}$, po dosadení $A\\cdot ${par(P)}\\,${ex(c)} = ${k}${ex(c)}$, teda $A = ${A}$.`,
-        hint: 'Pre $y_p = A\\mathrm{e}^{cx}$ vyjde po dosadení $A(c^{2} + pc + q)\\,\\mathrm{e}^{cx}$.'
+        hint: T`Pre $y_p = A\\mathrm{e}^{cx}$ vyjde po dosadení $A(c^{2} + pc + q)\\,\\mathrm{e}^{cx}$.`
       };
     }
     if (t < 0.6) {
@@ -1316,17 +1318,17 @@
       do { r1 = nz(-3, 3); r2 = rnd(-3, 3); } while (r1 === r2);
       const p = -(r1 + r2), q = r1 * r2, A = nz(-3, 3), k = A * (r1 - r2);
       return {
-        mistakes: r2 !== 0 && Math.abs(-k / r2 - A) > 1e-6 ? [{ value: -k / r2, msg: 'Pri derivovaní $x\\mathrm{e}^{rx}$ podľa súčinu vznikne v $y_p\'\'$ člen $2rA\\mathrm{e}^{rx}$, nie len $rA\\mathrm{e}^{rx}$.' }] : [],
+        mistakes: r2 !== 0 && Math.abs(-k / r2 - A) > 1e-6 ? [{ value: -k / r2, msg: T`Pri derivovaní $x\\mathrm{e}^{rx}$ podľa súčinu vznikne v $y_p''$ člen $2rA\\mathrm{e}^{rx}$, nie len $rA\\mathrm{e}^{rx}$.` }] : [],
         steps: [
-          { q: `Po dosadení $y_p = Ax${ex(r1)}$ zostane $A(2r + p)${ex(r1)}$. Vypočítaj $2r + p$.`, answer: 2 * r1 + p, signed: true },
-          { q: 'Urči $A$.', answer: A, signed: true }
+          { q: T`Po dosadení $y_p = Ax${ex(r1)}$ zostane $A(2r + p)${ex(r1)}$. Vypočítaj $2r + p$.`, answer: 2 * r1 + p, signed: true },
+          { q: T`Urči $A$.`, answer: A, signed: true }
         ],
         signed: true, answer: A,
-        q: `Rovnica $${lhs2(p, q)} = ${cf(k, ex(r1))}$ má partikulárne riešenie tvaru $y_p = Ax${ex(r1)}$. Urči $A$.`,
-        solution: `Charakteristická rovnica $${charEq(p, q)}$ má korene $${r1}$ a $${r2}$, takže $${r1}$ je jednoduchý koreň (rezonancia) a v tvare $y_p$ je činiteľ $x$.
+        q: T`Rovnica $${lhs2(p, q)} = ${cf(k, ex(r1))}$ má partikulárne riešenie tvaru $y_p = Ax${ex(r1)}$. Urči $A$.`,
+        solution: T`Charakteristická rovnica $${charEq(p, q)}$ má korene $${r1}$ a $${r2}$, takže $${r1}$ je jednoduchý koreň (rezonancia) a v tvare $y_p$ je činiteľ $x$.
           $y_p' = A(1${term(r1, 'x')})${ex(r1)}$, $y_p'' = A(${2 * r1}${term(r1 * r1, 'x')})${ex(r1)}$. Po dosadení sa členy s $x$ odčítajú a zostane
           $A(2\\cdot ${par(r1)}${term(p)})${ex(r1)} = ${r1 - r2}A${ex(r1)} = ${k}${ex(r1)}$, teda $A = ${A}$.`,
-        hint: 'Pri rezonancii s jednoduchým koreňom $r$ vyjde po dosadení $y_p = Ax\\mathrm{e}^{rx}$ výraz $A(2r + p)\\,\\mathrm{e}^{rx}$.'
+        hint: T`Pri rezonancii s jednoduchým koreňom $r$ vyjde po dosadení $y_p = Ax\\mathrm{e}^{rx}$ výraz $A(2r + p)\\,\\mathrm{e}^{rx}$.`
       };
     }
     if (t < 0.8) {
@@ -1339,19 +1341,19 @@
       const rhs = lin([[Kc, co], [Ks, si]]);
       const dW = q * q + p * p * w * w, Aw = dW ? (q * Kc - p * w * Ks) / dW : NaN, Bw = dW ? (q * Ks + p * w * Kc) / dW : NaN;
       return {
-        mistakes: Number.isFinite(Aw) && (Math.abs(Aw - A) > 1e-6 || Math.abs(Bw - B) > 1e-6) ? [{ value: [Aw, Bw], msg: `Zabudol si na druhú deriváciu: $y_p'' = -${w === 1 ? '' : w * w}y_p$, takže koeficient pri $A$ v rovnici pre kosínus je $q - ${w * w}$.` }] : [],
+        mistakes: Number.isFinite(Aw) && (Math.abs(Aw - A) > 1e-6 || Math.abs(Bw - B) > 1e-6) ? [{ value: [Aw, Bw], msg: T`Zabudol si na druhú deriváciu: $y_p'' = -${w === 1 ? '' : w * w}y_p$, takže koeficient pri $A$ v rovnici pre kosínus je $q - ${w * w}$.` }] : [],
         steps: [
-          { q: `Po dosadení má rovnica pre koeficienty pri $${co}$ tvar $uA${term(p * w, 'B')} = ${Kc}$. Urči $u$.`, answer: u, signed: true },
-          { q: 'Vyrieš sústavu a urči $A$.', answer: A, signed: true },
-          { q: 'Urči $B$.', answer: B, signed: true }
+          { q: T`Po dosadení má rovnica pre koeficienty pri $${co}$ tvar $uA${term(p * w, 'B')} = ${Kc}$. Urči $u$.`, answer: u, signed: true },
+          { q: T`Vyrieš sústavu a urči $A$.`, answer: A, signed: true },
+          { q: T`Urči $B$.`, answer: B, signed: true }
         ],
         type: 'tuple', signed: true, answer: [A, B], placeholder: 'A; B',
-        q: `Partikulárne riešenie rovnice $${lhs2(p, q)} = ${rhs}$ hľadáme v tvare $y_p = A${co} + B${si}$. Urči $A$ a $B$.`,
-        solution: `${p === 0 ? `Keďže $${w * w}\\neq ${q}$, nejde o rezonanciu.` : `Číslo $${w === 1 ? '' : w}\\mathrm{i}$ nie je koreňom charakteristickej rovnice, nejde o rezonanciu.`}
+        q: T`Partikulárne riešenie rovnice $${lhs2(p, q)} = ${rhs}$ hľadáme v tvare $y_p = A${co} + B${si}$. Urči $A$ a $B$.`,
+        solution: T`${p === 0 ? T`Keďže $${w * w}\\neq ${q}$, nejde o rezonanciu.` : T`Číslo $${w === 1 ? '' : w}\\mathrm{i}$ nie je koreňom charakteristickej rovnice, nejde o rezonanciu.`}
           $y_p'' = -${w * w}y_p$ a $y_p' = ${w === 1 ? '' : w}(-A${si} + B${co})$. Po dosadení porovnáme koeficienty:
           pri $${co}$: $${lin([[u, 'A'], [p * w, 'B']])} = ${Kc}$, pri $${si}$: $${lin([[-p * w, 'A'], [u, 'B']])} = ${Ks}$.
           Riešenie sústavy je $A = ${A}$, $B = ${B}$.`,
-        hint: 'Dosaď $y_p$ do rovnice a porovnaj koeficienty pri kosínuse a pri sínuse; dostaneš sústavu dvoch rovníc pre $A$, $B$.'
+        hint: T`Dosaď $y_p$ do rovnice a porovnaj koeficienty pri kosínuse a pri sínuse; dostaneš sústavu dvoch rovníc pre $A$, $B$.`
       };
     }
     // výber tvaru partikulárneho riešenia
@@ -1371,18 +1373,18 @@
     forms.forEach((f, i) => {
       if (i === s) return;
       choiceHints[`$y_p = ${f}$`] = i === 3
-        ? (deg === 0 ? 'Pravá strana obsahuje len konštantu (polynóm stupňa 0), polynóm $Ax + B$ tu netreba.' : 'Pre polynóm 1. stupňa treba úplný polynóm $Ax + B$, samotné $Ax$ nestačí.')
-        : i < s ? `Číslo $${c}$ z exponentu pravej strany je koreňom charakteristickej rovnice (rezonancia); koľkokrát treba tvar vynásobiť $x$?`
-          : `Mocnina $x$ v tvare $y_p$ sa rovná násobnosti čísla $${c}$ ako koreňa charakteristickej rovnice. Over túto násobnosť.`;
+        ? (deg === 0 ? T`Pravá strana obsahuje len konštantu (polynóm stupňa 0), polynóm $Ax + B$ tu netreba.` : T`Pre polynóm 1. stupňa treba úplný polynóm $Ax + B$, samotné $Ax$ nestačí.`)
+        : i < s ? T`Číslo $${c}$ z exponentu pravej strany je koreňom charakteristickej rovnice (rezonancia); koľkokrát treba tvar vynásobiť $x$?`
+          : T`Mocnina $x$ v tvare $y_p$ sa rovná násobnosti čísla $${c}$ ako koreňa charakteristickej rovnice. Over túto násobnosť.`;
     });
     return {
       choiceHints,
       type: 'choice', answer: `$y_p = ${ok}$`, options: shuffle(forms.map((f) => `$y_p = ${f}$`)),
-      q: `V akom tvare treba hľadať partikulárne riešenie rovnice $${lhs2(p, q)} = ${rhs}$ metódou neurčitých koeficientov?`,
-      solution: `Charakteristická rovnica $${charEq(p, q)}$ má ${dbl ? `dvojnásobný koreň $${r1}$` : `korene $${r1}$ a $${r2}$`}.
-        Pravá strana je ${deg === 0 ? 'konštanta' : 'polynóm 1. stupňa'}${c === 0 ? '' : ` krát $${e}$`}, teda $\\alpha = ${c}$, a to ${s === 0 ? 'nie je koreňom' : s === 1 ? 'je jednoduchým koreňom' : 'je dvojnásobným koreňom'} charakteristickej rovnice ($k = ${s}$).
+      q: T`V akom tvare treba hľadať partikulárne riešenie rovnice $${lhs2(p, q)} = ${rhs}$ metódou neurčitých koeficientov?`,
+      solution: T`Charakteristická rovnica $${charEq(p, q)}$ má ${dbl ? T`dvojnásobný koreň $${r1}$` : T`korene $${r1}$ a $${r2}$`}.
+        Pravá strana je ${deg === 0 ? T`konštanta` : T`polynóm 1. stupňa`}${c === 0 ? '' : T` krát $${e}$`}, teda $\\alpha = ${c}$, a to ${s === 0 ? T`nie je koreňom` : s === 1 ? T`je jednoduchým koreňom` : T`je dvojnásobným koreňom`} charakteristickej rovnice ($k = ${s}$).
         Preto $y_p = ${ok}$.`,
-      hint: 'Zisti, koľkokrát je číslo $\\alpha$ z exponentu pravej strany koreňom charakteristickej rovnice, a toľkokrát vynásob základný tvar číslom $x$.'
+      hint: T`Zisti, koľkokrát je číslo $\\alpha$ z exponentu pravej strany koreňom charakteristickej rovnice, a toľkokrát vynásob základný tvar číslom $x$.`
     };
   });
 
@@ -1397,14 +1399,14 @@
       if (d < w0 - 1e-9) {
         const wd = Math.sqrt(w0 * w0 - d * d);
         x = (t) => Math.exp(-d * t) * (Math.cos(wd * t) + d / wd * Math.sin(wd * t));
-        regime = d === 0 ? 'netlmené kmity, ω₀ = 2' : `podkritické tlmenie: tlmené kmity, ω<sub>d</sub> = ${sk(wd)}`;
+        regime = d === 0 ? T.s('netlmené kmity, ω₀ = 2') : T`podkritické tlmenie: tlmené kmity, ω<sub>d</sub> = ${sk(wd)}`;
       } else if (d <= w0 + 1e-9) {
         x = (t) => (1 + d * t) * Math.exp(-d * t);
-        regime = 'kritické tlmenie: najrýchlejší návrat bez kmitov';
+        regime = T.s('kritické tlmenie: najrýchlejší návrat bez kmitov');
       } else {
         const s = Math.sqrt(d * d - w0 * w0), l1 = -d + s, l2 = -d - s;
         x = (t) => (l2 * Math.exp(l1 * t) - l1 * Math.exp(l2 * t)) / (l2 - l1);
-        regime = 'nadkritické tlmenie: aperiodický pohyb';
+        regime = T.s('nadkritické tlmenie: aperiodický pohyb');
       }
       let clipped = '';
       if (d > 0 && d < w0) {
@@ -1430,7 +1432,7 @@
         <circle class="f-dot" cx="${n1(p.X(wr))}" cy="${n1(p.Y(Math.min(amp(wr), 2.6)))}" r="5"/>`;
       return {
         svg: svg(p, axes(p, 1, 1), clipped, '', 'Amplitúda vynútených kmitov v závislosti od frekvencie'),
-        readout: `ω₀ = 2, δ = ${sk(d)} · <span class="c-accent">maximum pri ω = ${sk(wr)}, amplitúda ${sk(amp(wr))}</span> (pre F₀/m = 1)`
+        readout: T`ω₀ = 2, δ = ${sk(d)} · <span class="c-accent">maximum pri ω = ${sk(wr)}, amplitúda ${sk(amp(wr))}</span> (pre F₀/m = 1)`
       };
     }
   });
@@ -1479,56 +1481,56 @@
     if (t < 0.22) {
       const m = pick([1, 2, 4]), w0 = rnd(2, 5), k = m * w0 * w0, cc = 2 * m * w0;
       const kind = rnd(0, 2), c = kind === 1 ? cc : kind === 0 ? rnd(1, cc - 1) : cc + rnd(1, 8);
-      const choiceHints = {};
-      REGIMES.forEach((r, i) => {
-        if (i !== kind) choiceHints[r] = 'Rozhoduje znamienko diskriminantu $c^{2} - 4mk$. Prepočítaj ho: porovnávaš druhú mocninu tlmenia so štvornásobkom súčinu $mk$.';
+      const choiceHints = {}, opts = REGIMES.map((r) => T.s(r));
+      opts.forEach((r, i) => {
+        if (i !== kind) choiceHints[r] = T`Rozhoduje znamienko diskriminantu $c^{2} - 4mk$. Prepočítaj ho: porovnávaš druhú mocninu tlmenia so štvornásobkom súčinu $mk$.`;
       });
       return {
         choiceHints,
-        type: 'choice', options: [...REGIMES], answer: REGIMES[kind],
-        q: `Pohyb telesa sa riadi rovnicou $${m === 1 ? '' : m}x'' + ${c}x' + ${k}x = 0$ (hmotnosť $${m}\\,\\mathrm{kg}$, tlmenie $${c}\\,\\mathrm{kg/s}$, tuhosť $${k}\\,\\mathrm{N/m}$). O aký typ pohybu ide?`,
-        solution: `Rozhoduje znamienko diskriminantu charakteristickej rovnice, teda porovnanie $c^{2}$ a $4mk$: $c^{2} = ${c * c}$, $4mk = ${4 * m * k}$.
-          ${kind === 0 ? `Keďže $c^{2} \\lt 4mk$` : kind === 1 ? 'Keďže $c^{2} = 4mk$' : 'Keďže $c^{2} \\gt 4mk$'}, ide o ${REGIMES[kind]}.
+        type: 'choice', options: opts, answer: opts[kind],
+        q: T`Pohyb telesa sa riadi rovnicou $${m === 1 ? '' : m}x'' + ${c}x' + ${k}x = 0$ (hmotnosť $${m}\\,\\mathrm{kg}$, tlmenie $${c}\\,\\mathrm{kg/s}$, tuhosť $${k}\\,\\mathrm{N/m}$). O aký typ pohybu ide?`,
+        solution: T`Rozhoduje znamienko diskriminantu charakteristickej rovnice, teda porovnanie $c^{2}$ a $4mk$: $c^{2} = ${c * c}$, $4mk = ${4 * m * k}$.
+          ${kind === 0 ? T`Keďže $c^{2} \\lt 4mk$` : kind === 1 ? T`Keďže $c^{2} = 4mk$` : T`Keďže $c^{2} \\gt 4mk$`}, ide o ${REGIMES[kind]}.
           (Ekvivalentne $\\delta = \\frac{c}{2m} = ${dc3(c / (2 * m))}$ a $\\omega_0 = \\sqrt{k/m} = ${w0}$.)`,
-        hint: 'Porovnaj $c^{2}$ so $4mk$, alebo koeficient útlmu $\\delta = \\frac{c}{2m}$ s vlastnou frekvenciou $\\omega_0 = \\sqrt{k/m}$.'
+        hint: T`Porovnaj $c^{2}$ so $4mk$, alebo koeficient útlmu $\\delta = \\frac{c}{2m}$ s vlastnou frekvenciou $\\omega_0 = \\sqrt{k/m}$.`
       };
     }
     if (t < 0.42) {
       if (Math.random() < 0.5) {
-        const m = pick([0.5, 1, 2, 4, 5]), k = pick([8, 10, 20, 50, 100, 200]), T = 2 * Math.PI * Math.sqrt(m / k), w0 = Math.sqrt(k / m);
+        const m = pick([0.5, 1, 2, 4, 5]), k = pick([8, 10, 20, 50, 100, 200]), Tp = 2 * Math.PI * Math.sqrt(m / k), w0 = Math.sqrt(k / m);
         return {
           mistakes: [
-            { value: 2 * Math.PI * w0, msg: 'Zamenil si hmotnosť a tuhosť: $\\omega_0 = \\sqrt{k/m}$, a perióda je $\\frac{2\\pi}{\\omega_0}$, nie $2\\pi\\omega_0$.' },
-            { value: Math.sqrt(m / k), msg: 'Výraz $\\sqrt{m/k}$ je $\\frac{1}{\\omega_0}$; perióda je ešte $2\\pi$-krát väčšia.' }
+            { value: 2 * Math.PI * w0, msg: T`Zamenil si hmotnosť a tuhosť: $\\omega_0 = \\sqrt{k/m}$, a perióda je $\\frac{2\\pi}{\\omega_0}$, nie $2\\pi\\omega_0$.` },
+            { value: Math.sqrt(m / k), msg: T`Výraz $\\sqrt{m/k}$ je $\\frac{1}{\\omega_0}$; perióda je ešte $2\\pi$-krát väčšia.` }
           ],
           steps: [
-            { q: 'Vypočítaj vlastnú uhlovú frekvenciu $\\omega_0$ (v $\\mathrm{s^{-1}}$). Zaokrúhli na 3 desatinné miesta.', answer: w0, tol: 0.0006, show: dt(w0, 3) },
-            { q: `Vypočítaj periódu kmitov v sekundách. ${ROUND2}`, answer: T, tol: T2, show: dt(T) }
+            { q: T`Vypočítaj vlastnú uhlovú frekvenciu $\\omega_0$ (v $\\mathrm{s^{-1}}$). Zaokrúhli na 3 desatinné miesta.`, answer: w0, tol: 0.0006, show: dt(w0, 3) },
+            { q: T`Vypočítaj periódu kmitov v sekundách. ${T.s(ROUND2)}`, answer: Tp, tol: T2, show: dt(Tp) }
           ],
-          answer: T, tol: T2, show: dt(T),
-          q: `Teleso s hmotnosťou $${dc3(m)}\\,\\mathrm{kg}$ kmitá bez tlmenia na pružine s tuhosťou $${k}\\,\\mathrm{N/m}$. Aká je perióda kmitov v sekundách? ${ROUND2}`,
-          solution: `Rovnica $${dc3(m)}x'' + ${k}x = 0$ má $\\omega_0 = \\sqrt{\\frac{${k}}{${dc3(m)}}} \\approx ${dd(Math.sqrt(k / m), 3)}\\,\\mathrm{s^{-1}}$.
-            Perióda $T = \\frac{2\\pi}{\\omega_0} = 2\\pi\\sqrt{\\frac{m}{k}} \\approx ${dd(T)}\\,\\mathrm{s}$.`,
-          hint: 'Perióda netlmených kmitov je $T = 2\\pi\\sqrt{m/k}$.'
+          answer: Tp, tol: T2, show: dt(Tp),
+          q: T`Teleso s hmotnosťou $${dc3(m)}\\,\\mathrm{kg}$ kmitá bez tlmenia na pružine s tuhosťou $${k}\\,\\mathrm{N/m}$. Aká je perióda kmitov v sekundách? ${T.s(ROUND2)}`,
+          solution: T`Rovnica $${dc3(m)}x'' + ${k}x = 0$ má $\\omega_0 = \\sqrt{\\frac{${k}}{${dc3(m)}}} \\approx ${dd(Math.sqrt(k / m), 3)}\\,\\mathrm{s^{-1}}$.
+            Perióda $T = \\frac{2\\pi}{\\omega_0} = 2\\pi\\sqrt{\\frac{m}{k}} \\approx ${dd(Tp)}\\,\\mathrm{s}$.`,
+          hint: T`Perióda netlmených kmitov je $T = 2\\pi\\sqrt{m/k}$.`
         };
       }
       const w0 = rnd(2, 5), x0 = nz(-4, 4), v0 = nz(-12, 12), A = Math.sqrt(x0 * x0 + (v0 / w0) ** 2);
       const sum = Math.abs(x0) + Math.abs(v0 / w0);
       return {
         mistakes: [
-          { value: Math.sqrt(x0 * x0 + v0 * v0), msg: `Derivácia $C_2\\sin ${w0}t$ je $${w0}C_2\\cos ${w0}t$, preto $C_2 = \\frac{x'(0)}{\\omega_0}$, nie $x'(0)$.` },
-          ...(Math.abs(sum - A) > T2 ? [{ value: sum, msg: 'Amplitúda nie je súčet $|C_1| + |C_2|$, ale $\\sqrt{C_1^{2} + C_2^{2}}$ (zloženie kosínusu a sínusu s rovnakou frekvenciou).' }] : [])
+          { value: Math.sqrt(x0 * x0 + v0 * v0), msg: T`Derivácia $C_2\\sin ${w0}t$ je $${w0}C_2\\cos ${w0}t$, preto $C_2 = \\frac{x'(0)}{\\omega_0}$, nie $x'(0)$.` },
+          ...(Math.abs(sum - A) > T2 ? [{ value: sum, msg: T`Amplitúda nie je súčet $|C_1| + |C_2|$, ale $\\sqrt{C_1^{2} + C_2^{2}}$ (zloženie kosínusu a sínusu s rovnakou frekvenciou).` }] : [])
         ],
         steps: [
-          { q: 'Urči $C_1$ v riešení $x = C_1\\cos\\omega_0t + C_2\\sin\\omega_0t$.', answer: x0, signed: true },
-          { q: 'Urči $C_2$ (zlomok alebo celé číslo).', answer: v0 / w0, show: fTxt(v0, w0), tol: 1e-4, signed: true },
-          { q: `Urči amplitúdu kmitov. ${ROUND2}`, answer: A, tol: T2, show: dt(A) }
+          { q: T`Urči $C_1$ v riešení $x = C_1\\cos\\omega_0t + C_2\\sin\\omega_0t$.`, answer: x0, signed: true },
+          { q: T`Urči $C_2$ (zlomok alebo celé číslo).`, answer: v0 / w0, show: fTxt(v0, w0), tol: 1e-4, signed: true },
+          { q: T`Urči amplitúdu kmitov. ${T.s(ROUND2)}`, answer: A, tol: T2, show: dt(A) }
         ],
         answer: A, tol: T2, show: dt(A),
-        q: `Netlmený oscilátor $x'' + ${w0 * w0}x = 0$ má začiatočné podmienky $x(0) = ${x0}$, $x'(0) = ${v0}$. Urči amplitúdu kmitov. ${ROUND2}`,
-        solution: `$\\omega_0 = ${w0}$, riešenie $x = C_1\\cos ${w0}t + C_2\\sin ${w0}t$ s $C_1 = x(0) = ${x0}$ a $${w0}C_2 = x'(0) = ${v0}$, teda $C_2 = ${fTex(v0, w0)}$.
+        q: T`Netlmený oscilátor $x'' + ${w0 * w0}x = 0$ má začiatočné podmienky $x(0) = ${x0}$, $x'(0) = ${v0}$. Urči amplitúdu kmitov. ${T.s(ROUND2)}`,
+        solution: T`$\\omega_0 = ${w0}$, riešenie $x = C_1\\cos ${w0}t + C_2\\sin ${w0}t$ s $C_1 = x(0) = ${x0}$ a $${w0}C_2 = x'(0) = ${v0}$, teda $C_2 = ${fTex(v0, w0)}$.
           Amplitúda $A = \\sqrt{C_1^{2} + C_2^{2}} = \\sqrt{${x0 * x0} + ${fTex(v0 * v0, w0 * w0)}} \\approx ${dd(A)}$.`,
-        hint: 'Zapíš riešenie ako $C_1\\cos\\omega_0t + C_2\\sin\\omega_0t$, konštanty urči z podmienok a amplitúda je $\\sqrt{C_1^{2} + C_2^{2}}$.'
+        hint: T`Zapíš riešenie ako $C_1\\cos\\omega_0t + C_2\\sin\\omega_0t$, konštanty urči z podmienok a amplitúda je $\\sqrt{C_1^{2} + C_2^{2}}$.`
       };
     }
     if (t < 0.6) {
@@ -1536,19 +1538,19 @@
       const w2 = w0 * w0 - 4 * d * d;
       return {
         mistakes: [
-          { value: w0, msg: 'Toto je vlastná frekvencia netlmeného oscilátora $\\omega_0$. Tlmenie frekvenciu znižuje: $\\omega_d = \\sqrt{\\omega_0^{2} - \\delta^{2}}$.' },
-          ...(w2 > 0 ? [{ value: Math.sqrt(w2), msg: 'Koeficient pri $x\'$ (po vydelení hmotnosťou) je $2\\delta$, nie $\\delta$. Najprv ho vydeľ dvoma.' }] : [])
+          { value: w0, msg: T`Toto je vlastná frekvencia netlmeného oscilátora $\\omega_0$. Tlmenie frekvenciu znižuje: $\\omega_d = \\sqrt{\\omega_0^{2} - \\delta^{2}}$.` },
+          ...(w2 > 0 ? [{ value: Math.sqrt(w2), msg: T`Koeficient pri $x'$ (po vydelení hmotnosťou) je $2\\delta$, nie $\\delta$. Najprv ho vydeľ dvoma.` }] : [])
         ],
         steps: [
-          { q: 'Prepíš rovnicu na tvar $x\'\' + 2\\delta x\' + \\omega_0^{2}x = 0$ a urči $\\delta$.', answer: d },
-          { q: 'Urči $\\omega_0^{2}$.', answer: w0 * w0 },
-          { q: `Urči $\\omega_d$. ${ROUND2}`, answer: wd, tol: T2, show: dt(wd) }
+          { q: T`Prepíš rovnicu na tvar $x'' + 2\\delta x' + \\omega_0^{2}x = 0$ a urči $\\delta$.`, answer: d },
+          { q: T`Urči $\\omega_0^{2}$.`, answer: w0 * w0 },
+          { q: T`Urči $\\omega_d$. ${T.s(ROUND2)}`, answer: wd, tol: T2, show: dt(wd) }
         ],
         answer: wd, tol: T2, show: dt(wd),
-        q: `Tlmený oscilátor sa riadi rovnicou $${m === 1 ? '' : m}x'' + ${c}x' + ${k}x = 0$. Urči uhlovú frekvenciu $\\omega_d$ jeho tlmených kmitov. ${ROUND2}`,
-        solution: `${m === 1 ? '' : `Po vydelení číslom $${m}$: $x'' + ${c / m}x' + ${w0 * w0}x = 0$. `}Porovnaním s tvarom $x'' + 2\\delta x' + \\omega_0^{2}x = 0$ je $2\\delta = ${2 * d}$, $\\delta = ${d}$ a $\\omega_0^{2} = ${w0 * w0}$.
+        q: T`Tlmený oscilátor sa riadi rovnicou $${m === 1 ? '' : m}x'' + ${c}x' + ${k}x = 0$. Urči uhlovú frekvenciu $\\omega_d$ jeho tlmených kmitov. ${T.s(ROUND2)}`,
+        solution: T`${m === 1 ? '' : T`Po vydelení číslom $${m}$: $x'' + ${c / m}x' + ${w0 * w0}x = 0$. `}Porovnaním s tvarom $x'' + 2\\delta x' + \\omega_0^{2}x = 0$ je $2\\delta = ${2 * d}$, $\\delta = ${d}$ a $\\omega_0^{2} = ${w0 * w0}$.
           Korene charakteristickej rovnice sú $-${d}\\pm\\mathrm{i}\\sqrt{${w0 * w0} - ${d * d}}$, preto $\\omega_d = \\sqrt{${w0 * w0 - d * d}} \\approx ${dd(wd)}$.`,
-        hint: 'Prepíš rovnicu na tvar $x\'\' + 2\\delta x\' + \\omega_0^{2}x = 0$; potom $\\omega_d = \\sqrt{\\omega_0^{2} - \\delta^{2}}$.'
+        hint: T`Prepíš rovnicu na tvar $x'' + 2\\delta x' + \\omega_0^{2}x = 0$; potom $\\omega_d = \\sqrt{\\omega_0^{2} - \\delta^{2}}$.`
       };
     }
     if (t < 0.8) {
@@ -1556,28 +1558,28 @@
       let w; do { w = rnd(1, 7); } while (w === w0);
       const den = w0 * w0 - w * w;
       return {
-        mistakes: [{ value: F / (w0 * w0 + w * w), msg: `Druhá derivácia kosínusu je záporná: $x_p'' = -${w * w}A\\cos ${cf(w, 't')}$.` }],
+        mistakes: [{ value: F / (w0 * w0 + w * w), msg: T`Druhá derivácia kosínusu je záporná: $x_p'' = -${w * w}A\\cos ${cf(w, 't')}$.` }],
         steps: [
-          { q: `Po dosadení $x_p$ dostaneš $KA\\cos ${cf(w, 't')} = ${F}\\cos ${cf(w, 't')}$. Urči $K$.`, answer: den, signed: true },
-          { q: 'Urči $A$ (zlomok alebo celé číslo).', answer: F / den, show: fTxt(F, den), tol: 1e-4, signed: true }
+          { q: T`Po dosadení $x_p$ dostaneš $KA\\cos ${cf(w, 't')} = ${F}\\cos ${cf(w, 't')}$. Urči $K$.`, answer: den, signed: true },
+          { q: T`Urči $A$ (zlomok alebo celé číslo).`, answer: F / den, show: fTxt(F, den), tol: 1e-4, signed: true }
         ],
         signed: true, answer: F / den, show: fTxt(F, den), tol: 1e-4,
-        q: `Netlmený oscilátor je budený periodickou silou: $x'' + ${w0 * w0}x = ${cf(F, `\\cos ${cf(w, 't')}`)}$. Ustálené vynútené kmity majú tvar $x_p = A\\cos ${cf(w, 't')}$. Urči $A$ (ako zlomok alebo celé číslo).`,
-        solution: `Dosadíme $x_p = A\\cos ${cf(w, 't')}$: $x_p'' = -${w * w}A\\cos ${cf(w, 't')}$, teda $(${w0 * w0} - ${w * w})A = ${F}$ a $A = ${fTex(F, den)}$.
-          ${den < 0 ? 'Záporné $A$ znamená, že kmity sú v protifáze s budiacou silou (budiaca frekvencia je vyššia ako vlastná).' : 'Kladné $A$ znamená, že kmity sú vo fáze s budiacou silou.'}`,
-        hint: 'Dosaď $x_p$ do rovnice: $(\\omega_0^{2} - \\omega^{2})A = F_0$.'
+        q: T`Netlmený oscilátor je budený periodickou silou: $x'' + ${w0 * w0}x = ${cf(F, `\\cos ${cf(w, 't')}`)}$. Ustálené vynútené kmity majú tvar $x_p = A\\cos ${cf(w, 't')}$. Urči $A$ (ako zlomok alebo celé číslo).`,
+        solution: T`Dosadíme $x_p = A\\cos ${cf(w, 't')}$: $x_p'' = -${w * w}A\\cos ${cf(w, 't')}$, teda $(${w0 * w0} - ${w * w})A = ${F}$ a $A = ${fTex(F, den)}$.
+          ${den < 0 ? T`Záporné $A$ znamená, že kmity sú v protifáze s budiacou silou (budiaca frekvencia je vyššia ako vlastná).` : T`Kladné $A$ znamená, že kmity sú vo fáze s budiacou silou.`}`,
+        hint: T`Dosaď $x_p$ do rovnice: $(\\omega_0^{2} - \\omega^{2})A = F_0$.`
       };
     }
     const w0 = rnd(1, 5), F = nz(-12, 12), isCos = Math.random() < 0.5;
     const B = isCos ? F / (2 * w0) : -F / (2 * w0);
     const fn = isCos ? '\\cos' : '\\sin', other = isCos ? '\\sin' : '\\cos';
     return {
-      mistakes: [{ value: 2 * B, msg: `Pri dvojnásobnom derivovaní súčinu $t${other} ${cf(w0, 't')}$ vzniknú dva rovnaké členy bez $t$, spolu $2\\omega_0$-násobok.` }],
+      mistakes: [{ value: 2 * B, msg: T`Pri dvojnásobnom derivovaní súčinu $t${other} ${cf(w0, 't')}$ vzniknú dva rovnaké členy bez $t$, spolu $2\\omega_0$-násobok.` }],
       signed: true, answer: B, show: fTxt(isCos ? F : -F, 2 * w0), tol: 1e-4,
-      q: `Rovnica $x'' + ${w0 * w0}x = ${cf(F, `${fn} ${cf(w0, 't')}`)}$ opisuje rezonanciu. Jej partikulárne riešenie má tvar $x_p = Bt${other} ${cf(w0, 't')}$. Urči $B$.`,
-      solution: `Pre $x_p = Bt${other} ${cf(w0, 't')}$ je $x_p'' + ${w0 * w0}x_p = ${isCos ? '' : '-'}${2 * w0}B${fn} ${cf(w0, 't')}$ (členy s $t$ sa odčítajú).
+      q: T`Rovnica $x'' + ${w0 * w0}x = ${cf(F, `${fn} ${cf(w0, 't')}`)}$ opisuje rezonanciu. Jej partikulárne riešenie má tvar $x_p = Bt${other} ${cf(w0, 't')}$. Urči $B$.`,
+      solution: T`Pre $x_p = Bt${other} ${cf(w0, 't')}$ je $x_p'' + ${w0 * w0}x_p = ${isCos ? '' : '-'}${2 * w0}B${fn} ${cf(w0, 't')}$ (členy s $t$ sa odčítajú).
         Porovnaním $${isCos ? '' : '-'}${2 * w0}B = ${F}$, teda $B = ${fTex(isCos ? F : -F, 2 * w0)}$. Amplitúda $|B|t$ rastie lineárne s časom.`,
-      hint: 'Zderivuj $x_p$ dvakrát (súčin $t$ a goniometrickej funkcie) a dosaď. Pri $\\omega = \\omega_0$ zostane len člen bez $t$.'
+      hint: T`Zderivuj $x_p$ dvakrát (súčin $t$ a goniometrickej funkcie) a dosaď. Pri $\\omega = \\omega_0$ zostane len člen bez $t$.`
     };
   });
 
@@ -1585,13 +1587,13 @@
 
   // typ rovnovážneho bodu sústavy x' = Ax podľa stopy a determinantu
   const classify = (a, b, c, d) => {
-    const T = a + d, D = a * d - b * c, disc = T * T - 4 * D;
+    const tA = a + d, D = a * d - b * c, disc = tA * tA - 4 * D;
     if (Math.abs(D) < 1e-9) return 'neizolovaný rovnovážny bod (det A = 0)';
     if (D < 0) return 'sedlo';
-    if (Math.abs(disc) < 1e-9) return T < 0 ? 'stabilný degenerovaný uzol' : 'nestabilný degenerovaný uzol';
-    if (disc > 0) return T < 0 ? 'stabilný uzol' : 'nestabilný uzol';
-    if (Math.abs(T) < 1e-9) return 'stred';
-    return T < 0 ? 'stabilné ohnisko' : 'nestabilné ohnisko';
+    if (Math.abs(disc) < 1e-9) return tA < 0 ? 'stabilný degenerovaný uzol' : 'nestabilný degenerovaný uzol';
+    if (disc > 0) return tA < 0 ? 'stabilný uzol' : 'nestabilný uzol';
+    if (Math.abs(tA) < 1e-9) return 'stred';
+    return tA < 0 ? 'stabilné ohnisko' : 'nestabilné ohnisko';
   };
 
   fig('v3-fazovy', {
@@ -1607,9 +1609,9 @@
       const F = (x, y) => [a * x + b * y, c * x + d * y];
       const back = axes(p, 2, 2) + field(p, F, 15, 15);
       let clipped = '';
-      const T = a + d, D = a * d - b * c, disc = T * T - 4 * D;
+      const tA = a + d, D = a * d - b * c, disc = tA * tA - 4 * D;
       if (disc > 1e-9 && Math.abs(D) > 1e-9) {
-        [(T + Math.sqrt(disc)) / 2, (T - Math.sqrt(disc)) / 2].forEach((l) => {
+        [(tA + Math.sqrt(disc)) / 2, (tA - Math.sqrt(disc)) / 2].forEach((l) => {
           let vx = b, vy = l - a;
           if (Math.abs(vx) < 1e-9 && Math.abs(vy) < 1e-9) { vx = l - d; vy = c; }
           if (Math.abs(vx) < 1e-9 && Math.abs(vy) < 1e-9) return;
@@ -1647,11 +1649,11 @@
       });
       clipped += `<circle class="f-dot" cx="${n1(p.X(0))}" cy="${n1(p.Y(0))}" r="4"/>`;
       let eig;
-      if (disc >= -1e-9) eig = `λ₁ = ${sk((T + Math.sqrt(Math.max(disc, 0))) / 2)}, λ₂ = ${sk((T - Math.sqrt(Math.max(disc, 0))) / 2)}`;
-      else eig = `λ = ${sk(T / 2)} ± ${sk(Math.sqrt(-disc) / 2)}i`;
+      if (disc >= -1e-9) eig = `λ₁ = ${sk((tA + Math.sqrt(Math.max(disc, 0))) / 2)}, λ₂ = ${sk((tA - Math.sqrt(Math.max(disc, 0))) / 2)}`;
+      else eig = `λ = ${sk(tA / 2)} ± ${sk(Math.sqrt(-disc) / 2)}i`;
       return {
         svg: svg(p, back, clipped, '', 'Fázový portrét lineárnej sústavy'),
-        readout: `tr A = ${sk(T, 1)}, det A = ${sk(D)} · ${eig} · <span class="c-accent">${classify(a, b, c, d)}</span>`
+        readout: `tr A = ${sk(tA, 1)}, det A = ${sk(D)} · ${eig} · <span class="c-accent">${T.s(classify(a, b, c, d))}</span>`
       };
     }
   });
@@ -1708,18 +1710,18 @@
     const t = Math.random();
     if (t < 0.33) {
       const { l1, l2, A } = eigMatrix();
-      const [[a, b], [c, d]] = A, T = a + d, D = a * d - b * c;
+      const [[a, b], [c, d]] = A, tA = a + d, D = a * d - b * c;
       return {
         steps: [
-          { q: 'Vypočítaj stopu matice sústavy $\\mathrm{tr}\\,A$.', answer: T, signed: true },
-          { q: 'Vypočítaj determinant $\\det A$.', answer: D, signed: true },
-          { q: 'Vyrieš $\\lambda^{2} - (\\mathrm{tr}\\,A)\\lambda + \\det A = 0$ a zadaj vlastné čísla (oddelené bodkočiarkou).', type: 'set', answer: [l1, l2], signed: true, placeholder: 'λ₁; λ₂' }
+          { q: T`Vypočítaj stopu matice sústavy $\\mathrm{tr}\\,A$.`, answer: tA, signed: true },
+          { q: T`Vypočítaj determinant $\\det A$.`, answer: D, signed: true },
+          { q: T`Vyrieš $\\lambda^{2} - (\\mathrm{tr}\\,A)\\lambda + \\det A = 0$ a zadaj vlastné čísla (oddelené bodkočiarkou).`, type: 'set', answer: [l1, l2], signed: true, placeholder: 'λ₁; λ₂' }
         ],
         type: 'set', signed: true, answer: [l1, l2], placeholder: 'λ₁; λ₂',
-        q: `Nájdi vlastné čísla matice sústavy ${sysTex(a, b, c, d)}. Zadaj ich oddelené bodkočiarkou.`,
-        solution: `$A = ${pm(A)}$. Charakteristická rovnica $\\det(A - \\lambda I) = \\lambda^{2} - (\\mathrm{tr}\\,A)\\lambda + \\det A = ${charEq(-T, D)}$,
-          kde $\\mathrm{tr}\\,A = ${T}$ a $\\det A = ${D}$. Korene sú $\\lambda_1 = ${l1}$ a $\\lambda_2 = ${l2}$.`,
-        hint: 'Vlastné čísla matice $2\\times 2$ sú korene rovnice $\\lambda^{2} - (\\mathrm{tr}\\,A)\\lambda + \\det A = 0$.'
+        q: T`Nájdi vlastné čísla matice sústavy ${sysTex(a, b, c, d)}. Zadaj ich oddelené bodkočiarkou.`,
+        solution: T`$A = ${pm(A)}$. Charakteristická rovnica $\\det(A - \\lambda I) = \\lambda^{2} - (\\mathrm{tr}\\,A)\\lambda + \\det A = ${charEq(-tA, D)}$,
+          kde $\\mathrm{tr}\\,A = ${tA}$ a $\\det A = ${D}$. Korene sú $\\lambda_1 = ${l1}$ a $\\lambda_2 = ${l2}$.`,
+        hint: T`Vlastné čísla matice $2\\times 2$ sú korene rovnice $\\lambda^{2} - (\\mathrm{tr}\\,A)\\lambda + \\det A = 0$.`
       };
     }
     if (t < 0.66) {
@@ -1729,29 +1731,29 @@
         a = rnd(-4, 4); b = rnd(-4, 4); c = rnd(-4, 4); d = want === 'stred' ? -a : rnd(-4, 4); n++;
       } while (classify(a, b, c, d) !== want && n < 5000);
       if (classify(a, b, c, d) !== want) { a = 0; b = 1; c = -4; d = 0; }
-      const T = a + d, D = a * d - b * c, disc = T * T - 4 * D;
+      const tA = a + d, D = a * d - b * c, disc = tA * tA - 4 * D;
       const kind = classify(a, b, c, d);
       const base = (s) => s.replace(/^nestabiln/, 'stabiln');
       const osc = (s) => /ohnisko|stred/.test(s);
       const choiceHints = {};
       TYPES.forEach((o) => {
         if (o === kind) return;
-        choiceHints[o] = o === 'sedlo' ? 'Sedlo vzniká len pri zápornom determinante (reálne vlastné čísla s opačnými znamienkami). Prepočítaj $\\det A$.'
-          : kind === 'sedlo' ? 'Najprv skontroluj znamienko $\\det A$: rozhoduje, či majú vlastné čísla opačné znamienka.'
-            : base(o) === base(kind) ? 'Stabilitu určuje znamienko stopy $\\mathrm{tr}\\,A$ (súčtu, resp. dvojnásobku reálnej časti vlastných čísel). Over ho.'
-              : osc(o) !== osc(kind) ? 'Či sú vlastné čísla reálne (uzol) alebo komplexné (ohnisko, stred), rozhoduje znamienko diskriminantu $(\\mathrm{tr}\\,A)^{2} - 4\\det A$.'
-                : 'Stred nastáva len pri nulovej stope; inak sa trajektórie k bodu približujú alebo sa od neho vzďaľujú.';
+        choiceHints[T.s(o)] = o === 'sedlo' ? T`Sedlo vzniká len pri zápornom determinante (reálne vlastné čísla s opačnými znamienkami). Prepočítaj $\\det A$.`
+          : kind === 'sedlo' ? T`Najprv skontroluj znamienko $\\det A$: rozhoduje, či majú vlastné čísla opačné znamienka.`
+            : base(o) === base(kind) ? T`Stabilitu určuje znamienko stopy $\\mathrm{tr}\\,A$ (súčtu, resp. dvojnásobku reálnej časti vlastných čísel). Over ho.`
+              : osc(o) !== osc(kind) ? T`Či sú vlastné čísla reálne (uzol) alebo komplexné (ohnisko, stred), rozhoduje znamienko diskriminantu $(\\mathrm{tr}\\,A)^{2} - 4\\det A$.`
+                : T`Stred nastáva len pri nulovej stope; inak sa trajektórie k bodu približujú alebo sa od neho vzďaľujú.`;
       });
       return {
         choiceHints,
-        type: 'choice', options: [...TYPES], answer: kind,
-        q: `Urči typ rovnovážneho bodu $[0; 0]$ sústavy ${sysTex(a, b, c, d)}.`,
-        solution: `$\\mathrm{tr}\\,A = ${T}$, $\\det A = ${D}$, diskriminant charakteristickej rovnice $(\\mathrm{tr}\\,A)^{2} - 4\\det A = ${disc}$.
-          ${D < 0 ? 'Determinant je záporný, vlastné čísla sú reálne s opačnými znamienkami: sedlo.'
-            : disc > 0 ? `Vlastné čísla sú reálne s rovnakým znamienkom (súčin $${D} \\gt 0$), ich súčet je $${T}$: ${kind}.`
-              : T === 0 ? 'Vlastné čísla sú rýdzo imaginárne: stred.'
-                : `Vlastné čísla sú komplexné s reálnou časťou $${fTex(T, 2)}$: ${kind}.`}`,
-        hint: 'Vypočítaj stopu, determinant a diskriminant $(\\mathrm{tr}\\,A)^{2} - 4\\det A$ a použi tabuľku z teórie.'
+        type: 'choice', options: TYPES.map((o) => T.s(o)), answer: T.s(kind),
+        q: T`Urči typ rovnovážneho bodu $[0; 0]$ sústavy ${sysTex(a, b, c, d)}.`,
+        solution: T`$\\mathrm{tr}\\,A = ${tA}$, $\\det A = ${D}$, diskriminant charakteristickej rovnice $(\\mathrm{tr}\\,A)^{2} - 4\\det A = ${disc}$.
+          ${D < 0 ? T`Determinant je záporný, vlastné čísla sú reálne s opačnými znamienkami: sedlo.`
+            : disc > 0 ? T`Vlastné čísla sú reálne s rovnakým znamienkom (súčin $${D} \\gt 0$), ich súčet je $${tA}$: ${kind}.`
+              : tA === 0 ? T`Vlastné čísla sú rýdzo imaginárne: stred.`
+                : T`Vlastné čísla sú komplexné s reálnou časťou $${fTex(tA, 2)}$: ${kind}.`}`,
+        hint: T`Vypočítaj stopu, determinant a diskriminant $(\\mathrm{tr}\\,A)^{2} - 4\\det A$ a použi tabuľku z teórie.`
       };
     }
     const { l1, l2, m1, m2, A } = eigMatrix();
@@ -1761,19 +1763,19 @@
     const vec = (m) => `\\begin{pmatrix}1\\\\ ${m}\\end{pmatrix}`;
     return {
       steps: [
-        { q: 'Urči väčšie vlastné číslo $\\lambda_1$.', answer: l1, signed: true },
-        { q: 'Vlastný vektor k $\\lambda_1$ má tvar $(1, m_1)^{T}$. Urči $m_1$.', answer: m1, signed: true, hint: 'Použi prvý riadok sústavy $(A - \\lambda_1 I)\\mathbf{v} = \\mathbf{0}$.' },
-        { q: 'Vlastný vektor k $\\lambda_2$ má tvar $(1, m_2)^{T}$. Urči $m_2$.', answer: m2, signed: true },
-        { q: 'Dosaď $t = 0$ a vyrieš sústavu pre konštanty. Zadaj $C_1$ a $C_2$.', type: 'tuple', answer: [C1, C2], signed: true, placeholder: 'C₁; C₂' }
+        { q: T`Urči väčšie vlastné číslo $\\lambda_1$.`, answer: l1, signed: true },
+        { q: T`Vlastný vektor k $\\lambda_1$ má tvar $(1, m_1)^{T}$. Urči $m_1$.`, answer: m1, signed: true, hint: T`Použi prvý riadok sústavy $(A - \\lambda_1 I)\\mathbf{v} = \\mathbf{0}$.` },
+        { q: T`Vlastný vektor k $\\lambda_2$ má tvar $(1, m_2)^{T}$. Urči $m_2$.`, answer: m2, signed: true },
+        { q: T`Dosaď $t = 0$ a vyrieš sústavu pre konštanty. Zadaj $C_1$ a $C_2$.`, type: 'tuple', answer: [C1, C2], signed: true, placeholder: 'C₁; C₂' }
       ],
       type: 'tuple', signed: true, answer: [C1, C2], placeholder: 'C₁; C₂',
-      q: `Sústava ${sysTex(a, b, c, d)} má začiatočnú podmienku $x(0) = ${x0}$, $y(0) = ${y0}$. Riešenie zapíšeme v tvare
+      q: T`Sústava ${sysTex(a, b, c, d)} má začiatočnú podmienku $x(0) = ${x0}$, $y(0) = ${y0}$. Riešenie zapíšeme v tvare
         $\\begin{pmatrix}x\\\\ y\\end{pmatrix} = C_1\\mathbf{v}_1\\mathrm{e}^{\\lambda_1t} + C_2\\mathbf{v}_2\\mathrm{e}^{\\lambda_2t}$, kde $\\lambda_1 \\gt \\lambda_2$
         a vlastné vektory majú prvú zložku $1$. Urči $C_1$ a $C_2$.`,
-      solution: `Charakteristická rovnica $${charEq(-(a + d), a * d - b * c)}$ má korene $\\lambda_1 = ${l1}$, $\\lambda_2 = ${l2}$.
+      solution: T`Charakteristická rovnica $${charEq(-(a + d), a * d - b * c)}$ má korene $\\lambda_1 = ${l1}$, $\\lambda_2 = ${l2}$.
         Z prvého riadku $(A - \\lambda I)\\mathbf{v} = \\mathbf{0}$ pre $\\mathbf{v} = (1, m)^{T}$: $${a} - \\lambda${sg(cf(b, 'm'))} = 0$, teda $\\mathbf{v}_1 = ${vec(m1)}$, $\\mathbf{v}_2 = ${vec(m2)}$.
         Pre $t = 0$: $C_1 + C_2 = ${x0}$ a $${lin([[m1, 'C_1'], [m2, 'C_2']])} = ${y0}$, odkiaľ $C_1 = ${C1}$, $C_2 = ${C2}$.`,
-      hint: 'Nájdi vlastné čísla a vlastné vektory v tvare $(1, m)^{T}$, potom dosaď $t = 0$ a vyrieš sústavu pre $C_1$, $C_2$.'
+      hint: T`Nájdi vlastné čísla a vlastné vektory v tvare $(1, m)^{T}$, potom dosaď $t = 0$ a vyrieš sústavu pre $C_1$, $C_2$.`
     };
   });
 
@@ -1851,23 +1853,23 @@
       const tot = (ps) => { const [u, v] = ps.reduce(fadd, [0, 1]); return u / v; };
       const mis = [];
       const add = (ps, msg) => { if (ps.every(([, v]) => v !== 0)) { const val = tot(ps); if (Math.abs(val - P / Q) > 0.001) mis.push({ value: val, msg }); } };
-      add([[a, s0 + b], parts[1], parts[2]], `Obraz exponenciály je $\\mathcal{L}\\{\\mathrm{e}^{at}\\} = \\frac{1}{s - a}$, nie $\\frac{1}{s + a}$.`);
-      if (n === 2) add([parts[0], [c, Math.pow(s0, 3)], parts[2]], 'Obraz mocniny je $\\mathcal{L}\\{t^{n}\\} = \\frac{n!}{s^{n+1}}$; zabudol si na faktoriál.');
-      add([parts[0], parts[1], [isSin ? d * s0 : d * w, s0 * s0 + w * w]], 'Zamenil si obrazy: $\\mathcal{L}\\{\\sin\\omega t\\} = \\frac{\\omega}{s^{2} + \\omega^{2}}$ a $\\mathcal{L}\\{\\cos\\omega t\\} = \\frac{s}{s^{2} + \\omega^{2}}$.');
+      add([[a, s0 + b], parts[1], parts[2]], T`Obraz exponenciály je $\\mathcal{L}\\{\\mathrm{e}^{at}\\} = \\frac{1}{s - a}$, nie $\\frac{1}{s + a}$.`);
+      if (n === 2) add([parts[0], [c, Math.pow(s0, 3)], parts[2]], T`Obraz mocniny je $\\mathcal{L}\\{t^{n}\\} = \\frac{n!}{s^{n+1}}$; zabudol si na faktoriál.`);
+      add([parts[0], parts[1], [isSin ? d * s0 : d * w, s0 * s0 + w * w]], T`Zamenil si obrazy: $\\mathcal{L}\\{\\sin\\omega t\\} = \\frac{\\omega}{s^{2} + \\omega^{2}}$ a $\\mathcal{L}\\{\\cos\\omega t\\} = \\frac{s}{s^{2} + \\omega^{2}}$.`);
       const stp = (pr, q) => ({ q, answer: pr[0] / pr[1], show: fTxt(pr[0], pr[1]), tol: 0.001, signed: true });
       return {
         mistakes: mis,
         steps: [
-          stp(parts[0], `Vypočítaj obraz exponenciálneho člena $${cf(a, ex(b, 't'))}$ v bode $s = ${s0}$ (zlomok).`),
-          stp(parts[1], `Vypočítaj obraz člena $${cf(c, xp(n, 't'))}$ v bode $s = ${s0}$ (zlomok).`),
-          stp(parts[2], `Vypočítaj obraz goniometrického člena v bode $s = ${s0}$ (zlomok).`),
-          stp([P, Q], `Sčítaj: $F(${s0}) = ?$`)
+          stp(parts[0], T`Vypočítaj obraz exponenciálneho člena $${cf(a, ex(b, 't'))}$ v bode $s = ${s0}$ (zlomok).`),
+          stp(parts[1], T`Vypočítaj obraz člena $${cf(c, xp(n, 't'))}$ v bode $s = ${s0}$ (zlomok).`),
+          stp(parts[2], T`Vypočítaj obraz goniometrického člena v bode $s = ${s0}$ (zlomok).`),
+          stp([P, Q], T`Sčítaj: $F(${s0}) = ?$`)
         ],
         signed: true, answer: P / Q, show: fTxt(P, Q), tol: 0.001,
-        q: `Nech $F(s) = \\mathcal{L}\\{f\\}(s)$ pre $f(t) = ${f}$. Vypočítaj $F(${s0})$ (presne ako zlomok, alebo na 3 desatinné miesta).`,
-        solution: `Podľa slovníka a linearity $F(s) = ${Fs}$ pre $s \\gt ${Math.max(b, 0)}$.
+        q: T`Nech $F(s) = \\mathcal{L}\\{f\\}(s)$ pre $f(t) = ${f}$. Vypočítaj $F(${s0})$ (presne ako zlomok, alebo na 3 desatinné miesta).`,
+        solution: T`Podľa slovníka a linearity $F(s) = ${Fs}$ pre $s \\gt ${Math.max(b, 0)}$.
           Dosadením $s = ${s0}$: $F(${s0}) = ${parts.map(([u, v]) => fTex(u, v)).map((x, i) => (i ? sg(x) : x)).join('')} = ${fTex(P, Q)} \\approx ${dc3(P / Q)}$.`,
-        hint: 'Použi $\\mathcal{L}\\{\\mathrm{e}^{at}\\} = \\frac{1}{s-a}$, $\\mathcal{L}\\{t^{n}\\} = \\frac{n!}{s^{n+1}}$, $\\mathcal{L}\\{\\sin\\omega t\\} = \\frac{\\omega}{s^{2}+\\omega^{2}}$, $\\mathcal{L}\\{\\cos\\omega t\\} = \\frac{s}{s^{2}+\\omega^{2}}$.'
+        hint: T`Použi $\\mathcal{L}\\{\\mathrm{e}^{at}\\} = \\frac{1}{s-a}$, $\\mathcal{L}\\{t^{n}\\} = \\frac{n!}{s^{n+1}}$, $\\mathcal{L}\\{\\sin\\omega t\\} = \\frac{\\omega}{s^{2}+\\omega^{2}}$, $\\mathcal{L}\\{\\cos\\omega t\\} = \\frac{s}{s^{2}+\\omega^{2}}$.`
       };
     }
     if (t < 0.55) {
@@ -1876,17 +1878,17 @@
       const A = nz(-3, 3), B = nz(-3, 3), al = A + B, be = -(A * b + B * a);
       const num = poly([al, be], 's'), den = poly([1, -(a + b), a * b], 's');
       return {
-        mistakes: [{ value: [-A, -B], msg: 'Pri zakrývacej metóde dosadíš $s = a$ do zvyšku zlomku; v menovateli potom zostane $a - b$, nie $b - a$.' }],
+        mistakes: [{ value: [-A, -B], msg: T`Pri zakrývacej metóde dosadíš $s = a$ do zvyšku zlomku; v menovateli potom zostane $a - b$, nie $b - a$.` }],
         steps: [
-          { q: `Rozlož $F$ na parciálne zlomky $\\frac{A}{s${term(-a)}} + \\frac{B}{s${term(-b)}}$ a urči $A$.`, answer: A, signed: true, hint: `Zakry činiteľ $s${term(-a)}$ a dosaď $s = ${a}$.` },
-          { q: 'Urči $B$.', answer: B, signed: true }
+          { q: T`Rozlož $F$ na parciálne zlomky $\\frac{A}{s${term(-a)}} + \\frac{B}{s${term(-b)}}$ a urči $A$.`, answer: A, signed: true, hint: T`Zakry činiteľ $s${term(-a)}$ a dosaď $s = ${a}$.` },
+          { q: T`Urči $B$.`, answer: B, signed: true }
         ],
         type: 'tuple', signed: true, answer: [A, B], placeholder: 'A; B',
-        q: `Nájdi vzor $f(t) = \\mathcal{L}^{-1}\\{F\\}(t)$ funkcie $F(s) = \\dfrac{${num}}{${den}}$. Výsledok má tvar $f(t) = A${ex(a, 't')} + B${ex(b, 't')}$; urči $A$ a $B$.`,
-        solution: `Menovateľ rozložíme: $${den} = (s${term(-a)})(s${term(-b)})$. Rozklad na parciálne zlomky: $F(s) = \\frac{A}{s${term(-a)}} + \\frac{B}{s${term(-b)}}$.
+        q: T`Nájdi vzor $f(t) = \\mathcal{L}^{-1}\\{F\\}(t)$ funkcie $F(s) = \\dfrac{${num}}{${den}}$. Výsledok má tvar $f(t) = A${ex(a, 't')} + B${ex(b, 't')}$; urči $A$ a $B$.`,
+        solution: T`Menovateľ rozložíme: $${den} = (s${term(-a)})(s${term(-b)})$. Rozklad na parciálne zlomky: $F(s) = \\frac{A}{s${term(-a)}} + \\frac{B}{s${term(-b)}}$.
           Zakrývacia metóda: $A = \\frac{${al}\\cdot ${par(a)}${term(be)}}{${a} - ${par(b)}} = ${A}$, $B = \\frac{${al}\\cdot ${par(b)}${term(be)}}{${b} - ${par(a)}} = ${B}$.
           Preto $f(t) = ${cf(A, ex(a, 't'))}${sg(cf(B, ex(b, 't')))}$.`,
-        hint: 'Rozlož menovateľ na súčin $(s - a)(s - b)$ a $F$ na parciálne zlomky $\\frac{A}{s-a} + \\frac{B}{s-b}$; potom $\\mathcal{L}^{-1}\\{\\frac{1}{s-a}\\} = \\mathrm{e}^{at}$.'
+        hint: T`Rozlož menovateľ na súčin $(s - a)(s - b)$ a $F$ na parciálne zlomky $\\frac{A}{s-a} + \\frac{B}{s-b}$; potom $\\mathcal{L}^{-1}\\{\\frac{1}{s-a}\\} = \\mathrm{e}^{at}$.`
       };
     }
     if (t < 0.78) {
@@ -1898,15 +1900,15 @@
       const opts = [ok, `Y(s) = ${fr(y1 - p * y0, D)}`, `Y(s) = ${fr(-y1 + p * y0, D)}`, `Y(s) = ${fr(y1 + p * y0, Dm)}`];
       return {
         choiceHints: {
-          [`$${opts[1]}$`]: 'Člen $p\\,y\'$ sa transformuje na $p(sY - y(0))$; po prenesení na pravú stranu dá $+p\\,y(0)$. Over znamienko.',
-          [`$${opts[2]}$`]: 'Pozor na znamienko $y\'(0)$: $\\mathcal{L}\\{y\'\'\\} = s^{2}Y - sy(0) - y\'(0)$, po prenesení na pravú stranu je $+y\'(0)$.',
-          [`$${opts[3]}$`]: 'Menovateľ je charakteristický polynóm rovnice: koeficienty pri $s$ majú rovnaké znamienka ako pri $y\'$ v rovnici.'
+          [`$${opts[1]}$`]: T`Člen $p\\,y'$ sa transformuje na $p(sY - y(0))$; po prenesení na pravú stranu dá $+p\\,y(0)$. Over znamienko.`,
+          [`$${opts[2]}$`]: T`Pozor na znamienko $y'(0)$: $\\mathcal{L}\\{y''\\} = s^{2}Y - sy(0) - y'(0)$, po prenesení na pravú stranu je $+y'(0)$.`,
+          [`$${opts[3]}$`]: T`Menovateľ je charakteristický polynóm rovnice: koeficienty pri $s$ majú rovnaké znamienka ako pri $y'$ v rovnici.`
         },
         type: 'choice', answer: `$${ok}$`, options: shuffle(opts.map((o) => `$${o}$`)),
-        q: `Ktorý je Laplaceov obraz $Y(s)$ riešenia úlohy $${lhs2(p, q)} = 0$, $y(0) = ${y0}$, $y'(0) = ${y1}$?`,
-        solution: `$\\mathcal{L}\\{y''\\} = s^{2}Y${sg(cf(-y0, 's'))}${term(-y1)}$ a $\\mathcal{L}\\{y'\\} = sY${term(-y0)}$. Po dosadení
+        q: T`Ktorý je Laplaceov obraz $Y(s)$ riešenia úlohy $${lhs2(p, q)} = 0$, $y(0) = ${y0}$, $y'(0) = ${y1}$?`,
+        solution: T`$\\mathcal{L}\\{y''\\} = s^{2}Y${sg(cf(-y0, 's'))}${term(-y1)}$ a $\\mathcal{L}\\{y'\\} = sY${term(-y0)}$. Po dosadení
           $(${D})Y = ${cf(y0, 's')}${term(y1)}${term(p * y0)}$, teda $${ok}$.`,
-        hint: 'Použi $\\mathcal{L}\\{y\'\'\\} = s^{2}Y - sy(0) - y\'(0)$ a $\\mathcal{L}\\{y\'\\} = sY - y(0)$ a vyjadri $Y$.'
+        hint: T`Použi $\\mathcal{L}\\{y''\\} = s^{2}Y - sy(0) - y'(0)$ a $\\mathcal{L}\\{y'\\} = sY - y(0)$ a vyjadri $Y$.`
       };
     }
     let a, b;
@@ -1916,17 +1918,17 @@
     const fs = (num, den) => `${num < 0 ? '-' : ''}\\frac{${Math.abs(num)}}{${den}}`;
     const sa = `s${term(-a)}`, sb = `s${term(-b)}`;
     return {
-      mistakes: y0 !== 0 ? [{ value: [-B, B], msg: 'Zabudol si na začiatočnú podmienku: $\\mathcal{L}\\{y\'\\} = sY - y(0)$, takže v $Y(s)$ je aj člen $\\frac{y(0)}{s - a}$.' }] : [],
+      mistakes: y0 !== 0 ? [{ value: [-B, B], msg: T`Zabudol si na začiatočnú podmienku: $\\mathcal{L}\\{y'\\} = sY - y(0)$, takže v $Y(s)$ je aj člen $\\frac{y(0)}{s - a}$.` }] : [],
       steps: [
-        { q: `Po transformácii a vyjadrení $Y(s)$ rozlož zlomok $${fs(k, `(${sa})(${sb})`)}$ na parciálne zlomky. Aký je koeficient pri $\\frac{1}{${sb}}$?`, answer: B, signed: true },
-        { q: `Aký je celkový koeficient pri $\\frac{1}{${sa}}$ v $Y(s)$, teda $A$?`, answer: A, signed: true, hint: 'K koeficientu z rozkladu pripočítaj člen zo začiatočnej podmienky.' }
+        { q: T`Po transformácii a vyjadrení $Y(s)$ rozlož zlomok $${fs(k, `(${sa})(${sb})`)}$ na parciálne zlomky. Aký je koeficient pri $\\frac{1}{${sb}}$?`, answer: B, signed: true },
+        { q: T`Aký je celkový koeficient pri $\\frac{1}{${sa}}$ v $Y(s)$, teda $A$?`, answer: A, signed: true, hint: T`K koeficientu z rozkladu pripočítaj člen zo začiatočnej podmienky.` }
       ],
       type: 'tuple', signed: true, answer: [A, B], placeholder: 'A; B',
-      q: `Laplaceovou transformáciou vyrieš úlohu $y'${term(-a, 'y')} = ${cf(k, ex(b, 't'))}$, $y(0) = ${y0}$. Riešenie má tvar $y(t) = A${ex(a, 't')} + B${ex(b, 't')}$; urči $A$ a $B$.`,
-      solution: `Transformáciou: $sY${term(-y0)}${term(-a, 'Y')} = ${fs(k, sb)}$, teda $Y = ${y0 === 0 ? '' : fs(y0, sa)}${y0 === 0 ? fs(k, `(${sa})(${sb})`) : sg(fs(k, `(${sa})(${sb})`))}$.
+      q: T`Laplaceovou transformáciou vyrieš úlohu $y'${term(-a, 'y')} = ${cf(k, ex(b, 't'))}$, $y(0) = ${y0}$. Riešenie má tvar $y(t) = A${ex(a, 't')} + B${ex(b, 't')}$; urči $A$ a $B$.`,
+      solution: T`Transformáciou: $sY${term(-y0)}${term(-a, 'Y')} = ${fs(k, sb)}$, teda $Y = ${y0 === 0 ? '' : fs(y0, sa)}${y0 === 0 ? fs(k, `(${sa})(${sb})`) : sg(fs(k, `(${sa})(${sb})`))}$.
         Rozklad: $${fs(k, `(${sa})(${sb})`)} = ${fs(-B, sa)}${sg(fs(B, sb))}$.
         Spätnou transformáciou $y = (${y0}${sg(fTex(k, a - b))})${ex(a, 't')}${sg(cf(B, ex(b, 't')))}$, teda $A = ${A}$, $B = ${B}$.`,
-      hint: 'Transformuj rovnicu ($\\mathcal{L}\\{y\'\\} = sY - y(0)$), vyjadri $Y(s)$ a rozlož ho na parciálne zlomky.'
+      hint: T`Transformuj rovnicu ($\\mathcal{L}\\{y'\\} = sY - y(0)$), vyjadri $Y(s)$ a rozlož ho na parciálne zlomky.`
     };
   });
 })();

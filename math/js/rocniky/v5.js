@@ -7,6 +7,7 @@
 
   const { rnd, pick, shuffle } = EXERCISES.util;
   const { n1 } = FIGURES.util;
+  const { T } = CONTENT_I18N;
   const lesson = (l) => LESSONS.push(Object.assign({ level: 'v5' }, l));
   const gen = (id, fn) => EXERCISES.register(id, fn);
   const fig = FIGURES.register;
@@ -172,20 +173,20 @@
       const wImp = rows.filter((s) => evImpAnd(f, s)).length;
       return {
         mistakes: [
-          ...(wImp !== cnt ? [{ value: wImp, msg: 'Implikácia s nepravdivým predpokladom je pravdivá: $0\\Rightarrow 0$ aj $0\\Rightarrow 1$ majú hodnotu 1. Nepravdivá je len $1\\Rightarrow 0$.' }] : []),
-          ...(rows.length - cnt !== cnt && rows.length - cnt !== wImp ? [{ value: rows.length - cnt, msg: 'Spočítal si riadky, v ktorých je formula nepravdivá. Otázka sa pýta na riadky s hodnotou 1.' }] : [])
+          ...(wImp !== cnt ? [{ value: wImp, msg: T.s('Implikácia s nepravdivým predpokladom je pravdivá: $0\\Rightarrow 0$ aj $0\\Rightarrow 1$ majú hodnotu 1. Nepravdivá je len $1\\Rightarrow 0$.') }] : []),
+          ...(rows.length - cnt !== cnt && rows.length - cnt !== wImp ? [{ value: rows.length - cnt, msg: T.s('Spočítal si riadky, v ktorých je formula nepravdivá. Otázka sa pýta na riadky s hodnotou 1.') }] : [])
         ],
-        q: `V koľkých riadkoch pravdivostnej tabuľky je formula $${tex(f)}$ pravdivá?`,
+        q: T`V koľkých riadkoch pravdivostnej tabuľky je formula $${tex(f)}$ pravdivá?`,
         answer: cnt,
-        solution: `Tabuľka má $2^{${vars.length}}=${rows.length}$ riadkov. Formula je pravdivá pre ohodnotenia $(${vars.join(', ')})$:
-          ${cnt ? list.join(', ') : 'žiadne'}. Spolu ${cnt} ${pl(cnt, ['riadok', 'riadky', 'riadkov'])}.`,
-        hint: 'Vyhodnocuj formulu zvnútra von – najprv zátvorky a negácie, potom spojku, ktorá spája celok. Implikácia je nepravdivá len pre 1 ⇒ 0.'
+        solution: T`Tabuľka má $2^{${vars.length}}=${rows.length}$ riadkov. Formula je pravdivá pre ohodnotenia $(${vars.join(', ')})$:
+          ${cnt ? list.join(', ') : T.s('žiadne')}. Spolu ${cnt} ${T.s(pl(cnt, ['riadok', 'riadky', 'riadkov']))}.`,
+        hint: T.s('Vyhodnocuj formulu zvnútra von – najprv zátvorky a negácie, potom spojku, ktorá spája celok. Implikácia je nepravdivá len pre 1 ⇒ 0.')
       };
     }
     if (t < 0.55) {
       const lits = shuffle(['p', 'q', 'r']).map((v) => (Math.random() < 0.25 ? N(V(v)) : V(v)));
       const [X, Y, Z] = lits;
-      const T = [
+      const TPL = [
         () => B('imp', X, B('imp', Y, X)), () => B('imp', B('and', X, B('imp', X, Y)), Y),
         () => B('eq', N(B('and', X, Y)), B('or', neg(X), neg(Y))), () => B('eq', B('imp', X, Y), B('imp', neg(Y), neg(X))),
         () => B('imp', B('and', B('imp', X, Y), B('imp', Y, Z)), B('imp', X, Z)), () => B('or', X, neg(X)),
@@ -196,23 +197,23 @@
         () => randForm(['p', 'q'], 3)
       ];
       let f;
-      do { f = pick(T)(); } while (f.v);
+      do { f = pick(TPL)(); } while (f.v);
       const vars = sortedVars([f]), k = kindOf(f), cnt = trueRows(f, vars), all = 1 << vars.length;
       const KH = [
-        'Tautológia musí byť pravdivá v každom riadku tabuľky. Skús nájsť ohodnotenie, pri ktorom je formula nepravdivá.',
-        'Kontradikcia nesmie byť pravdivá v žiadnom riadku. Skús nájsť ohodnotenie, pri ktorom je formula pravdivá.',
-        'Táto možnosť vyžaduje riadok s hodnotou 1 aj riadok s hodnotou 0. Over oba; pozor, implikácia s nepravdivým predpokladom je pravdivá.'
+        T.s('Tautológia musí byť pravdivá v každom riadku tabuľky. Skús nájsť ohodnotenie, pri ktorom je formula nepravdivá.'),
+        T.s('Kontradikcia nesmie byť pravdivá v žiadnom riadku. Skús nájsť ohodnotenie, pri ktorom je formula pravdivá.'),
+        T.s('Táto možnosť vyžaduje riadok s hodnotou 1 aj riadok s hodnotou 0. Over oba; pozor, implikácia s nepravdivým predpokladom je pravdivá.')
       ];
       const choiceHints = {};
-      KIND.forEach((o, i) => { if (o !== k) choiceHints[o] = KH[i]; });
+      KIND.forEach((o, i) => { if (o !== k) choiceHints[T.s(o)] = KH[i]; });
       return {
         choiceHints,
-        type: 'choice', options: KIND,
-        q: `Rozhodni, akou formulou je $${tex(f)}$.`,
-        answer: k,
-        solution: `Formula má ${vars.length} ${pl(vars.length, ['premennú', 'premenné', 'premenných'])}, tabuľka teda $${all}$ riadkov. Formula je pravdivá v ${cnt} z nich,
-          preto je to ${k === KIND[0] ? 'tautológia (pravdivá vždy)' : k === KIND[1] ? 'kontradikcia (nikdy nie je pravdivá)' : 'formula splniteľná, ale nie tautológia'}.`,
-        hint: 'Pri implikácii skús nájsť ohodnotenie, pri ktorom je predpoklad pravdivý a záver nepravdivý. Ak neexistuje, ide o tautológiu.'
+        type: 'choice', options: KIND.map(T.s),
+        q: T`Rozhodni, akou formulou je $${tex(f)}$.`,
+        answer: T.s(k),
+        solution: T`Formula má ${vars.length} ${T.s(pl(vars.length, ['premennú', 'premenné', 'premenných']))}, tabuľka teda $${all}$ riadkov. Formula je pravdivá v ${cnt} z nich,
+          preto je to ${k === KIND[0] ? T.s('tautológia (pravdivá vždy)') : k === KIND[1] ? T.s('kontradikcia (nikdy nie je pravdivá)') : T.s('formula splniteľná, ale nie tautológia')}.`,
+        hint: T.s('Pri implikácii skús nájsť ohodnotenie, pri ktorom je predpoklad pravdivý a záver nepravdivý. Ak neexistuje, ide o tautológiu.')
       };
     }
     if (t < 0.75) {
@@ -222,21 +223,21 @@
       const s = { p: Math.random() < 0.5, q: Math.random() < 0.5, r: Math.random() < 0.5 };
       const val = ev(f, s), used = sortedVars([f]);
       const choiceHints = {};
-      if (evImpAnd(f, s) !== val) choiceHints[val ? TF[1] : TF[0]] = 'Skontroluj implikácie: s nepravdivým predpokladom je implikácia vždy pravdivá, nepravdivá je len $1\\Rightarrow 0$.';
+      if (evImpAnd(f, s) !== val) choiceHints[T.s(val ? TF[1] : TF[0])] = T.s('Skontroluj implikácie: s nepravdivým predpokladom je implikácia vždy pravdivá, nepravdivá je len $1\\Rightarrow 0$.');
       const o = {
         choiceHints,
-        type: 'choice', options: TF,
-        q: `Výroky $p$, $q$, $r$ majú pravdivostné hodnoty $p=${b01(s.p)}$, $q=${b01(s.q)}$, $r=${b01(s.r)}$. Je výrok $${tex(f)}$ pravdivý, alebo nepravdivý?`,
-        answer: val ? TF[0] : TF[1],
-        solution: `Dosadíme ${used.map((v) => `$${v}=${b01(s[v])}$`).join(', ')}. ${f.op === 'not' ? 'Negovaná' : 'Ľavá'} časť $${tex(f.a, false)}$ má hodnotu ${b01(ev(f.a, s))}${f.b ? `, pravá časť $${tex(f.b, false)}$ hodnotu ${b01(ev(f.b, s))}` : ''}.
-          Celý výrok má hodnotu ${b01(val)}, je teda ${val ? 'pravdivý' : 'nepravdivý'}.`,
-        hint: 'Vyhodnoť najprv vnútorné zátvorky a potom hlavnú spojku. Pripomeň si: $1\\Rightarrow 0$ je jediná nepravdivá implikácia.'
+        type: 'choice', options: TF.map(T.s),
+        q: T`Výroky $p$, $q$, $r$ majú pravdivostné hodnoty $p=${b01(s.p)}$, $q=${b01(s.q)}$, $r=${b01(s.r)}$. Je výrok $${tex(f)}$ pravdivý, alebo nepravdivý?`,
+        answer: T.s(val ? TF[0] : TF[1]),
+        solution: T`Dosadíme ${used.map((v) => `$${v}=${b01(s[v])}$`).join(', ')}. ${f.op === 'not' ? T.s('Negovaná') : T.s('Ľavá')} časť $${tex(f.a, false)}$ má hodnotu ${b01(ev(f.a, s))}${f.b ? T`, pravá časť $${tex(f.b, false)}$ hodnotu ${b01(ev(f.b, s))}` : ''}.
+          Celý výrok má hodnotu ${b01(val)}, je teda ${val ? T.s('pravdivý') : T.s('nepravdivý')}.`,
+        hint: T.s('Vyhodnoť najprv vnútorné zátvorky a potom hlavnú spojku. Pripomeň si: $1\\Rightarrow 0$ je jediná nepravdivá implikácia.')
       };
       o.steps = f.op === 'not'
-        ? [{ q: `Akú hodnotu (0 alebo 1) má negovaná časť $${tex(f.a, false)}$?`, answer: b01(ev(f.a, s)) }]
-        : [{ q: `Akú hodnotu (0 alebo 1) má ľavá časť $${tex(f.a, false)}$?`, answer: b01(ev(f.a, s)) },
-          { q: `Akú hodnotu (0 alebo 1) má pravá časť $${tex(f.b, false)}$?`, answer: b01(ev(f.b, s)) }];
-      o.steps.push({ q: 'Je teda celý výrok pravdivý, alebo nepravdivý?', type: 'choice', options: TF, answer: o.answer });
+        ? [{ q: T`Akú hodnotu (0 alebo 1) má negovaná časť $${tex(f.a, false)}$?`, answer: b01(ev(f.a, s)) }]
+        : [{ q: T`Akú hodnotu (0 alebo 1) má ľavá časť $${tex(f.a, false)}$?`, answer: b01(ev(f.a, s)) },
+          { q: T`Akú hodnotu (0 alebo 1) má pravá časť $${tex(f.b, false)}$?`, answer: b01(ev(f.b, s)) }];
+      o.steps.push({ q: T.s('Je teda celý výrok pravdivý, alebo nepravdivý?'), type: 'choice', options: TF.map(T.s), answer: o.answer });
       return o;
     }
     // ekvivalentný tvar negácie (De Morgan, negácia implikácie a ekvivalencie)
@@ -256,20 +257,20 @@
         && tex(f.a) === tex(neg(g.a.a)) && tex(f.b) === tex(neg(g.a.b));
       const naiveImp = g.op === 'not' && g.a.op === 'imp' && f.op === 'imp' && tex(f.a) === tex(neg(g.a.a)) && tex(f.b) === tex(neg(g.a.b));
       const s = vs.find((x) => ev(f, x) !== ev(g, x));
-      choiceHints[`$${tex(f)}$`] = naive ? 'De Morganove zákony: pri negácii sa zložky znegujú a zároveň sa spojka $\\land$ zmení na $\\lor$ (a naopak).'
-        : naiveImp ? 'Negácia implikácie nie je implikácia negácií. Implikáciu najprv prepíš ako $\\neg p\\lor q$ a až potom neguj.'
-          : `Formuly nie sú ekvivalentné: líšia sa napríklad pri ohodnotení $p=${b01(s.p)}$, $q=${b01(s.q)}$.`;
+      choiceHints[`$${tex(f)}$`] = naive ? T.s('De Morganove zákony: pri negácii sa zložky znegujú a zároveň sa spojka $\\land$ zmení na $\\lor$ (a naopak).')
+        : naiveImp ? T.s('Negácia implikácie nie je implikácia negácií. Implikáciu najprv prepíš ako $\\neg p\\lor q$ a až potom neguj.')
+          : T`Formuly nie sú ekvivalentné: líšia sa napríklad pri ohodnotení $p=${b01(s.p)}$, $q=${b01(s.q)}$.`;
     });
     return {
       choiceHints,
       type: 'choice',
       options: shuffle([ans, ...bad].map((f) => `$${tex(f)}$`)),
-      q: `Ktorá formula je logicky ekvivalentná s formulou $${tex(g)}$?`,
+      q: T`Ktorá formula je logicky ekvivalentná s formulou $${tex(g)}$?`,
       answer: `$${tex(ans)}$`,
-      solution: `Porovnaj pravdivostné tabuľky alebo použi známe ekvivalencie: $\\neg(p\\land q)\\equiv\\neg p\\lor\\neg q$, $\\neg(p\\lor q)\\equiv\\neg p\\land\\neg q$,
+      solution: T`Porovnaj pravdivostné tabuľky alebo použi známe ekvivalencie: $\\neg(p\\land q)\\equiv\\neg p\\lor\\neg q$, $\\neg(p\\lor q)\\equiv\\neg p\\land\\neg q$,
         $p\\Rightarrow q\\equiv\\neg p\\lor q$, $\\neg(p\\Rightarrow q)\\equiv p\\land\\neg q$, $\\neg(p\\Leftrightarrow q)\\equiv p\\Leftrightarrow\\neg q$.
         Formula $${tex(g)}$ má rovnakú tabuľku ako $${tex(ans)}$ (pravdivá v ${trueRows(g, ['p', 'q'])} zo 4 riadkov pri rovnakých ohodnoteniach).`,
-      hint: 'Negácia „preklopí“ konjunkciu na disjunkciu a naopak a zneguje obe zložky. Implikáciu prepíš ako $\\neg p\\lor q$.'
+      hint: T.s('Negácia „preklopí“ konjunkciu na disjunkciu a naopak a zneguje obe zložky. Implikáciu prepíš ako $\\neg p\\lor q$.')
     };
   });
 
@@ -310,14 +311,14 @@
   gen('v5-predikatova', () => {
     const t = Math.random();
     // [zápis, forma, forma pri typickej chybe, vysvetlenie chyby]
-    const STRICT = 'Nerovnosť je ostrá: prvky, pre ktoré nastane rovnosť, do oboru pravdivosti nepatria.';
+    const STRICT = T.s('Nerovnosť je ostrá: prvky, pre ktoré nastane rovnosť, do oboru pravdivosti nepatria.');
     const PRED = () => pick([
       () => { const k = rnd(1, 12); return [`x^2&gt;${k}`, (x) => x * x > k, (x) => x * x >= k, STRICT]; },
-      () => { const d = rnd(2, 4); return [`${d}\\mid x`, (x) => x % d === 0, (x) => x % d === 0 && x !== 0, `Nula je deliteľná každým číslom ($0 = ${d}\\cdot 0$), do oboru pravdivosti patrí.`]; },
+      () => { const d = rnd(2, 4); return [`${d}\\mid x`, (x) => x % d === 0, (x) => x % d === 0 && x !== 0, T`Nula je deliteľná každým číslom ($0 = ${d}\\cdot 0$), do oboru pravdivosti patrí.`]; },
       () => { const a = rnd(-3, 3), b = rnd(-2, 6); return [`${lin([[1, 'x'], [a, '']])}&lt;${b}`, (x) => x + a < b, (x) => x + a <= b, STRICT]; },
-      () => { const k = rnd(1, 3); return [`|x|\\le ${k}`, (x) => Math.abs(x) <= k, (x) => Math.abs(x) < k, `Nerovnosť je neostrá: prvky s $|x| = ${k}$ do oboru pravdivosti patria.`]; },
+      () => { const k = rnd(1, 3); return [`|x|\\le ${k}`, (x) => Math.abs(x) <= k, (x) => Math.abs(x) < k, T`Nerovnosť je neostrá: prvky s $|x| = ${k}$ do oboru pravdivosti patria.`]; },
       () => { const r = rnd(-3, 3), s = rnd(-3, 3); return [`x^2${tail([[-(r + s), 'x'], [r * s, '']])}=0`, (x) => (x - r) * (x - s) === 0, null, '']; },
-      () => { const k = rnd(-2, 4); return [`x^2\\ge ${k}x`, (x) => x * x >= k * x, (x) => x >= k, 'Nerovnosť nemôžeš vydeliť číslom $x$ bez ohľadu na jeho znamienko (pri zápornom $x$ sa znak otočí a pri $x = 0$ sa deliť nedá).']; }
+      () => { const k = rnd(-2, 4); return [`x^2\\ge ${k}x`, (x) => x * x >= k * x, (x) => x >= k, T.s('Nerovnosť nemôžeš vydeliť číslom $x$ bez ohľadu na jeho znamienko (pri zápornom $x$ sa znak otočí a pri $x = 0$ sa deliť nedá).')]; }
     ])();
     const lo = rnd(-4, 0), hi = rnd(2, 5), M = range(lo, hi), Mtex = setTex(M);
     if (t < 0.3) {
@@ -325,31 +326,31 @@
       const truth = M.filter(pf), val = all ? truth.length === M.length : truth.length > 0;
       const bad = M.filter((x) => !pf(x));
       const choiceHints = {
-        [val ? TF[1] : TF[0]]: all
-          ? (val ? 'Protipríklad musí byť prvok množiny $M$, ktorý formu nespĺňa. Over dosadením, či tvoj protipríklad naozaj vyhovuje.'
-            : 'Všeobecný výrok musí platiť pre každý prvok $M$. Dosaď postupne všetky prvky, aj záporné a nulu.')
-          : (val ? 'Existenčnému výroku stačí jediný prvok $M$, ktorý formu spĺňa. Prejdi všetky prvky vrátane záporných a nuly.'
-            : 'Over dosadením, či tvoj kandidát patrí do $M$ a naozaj spĺňa formu.')
+        [T.s(val ? TF[1] : TF[0])]: all
+          ? (val ? T.s('Protipríklad musí byť prvok množiny $M$, ktorý formu nespĺňa. Over dosadením, či tvoj protipríklad naozaj vyhovuje.')
+            : T.s('Všeobecný výrok musí platiť pre každý prvok $M$. Dosaď postupne všetky prvky, aj záporné a nulu.'))
+          : (val ? T.s('Existenčnému výroku stačí jediný prvok $M$, ktorý formu spĺňa. Prejdi všetky prvky vrátane záporných a nuly.')
+            : T.s('Over dosadením, či tvoj kandidát patrí do $M$ a naozaj spĺňa formu.'))
       };
       return {
         choiceHints,
-        type: 'choice', options: TF,
-        q: `Nech $M=${Mtex}$. Je výrok $${all ? '\\forall' : '\\exists'} x\\in M: ${pt}$ pravdivý, alebo nepravdivý?`,
-        answer: val ? TF[0] : TF[1],
-        solution: `Obor pravdivosti formy $${pt}$ na $M$ je $${setTex(truth)}$. ${all
-          ? (val ? 'Obsahuje všetky prvky $M$, výrok je pravdivý.' : `Napríklad $x=${bad[0]}$ je protipríklad, výrok je nepravdivý.`)
-          : (val ? `Je neprázdny (napr. $x=${truth[0]}$), výrok je pravdivý.` : 'Je prázdny, výrok je nepravdivý.')}`,
-        hint: all ? 'Všeobecný výrok vyvrátiš jediným protipríkladom.' : 'Existenčný výrok potvrdíš jediným vhodným príkladom.'
+        type: 'choice', options: TF.map(T.s),
+        q: T`Nech $M=${Mtex}$. Je výrok $${all ? '\\forall' : '\\exists'} x\\in M: ${pt}$ pravdivý, alebo nepravdivý?`,
+        answer: T.s(val ? TF[0] : TF[1]),
+        solution: T`Obor pravdivosti formy $${pt}$ na $M$ je $${setTex(truth)}$. ${all
+          ? (val ? T.s('Obsahuje všetky prvky $M$, výrok je pravdivý.') : T`Napríklad $x=${bad[0]}$ je protipríklad, výrok je nepravdivý.`)
+          : (val ? T`Je neprázdny (napr. $x=${truth[0]}$), výrok je pravdivý.` : T.s('Je prázdny, výrok je nepravdivý.'))}`,
+        hint: all ? T.s('Všeobecný výrok vyvrátiš jediným protipríkladom.') : T.s('Existenčný výrok potvrdíš jediným vhodným príkladom.')
       };
     }
     if (t < 0.5) {
       const [pt, pf, alt, why] = PRED(), truth = M.filter(pf), wc = alt ? M.filter(alt).length : truth.length;
       return {
         mistakes: wc !== truth.length ? [{ value: wc, msg: why }] : [],
-        q: `Nech $M=${Mtex}$. Koľko prvkov má obor pravdivosti výrokovej formy $${pt}$ na množine $M$?`,
+        q: T`Nech $M=${Mtex}$. Koľko prvkov má obor pravdivosti výrokovej formy $${pt}$ na množine $M$?`,
         answer: truth.length,
-        solution: `Dosadíme postupne všetky prvky $M$. Formu spĺňajú práve prvky $${setTex(truth)}$, obor pravdivosti má ${truth.length} ${pl(truth.length, ['prvok', 'prvky', 'prvkov'])}.`,
-        hint: 'Obor pravdivosti je množina tých prvkov oboru premennej, pre ktoré sa forma stane pravdivým výrokom.'
+        solution: T`Dosadíme postupne všetky prvky $M$. Formu spĺňajú práve prvky $${setTex(truth)}$, obor pravdivosti má ${truth.length} ${T.s(pl(truth.length, ['prvok', 'prvky', 'prvkov']))}.`,
+        hint: T.s('Obor pravdivosti je množina tých prvkov oboru premennej, pre ktoré sa forma stane pravdivým výrokom.')
       };
     }
     if (t < 0.75) {
@@ -364,19 +365,19 @@
       const st = (a, b, rel) => `$${pre(a, b)}${expr} ${rel} ${c}$`;
       const ans = st(d1, d2, REL[r]);
       const opts = [ans, st(Q1, Q2, REL[r]), st(d1, d2, WRONG[r]), two ? st(d1, Q2, REL[r]) : st(d1, d2, r)];
-      const OH = ['', 'Negácia mení aj kvantifikátory: $\\forall$ sa zmení na $\\exists$ a naopak.',
-        `Negácia vzťahu $${r}$ musí platiť presne vtedy, keď $${r}$ neplatí. Over to na hraničnom prípade rovnosti.`,
-        two ? 'Pri negácii treba vymeniť všetky kvantifikátory, nie iba prvý.' : 'Nestačí vymeniť kvantifikátor, treba znegovať aj samotnú formu.'];
+      const OH = ['', T.s('Negácia mení aj kvantifikátory: $\\forall$ sa zmení na $\\exists$ a naopak.'),
+        T`Negácia vzťahu $${r}$ musí platiť presne vtedy, keď $${r}$ neplatí. Over to na hraničnom prípade rovnosti.`,
+        two ? T.s('Pri negácii treba vymeniť všetky kvantifikátory, nie iba prvý.') : T.s('Nestačí vymeniť kvantifikátor, treba znegovať aj samotnú formu.')];
       const choiceHints = {};
       opts.forEach((o, i) => { if (i && o !== ans) choiceHints[o] = OH[i]; });
       return {
         choiceHints,
         type: 'choice', options: shuffle([...new Set(opts)]),
-        q: `Ktorý výrok je negáciou výroku ${st(Q1, Q2, r)}?`,
+        q: T`Ktorý výrok je negáciou výroku ${st(Q1, Q2, r)}?`,
         answer: ans,
-        solution: `Pri negácii sa každý kvantifikátor vymení ($\\forall\\leftrightarrow\\exists$) a zneguje sa forma: negácia vzťahu $${r}$ je $${REL[r]}$.
+        solution: T`Pri negácii sa každý kvantifikátor vymení ($\\forall\\leftrightarrow\\exists$) a zneguje sa forma: negácia vzťahu $${r}$ je $${REL[r]}$.
           Negácia je ${ans}.`,
-        hint: 'Negácia vymení všetky kvantifikátory a vzťah nahradí opačným (napr. $&gt;$ za $\\le$, nie za $&lt;$).'
+        hint: T.s('Negácia vymení všetky kvantifikátory a vzťah nahradí opačným (napr. $&gt;$ za $\\le$, nie za $&lt;$).')
       };
     }
     // poradie kvantifikátorov na konečných množinách
@@ -392,25 +393,25 @@
     let why;
     if (forFirst) {
       const badX = A.find((x) => !Bs.some((y) => R[1](x, y)));
-      why = val ? 'Ku každému $x\\in A$ existuje vhodné $y$: ' + A.map((x) => `$x=${x}$, $y=${Bs.find((y) => R[1](x, y))}$`).join('; ') + '.'
-        : `Pre $x=${badX}$ nevyhovuje žiadne $y\\in B$.`;
+      why = val ? T`Ku každému $x\\in A$ existuje vhodné $y$: ${A.map((x) => `$x=${x}$, $y=${Bs.find((y) => R[1](x, y))}$`).join('; ')}.`
+        : T`Pre $x=${badX}$ nevyhovuje žiadne $y\\in B$.`;
     } else {
       const goodY = Bs.find((y) => A.every((x) => R[1](x, y)));
-      why = val ? `Prvok $y=${goodY}$ vyhovuje pre všetky $x\\in A$.` : 'Pre každé $y\\in B$ existuje $x\\in A$, pre ktoré vzťah neplatí: ' +
-        Bs.map((y) => `$y=${y}$ zlyhá pre $x=${A.find((x) => !R[1](x, y))}$`).join('; ') + '.';
+      why = val ? T`Prvok $y=${goodY}$ vyhovuje pre všetky $x\\in A$.` : T`Pre každé $y\\in B$ existuje $x\\in A$, pre ktoré vzťah neplatí: ${
+        Bs.map((y) => T`$y=${y}$ zlyhá pre $x=${A.find((x) => !R[1](x, y))}$`).join('; ')}.`;
     }
     const wh = forFirst
-      ? (val ? 'Pri $\\forall x\\,\\exists y$ môže byť $y$ pre rôzne $x$ rôzne; nepotrebuješ jedno $y$ pre všetky $x$.'
-        : 'Pre každé $x\\in A$ zvlášť over, či existuje vhodné $y\\in B$. Stačí jediné $x$ bez vhodného $y$.')
-      : (val ? 'Vyskúšaj každé $y\\in B$; stačí jedno, ktoré vyhovuje pre všetky $x\\in A$.'
-        : 'Pri $\\exists y\\,\\forall x$ musí jedno a to isté $y$ vyhovovať pre všetky $x$ naraz; nestačí, že ku každému $x$ nájdeš nejaké $y$.');
+      ? (val ? T.s('Pri $\\forall x\\,\\exists y$ môže byť $y$ pre rôzne $x$ rôzne; nepotrebuješ jedno $y$ pre všetky $x$.')
+        : T.s('Pre každé $x\\in A$ zvlášť over, či existuje vhodné $y\\in B$. Stačí jediné $x$ bez vhodného $y$.'))
+      : (val ? T.s('Vyskúšaj každé $y\\in B$; stačí jedno, ktoré vyhovuje pre všetky $x\\in A$.')
+        : T.s('Pri $\\exists y\\,\\forall x$ musí jedno a to isté $y$ vyhovovať pre všetky $x$ naraz; nestačí, že ku každému $x$ nájdeš nejaké $y$.'));
     return {
-      choiceHints: { [val ? TF[1] : TF[0]]: wh },
-      type: 'choice', options: TF,
-      q: `Nech $A=${setTex(A)}$ a $B=${setTex(Bs)}$. Je výrok $${st}$ pravdivý?`,
-      answer: val ? TF[0] : TF[1],
-      solution: `${why} Výrok je ${val ? 'pravdivý' : 'nepravdivý'}.`,
-      hint: forFirst ? 'Pri $\\forall x\\,\\exists y$ môžeš pre každé $x$ voliť iné $y$.' : 'Pri $\\exists y\\,\\forall x$ hľadáš jedno $y$, ktoré vyhovuje pre všetky $x$ naraz.'
+      choiceHints: { [T.s(val ? TF[1] : TF[0])]: wh },
+      type: 'choice', options: TF.map(T.s),
+      q: T`Nech $A=${setTex(A)}$ a $B=${setTex(Bs)}$. Je výrok $${st}$ pravdivý?`,
+      answer: T.s(val ? TF[0] : TF[1]),
+      solution: T`${why} Výrok je ${val ? T.s('pravdivý') : T.s('nepravdivý')}.`,
+      hint: forFirst ? T.s('Pri $\\forall x\\,\\exists y$ môžeš pre každé $x$ voliť iné $y$.') : T.s('Pri $\\exists y\\,\\forall x$ hľadáš jedno $y$, ktoré vyhovuje pre všetky $x$ naraz.')
     };
   });
 
@@ -450,75 +451,75 @@
 
   gen('v5-dokazy', () => {
     const t = Math.random();
-    const METHODS = ['priamy dôkaz', 'nepriamy dôkaz (obmenou)', 'dôkaz sporom', 'vyvrátenie protipríkladom', 'rozbor prípadov'];
+    const METHODS = ['priamy dôkaz', 'nepriamy dôkaz (obmenou)', 'dôkaz sporom', 'vyvrátenie protipríkladom', 'rozbor prípadov'].map(T.s);
     if (t < 0.22) {
       const S = [
-        ['Na dôkaz, že súčet dvoch párnych čísel je párny, zapíšeme $a=2k$, $b=2l$ a upravíme $a+b=2(k+l)$.', 0],
-        ['Tvrdenie „ak $n^2$ je nepárne, tak $n$ je nepárne“ dokazujeme tak, že z párnosti $n$ odvodíme párnosť $n^2$.', 1],
-        ['Predpokladáme, že najväčšie prvočíslo existuje, vynásobíme všetky prvočísla, pripočítame 1 a ukážeme, že vznikne číslo bez prvočíselného deliteľa zo zoznamu.', 2],
-        ['Tvrdenie „každé nepárne číslo väčšie ako 1 je prvočíslo“ odmietneme poukázaním na číslo 9.', 3],
-        ['Nerovnosť $|a+b|\\le|a|+|b|$ overujeme zvlášť pre $a, b\\ge 0$, pre $a, b&lt;0$ a pre čísla s rôznymi znamienkami.', 4],
-        ['Predpokladáme, že $\\sqrt{3}=\\frac{p}{q}$ je zlomok v základnom tvare, a ukážeme, že $p$ aj $q$ by boli deliteľné tromi.', 2],
-        ['Aby sme ukázali, že $2^n+1$ nie je vždy prvočíslo, stačí vypočítať $2^3+1=9$.', 3],
-        ['Dokazujeme „ak $3\\nmid ab$, tak $3\\nmid a$“ – namiesto toho ukážeme, že z $3\\mid a$ vyplýva $3\\mid ab$.', 1],
-        ['Tvrdenie o deliteľnosti $n^2+n$ dvomi dokazujeme samostatne pre párne a pre nepárne $n$.', 4],
-        ['Z rovnosti $a^2+b^2=(a+b)^2-2ab$ a predpokladov $a+b=5$, $ab=6$ priamo vypočítame $a^2+b^2=13$.', 0],
-        ['Predpokladáme, že rovnica $x^2=4y+2$ má celočíselné riešenie, a dospejeme k tomu, že nepárne číslo je párne.', 2],
-        ['Ukážeme, že ak priamky $p$, $q$ nie sú rovnobežné, tak ich priesečník vylučuje platnosť predpokladu – teda z predpokladu vyplýva rovnobežnosť (z negácie záveru odvodzujeme negáciu predpokladu).', 1]
+        [T.s('Na dôkaz, že súčet dvoch párnych čísel je párny, zapíšeme $a=2k$, $b=2l$ a upravíme $a+b=2(k+l)$.'), 0],
+        [T.s('Tvrdenie „ak $n^2$ je nepárne, tak $n$ je nepárne“ dokazujeme tak, že z párnosti $n$ odvodíme párnosť $n^2$.'), 1],
+        [T.s('Predpokladáme, že najväčšie prvočíslo existuje, vynásobíme všetky prvočísla, pripočítame 1 a ukážeme, že vznikne číslo bez prvočíselného deliteľa zo zoznamu.'), 2],
+        [T.s('Tvrdenie „každé nepárne číslo väčšie ako 1 je prvočíslo“ odmietneme poukázaním na číslo 9.'), 3],
+        [T.s('Nerovnosť $|a+b|\\le|a|+|b|$ overujeme zvlášť pre $a, b\\ge 0$, pre $a, b&lt;0$ a pre čísla s rôznymi znamienkami.'), 4],
+        [T.s('Predpokladáme, že $\\sqrt{3}=\\frac{p}{q}$ je zlomok v základnom tvare, a ukážeme, že $p$ aj $q$ by boli deliteľné tromi.'), 2],
+        [T.s('Aby sme ukázali, že $2^n+1$ nie je vždy prvočíslo, stačí vypočítať $2^3+1=9$.'), 3],
+        [T.s('Dokazujeme „ak $3\\nmid ab$, tak $3\\nmid a$“ – namiesto toho ukážeme, že z $3\\mid a$ vyplýva $3\\mid ab$.'), 1],
+        [T.s('Tvrdenie o deliteľnosti $n^2+n$ dvomi dokazujeme samostatne pre párne a pre nepárne $n$.'), 4],
+        [T.s('Z rovnosti $a^2+b^2=(a+b)^2-2ab$ a predpokladov $a+b=5$, $ab=6$ priamo vypočítame $a^2+b^2=13$.'), 0],
+        [T.s('Predpokladáme, že rovnica $x^2=4y+2$ má celočíselné riešenie, a dospejeme k tomu, že nepárne číslo je párne.'), 2],
+        [T.s('Ukážeme, že ak priamky $p$, $q$ nie sú rovnobežné, tak ich priesečník vylučuje platnosť predpokladu – teda z predpokladu vyplýva rovnobežnosť (z negácie záveru odvodzujeme negáciu predpokladu).'), 1]
       ];
       const [s, k] = pick(S);
       const MH = [
-        'Pri priamom dôkaze vychádzame z predpokladu vety a priamo odvodíme záver; nič sa neneguje a nehľadá sa spor.',
-        'Obmena začína negáciou záveru a končí negáciou predpokladu; nehľadá sa pri nej spor.',
-        'Pri dôkaze sporom predpokladáme neplatnosť celého tvrdenia a odvodíme spor.',
-        'Protipríkladom sa tvrdenie len vyvracia, a to jediným konkrétnym prípadom.',
-        'Rozbor prípadov rozdelí všetky možnosti na niekoľko skupín a každú overí zvlášť.'
+        T.s('Pri priamom dôkaze vychádzame z predpokladu vety a priamo odvodíme záver; nič sa neneguje a nehľadá sa spor.'),
+        T.s('Obmena začína negáciou záveru a končí negáciou predpokladu; nehľadá sa pri nej spor.'),
+        T.s('Pri dôkaze sporom predpokladáme neplatnosť celého tvrdenia a odvodíme spor.'),
+        T.s('Protipríkladom sa tvrdenie len vyvracia, a to jediným konkrétnym prípadom.'),
+        T.s('Rozbor prípadov rozdelí všetky možnosti na niekoľko skupín a každú overí zvlášť.')
       ];
       const choiceHints = {};
       METHODS.forEach((mm, i) => { if (i !== k) choiceHints[mm] = MH[i]; });
       return {
         choiceHints,
         type: 'choice', options: shuffle(METHODS),
-        q: `Akú metódu dôkazu opisuje postup? ${s}`,
+        q: T`Akú metódu dôkazu opisuje postup? ${s}`,
         answer: METHODS[k],
-        solution: `Ide o metódu <strong>${METHODS[k]}</strong>. ${[
-          'Z predpokladov postupne priamo odvodzujeme záver.',
-          'Namiesto $A\\Rightarrow B$ dokazujeme ekvivalentnú obmenu $\\neg B\\Rightarrow\\neg A$.',
-          'Predpokladáme negáciu tvrdenia a odvodíme spor.',
-          'Všeobecné tvrdenie vyvrátime jediným prípadom, v ktorom neplatí.',
-          'Možnosti rozdelíme na prípady, ktoré pokrývajú všetko, a každý overíme zvlášť.'][k]}`,
-        hint: 'Všimni si, čo sa predpokladá na začiatku: predpoklad vety, negácia záveru (obmena), negácia celého tvrdenia (spor), alebo sa len hľadá jeden príklad?'
+        solution: T`Ide o metódu <strong>${METHODS[k]}</strong>. ${[
+          T.s('Z predpokladov postupne priamo odvodzujeme záver.'),
+          T.s('Namiesto $A\\Rightarrow B$ dokazujeme ekvivalentnú obmenu $\\neg B\\Rightarrow\\neg A$.'),
+          T.s('Predpokladáme negáciu tvrdenia a odvodíme spor.'),
+          T.s('Všeobecné tvrdenie vyvrátime jediným prípadom, v ktorom neplatí.'),
+          T.s('Možnosti rozdelíme na prípady, ktoré pokrývajú všetko, a každý overíme zvlášť.')][k]}`,
+        hint: T.s('Všimni si, čo sa predpokladá na začiatku: predpoklad vety, negácia záveru (obmena), negácia celého tvrdenia (spor), alebo sa len hľadá jeden príklad?')
       };
     }
     if (t < 0.44) {
       const p = pick([2, 3, 5, 7]), k = rnd(2, 9), m = rnd(2, 6);
-      const T = [
+      const IMP = [
         [`${p}\\mid n^2`, `${p}\\nmid n^2`], [`${p}\\mid n`, `${p}\\nmid n`], [`n&gt;${k}`, `n\\le ${k}`], [`n^2&gt;${k * k}`, `n^2\\le ${k * k}`],
         [`n\\equiv 1 \\pmod{${m}}`, `n\\not\\equiv 1 \\pmod{${m}}`], [`n^2\\ge ${k}`, `n^2&lt;${k}`]
       ];
-      const [i, j] = shuffle(range(0, T.length - 1)).slice(0, 2);
-      const [A, nA] = T[i], [Bp, nB] = T[j];
+      const [i, j] = shuffle(range(0, IMP.length - 1)).slice(0, 2);
+      const [A, nA] = IMP[i], [Bp, nB] = IMP[j];
       const kinds = [
         ['obmena', `$${nB}\\Rightarrow ${nA}$`], ['obrátená implikácia', `$${Bp}\\Rightarrow ${A}$`],
         ['opačná implikácia', `$${nA}\\Rightarrow ${nB}$`], ['negácia', `$${A}\\land ${nB}$`]
       ];
       const ask = pick([0, 0, 1, 3]);
       const KH = [
-        'Toto je obmena $\\neg B\\Rightarrow\\neg A$: strany sú vymenené aj znegované.',
-        'Toto je obrátená implikácia $B\\Rightarrow A$: strany sú vymenené, ale nie znegované.',
-        'Toto je opačná implikácia $\\neg A\\Rightarrow\\neg B$: strany sú znegované, ale nie vymenené.',
-        'Toto je negácia $A\\land\\neg B$; implikáciou už nie je.'
+        T.s('Toto je obmena $\\neg B\\Rightarrow\\neg A$: strany sú vymenené aj znegované.'),
+        T.s('Toto je obrátená implikácia $B\\Rightarrow A$: strany sú vymenené, ale nie znegované.'),
+        T.s('Toto je opačná implikácia $\\neg A\\Rightarrow\\neg B$: strany sú znegované, ale nie vymenené.'),
+        T.s('Toto je negácia $A\\land\\neg B$; implikáciou už nie je.')
       ];
       const choiceHints = {};
       kinds.forEach((x, i) => { if (i !== ask) choiceHints[x[1]] = KH[i]; });
       return {
         choiceHints,
         type: 'choice', options: shuffle(kinds.map((x) => x[1])),
-        q: `Daná je implikácia $${A}\\Rightarrow ${Bp}$ (pre celé číslo $n$). Ktorý výrok je jej ${['obmenou', 'obrátenou implikáciou', 'opačnou implikáciou', 'negáciou'][ask]}?`,
+        q: T`Daná je implikácia $${A}\\Rightarrow ${Bp}$ (pre celé číslo $n$). Ktorý výrok je jej ${T.s(['obmenou', 'obrátenou implikáciou', 'opačnou implikáciou', 'negáciou'][ask])}?`,
         answer: kinds[ask][1],
-        solution: `Pre implikáciu $A\\Rightarrow B$ je obmena $\\neg B\\Rightarrow\\neg A$, obrátená implikácia $B\\Rightarrow A$, opačná $\\neg A\\Rightarrow\\neg B$ a negácia $A\\land\\neg B$.
+        solution: T`Pre implikáciu $A\\Rightarrow B$ je obmena $\\neg B\\Rightarrow\\neg A$, obrátená implikácia $B\\Rightarrow A$, opačná $\\neg A\\Rightarrow\\neg B$ a negácia $A\\land\\neg B$.
           Tu $A$: $${A}$, $B$: $${Bp}$, preto hľadaný výrok je ${kinds[ask][1]}. S pôvodnou implikáciou je ekvivalentná len obmena.`,
-        hint: 'Obmena vymení strany a obe zneguje. Negácia implikácie už implikáciou nie je: $\\neg(A\\Rightarrow B)\\equiv A\\land\\neg B$.'
+        hint: T.s('Obmena vymení strany a obe zneguje. Negácia implikácie už implikáciou nie je: $\\neg(A\\Rightarrow B)\\equiv A\\land\\neg B$.')
       };
     }
     if (t < 0.7) {
@@ -530,37 +531,37 @@
         let d = 2;
         while (v % d) d++;
         return {
-          q: `Tvrdenie: „Pre každé $n\\in\\mathbb{N}_0$ je číslo $n^2+n+${c}$ prvočíslo.“ Nájdi najmenšie $n$, ktoré je protipríkladom.`,
+          q: T`Tvrdenie: „Pre každé $n\\in\\mathbb{N}_0$ je číslo $n^2+n+${c}$ prvočíslo.“ Nájdi najmenšie $n$, ktoré je protipríkladom.`,
           answer: n,
-          solution: `Postupne dosadzujeme $n=0, 1, 2, \\dots$ Pre $n&lt;${n}$ vychádzajú prvočísla, ale pre $n=${n}$ je $${n}^2+${n}+${c}=${v}=${d}\\cdot ${v / d}$, čo je zložené číslo.`,
-          hint: 'Dosadzuj postupne malé čísla. Zaujímavé je dosadiť $n=c-1$, vtedy $n^2+n+c=c^2$.'
+          solution: T`Postupne dosadzujeme $n=0, 1, 2, \\dots$ Pre $n&lt;${n}$ vychádzajú prvočísla, ale pre $n=${n}$ je $${n}^2+${n}+${c}=${v}=${d}\\cdot ${v / d}$, čo je zložené číslo.`,
+          hint: T.s('Dosadzuj postupne malé čísla. Zaujímavé je dosadiť $n=c-1$, vtedy $n^2+n+c=c^2$.')
         };
       }
       const k = rnd(2, 5);
       let n = 1;
       while (fact(n) < Math.pow(k, n)) n++;
       return {
-        q: `Tvrdenie: „Pre každé $n\\in\\mathbb{N}$ platí $n!&lt;${k}^n$.“ Nájdi najmenšie $n$, ktoré tvrdenie vyvracia.`,
+        q: T`Tvrdenie: „Pre každé $n\\in\\mathbb{N}$ platí $n!&lt;${k}^n$.“ Nájdi najmenšie $n$, ktoré tvrdenie vyvracia.`,
         answer: n,
-        solution: `Pre $n=1, 2, \\dots, ${n - 1}$ nerovnosť platí, no pre $n=${n}$ je $${n}!=${fact(n)}$ a $${k}^{${n}}=${Math.pow(k, n)}$, teda $n!\\ge ${k}^n$.
+        solution: T`Pre $n=1, 2, \\dots, ${n - 1}$ nerovnosť platí, no pre $n=${n}$ je $${n}!=${fact(n)}$ a $${k}^{${n}}=${Math.pow(k, n)}$, teda $n!\\ge ${k}^n$.
           Faktoriál rastie nakoniec rýchlejšie ako každá exponenciála.`,
-        hint: 'Pri prechode z $n$ na $n+1$ sa $n!$ násobí číslom $n+1$, kým $k^n$ len číslom $k$.'
+        hint: T.s('Pri prechode z $n$ na $n+1$ sa $n!$ násobí číslom $n+1$, kým $k^n$ len číslom $k$.')
       };
     }
     const m = rnd(3, 10), e = Math.random() < 0.65 ? 2 : 3;
     const res = [...new Set(range(0, m - 1).map((r) => Math.pow(r, e) % m))].sort((a, b) => a - b);
     return {
       steps: [
-        { q: `Aký zvyšok dáva $2^{${e}}$ po delení číslom ${m}?`, answer: Math.pow(2, e) % m },
-        { q: `Aký zvyšok dáva $${m - 1}^{${e}}$ po delení číslom ${m}?`, answer: Math.pow(m - 1, e) % m, hint: `$${m - 1}\\equiv -1 \\pmod{${m}}$.` },
-        { q: `Prejdi všetky zvyšky $r = 0, 1, \\dots, ${m - 1}$ a zadaj všetky možné zvyšky $n^{${e}}$ (oddelené bodkočiarkou).`, type: 'set', answer: res }
+        { q: T`Aký zvyšok dáva $2^{${e}}$ po delení číslom ${m}?`, answer: Math.pow(2, e) % m },
+        { q: T`Aký zvyšok dáva $${m - 1}^{${e}}$ po delení číslom ${m}?`, answer: Math.pow(m - 1, e) % m, hint: `$${m - 1}\\equiv -1 \\pmod{${m}}$.` },
+        { q: T`Prejdi všetky zvyšky $r = 0, 1, \\dots, ${m - 1}$ a zadaj všetky možné zvyšky $n^{${e}}$ (oddelené bodkočiarkou).`, type: 'set', answer: res }
       ],
       type: 'set',
-      q: `Rozborom prípadov podľa zvyšku čísla $n$ po delení číslom ${m} zisti, aké zvyšky môže dávať $n^{${e}}$ po delení číslom ${m}. Zadaj všetky možné zvyšky oddelené bodkočiarkou.`,
+      q: T`Rozborom prípadov podľa zvyšku čísla $n$ po delení číslom ${m} zisti, aké zvyšky môže dávať $n^{${e}}$ po delení číslom ${m}. Zadaj všetky možné zvyšky oddelené bodkočiarkou.`,
       answer: res,
-      solution: `Ak $n\\equiv r \\pmod{${m}}$, tak $n^{${e}}\\equiv r^{${e}} \\pmod{${m}}$. Stačí preto prejsť $r=0, 1, \\dots, ${m - 1}$:
+      solution: T`Ak $n\\equiv r \\pmod{${m}}$, tak $n^{${e}}\\equiv r^{${e}} \\pmod{${m}}$. Stačí preto prejsť $r=0, 1, \\dots, ${m - 1}$:
         ${range(0, m - 1).map((r) => `$${r}^{${e}}\\equiv ${Math.pow(r, e) % m}$`).join(', ')}. Možné zvyšky: $${setTex(res)}$.`,
-      hint: 'Zvyšok mocniny závisí len od zvyšku základu. Prejdi všetky zvyšky $0$ až $m-1$.'
+      hint: T.s('Zvyšok mocniny závisí len od zvyšku základu. Prejdi všetky zvyšky $0$ až $m-1$.')
     };
   });
 
@@ -646,46 +647,46 @@
       const inter = A.filter((x) => Bs.includes(x)), bMinusA = Bs.filter((x) => !A.includes(x)), aMinusB = A.filter((x) => !Bs.includes(x));
       const same = (u, v) => u.length === v.length && u.every((x, i) => x === v[i]);
       const mis = [];
-      if (op[0] === 'A\\setminus B' && bMinusA.length && !same(bMinusA, res)) mis.push({ value: bMinusA, msg: 'Rozdiel nie je komutatívny: $A\\setminus B$ obsahuje prvky z $A$, ktoré nie sú v $B$.' });
-      if (op[0] === 'B\\setminus A' && aMinusB.length && !same(aMinusB, res)) mis.push({ value: aMinusB, msg: 'Rozdiel nie je komutatívny: $B\\setminus A$ obsahuje prvky z $B$, ktoré nie sú v $A$.' });
-      if (op[0] === 'A\\triangle B' && inter.length) mis.push({ value: range(1, 10).filter((x) => A.includes(x) || Bs.includes(x)), msg: 'Symetrický rozdiel neobsahuje spoločné prvky: $A\\triangle B = (A\\setminus B)\\cup(B\\setminus A)$.' });
+      if (op[0] === 'A\\setminus B' && bMinusA.length && !same(bMinusA, res)) mis.push({ value: bMinusA, msg: T.s('Rozdiel nie je komutatívny: $A\\setminus B$ obsahuje prvky z $A$, ktoré nie sú v $B$.') });
+      if (op[0] === 'B\\setminus A' && aMinusB.length && !same(aMinusB, res)) mis.push({ value: aMinusB, msg: T.s('Rozdiel nie je komutatívny: $B\\setminus A$ obsahuje prvky z $B$, ktoré nie sú v $A$.') });
+      if (op[0] === 'A\\triangle B' && inter.length) mis.push({ value: range(1, 10).filter((x) => A.includes(x) || Bs.includes(x)), msg: T.s('Symetrický rozdiel neobsahuje spoločné prvky: $A\\triangle B = (A\\setminus B)\\cup(B\\setminus A)$.') });
       return {
         mistakes: mis,
         type: 'set',
-        q: `Nech $A=${setTex(A)}$ a $B=${setTex(Bs)}$. Urči množinu $${op[0]}$ (prvky oddeľ bodkočiarkou).`,
+        q: T`Nech $A=${setTex(A)}$ a $B=${setTex(Bs)}$. Urči množinu $${op[0]}$ (prvky oddeľ bodkočiarkou).`,
         answer: res,
-        solution: `$A\\cap B=${setTex(range(1, 10).filter((x) => A.includes(x) && Bs.includes(x)))}$, $A\\setminus B=${setTex(A.filter((x) => !Bs.includes(x)))}$,
+        solution: T`$A\\cap B=${setTex(range(1, 10).filter((x) => A.includes(x) && Bs.includes(x)))}$, $A\\setminus B=${setTex(A.filter((x) => !Bs.includes(x)))}$,
           $B\\setminus A=${setTex(Bs.filter((x) => !A.includes(x)))}$. Preto $${op[0]}=${setTex(res)}$.`,
-        hint: 'Rozdeľ prvky na tie, čo sú len v $A$, v oboch a len v $B$ (Vennov diagram).'
+        hint: T.s('Rozdeľ prvky na tie, čo sú len v $A$, v oboch a len v $B$ (Vennov diagram).')
       };
     }
     if (t < 0.55) {
       const n = rnd(2, 4), m = rnd(2, 4);
       const lo2 = Math.min(n, m), hi2 = Math.max(n, m) + 1;
-      const AXB = { value: n * m, msg: 'Toto je počet prvkov $A\\times B$. Pýtame sa na počet jeho podmnožín.' };
+      const AXB = { value: n * m, msg: T.s('Toto je počet prvkov $A\\times B$. Pýtame sa na počet jeho podmnožín.') };
       const Q = [
-        [`Koľko prvkov má potenčná množina $\\mathcal{P}(A)$, ak $|A|=${n + 2}$?`, Math.pow(2, n + 2), `$|\\mathcal{P}(A)|=2^{${n + 2}}=${Math.pow(2, n + 2)}$.`,
-          n === 2 ? [] : [{ value: (n + 2) * (n + 2), msg: 'Počet podmnožín je $2^{n}$ (každý prvok v podmnožine buď je, alebo nie je), nie $n^{2}$.' }]],
-        [`Koľko ${m}-prvkových podmnožín má množina s ${n + 3} prvkami?`, C(n + 3, m), `Počet $k$-prvkových podmnožín je $\\binom{${n + 3}}{${m}}=${C(n + 3, m)}$.`,
-          [{ value: C(n + 3, m) * fact(m), msg: 'Pri podmnožinách nezáleží na poradí prvkov. Počítal si usporiadané výbery (variácie), treba ešte vydeliť $k!$.' }]],
-        [`Nech $|A|=${n}$ a $|B|=${m}$. Koľko je binárnych relácií z $A$ do $B$?`, Math.pow(2, n * m), `Relácia je podmnožina $A\\times B$, $|A\\times B|=${n * m}$, preto relácií je $2^{${n * m}}=${Math.pow(2, n * m)}$.`,
-          [AXB, ...(n !== m ? [{ value: Math.pow(m, n), msg: 'Toto je počet zobrazení $A\\to B$. Relácia je ľubovoľná podmnožina $A\\times B$, prvok môže mať viac obrazov alebo žiadny.' }] : [])]],
-        [`Nech $|A|=${n}$ a $|B|=${m}$. Koľko je zobrazení $f: A\\to B$?`, Math.pow(m, n), `Každý z ${n} prvkov $A$ má ${m} možností pre obraz: $${m}^{${n}}=${Math.pow(m, n)}$.`,
-          Math.pow(n, m) !== Math.pow(m, n) ? [{ value: Math.pow(n, m), msg: 'Zamenil si základ a exponent: každý prvok definičného oboru $A$ si vyberá obraz z $B$, teda $|B|^{|A|}$.' }] : []],
-        [`Nech $|A|=${lo2}$ a $|B|=${hi2}$. Koľko je injektívnych zobrazení $A\\to B$?`,
+        [T`Koľko prvkov má potenčná množina $\\mathcal{P}(A)$, ak $|A|=${n + 2}$?`, Math.pow(2, n + 2), `$|\\mathcal{P}(A)|=2^{${n + 2}}=${Math.pow(2, n + 2)}$.`,
+          n === 2 ? [] : [{ value: (n + 2) * (n + 2), msg: T.s('Počet podmnožín je $2^{n}$ (každý prvok v podmnožine buď je, alebo nie je), nie $n^{2}$.') }]],
+        [T`Koľko ${m}-prvkových podmnožín má množina s ${n + 3} prvkami?`, C(n + 3, m), T`Počet $k$-prvkových podmnožín je $\\binom{${n + 3}}{${m}}=${C(n + 3, m)}$.`,
+          [{ value: C(n + 3, m) * fact(m), msg: T.s('Pri podmnožinách nezáleží na poradí prvkov. Počítal si usporiadané výbery (variácie), treba ešte vydeliť $k!$.') }]],
+        [T`Nech $|A|=${n}$ a $|B|=${m}$. Koľko je binárnych relácií z $A$ do $B$?`, Math.pow(2, n * m), T`Relácia je podmnožina $A\\times B$, $|A\\times B|=${n * m}$, preto relácií je $2^{${n * m}}=${Math.pow(2, n * m)}$.`,
+          [AXB, ...(n !== m ? [{ value: Math.pow(m, n), msg: T.s('Toto je počet zobrazení $A\\to B$. Relácia je ľubovoľná podmnožina $A\\times B$, prvok môže mať viac obrazov alebo žiadny.') }] : [])]],
+        [T`Nech $|A|=${n}$ a $|B|=${m}$. Koľko je zobrazení $f: A\\to B$?`, Math.pow(m, n), T`Každý z ${n} prvkov $A$ má ${m} možností pre obraz: $${m}^{${n}}=${Math.pow(m, n)}$.`,
+          Math.pow(n, m) !== Math.pow(m, n) ? [{ value: Math.pow(n, m), msg: T.s('Zamenil si základ a exponent: každý prvok definičného oboru $A$ si vyberá obraz z $B$, teda $|B|^{|A|}$.') }] : []],
+        [T`Nech $|A|=${lo2}$ a $|B|=${hi2}$. Koľko je injektívnych zobrazení $A\\to B$?`,
           fact(hi2) / fact(hi2 - lo2),
-          `Obrazy musia byť rôzne: $${range(hi2 + 1 - lo2, hi2).reverse().join('\\cdot ')}=${fact(hi2) / fact(hi2 - lo2)}$.`,
-          [{ value: Math.pow(hi2, lo2), msg: 'Toto je počet všetkých zobrazení. Pri injekcii musia byť obrazy rôzne, takže počet možností pre každý ďalší prvok klesá o 1.' }]],
-        [`Koľko je bijekcií množiny s ${n + 2} prvkami na seba?`, fact(n + 2), `Bijekcie konečnej množiny na seba sú permutácie: $${n + 2}!=${fact(n + 2)}$.`,
-          [{ value: Math.pow(n + 2, n + 2), msg: 'Toto je počet všetkých zobrazení množiny do seba. Bijekcia nesmie opakovať obrazy, ide o permutácie.' }]],
-        [`Nech $|A|=${n}$, $|B|=${m}$. Koľko prvkov má $\\mathcal{P}(A\\times B)$?`, Math.pow(2, n * m), `$|A\\times B|=${n}\\cdot ${m}=${n * m}$, preto $|\\mathcal{P}(A\\times B)|=2^{${n * m}}=${Math.pow(2, n * m)}$.`,
-          [AXB, ...(n + m === n * m ? [] : [{ value: Math.pow(2, n) * Math.pow(2, m), msg: 'Potenčná množina súčinu nie je súčin potenčných množín: počet prvkov $A\\times B$ je $|A|\\cdot|B|$ a ten patrí do exponentu.' }])]]
+          T`Obrazy musia byť rôzne: $${range(hi2 + 1 - lo2, hi2).reverse().join('\\cdot ')}=${fact(hi2) / fact(hi2 - lo2)}$.`,
+          [{ value: Math.pow(hi2, lo2), msg: T.s('Toto je počet všetkých zobrazení. Pri injekcii musia byť obrazy rôzne, takže počet možností pre každý ďalší prvok klesá o 1.') }]],
+        [T`Koľko je bijekcií množiny s ${n + 2} prvkami na seba?`, fact(n + 2), T`Bijekcie konečnej množiny na seba sú permutácie: $${n + 2}!=${fact(n + 2)}$.`,
+          [{ value: Math.pow(n + 2, n + 2), msg: T.s('Toto je počet všetkých zobrazení množiny do seba. Bijekcia nesmie opakovať obrazy, ide o permutácie.') }]],
+        [T`Nech $|A|=${n}$, $|B|=${m}$. Koľko prvkov má $\\mathcal{P}(A\\times B)$?`, Math.pow(2, n * m), T`$|A\\times B|=${n}\\cdot ${m}=${n * m}$, preto $|\\mathcal{P}(A\\times B)|=2^{${n * m}}=${Math.pow(2, n * m)}$.`,
+          [AXB, ...(n + m === n * m ? [] : [{ value: Math.pow(2, n) * Math.pow(2, m), msg: T.s('Potenčná množina súčinu nie je súčin potenčných množín: počet prvkov $A\\times B$ je $|A|\\cdot|B|$ a ten patrí do exponentu.') }])]]
       ];
       const [q, a, s, mistakes] = pick(Q);
-      return { q, answer: a, solution: s, mistakes, hint: 'Podmnožín $n$-prvkovej množiny je $2^n$, zobrazení $A\\to B$ je $|B|^{|A|}$, relácií $2^{|A|\\cdot|B|}$.' };
+      return { q, answer: a, solution: s, mistakes, hint: T.s('Podmnožín $n$-prvkovej množiny je $2^n$, zobrazení $A\\to B$ je $|B|^{|A|}$, relácií $2^{|A|\\cdot|B|}$.') };
     }
     if (t < 0.8) {
-      const OPT = ['bijektívne', 'injektívne, ale nie surjektívne', 'surjektívne, ale nie injektívne', 'ani injektívne, ani surjektívne'];
+      const OPT = ['bijektívne', 'injektívne, ale nie surjektívne', 'surjektívne, ale nie injektívne', 'ani injektívne, ani surjektívne'].map(T.s);
       const m = rnd(3, 4), n = rnd(3, 4), letters = ['a', 'b', 'c', 'd'].slice(0, n);
       let f;
       if (m === n && Math.random() < 0.4) f = shuffle(range(0, n - 1));
@@ -700,18 +701,18 @@
       OPT.forEach((o, i) => {
         if (o === ans) return;
         const [ci, cs] = CL[i], w = [];
-        if (ci !== inj) w.push('Over injektívnosť: majú niektoré dva prvky rovnaký obraz?');
-        if (cs !== sur) w.push('Over surjektívnosť: má každý prvok cieľovej množiny aspoň jeden vzor?');
+        if (ci !== inj) w.push(T.s('Over injektívnosť: majú niektoré dva prvky rovnaký obraz?'));
+        if (cs !== sur) w.push(T.s('Over surjektívnosť: má každý prvok cieľovej množiny aspoň jeden vzor?'));
         choiceHints[o] = w.join(' ');
       });
       return {
         choiceHints,
         type: 'choice', options: OPT,
-        q: `Zobrazenie $f: \\{${range(1, m).join(', ')}\\}\\to\\{${letters.join(', ')}\\}$ je dané predpisom ${f.map((v, i) => `$f(${i + 1})=${letters[v]}$`).join(', ')}. Aké je?`,
+        q: T`Zobrazenie $f: \\{${range(1, m).join(', ')}\\}\\to\\{${letters.join(', ')}\\}$ je dané predpisom ${f.map((v, i) => `$f(${i + 1})=${letters[v]}$`).join(', ')}. Aké je?`,
         answer: ans,
-        solution: `${inj ? 'Všetky obrazy sú rôzne, $f$ je injektívne.' : `$f(${f.indexOf(f[dup]) + 1})=f(${dup + 1})=${letters[f[dup]]}$, preto $f$ nie je injektívne.`}
-          ${sur ? 'Každý prvok cieľovej množiny má vzor, $f$ je surjektívne.' : `Prvok $${letters[miss]}$ nemá vzor, $f$ nie je surjektívne.`} Zobrazenie je ${ans}.`,
-        hint: 'Injekcia: žiadne dva prvky nemajú rovnaký obraz. Surjekcia: do každého prvku cieľovej množiny vedie aspoň jedna šípka.'
+        solution: T`${inj ? T.s('Všetky obrazy sú rôzne, $f$ je injektívne.') : T`$f(${f.indexOf(f[dup]) + 1})=f(${dup + 1})=${letters[f[dup]]}$, preto $f$ nie je injektívne.`}
+          ${sur ? T.s('Každý prvok cieľovej množiny má vzor, $f$ je surjektívne.') : T`Prvok $${letters[miss]}$ nemá vzor, $f$ nie je surjektívne.`} Zobrazenie je ${ans}.`,
+        hint: T.s('Injekcia: žiadne dva prvky nemajú rovnaký obraz. Surjekcia: do každého prvku cieľovej množiny vedie aspoň jedna šípka.')
       };
     }
     const a = rnd(10, 40), b = rnd(10, 40), c = rnd(2, Math.min(a, b) - 2), u = a + b - c + rnd(0, 15);
@@ -719,18 +720,20 @@
     const uni = a + b - c;
     const o = {
       mistakes: askOut
-        ? [{ value: u - (a + b), msg: 'Pri sčítaní počtov oboch jazykov si študentov s oboma jazykmi započítal dvakrát; prienik treba raz odčítať.' },
-          ...(uni !== u - uni ? [{ value: uni, msg: 'Toto je počet študentov, ktorí ovládajú aspoň jeden jazyk. Pýtame sa na zvyšok skupiny (doplnok).' }] : [])]
-        : [{ value: a + b, msg: 'Študentov s oboma jazykmi si započítal dvakrát; prienik treba raz odčítať.' }],
-      q: `V skupine ${u} študentov ${a} ovláda angličtinu, ${b} nemčinu a ${c} oba jazyky. Koľko študentov ${askOut ? 'neovláda ani jeden z týchto jazykov' : 'ovláda aspoň jeden z týchto jazykov'}?`,
+        ? [{ value: u - (a + b), msg: T.s('Pri sčítaní počtov oboch jazykov si študentov s oboma jazykmi započítal dvakrát; prienik treba raz odčítať.') },
+          ...(uni !== u - uni ? [{ value: uni, msg: T.s('Toto je počet študentov, ktorí ovládajú aspoň jeden jazyk. Pýtame sa na zvyšok skupiny (doplnok).') }] : [])]
+        : [{ value: a + b, msg: T.s('Študentov s oboma jazykmi si započítal dvakrát; prienik treba raz odčítať.') }],
+      q: askOut
+        ? T`V skupine ${u} študentov ${a} ovláda angličtinu, ${b} nemčinu a ${c} oba jazyky. Koľko študentov neovláda ani jeden z týchto jazykov?`
+        : T`V skupine ${u} študentov ${a} ovláda angličtinu, ${b} nemčinu a ${c} oba jazyky. Koľko študentov ovláda aspoň jeden z týchto jazykov?`,
       answer: askOut ? u - (a + b - c) : a + b - c,
-      solution: `$|A\\cup N|=|A|+|N|-|A\\cap N|=${a}+${b}-${c}=${a + b - c}$.${askOut ? ` Ani jeden jazyk neovláda $${u}-${a + b - c}=${u - (a + b - c)}$ študentov (doplnok zjednotenia).` : ''}`,
-      hint: 'Pri sčítaní $|A|+|B|$ sa prienik započíta dvakrát, preto ho raz odčítaj.'
+      solution: `$|A\\cup N|=|A|+|N|-|A\\cap N|=${a}+${b}-${c}=${a + b - c}$.${askOut ? T` Ani jeden jazyk neovláda $${u}-${a + b - c}=${u - (a + b - c)}$ študentov (doplnok zjednotenia).` : ''}`,
+      hint: T.s('Pri sčítaní $|A|+|B|$ sa prienik započíta dvakrát, preto ho raz odčítaj.')
     };
     if (askOut) {
       o.steps = [
-        { q: 'Koľko študentov ovláda aspoň jeden z jazykov?', answer: uni, hint: 'Použi $|A\\cup N| = |A| + |N| - |A\\cap N|$.' },
-        { q: 'Koľko študentov neovláda ani jeden jazyk?', answer: u - uni }
+        { q: T.s('Koľko študentov ovláda aspoň jeden z jazykov?'), answer: uni, hint: T.s('Použi $|A\\cup N| = |A| + |N| - |A\\cap N|$.') },
+        { q: T.s('Koľko študentov neovláda ani jeden jazyk?'), answer: u - uni }
       ];
     }
     return o;
@@ -819,79 +822,80 @@
     const t = Math.random();
     if (t < 0.3) {
       const n = rnd(3, 4), R = randRel(n), P = relProps(R, n);
-      const OPT = ['ekvivalencia aj čiastočné usporiadanie', 'ekvivalencia, nie usporiadanie', 'čiastočné usporiadanie, nie ekvivalencia', 'ani ekvivalencia, ani čiastočné usporiadanie'];
+      const OPT = ['ekvivalencia aj čiastočné usporiadanie', 'ekvivalencia, nie usporiadanie', 'čiastočné usporiadanie, nie ekvivalencia', 'ani ekvivalencia, ani čiastočné usporiadanie'].map(T.s);
       if (Math.random() < 0.5) {
         const k = pick(['refl', 'sym', 'anti', 'trans']);
         const NAME = { refl: 'reflexívna', sym: 'symetrická', anti: 'antisymetrická', trans: 'tranzitívna' };
         let why = '';
-        if (k === 'refl') { const i = range(1, n).find((x) => !P.has(x, x)); why = P.refl ? 'Obsahuje všetky dvojice $(a, a)$.' : `Chýba dvojica $(${i}, ${i})$.`; }
-        if (k === 'sym') { const e = R.find(([a, b]) => !P.has(b, a)); why = P.sym ? 'Ku každej dvojici $(a, b)$ obsahuje aj $(b, a)$.' : `Obsahuje $(${e[0]}, ${e[1]})$, ale nie $(${e[1]}, ${e[0]})$.`; }
-        if (k === 'anti') { const e = R.find(([a, b]) => a !== b && P.has(b, a)); why = P.anti ? 'Nikdy neobsahuje obe dvojice $(a, b)$, $(b, a)$ pre $a\\neq b$.' : `Obsahuje $(${e[0]}, ${e[1]})$ aj $(${e[1]}, ${e[0]})$.`; }
+        if (k === 'refl') { const i = range(1, n).find((x) => !P.has(x, x)); why = P.refl ? T.s('Obsahuje všetky dvojice $(a, a)$.') : T`Chýba dvojica $(${i}, ${i})$.`; }
+        if (k === 'sym') { const e = R.find(([a, b]) => !P.has(b, a)); why = P.sym ? T.s('Ku každej dvojici $(a, b)$ obsahuje aj $(b, a)$.') : T`Obsahuje $(${e[0]}, ${e[1]})$, ale nie $(${e[1]}, ${e[0]})$.`; }
+        if (k === 'anti') { const e = R.find(([a, b]) => a !== b && P.has(b, a)); why = P.anti ? T.s('Nikdy neobsahuje obe dvojice $(a, b)$, $(b, a)$ pre $a\\neq b$.') : T`Obsahuje $(${e[0]}, ${e[1]})$ aj $(${e[1]}, ${e[0]})$.`; }
         if (k === 'trans') {
           let w = null;
           for (const [a, b] of R) for (const [c, d] of R) if (!w && c === b && !P.has(a, d)) w = [a, b, d];
-          why = P.trans ? 'Kedykoľvek obsahuje $(a, b)$ a $(b, c)$, obsahuje aj $(a, c)$.' : `Obsahuje $(${w[0]}, ${w[1]})$ a $(${w[1]}, ${w[2]})$, ale nie $(${w[0]}, ${w[2]})$.`;
+          why = P.trans ? T.s('Kedykoľvek obsahuje $(a, b)$ a $(b, c)$, obsahuje aj $(a, c)$.') : T`Obsahuje $(${w[0]}, ${w[1]})$ a $(${w[1]}, ${w[2]})$, ale nie $(${w[0]}, ${w[2]})$.`;
         }
         const PH = {
-          refl: 'Reflexívnosť vyžaduje dvojicu $(a, a)$ pre každý prvok množiny. Skontroluj ich jednu po druhej.',
-          sym: 'Symetria: ku každej dvojici $(a, b)$ musí relácia obsahovať aj $(b, a)$. Prejdi všetky dvojice.',
-          anti: 'Antisymetria nie je opak symetrie: zakazuje len to, aby pre $a\\neq b$ boli v relácii obe dvojice $(a, b)$ aj $(b, a)$; dvojice $(a, a)$ jej neprekážajú.',
-          trans: 'Tranzitívnosť: pre každé $(a, b)$ a $(b, c)$ v relácii musí byť aj $(a, c)$, a to aj v prípadoch $a = c$ alebo $b = c$.'
+          refl: T.s('Reflexívnosť vyžaduje dvojicu $(a, a)$ pre každý prvok množiny. Skontroluj ich jednu po druhej.'),
+          sym: T.s('Symetria: ku každej dvojici $(a, b)$ musí relácia obsahovať aj $(b, a)$. Prejdi všetky dvojice.'),
+          anti: T.s('Antisymetria nie je opak symetrie: zakazuje len to, aby pre $a\\neq b$ boli v relácii obe dvojice $(a, b)$ aj $(b, a)$; dvojice $(a, a)$ jej neprekážajú.'),
+          trans: T.s('Tranzitívnosť: pre každé $(a, b)$ a $(b, c)$ v relácii musí byť aj $(a, c)$, a to aj v prípadoch $a = c$ alebo $b = c$.')
         };
+        const nm = T.s(NAME[k]);
         return {
-          choiceHints: { [P[k] ? YN[1] : YN[0]]: PH[k] },
-          type: 'choice', options: YN,
-          q: `Na množine $\\{${range(1, n).join(', ')}\\}$ je daná relácia $R=${relTex(R)}$. Je relácia $R$ ${NAME[k]}?`,
-          answer: P[k] ? YN[0] : YN[1],
-          solution: `${why} Relácia ${P[k] ? 'je' : 'nie je'} ${NAME[k]}.`,
-          hint: 'Prejdi dvojice relácie a hľadaj protipríklad k požadovanej vlastnosti.'
+          choiceHints: { [T.s(P[k] ? YN[1] : YN[0])]: PH[k] },
+          type: 'choice', options: YN.map(T.s),
+          q: T`Na množine $\\{${range(1, n).join(', ')}\\}$ je daná relácia $R=${relTex(R)}$. Je relácia $R$ ${nm}?`,
+          answer: T.s(P[k] ? YN[0] : YN[1]),
+          solution: T`${why} ${P[k] ? T`Relácia je ${nm}.` : T`Relácia nie je ${nm}.`}`,
+          hint: T.s('Prejdi dvojice relácie a hľadaj protipríklad k požadovanej vlastnosti.')
         };
       }
       const eq = P.refl && P.sym && P.trans, po = P.refl && P.anti && P.trans;
       const ans = eq && po ? OPT[0] : eq ? OPT[1] : po ? OPT[2] : OPT[3];
-      const yn = (b) => (b ? 'áno' : 'nie');
+      const yn = (b) => (b ? T.s('áno') : T.s('nie'));
       const CL = [[true, true], [true, false], [false, true], [false, false]];
       const choiceHints = {};
       OPT.forEach((o, i) => {
         if (o === ans) return;
         const w = [];
-        if (CL[i][0] !== eq) w.push('Over, či ide o ekvivalenciu: potrebuje reflexívnosť, symetriu a tranzitívnosť.');
-        if (CL[i][1] !== po) w.push('Over, či ide o čiastočné usporiadanie: potrebuje reflexívnosť, antisymetriu a tranzitívnosť.');
+        if (CL[i][0] !== eq) w.push(T.s('Over, či ide o ekvivalenciu: potrebuje reflexívnosť, symetriu a tranzitívnosť.'));
+        if (CL[i][1] !== po) w.push(T.s('Over, či ide o čiastočné usporiadanie: potrebuje reflexívnosť, antisymetriu a tranzitívnosť.'));
         choiceHints[o] = w.join(' ');
       });
       return {
         choiceHints,
         type: 'choice', options: OPT,
-        q: `Na množine $\\{${range(1, n).join(', ')}\\}$ je daná relácia $R=${relTex(R)}$. Čím je relácia $R$?`,
+        q: T`Na množine $\\{${range(1, n).join(', ')}\\}$ je daná relácia $R=${relTex(R)}$. Čím je relácia $R$?`,
         answer: ans,
-        solution: `Reflexívna: ${yn(P.refl)}, symetrická: ${yn(P.sym)}, antisymetrická: ${yn(P.anti)}, tranzitívna: ${yn(P.trans)}.
+        solution: T`Reflexívna: ${yn(P.refl)}, symetrická: ${yn(P.sym)}, antisymetrická: ${yn(P.anti)}, tranzitívna: ${yn(P.trans)}.
           Ekvivalencia potrebuje reflexívnosť, symetriu a tranzitívnosť, čiastočné usporiadanie reflexívnosť, antisymetriu a tranzitívnosť. Preto: ${ans}.`,
-        hint: 'Over postupne štyri vlastnosti. Obe štruktúry naraz má len identická relácia $\\{(a, a)\\}$.'
+        hint: T.s('Over postupne štyri vlastnosti. Obe štruktúry naraz má len identická relácia $\\{(a, a)\\}$.')
       };
     }
     if (t < 0.5) {
       const n = rnd(3, 5);
       const Q = [
-        ['reflexívnych', Math.pow(2, n * n - n), `Dvojice $(a, a)$ musia byť v relácii (${n} dvojíc), o zvyšných $${n}^2-${n}=${n * n - n}$ rozhodujeme ľubovoľne: $2^{${n * n - n}}=${Math.pow(2, n * n - n)}$.`],
-        ['symetrických', Math.pow(2, n * (n + 1) / 2), `Rozhodujeme o ${n} dvojiciach $(a, a)$ a o $\\binom{${n}}{2}=${n * (n - 1) / 2}$ dvojiciach $\\{(a, b), (b, a)\\}$ naraz: $2^{${n * (n + 1) / 2}}=${Math.pow(2, n * (n + 1) / 2)}$.`],
-        ['antisymetrických', Math.pow(2, n) * Math.pow(3, n * (n - 1) / 2), `Pre každé $(a, a)$ 2 možnosti, pre každú dvojicu $a\\neq b$ 3 možnosti (žiadna, len $(a, b)$, len $(b, a)$): $2^{${n}}\\cdot 3^{${n * (n - 1) / 2}}=${Math.pow(2, n) * Math.pow(3, n * (n - 1) / 2)}$.`],
-        ['všetkých', Math.pow(2, n * n), `Relácia je ľubovoľná podmnožina $A\\times A$ s $${n * n}$ prvkami: $2^{${n * n}}=${Math.pow(2, n * n)}$.`],
-        ['ekvivalencií', [1, 1, 2, 5, 15, 52][n], `Ekvivalencie zodpovedajú rozkladom množiny; ich počet je Bellovo číslo $B_{${n}}=${[1, 1, 2, 5, 15, 52][n]}$.`]
+        ['reflexívnych', Math.pow(2, n * n - n), T`Dvojice $(a, a)$ musia byť v relácii (${n} dvojíc), o zvyšných $${n}^2-${n}=${n * n - n}$ rozhodujeme ľubovoľne: $2^{${n * n - n}}=${Math.pow(2, n * n - n)}$.`],
+        ['symetrických', Math.pow(2, n * (n + 1) / 2), T`Rozhodujeme o ${n} dvojiciach $(a, a)$ a o $\\binom{${n}}{2}=${n * (n - 1) / 2}$ dvojiciach $\\{(a, b), (b, a)\\}$ naraz: $2^{${n * (n + 1) / 2}}=${Math.pow(2, n * (n + 1) / 2)}$.`],
+        ['antisymetrických', Math.pow(2, n) * Math.pow(3, n * (n - 1) / 2), T`Pre každé $(a, a)$ 2 možnosti, pre každú dvojicu $a\\neq b$ 3 možnosti (žiadna, len $(a, b)$, len $(b, a)$): $2^{${n}}\\cdot 3^{${n * (n - 1) / 2}}=${Math.pow(2, n) * Math.pow(3, n * (n - 1) / 2)}$.`],
+        ['všetkých', Math.pow(2, n * n), T`Relácia je ľubovoľná podmnožina $A\\times A$ s $${n * n}$ prvkami: $2^{${n * n}}=${Math.pow(2, n * n)}$.`],
+        ['ekvivalencií', [1, 1, 2, 5, 15, 52][n], T`Ekvivalencie zodpovedajú rozkladom množiny; ich počet je Bellovo číslo $B_{${n}}=${[1, 1, 2, 5, 15, 52][n]}$.`]
       ];
       const [w, a, s] = n === 5 ? pick([Q[4], Q[1]]) : pick(Q);
       const h = n * (n - 1) / 2;
       const MIS = {
-        reflexívnych: [{ value: Math.pow(2, n * n), msg: 'Toto je počet všetkých relácií. Dvojice $(a, a)$ sú pri reflexívnej relácii povinné, voľne rozhoduješ len o ostatných.' }],
-        symetrických: [{ value: Math.pow(2, h), msg: 'Zabudol si na dvojice $(a, a)$: aj o každej z nich rozhoduješ voľne, symetriu neporušia.' }],
-        antisymetrických: [{ value: Math.pow(3, h), msg: 'Zabudol si na dvojice $(a, a)$: každá môže v relácii byť alebo nebyť (2 možnosti), antisymetriu neporušia.' }],
-        všetkých: [{ value: n * n, msg: 'Toto je počet prvkov $A\\times A$. Relácia je jeho ľubovoľná podmnožina, pýtame sa na počet podmnožín.' }],
+        reflexívnych: [{ value: Math.pow(2, n * n), msg: T.s('Toto je počet všetkých relácií. Dvojice $(a, a)$ sú pri reflexívnej relácii povinné, voľne rozhoduješ len o ostatných.') }],
+        symetrických: [{ value: Math.pow(2, h), msg: T.s('Zabudol si na dvojice $(a, a)$: aj o každej z nich rozhoduješ voľne, symetriu neporušia.') }],
+        antisymetrických: [{ value: Math.pow(3, h), msg: T.s('Zabudol si na dvojice $(a, a)$: každá môže v relácii byť alebo nebyť (2 možnosti), antisymetriu neporušia.') }],
+        všetkých: [{ value: n * n, msg: T.s('Toto je počet prvkov $A\\times A$. Relácia je jeho ľubovoľná podmnožina, pýtame sa na počet podmnožín.') }],
         ekvivalencií: []
       };
       return {
         mistakes: MIS[w],
-        q: `Koľko je ${w} relácií na ${n}-prvkovej množine $A$?`.replace('ekvivalencií relácií', 'relácií ekvivalencie'),
+        q: w === 'ekvivalencií' ? T`Koľko je relácií ekvivalencie na ${n}-prvkovej množine $A$?` : T`Koľko je ${T.s(w)} relácií na ${n}-prvkovej množine $A$?`,
         answer: a, solution: s,
-        hint: 'Relácia na $A$ je podmnožina $A\\times A$. Rozmysli si, o ktorých dvojiciach rozhoduješ voľne a ktoré sú viazané vlastnosťou.'
+        hint: T.s('Relácia na $A$ je podmnožina $A\\times A$. Rozmysli si, o ktorých dvojiciach rozhoduješ voľne a ktoré sú viazané vlastnosťou.')
       };
     }
     if (t < 0.72) {
@@ -901,35 +905,35 @@
       if (k === 0) {
         const up = cls.filter((y) => y >= a).length;
         return {
-          mistakes: up !== cls.length ? [{ value: up, msg: `Trieda $[${a}]$ obsahuje aj čísla menšie ako ${a}: líšia sa od neho o záporný násobok čísla ${m}.` }] : [],
-          q: `Na množine $\\{1, 2, \\dots, ${n}\\}$ je relácia $xRy\\Leftrightarrow ${m}\\mid x-y$. Koľko prvkov má trieda ekvivalencie $[${a}]$?`,
+          mistakes: up !== cls.length ? [{ value: up, msg: T`Trieda $[${a}]$ obsahuje aj čísla menšie ako ${a}: líšia sa od neho o záporný násobok čísla ${m}.` }] : [],
+          q: T`Na množine $\\{1, 2, \\dots, ${n}\\}$ je relácia $xRy\\Leftrightarrow ${m}\\mid x-y$. Koľko prvkov má trieda ekvivalencie $[${a}]$?`,
           answer: cls.length,
-          solution: `$[${a}]$ tvoria čísla s rovnakým zvyškom po delení ${m} ako ${a}: $${setTex(cls)}$, spolu ${cls.length}.`,
-          hint: 'Trieda prvku $a$ obsahuje všetky čísla, ktoré sa od $a$ líšia o násobok modulu.'
+          solution: T`$[${a}]$ tvoria čísla s rovnakým zvyškom po delení ${m} ako ${a}: $${setTex(cls)}$, spolu ${cls.length}.`,
+          hint: T.s('Trieda prvku $a$ obsahuje všetky čísla, ktoré sa od $a$ líšia o násobok modulu.')
         };
       }
       if (k === 1) {
         return {
-          mistakes: Math.floor(n / m) !== m ? [{ value: Math.floor(n / m), msg: 'Toto je približne počet prvkov v jednej triede. Tried je toľko, koľko je rôznych zvyškov po delení modulom.' }] : [],
-          q: `Na množine $\\{1, 2, \\dots, ${n}\\}$ je relácia $xRy\\Leftrightarrow ${m}\\mid x-y$. Koľko tried ekvivalencie má?`,
+          mistakes: Math.floor(n / m) !== m ? [{ value: Math.floor(n / m), msg: T.s('Toto je približne počet prvkov v jednej triede. Tried je toľko, koľko je rôznych zvyškov po delení modulom.') }] : [],
+          q: T`Na množine $\\{1, 2, \\dots, ${n}\\}$ je relácia $xRy\\Leftrightarrow ${m}\\mid x-y$. Koľko tried ekvivalencie má?`,
           answer: m,
-          solution: `Triedy zodpovedajú zvyškom $0, 1, \\dots, ${m - 1}$ po delení ${m}; keďže $${n}\\ge ${m}$, každý zvyšok sa vyskytne. Tried je ${m}.`,
-          hint: 'Dva prvky sú v jednej triede práve vtedy, keď dávajú rovnaký zvyšok.'
+          solution: T`Triedy zodpovedajú zvyškom $0, 1, \\dots, ${m - 1}$ po delení ${m}; keďže $${n}\\ge ${m}$, každý zvyšok sa vyskytne. Tried je ${m}.`,
+          hint: T.s('Dva prvky sú v jednej triede práve vtedy, keď dávajú rovnaký zvyšok.')
         };
       }
       const sizes = range(0, m - 1).map((r) => range(1, n).filter((y) => y % m === r).length);
       const pairs = sizes.reduce((s, v) => s + v * v, 0);
       return {
-        mistakes: [{ value: pairs - n, msg: 'Relácia je reflexívna, takže obsahuje aj všetky dvojice $(x, x)$.' }],
+        mistakes: [{ value: pairs - n, msg: T.s('Relácia je reflexívna, takže obsahuje aj všetky dvojice $(x, x)$.') }],
         steps: [
-          { q: `Koľko tried ekvivalencie má relácia $R$?`, answer: m },
-          { q: 'Koľko prvkov má trieda $[1]$?', answer: sizes[1 % m] },
-          { q: 'Koľko usporiadaných dvojíc obsahuje relácia $R$?', answer: pairs, hint: 'V triede s $k$ prvkami je $k^{2}$ dvojíc.' }
+          { q: T.s('Koľko tried ekvivalencie má relácia $R$?'), answer: m },
+          { q: T.s('Koľko prvkov má trieda $[1]$?'), answer: sizes[1 % m] },
+          { q: T.s('Koľko usporiadaných dvojíc obsahuje relácia $R$?'), answer: pairs, hint: T.s('V triede s $k$ prvkami je $k^{2}$ dvojíc.') }
         ],
-        q: `Na množine $\\{1, 2, \\dots, ${n}\\}$ je relácia $xRy\\Leftrightarrow ${m}\\mid x-y$. Koľko usporiadaných dvojíc $(x, y)$ obsahuje relácia $R$?`,
+        q: T`Na množine $\\{1, 2, \\dots, ${n}\\}$ je relácia $xRy\\Leftrightarrow ${m}\\mid x-y$. Koľko usporiadaných dvojíc $(x, y)$ obsahuje relácia $R$?`,
         answer: pairs,
-        solution: `Triedy majú veľkosti ${sizes.join(', ')}. V rámci triedy s $k$ prvkami je v relácii $k^2$ dvojíc, spolu $${sizes.map((v) => v + '^2').join('+')}=${pairs}$.`,
-        hint: 'Rozlož množinu na triedy ekvivalencie; dvojica je v relácii práve vtedy, keď sú oba prvky v tej istej triede.'
+        solution: T`Triedy majú veľkosti ${sizes.join(', ')}. V rámci triedy s $k$ prvkami je v relácii $k^2$ dvojíc, spolu $${sizes.map((v) => v + '^2').join('+')}=${pairs}$.`,
+        hint: T.s('Rozlož množinu na triedy ekvivalencie; dvojica je v relácii práve vtedy, keď sú oba prvky v tej istej triede.')
       };
     }
     // deliteľnosť na deliteľoch čísla N
@@ -941,17 +945,17 @@
       const edges = D.reduce((s, d) => s + primes.filter((p) => Nn % (d * p) === 0).length, 0);
       const comp = D.reduce((s, d) => s + D.filter((e) => e !== d && e % d === 0).length, 0);
       return {
-        mistakes: [{ value: comp, msg: 'Hasseho diagram nekreslí všetky porovnateľné dvojice, len bezprostredné pokrytia; dôsledky tranzitívnosti sa vynechávajú.' }],
+        mistakes: [{ value: comp, msg: T.s('Hasseho diagram nekreslí všetky porovnateľné dvojice, len bezprostredné pokrytia; dôsledky tranzitívnosti sa vynechávajú.') }],
         steps: [
-          { q: `Koľko deliteľov má číslo ${Nn}?`, answer: D.length },
-          { q: `Koľko rôznych prvočíselných deliteľov má číslo ${Nn}?`, answer: primes.length },
-          { q: 'Koľko hrán má Hasseho diagram?', answer: edges, hint: 'Hrana vedie od $d$ k $dp$, kde $p$ je prvočíslo a $dp$ je tiež deliteľ.' }
+          { q: T`Koľko deliteľov má číslo ${Nn}?`, answer: D.length },
+          { q: T`Koľko rôznych prvočíselných deliteľov má číslo ${Nn}?`, answer: primes.length },
+          { q: T.s('Koľko hrán má Hasseho diagram?'), answer: edges, hint: T.s('Hrana vedie od $d$ k $dp$, kde $p$ je prvočíslo a $dp$ je tiež deliteľ.') }
         ],
-        q: `Koľko hrán (spojníc) má Hasseho diagram množiny všetkých deliteľov čísla ${Nn} usporiadanej deliteľnosťou?`,
+        q: T`Koľko hrán (spojníc) má Hasseho diagram množiny všetkých deliteľov čísla ${Nn} usporiadanej deliteľnosťou?`,
         answer: edges,
-        solution: `$D(${Nn})=${setTex(D)}$. Prvok $b$ bezprostredne pokrýva $a$ práve vtedy, keď $b=a\\cdot p$ pre prvočíslo $p$. Pre každý deliteľ $d$ spočítame prvočísla $p\\in${setTex(primes)}$ s $dp\\mid ${Nn}$ –
-          spolu ${edges} ${pl(edges, ['hrana', 'hrany', 'hrán'])}.`,
-        hint: 'V Hasseho diagrame deliteľnosti vedie hrana od $d$ k $dp$, kde $p$ je prvočíslo.'
+        solution: T`$D(${Nn})=${setTex(D)}$. Prvok $b$ bezprostredne pokrýva $a$ práve vtedy, keď $b=a\\cdot p$ pre prvočíslo $p$. Pre každý deliteľ $d$ spočítame prvočísla $p\\in${setTex(primes)}$ s $dp\\mid ${Nn}$ –
+          spolu ${edges} ${T.s(pl(edges, ['hrana', 'hrany', 'hrán']))}.`,
+        hint: T.s('V Hasseho diagrame deliteľnosti vedie hrana od $d$ k $dp$, kde $p$ je prvočíslo.')
       };
     }
     let S;
@@ -961,13 +965,15 @@
     const isMin = k === 1, res = isMin ? minimal : maximal, other = isMin ? maximal : minimal;
     return {
       mistakes: other.length !== res.length ? [{ value: other.length, msg: isMin
-        ? 'Spočítal si maximálne prvky. Minimálny prvok je ten, ktorý nemá v $M$ vlastného deliteľa.'
-        : 'Spočítal si minimálne prvky. Maximálny prvok je ten, ktorý nedelí žiadny iný prvok $M$.' }] : [],
-      q: `Množina $M=${setTex(S)}$ je usporiadaná deliteľnosťou. Koľko má ${isMin ? 'minimálnych' : 'maximálnych'} prvkov?`,
+        ? T.s('Spočítal si maximálne prvky. Minimálny prvok je ten, ktorý nemá v $M$ vlastného deliteľa.')
+        : T.s('Spočítal si minimálne prvky. Maximálny prvok je ten, ktorý nedelí žiadny iný prvok $M$.') }] : [],
+      q: isMin
+        ? T`Množina $M=${setTex(S)}$ je usporiadaná deliteľnosťou. Koľko má minimálnych prvkov?`
+        : T`Množina $M=${setTex(S)}$ je usporiadaná deliteľnosťou. Koľko má maximálnych prvkov?`,
       answer: res.length,
-      solution: `${isMin ? 'Minimálny prvok nemá v $M$ vlastného deliteľa' : 'Maximálny prvok nedelí žiadny iný prvok $M$'}: $${setTex(res)}$, spolu ${res.length}.
-        ${res.length === 1 ? `Prvok ${res[0]} je zároveň ${isMin ? 'najmenší' : 'najväčší'}.` : `${isMin ? 'Najmenší' : 'Najväčší'} prvok preto neexistuje.`}`,
-      hint: isMin ? 'Pre každý prvok over, či ho nedelí iný prvok množiny.' : 'Pre každý prvok over, či nie je deliteľom iného prvku množiny.'
+      solution: T`${isMin ? T.s('Minimálny prvok nemá v $M$ vlastného deliteľa') : T.s('Maximálny prvok nedelí žiadny iný prvok $M$')}: $${setTex(res)}$, spolu ${res.length}.
+        ${res.length === 1 ? (isMin ? T`Prvok ${res[0]} je zároveň najmenší.` : T`Prvok ${res[0]} je zároveň najväčší.`) : (isMin ? T.s('Najmenší prvok preto neexistuje.') : T.s('Najväčší prvok preto neexistuje.'))}`,
+      hint: isMin ? T.s('Pre každý prvok over, či ho nedelí iný prvok množiny.') : T.s('Pre každý prvok over, či nie je deliteľom iného prvku množiny.')
     };
   });
 
@@ -1018,17 +1024,17 @@
       const w = [a0, a1];
       for (let i = 2; i <= n; i++) w.push(tt * w[i - 1] + s * w[i - 2]);
       return {
-        mistakes: w[n] !== a[n] ? [{ value: w[n], msg: `Zamenil si koeficienty: $${s}$ patrí k predchádzajúcemu členu $a_{n-1}$ a $${tt}$ k členu $a_{n-2}$.` }] : [],
+        mistakes: w[n] !== a[n] ? [{ value: w[n], msg: T`Zamenil si koeficienty: $${s}$ patrí k predchádzajúcemu členu $a_{n-1}$ a $${tt}$ k členu $a_{n-2}$.` }] : [],
         steps: [
-          { q: 'Vypočítaj $a_2$.', answer: a[2], signed: true },
-          { q: 'Vypočítaj $a_3$.', answer: a[3], signed: true },
-          { q: `Pokračuj až po $a_{${n}}$.`, answer: a[n], signed: true }
+          { q: T.s('Vypočítaj $a_2$.'), answer: a[2], signed: true },
+          { q: T.s('Vypočítaj $a_3$.'), answer: a[3], signed: true },
+          { q: T`Pokračuj až po $a_{${n}}$.`, answer: a[n], signed: true }
         ],
         signed: true,
-        q: `Postupnosť je daná rekurentne: $a_0=${a0}$, $a_1=${a1}$, $${rec2(s, tt)}$ pre $n\\ge 2$. Vypočítaj $a_{${n}}$.`,
+        q: T`Postupnosť je daná rekurentne: $a_0=${a0}$, $a_1=${a1}$, $${rec2(s, tt)}$ pre $n\\ge 2$. Vypočítaj $a_{${n}}$.`,
         answer: a[n],
-        solution: `Postupne: ${a.map((v, i) => `$a_{${i}}=${v}$`).join(', ')}. Teda $a_{${n}}=${a[n]}$.`,
-        hint: 'Počítaj člen po člene, každý nový člen dostaneš z dvoch predchádzajúcich.'
+        solution: T`Postupne: ${a.map((v, i) => `$a_{${i}}=${v}$`).join(', ')}. Teda $a_{${n}}=${a[n]}$.`,
+        hint: T.s('Počítaj člen po člene, každý nový člen dostaneš z dvoch predchádzajúcich.')
       };
     }
     if (t < 0.55) {
@@ -1039,16 +1045,16 @@
       if (Math.random() < 0.4) {
         return {
           steps: [
-            { q: 'Charakteristická rovnica má tvar $\\lambda^2 - s\\lambda - t = 0$. Aký je súčet jej koreňov?', answer: s, signed: true },
-            { q: 'Aký je súčin jej koreňov?', answer: -tt, signed: true },
-            { q: 'Zadaj oba korene (oddelené bodkočiarkou).', type: 'set', answer: [r1, r2], signed: true }
+            { q: T.s('Charakteristická rovnica má tvar $\\lambda^2 - s\\lambda - t = 0$. Aký je súčet jej koreňov?'), answer: s, signed: true },
+            { q: T.s('Aký je súčin jej koreňov?'), answer: -tt, signed: true },
+            { q: T.s('Zadaj oba korene (oddelené bodkočiarkou).'), type: 'set', answer: [r1, r2], signed: true }
           ],
           type: 'set', signed: true,
-          q: `Urči korene charakteristickej rovnice rekurencie $${rec2(s, tt)}$ (zadaj ich oddelené bodkočiarkou).`,
+          q: T`Urči korene charakteristickej rovnice rekurencie $${rec2(s, tt)}$ (zadaj ich oddelené bodkočiarkou).`,
           answer: [r1, r2],
-          solution: `Dosadením $a_n=\\lambda^n$ dostaneme $\\lambda^2=${lin([[s, '\\lambda'], [tt, '']])}$, teda $\\lambda^2${tail([[-s, '\\lambda'], [-tt, '']])}=0$.
+          solution: T`Dosadením $a_n=\\lambda^n$ dostaneme $\\lambda^2=${lin([[s, '\\lambda'], [tt, '']])}$, teda $\\lambda^2${tail([[-s, '\\lambda'], [-tt, '']])}=0$.
             Podľa Vietových vzťahov je súčet koreňov ${s} a súčin ${-tt}: $\\lambda_1=${r1}$, $\\lambda_2=${r2}$.`,
-          hint: 'Charakteristická rovnica rekurencie $a_n=s\\,a_{n-1}+t\\,a_{n-2}$ je $\\lambda^2-s\\lambda-t=0$.'
+          hint: T.s('Charakteristická rovnica rekurencie $a_n=s\\,a_{n-1}+t\\,a_{n-2}$ je $\\lambda^2-s\\lambda-t=0$.')
         };
       }
       let A, Bc;
@@ -1056,39 +1062,39 @@
       const a0 = A + Bc, a1 = A * r1 + Bc * r2;
       return {
         steps: [
-          { q: 'Dosaď $n = 0$ a $n = 1$ do všeobecného riešenia a z vzniknutej sústavy urči $A$.', answer: A, signed: true },
-          { q: 'Urči $B$.', answer: Bc, signed: true }
+          { q: T.s('Dosaď $n = 0$ a $n = 1$ do všeobecného riešenia a z vzniknutej sústavy urči $A$.'), answer: A, signed: true },
+          { q: T.s('Urči $B$.'), answer: Bc, signed: true }
         ],
         type: 'tuple', signed: true,
-        q: `Rekurencia $${rec2(s, tt)}$ s podmienkami $a_0=${a0}$, $a_1=${a1}$ má charakteristické korene $${r1}$ a $${r2}$.
+        q: T`Rekurencia $${rec2(s, tt)}$ s podmienkami $a_0=${a0}$, $a_1=${a1}$ má charakteristické korene $${r1}$ a $${r2}$.
           Riešenie má tvar $a_n=A\\cdot ${par(r1)}^n+B\\cdot ${par(r2)}^n$. Urči $A$ a $B$ (zadaj v tvare A; B).`,
         answer: [A, Bc],
-        solution: `Z $n=0$: $A+B=${a0}$. Z $n=1$: $${r1}A${tail([[r2, 'B']])}=${a1}$.
+        solution: T`Z $n=0$: $A+B=${a0}$. Z $n=1$: $${r1}A${tail([[r2, 'B']])}=${a1}$.
           Odčítaním $${par(r2)}$-násobku prvej rovnice: $${r1 - r2}A=${a1 - r2 * a0}$, teda $A=${A}$ a $B=${a0}-${par(A)}=${Bc}$.`,
-        hint: 'Dosaď $n=0$ a $n=1$ do všeobecného riešenia a vyrieš sústavu dvoch rovníc pre $A$, $B$.'
+        hint: T.s('Dosaď $n=0$ a $n=1$ do všeobecného riešenia a vyrieš sústavu dvoch rovníc pre $A$, $B$.')
       };
     }
     if (t < 0.78) {
       const n = rnd(5, 15);
       const S = [
         ['k', n * (n + 1) / 2, `\\frac{n(n+1)}{2}=\\frac{${n}\\cdot ${n + 1}}{2}`,
-          [{ value: n * (n + 1), msg: 'Vo vzorci $\\frac{n(n+1)}{2}$ si zabudol deliť dvoma.' }]],
+          [{ value: n * (n + 1), msg: T.s('Vo vzorci $\\frac{n(n+1)}{2}$ si zabudol deliť dvoma.') }]],
         ['(2k-1)', n * n, `n^2=${n}^2`,
-          [{ value: n * (n + 1), msg: 'Sčítal si len $2k$. Od každého člena treba odčítať 1, spolu teda ešte $-n$.' }]],
+          [{ value: n * (n + 1), msg: T.s('Sčítal si len $2k$. Od každého člena treba odčítať 1, spolu teda ešte $-n$.') }]],
         ['k^2', n * (n + 1) * (2 * n + 1) / 6, `\\frac{n(n+1)(2n+1)}{6}=\\frac{${n}\\cdot ${n + 1}\\cdot ${2 * n + 1}}{6}`,
-          [{ value: Math.pow(n * (n + 1) / 2, 2), msg: 'Toto je súčet tretích mocnín $\\left(\\frac{n(n+1)}{2}\\right)^2$. Pre druhé mocniny platí iný vzorec.' }]],
+          [{ value: Math.pow(n * (n + 1) / 2, 2), msg: T.s('Toto je súčet tretích mocnín $\\left(\\frac{n(n+1)}{2}\\right)^2$. Pre druhé mocniny platí iný vzorec.') }]],
         ['k(k+1)', n * (n + 1) * (n + 2) / 3, `\\frac{n(n+1)(n+2)}{3}=\\frac{${n}\\cdot ${n + 1}\\cdot ${n + 2}}{3}`,
-          [{ value: n * (n + 1) * (2 * n + 1) / 6, msg: 'Po rozpísaní $k(k+1) = k^2 + k$ treba sčítať oba súčty; zabudol si pripočítať $\\sum k$.' }]],
+          [{ value: n * (n + 1) * (2 * n + 1) / 6, msg: T.s('Po rozpísaní $k(k+1) = k^2 + k$ treba sčítať oba súčty; zabudol si pripočítať $\\sum k$.') }]],
         ['2^{k-1}', Math.pow(2, n) - 1, `2^n-1=2^{${n}}-1`,
-          [{ value: Math.pow(2, n + 1) - 1, msg: 'Súčet začína členom $2^0$ a končí $2^{n-1}$, takže výsledok je $2^n - 1$, nie $2^{n+1} - 1$.' }]]
+          [{ value: Math.pow(2, n + 1) - 1, msg: T.s('Súčet začína členom $2^0$ a končí $2^{n-1}$, takže výsledok je $2^n - 1$, nie $2^{n+1} - 1$.') }]]
       ];
       const [e, v, f, mistakes] = pick(S);
       return {
         mistakes,
-        q: `Vypočítaj $\\displaystyle\\sum_{k=1}^{${n}} ${e}$ (vzorec, ktorý sa dokazuje matematickou indukciou).`,
+        q: T`Vypočítaj $\\displaystyle\\sum_{k=1}^{${n}} ${e}$ (vzorec, ktorý sa dokazuje matematickou indukciou).`,
         answer: v,
-        solution: `Indukciou sa dokáže $\\sum_{k=1}^{n} ${e}=${f.split('=')[0]}$. Pre $n=${n}$: $${f}=${v}$.`,
-        hint: 'Známe súčty: $\\sum k=\\frac{n(n+1)}{2}$, $\\sum(2k-1)=n^2$, $\\sum k^2=\\frac{n(n+1)(2n+1)}{6}$, $\\sum k(k+1)=\\frac{n(n+1)(n+2)}{3}$, $\\sum 2^{k-1}=2^n-1$.'
+        solution: T`Indukciou sa dokáže $\\sum_{k=1}^{n} ${e}=${f.split('=')[0]}$. Pre $n=${n}$: $${f}=${v}$.`,
+        hint: T.s('Známe súčty: $\\sum k=\\frac{n(n+1)}{2}$, $\\sum(2k-1)=n^2$, $\\sum k^2=\\frac{n(n+1)(2n+1)}{6}$, $\\sum k(k+1)=\\frac{n(n+1)(n+2)}{3}$, $\\sum 2^{k-1}=2^n-1$.')
       };
     }
     const q = rnd(2, 3), d = rnd(-3, 4), a0 = rnd(0, 4), n = rnd(4, 7), a = [a0];
@@ -1097,27 +1103,27 @@
     if (kind) {
       const wr = Math.pow(q, n) * a0 + n * d;
       return {
-        mistakes: wr !== a[n] ? [{ value: wr, msg: `Konštanta $${d}$ sa v ďalších krokoch tiež násobí číslom $${q}$; nestačí ju pripočítať $n$-krát.` }] : [],
+        mistakes: wr !== a[n] ? [{ value: wr, msg: T`Konštanta $${d}$ sa v ďalších krokoch tiež násobí číslom $${q}$; nestačí ju pripočítať $n$-krát.` }] : [],
         steps: [
-          { q: 'Vypočítaj $a_1$.', answer: a[1], signed: true },
-          { q: 'Vypočítaj $a_2$.', answer: a[2], signed: true },
-          { q: `Pokračuj až po $a_{${n}}$.`, answer: a[n], signed: true }
+          { q: T.s('Vypočítaj $a_1$.'), answer: a[1], signed: true },
+          { q: T.s('Vypočítaj $a_2$.'), answer: a[2], signed: true },
+          { q: T`Pokračuj až po $a_{${n}}$.`, answer: a[n], signed: true }
         ],
         signed: true,
-        q: `Postupnosť je daná rekurentne: $a_0=${a0}$, $a_n=${lin([[q, 'a_{n-1}'], [d, '']])}$ pre $n\\ge 1$. Vypočítaj $a_{${n}}$.`,
+        q: T`Postupnosť je daná rekurentne: $a_0=${a0}$, $a_n=${lin([[q, 'a_{n-1}'], [d, '']])}$ pre $n\\ge 1$. Vypočítaj $a_{${n}}$.`,
         answer: a[n],
-        solution: `Postupne ${a.map((v, i) => `$a_{${i}}=${v}$`).join(', ')}. Kontrola vzorcom: pevný bod $c=\\frac{${d}}{1-${q}}$, $a_n=${q}^n(a_0-c)+c$ dáva $a_{${n}}=${a[n]}$.`,
-        hint: 'Počítaj člen po člene, alebo použi vzorec $a_n=q^n(a_0-c)+c$ s $c=\\frac{d}{1-q}$.'
+        solution: T`Postupne ${a.map((v, i) => `$a_{${i}}=${v}$`).join(', ')}. Kontrola vzorcom: pevný bod $c=\\frac{${d}}{1-${q}}$, $a_n=${q}^n(a_0-c)+c$ dáva $a_{${n}}=${a[n]}$.`,
+        hint: T.s('Počítaj člen po člene, alebo použi vzorec $a_n=q^n(a_0-c)+c$ s $c=\\frac{d}{1-q}$.')
       };
     }
-    const m = rnd(3, 9), T = [0];
-    for (let i = 1; i <= m; i++) T.push(T[i - 1] + i);
+    const m = rnd(3, 9), U = [0];
+    for (let i = 1; i <= m; i++) U.push(U[i - 1] + i);
     return {
-      mistakes: [{ value: m * (m + 1), msg: 'Každú úsečku si započítal dvakrát (raz z každého konca). Pri rozvinutí rekurencie sčítavaš $1 + 2 + \\dots + (n-1)$.' }],
-      q: `Počet úsečiek spájajúcich $n$ bodov v rovine (žiadne tri na priamke) spĺňa $T_1=0$ a $T_n=T_{n-1}+(n-1)$. Vypočítaj $T_{${m + 1}}$.`,
+      mistakes: [{ value: m * (m + 1), msg: T.s('Každú úsečku si započítal dvakrát (raz z každého konca). Pri rozvinutí rekurencie sčítavaš $1 + 2 + \\dots + (n-1)$.') }],
+      q: T`Počet úsečiek spájajúcich $n$ bodov v rovine (žiadne tri na priamke) spĺňa $T_1=0$ a $T_n=T_{n-1}+(n-1)$. Vypočítaj $T_{${m + 1}}$.`,
       answer: m * (m + 1) / 2,
-      solution: `Nový bod sa spojí so všetkými $n-1$ predchádzajúcimi. Rozvinutím $T_n=0+1+2+\\dots+(n-1)=\\frac{n(n-1)}{2}$, teda $T_{${m + 1}}=\\frac{${m + 1}\\cdot ${m}}{2}=${m * (m + 1) / 2}$.`,
-      hint: 'Rozviň rekurenciu: $T_n=T_1+1+2+\\dots+(n-1)$.'
+      solution: T`Nový bod sa spojí so všetkými $n-1$ predchádzajúcimi. Rozvinutím $T_n=0+1+2+\\dots+(n-1)=\\frac{n(n-1)}{2}$, teda $T_{${m + 1}}=\\frac{${m + 1}\\cdot ${m}}{2}=${m * (m + 1) / 2}$.`,
+      hint: T.s('Rozviň rekurenciu: $T_n=T_1+1+2+\\dots+(n-1)$.')
     };
   });
 
@@ -1170,34 +1176,34 @@
         for (const [a, b] of rules) if (known.has(a) && !known.has(b)) { known.add(b); order.push(b); changed = true; }
       }
       const P = (i) => `p_{${i}}`;
-      const sys = `axiómy ${facts.map((i) => `$${P(i)}$`).join(', ')} a ${rules.map(([a, b]) => `$${P(a)}\\Rightarrow ${P(b)}$`).join(', ')}`;
+      const sys = T`axiómy ${facts.map((i) => `$${P(i)}$`).join(', ')} a ${rules.map(([a, b]) => `$${P(a)}\\Rightarrow ${P(b)}$`).join(', ')}`;
       const naive = new Set([...facts, ...rules.map(([, b]) => b)]).size;
       if (Math.random() < 0.5) {
         return {
-          mistakes: naive !== known.size ? [{ value: naive, msg: 'Z implikácie $p_i\\Rightarrow p_j$ dostaneš $p_j$ modus ponens len vtedy, keď už máš dokázané $p_i$. Nie každý záver implikácie je dokázateľný.' }] : [],
-          q: `Formálny systém má ${sys}; jediným odvodzovacím pravidlom je modus ponens. Koľko z premenných $p_1, \\dots, p_6$ (ako samostatných formúl) je v systéme dokázateľných?`,
+          mistakes: naive !== known.size ? [{ value: naive, msg: T.s('Z implikácie $p_i\\Rightarrow p_j$ dostaneš $p_j$ modus ponens len vtedy, keď už máš dokázané $p_i$. Nie každý záver implikácie je dokázateľný.') }] : [],
+          q: T`Formálny systém má ${sys}; jediným odvodzovacím pravidlom je modus ponens. Koľko z premenných $p_1, \\dots, p_6$ (ako samostatných formúl) je v systéme dokázateľných?`,
           answer: known.size,
-          solution: `Začneme axiómami ${facts.map((i) => `$${P(i)}$`).join(', ')} a opakovane používame modus ponens. Postupne dostaneme ${order.map((i) => `$${P(i)}$`).join(', ')}.
+          solution: T`Začneme axiómami ${facts.map((i) => `$${P(i)}$`).join(', ')} a opakovane používame modus ponens. Postupne dostaneme ${order.map((i) => `$${P(i)}$`).join(', ')}.
             Ďalšie pravidlo už nič nové nedá, dokázateľných premenných je ${known.size}.`,
-          hint: 'Ak už máš $p_i$ a v systéme je $p_i\\Rightarrow p_j$, môžeš pridať $p_j$. Opakuj, kým pribúdajú nové formuly.'
+          hint: T.s('Ak už máš $p_i$ a v systéme je $p_i\\Rightarrow p_j$, môžeš pridať $p_j$. Opakuj, kým pribúdajú nové formuly.')
         };
       }
       const target = pick(range(1, n).filter((i) => !facts.includes(i)));
       const ok = known.has(target);
       return {
-        choiceHints: { [ok ? YN[1] : YN[0]]: ok
-          ? 'Modus ponens môžeš použiť opakovane: z axiómy cez niekoľko implikácií za sebou. Skús nájsť takú reťaz.'
-          : 'Implikácia $p_i\\Rightarrow p_j$ ti $p_j$ nedá, kým nemáš dokázané $p_i$. Over, či k hľadanej formule vedie reťaz už od axióm.' },
-        type: 'choice', options: YN,
-        q: `Formálny systém má ${sys}; jediným odvodzovacím pravidlom je modus ponens. Je formula $${P(target)}$ v systéme dokázateľná?`,
-        answer: ok ? YN[0] : YN[1],
-        solution: `Dokázateľné premenné získame opakovaným modus ponens z axióm: ${order.map((i) => `$${P(i)}$`).join(', ')}.
-          ${ok ? `Formula $${P(target)}$ medzi nimi je.` : `Formula $${P(target)}$ medzi nimi nie je – nevedie k nej žiadna reťaz implikácií od axióm.`}`,
-        hint: 'Hľadaj reťaz implikácií, ktorá začína axiómou a končí hľadanou premennou.'
+        choiceHints: { [T.s(ok ? YN[1] : YN[0])]: ok
+          ? T.s('Modus ponens môžeš použiť opakovane: z axiómy cez niekoľko implikácií za sebou. Skús nájsť takú reťaz.')
+          : T.s('Implikácia $p_i\\Rightarrow p_j$ ti $p_j$ nedá, kým nemáš dokázané $p_i$. Over, či k hľadanej formule vedie reťaz už od axióm.') },
+        type: 'choice', options: YN.map(T.s),
+        q: T`Formálny systém má ${sys}; jediným odvodzovacím pravidlom je modus ponens. Je formula $${P(target)}$ v systéme dokázateľná?`,
+        answer: T.s(ok ? YN[0] : YN[1]),
+        solution: T`Dokázateľné premenné získame opakovaným modus ponens z axióm: ${order.map((i) => `$${P(i)}$`).join(', ')}.
+          ${ok ? T`Formula $${P(target)}$ medzi nimi je.` : T`Formula $${P(target)}$ medzi nimi nie je – nevedie k nej žiadna reťaz implikácií od axióm.`}`,
+        hint: T.s('Hľadaj reťaz implikácií, ktorá začína axiómou a končí hľadanou premennou.')
       };
     }
     if (t < 0.52) {
-      const RULES = ['modus ponens', 'modus tollens', 'hypotetický sylogizmus', 'disjunktívny sylogizmus', 'neplatný úsudok'];
+      const RULES = ['modus ponens', 'modus tollens', 'hypotetický sylogizmus', 'disjunktívny sylogizmus', 'neplatný úsudok'].map(T.s);
       const [x, y, z] = shuffle(['p', 'q', 'r', 's']).map((v) => (Math.random() < 0.2 ? N(V(v)) : V(v)));
       const I = (a, b) => tex(B('imp', a, b));
       const S = [
@@ -1206,59 +1212,59 @@
       ];
       const [prem, concl, k] = pick(S);
       const RH = [
-        'Modus ponens má tvar $A$, $A\\Rightarrow B$ $\\vdash$ $B$: daný musí byť predpoklad implikácie, nie jej záver.',
-        'Modus tollens má tvar $A\\Rightarrow B$, $\\neg B$ $\\vdash$ $\\neg A$: daná musí byť negácia záveru, nie negácia predpokladu.',
-        'Hypotetický sylogizmus spája dve implikácie: $A\\Rightarrow B$, $B\\Rightarrow C$ $\\vdash$ $A\\Rightarrow C$.',
-        'Disjunktívny sylogizmus vychádza z disjunkcie: $A\\lor B$, $\\neg A$ $\\vdash$ $B$.',
-        'Tento úsudok je platný: záver je pravdivý pri každom ohodnotení, pri ktorom sú pravdivé predpoklady.'
+        T.s('Modus ponens má tvar $A$, $A\\Rightarrow B$ $\\vdash$ $B$: daný musí byť predpoklad implikácie, nie jej záver.'),
+        T.s('Modus tollens má tvar $A\\Rightarrow B$, $\\neg B$ $\\vdash$ $\\neg A$: daná musí byť negácia záveru, nie negácia predpokladu.'),
+        T.s('Hypotetický sylogizmus spája dve implikácie: $A\\Rightarrow B$, $B\\Rightarrow C$ $\\vdash$ $A\\Rightarrow C$.'),
+        T.s('Disjunktívny sylogizmus vychádza z disjunkcie: $A\\lor B$, $\\neg A$ $\\vdash$ $B$.'),
+        T.s('Tento úsudok je platný: záver je pravdivý pri každom ohodnotení, pri ktorom sú pravdivé predpoklady.')
       ];
       const choiceHints = {};
       RULES.forEach((r, i) => { if (i !== k) choiceHints[r] = RH[i]; });
       return {
         choiceHints,
         type: 'choice', options: RULES,
-        q: `Z predpokladov ${prem.map((f) => `$${f}$`).join(' a ')} sa odvodzuje $${concl}$. O aké odvodenie ide?`,
+        q: T`Z predpokladov $${prem[0]}$ a $${prem[1]}$ sa odvodzuje $${concl}$. O aké odvodenie ide?`,
         answer: RULES[k],
         solution: k === 4
-          ? `Úsudok nie je platný: ak je predpoklad implikácie nepravdivý a jej záver pravdivý (alebo naopak podľa tvaru), predpoklady sú pravdivé, no záver nie. Ide o ${concl === tex(x) ? 'potvrdenie dôsledku' : 'popretie predpokladu'}.`
-          : `Ide o ${RULES[k]}: ${['z $A$ a $A\\Rightarrow B$ plynie $B$', 'z $A\\Rightarrow B$ a $\\neg B$ plynie $\\neg A$', 'z $A\\Rightarrow B$ a $B\\Rightarrow C$ plynie $A\\Rightarrow C$', 'z $A\\lor B$ a $\\neg A$ plynie $B$'][k]}.`,
-        hint: 'Urči, aký tvar majú predpoklady (implikácia, disjunkcia, negácia) a či záver naozaj platí pri každom ohodnotení, pri ktorom platia predpoklady.'
+          ? T`Úsudok nie je platný: ak je predpoklad implikácie nepravdivý a jej záver pravdivý (alebo naopak podľa tvaru), predpoklady sú pravdivé, no záver nie. Ide o ${concl === tex(x) ? T.s('potvrdenie dôsledku') : T.s('popretie predpokladu')}.`
+          : T`Ide o ${RULES[k]}: ${[T.s('z $A$ a $A\\Rightarrow B$ plynie $B$'), T.s('z $A\\Rightarrow B$ a $\\neg B$ plynie $\\neg A$'), T.s('z $A\\Rightarrow B$ a $B\\Rightarrow C$ plynie $A\\Rightarrow C$'), T.s('z $A\\lor B$ a $\\neg A$ plynie $B$')][k]}.`,
+        hint: T.s('Urči, aký tvar majú predpoklady (implikácia, disjunkcia, negácia) a či záver naozaj platí pri každom ohodnotení, pri ktorom platia predpoklady.')
       };
     }
     if (t < 0.7) {
-      const TERMS = ['korektnosť', 'úplnosť', 'bezospornosť', 'nezávislosť axióm', 'rozhodnuteľnosť'];
+      const TERMS = ['korektnosť', 'úplnosť', 'bezospornosť', 'nezávislosť axióm', 'rozhodnuteľnosť'].map(T.s);
       const S = [
-        ['Každá formula dokázateľná v systéme je pravdivá (tautológia).', 0],
-        ['Z $\\vdash F$ vyplýva $\\models F$.', 0],
-        ['Každá tautológia je v systéme dokázateľná.', 1],
-        ['Z $\\models F$ vyplýva $\\vdash F$.', 1],
-        ['V systéme nemožno dokázať formulu $F$ a zároveň jej negáciu $\\neg F$.', 2],
-        ['Existuje formula, ktorá v systéme nie je dokázateľná.', 2],
-        ['Žiadnu z axióm nemožno odvodiť zo zvyšných axióm.', 3],
-        ['Existuje algoritmus, ktorý o každej formule po konečnom počte krokov rozhodne, či je v systéme dokázateľná.', 4],
-        ['Ak axiómu vynecháme, zmenší sa množina dokázateľných formúl.', 3],
-        ['O pravdivosti formuly výrokovej logiky sa dá vždy rozhodnúť pravdivostnou tabuľkou.', 4]
+        [T.s('Každá formula dokázateľná v systéme je pravdivá (tautológia).'), 0],
+        [T.s('Z $\\vdash F$ vyplýva $\\models F$.'), 0],
+        [T.s('Každá tautológia je v systéme dokázateľná.'), 1],
+        [T.s('Z $\\models F$ vyplýva $\\vdash F$.'), 1],
+        [T.s('V systéme nemožno dokázať formulu $F$ a zároveň jej negáciu $\\neg F$.'), 2],
+        [T.s('Existuje formula, ktorá v systéme nie je dokázateľná.'), 2],
+        [T.s('Žiadnu z axióm nemožno odvodiť zo zvyšných axióm.'), 3],
+        [T.s('Existuje algoritmus, ktorý o každej formule po konečnom počte krokov rozhodne, či je v systéme dokázateľná.'), 4],
+        [T.s('Ak axiómu vynecháme, zmenší sa množina dokázateľných formúl.'), 3],
+        [T.s('O pravdivosti formuly výrokovej logiky sa dá vždy rozhodnúť pravdivostnou tabuľkou.'), 4]
       ];
       const [s, k] = pick(S);
       const TH = [
-        'Korektnosť hovorí, že dokázateľné formuly sú pravdivé ($\\vdash F\\Rightarrow\\models F$).',
-        'Úplnosť hovorí, že pravdivé formuly sú dokázateľné ($\\models F\\Rightarrow\\vdash F$).',
-        'Bezospornosť hovorí, že nemožno odvodiť $F$ aj $\\neg F$.',
-        'Nezávislosť axióm hovorí, že žiadna axióma sa nedá odvodiť z ostatných.',
-        'Rozhodnuteľnosť hovorí o existencii algoritmu, ktorý o dokázateľnosti rozhodne.'
+        T.s('Korektnosť hovorí, že dokázateľné formuly sú pravdivé ($\\vdash F\\Rightarrow\\models F$).'),
+        T.s('Úplnosť hovorí, že pravdivé formuly sú dokázateľné ($\\models F\\Rightarrow\\vdash F$).'),
+        T.s('Bezospornosť hovorí, že nemožno odvodiť $F$ aj $\\neg F$.'),
+        T.s('Nezávislosť axióm hovorí, že žiadna axióma sa nedá odvodiť z ostatných.'),
+        T.s('Rozhodnuteľnosť hovorí o existencii algoritmu, ktorý o dokázateľnosti rozhodne.')
       ];
       const choiceHints = {};
       TERMS.forEach((x, i) => { if (i !== k) choiceHints[x] = TH[i]; });
       return {
         choiceHints,
         type: 'choice', options: shuffle(TERMS),
-        q: `Ktorú vlastnosť formálneho systému opisuje tvrdenie? „${s}“`,
+        q: T`Ktorú vlastnosť formálneho systému opisuje tvrdenie? „${s}“`,
         answer: TERMS[k],
-        solution: `Ide o <strong>${TERMS[k]}</strong>. ${[
-          'Korektnosť: dokázateľné ⇒ pravdivé.', 'Úplnosť: pravdivé ⇒ dokázateľné.',
-          'Bezospornosť: nedá sa odvodiť $F$ aj $\\neg F$; ekvivalentne existuje nedokázateľná formula, lebo zo sporu plynie všetko.',
-          'Nezávislosť: žiadna axióma nie je nadbytočná.', 'Rozhodnuteľnosť: existuje mechanický postup na rozhodnutie dokázateľnosti.'][k]}`,
-        hint: 'Korektnosť a úplnosť porovnávajú $\\vdash$ a $\\models$ (v opačných smeroch), bezospornosť hovorí o $F$ a $\\neg F$.'
+        solution: T`Ide o <strong>${TERMS[k]}</strong>. ${[
+          T.s('Korektnosť: dokázateľné ⇒ pravdivé.'), T.s('Úplnosť: pravdivé ⇒ dokázateľné.'),
+          T.s('Bezospornosť: nedá sa odvodiť $F$ aj $\\neg F$; ekvivalentne existuje nedokázateľná formula, lebo zo sporu plynie všetko.'),
+          T.s('Nezávislosť: žiadna axióma nie je nadbytočná.'), T.s('Rozhodnuteľnosť: existuje mechanický postup na rozhodnutie dokázateľnosti.')][k]}`,
+        hint: T.s('Korektnosť a úplnosť porovnávajú $\\vdash$ a $\\models$ (v opačných smeroch), bezospornosť hovorí o $F$ a $\\neg F$.')
       };
     }
     // splniteľnosť (sémantická bezospornosť) množiny formúl
@@ -1275,25 +1281,25 @@
     const some = rows.filter((s) => fs.some((f) => ev(f, s))).length;
     if (Math.random() < 0.5) {
       return {
-        mistakes: some !== sat.length ? [{ value: some, msg: 'Spočítal si ohodnotenia, pri ktorých platí aspoň jedna formula. Treba, aby boli pravdivé všetky formuly naraz.' }] : [],
-        q: `Koľko ohodnotení premenných $(p, q, r)$ spĺňa súčasne všetky formuly množiny $${listTex}$?`,
+        mistakes: some !== sat.length ? [{ value: some, msg: T.s('Spočítal si ohodnotenia, pri ktorých platí aspoň jedna formula. Treba, aby boli pravdivé všetky formuly naraz.') }] : [],
+        q: T`Koľko ohodnotení premenných $(p, q, r)$ spĺňa súčasne všetky formuly množiny $${listTex}$?`,
         answer: sat.length,
-        solution: `Prejdeme všetkých 8 ohodnotení. Všetky formuly sú pravdivé pre ${sat.length ? desc : 'žiadne ohodnotenie'}, spolu ${sat.length}.
-          ${sat.length ? 'Množina je splniteľná, a teda bezosporná.' : 'Množina je nesplniteľná, teda sporná.'}`,
-        hint: 'Najprv využi formuly tvaru $p$ alebo $\\neg p$ – priamo určujú hodnotu premennej. Potom over zvyšné formuly.'
+        solution: T`Prejdeme všetkých 8 ohodnotení. Všetky formuly sú pravdivé pre ${sat.length ? desc : T.s('žiadne ohodnotenie')}, spolu ${sat.length}.
+          ${sat.length ? T.s('Množina je splniteľná, a teda bezosporná.') : T.s('Množina je nesplniteľná, teda sporná.')}`,
+        hint: T.s('Najprv využi formuly tvaru $p$ alebo $\\neg p$ – priamo určujú hodnotu premennej. Potom over zvyšné formuly.')
       };
     }
-    const OPT = ['splniteľná (bezosporná)', 'nesplniteľná (sporná)'];
+    const OPT = ['splniteľná (bezosporná)', 'nesplniteľná (sporná)'].map(T.s);
     return {
       choiceHints: { [sat.length ? OPT[1] : OPT[0]]: sat.length
-        ? 'Na splniteľnosť stačí jediné ohodnotenie, pri ktorom sú pravdivé všetky formuly. Prejdi systematicky všetkých 8 ohodnotení.'
-        : 'Nestačí, že je každá formula splniteľná zvlášť: potrebuješ jedno ohodnotenie, pri ktorom sú pravdivé všetky naraz.' },
+        ? T.s('Na splniteľnosť stačí jediné ohodnotenie, pri ktorom sú pravdivé všetky formuly. Prejdi systematicky všetkých 8 ohodnotení.')
+        : T.s('Nestačí, že je každá formula splniteľná zvlášť: potrebuješ jedno ohodnotenie, pri ktorom sú pravdivé všetky naraz.') },
       type: 'choice', options: OPT,
-      q: `Je množina formúl $${listTex}$ splniteľná?`,
+      q: T`Je množina formúl $${listTex}$ splniteľná?`,
       answer: sat.length ? OPT[0] : OPT[1],
-      solution: sat.length ? `Áno, napríklad ohodnotenie $(p, q, r)=(${vars.map((v) => b01(sat[0][v])).join(', ')})$ spĺňa všetky formuly (vyhovujúcich ohodnotení je ${sat.length}).`
-        : 'Žiadne z 8 ohodnotení nespĺňa všetky formuly naraz, množina je nesplniteľná. Podľa vety o úplnosti je teda aj syntakticky sporná.',
-      hint: 'Množina je splniteľná, ak existuje aspoň jedno ohodnotenie, pri ktorom sú pravdivé všetky jej formuly.'
+      solution: sat.length ? T`Áno, napríklad ohodnotenie $(p, q, r)=(${vars.map((v) => b01(sat[0][v])).join(', ')})$ spĺňa všetky formuly (vyhovujúcich ohodnotení je ${sat.length}).`
+        : T.s('Žiadne z 8 ohodnotení nespĺňa všetky formuly naraz, množina je nesplniteľná. Podľa vety o úplnosti je teda aj syntakticky sporná.'),
+      hint: T.s('Množina je splniteľná, ak existuje aspoň jedno ohodnotenie, pri ktorom sú pravdivé všetky jej formuly.')
     };
   });
 })();

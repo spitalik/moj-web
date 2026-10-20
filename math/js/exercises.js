@@ -30,16 +30,16 @@
     return {
       q: `$${a} + ${b}\\cdot ${c} - ${d} : ${e}$`,
       answer: res,
-      solution: `Najprv násobenie a delenie: $${b}\\cdot ${c} = ${b * c}$ a $${d} : ${e} = ${q}$. Potom $${a} + ${b * c} - ${q} = ${res}$.`,
-      hint: 'Najprv počítaj násobenie a delenie, až potom sčítanie a odčítanie.',
+      solution: T`Najprv násobenie a delenie: $${b}\\cdot ${c} = ${b * c}$ a $${d} : ${e} = ${q}$. Potom $${a} + ${b * c} - ${q} = ${res}$.`,
+      hint: T.s('Najprv počítaj násobenie a delenie, až potom sčítanie a odčítanie.'),
       mistakes: [
-        ...(Number.isInteger(lr) && lr !== res ? [{ value: lr, msg: 'Počítal si zľava doprava. Násobenie a delenie majú prednosť pred sčítaním a odčítaním.' }] : []),
-        { value: a + b * c - d, msg: `Zabudol si na delenie. Neodčítavaš ${d}, ale až výsledok $${d} : ${e}$.` }
+        ...(Number.isInteger(lr) && lr !== res ? [{ value: lr, msg: T.s('Počítal si zľava doprava. Násobenie a delenie majú prednosť pred sčítaním a odčítaním.') }] : []),
+        { value: a + b * c - d, msg: T`Zabudol si na delenie. Neodčítavaš ${d}, ale až výsledok $${d} : ${e}$.` }
       ],
       steps: [
-        { q: `Koľko je $${b}\\cdot ${c}$?`, answer: b * c },
-        { q: `Koľko je $${d} : ${e}$?`, answer: q },
-        { q: `Koľko je $${a} + ${b * c} - ${q}$?`, answer: res }
+        { q: T`Koľko je $${b}\\cdot ${c}$?`, answer: b * c },
+        { q: T`Koľko je $${d} : ${e}$?`, answer: q },
+        { q: T`Koľko je $${a} + ${b * c} - ${q}$?`, answer: res }
       ]
     };
   };
@@ -49,20 +49,20 @@
     const p = a * d + c * b, q = b * d, g = gcd(p, q);
     const differs = (v) => Math.abs(v - p / q) > 1e-6;
     return {
-      q: `$\\frac{${a}}{${b}}+\\frac{${c}}{${d}}$ — výsledok zadaj ako zlomok v tvare $p/q$ (napr. 5/6).`,
+      q: T`$\\frac{${a}}{${b}}+\\frac{${c}}{${d}}$ — výsledok zadaj ako zlomok v tvare $p/q$ (napr. 5/6).`,
       answer: p / q,
-      solution: `Spoločný menovateľ je $${q}$: $\\frac{${a * d}}{${q}}+\\frac{${c * b}}{${q}}=\\frac{${p}}{${q}}$${g > 1 ? ` $=\\frac{${p / g}}{${q / g}}$` : ''}.`,
-      hint: 'Zlomky daj na spoločného menovateľa: $\\frac{a}{b}+\\frac{c}{d}=\\frac{ad+bc}{bd}$.',
+      solution: T`Spoločný menovateľ je $${q}$: $\\frac{${a * d}}{${q}}+\\frac{${c * b}}{${q}}=\\frac{${p}}{${q}}$${g > 1 ? ` $=\\frac{${p / g}}{${q / g}}$` : ''}.`,
+      hint: T.s('Zlomky daj na spoločného menovateľa: $\\frac{a}{b}+\\frac{c}{d}=\\frac{ad+bc}{bd}$.'),
       // typické chyby: sčítané čitatele aj menovatele; menovateľ zmenený, ale čitatele nerozšírené
       mistakes: [
-        ...(differs((a + c) / (b + d)) ? [{ value: (a + c) / (b + d), msg: 'Sčítal si čitatele aj menovatele. Zlomky sa sčítajú až po prevedení na spoločného menovateľa – menovateľ sa nesčítava.' }] : []),
-        ...(differs((a + c) / q) ? [{ value: (a + c) / q, msg: 'Menovateľ si zmenil na spoločný, ale čitatele si nerozšíril. Čitateľ vynásob tým istým číslom ako menovateľ.' }] : [])
+        ...(differs((a + c) / (b + d)) ? [{ value: (a + c) / (b + d), msg: T.s('Sčítal si čitatele aj menovatele. Zlomky sa sčítajú až po prevedení na spoločného menovateľa – menovateľ sa nesčítava.') }] : []),
+        ...(differs((a + c) / q) ? [{ value: (a + c) / q, msg: T.s('Menovateľ si zmenil na spoločný, ale čitatele si nerozšíril. Čitateľ vynásob tým istým číslom ako menovateľ.') }] : [])
       ],
       steps: [
-        { q: `Aký je spoločný menovateľ (súčin menovateľov $${b}\\cdot ${d}$)?`, answer: q },
-        { q: `Rozšír prvý zlomok na menovateľa ${q}. Aký bude jeho čitateľ?`, answer: a * d },
-        { q: `Rozšír druhý zlomok na menovateľa ${q}. Aký bude jeho čitateľ?`, answer: c * b },
-        { q: 'Sčítaj čitatele a zapíš výsledok ako zlomok $p/q$.', answer: p / q, placeholder: 'napr. 5/6' }
+        { q: T`Aký je spoločný menovateľ (súčin menovateľov $${b}\\cdot ${d}$)?`, answer: q },
+        { q: T`Rozšír prvý zlomok na menovateľa ${q}. Aký bude jeho čitateľ?`, answer: a * d },
+        { q: T`Rozšír druhý zlomok na menovateľa ${q}. Aký bude jeho čitateľ?`, answer: c * b },
+        { q: T.s('Sčítaj čitatele a zapíš výsledok ako zlomok $p/q$.'), answer: p / q, placeholder: T.s('napr. 5/6') }
       ]
     };
   };
@@ -71,18 +71,18 @@
     const p = pick([5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 75]);
     const x = 20 * rnd(1, 20);
     return {
-      q: `Koľko je $${p}\\,\\%$ z čísla $${x}$?`,
+      q: T`Koľko je $${p}\\,\\%$ z čísla $${x}$?`,
       answer: p * x / 100,
-      solution: `$${p}\\,\\%=\\frac{${p}}{100}$, teda $\\frac{${p}}{100}\\cdot ${x}=${p * x / 100}$.`,
-      hint: '$p\\,\\%$ z čísla $x$ je $\\frac{p}{100}\\cdot x$.',
+      solution: T`$${p}\\,\\%=\\frac{${p}}{100}$, teda $\\frac{${p}}{100}\\cdot ${x}=${p * x / 100}$.`,
+      hint: T.s('$p\\,\\%$ z čísla $x$ je $\\frac{p}{100}\\cdot x$.'),
       // typické chyby: delenie počtom percent; zvyšok do 100 % namiesto časti
       mistakes: [
-        ...(Math.abs(x / p - p * x / 100) > 1e-6 ? [{ value: x / p, msg: `Číslo si vydelil počtom percent. $${p}\\,\\%$ znamená ${p} stotín, preto najprv nájdi 1 % (vydeľ 100) a potom násob ${p}.` }] : []),
-        ...(p !== 50 ? [{ value: x - p * x / 100, msg: `To je zvyšok do 100 %. Pýtame sa na samotných $${p}\\,\\%$ z čísla ${x}.` }] : [])
+        ...(Math.abs(x / p - p * x / 100) > 1e-6 ? [{ value: x / p, msg: T`Číslo si vydelil počtom percent. $${p}\\,\\%$ znamená ${p} stotín, preto najprv nájdi 1 % (vydeľ 100) a potom násob ${p}.` }] : []),
+        ...(p !== 50 ? [{ value: x - p * x / 100, msg: T`To je zvyšok do 100 %. Pýtame sa na samotných $${p}\\,\\%$ z čísla ${x}.` }] : [])
       ],
       steps: [
-        { q: `Koľko je $1\\,\\%$ z čísla ${x}?`, answer: x / 100 },
-        { q: `Koľko je teda $${p}\\,\\%$ z čísla ${x}?`, answer: p * x / 100 }
+        { q: T`Koľko je $1\\,\\%$ z čísla ${x}?`, answer: x / 100 },
+        { q: T`Koľko je teda $${p}\\,\\%$ z čísla ${x}?`, answer: p * x / 100 }
       ]
     };
   };
@@ -114,47 +114,47 @@
     if (Math.random() < 0.33) {
       const a = rnd(2, 15), b = rnd(2, 15);
       return {
-        q: `Obdĺžnik má strany $a=${a}$ a $b=${b}$. Aký je jeho obsah $S$?`,
+        q: T`Obdĺžnik má strany $a=${a}$ a $b=${b}$. Aký je jeho obsah $S$?`,
         answer: a * b,
         solution: `$S=a\\cdot b=${a}\\cdot ${b}=${a * b}$.`,
-        hint: 'Obsah obdĺžnika je súčin dĺžok dvoch susedných strán.',
+        hint: T.s('Obsah obdĺžnika je súčin dĺžok dvoch susedných strán.'),
         mistakes: [
-          ...(2 * (a + b) !== a * b ? [{ value: 2 * (a + b), msg: 'To je obvod (súčet všetkých strán). Obsah je súčin dvoch susedných strán.' }] : []),
-          ...(a + b !== a * b ? [{ value: a + b, msg: 'Strany si sčítal. Obsah obdĺžnika dostaneš ich vynásobením.' }] : [])
+          ...(2 * (a + b) !== a * b ? [{ value: 2 * (a + b), msg: T.s('To je obvod (súčet všetkých strán). Obsah je súčin dvoch susedných strán.') }] : []),
+          ...(a + b !== a * b ? [{ value: a + b, msg: T.s('Strany si sčítal. Obsah obdĺžnika dostaneš ich vynásobením.') }] : [])
         ]
       };
     }
     if (Math.random() < 0.5) {
       const z = 2 * rnd(2, 10), v = rnd(2, 12);
       return {
-        q: `Trojuholník má základňu $z=${z}$ a výšku $v=${v}$. Aký je jeho obsah $S$?`,
+        q: T`Trojuholník má základňu $z=${z}$ a výšku $v=${v}$. Aký je jeho obsah $S$?`,
         answer: z * v / 2,
         solution: `$S=\\frac{z\\cdot v}{2}=\\frac{${z}\\cdot ${v}}{2}=${z * v / 2}$.`,
-        hint: 'Obsah trojuholníka je polovica súčinu základne a výšky.',
-        mistakes: [{ value: z * v, msg: 'Zabudol si deliť dvomi. Trojuholník je polovica obdĺžnika so stranami $z$ a $v$.' }],
+        hint: T.s('Obsah trojuholníka je polovica súčinu základne a výšky.'),
+        mistakes: [{ value: z * v, msg: T.s('Zabudol si deliť dvomi. Trojuholník je polovica obdĺžnika so stranami $z$ a $v$.') }],
         steps: [
-          { q: `Koľko je $z\\cdot v = ${z}\\cdot ${v}$?`, answer: z * v },
-          { q: `Trojuholník je polovica obdĺžnika. Koľko je $${z * v} : 2$?`, answer: z * v / 2 }
+          { q: T`Koľko je $z\\cdot v = ${z}\\cdot ${v}$?`, answer: z * v },
+          { q: T`Trojuholník je polovica obdĺžnika. Koľko je $${z * v} : 2$?`, answer: z * v / 2 }
         ]
       };
     }
     const r = rnd(1, 10), S = Math.PI * r * r, tol = 0.002 * r * r;
     // typické chyby: priemer namiesto polomeru, obvod namiesto obsahu, zabudnutá druhá mocnina (hodnoty s π ≈ 3,14 ako v zadaní)
     const circ = [
-      { value: 3.14 * 4 * r * r, msg: `Dosadil si priemer $${2 * r}$. Vo vzorci $\\pi r^2$ je polomer $r=${r}$.` },
-      { value: 2 * 3.14 * r, msg: 'To je obvod kruhu $2\\pi r$. Obsah je $\\pi r^2$.' },
-      { value: 3.14 * r, msg: 'Zabudol si polomer umocniť na druhú: obsah je $\\pi\\cdot r\\cdot r$.' }
+      { value: 3.14 * 4 * r * r, msg: T`Dosadil si priemer $${2 * r}$. Vo vzorci $\\pi r^2$ je polomer $r=${r}$.` },
+      { value: 2 * 3.14 * r, msg: T.s('To je obvod kruhu $2\\pi r$. Obsah je $\\pi r^2$.') },
+      { value: 3.14 * r, msg: T.s('Zabudol si polomer umocniť na druhú: obsah je $\\pi\\cdot r\\cdot r$.') }
     ].filter((m) => Math.abs(m.value - S) > 10 * tol);
     return {
-      q: `Kruh má polomer $r=${r}$. Vypočítaj jeho obsah $S$ (použi $\\pi\\approx 3{,}14$).`,
+      q: T`Kruh má polomer $r=${r}$. Vypočítaj jeho obsah $S$ (použi $\\pi\\approx 3{${CONTENT_I18N.decimal()}}14$).`,
       answer: S,
       tol,
       solution: `$S=\\pi r^2=\\pi\\cdot ${r * r}\\approx ${fmt(Math.PI * r * r)}$.`,
-      hint: 'Obsah kruhu je $\\pi r^2$.',
+      hint: T.s('Obsah kruhu je $\\pi r^2$.'),
       mistakes: circ,
       steps: [
-        { q: `Koľko je $r^2 = ${r}^2$?`, answer: r * r },
-        { q: `Koľko je $\\pi\\cdot ${r * r}$ (použi $\\pi\\approx 3{,}14$)?`, answer: S, tol }
+        { q: T`Koľko je $r^2 = ${r}^2$?`, answer: r * r },
+        { q: T`Koľko je $\\pi\\cdot ${r * r}$ (použi $\\pi\\approx 3{${CONTENT_I18N.decimal()}}14$)?`, answer: S, tol }
       ]
     };
   };
@@ -164,36 +164,36 @@
     const A = a * k, B = b * k, C = c * k;
     if (Math.random() < 0.5) {
       return {
-        q: `Pravouhlý trojuholník má odvesny $a=${A}$ a $b=${B}$. Aká je dĺžka prepony $c$?`,
+        q: T`Pravouhlý trojuholník má odvesny $a=${A}$ a $b=${B}$. Aká je dĺžka prepony $c$?`,
         answer: C,
-        solution: `$c^2=a^2+b^2=${A * A}+${B * B}=${C * C}$, teda $c=${C}$.`,
-        hint: 'Použi Pytagorovu vetu $c^2=a^2+b^2$.',
+        solution: T`$c^2=a^2+b^2=${A * A}+${B * B}=${C * C}$, teda $c=${C}$.`,
+        hint: T.s('Použi Pytagorovu vetu $c^2=a^2+b^2$.'),
         mistakes: [
-          { value: A + B, msg: 'Odvesny si len sčítal. Pytagorova veta platí pre druhé mocniny: $c^2=a^2+b^2$.' },
-          { value: C * C, msg: 'To je $c^2$. Na konci ešte odmocni.' }
+          { value: A + B, msg: T.s('Odvesny si len sčítal. Pytagorova veta platí pre druhé mocniny: $c^2=a^2+b^2$.') },
+          { value: C * C, msg: T.s('To je $c^2$. Na konci ešte odmocni.') }
         ],
         steps: [
-          { q: `Koľko je $a^2 = ${A}^2$?`, answer: A * A },
-          { q: `Koľko je $b^2 = ${B}^2$?`, answer: B * B },
-          { q: `Koľko je $c^2 = ${A * A} + ${B * B}$?`, answer: C * C },
-          { q: `Koľko je $c = \\sqrt{${C * C}}$?`, answer: C }
+          { q: T`Koľko je $a^2 = ${A}^2$?`, answer: A * A },
+          { q: T`Koľko je $b^2 = ${B}^2$?`, answer: B * B },
+          { q: T`Koľko je $c^2 = ${A * A} + ${B * B}$?`, answer: C * C },
+          { q: T`Koľko je $c = \\sqrt{${C * C}}$?`, answer: C }
         ]
       };
     }
     return {
-      q: `Pravouhlý trojuholník má preponu $c=${C}$ a odvesnu $a=${A}$. Aká je dĺžka druhej odvesny $b$?`,
+      q: T`Pravouhlý trojuholník má preponu $c=${C}$ a odvesnu $a=${A}$. Aká je dĺžka druhej odvesny $b$?`,
       answer: B,
-      solution: `$b^2=c^2-a^2=${C * C}-${A * A}=${B * B}$, teda $b=${B}$.`,
-      hint: 'Z Pytagorovej vety vyjadri $b^2=c^2-a^2$.',
+      solution: T`$b^2=c^2-a^2=${C * C}-${A * A}=${B * B}$, teda $b=${B}$.`,
+      hint: T.s('Z Pytagorovej vety vyjadri $b^2=c^2-a^2$.'),
       mistakes: [
-        ...(C - A !== B ? [{ value: C - A, msg: 'Dĺžky si len odčítal. Pytagorova veta platí pre druhé mocniny: $b^2=c^2-a^2$.' }] : []),
-        { value: B * B, msg: 'To je $b^2$. Na konci ešte odmocni.' }
+        ...(C - A !== B ? [{ value: C - A, msg: T.s('Dĺžky si len odčítal. Pytagorova veta platí pre druhé mocniny: $b^2=c^2-a^2$.') }] : []),
+        { value: B * B, msg: T.s('To je $b^2$. Na konci ešte odmocni.') }
       ],
       steps: [
-        { q: `Koľko je $c^2 = ${C}^2$?`, answer: C * C },
-        { q: `Koľko je $a^2 = ${A}^2$?`, answer: A * A },
-        { q: `Koľko je $b^2 = ${C * C} - ${A * A}$?`, answer: B * B },
-        { q: `Koľko je $b = \\sqrt{${B * B}}$?`, answer: B }
+        { q: T`Koľko je $c^2 = ${C}^2$?`, answer: C * C },
+        { q: T`Koľko je $a^2 = ${A}^2$?`, answer: A * A },
+        { q: T`Koľko je $b^2 = ${C * C} - ${A * A}$?`, answer: B * B },
+        { q: T`Koľko je $b = \\sqrt{${B * B}}$?`, answer: B }
       ]
     };
   };
@@ -228,16 +228,16 @@
     const p = -(r1 + r2), q = r1 * r2;
     return {
       type: 'set',
-      q: `Vyrieš rovnicu $x^2${term(p, 'x')}${term(q)} = 0$. Zadaj oba korene oddelené bodkočiarkou (napr. 2; 3).`,
+      q: T`Vyrieš rovnicu $x^2${term(p, 'x')}${term(q)} = 0$. Zadaj oba korene oddelené bodkočiarkou (napr. 2; 3).`,
       answer: [r1, r2],
-      solution: `Vietove vzťahy: $x_1+x_2=${-p}$ a $x_1\\cdot x_2=${q}$. Korene sú $x_1=${Math.min(r1, r2)}$ a $x_2=${Math.max(r1, r2)}$.`,
-      hint: 'Hľadaj dve čísla, ktorých súčin je $q$ a súčet je $-p$.',
+      solution: T`Vietove vzťahy: $x_1+x_2=${-p}$ a $x_1\\cdot x_2=${q}$. Korene sú $x_1=${Math.min(r1, r2)}$ a $x_2=${Math.max(r1, r2)}$.`,
+      hint: T.s('Hľadaj dve čísla, ktorých súčin je $q$ a súčet je $-p$.'),
       // typická chyba: vo vzorci $x=\frac{-p\pm\sqrt{D}}{2}$ chýba delenie dvomi
-      mistakes: r1 || r2 ? [{ value: [2 * r1, 2 * r2], msg: 'Korene vyšli dvakrát väčšie. Vo vzorci $x=\\frac{-p\\pm\\sqrt{D}}{2}$ nezabudni deliť dvomi.' }] : [],
+      mistakes: r1 || r2 ? [{ value: [2 * r1, 2 * r2], msg: T.s('Korene vyšli dvakrát väčšie. Vo vzorci $x=\\frac{-p\\pm\\sqrt{D}}{2}$ nezabudni deliť dvomi.') }] : [],
       steps: [
-        { q: 'Aký je súčet koreňov $x_1 + x_2$ (podľa Vietových vzťahov)?', answer: -p, signed: true },
-        { q: 'Aký je súčin koreňov $x_1 \\cdot x_2$?', answer: q, signed: true },
-        { q: `Ktoré dve čísla majú súčet ${-p} a súčin ${q}? Zadaj ich oddelené bodkočiarkou.`, type: 'set', answer: [r1, r2] }
+        { q: T.s('Aký je súčet koreňov $x_1 + x_2$ (podľa Vietových vzťahov)?'), answer: -p, signed: true },
+        { q: T.s('Aký je súčin koreňov $x_1 \\cdot x_2$?'), answer: q, signed: true },
+        { q: T`Ktoré dve čísla majú súčet ${-p} a súčin ${q}? Zadaj ich oddelené bodkočiarkou.`, type: 'set', answer: [r1, r2] }
       ]
     };
   };
@@ -296,31 +296,31 @@
       const isSin = Math.random() < 0.5;
       const name = isSin ? '\\sin' : '\\cos';
       return {
-        q: `Vypočítaj $${name}\\,${deg}^\\circ$ ako desatinné číslo (na 3 desatinné miesta).`,
+        q: T`Vypočítaj $${name}\\,${deg}^\\circ$ ako desatinné číslo (na 3 desatinné miesta).`,
         answer: isSin ? s : c,
         tol: 0.001,
-        solution: `$${name}\\,${deg}^\\circ=${isSin ? st : ct}\\approx ${(isSin ? s : c).toFixed(3).replace('.', ',')}$.`,
-        hint: 'Pozri si tabuľku hodnôt v teórii.',
+        solution: `$${name}\\,${deg}^\\circ=${isSin ? st : ct}\\approx ${(isSin ? s : c).toFixed(3).replace('.', CONTENT_I18N.decimal())}$.`,
+        hint: T.s('Pozri si tabuľku hodnôt v teórii.'),
         // typická chyba: zamenený sínus a kosínus
-        mistakes: Math.abs(s - c) > 0.01 ? [{ value: isSin ? c : s, msg: `To je hodnota ${isSin ? 'kosínusu' : 'sínusu'} uhla $${deg}^\\circ$. Sínus s rastúcim uhlom rastie od 0 po 1, kosínus klesá od 1 po 0.` }] : []
+        mistakes: Math.abs(s - c) > 0.01 ? [{ value: isSin ? c : s, msg: T`To je hodnota ${isSin ? 'kosínusu' : 'sínusu'} uhla $${deg}^\\circ$. Sínus s rastúcim uhlom rastie od 0 po 1, kosínus klesá od 1 po 0.` }] : []
       };
     }
     const [a, b, c] = pick(TRIPLES);
     return {
-      q: `Ostrý uhol $\\alpha$ spĺňa $\\sin\\alpha=\\frac{${a}}{${c}}$. Vypočítaj $\\cos\\alpha$ (na 3 desatinné miesta).`,
+      q: T`Ostrý uhol $\\alpha$ spĺňa $\\sin\\alpha=\\frac{${a}}{${c}}$. Vypočítaj $\\cos\\alpha$ (na 3 desatinné miesta).`,
       answer: b / c,
       tol: 0.001,
-      solution: `$\\cos^2\\alpha=1-\\frac{${a * a}}{${c * c}}=\\frac{${b * b}}{${c * c}}$, teda $\\cos\\alpha=\\frac{${b}}{${c}}\\approx ${(b / c).toFixed(3).replace('.', ',')}$.`,
-      hint: 'Použi identitu $\\sin^2\\alpha+\\cos^2\\alpha=1$.',
+      solution: T`$\\cos^2\\alpha=1-\\frac{${a * a}}{${c * c}}=\\frac{${b * b}}{${c * c}}$, teda $\\cos\\alpha=\\frac{${b}}{${c}}\\approx ${(b / c).toFixed(3).replace('.', CONTENT_I18N.decimal())}$.`,
+      hint: T.s('Použi identitu $\\sin^2\\alpha+\\cos^2\\alpha=1$.'),
       // typické chyby: identita bez druhých mocnín; zabudnutá odmocnina
       mistakes: [
-        { value: 1 - a / c, msg: 'Identita platí pre druhé mocniny: $\\cos^2\\alpha = 1 - \\sin^2\\alpha$, nie $\\cos\\alpha = 1 - \\sin\\alpha$.' },
-        { value: (b * b) / (c * c), msg: 'To je $\\cos^2\\alpha$. Na konci ešte odmocni.' }
+        { value: 1 - a / c, msg: T.s('Identita platí pre druhé mocniny: $\\cos^2\\alpha = 1 - \\sin^2\\alpha$, nie $\\cos\\alpha = 1 - \\sin\\alpha$.') },
+        { value: (b * b) / (c * c), msg: T.s('To je $\\cos^2\\alpha$. Na konci ešte odmocni.') }
       ].filter((m) => Math.abs(m.value - b / c) > 0.01),
       steps: [
-        { q: `Koľko je $\\sin^2\\alpha$? Zadaj ako zlomok (napr. 9/25).`, answer: (a * a) / (c * c), tol: 0.001 },
-        { q: 'Koľko je $\\cos^2\\alpha = 1 - \\sin^2\\alpha$? Zadaj ako zlomok.', answer: (b * b) / (c * c), tol: 0.001 },
-        { q: 'Koľko je $\\cos\\alpha$ (ostrý uhol, kladná odmocnina) na 3 desatinné miesta?', answer: b / c, tol: 0.001 }
+        { q: T`Koľko je $\\sin^2\\alpha$? Zadaj ako zlomok (napr. 9/25).`, answer: (a * a) / (c * c), tol: 0.001 },
+        { q: T.s('Koľko je $\\cos^2\\alpha = 1 - \\sin^2\\alpha$? Zadaj ako zlomok.'), answer: (b * b) / (c * c), tol: 0.001 },
+        { q: T.s('Koľko je $\\cos\\alpha$ (ostrý uhol, kladná odmocnina) na 3 desatinné miesta?'), answer: b / c, tol: 0.001 }
       ]
     };
   };
@@ -329,19 +329,19 @@
     const a = rnd(-5, 5), b = rnd(-5, 5), c = rnd(-5, 5), d = rnd(-5, 5);
     return {
       signed: true,
-      q: `Vypočítaj determinant $\\det\\begin{pmatrix}${a}&${b}\\\\${c}&${d}\\end{pmatrix}$.`,
+      q: T`Vypočítaj determinant $\\det\\begin{pmatrix}${a}&${b}\\\\${c}&${d}\\end{pmatrix}$.`,
       answer: a * d - b * c,
       solution: `$\\det=(${a})(${d})-(${b})(${c})=${a * d}-(${b * c})=${a * d - b * c}$.`,
-      hint: 'Pre $2\\times 2$ matica je $\\det=ad-bc$.',
+      hint: T.s('Pre $2\\times 2$ matica je $\\det=ad-bc$.'),
       // typické chyby: súčiny sčítané; násobené prvky v stĺpcoch namiesto diagonál
       mistakes: [
-        { value: a * d + b * c, msg: 'Súčiny si sčítal. Determinant je rozdiel: súčin na hlavnej diagonále mínus súčin na vedľajšej.' },
-        { value: a * c - b * d, msg: 'Násobil si prvky v stĺpcoch. Násob po diagonálach: $a\\cdot d$ a $b\\cdot c$.' }
+        { value: a * d + b * c, msg: T.s('Súčiny si sčítal. Determinant je rozdiel: súčin na hlavnej diagonále mínus súčin na vedľajšej.') },
+        { value: a * c - b * d, msg: T.s('Násobil si prvky v stĺpcoch. Násob po diagonálach: $a\\cdot d$ a $b\\cdot c$.') }
       ].filter((m) => m.value !== a * d - b * c && m.value !== -(a * d - b * c)),
       steps: [
-        { q: `Súčin na hlavnej diagonále: koľko je $(${a})\\cdot(${d})$?`, answer: a * d, signed: true },
-        { q: `Súčin na vedľajšej diagonále: koľko je $(${b})\\cdot(${c})$?`, answer: b * c, signed: true },
-        { q: `Koľko je $${a * d} - (${b * c})$?`, answer: a * d - b * c, signed: true }
+        { q: T`Súčin na hlavnej diagonále: koľko je $(${a})\\cdot(${d})$?`, answer: a * d, signed: true },
+        { q: T`Súčin na vedľajšej diagonále: koľko je $(${b})\\cdot(${c})$?`, answer: b * c, signed: true },
+        { q: T`Koľko je $${a * d} - (${b * c})$?`, answer: a * d - b * c, signed: true }
       ]
     };
   };
@@ -353,19 +353,19 @@
     const val = A[i][0] * B[0][j] + A[i][1] * B[1][j];
     const mat = (M) => `\\begin{pmatrix}${M[0][0]}&${M[0][1]}\\\\${M[1][0]}&${M[1][1]}\\end{pmatrix}`;
     return {
-      q: `$A=${mat(A)}$, $B=${mat(B)}$. Aký prvok má súčin $AB$ v riadku ${i + 1} a stĺpci ${j + 1}?`,
+      q: T`$A=${mat(A)}$, $B=${mat(B)}$. Aký prvok má súčin $AB$ v riadku ${i + 1} a stĺpci ${j + 1}?`,
       answer: val,
       solution: `$(AB)_{${i + 1}${j + 1}}=${A[i][0]}\\cdot ${B[0][j]}+${A[i][1]}\\cdot ${B[1][j]}=${val}$.`,
-      hint: 'Vezmi $i$-tý riadok matice $A$ a $j$-tý stĺpec matice $B$ a vynásob ich po zložkách.',
+      hint: T.s('Vezmi $i$-tý riadok matice $A$ a $j$-tý stĺpec matice $B$ a vynásob ich po zložkách.'),
       // typické chyby: riadok krát riadok; násobenie len prvkov na rovnakej pozícii
       mistakes: [
-        { value: A[i][0] * B[j][0] + A[i][1] * B[j][1], msg: `Z matice $B$ si vzal riadok. Prvok súčinu je ${i + 1}. riadok matice $A$ krát ${j + 1}. stĺpec matice $B$.` },
-        { value: A[i][j] * B[i][j], msg: 'Matice sa nenásobia po prvkoch na rovnakom mieste. Riadok matice $A$ vynásob so stĺpcom matice $B$ a súčiny sčítaj.' }
+        { value: A[i][0] * B[j][0] + A[i][1] * B[j][1], msg: T`Z matice $B$ si vzal riadok. Prvok súčinu je ${i + 1}. riadok matice $A$ krát ${j + 1}. stĺpec matice $B$.` },
+        { value: A[i][j] * B[i][j], msg: T.s('Matice sa nenásobia po prvkoch na rovnakom mieste. Riadok matice $A$ vynásob so stĺpcom matice $B$ a súčiny sčítaj.') }
       ].filter((m) => m.value !== val),
       steps: [
-        { q: `Prvý súčin: koľko je $${A[i][0]}\\cdot ${B[0][j]}$?`, answer: A[i][0] * B[0][j] },
-        { q: `Druhý súčin: koľko je $${A[i][1]}\\cdot ${B[1][j]}$?`, answer: A[i][1] * B[1][j] },
-        { q: `Súčet: koľko je $${A[i][0] * B[0][j]} + ${A[i][1] * B[1][j]}$?`, answer: val }
+        { q: T`Prvý súčin: koľko je $${A[i][0]}\\cdot ${B[0][j]}$?`, answer: A[i][0] * B[0][j] },
+        { q: T`Druhý súčin: koľko je $${A[i][1]}\\cdot ${B[1][j]}$?`, answer: A[i][1] * B[1][j] },
+        { q: T`Súčet: koľko je $${A[i][0] * B[0][j]} + ${A[i][1] * B[1][j]}$?`, answer: val }
       ]
     };
   };
@@ -377,19 +377,19 @@
     const val = a * n * Math.pow(x0, n - 1) + b;
     return {
       signed: true,
-      q: `Pre funkciu $f(x)=${a}x^{${n}}${term(b, 'x')}$ vypočítaj $f'(${x0})$.`,
+      q: T`Pre funkciu $f(x)=${a}x^{${n}}${term(b, 'x')}$ vypočítaj $f'(${x0})$.`,
       answer: val,
-      solution: `$f'(x)=${a * n}x^{${n - 1}}${term(b)}$, teda $f'(${x0})=${a * n}\\cdot(${x0})^{${n - 1}}${term(b)}=${val}$.`,
-      hint: 'Použi $(x^n)\'=n\\,x^{n-1}$ a derivuj každý člen zvlášť.',
+      solution: T`$f'(x)=${a * n}x^{${n - 1}}${term(b)}$, teda $f'(${x0})=${a * n}\\cdot(${x0})^{${n - 1}}${term(b)}=${val}$.`,
+      hint: T.s('Použi $(x^n)\'=n\\,x^{n-1}$ a derivuj každý člen zvlášť.'),
       // typické chyby: zabudnutý exponent pred x; dosadené do f namiesto f'; člen bx nezderivovaný
       mistakes: [
-        { value: a * Math.pow(x0, n - 1) + b, msg: `Zabudol si exponent ${n} dať pred $x$: $(x^{${n}})'=${n}x^{${n - 1}}$.` },
-        { value: a * Math.pow(x0, n) + b * x0, msg: 'Dosadil si do pôvodnej funkcie $f$. Najprv funkciu zderivuj a až potom dosaď.' },
-        ...(b !== 0 ? [{ value: a * n * Math.pow(x0, n - 1) + b * x0, msg: `Člen $${b}x$ si nezderivoval. Jeho derivácia je ${b}.` }] : [])
+        { value: a * Math.pow(x0, n - 1) + b, msg: T`Zabudol si exponent ${n} dať pred $x$: $(x^{${n}})'=${n}x^{${n - 1}}$.` },
+        { value: a * Math.pow(x0, n) + b * x0, msg: T.s('Dosadil si do pôvodnej funkcie $f$. Najprv funkciu zderivuj a až potom dosaď.') },
+        ...(b !== 0 ? [{ value: a * n * Math.pow(x0, n - 1) + b * x0, msg: T`Člen $${b}x$ si nezderivoval. Jeho derivácia je ${b}.` }] : [])
       ].filter((m) => m.value !== val && m.value !== -val),
       steps: [
-        { q: `Derivácia je $f'(x)=k\\,x^{${n - 1}}${term(b)}$. Aký je koeficient $k$?`, answer: a * n, signed: true },
-        { q: `Koľko je $f'(${x0})$?`, answer: val, signed: true }
+        { q: T`Derivácia je $f'(x)=k\\,x^{${n - 1}}${term(b)}$. Aký je koeficient $k$?`, answer: a * n, signed: true },
+        { q: T`Koľko je $f'(${x0})$?`, answer: val, signed: true }
       ]
     };
   };
@@ -398,21 +398,21 @@
     const c = rnd(1, 5), n = rnd(0, 3), a = rnd(0, 2), b = rnd(a + 1, 4);
     const val = c * (Math.pow(b, n + 1) - Math.pow(a, n + 1)) / (n + 1);
     return {
-      q: `Vypočítaj $\\displaystyle\\int_{${a}}^{${b}} ${c}x^{${n}}\\,dx$.`,
+      q: T`Vypočítaj $\\displaystyle\\int_{${a}}^{${b}} ${c}x^{${n}}\\,dx$.`,
       answer: val,
       tol: 0.01,
-      solution: `Primitívna funkcia je $F(x)=\\frac{${c}}{${n + 1}}x^{${n + 1}}$, teda $F(${b})-F(${a})=${fmt(val)}$.`,
-      hint: 'Použi $\\int x^n\\,dx=\\frac{x^{n+1}}{n+1}$ a potom Newton-Leibnizovu formulu.',
+      solution: T`Primitívna funkcia je $F(x)=\\frac{${c}}{${n + 1}}x^{${n + 1}}$, teda $F(${b})-F(${a})=${fmt(val)}$.`,
+      hint: T.s('Použi $\\int x^n\\,dx=\\frac{x^{n+1}}{n+1}$ a potom Newton-Leibnizovu formulu.'),
       // typické chyby: zabudnuté delenie (n+1); zabudnuté F(a); rozdiel hodnôt funkcie namiesto primitívnej
       mistakes: [
-        { value: c * (Math.pow(b, n + 1) - Math.pow(a, n + 1)), msg: `Zabudol si deliť číslom ${n + 1}: $\\int x^{${n}}\\,dx=\\frac{x^{${n + 1}}}{${n + 1}}$.` },
-        ...(a !== 0 ? [{ value: c * Math.pow(b, n + 1) / (n + 1), msg: `Dosadil si len hornú hranicu. Od $F(${b})$ ešte odčítaj $F(${a})$.` }] : []),
-        { value: c * (Math.pow(b, n) - Math.pow(a, n)), msg: 'Dosadil si do pôvodnej funkcie. Najprv nájdi primitívnu funkciu $F$ a dosaď do nej.' }
+        { value: c * (Math.pow(b, n + 1) - Math.pow(a, n + 1)), msg: T`Zabudol si deliť číslom ${n + 1}: $\\int x^{${n}}\\,dx=\\frac{x^{${n + 1}}}{${n + 1}}$.` },
+        ...(a !== 0 ? [{ value: c * Math.pow(b, n + 1) / (n + 1), msg: T`Dosadil si len hornú hranicu. Od $F(${b})$ ešte odčítaj $F(${a})$.` }] : []),
+        { value: c * (Math.pow(b, n) - Math.pow(a, n)), msg: T.s('Dosadil si do pôvodnej funkcie. Najprv nájdi primitívnu funkciu $F$ a dosaď do nej.') }
       ].filter((m) => Math.abs(m.value - val) > 0.05),
       steps: [
-        { q: `Primitívna funkcia je $F(x)=\\frac{${c}}{${n + 1}}x^{${n + 1}}$. Koľko je $F(${b})$?`, answer: c * Math.pow(b, n + 1) / (n + 1), tol: 0.01 },
-        { q: `Koľko je $F(${a})$?`, answer: c * Math.pow(a, n + 1) / (n + 1), tol: 0.01 },
-        { q: `Koľko je $F(${b}) - F(${a})$?`, answer: val, tol: 0.01 }
+        { q: T`Primitívna funkcia je $F(x)=\\frac{${c}}{${n + 1}}x^{${n + 1}}$. Koľko je $F(${b})$?`, answer: c * Math.pow(b, n + 1) / (n + 1), tol: 0.01 },
+        { q: T`Koľko je $F(${a})$?`, answer: c * Math.pow(a, n + 1) / (n + 1), tol: 0.01 },
+        { q: T`Koľko je $F(${b}) - F(${a})$?`, answer: val, tol: 0.01 }
       ]
     };
   };

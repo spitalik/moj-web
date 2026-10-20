@@ -2088,7 +2088,7 @@
     return withMist({
       answer: val,
       q: T`Platí $\\triangle ABC\\cong\\triangle ${img.join('')}$, pričom $\\alpha=${al}^\\circ$ a $\\beta=${be}^\\circ$. Akú veľkosť má vnútorný uhol trojuholníka $${img.join('')}$ pri vrchole $${X}$?`,
-      solution: T`Vrcholu $${X}$ zodpovedá vrchol $${pre[X]}$${pre[X] === 'C' ? ` a $\\gamma=180^\\circ-${al}^\\circ-${be}^\\circ=${ga}^\\circ$` : ''}. Uhol pri $${X}$ má teda $${val}^\\circ$.`,
+      solution: T`Vrcholu $${X}$ zodpovedá vrchol $${pre[X]}$${pre[X] === 'C' ? T` a $\\gamma=180^\\circ-${al}^\\circ-${be}^\\circ=${ga}^\\circ$` : ''}. Uhol pri $${X}$ má teda $${val}^\\circ$.`,
       hint: T`Zisti, ktorému vrcholu trojuholníka $ABC$ zodpovedá daný vrchol. Tretí uhol dopočítaš zo súčtu $180^\\circ$.`
     }, [{ value: { A: al, B: be, C: ga }[ALPHA[X]], msg: ABC_MSG }]);
   });

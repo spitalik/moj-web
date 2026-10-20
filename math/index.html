@@ -89,8 +89,11 @@
   <script src="js/lang/ja.js"></script>
   <script src="js/lang/ko.js"></script>
   <script src="js/lang/zh.js"></script>
-  <script src="js/content-i18n/en/r1.js"></script>
-  <script src="js/content-i18n/en/s1.js"></script>
+  <script src="js/content-i18n/files.js"></script>
+  <script>
+    // preklady obsahu len pre zvolený jazyk (synchrónne, aby boli pripravené pred prvým vykreslením)
+    CONTENT_I18N.files(I18N.getLang()).forEach(function (src) { document.write('<script src="' + src + '"><\/script>'); });
+  </script>
   <script src="js/vzorce.js"></script>
   <script src="js/store.js"></script>
   <script src="js/keypad.js"></script>

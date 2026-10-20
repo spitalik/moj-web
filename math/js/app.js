@@ -457,11 +457,14 @@
     if (!opt) return;
     I18N.setLang(opt.dataset.code);
     setLangOpen(false);
-    applyStatic();
-    const y = window.scrollY;
-    route();
-    window.scrollTo(0, y);
     langBtn.focus();
+    // preklady obsahu sa pre nový jazyk najprv načítajú, potom sa stránka prekreslí
+    CONTENT_I18N.load(opt.dataset.code).then(() => {
+      applyStatic();
+      const y = window.scrollY;
+      route();
+      window.scrollTo(0, y);
+    });
   });
 
   // menu s ďalšími stránkami (opakovanie, testy, vzorce, nastavenia…)

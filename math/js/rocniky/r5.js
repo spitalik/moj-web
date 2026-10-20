@@ -5,15 +5,16 @@
 
   const { rnd, pick, shuffle } = EXERCISES.util;
   const { n1 } = FIGURES.util;
+  const { T } = CONTENT_I18N;
   const lesson = (l) => LESSONS.push(Object.assign({ level: 'r5' }, l));
   const gen = EXERCISES.register;
   const fig = FIGURES.register;
 
   // Tvar podstatného mena podľa počtu: 1 jablko, 2 jablká, 5 jabĺk.
   const pl = (n, f) => (n === 1 ? f[0] : n >= 2 && n <= 4 ? f[1] : f[2]);
-  // Oddelenie tisícov: M pre KaTeX, T pre bežný text (nezalomiteľná medzera).
+  // Oddelenie tisícov: M pre KaTeX, tis pre bežný text (nezalomiteľná medzera).
   const M = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\\,');
-  const T = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+  const tis = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
   const EUR = ['euro', 'eurá', 'eur'];
   const ROKY = ['rok', 'roky', 'rokov'];
   // časti celku: 1/n slovom (nominatív, akuzatív)
@@ -125,16 +126,16 @@
       for (let k = 3400; k <= 3500; k += 10) {
         const big = k % 50 === 0;
         s += `<line class="${big ? 'f-line' : 'f-thin'}" x1="${X(k)}" y1="${big ? 50 : 54}" x2="${X(k)}" y2="${big ? 70 : 66}"/>`;
-        if (big) s += `<text class="f-small" x="${X(k)}" y="88" text-anchor="middle">${T(k)}</text>`;
+        if (big) s += `<text class="f-small" x="${X(k)}" y="88" text-anchor="middle">${tis(k)}</text>`;
       }
       s += `<line class="f-dash" x1="${X(3450)}" y1="20" x2="${X(3450)}" y2="76"/>
         <circle class="f-dot f-dot-ok" cx="${X(r10)}" cy="60" r="5"/>
         <path class="f-accent" d="M${X(n)} 38 Q${n1((Number(X(n)) + Number(X(r100))) / 2)} 14 ${X(r100)} 38"/>
         <circle class="f-dot" cx="${X(n)}" cy="60" r="6"/>
-        <text class="f-text" x="${X(n)}" y="104" text-anchor="middle">${T(n)}</text></svg>`;
+        <text class="f-text" x="${X(n)}" y="104" text-anchor="middle">${tis(n)}</text></svg>`;
       return {
         svg: s,
-        readout: `<span class="c-ok">${T(n)} ≐ ${T(r10)} (na desiatky)</span> · <span class="c-accent">${T(n)} ≐ ${T(r100)} (na stovky)</span>`
+        readout: T`<span class="c-ok">${tis(n)} ≐ ${tis(r10)} (na desiatky)</span> · <span class="c-accent">${tis(n)} ≐ ${tis(r100)} (na stovky)</span>`
       };
     }
   });
@@ -279,12 +280,12 @@
       const j = ds.length - 1 - i;
       return {
         answer: val,
-        q: `Akú hodnotu má číslica ${ds[i]} v čísle $${M(n)}$?`,
-        solution: `Číslica ${ds[i]} stojí na mieste ${PLACE_NAMES[i]}, preto má hodnotu $${ds[i]}\\cdot ${M(10 ** i)} = ${M(val)}$.`,
-        hint: 'Zisti, na ktorom mieste číslica stojí (jednotky, desiatky, stovky, tisíce…).',
+        q: T`Akú hodnotu má číslica ${ds[i]} v čísle $${M(n)}$?`,
+        solution: T`Číslica ${ds[i]} stojí na mieste ${PLACE_NAMES[i]}, preto má hodnotu $${ds[i]}\\cdot ${M(10 ** i)} = ${M(val)}$.`,
+        hint: T`Zisti, na ktorom mieste číslica stojí (jednotky, desiatky, stovky, tisíce…).`,
         mistakes: [
-          ...(i > 3 ? [{ value: ds[i], msg: 'Napísal si iba samotnú číslicu. Hodnota číslice závisí od miesta, kde stojí – doplň za ňu správny počet núl.' }] : []),
-          ...(Math.abs(j - i) > 3 ? [{ value: ds[i] * 10 ** j, msg: 'Rády počítaj sprava: na poslednom mieste sú jednotky, pred nimi desiatky, stovky, tisíce…' }] : [])
+          ...(i > 3 ? [{ value: ds[i], msg: T`Napísal si iba samotnú číslicu. Hodnota číslice závisí od miesta, kde stojí – doplň za ňu správny počet núl.` }] : []),
+          ...(Math.abs(j - i) > 3 ? [{ value: ds[i] * 10 ** j, msg: T`Rády počítaj sprava: na poslednom mieste sú jednotky, pred nimi desiatky, stovky, tisíce…` }] : [])
         ]
       };
     }
@@ -297,13 +298,14 @@
       const res = Number((big ? desc : asc).join(''));
       return {
         answer: res,
-        q: `Z číslic ${digs.join(', ')} zostav ${big ? 'najväčšie' : 'najmenšie'} štvorciferné číslo. Každú číslicu použi práve raz.`,
-        solution: big ? `Číslice zoradíme od najväčšej po najmenšiu: $${M(res)}$.`
-          : `Číslice zoradíme od najmenšej${digs.includes(0) ? ', ale 0 nemôže byť na začiatku, preto ide na druhé miesto' : ''}: $${M(res)}$.`,
-        hint: big ? 'Najväčšia číslica patrí na miesto tisícov.' : 'Na miesto tisícov daj najmenšiu číslicu, ktorá nie je 0.',
+        q: T`Z číslic ${digs.join(', ')} zostav ${big ? 'najväčšie' : 'najmenšie'} štvorciferné číslo. Každú číslicu použi práve raz.`,
+        solution: big ? T`Číslice zoradíme od najväčšej po najmenšiu: $${M(res)}$.`
+          : digs.includes(0) ? T`Číslice zoradíme od najmenšej, ale 0 nemôže byť na začiatku, preto ide na druhé miesto: $${M(res)}$.`
+            : T`Číslice zoradíme od najmenšej: $${M(res)}$.`,
+        hint: big ? T`Najväčšia číslica patrí na miesto tisícov.` : T`Na miesto tisícov daj najmenšiu číslicu, ktorá nie je 0.`,
         mistakes: [
-          ...(!big && digs.includes(0) ? [{ value: Number([...digs].sort((a, b) => a - b).join('')), msg: 'Číslo nemôže začínať nulou – nebolo by štvorciferné. Na prvé miesto daj najmenšiu číslicu, ktorá nie je 0.' }] : []),
-          { value: Number((big ? asc : desc).join('')), msg: `Hľadáš ${big ? 'najväčšie' : 'najmenšie'} číslo, ty si zostavil ${big ? 'najmenšie' : 'najväčšie'}.` }
+          ...(!big && digs.includes(0) ? [{ value: Number([...digs].sort((a, b) => a - b).join('')), msg: T`Číslo nemôže začínať nulou – nebolo by štvorciferné. Na prvé miesto daj najmenšiu číslicu, ktorá nie je 0.` }] : []),
+          { value: Number((big ? asc : desc).join('')), msg: T`Hľadáš ${big ? 'najväčšie' : 'najmenšie'} číslo, ty si zostavil ${big ? 'najmenšie' : 'najväčšie'}.` }
         ]
       };
     }
@@ -320,19 +322,19 @@
       const want = Math.random() < 0.5;
       const ans = want ? max : Math.min(...uniq);
       return {
-        type: 'choice', options: uniq.map(T), answer: T(ans),
-        q: `Ktoré z čísel je ${want ? 'najväčšie' : 'najmenšie'}?`,
-        solution: `Všetky čísla majú rovnaký počet číslic, preto ich porovnávame zľava. ${cap(want ? 'najväčšie' : 'najmenšie')} je $${M(ans)}$.`,
-        hint: 'Porovnávaj číslice zľava, kým nenájdeš prvú rozdielnu.'
+        type: 'choice', options: uniq.map(tis), answer: tis(ans),
+        q: T`Ktoré z čísel je ${want ? 'najväčšie' : 'najmenšie'}?`,
+        solution: T`Všetky čísla majú rovnaký počet číslic, preto ich porovnávame zľava. ${want ? T`Najväčšie` : T`Najmenšie`} je $${M(ans)}$.`,
+        hint: T`Porovnávaj číslice zľava, kým nenájdeš prvú rozdielnu.`
       };
     }
     if (t === 3) {
       const n = rnd(1000, 999999), even = n % 2 === 0;
       return {
-        type: 'choice', options: ['párne', 'nepárne'], answer: even ? 'párne' : 'nepárne',
-        q: `Je číslo $${M(n)}$ párne alebo nepárne?`,
-        solution: `Posledná číslica je ${n % 10}, preto je číslo ${even ? 'párne' : 'nepárne'}.`,
-        hint: 'Pozri sa iba na poslednú číslicu.'
+        type: 'choice', options: [T.s('párne'), T.s('nepárne')], answer: even ? T.s('párne') : T.s('nepárne'),
+        q: T`Je číslo $${M(n)}$ párne alebo nepárne?`,
+        solution: T`Posledná číslica je ${n % 10}, preto je číslo ${even ? 'párne' : 'nepárne'}.`,
+        hint: T`Pozri sa iba na poslednú číslicu.`
       };
     }
     const p = pick([1000, 10000, 100000]);
@@ -340,11 +342,11 @@
     const next = Math.random() < 0.5;
     return {
       answer: next ? n + 1 : n - 1,
-      q: `Napíš ${next ? 'nasledovníka' : 'predchodcu'} čísla $${M(n)}$.`,
-      solution: `${next ? 'Nasledovník' : 'Predchodca'} je o 1 ${next ? 'väčší' : 'menší'}: $${M(n)} ${next ? '+' : '-'} 1 = ${M(next ? n + 1 : n - 1)}$.`,
-      hint: next ? 'Nasledovník je číslo o 1 väčšie.' : 'Predchodca je číslo o 1 menšie.',
+      q: T`Napíš ${next ? 'nasledovníka' : 'predchodcu'} čísla $${M(n)}$.`,
+      solution: next ? T`Nasledovník je o 1 väčší: $${M(n)} + 1 = ${M(n + 1)}$.` : T`Predchodca je o 1 menší: $${M(n)} - 1 = ${M(n - 1)}$.`,
+      hint: next ? T`Nasledovník je číslo o 1 väčšie.` : T`Predchodca je číslo o 1 menšie.`,
       mistakes: [{ value: next ? n - 1 : n + 1,
-        msg: `Zamenil si pojmy: nasledovník je o 1 väčší, predchodca o 1 menší. Hľadáš ${next ? 'nasledovníka' : 'predchodcu'}.` }]
+        msg: T`Zamenil si pojmy: nasledovník je o 1 väčší, predchodca o 1 menší. Hľadáš ${next ? 'nasledovníka' : 'predchodcu'}.` }]
     };
   });
 
@@ -382,23 +384,23 @@
       const r = roundTo(n, p), next = Math.floor(n / (p / 10)) % 10;
       const down = Math.floor(n / p) * p;
       const mistakes = [];
-      if (next >= 5) mistakes.push({ value: down, msg: `Číslica vpravo od rádu ${gen2} je 5 alebo viac – v takom prípade sa zaokrúhľuje nahor.` });
-      else mistakes.push({ value: down + p, msg: `Číslica vpravo od rádu ${gen2} je menšia ako 5 – v takom prípade sa zaokrúhľuje nadol.` });
+      if (next >= 5) mistakes.push({ value: down, msg: T`Číslica vpravo od rádu ${gen2} je 5 alebo viac – v takom prípade sa zaokrúhľuje nahor.` });
+      else mistakes.push({ value: down + p, msg: T`Číslica vpravo od rádu ${gen2} je menšia ako 5 – v takom prípade sa zaokrúhľuje nadol.` });
       for (const q of [p / 10, p * 10]) {
         const w = roundTo(n, q);
         if (q >= 10 && w !== r && w !== n && !mistakes.some((m) => m.value === w)) {
-          mistakes.push({ value: w, msg: `Zaokrúhlil si na iný rád. Na ${name} znamená, že všetky číslice vpravo od rádu ${gen2} nahradíš nulami.` });
+          mistakes.push({ value: w, msg: T`Zaokrúhlil si na iný rád. Na ${name} znamená, že všetky číslice vpravo od rádu ${gen2} nahradíš nulami.` });
         }
       }
       return {
         answer: r,
-        q: `Zaokrúhli číslo $${M(n)}$ na ${name}.`,
-        solution: `Číslica hneď vpravo od rádu ${gen2} je ${next}, preto zaokrúhľujeme ${next >= 5 ? 'nahor' : 'nadol'}: $${M(n)} \\doteq ${M(r)}$.`,
-        hint: 'Pozri sa na číslicu hneď vpravo od rádu, na ktorý zaokrúhľuješ: 0 – 4 nadol, 5 – 9 nahor.',
+        q: T`Zaokrúhli číslo $${M(n)}$ na ${name}.`,
+        solution: T`Číslica hneď vpravo od rádu ${gen2} je ${next}, preto zaokrúhľujeme ${next >= 5 ? 'nahor' : 'nadol'}: $${M(n)} \\doteq ${M(r)}$.`,
+        hint: T`Pozri sa na číslicu hneď vpravo od rádu, na ktorý zaokrúhľuješ: 0 – 4 nadol, 5 – 9 nahor.`,
         mistakes,
         steps: [
-          { q: `Ktorá číslica stojí v čísle $${M(n)}$ hneď vpravo od rádu ${gen2}?`, answer: next, hint: 'Nájdi rád, na ktorý zaokrúhľuješ, a posuň sa o jedno miesto doprava.' },
-          { q: `Číslica vpravo je ${next}. Zaokrúhli $${M(n)}$ na ${name}.`, answer: r, hint: '0 – 4: nadol, 5 – 9: nahor. Číslice vpravo nahraď nulami.' }
+          { q: T`Ktorá číslica stojí v čísle $${M(n)}$ hneď vpravo od rádu ${gen2}?`, answer: next, hint: T`Nájdi rád, na ktorý zaokrúhľuješ, a posuň sa o jedno miesto doprava.` },
+          { q: T`Číslica vpravo je ${next}. Zaokrúhli $${M(n)}$ na ${name}.`, answer: r, hint: T`0 – 4: nadol, 5 – 9: nahor. Číslice vpravo nahraď nulami.` }
         ]
       };
     }
@@ -408,10 +410,10 @@
       const low = Math.random() < 0.5, ans = low ? R - p / 2 : R + p / 2 - 1;
       return {
         answer: ans,
-        q: `Ktoré je ${low ? 'najmenšie' : 'najväčšie'} prirodzené číslo, ktoré sa po zaokrúhlení na ${name} rovná $${M(R)}$?`,
-        solution: `Na $${M(R)}$ sa zaokrúhľujú čísla od $${M(R - p / 2)}$ (nahor) po $${M(R + p / 2 - 1)}$ (nadol).
-          ${low ? 'Najmenšie' : 'Najväčšie'} je $${M(ans)}$.`,
-        hint: `Rozhodujúca je číslica vpravo od rádu: pri 5 a viac sa zaokrúhľuje nahor, pri 4 a menej nadol.`
+        q: T`Ktoré je ${low ? 'najmenšie' : 'najväčšie'} prirodzené číslo, ktoré sa po zaokrúhlení na ${name} rovná $${M(R)}$?`,
+        solution: T`Na $${M(R)}$ sa zaokrúhľujú čísla od $${M(R - p / 2)}$ (nahor) po $${M(R + p / 2 - 1)}$ (nadol).
+          ${low ? T`Najmenšie` : T`Najväčšie`} je $${M(ans)}$.`,
+        hint: T`Rozhodujúca je číslica vpravo od rádu: pri 5 a viac sa zaokrúhľuje nahor, pri 4 a menej nadol.`
       };
     }
     const a = rnd(1100, 8900), b = rnd(1100, 8900), plus = Math.random() < 0.6 || a === b;
@@ -420,19 +422,19 @@
     const exact = plus ? x + y : x - y, late = roundTo(exact, 100);
     return {
       mistakes: [
-        ...(exact !== est ? [{ value: exact, msg: 'Toto je presný výsledok. Úloha chce odhad: najprv zaokrúhli obe čísla na stovky, až potom počítaj.' }] : []),
-        ...(late !== est && late !== exact ? [{ value: late, msg: 'Zaokrúhlil si až výsledok. Pri odhade zaokrúhli najprv každé číslo zvlášť a potom počítaj so zaokrúhlenými číslami.' }] : [])
+        ...(exact !== est ? [{ value: exact, msg: T`Toto je presný výsledok. Úloha chce odhad: najprv zaokrúhli obe čísla na stovky, až potom počítaj.` }] : []),
+        ...(late !== est && late !== exact ? [{ value: late, msg: T`Zaokrúhlil si až výsledok. Pri odhade zaokrúhli najprv každé číslo zvlášť a potom počítaj so zaokrúhlenými číslami.` }] : [])
       ],
       steps: [
-        { q: `Zaokrúhli $${M(x)}$ na stovky.`, answer: rx },
-        { q: `Zaokrúhli $${M(y)}$ na stovky.`, answer: ry },
-        { q: `Vypočítaj $${M(rx)} ${plus ? '+' : '-'} ${M(ry)}$.`, answer: est }
+        { q: T`Zaokrúhli $${M(x)}$ na stovky.`, answer: rx },
+        { q: T`Zaokrúhli $${M(y)}$ na stovky.`, answer: ry },
+        { q: T`Vypočítaj $${M(rx)} ${plus ? '+' : '-'} ${M(ry)}$.`, answer: est }
       ],
       answer: est,
-      q: `Zaokrúhli obe čísla na stovky a odhadni výsledok: $${M(x)} ${plus ? '+' : '-'} ${M(y)}$.`,
-      solution: `$${M(x)} \\doteq ${M(rx)}$, $${M(y)} \\doteq ${M(ry)}$. Odhad: $${M(rx)} ${plus ? '+' : '-'} ${M(ry)} = ${M(est)}$.
+      q: T`Zaokrúhli obe čísla na stovky a odhadni výsledok: $${M(x)} ${plus ? '+' : '-'} ${M(y)}$.`,
+      solution: T`$${M(x)} \\doteq ${M(rx)}$, $${M(y)} \\doteq ${M(ry)}$. Odhad: $${M(rx)} ${plus ? '+' : '-'} ${M(ry)} = ${M(est)}$.
         (Presný výsledok je $${M(plus ? x + y : x - y)}$.)`,
-      hint: 'Najprv zaokrúhli každé číslo na stovky, až potom počítaj.'
+      hint: T`Najprv zaokrúhli každé číslo na stovky, až potom počítaj.`
     };
   });
 
@@ -478,13 +480,13 @@
     .replace('XL', 'XXXX').replace('IX', 'VIIII').replace('IV', 'IIII');
   const ROMAN_OK = ['IV', 'IX', 'XL', 'XC', 'CD', 'CM'];
   const romanHint = (s) => {
-    if (/IIII|XXXX|CCCC|MMMM/.test(s)) return 'Znaky I, X, C, M môžu stáť za sebou najviac trikrát. Namiesto štyroch rovnakých znakov použi odčítanie.';
+    if (/IIII|XXXX|CCCC|MMMM/.test(s)) return T`Znaky I, X, C, M môžu stáť za sebou najviac trikrát. Namiesto štyroch rovnakých znakov použi odčítanie.`;
     for (let i = 0; i + 1 < s.length; i++) {
       if (RV[s[i]] < RV[s[i + 1]] && !ROMAN_OK.includes(s[i] + s[i + 1])) {
-        return `Dvojica ${s[i] + s[i + 1]} sa nesmie použiť: odčítať smieš len I pred V a X, X pred L a C, C pred D a M.`;
+        return T`Dvojica ${s[i] + s[i + 1]} sa nesmie použiť: odčítať smieš len I pred V a X, X pred L a C, C pred D a M.`;
       }
     }
-    return 'Spočítaj hodnotu tohto zápisu – menší znak za väčším sa pripočítava, takže vyjde iné číslo.';
+    return T`Spočítaj hodnotu tohto zápisu – menší znak za väčším sa pripočítava, takže vyjde iné číslo.`;
   };
 
   gen('r5-rimske', () => {
@@ -494,46 +496,46 @@
       const n = big(), r = toRoman(n), p = romanParts(n), add = romanAdd(r);
       return {
         answer: n,
-        q: `Aké číslo je zapísané rímskymi číslicami $\\text{${r}}$?`,
-        solution: `Rozdelíme po rádoch: ${p.map(([v, s]) => `$\\text{${s}} = ${M(v)}$`).join(', ')}. Spolu $${p.map(([v]) => M(v)).join(' + ')} = ${M(n)}$.`,
-        hint: 'Rozdeľ zápis na skupiny tisícov, stoviek, desiatok a jednotiek. Dvojice ako CM, XC, IV znamenajú odčítanie.',
-        mistakes: add !== n ? [{ value: add, msg: 'Všetky znaky si sčítal. Menší znak pred väčším sa však odčíta: napríklad IX je 9, nie 11.' }] : [],
+        q: T`Aké číslo je zapísané rímskymi číslicami $\\text{${r}}$?`,
+        solution: T`Rozdelíme po rádoch: ${p.map(([v, s]) => `$\\text{${s}} = ${M(v)}$`).join(', ')}. Spolu $${p.map(([v]) => M(v)).join(' + ')} = ${M(n)}$.`,
+        hint: T`Rozdeľ zápis na skupiny tisícov, stoviek, desiatok a jednotiek. Dvojice ako CM, XC, IV znamenajú odčítanie.`,
+        mistakes: add !== n ? [{ value: add, msg: T`Všetky znaky si sčítal. Menší znak pred väčším sa však odčíta: napríklad IX je 9, nie 11.` }] : [],
         steps: [
-          ...p.map(([v, s]) => ({ q: `Akú hodnotu má skupina $\\text{${s}}$?`, answer: v })),
-          { q: `Sčítaj hodnoty skupín ${p.map(([, s]) => s).join(', ')}.`, answer: n }
+          ...p.map(([v, s]) => ({ q: T`Akú hodnotu má skupina $\\text{${s}}$?`, answer: v })),
+          { q: T`Sčítaj hodnoty skupín ${p.map(([, s]) => s).join(', ')}.`, answer: n }
         ]
       };
     }
     if (t === 1) {
       const n = big(), long = romanLong(toRoman(n));
       return {
-        type: 'text', answer: toRoman(n), placeholder: 'napr. MCMXC',
-        q: `Zapíš rímskymi číslicami číslo $${M(n)}$.`,
-        solution: `Rozložíme po rádoch: ${partsSol(n)}.`,
-        hint: 'Zapíš zvlášť tisíce, stovky, desiatky a jednotky. Pamätaj: 4 = IV, 9 = IX, 40 = XL, 90 = XC, 400 = CD, 900 = CM.',
-        mistakes: long !== toRoman(n) ? [{ value: long, msg: 'Znaky I, X, C sa nesmú opakovať štyrikrát za sebou. Pre 4, 9, 40, 90, 400 a 900 použi zápis s odčítaním.' }] : []
+        type: 'text', answer: toRoman(n), placeholder: T.s('napr. MCMXC'),
+        q: T`Zapíš rímskymi číslicami číslo $${M(n)}$.`,
+        solution: T`Rozložíme po rádoch: ${partsSol(n)}.`,
+        hint: T`Zapíš zvlášť tisíce, stovky, desiatky a jednotky. Pamätaj: 4 = IV, 9 = IX, 40 = XL, 90 = XC, 400 = CD, 900 = CM.`,
+        mistakes: long !== toRoman(n) ? [{ value: long, msg: T`Znaky I, X, C sa nesmú opakovať štyrikrát za sebou. Pre 4, 9, 40, 90, 400 a 900 použi zápis s odčítaním.` }] : []
       };
     }
     if (t === 2) {
       const [n, wrong] = pick(WRONG), r = toRoman(n);
       return {
         type: 'choice', options: shuffle([r, ...wrong]), answer: r,
-        q: `Ktorý zápis čísla $${M(n)}$ rímskymi číslicami je správny?`,
-        solution: `Správne je ${r}: ${partsSol(n)}. Ostatné zápisy porušujú pravidlá alebo majú inú hodnotu.`,
-        hint: 'Znak sa nesmie opakovať štyrikrát a odčítať smieme len I pred V a X, X pred L a C, C pred D a M.',
+        q: T`Ktorý zápis čísla $${M(n)}$ rímskymi číslicami je správny?`,
+        solution: T`Správne je ${r}: ${partsSol(n)}. Ostatné zápisy porušujú pravidlá alebo majú inú hodnotu.`,
+        hint: T`Znak sa nesmie opakovať štyrikrát a odčítať smieme len I pred V a X, X pred L a C, C pred D a M.`,
         choiceHints: Object.fromEntries(wrong.map((w) => [w, romanHint(w)]))
       };
     }
     const a = rnd(11, 1500), b = rnd(11, 1500), s = a + b;
     return {
       answer: s,
-      q: `Vypočítaj a výsledok zapíš arabskými číslicami: $\\text{${toRoman(a)}} + \\text{${toRoman(b)}}$`,
-      solution: `$\\text{${toRoman(a)}} = ${M(a)}$, $\\text{${toRoman(b)}} = ${M(b)}$. Súčet: $${M(a)} + ${M(b)} = ${M(s)}$ (rímskymi číslicami ${toRoman(s)}).`,
-      hint: 'Najprv preveď obe čísla na arabské číslice, potom sčítaj.',
+      q: T`Vypočítaj a výsledok zapíš arabskými číslicami: $\\text{${toRoman(a)}} + \\text{${toRoman(b)}}$`,
+      solution: T`$\\text{${toRoman(a)}} = ${M(a)}$, $\\text{${toRoman(b)}} = ${M(b)}$. Súčet: $${M(a)} + ${M(b)} = ${M(s)}$ (rímskymi číslicami ${toRoman(s)}).`,
+      hint: T`Najprv preveď obe čísla na arabské číslice, potom sčítaj.`,
       steps: [
-        { q: `Aké číslo je $\\text{${toRoman(a)}}$?`, answer: a },
-        { q: `Aké číslo je $\\text{${toRoman(b)}}$?`, answer: b },
-        { q: `Vypočítaj $${M(a)} + ${M(b)}$.`, answer: s }
+        { q: T`Aké číslo je $\\text{${toRoman(a)}}$?`, answer: a },
+        { q: T`Aké číslo je $\\text{${toRoman(b)}}$?`, answer: b },
+        { q: T`Vypočítaj $${M(a)} + ${M(b)}$.`, answer: s }
       ]
     };
   });
@@ -566,17 +568,17 @@
       const res = a - b * diff;
       return {
         answer: res,
-        q: `Vypočítaj $${a} - ${b}\\cdot(${c} - ${d})$.`,
-        solution: `Zátvorka: $${c} - ${d} = ${diff}$. Násobenie: $${b}\\cdot ${diff} = ${b * diff}$. Odčítanie: $${a} - ${b * diff} = ${res}$.`,
-        hint: 'Najprv zátvorka, potom násobenie, nakoniec odčítanie.',
+        q: T`Vypočítaj $${a} - ${b}\\cdot(${c} - ${d})$.`,
+        solution: T`Zátvorka: $${c} - ${d} = ${diff}$. Násobenie: $${b}\\cdot ${diff} = ${b * diff}$. Odčítanie: $${a} - ${b * diff} = ${res}$.`,
+        hint: T`Najprv zátvorka, potom násobenie, nakoniec odčítanie.`,
         mistakes: [
-          ...((a - b) * diff !== res ? [{ value: (a - b) * diff, msg: `Počítal si zľava doprava. Násobenie má prednosť pred odčítaním: najprv vynásob ${b} výsledkom zátvorky, až potom odčítaj od ${a}.` }] : []),
-          ...(a - b * c - d !== res ? [{ value: a - b * c - d, msg: `Počítal si, akoby tam zátvorka nebola. Číslo ${b} násobí celý rozdiel v zátvorke – zátvorku vypočítaj ako prvú.` }] : [])
+          ...((a - b) * diff !== res ? [{ value: (a - b) * diff, msg: T`Počítal si zľava doprava. Násobenie má prednosť pred odčítaním: najprv vynásob ${b} výsledkom zátvorky, až potom odčítaj od ${a}.` }] : []),
+          ...(a - b * c - d !== res ? [{ value: a - b * c - d, msg: T`Počítal si, akoby tam zátvorka nebola. Číslo ${b} násobí celý rozdiel v zátvorke – zátvorku vypočítaj ako prvú.` }] : [])
         ],
         steps: [
-          { q: `Vypočítaj zátvorku $${c} - ${d}$.`, answer: diff },
-          { q: `Vynásob $${b}\\cdot ${diff}$.`, answer: b * diff },
-          { q: `Vypočítaj $${a} - ${b * diff}$.`, answer: res }
+          { q: T`Vypočítaj zátvorku $${c} - ${d}$.`, answer: diff },
+          { q: T`Vynásob $${b}\\cdot ${diff}$.`, answer: b * diff },
+          { q: T`Vypočítaj $${a} - ${b * diff}$.`, answer: res }
         ]
       };
     }
@@ -585,15 +587,15 @@
       const res = q + d * e;
       return {
         answer: res,
-        q: `Vypočítaj $(${a} + ${b}) : ${c} + ${d}\\cdot ${e}$.`,
-        solution: `Zátvorka: $${a} + ${b} = ${s}$. Delenie a násobenie: $${s} : ${c} = ${q}$, $${d}\\cdot ${e} = ${d * e}$. Sčítanie: $${q} + ${d * e} = ${res}$.`,
-        hint: 'Zátvorka má prednosť. Potom delenie a násobenie, sčítanie až na konci.',
-        mistakes: (q + d) * e !== res ? [{ value: (q + d) * e, msg: `Počítal si zľava doprava. Násobenie má prednosť pred sčítaním: $${d}\\cdot ${e}$ vypočítaj skôr, ako budeš sčítať.` }] : [],
+        q: T`Vypočítaj $(${a} + ${b}) : ${c} + ${d}\\cdot ${e}$.`,
+        solution: T`Zátvorka: $${a} + ${b} = ${s}$. Delenie a násobenie: $${s} : ${c} = ${q}$, $${d}\\cdot ${e} = ${d * e}$. Sčítanie: $${q} + ${d * e} = ${res}$.`,
+        hint: T`Zátvorka má prednosť. Potom delenie a násobenie, sčítanie až na konci.`,
+        mistakes: (q + d) * e !== res ? [{ value: (q + d) * e, msg: T`Počítal si zľava doprava. Násobenie má prednosť pred sčítaním: $${d}\\cdot ${e}$ vypočítaj skôr, ako budeš sčítať.` }] : [],
         steps: [
-          { q: `Vypočítaj zátvorku $${a} + ${b}$.`, answer: s },
-          { q: `Vydeľ $${s} : ${c}$.`, answer: q },
-          { q: `Vynásob $${d}\\cdot ${e}$.`, answer: d * e },
-          { q: `Sčítaj $${q} + ${d * e}$.`, answer: res }
+          { q: T`Vypočítaj zátvorku $${a} + ${b}$.`, answer: s },
+          { q: T`Vydeľ $${s} : ${c}$.`, answer: q },
+          { q: T`Vynásob $${d}\\cdot ${e}$.`, answer: d * e },
+          { q: T`Sčítaj $${q} + ${d * e}$.`, answer: res }
         ]
       };
     }
@@ -601,29 +603,29 @@
       const x = rnd(12, 99), k = rnd(0, 3);
       if (k === 0) {
         return {
-          answer: 100 * x, q: `Vypočítaj výhodne $25\\cdot ${x}\\cdot 4$.`,
-          solution: `$25\\cdot 4 = 100$, preto $25\\cdot ${x}\\cdot 4 = 100\\cdot ${x} = ${M(100 * x)}$.`,
-          hint: 'Ktoré dve čísla dajú spolu pekný súčin 100?'
+          answer: 100 * x, q: T`Vypočítaj výhodne $25\\cdot ${x}\\cdot 4$.`,
+          solution: T`$25\\cdot 4 = 100$, preto $25\\cdot ${x}\\cdot 4 = 100\\cdot ${x} = ${M(100 * x)}$.`,
+          hint: T`Ktoré dve čísla dajú spolu pekný súčin 100?`
         };
       }
       if (k === 1) {
         return {
-          answer: 1000 * x, q: `Vypočítaj výhodne $125\\cdot ${x}\\cdot 8$.`,
-          solution: `$125\\cdot 8 = 1\\,000$, preto výsledok je $1\\,000\\cdot ${x} = ${M(1000 * x)}$.`,
-          hint: 'Ktoré dve čísla dajú spolu $1\\,000$?'
+          answer: 1000 * x, q: T`Vypočítaj výhodne $125\\cdot ${x}\\cdot 8$.`,
+          solution: T`$125\\cdot 8 = 1\\,000$, preto výsledok je $1\\,000\\cdot ${x} = ${M(1000 * x)}$.`,
+          hint: T`Ktoré dve čísla dajú spolu $1\\,000$?`
         };
       }
       const plus = k === 2;
       const r = plus ? 101 * x : 99 * x;
       return {
-        answer: r, q: `Vypočítaj výhodne $${x}\\cdot ${plus ? 101 : 99}$.`,
-        solution: `$${x}\\cdot ${plus ? 101 : 99} = ${x}\\cdot 100 ${plus ? '+' : '-'} ${x} = ${M(100 * x)} ${plus ? '+' : '-'} ${x} = ${M(r)}$.`,
-        hint: `${plus ? 101 : 99} je $100 ${plus ? '+' : '-'} 1$. Vynásob stovkou a potom ${plus ? 'pripočítaj' : 'odčítaj'} číslo ešte raz.`,
+        answer: r, q: T`Vypočítaj výhodne $${x}\\cdot ${plus ? 101 : 99}$.`,
+        solution: T`$${x}\\cdot ${plus ? 101 : 99} = ${x}\\cdot 100 ${plus ? '+' : '-'} ${x} = ${M(100 * x)} ${plus ? '+' : '-'} ${x} = ${M(r)}$.`,
+        hint: T`${plus ? 101 : 99} je $100 ${plus ? '+' : '-'} 1$. Vynásob stovkou a potom ${plus ? 'pripočítaj' : 'odčítaj'} číslo ešte raz.`,
         mistakes: [{ value: plus ? 100 * x + 1 : 100 * x - 1,
-          msg: `Číslo ${plus ? 101 : 99} je $100 ${plus ? '+' : '-'} 1$, preto ${plus ? 'pripočítaš' : 'odčítaš'} jedenkrát celé číslo ${x}, nie iba jednotku.` }],
+          msg: T`Číslo ${plus ? 101 : 99} je $100 ${plus ? '+' : '-'} 1$, preto ${plus ? 'pripočítaš' : 'odčítaš'} jedenkrát celé číslo ${x}, nie iba jednotku.` }],
         steps: [
-          { q: `Vypočítaj $${x}\\cdot 100$.`, answer: 100 * x },
-          { q: `${plus ? 'Pripočítaj' : 'Odčítaj'} ešte raz ${x}: $${M(100 * x)} ${plus ? '+' : '-'} ${x}$.`, answer: r }
+          { q: T`Vypočítaj $${x}\\cdot 100$.`, answer: 100 * x },
+          { q: T`${plus ? 'Pripočítaj' : 'Odčítaj'} ešte raz ${x}: $${M(100 * x)} ${plus ? '+' : '-'} ${x}$.`, answer: r }
         ]
       };
     }
@@ -631,27 +633,27 @@
     if (k === 0) {
       const m = rnd(3, 12), x = rnd(12, 250), p = m * x;
       return {
-        answer: x, q: `Doplň chýbajúce číslo: $\\square\\cdot ${m} = ${M(p)}$`,
-        solution: `Neznámy činiteľ zistíme delením: $${M(p)} : ${m} = ${x}$.`,
-        hint: 'Súčin vydeľ známym činiteľom.',
-        mistakes: m === 10 ? [] : [{ value: p * m, msg: 'Neznámy činiteľ zistíš delením, nie násobením: súčin vydeľ známym činiteľom.' }]
+        answer: x, q: T`Doplň chýbajúce číslo: $\\square\\cdot ${m} = ${M(p)}$`,
+        solution: T`Neznámy činiteľ zistíme delením: $${M(p)} : ${m} = ${x}$.`,
+        hint: T`Súčin vydeľ známym činiteľom.`,
+        mistakes: m === 10 ? [] : [{ value: p * m, msg: T`Neznámy činiteľ zistíš delením, nie násobením: súčin vydeľ známym činiteľom.` }]
       };
     }
     if (k === 1) {
       const d = rnd(3, 12), q = rnd(12, 400), x = d * q;
       return {
-        answer: x, q: `Doplň chýbajúce číslo: $\\square : ${d} = ${q}$`,
-        solution: `Neznámy delenec zistíme násobením: $${q}\\cdot ${d} = ${M(x)}$.`,
-        hint: 'Podiel vynásob deliteľom.',
-        mistakes: q % d === 0 ? [{ value: q / d, msg: 'Neznámy delenec zistíš násobením, nie delením: podiel vynásob deliteľom.' }] : []
+        answer: x, q: T`Doplň chýbajúce číslo: $\\square : ${d} = ${q}$`,
+        solution: T`Neznámy delenec zistíme násobením: $${q}\\cdot ${d} = ${M(x)}$.`,
+        hint: T`Podiel vynásob deliteľom.`,
+        mistakes: q % d === 0 ? [{ value: q / d, msg: T`Neznámy delenec zistíš násobením, nie delením: podiel vynásob deliteľom.` }] : []
       };
     }
     const a = rnd(5000, 99999), x = rnd(1000, a - 100), r = a - x;
     return {
-      answer: x, q: `Doplň chýbajúce číslo: $${M(a)} - \\square = ${M(r)}$`,
-      solution: `Menšiteľ zistíme odčítaním: $${M(a)} - ${M(r)} = ${M(x)}$.`,
-      hint: 'Od menšenca odčítaj rozdiel.',
-      mistakes: [{ value: a + r, msg: 'Menšiteľ nezistíš sčítaním. Od menšenca odčítaj rozdiel.' }]
+      answer: x, q: T`Doplň chýbajúce číslo: $${M(a)} - \\square = ${M(r)}$`,
+      solution: T`Menšiteľ zistíme odčítaním: $${M(a)} - ${M(r)} = ${M(x)}$.`,
+      hint: T`Od menšenca odčítaj rozdiel.`,
+      mistakes: [{ value: a + r, msg: T`Menšiteľ nezistíš sčítaním. Od menšenca odčítaj rozdiel.` }]
     };
   });
 
@@ -682,12 +684,12 @@
     return d;
   };
   const RULE = {
-    2: (n) => `Posledná číslica je ${n % 10}${n % 2 ? ', nie je párna' : ', je párna'}.`,
-    5: (n) => `Posledná číslica je ${n % 10}${n % 5 ? ', nie je 0 ani 5' : ''}.`,
-    10: (n) => `Posledná číslica je ${n % 10}${n % 10 ? ', nie je 0' : ''}.`,
+    2: (n) => (n % 2 ? T`Posledná číslica je ${n % 10}, nie je párna.` : T`Posledná číslica je ${n % 10}, je párna.`),
+    5: (n) => (n % 5 ? T`Posledná číslica je ${n % 10}, nie je 0 ani 5.` : T`Posledná číslica je ${n % 10}.`),
+    10: (n) => (n % 10 ? T`Posledná číslica je ${n % 10}, nie je 0.` : T`Posledná číslica je ${n % 10}.`),
     3: (n) => {
       const ds = String(n).split('').map(Number), s = ds.reduce((a, b) => a + b, 0);
-      return `Ciferný súčet: $${ds.join(' + ')} = ${s}$, ${s % 3 ? 'nie je' : 'je'} deliteľný tromi.`;
+      return s % 3 ? T`Ciferný súčet: $${ds.join(' + ')} = ${s}$, nie je deliteľný tromi.` : T`Ciferný súčet: $${ds.join(' + ')} = ${s}$, je deliteľný tromi.`;
     }
   };
 
@@ -698,10 +700,11 @@
       const d = divisors(n);
       const pairs = d.filter((x) => x * x <= n).map((x) => `${x}\\cdot ${n / x}`);
       return {
-        type: 'set', answer: d, placeholder: 'napr. 1; 2; 4',
-        q: `Napíš všetky delitele čísla ${n}. Oddeľ ich bodkočiarkou.`,
-        solution: `Dvojice: $${n} = ${pairs.join(' = ')}$. Delitele: ${d.join(', ')}.${d.length === 2 ? ' Číslo má iba dva delitele.' : ''}`,
-        hint: `Skúšaj deliť číslami 1, 2, 3, … a hľadaj dvojice, ktorých súčin je ${n}.`
+        type: 'set', answer: d, placeholder: T.s('napr. 1; 2; 4'),
+        q: T`Napíš všetky delitele čísla ${n}. Oddeľ ich bodkočiarkou.`,
+        solution: d.length === 2 ? T`Dvojice: $${n} = ${pairs.join(' = ')}$. Delitele: ${d.join(', ')}. Číslo má iba dva delitele.`
+          : T`Dvojice: $${n} = ${pairs.join(' = ')}$. Delitele: ${d.join(', ')}.`,
+        hint: T`Skúšaj deliť číslami 1, 2, 3, … a hľadaj dvojice, ktorých súčin je ${n}.`
       };
     }
     if (t === 1) {
@@ -711,26 +714,26 @@
       if (n > 9999) n -= d;
       const ok = n % d === 0;
       return {
-        type: 'choice', options: ['áno', 'nie'], answer: ok ? 'áno' : 'nie',
-        q: `Je číslo $${M(n)}$ deliteľné číslom ${d}?`,
-        solution: `${RULE[d](n)} Preto ${ok ? 'áno' : 'nie'}${ok ? `: $${M(n)} : ${d} = ${M(n / d)}$` : `, zvyšok po delení je ${n % d}`}.`,
-        hint: d === 3 ? 'Sčítaj všetky číslice čísla.' : 'Pozri sa na poslednú číslicu.',
-        choiceHints: { [ok ? 'nie' : 'áno']: d === 3
-          ? 'Pri deliteľnosti tromi nerozhoduje posledná číslica. Sčítaj všetky číslice a over, či je ciferný súčet deliteľný tromi.'
-          : `Pri deliteľnosti číslom ${d} rozhoduje iba posledná číslica. Pozri sa na ňu ešte raz a porovnaj ju so znakom deliteľnosti.` }
+        type: 'choice', options: [T.s('áno'), T.s('nie')], answer: ok ? T.s('áno') : T.s('nie'),
+        q: T`Je číslo $${M(n)}$ deliteľné číslom ${d}?`,
+        solution: ok ? T`${RULE[d](n)} Preto áno: $${M(n)} : ${d} = ${M(n / d)}$.` : T`${RULE[d](n)} Preto nie, zvyšok po delení je ${n % d}.`,
+        hint: d === 3 ? T`Sčítaj všetky číslice čísla.` : T`Pozri sa na poslednú číslicu.`,
+        choiceHints: { [ok ? T.s('nie') : T.s('áno')]: d === 3
+          ? T`Pri deliteľnosti tromi nerozhoduje posledná číslica. Sčítaj všetky číslice a over, či je ciferný súčet deliteľný tromi.`
+          : T`Pri deliteľnosti číslom ${d} rozhoduje iba posledná číslica. Pozri sa na ňu ešte raz a porovnaj ju so znakom deliteľnosti.` }
       };
     }
     if (t === 2) {
       const d = rnd(3, 12), L = rnd(30, 120), c = Math.floor(L / d);
       return {
         answer: c,
-        q: `Koľko násobkov čísla ${d} leží medzi číslami 1 a ${L} (vrátane)?`,
-        solution: `Násobky: ${d}, ${2 * d}, ${3 * d}, …, ${c * d}. Posledný je $${c}\\cdot ${d} = ${c * d}$, ďalší $${(c + 1) * d}$ je už väčší ako ${L}. Je ich ${c}.`,
-        hint: `Zisti, koľkokrát sa ${d} celé zmestí do ${L}.`,
-        mistakes: d !== 10 ? [{ value: c * d, msg: `Toto je posledný násobok čísla ${d}, nie počet násobkov. Zisti, koľkokrát si musel ${d} pripočítať, aby si sa k nemu dostal.` }] : [],
+        q: T`Koľko násobkov čísla ${d} leží medzi číslami 1 a ${L} (vrátane)?`,
+        solution: T`Násobky: ${d}, ${2 * d}, ${3 * d}, …, ${c * d}. Posledný je $${c}\\cdot ${d} = ${c * d}$, ďalší $${(c + 1) * d}$ je už väčší ako ${L}. Je ich ${c}.`,
+        hint: T`Zisti, koľkokrát sa ${d} celé zmestí do ${L}.`,
+        mistakes: d !== 10 ? [{ value: c * d, msg: T`Toto je posledný násobok čísla ${d}, nie počet násobkov. Zisti, koľkokrát si musel ${d} pripočítať, aby si sa k nemu dostal.` }] : [],
         steps: [
-          { q: `Ktorý je najväčší násobok čísla ${d}, ktorý nie je väčší ako ${L}?`, answer: c * d, hint: `Hľadaj v násobilke čísla ${d} posledný výsledok, ktorý ešte nepresiahne ${L}.` },
-          { q: `Koľkokrát treba vziať ${d}, aby vyšlo ${c * d}?`, answer: c }
+          { q: T`Ktorý je najväčší násobok čísla ${d}, ktorý nie je väčší ako ${L}?`, answer: c * d, hint: T`Hľadaj v násobilke čísla ${d} posledný výsledok, ktorý ešte nepresiahne ${L}.` },
+          { q: T`Koľkokrát treba vziať ${d}, aby vyšlo ${c * d}?`, answer: c }
         ]
       };
     }
@@ -742,11 +745,11 @@
     }
     return {
       type: 'choice', options: shuffle([...opts].map(String)), answer: String(right),
-      q: `Ktoré z čísel je násobkom čísla ${d}?`,
-      solution: `$${right} = ${right / d}\\cdot ${d}$. Ostatné čísla po delení ${d} dávajú zvyšok.`,
-      hint: `Spomeň si na malú násobilku čísla ${d}.`,
+      q: T`Ktoré z čísel je násobkom čísla ${d}?`,
+      solution: T`$${right} = ${right / d}\\cdot ${d}$. Ostatné čísla po delení ${d} dávajú zvyšok.`,
+      hint: T`Spomeň si na malú násobilku čísla ${d}.`,
       choiceHints: Object.fromEntries([...opts].filter((x) => x !== right).map((x) =>
-        [String(x), `Skús deliť: $${x} : ${d} = ${Math.floor(x / d)}$, zvyšok ${x % d}. Násobok čísla ${d} sa dá vydeliť bez zvyšku.`]))
+        [String(x), T`Skús deliť: $${x} : ${d} = ${Math.floor(x / d)}$, zvyšok ${x % d}. Násobok čísla ${d} sa dá vydeliť bez zvyšku.`]))
     };
   });
 
@@ -781,43 +784,45 @@
         ? `<svg viewBox="0 0 120 120" width="130" role="img" aria-label="koláč">${pie(60, 60, 50, n, k)}</svg>`
         : `<svg viewBox="0 0 260 50" width="260" role="img" aria-label="pásik">${bar(10, 10, 240, 30, n, k)}</svg>`;
       return {
-        answer: k / n, show: `${k}/${n}`, placeholder: 'napr. 2/5',
-        q: `Akú časť celku tvoria vyfarbené diely? Zapíš zlomkom v tvare a/b (napríklad 2/5). ${pic}`,
-        solution: `Celok je rozdelený na ${n} ${n <= 4 ? 'rovnaké diely' : 'rovnakých dielov'} (menovateľ),
-          ${k === 1 ? 'vyfarbený je 1' : k <= 4 ? `vyfarbené sú ${k}` : `vyfarbených je ${k}`} (čitateľ): $${frac(k, n)}$.`,
-        hint: 'Spočítaj všetky diely – to je menovateľ. Potom spočítaj vyfarbené diely – to je čitateľ.',
+        answer: k / n, show: `${k}/${n}`, placeholder: T.s('napr. 2/5'),
+        q: T`Akú časť celku tvoria vyfarbené diely? Zapíš zlomkom v tvare a/b (napríklad 2/5). ${pic}`,
+        solution: T`Celok je rozdelený na ${n} ${n <= 4 ? T`rovnaké diely` : T`rovnakých dielov`} (menovateľ),
+          ${k === 1 ? T`vyfarbený je 1` : k <= 4 ? T`vyfarbené sú ${k}` : T`vyfarbených je ${k}`} (čitateľ): $${frac(k, n)}$.`,
+        hint: T`Spočítaj všetky diely – to je menovateľ. Potom spočítaj vyfarbené diely – to je čitateľ.`,
         mistakes: [
-          ...(n - k !== k && k !== 1 ? [{ value: k / (n - k), msg: 'Do menovateľa patrí počet všetkých dielov, nie iba nevyfarbených.' }] : []),
-          ...(n - k !== k ? [{ value: (n - k) / n, msg: 'Spočítal si nevyfarbené diely. Čitateľ hovorí, koľko dielov je vyfarbených.' }] : [])
+          ...(n - k !== k && k !== 1 ? [{ value: k / (n - k), msg: T`Do menovateľa patrí počet všetkých dielov, nie iba nevyfarbených.` }] : []),
+          ...(n - k !== k ? [{ value: (n - k) / n, msg: T`Spočítal si nevyfarbené diely. Čitateľ hovorí, koľko dielov je vyfarbených.` }] : [])
         ]
       };
     }
     if (t === 1) {
       const n = pick([2, 3, 4, 5, 6, 8, 10]), k = rnd(1, n - 1), part = rnd(2, 12), total = n * part, res = part * k;
       const fm = [
-        ...(k > 1 ? [{ value: part, msg: `Vypočítal si iba $${frac(1, n)}$, teda jeden diel. Ešte ho vynásob čitateľom ${k}.` }] : []),
-        ...(k > 1 && total % k === 0 && total / k * n !== res ? [{ value: total / k * n, msg: 'Zamenil si úlohy čitateľa a menovateľa: číslo vydeľ menovateľom a výsledok vynásob čitateľom.' }] : [])
+        ...(k > 1 ? [{ value: part, msg: T`Vypočítal si iba $${frac(1, n)}$, teda jeden diel. Ešte ho vynásob čitateľom ${k}.` }] : []),
+        ...(k > 1 && total % k === 0 && total / k * n !== res ? [{ value: total / k * n, msg: T`Zamenil si úlohy čitateľa a menovateľa: číslo vydeľ menovateľom a výsledok vynásob čitateľom.` }] : [])
       ];
       const fs = [
-        { q: `Koľko je $${frac(1, n)}$ z čísla ${total}?`, answer: part, hint: `Vydeľ ${total} menovateľom ${n}.` },
-        { q: `Jedna časť je ${part}. Koľko je $${frac(k, n)}$ z čísla ${total}?`, answer: res, hint: `Vynásob ${part} čitateľom ${k}.` }
+        { q: T`Koľko je $${frac(1, n)}$ z čísla ${total}?`, answer: part, hint: T`Vydeľ ${total} menovateľom ${n}.` },
+        { q: T`Jedna časť je ${part}. Koľko je $${frac(k, n)}$ z čísla ${total}?`, answer: res, hint: T`Vynásob ${part} čitateľom ${k}.` }
       ];
       if (Math.random() < 0.5) {
         return {
           answer: res,
-          q: `Koľko je $${frac(k, n)}$ z čísla ${total}?`,
-          solution: `$${total} : ${n} = ${part}$ (to je $${frac(1, n)}$), potom $${part}\\cdot ${k} = ${res}$.`,
-          hint: 'Vydeľ číslo menovateľom a výsledok vynásob čitateľom.',
+          q: T`Koľko je $${frac(k, n)}$ z čísla ${total}?`,
+          solution: T`$${total} : ${n} = ${part}$ (to je $${frac(1, n)}$), potom $${part}\\cdot ${k} = ${res}$.`,
+          hint: T`Vydeľ číslo menovateľom a výsledok vynásob čitateľom.`,
           mistakes: fm, steps: k > 1 ? fs : undefined
         };
       }
       return {
         mistakes: fm, steps: k > 1 ? fs : undefined,
         answer: res,
-        q: `V košíku ${total <= 4 ? 'sú' : 'je'} ${total} ${pl(total, ['jablko', 'jablká', 'jabĺk'])}. Červené sú $${frac(k, n)}$ z nich. Koľko jabĺk je červených?`,
-        solution: `$${frac(1, n)}$ z ${total} je $${total} : ${n} = ${part}$. $${frac(k, n)}$ je $${part}\\cdot ${k} = ${res}$.
-          ${res === 1 ? 'Červené je 1 jablko' : res <= 4 ? `Červené sú ${res} jablká` : `Červených je ${res} jabĺk`}.`,
-        hint: 'Najprv zisti, koľko je jedna časť (deľ menovateľom), potom vynásob čitateľom.'
+        q: total <= 4
+          ? T`V košíku sú ${total} ${pl(total, ['jablko', 'jablká', 'jabĺk'])}. Červené sú $${frac(k, n)}$ z nich. Koľko jabĺk je červených?`
+          : T`V košíku je ${total} ${pl(total, ['jablko', 'jablká', 'jabĺk'])}. Červené sú $${frac(k, n)}$ z nich. Koľko jabĺk je červených?`,
+        solution: T`$${frac(1, n)}$ z ${total} je $${total} : ${n} = ${part}$. $${frac(k, n)}$ je $${part}\\cdot ${k} = ${res}$.
+          ${res === 1 ? T`Červené je 1 jablko` : res <= 4 ? T`Červené sú ${res} jablká` : T`Červených je ${res} jabĺk`}.`,
+        hint: T`Najprv zisti, koľko je jedna časť (deľ menovateľom), potom vynásob čitateľom.`
       };
     }
     if (t === 2) {
@@ -832,32 +837,32 @@
       const rel = ans === '<' ? '&lt;' : ans === '>' ? '&gt;' : '=';
       return {
         type: 'choice', options: ['<', '=', '>'], answer: ans,
-        q: `Doplň správny znak: $${frac(a, b)} \\;\\square\\; ${frac(c, d)}$`,
-        solution: ans === '=' ? 'Zlomky sú rovnaké.'
-          : sameDen ? `Menovatele sú rovnaké, rozhoduje čitateľ: $${frac(a, b)} ${rel} ${frac(c, d)}$.`
-            : `Čitatele sú rovnaké. Čím na viac dielov celok delíme, tým sú diely menšie: $${frac(a, b)} ${rel} ${frac(c, d)}$.`,
-        hint: 'Rovnaký menovateľ: porovnaj čitatele. Rovnaký čitateľ: menší menovateľ znamená väčšie diely.',
+        q: T`Doplň správny znak: $${frac(a, b)} \\;\\square\\; ${frac(c, d)}$`,
+        solution: ans === '=' ? T`Zlomky sú rovnaké.`
+          : sameDen ? T`Menovatele sú rovnaké, rozhoduje čitateľ: $${frac(a, b)} ${rel} ${frac(c, d)}$.`
+            : T`Čitatele sú rovnaké. Čím na viac dielov celok delíme, tým sú diely menšie: $${frac(a, b)} ${rel} ${frac(c, d)}$.`,
+        hint: T`Rovnaký menovateľ: porovnaj čitatele. Rovnaký čitateľ: menší menovateľ znamená väčšie diely.`,
         choiceHints: Object.fromEntries(['<', '=', '>'].filter((o) => o !== ans).map((o) => [o,
-          ans === '=' ? 'Pozri sa pozorne: oba zlomky majú rovnaký čitateľ aj rovnaký menovateľ.'
-            : o === '=' ? `Zlomky nie sú rovnaké – porovnaj ich ${sameDen ? 'čitatele' : 'menovatele'}.`
-              : sameDen ? 'Znak je otočený. Pri rovnakom menovateli je väčší ten zlomok, ktorý má väčší čitateľ.'
-                : 'Pozor, väčší menovateľ neznamená väčší zlomok. Čím na viac dielov celok rozdelíš, tým sú diely menšie.']))
+          ans === '=' ? T`Pozri sa pozorne: oba zlomky majú rovnaký čitateľ aj rovnaký menovateľ.`
+            : o === '=' ? (sameDen ? T`Zlomky nie sú rovnaké – porovnaj ich čitatele.` : T`Zlomky nie sú rovnaké – porovnaj ich menovatele.`)
+              : sameDen ? T`Znak je otočený. Pri rovnakom menovateli je väčší ten zlomok, ktorý má väčší čitateľ.`
+                : T`Pozor, väčší menovateľ neznamená väčší zlomok. Čím na viac dielov celok rozdelíš, tým sú diely menšie.`]))
       };
     }
     const n = pick([2, 3, 4, 5, 6, 8, 10]);
     const ctx = pick([
-      { obj: 'cesty', verb: 'meria', u: 'km', q: 'Koľko kilometrov meria celá cesta?', p: rnd(2, 15) },
-      { obj: 'koláča', verb: 'váži', u: 'g', q: 'Koľko gramov váži celý koláč?', p: 10 * rnd(5, 30) },
-      { obj: 'nádrže', u: 'l', q: 'Koľko litrov sa zmestí do celej nádrže?', p: rnd(3, 20), into: true }
+      { obj: 'cesty', verb: 'meria', u: 'km', q: T`Koľko kilometrov meria celá cesta?`, p: rnd(2, 15) },
+      { obj: 'koláča', verb: 'váži', u: 'g', q: T`Koľko gramov váži celý koláč?`, p: 10 * rnd(5, 30) },
+      { obj: 'nádrže', u: 'l', q: T`Koľko litrov sa zmestí do celej nádrže?`, p: rnd(3, 20), into: true }
     ]);
     const whole = n * ctx.p;
-    const lead = ctx.into ? `Do ${PART[n][2]} ${ctx.obj} sa zmestí` : `${cap(PART[n][0])} ${ctx.obj} ${ctx.verb}`;
     return {
       answer: whole,
-      q: `${lead} $${ctx.p}\\,\\text{${ctx.u}}$. ${ctx.q}`,
-      solution: `Celok má ${n} ${n <= 4 ? 'také časti' : 'takých častí'}: $${n}\\cdot ${ctx.p} = ${M(whole)}$, teda $${M(whole)}\\,\\text{${ctx.u}}$.`,
-      hint: `Celok sa skladá z ${n} rovnakých častí. Vynásob.`,
-      mistakes: ctx.p % n === 0 && ctx.p / n !== whole ? [{ value: ctx.p / n, msg: `Poznáš ${PART[n][1]}, celok je teda väčší. Časť treba násobiť, nie deliť.` }] : []
+      q: ctx.into ? T`Do ${PART[n][2]} ${ctx.obj} sa zmestí $${ctx.p}\\,\\text{${ctx.u}}$. ${ctx.q}`
+        : T`${cap(T.s(PART[n][0]))} ${ctx.obj} ${ctx.verb} $${ctx.p}\\,\\text{${ctx.u}}$. ${ctx.q}`,
+      solution: T`Celok má ${n} ${n <= 4 ? T`také časti` : T`takých častí`}: $${n}\\cdot ${ctx.p} = ${M(whole)}$, teda $${M(whole)}\\,\\text{${ctx.u}}$.`,
+      hint: T`Celok sa skladá z ${n} rovnakých častí. Vynásob.`,
+      mistakes: ctx.p % n === 0 && ctx.p / n !== whole ? [{ value: ctx.p / n, msg: T`Poznáš ${PART[n][1]}, celok je teda väčší. Časť treba násobiť, nie deliť.` }] : []
     };
   });
 
@@ -897,17 +902,17 @@
     if (t === 0) {
       const name = pick(Object.keys(LINES));
       return {
-        type: 'choice', options: Object.keys(LINES), answer: name,
-        q: `Čo je na obrázku? Prerušovaná čiara znamená, že čiara pokračuje bez konca.
+        type: 'choice', options: Object.keys(LINES).map(T.s), answer: T.s(name),
+        q: `${T`Čo je na obrázku? Prerušovaná čiara znamená, že čiara pokračuje bez konca.`}
           <svg viewBox="0 0 280 60" width="280" role="img" aria-label="čiara">${LINES[name](40)}</svg>`,
-        solution: name === 'priamka' ? 'Čiara nemá začiatok ani koniec – je to priamka.'
-          : name === 'polpriamka' ? 'Čiara začína v bode A a na druhú stranu pokračuje – je to polpriamka.'
-            : 'Čiara má dva krajné body A a B – je to úsečka.',
-        hint: 'Všímaj si, či má čiara začiatok, koniec, alebo ani jedno.',
-        choiceHints: Object.fromEntries(Object.keys(LINES).filter((o) => o !== name).map((o) => [o, {
-          'priamka': 'Priamka nemá začiatok ani koniec – na oboch stranách by pokračovala prerušovanou čiarou.',
-          'polpriamka': 'Polpriamka má začiatok v jednom bode a iba na jednu stranu pokračuje bez konca.',
-          'úsečka': 'Úsečka končí v oboch krajných bodoch a za nimi už nepokračuje.'
+        solution: name === 'priamka' ? T`Čiara nemá začiatok ani koniec – je to priamka.`
+          : name === 'polpriamka' ? T`Čiara začína v bode A a na druhú stranu pokračuje – je to polpriamka.`
+            : T`Čiara má dva krajné body A a B – je to úsečka.`,
+        hint: T`Všímaj si, či má čiara začiatok, koniec, alebo ani jedno.`,
+        choiceHints: Object.fromEntries(Object.keys(LINES).filter((o) => o !== name).map((o) => [T.s(o), {
+          'priamka': T`Priamka nemá začiatok ani koniec – na oboch stranách by pokračovala prerušovanou čiarou.`,
+          'polpriamka': T`Polpriamka má začiatok v jednom bode a iba na jednu stranu pokračuje bez konca.`,
+          'úsečka': T`Úsečka končí v oboch krajných bodoch a za nimi už nepokračuje.`
         }[o]]))
       };
     }
@@ -915,13 +920,13 @@
       const r = rnd(2, 40), u = pick(['cm', 'mm', 'm']), toD = Math.random() < 0.5;
       return {
         answer: toD ? 2 * r : r,
-        q: toD ? `Kružnica má polomer $${r}\\,\\text{${u}}$. Aký má priemer (v ${u})?`
-          : `Kružnica má priemer $${2 * r}\\,\\text{${u}}$. Aký má polomer (v ${u})?`,
-        solution: toD ? `$d = 2\\cdot r = 2\\cdot ${r} = ${2 * r}$, priemer je $${2 * r}\\,\\text{${u}}$.`
-          : `$r = d : 2 = ${2 * r} : 2 = ${r}$, polomer je $${r}\\,\\text{${u}}$.`,
-        hint: 'Priemer je dvakrát dlhší ako polomer.',
-        mistakes: [toD ? { value: r / 2, msg: 'Priemer je dlhší ako polomer, preto polomer treba dvomi násobiť, nie deliť.' }
-          : { value: 4 * r, msg: 'Polomer je kratší ako priemer, preto priemer treba dvomi deliť, nie násobiť.' }]
+        q: toD ? T`Kružnica má polomer $${r}\\,\\text{${u}}$. Aký má priemer (v ${u})?`
+          : T`Kružnica má priemer $${2 * r}\\,\\text{${u}}$. Aký má polomer (v ${u})?`,
+        solution: toD ? T`$d = 2\\cdot r = 2\\cdot ${r} = ${2 * r}$, priemer je $${2 * r}\\,\\text{${u}}$.`
+          : T`$r = d : 2 = ${2 * r} : 2 = ${r}$, polomer je $${r}\\,\\text{${u}}$.`,
+        hint: T`Priemer je dvakrát dlhší ako polomer.`,
+        mistakes: [toD ? { value: r / 2, msg: T`Priemer je dlhší ako polomer, preto polomer treba dvomi násobiť, nie deliť.` }
+          : { value: 4 * r, msg: T`Polomer je kratší ako priemer, preto priemer treba dvomi deliť, nie násobiť.` }]
       };
     }
     if (t === 2) {
@@ -931,17 +936,18 @@
       for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) segs.push(P[i] + P[j]);
       return {
         answer: c,
-        q: `Koľko úsečiek ${n <= 4 ? `určujú ${n} body` : `určuje ${n} bodov`}, z ktorých žiadne tri neležia na jednej priamke? (Každé dva body spojíme úsečkou.)`,
-        solution: `Body ${P.join(', ')}. Úsečky: ${segs.join(', ')}. Spolu ${c}.`,
-        hint: 'Pomenuj body písmenami a systematicky vypíš všetky dvojice: najprv s bodom A, potom s bodom B…',
-        mistakes: [{ value: 2 * c, msg: 'Niektoré úsečky si započítal dvakrát. Úsečka AB je tá istá ako BA – každú dvojicu bodov počítaj iba raz.' }]
+        q: n <= 4 ? T`Koľko úsečiek určujú ${n} body, z ktorých žiadne tri neležia na jednej priamke? (Každé dva body spojíme úsečkou.)`
+          : T`Koľko úsečiek určuje ${n} bodov, z ktorých žiadne tri neležia na jednej priamke? (Každé dva body spojíme úsečkou.)`,
+        solution: T`Body ${P.join(', ')}. Úsečky: ${segs.join(', ')}. Spolu ${c}.`,
+        hint: T`Pomenuj body písmenami a systematicky vypíš všetky dvojice: najprv s bodom A, potom s bodom B…`,
+        mistakes: [{ value: 2 * c, msg: T`Niektoré úsečky si započítal dvakrát. Úsečka AB je tá istá ako BA – každú dvojicu bodov počítaj iba raz.` }]
       };
     }
     const [q, a, why] = pick(TF5);
     return {
-      type: 'choice', options: ['pravda', 'nepravda'], answer: a,
-      q: `Je toto tvrdenie pravdivé? „${q}“`, solution: why,
-      hint: 'Priamka nemá koniec, polpriamka má začiatok, úsečka má začiatok aj koniec.'
+      type: 'choice', options: [T.s('pravda'), T.s('nepravda')], answer: T.s(a),
+      q: T`Je toto tvrdenie pravdivé? „${T.s(q)}“`, solution: T.s(why),
+      hint: T`Priamka nemá koniec, polpriamka má začiatok, úsečka má začiatok aj koniec.`
     };
   });
 
@@ -971,9 +977,9 @@
       const a = rnd(3, 30), b = rnd(3, 30), c = rnd(Math.abs(a - b) + 1, a + b - 1), o = a + b + c;
       return {
         answer: o,
-        q: `Trojuholník má strany $${a}\\,\\text{${u}}$, $${b}\\,\\text{${u}}$ a $${c}\\,\\text{${u}}$. Vypočítaj jeho obvod v ${u}.`,
-        solution: `$o = ${a} + ${b} + ${c} = ${o}$, obvod je $${o}\\,\\text{${u}}$.`,
-        hint: 'Sčítaj dĺžky všetkých troch strán.'
+        q: T`Trojuholník má strany $${a}\\,\\text{${u}}$, $${b}\\,\\text{${u}}$ a $${c}\\,\\text{${u}}$. Vypočítaj jeho obvod v ${u}.`,
+        solution: T`$o = ${a} + ${b} + ${c} = ${o}$, obvod je $${o}\\,\\text{${u}}$.`,
+        hint: T`Sčítaj dĺžky všetkých troch strán.`
       };
     }
     if (t === 1) {
@@ -981,33 +987,33 @@
         const a = rnd(2, 9), b = rnd(3, 19), o = 2 * (10 * a + b);
         return {
           answer: o,
-          q: `Obdĺžnik má strany $${a}\\,\\text{dm}$ a $${b}\\,\\text{cm}$. Vypočítaj jeho obvod v centimetroch.`,
-          solution: `Najprv rovnaké jednotky: $${a}\\,\\text{dm} = ${10 * a}\\,\\text{cm}$. Potom $o = 2\\cdot(${10 * a} + ${b}) = 2\\cdot ${10 * a + b} = ${o}\\,\\text{cm}$.`,
-          hint: 'Premeň decimetre na centimetre ($1\\,\\text{dm} = 10\\,\\text{cm}$) a až potom počítaj.',
+          q: T`Obdĺžnik má strany $${a}\\,\\text{dm}$ a $${b}\\,\\text{cm}$. Vypočítaj jeho obvod v centimetroch.`,
+          solution: T`Najprv rovnaké jednotky: $${a}\\,\\text{dm} = ${10 * a}\\,\\text{cm}$. Potom $o = 2\\cdot(${10 * a} + ${b}) = 2\\cdot ${10 * a + b} = ${o}\\,\\text{cm}$.`,
+          hint: T`Premeň decimetre na centimetre ($1\\,\\text{dm} = 10\\,\\text{cm}$) a až potom počítaj.`,
           mistakes: [
-            { value: 2 * (a + b), msg: 'Strany sú v rôznych jednotkách. Najprv premeň decimetre na centimetre, až potom sčítavaj.' },
-            { value: 10 * a + b, msg: 'Sčítal si iba dve strany. Obdĺžnik má štyri strany – súčet dvoch susedných strán ešte vynásob dvomi.' }
+            { value: 2 * (a + b), msg: T`Strany sú v rôznych jednotkách. Najprv premeň decimetre na centimetre, až potom sčítavaj.` },
+            { value: 10 * a + b, msg: T`Sčítal si iba dve strany. Obdĺžnik má štyri strany – súčet dvoch susedných strán ešte vynásob dvomi.` }
           ],
           steps: [
-            { q: `Premeň $${a}\\,\\text{dm}$ na centimetre.`, answer: 10 * a },
-            { q: `Sčítaj dve susedné strany: $${10 * a} + ${b}$.`, answer: 10 * a + b },
-            { q: 'Aký je obvod obdĺžnika v centimetroch?', answer: o, hint: 'Obvod je dvojnásobok súčtu dvoch susedných strán.' }
+            { q: T`Premeň $${a}\\,\\text{dm}$ na centimetre.`, answer: 10 * a },
+            { q: T`Sčítaj dve susedné strany: $${10 * a} + ${b}$.`, answer: 10 * a + b },
+            { q: T`Aký je obvod obdĺžnika v centimetroch?`, answer: o, hint: T`Obvod je dvojnásobok súčtu dvoch susedných strán.` }
           ]
         };
       }
       const a = rnd(4, 60), b = rnd(2, a - 1), o = 2 * (a + b);
       return {
         answer: o,
-        q: `Vypočítaj obvod obdĺžnika so stranami $a = ${a}\\,\\text{${u}}$ a $b = ${b}\\,\\text{${u}}$ (v ${u}).`,
-        solution: `$o = 2\\cdot(${a} + ${b}) = 2\\cdot ${a + b} = ${o}$, obvod je $${o}\\,\\text{${u}}$.`,
-        hint: 'Obvod obdĺžnika je $2\\cdot(a + b)$.',
+        q: T`Vypočítaj obvod obdĺžnika so stranami $a = ${a}\\,\\text{${u}}$ a $b = ${b}\\,\\text{${u}}$ (v ${u}).`,
+        solution: T`$o = 2\\cdot(${a} + ${b}) = 2\\cdot ${a + b} = ${o}$, obvod je $${o}\\,\\text{${u}}$.`,
+        hint: T`Obvod obdĺžnika je $2\\cdot(a + b)$.`,
         mistakes: [
-          { value: a + b, msg: 'Sčítal si iba dve strany. Obdĺžnik má štyri strany – dve dĺžky $a$ a dve dĺžky $b$.' },
-          ...(a * b !== o ? [{ value: a * b, msg: 'Vynásobil si strany – to je obsah, nie obvod. Obvod je súčet dĺžok všetkých strán.' }] : [])
+          { value: a + b, msg: T`Sčítal si iba dve strany. Obdĺžnik má štyri strany – dve dĺžky $a$ a dve dĺžky $b$.` },
+          ...(a * b !== o ? [{ value: a * b, msg: T`Vynásobil si strany – to je obsah, nie obvod. Obvod je súčet dĺžok všetkých strán.` }] : [])
         ],
         steps: [
-          { q: `Sčítaj dve susedné strany: $${a} + ${b}$.`, answer: a + b },
-          { q: `Aký je obvod obdĺžnika (v ${u})?`, answer: o, hint: 'Obdĺžnik má dve dvojice rovnakých strán.' }
+          { q: T`Sčítaj dve susedné strany: $${a} + ${b}$.`, answer: a + b },
+          { q: T`Aký je obvod obdĺžnika (v ${u})?`, answer: o, hint: T`Obdĺžnik má dve dvojice rovnakých strán.` }
         ]
       };
     }
@@ -1016,13 +1022,13 @@
       const k = sq ? 4 : 3;
       return {
         answer: k * a,
-        q: sq ? `Vypočítaj obvod štvorca so stranou $${a}\\,\\text{${u}}$ (v ${u}).`
-          : `Vypočítaj obvod rovnostranného trojuholníka so stranou $${a}\\,\\text{${u}}$ (v ${u}).`,
-        solution: `$o = ${k}\\cdot ${a} = ${k * a}$, obvod je $${k * a}\\,\\text{${u}}$.`,
-        hint: sq ? 'Štvorec má 4 rovnaké strany.' : 'Rovnostranný trojuholník má 3 rovnaké strany.',
+        q: sq ? T`Vypočítaj obvod štvorca so stranou $${a}\\,\\text{${u}}$ (v ${u}).`
+          : T`Vypočítaj obvod rovnostranného trojuholníka so stranou $${a}\\,\\text{${u}}$ (v ${u}).`,
+        solution: T`$o = ${k}\\cdot ${a} = ${k * a}$, obvod je $${k * a}\\,\\text{${u}}$.`,
+        hint: sq ? T`Štvorec má 4 rovnaké strany.` : T`Rovnostranný trojuholník má 3 rovnaké strany.`,
         mistakes: [
-          ...(sq && a !== 4 ? [{ value: a * a, msg: 'Vynásobil si stranu samu sebou – to je obsah štvorca. Obvod je súčet dĺžok všetkých štyroch strán.' }] : []),
-          ...(!sq ? [{ value: 4 * a, msg: 'Trojuholník má iba tri strany, nie štyri.' }] : [])
+          ...(sq && a !== 4 ? [{ value: a * a, msg: T`Vynásobil si stranu samu sebou – to je obsah štvorca. Obvod je súčet dĺžok všetkých štyroch strán.` }] : []),
+          ...(!sq ? [{ value: 4 * a, msg: T`Trojuholník má iba tri strany, nie štyri.` }] : [])
         ]
       };
     }
@@ -1031,16 +1037,16 @@
       const a = rnd(5, 40), b = rnd(2, 40), o = 2 * (a + b);
       return {
         answer: b,
-        q: `Obdĺžnik má obvod $${o}\\,\\text{${u}}$ a jednu stranu $${a}\\,\\text{${u}}$. Aká dlhá je druhá strana (v ${u})?`,
-        solution: `$a + b = ${o} : 2 = ${a + b}$, preto $b = ${a + b} - ${a} = ${b}$, druhá strana meria $${b}\\,\\text{${u}}$.`,
-        hint: 'Polovica obvodu obdĺžnika je súčet dvoch susedných strán.',
+        q: T`Obdĺžnik má obvod $${o}\\,\\text{${u}}$ a jednu stranu $${a}\\,\\text{${u}}$. Aká dlhá je druhá strana (v ${u})?`,
+        solution: T`$a + b = ${o} : 2 = ${a + b}$, preto $b = ${a + b} - ${a} = ${b}$, druhá strana meria $${b}\\,\\text{${u}}$.`,
+        hint: T`Polovica obvodu obdĺžnika je súčet dvoch susedných strán.`,
         mistakes: [
-          { value: o - a, msg: 'Obvod obsahuje každú stranu dvakrát. Najprv ho vydeľ dvomi, až potom odčítaj známu stranu.' },
-          ...(a + b !== b ? [{ value: a + b, msg: 'Polovica obvodu je súčet oboch susedných strán. Ešte od nej odčítaj známu stranu.' }] : [])
+          { value: o - a, msg: T`Obvod obsahuje každú stranu dvakrát. Najprv ho vydeľ dvomi, až potom odčítaj známu stranu.` },
+          ...(a + b !== b ? [{ value: a + b, msg: T`Polovica obvodu je súčet oboch susedných strán. Ešte od nej odčítaj známu stranu.` }] : [])
         ],
         steps: [
-          { q: `Koľko je polovica obvodu, teda $a + b$?`, answer: a + b },
-          { q: `Od súčtu ${a + b} odčítaj známu stranu ${a}.`, answer: b }
+          { q: T`Koľko je polovica obvodu, teda $a + b$?`, answer: a + b },
+          { q: T`Od súčtu ${a + b} odčítaj známu stranu ${a}.`, answer: b }
         ]
       };
     }
@@ -1048,24 +1054,24 @@
       const a = rnd(3, 30), b = rnd(3, 30), c = rnd(Math.abs(a - b) + 1, a + b - 1), o = a + b + c;
       return {
         answer: c,
-        q: `Trojuholník má obvod $${o}\\,\\text{${u}}$. Dve jeho strany merajú $${a}\\,\\text{${u}}$ a $${b}\\,\\text{${u}}$. Aká dlhá je tretia strana (v ${u})?`,
-        solution: `$c = ${o} - ${a} - ${b} = ${c}$, tretia strana meria $${c}\\,\\text{${u}}$.`,
-        hint: 'Od obvodu odčítaj dĺžky známych strán.',
-        mistakes: [{ value: o - a, msg: 'Odčítal si iba jednu stranu. Od obvodu odčítaj obe známe strany.' },
-          ...(o - b !== o - a ? [{ value: o - b, msg: 'Odčítal si iba jednu stranu. Od obvodu odčítaj obe známe strany.' }] : [])].filter((m) => m.value !== c),
+        q: T`Trojuholník má obvod $${o}\\,\\text{${u}}$. Dve jeho strany merajú $${a}\\,\\text{${u}}$ a $${b}\\,\\text{${u}}$. Aká dlhá je tretia strana (v ${u})?`,
+        solution: T`$c = ${o} - ${a} - ${b} = ${c}$, tretia strana meria $${c}\\,\\text{${u}}$.`,
+        hint: T`Od obvodu odčítaj dĺžky známych strán.`,
+        mistakes: [{ value: o - a, msg: T`Odčítal si iba jednu stranu. Od obvodu odčítaj obe známe strany.` },
+          ...(o - b !== o - a ? [{ value: o - b, msg: T`Odčítal si iba jednu stranu. Od obvodu odčítaj obe známe strany.` }] : [])].filter((m) => m.value !== c),
         steps: [
-          { q: `Sčítaj známe strany: $${a} + ${b}$.`, answer: a + b },
-          { q: `Od obvodu ${o} odčítaj ${a + b}.`, answer: c }
+          { q: T`Sčítaj známe strany: $${a} + ${b}$.`, answer: a + b },
+          { q: T`Od obvodu ${o} odčítaj ${a + b}.`, answer: c }
         ]
       };
     }
     const a = rnd(3, 30);
     return {
       answer: a,
-      q: `Štvorec má obvod $${4 * a}\\,\\text{${u}}$. Aká dlhá je jeho strana (v ${u})?`,
-      solution: `$a = ${4 * a} : 4 = ${a}$, strana meria $${a}\\,\\text{${u}}$.`,
-      hint: 'Obvod štvorca vydeľ štyrmi.',
-      mistakes: [{ value: 2 * a, msg: 'Štvorec má štyri rovnaké strany, preto obvod deľ štyrmi, nie dvomi.' }]
+      q: T`Štvorec má obvod $${4 * a}\\,\\text{${u}}$. Aká dlhá je jeho strana (v ${u})?`,
+      solution: T`$a = ${4 * a} : 4 = ${a}$, strana meria $${a}\\,\\text{${u}}$.`,
+      hint: T`Obvod štvorca vydeľ štyrmi.`,
+      mistakes: [{ value: 2 * a, msg: T`Štvorec má štyri rovnaké strany, preto obvod deľ štyrmi, nie dvomi.` }]
     };
   });
 
@@ -1119,23 +1125,23 @@
       if (Math.random() < 0.5) {
         return {
           answer: n * f,
-          q: `Premeň: $${n}\\,\\text{${big}} = \\square\\,\\text{${small}}$`,
-          solution: `$1\\,\\text{${big}} = ${M(f)}\\,\\text{${small}}$, preto $${n}\\cdot ${M(f)} = ${M(n * f)}$.`,
-          hint: 'Meníš na menšiu jednotku, preto násob.',
+          q: T`Premeň: $${n}\\,\\text{${big}} = \\square\\,\\text{${small}}$`,
+          solution: T`$1\\,\\text{${big}} = ${M(f)}\\,\\text{${small}}$, preto $${n}\\cdot ${M(f)} = ${M(n * f)}$.`,
+          hint: T`Meníš na menšiu jednotku, preto násob.`,
           mistakes: [
-            ...(time ? [{ value: n * tf, msg: 'Pri čase sa nepremieňa po desiatkach: hodina má 60 minút a minúta 60 sekúnd.' }] : []),
-            ...(f === 3600 ? [{ value: n * 60, msg: 'Premenil si hodiny iba na minúty. Každá minúta má ešte 60 sekúnd.' }] : [])
+            ...(time ? [{ value: n * tf, msg: T`Pri čase sa nepremieňa po desiatkach: hodina má 60 minút a minúta 60 sekúnd.` }] : []),
+            ...(f === 3600 ? [{ value: n * 60, msg: T`Premenil si hodiny iba na minúty. Každá minúta má ešte 60 sekúnd.` }] : [])
           ]
         };
       }
       return {
         answer: n,
-        q: `Premeň: $${M(n * f)}\\,\\text{${small}} = \\square\\,\\text{${big}}$`,
-        solution: `$1\\,\\text{${big}} = ${M(f)}\\,\\text{${small}}$, preto $${M(n * f)} : ${M(f)} = ${n}$.`,
-        hint: 'Meníš na väčšiu jednotku, preto deľ.',
+        q: T`Premeň: $${M(n * f)}\\,\\text{${small}} = \\square\\,\\text{${big}}$`,
+        solution: T`$1\\,\\text{${big}} = ${M(f)}\\,\\text{${small}}$, preto $${M(n * f)} : ${M(f)} = ${n}$.`,
+        hint: T`Meníš na väčšiu jednotku, preto deľ.`,
         mistakes: [
-          ...(f === 3600 ? [{ value: n * 60, msg: 'Premenil si sekundy iba na minúty. Hodina má 60 minút, preto vydeľ ešte šesťdesiatimi.' }] : []),
-          ...(f === 60 ? [{ value: n * 60 / 100, msg: `Pri čase sa nepremieňa po stovkách: 1 ${big} = 60 ${small}, preto deľ šesťdesiatimi.` }] : [])
+          ...(f === 3600 ? [{ value: n * 60, msg: T`Premenil si sekundy iba na minúty. Hodina má 60 minút, preto vydeľ ešte šesťdesiatimi.` }] : []),
+          ...(f === 60 ? [{ value: n * 60 / 100, msg: T`Pri čase sa nepremieňa po stovkách: 1 ${big} = 60 ${small}, preto deľ šesťdesiatimi.` }] : [])
         ]
       };
     }
@@ -1144,13 +1150,13 @@
         const d = rnd(2, 6), h = rnd(1, 23), res = 24 * d + h;
         return {
           answer: res,
-          q: `Koľko hodín majú ${d} ${pl(d, ['deň', 'dni', 'dní'])} a ${h} ${pl(h, ['hodina', 'hodiny', 'hodín'])}?`,
-          solution: `Deň má 24 hodín: $${d}\\cdot 24 = ${24 * d}$, a ešte $${24 * d} + ${h} = ${res}$ hodín.`,
-          hint: 'Jeden deň má 24 hodín.',
-          mistakes: [{ value: d + h, msg: `Dni a hodiny nemôžeš len tak sčítať. Najprv premeň ${d} ${pl(d, ['deň', 'dni', 'dní'])} na hodiny.` }],
+          q: T`Koľko hodín majú ${d} ${pl(d, ['deň', 'dni', 'dní'])} a ${h} ${pl(h, ['hodina', 'hodiny', 'hodín'])}?`,
+          solution: T`Deň má 24 hodín: $${d}\\cdot 24 = ${24 * d}$, a ešte $${24 * d} + ${h} = ${res}$ hodín.`,
+          hint: T`Jeden deň má 24 hodín.`,
+          mistakes: [{ value: d + h, msg: T`Dni a hodiny nemôžeš len tak sčítať. Najprv premeň ${d} ${pl(d, ['deň', 'dni', 'dní'])} na hodiny.` }],
           steps: [
-            { q: `Koľko hodín majú ${d} ${pl(d, ['deň', 'dni', 'dní'])}?`, answer: 24 * d },
-            { q: `Pripočítaj ešte ${h} ${pl(h, ['hodinu', 'hodiny', 'hodín'])}: $${24 * d} + ${h}$.`, answer: res }
+            { q: T`Koľko hodín majú ${d} ${pl(d, ['deň', 'dni', 'dní'])}?`, answer: 24 * d },
+            { q: T`Pripočítaj ešte ${h} ${pl(h, ['hodinu', 'hodiny', 'hodín'])}: $${24 * d} + ${h}$.`, answer: res }
           ]
         };
       }
@@ -1159,18 +1165,18 @@
       const glued = Number(`${a}${b}`);
       return {
         answer: res,
-        q: `Premeň: $${a}\\,\\text{${big}}\\ ${b}\\,\\text{${small}} = \\square\\,\\text{${small}}$`,
-        solution: `$${a}\\,\\text{${big}} = ${M(a * f)}\\,\\text{${small}}$ a pripočítame zvyšok: $${M(a * f)} + ${b} = ${M(res)}$.`,
-        hint: 'Väčšiu jednotku premeň na menšiu a potom pripočítaj druhú časť.',
+        q: T`Premeň: $${a}\\,\\text{${big}}\\ ${b}\\,\\text{${small}} = \\square\\,\\text{${small}}$`,
+        solution: T`$${a}\\,\\text{${big}} = ${M(a * f)}\\,\\text{${small}}$ a pripočítame zvyšok: $${M(a * f)} + ${b} = ${M(res)}$.`,
+        hint: T`Väčšiu jednotku premeň na menšiu a potom pripočítaj druhú časť.`,
         mistakes: [
           ...(glued !== res ? [{ value: glued, msg: f === 60
-            ? `Čísla si napísal vedľa seba, akoby platilo 1 ${big} = 100 ${small}. Platí však 1 ${big} = 60 ${small}.`
-            : `Čísla nestačí napísať vedľa seba. Najprv premeň ${a} ${big} na ${small}, potom pripočítaj ${b}.` }] : []),
-          ...(a + b !== res && a + b !== glued ? [{ value: a + b, msg: `Sčítal si čísla v rôznych jednotkách. Najprv premeň ${a} ${big} na ${small}.` }] : [])
+            ? T`Čísla si napísal vedľa seba, akoby platilo 1 ${big} = 100 ${small}. Platí však 1 ${big} = 60 ${small}.`
+            : T`Čísla nestačí napísať vedľa seba. Najprv premeň ${a} ${big} na ${small}, potom pripočítaj ${b}.` }] : []),
+          ...(a + b !== res && a + b !== glued ? [{ value: a + b, msg: T`Sčítal si čísla v rôznych jednotkách. Najprv premeň ${a} ${big} na ${small}.` }] : [])
         ],
         steps: [
-          { q: `Premeň $${a}\\,\\text{${big}}$ na ${small}.`, answer: a * f },
-          { q: `Pripočítaj ${b} ${small}: $${M(a * f)} + ${b}$.`, answer: res }
+          { q: T`Premeň $${a}\\,\\text{${big}}$ na ${small}.`, answer: a * f },
+          { q: T`Pripočítaj ${b} ${small}: $${M(a * f)} + ${b}$.`, answer: res }
         ]
       };
     }
@@ -1179,9 +1185,9 @@
       const options = opts.map((o) => `${val} ${o}`);
       return {
         type: 'choice', options, answer: `${val} ${unit}`,
-        q: `Vyber správny údaj: ${txt} …`,
-        solution: `${txt} ${val} ${unit}. Ostatné údaje sú príliš veľké alebo príliš malé.`,
-        hint: 'Predstav si ten predmet a porovnaj ho s niečím, čo poznáš (napríklad 1 kg múky, 1 m – veľký krok, 1 l – fľaša).'
+        q: T`Vyber správny údaj: ${T.s(txt)} …`,
+        solution: T`${T.s(txt)} ${val} ${unit}. Ostatné údaje sú príliš veľké alebo príliš malé.`,
+        hint: T`Predstav si ten predmet a porovnaj ho s niečím, čo poznáš (napríklad 1 kg múky, 1 m – veľký krok, 1 l – fľaša).`
       };
     }
     const start = rnd(8 * 60, 19 * 60), s = start - (start % 5), dur = 5 * rnd(5, 40), end = s + dur;
@@ -1189,18 +1195,18 @@
     const asNum = (m) => Math.floor(m / 60) * 100 + m % 60; // 18:40 → 1840
     const naive = asNum(end) - asNum(s);
     return {
-      mistakes: naive !== dur ? [{ value: naive, msg: 'Časy si odčítal ako obyčajné čísla. Hodina má však 60 minút, nie 100 – dopočítaj najprv do celej hodiny.' }] : [],
+      mistakes: naive !== dur ? [{ value: naive, msg: T`Časy si odčítal ako obyčajné čísla. Hodina má však 60 minút, nie 100 – dopočítaj najprv do celej hodiny.` }] : [],
       steps: toFull && end > s + toFull ? [
-        { q: `Koľko minút uplynie od ${hm(s)} do ${hm(s + toFull)}?`, answer: toFull },
-        { q: `Koľko minút uplynie od ${hm(s + toFull)} do ${hm(end)}?`, answer: end - s - toFull },
-        { q: 'Koľko minút trvala celá cesta?', answer: dur }
+        { q: T`Koľko minút uplynie od ${hm(s)} do ${hm(s + toFull)}?`, answer: toFull },
+        { q: T`Koľko minút uplynie od ${hm(s + toFull)} do ${hm(end)}?`, answer: end - s - toFull },
+        { q: T`Koľko minút trvala celá cesta?`, answer: dur }
       ] : undefined,
       answer: dur,
-      q: `Vlak odišiel o ${hm(s)} a do cieľa prišiel o ${hm(end)}. Koľko minút trvala cesta?`,
+      q: T`Vlak odišiel o ${hm(s)} a do cieľa prišiel o ${hm(end)}. Koľko minút trvala cesta?`,
       solution: toFull && end > s + toFull
-        ? `Od ${hm(s)} do ${hm(s + toFull)} je ${toFull} min, od ${hm(s + toFull)} do ${hm(end)} je ${end - s - toFull} min. Spolu $${toFull} + ${end - s - toFull} = ${dur}$ minút.`
-        : `Od ${hm(s)} do ${hm(end)} uplynulo ${dur} minút.`,
-      hint: 'Najprv dopočítaj do celej hodiny, potom pripočítaj zvyšok. Hodina má 60 minút.'
+        ? T`Od ${hm(s)} do ${hm(s + toFull)} je ${toFull} min, od ${hm(s + toFull)} do ${hm(end)} je ${end - s - toFull} min. Spolu $${toFull} + ${end - s - toFull} = ${dur}$ minút.`
+        : T`Od ${hm(s)} do ${hm(end)} uplynulo ${dur} minút.`,
+      hint: T`Najprv dopočítaj do celej hodiny, potom pripočítaj zvyšok. Hodina má 60 minút.`
     };
   });
 
@@ -1240,18 +1246,18 @@
       const left = total - part - extra;
       return {
         answer: left,
-        q: `${k.n} ${v(k, 'mal', 'mala')} ${total} ${pl(total, EUR)}. ${cap(PART[n][1])} ${v(k, 'minul', 'minula')} na hru a ${extra} ${pl(extra, EUR)} na knihu. Koľko eur ${v(k, 'mu', 'jej')} zostalo?`,
-        solution: `${cap(PART[n][0])} z ${total}: $${total} : ${n} = ${part}$. Minul${v(k, '', 'a')} spolu $${part} + ${extra} = ${part + extra}$. Zostalo $${total} - ${part + extra} = ${left}$ ${pl(left, EUR)}.`,
-        hint: 'Najprv vypočítaj časť z celej sumy, potom spočítaj všetky výdavky a odčítaj ich.',
+        q: T`${k.n} ${v(k, 'mal', 'mala')} ${total} ${pl(total, EUR)}. ${cap(T.s(PART[n][1]))} ${v(k, 'minul', 'minula')} na hru a ${extra} ${pl(extra, EUR)} na knihu. Koľko eur ${v(k, 'mu', 'jej')} zostalo?`,
+        solution: T`${cap(T.s(PART[n][0]))} z ${total}: $${total} : ${n} = ${part}$. ${v(k, 'Minul', 'Minula')} spolu $${part} + ${extra} = ${part + extra}$. Zostalo $${total} - ${part + extra} = ${left}$ ${pl(left, EUR)}.`,
+        hint: T`Najprv vypočítaj časť z celej sumy, potom spočítaj všetky výdavky a odčítaj ich.`,
         mistakes: [
-          { value: total - part, msg: `Odčítal si iba peniaze za hru. Nezabudni odčítať aj ${extra} ${pl(extra, EUR)} za knihu.` },
-          ...(extra !== part ? [{ value: total - extra, msg: `Odčítal si iba peniaze za knihu. Odčítaj aj sumu za hru – je to ${PART[n][0]} všetkých peňazí.` }] : []),
-          ...(total - n - extra > 0 && n !== part ? [{ value: total - n - extra, msg: `${cap(PART[n][0])} neznamená ${n} ${pl(n, EUR)}. ${cap(PART[n][1])} z ${total} vypočítaš delením: $${total} : ${n}$.` }] : [])
+          { value: total - part, msg: T`Odčítal si iba peniaze za hru. Nezabudni odčítať aj ${extra} ${pl(extra, EUR)} za knihu.` },
+          ...(extra !== part ? [{ value: total - extra, msg: T`Odčítal si iba peniaze za knihu. Odčítaj aj sumu za hru – je to ${PART[n][0]} všetkých peňazí.` }] : []),
+          ...(total - n - extra > 0 && n !== part ? [{ value: total - n - extra, msg: T`${cap(T.s(PART[n][0]))} neznamená ${n} ${pl(n, EUR)}. ${cap(T.s(PART[n][1]))} z ${total} vypočítaš delením: $${total} : ${n}$.` }] : [])
         ],
         steps: [
-          { q: `Koľko eur je ${PART[n][0]} z ${total} eur?`, answer: part },
-          { q: `Koľko eur ${v(k, 'minul', 'minula')} spolu?`, answer: part + extra },
-          { q: `Koľko eur ${v(k, 'mu', 'jej')} zostalo?`, answer: left }
+          { q: T`Koľko eur je ${PART[n][0]} z ${total} eur?`, answer: part },
+          { q: T`Koľko eur ${v(k, 'minul', 'minula')} spolu?`, answer: part + extra },
+          { q: T`Koľko eur ${v(k, 'mu', 'jej')} zostalo?`, answer: left }
         ]
       };
     }
@@ -1260,19 +1266,19 @@
       const askBig = Math.random() < 0.5;
       return {
         answer: askBig ? small + diff : small,
-        q: `Dvaja bratia majú spolu ${sum} ${pl(sum, EUR)}. Starší má o ${diff} ${pl(diff, EUR)} viac ako mladší. Koľko eur má ${askBig ? 'starší' : 'mladší'} brat?`,
-        solution: `Bez rozdielu: $${sum} - ${diff} = ${2 * small}$, to je dvakrát toľko, koľko má mladší: $${2 * small} : 2 = ${small}$.
-          ${askBig ? `Starší má $${small} + ${diff} = ${small + diff}$ ${pl(small + diff, EUR)}.` : `Mladší má ${small} ${pl(small, EUR)}.`} Skúška: $${small} + ${small + diff} = ${sum}$.`,
-        hint: 'Nakresli si úsečkový model. Odčítaj rozdiel od súčtu – zvyšok si bratia rozdelia rovnako.',
+        q: T`Dvaja bratia majú spolu ${sum} ${pl(sum, EUR)}. Starší má o ${diff} ${pl(diff, EUR)} viac ako mladší. Koľko eur má ${askBig ? 'starší' : 'mladší'} brat?`,
+        solution: T`Bez rozdielu: $${sum} - ${diff} = ${2 * small}$, to je dvakrát toľko, koľko má mladší: $${2 * small} : 2 = ${small}$.
+          ${askBig ? T`Starší má $${small} + ${diff} = ${small + diff}$ ${pl(small + diff, EUR)}.` : T`Mladší má ${small} ${pl(small, EUR)}.`} Skúška: $${small} + ${small + diff} = ${sum}$.`,
+        hint: T`Nakresli si úsečkový model. Odčítaj rozdiel od súčtu – zvyšok si bratia rozdelia rovnako.`,
         mistakes: [
-          ...(sum % 2 === 0 ? [{ value: sum / 2, msg: `Rozdelil si súčet na dve rovnaké časti, ale bratia nemajú rovnako. Najprv od súčtu odčítaj rozdiel ${diff} ${pl(diff, EUR)}.` }] : []),
-          ...(2 * small !== (askBig ? small + diff : small) ? [{ value: 2 * small, msg: 'Od súčtu si správne odčítal rozdiel, ale zvyšok si ešte musia bratia rozdeliť na dve rovnaké časti.' }] : []),
-          { value: askBig ? small : small + diff, msg: `Toto má ${askBig ? 'mladší' : 'starší'} brat. Pýtame sa na ${askBig ? 'staršieho' : 'mladšieho'}.` }
+          ...(sum % 2 === 0 ? [{ value: sum / 2, msg: T`Rozdelil si súčet na dve rovnaké časti, ale bratia nemajú rovnako. Najprv od súčtu odčítaj rozdiel ${diff} ${pl(diff, EUR)}.` }] : []),
+          ...(2 * small !== (askBig ? small + diff : small) ? [{ value: 2 * small, msg: T`Od súčtu si správne odčítal rozdiel, ale zvyšok si ešte musia bratia rozdeliť na dve rovnaké časti.` }] : []),
+          { value: askBig ? small : small + diff, msg: T`Toto má ${askBig ? 'mladší' : 'starší'} brat. Pýtame sa na ${askBig ? 'staršieho' : 'mladšieho'}.` }
         ],
         steps: [
-          { q: `Koľko eur zostane, keď od súčtu ${sum} odčítaš rozdiel ${diff}?`, answer: 2 * small },
-          { q: 'Koľko eur má mladší brat?', answer: small, hint: 'Zvyšok sa delí na dve rovnaké časti.' },
-          ...(askBig ? [{ q: 'Koľko eur má starší brat?', answer: small + diff }] : [])
+          { q: T`Koľko eur zostane, keď od súčtu ${sum} odčítaš rozdiel ${diff}?`, answer: 2 * small },
+          { q: T`Koľko eur má mladší brat?`, answer: small, hint: T`Zvyšok sa delí na dve rovnaké časti.` },
+          ...(askBig ? [{ q: T`Koľko eur má starší brat?`, answer: small + diff }] : [])
         ]
       };
     }
@@ -1282,16 +1288,16 @@
       const mult = ['', '', 'dvakrát', 'trikrát', 'štyrikrát', 'päťkrát'][m];
       return {
         answer: child + later,
-        q: `${who[0]} má ${adult} ${pl(adult, ROKY)} a ${who[3]} ${mult} ${who[0] === 'Mama' ? 'staršia' : 'starší'} ako ${who[1]}. Koľko rokov bude ${who[2]} o ${later} ${pl(later, ROKY)}?`,
-        solution: `Teraz: $${adult} : ${m} = ${child}$ ${pl(child, ROKY)}. O ${later} ${pl(later, ROKY)}: $${child} + ${later} = ${child + later}$.`,
-        hint: 'Najprv zisti, koľko rokov má dieťa teraz (delenie), potom pripočítaj.',
+        q: T`${who[0]} má ${adult} ${pl(adult, ROKY)} a je ${mult} ${who[0] === 'Mama' ? 'staršia' : 'starší'} ako ${who[1]}. Koľko rokov bude ${who[2]} o ${later} ${pl(later, ROKY)}?`,
+        solution: T`Teraz: $${adult} : ${m} = ${child}$ ${pl(child, ROKY)}. O ${later} ${pl(later, ROKY)}: $${child} + ${later} = ${child + later}$.`,
+        hint: T`Najprv zisti, koľko rokov má dieťa teraz (delenie), potom pripočítaj.`,
         mistakes: [
-          { value: child, msg: `Toto je vek ${who[0] === 'Mama' ? 'dcéry' : 'syna'} teraz. Úloha sa pýta, koľko rokov bude mať o ${later} ${pl(later, ROKY)}.` },
-          ...((adult + later) % m === 0 ? [{ value: (adult + later) / m, msg: `Najprv zisti vek ${who[0] === 'Mama' ? 'dcéry' : 'syna'} teraz z údaju ${adult} ${pl(adult, ROKY)}, až potom pripočítaj ${later}. ${who[0] === 'Mama' ? 'Mama' : 'Otec'} o ${later} ${pl(later, ROKY)} už nebude ${mult} ${who[0] === 'Mama' ? 'staršia' : 'starší'}.` }] : [])
+          { value: child, msg: T`Toto je vek ${who[0] === 'Mama' ? 'dcéry' : 'syna'} teraz. Úloha sa pýta, koľko rokov bude mať o ${later} ${pl(later, ROKY)}.` },
+          ...((adult + later) % m === 0 ? [{ value: (adult + later) / m, msg: T`Najprv zisti vek ${who[0] === 'Mama' ? 'dcéry' : 'syna'} teraz z údaju ${adult} ${pl(adult, ROKY)}, až potom pripočítaj ${later}. ${who[0] === 'Mama' ? 'Mama' : 'Otec'} o ${later} ${pl(later, ROKY)} už nebude ${mult} ${who[0] === 'Mama' ? 'staršia' : 'starší'}.` }] : [])
         ],
         steps: [
-          { q: `Koľko rokov má ${who[1]} teraz?`, answer: child },
-          { q: `Koľko rokov bude mať ${who[1]} o ${later} ${pl(later, ROKY)}?`, answer: child + later }
+          { q: T`Koľko rokov má ${who[1]} teraz?`, answer: child },
+          { q: T`Koľko rokov bude mať ${who[1]} o ${later} ${pl(later, ROKY)}?`, answer: child + later }
         ]
       };
     }
@@ -1301,31 +1307,31 @@
       const n = rnd(15, 70), cnt = Math.ceil(n / per);
       const fits = per <= 4 ? 'zmestia' : 'zmestí';
       const q = boats
-        ? `Na výlet ide ${n} ${pl(n, ['dieťa', 'deti', 'detí'])}. Do jednej lodičky sa ${fits} ${per} ${pl(per, ['dieťa', 'deti', 'detí'])}. Koľko lodičiek potrebujú, aby sa zviezli všetky deti naraz?`
-        : `Na farme nazbierali ${n} ${pl(n, ['vajce', 'vajcia', 'vajec'])}. Do jedného obalu sa zmestí ${per} vajec. Koľko obalov potrebujú na všetky vajcia?`;
+        ? T`Na výlet ide ${n} ${pl(n, ['dieťa', 'deti', 'detí'])}. Do jednej lodičky sa ${fits} ${per} ${pl(per, ['dieťa', 'deti', 'detí'])}. Koľko lodičiek potrebujú, aby sa zviezli všetky deti naraz?`
+        : T`Na farme nazbierali ${n} ${pl(n, ['vajce', 'vajcia', 'vajec'])}. Do jedného obalu sa zmestí ${per} vajec. Koľko obalov potrebujú na všetky vajcia?`;
       const u = boats ? ['lodička', 'lodičky', 'lodičiek'] : ['obal', 'obaly', 'obalov'];
       return {
         answer: cnt, q,
-        solution: `$${n} : ${per} = ${Math.floor(n / per)}$, zvyšok ${n % per}. ${n % per ? `Na zvyšok treba ešte ${boats ? 'jednu lodičku' : 'jeden obal'}, spolu ${cnt} ${pl(cnt, u)}.` : `Spolu ${cnt} ${pl(cnt, u)}.`}`,
-        hint: 'Vydeľ a pozri sa na zvyšok. Ak niečo zostane, potrebuješ ešte jeden navyše.'
+        solution: T`$${n} : ${per} = ${Math.floor(n / per)}$, zvyšok ${n % per}. ${n % per ? (boats ? T`Na zvyšok treba ešte jednu lodičku, spolu ${cnt} ${pl(cnt, u)}.` : T`Na zvyšok treba ešte jeden obal, spolu ${cnt} ${pl(cnt, u)}.`) : T`Spolu ${cnt} ${pl(cnt, u)}.`}`,
+        hint: T`Vydeľ a pozri sa na zvyšok. Ak niečo zostane, potrebuješ ešte jeden navyše.`
       };
     }
     const d1 = rnd(8, 20), more = rnd(2, 8), d2 = d1 + more;
     const d2e = d2 % 2 === 0 ? d2 : d2 + 1, d1e = d2e - more, d3 = d2e / 2, s = d1e + d2e + d3;
     return {
       answer: s,
-      q: `Turisti prešli prvý deň ${d1e} km. Druhý deň prešli o ${more} km viac ako prvý deň a tretí deň polovicu toho, čo druhý deň. Koľko kilometrov prešli za tri dni?`,
-      solution: `Druhý deň: $${d1e} + ${more} = ${d2e}$ km. Tretí deň: $${d2e} : 2 = ${d3}$ km. Spolu: $${d1e} + ${d2e} + ${d3} = ${s}$ km.`,
-      hint: 'Vypočítaj postupne každý deň a nakoniec všetko sčítaj.',
+      q: T`Turisti prešli prvý deň ${d1e} km. Druhý deň prešli o ${more} km viac ako prvý deň a tretí deň polovicu toho, čo druhý deň. Koľko kilometrov prešli za tri dni?`,
+      solution: T`Druhý deň: $${d1e} + ${more} = ${d2e}$ km. Tretí deň: $${d2e} : 2 = ${d3}$ km. Spolu: $${d1e} + ${d2e} + ${d3} = ${s}$ km.`,
+      hint: T`Vypočítaj postupne každý deň a nakoniec všetko sčítaj.`,
       mistakes: [
-        { value: d1e + d2e, msg: 'Zabudol si na tretí deň. Úloha sa pýta na všetky tri dni.' },
-        ...(d1e % 2 === 0 && d1e / 2 !== d3 ? [{ value: d1e + d2e + d1e / 2, msg: 'Tretí deň prešli polovicu toho, čo druhý deň, nie prvý.' }] : []),
-        ...(more % 2 === 0 ? [{ value: d1e + more + more / 2, msg: `Druhý deň neprešli ${more} km, ale o ${more} km viac ako prvý deň.` }] : [])
+        { value: d1e + d2e, msg: T`Zabudol si na tretí deň. Úloha sa pýta na všetky tri dni.` },
+        ...(d1e % 2 === 0 && d1e / 2 !== d3 ? [{ value: d1e + d2e + d1e / 2, msg: T`Tretí deň prešli polovicu toho, čo druhý deň, nie prvý.` }] : []),
+        ...(more % 2 === 0 ? [{ value: d1e + more + more / 2, msg: T`Druhý deň neprešli ${more} km, ale o ${more} km viac ako prvý deň.` }] : [])
       ].filter((m) => m.value !== s),
       steps: [
-        { q: 'Koľko kilometrov prešli druhý deň?', answer: d2e },
-        { q: 'Koľko kilometrov prešli tretí deň?', answer: d3 },
-        { q: 'Koľko kilometrov prešli za tri dni spolu?', answer: s }
+        { q: T`Koľko kilometrov prešli druhý deň?`, answer: d2e },
+        { q: T`Koľko kilometrov prešli tretí deň?`, answer: d3 },
+        { q: T`Koľko kilometrov prešli za tri dni spolu?`, answer: s }
       ]
     };
   });

@@ -1,0 +1,615 @@
+/* Italiano: preklad js/rocniky/r2.js. Vygenerované nástrojom tools/i18n_build.js z .i18n/out/it/r2/ – needitovať ručne. */
+CONTENT_I18N.add('it', {
+ "decimal": ",",
+ "lessons": {
+  "r2-cisla100": {
+   "title": "I numeri fino a 100",
+   "summary": "Decine e unità, la linea dei numeri e il confronto dei numeri fino a 100.",
+   "theory": [
+    "<p>Ogni numero di due cifre ha le <strong>decine</strong> e le <strong>unità</strong>. Il numero 47 ha 4 decine e 7 unità:\n       $47 = 40 + 7$. Dieci decine fanno <strong>cento</strong>: $100$.</p>",
+    {
+     "fig": "r2-stovka",
+     "caption": "La tabella del cento. In ogni riga c'è una decina di numeri. Sotto il numero 47 c'è il 57, cioè il numero più grande di 10."
+    },
+    "<p><strong>Confronto:</strong> prima confrontiamo le decine. Se sono uguali, confrontiamo le unità.\n       $63 &gt; 58$, perché 6 decine sono più di 5 decine. $42 &lt; 45$, perché le decine sono uguali e 2 è meno di 5.</p>"
+   ],
+   "examples": [
+    {
+     "task": "Confronta i numeri 71 e 17.",
+     "steps": [
+      "Il numero 71 ha 7 decine, il numero 17 ha solo 1 decina.",
+      "<strong>$71 &gt; 17$</strong>"
+     ]
+    },
+    {
+     "task": "Quale numero ha 6 decine e 3 unità?",
+     "steps": [
+      "6 decine sono 60, più 3 unità.",
+      "$60 + 3 = 63$.",
+      "<strong>È il numero 63.</strong>"
+     ]
+    }
+   ]
+  },
+  "r2-scitanie": {
+   "title": "Addizione e sottrazione fino a 100",
+   "summary": "Calcolare con le decine, il cambio della decina e i salti sulla linea dei numeri.",
+   "theory": [
+    "<p>Le <strong>decine intere</strong> si sommano come le unità: $30 + 40$ sono 3 decine e 4 decine, cioè 7 decine, $70$.\n       Allo stesso modo $90 - 60 = 30$.</p>",
+    "<p>Con i numeri più grandi scomponiamo il secondo numero in <strong>decine e unità</strong> e le aggiungiamo una alla volta.\n       Per $38 + 25$ aggiungiamo prima 20 e poi 5.</p>",
+    {
+     "fig": "r2-skoky",
+     "caption": "$38 + 25$: un salto di 20 ci porta a 58, un salto di 5 a 63. Quindi $38 + 25 = 63$."
+    },
+    "<p>Nella sottrazione facciamo lo stesso: $72 - 34$ = prima $72 - 30 = 42$, poi $42 - 4 = 38$.\n       Possiamo controllare il risultato con un'addizione: $38 + 34 = 72$.</p>"
+   ],
+   "examples": [
+    {
+     "task": "Calcola $47 + 36$.",
+     "steps": [
+      "Scomponiamo il numero 36 in 30 e 6.",
+      "$47 + 30 = 77$.",
+      "$77 + 6 = 83$.",
+      "<strong>Risultato: 83</strong>"
+     ]
+    },
+    {
+     "task": "Calcola $81 - 25$.",
+     "steps": [
+      "Scomponiamo il numero 25 in 20 e 5.",
+      "$81 - 20 = 61$.",
+      "$61 - 5 = 56$.",
+      "Prova: $56 + 25 = 81$. <strong>Risultato: 56</strong>"
+     ]
+    }
+   ]
+  },
+  "r2-nasobenie": {
+   "title": "Moltiplicazione e divisione",
+   "summary": "La moltiplicazione come addizione ripetuta, la divisione in parti uguali.",
+   "theory": [
+    "<p>La <strong>moltiplicazione</strong> è un modo breve per sommare numeri uguali. Invece di $4 + 4 + 4$ scriviamo $3 \\cdot 4$\n       (tre volte quattro). I numeri che moltiplichiamo sono i <em>fattori</em>, il risultato è il <em>prodotto</em>.</p>",
+    {
+     "fig": "r2-pole",
+     "caption": "3 file da 4 pallini: $4 + 4 + 4 = 3 \\cdot 4 = 12$. Se leggiamo per colonne, abbiamo 4 colonne da 3 pallini: $4 \\cdot 3 = 12$."
+    },
+    "<p>L'ordine dei fattori non conta: $3 \\cdot 4 = 4 \\cdot 3$. Ogni numero per 1 non cambia ($7 \\cdot 1 = 7$)\n       e ogni numero per 0 fa 0 ($5 \\cdot 0 = 0$).</p>",
+    "<p>La <strong>divisione</strong> serve a dividere in parti uguali. Se dividiamo 12 caramelle in parti uguali fra 3 bambini, ognuno riceve\n       $12 : 3 = 4$. La divisione è l'operazione inversa della moltiplicazione: $12 : 3 = 4$, perché $3 \\cdot 4 = 12$.</p>"
+   ],
+   "examples": [
+    {
+     "task": "Scrivi la somma $5 + 5 + 5 + 5$ come moltiplicazione e calcola.",
+     "steps": [
+      "Sommiamo il numero 5 quattro volte.",
+      "$4 \\cdot 5 = 20$.",
+      "<strong>Risultato: 20</strong>"
+     ]
+    },
+    {
+     "task": "Con 15 fiori facciamo dei mazzi da 5 fiori. Quanti mazzi faremo?",
+     "steps": [
+      "Cerchiamo quante volte il 5 sta nel 15.",
+      "$15 : 5 = 3$, perché $3 \\cdot 5 = 15$.",
+      "<strong>Faremo 3 mazzi.</strong>"
+     ]
+    }
+   ]
+  },
+  "r2-nasobilka": {
+   "title": "I multipli e le tabelline",
+   "summary": "Le tabelline fino a 10 · 10, i multipli di un numero e la divisione con le tabelline.",
+   "theory": [
+    "<p>I <strong>multipli di un numero</strong> si ottengono moltiplicando il numero per 1, 2, 3, … I multipli del numero 3 sono\n       3, 6, 9, 12, 15, 18, 21, 24, 27, 30. Sulla linea dei numeri facciamo sempre salti di 3.</p>",
+    {
+     "fig": "r2-nasobky",
+     "caption": "I multipli del numero 3: ogni salto è lungo 3. Dopo quattro salti siamo sul numero $4 \\cdot 3 = 12$."
+    },
+    "<p>Trucchi utili: i multipli di 2 sono i numeri pari, i multipli di 5 finiscono con 0 o 5, i multipli di 10 finiscono con 0.\n       Se non ricordi $6 \\cdot 4$, aiutati così: $5 \\cdot 4 = 20$ e ancora una volta 4, cioè $24$.</p>",
+    "<p>Da una moltiplicazione ricaviamo subito due divisioni: da $6 \\cdot 4 = 24$ segue $24 : 4 = 6$ e $24 : 6 = 4$.</p>"
+   ],
+   "examples": [
+    {
+     "task": "Calcola $7 \\cdot 5$.",
+     "steps": [
+      "Multipli di 5: 5, 10, 15, 20, 25, 30, 35.",
+      "Il settimo multiplo è 35.",
+      "<strong>$7 \\cdot 5 = 35$</strong>"
+     ]
+    },
+    {
+     "task": "Calcola $32 : 4$.",
+     "steps": [
+      "Cerchiamo il numero che moltiplicato per 4 dà 32.",
+      "$8 \\cdot 4 = 32$.",
+      "<strong>$32 : 4 = 8$</strong>"
+     ]
+    }
+   ]
+  },
+  "r2-slovne": {
+   "title": "Problemi e dati",
+   "summary": "Dal problema all'operazione: addizione, sottrazione, moltiplicazione e divisione.",
+   "theory": [
+    "<p>In un problema scriviamo prima che cosa <strong>sappiamo</strong> e che cosa <strong>cerchiamo</strong>. Poi scegliamo\n       l'operazione giusta, facciamo il calcolo e scriviamo la <strong>risposta</strong> con una frase completa.</p>",
+    "<ul><li><em>ha ricevuto, si sono aggiunti, in tutto, … in più</em> → addizione,</li>\n       <li><em>ha dato via, sono rimasti, … in meno, quanti in più</em> → sottrazione,</li>\n       <li><em>da … (più volte la stessa quantità)</em> → moltiplicazione,</li>\n       <li><em>ha diviso in parti uguali, quanti gruppi da …</em> → divisione.</li></ul>",
+    "<p>I <strong>dati</strong> del problema si possono scrivere così:<br>Marco aveva … 35 biglie<br>ne ha perse … 12 biglie<br>\n       sono rimaste … ? biglie<br>$35 - 12 = 23$<br>Risposta: a Marco sono rimaste 23 biglie.</p>"
+   ],
+   "examples": [
+    {
+     "task": "Giulia ha 28 figurine. Luca ha 15 figurine in più. Quante figurine ha Luca?",
+     "steps": [
+      "«15 in più» significa aggiungere 15 a 28.",
+      "$28 + 15 = 43$.",
+      "<strong>Risposta: Luca ha 43 figurine.</strong>"
+     ]
+    },
+    {
+     "task": "La mamma ha messo 5 mele su ciascuno di 4 piatti. Quante mele ci sono in tutto sui piatti?",
+     "steps": [
+      "4 volte 5 è una moltiplicazione.",
+      "$4 \\cdot 5 = 20$.",
+      "<strong>Risposta: sui piatti ci sono 20 mele.</strong>"
+     ]
+    }
+   ]
+  },
+  "r2-ciary": {
+   "title": "Punto, segmento, retta e linea curva",
+   "summary": "Distinguiamo le linee, misuriamo e confrontiamo i segmenti.",
+   "theory": [
+    "<p>Il <strong>punto</strong> si disegna come un piccolo puntino e si indica con una lettera maiuscola, per esempio il punto $A$.\n       Il <strong>segmento</strong> è una linea dritta fra due punti, per esempio il segmento $CD$. I punti $C$ e $D$ sono i suoi estremi.</p>",
+    "<p>La <strong>retta</strong> è una linea dritta che non ha né inizio né fine: possiamo prolungarla da entrambe le parti.\n       Si indica con una lettera minuscola, per esempio la retta $p$. La <strong>linea curva</strong> non è dritta, si piega.</p>",
+    {
+     "fig": "r2-ciary",
+     "caption": "Punto, segmento, retta e linea curva. Le linee dritte si disegnano con il righello."
+    },
+    "<p>La lunghezza di un segmento si misura con il righello in <strong>centimetri</strong>. Mettiamo lo zero del righello sull'estremo $A$\n       e leggiamo il numero vicino al punto $B$.</p>",
+    {
+     "fig": "r2-pravitko",
+     "caption": "Il segmento $AB$ comincia sullo zero e finisce al numero 7. È lungo $7\\,\\text{cm}$."
+    }
+   ],
+   "examples": [
+    {
+     "task": "Quale linea ha due estremi?",
+     "steps": [
+      "Il punto è solo un puntino, la retta e la linea curva non hanno estremi.",
+      "<strong>Il segmento ha due estremi.</strong>"
+     ]
+    },
+    {
+     "task": "Il segmento $AB$ misura $9\\,\\text{cm}$, il segmento $CD$ misura $4\\,\\text{cm}$. Di quanto è più lungo il segmento $AB$?",
+     "steps": [
+      "Confrontiamo, quindi facciamo una sottrazione.",
+      "$9 - 4 = 5$.",
+      "<strong>Il segmento $AB$ è più lungo di $5\\,\\text{cm}$.</strong>"
+     ]
+    }
+   ]
+  },
+  "r2-jednotky": {
+   "title": "Misure di lunghezza, di tempo e il denaro",
+   "summary": "Centimetro e metro, ore e minuti, euro e centesimi.",
+   "theory": [
+    "<p><strong>Lunghezza:</strong> le cose corte si misurano in centimetri (cm), quelle più lunghe in metri (m).\n       $1\\,\\text{m} = 100\\,\\text{cm}$ e $1\\,\\text{dm} = 10\\,\\text{cm}$.</p>",
+    "<p><strong>Tempo:</strong> un giorno ha 24 ore, un'ora (h) ha 60 minuti (min). Mezz'ora è 30 minuti, un quarto d'ora è 15 minuti.\n       Sull'orologio la <em>lancetta corta</em> indica le ore e la <em>lancetta lunga</em> i minuti.</p>",
+    {
+     "fig": "r2-hodiny",
+     "caption": "A sinistra sono le 7:00, la lancetta lunga indica il 12. A destra sono le 2:30 (le due e mezza), la lancetta lunga indica il 6 e quella corta è fra il 2 e il 3."
+    },
+    "<p><strong>Denaro:</strong> paghiamo in euro (€) e centesimi (c). $1\\,\\text{€} = 100$ centesimi.\n       Le monete sono da 1 c, 2 c, 5 c, 10 c, 20 c, 50 c, 1 € e 2 €.</p>",
+    {
+     "fig": "r2-mince",
+     "caption": "Le monete in euro dalla più piccola alla più grande per valore."
+    }
+   ],
+   "examples": [
+    {
+     "task": "Quanti minuti sono 1 ora e 15 minuti?",
+     "steps": [
+      "1 ora è 60 minuti.",
+      "$60 + 15 = 75$.",
+      "<strong>Sono 75 minuti.</strong>"
+     ]
+    },
+    {
+     "task": "Nel portamonete hai le monete da 50 c, 20 c e 20 c. Quanti centesimi mancano per arrivare a 1 euro?",
+     "steps": [
+      "$50 + 20 + 20 = 90$ centesimi.",
+      "1 euro è 100 centesimi: $100 - 90 = 10$.",
+      "<strong>Mancano 10 centesimi.</strong>"
+     ]
+    }
+   ]
+  }
+ },
+ "strings": {
+  "$1\\,\\text{dm} = 10\\,\\text{cm}$, teda ${@0}\\,\\text{dm} = {@1} \\cdot 10\\,\\text{cm} = {@2}\\,\\text{cm}$.": "$1\\,\\text{dm} = 10\\,\\text{cm}$, quindi ${@0}\\,\\text{dm} = {@1} \\cdot 10\\,\\text{cm} = {@2}\\,\\text{cm}$.",
+  "$1\\,\\text{m} = 100\\,\\text{cm}$, $100 - {@0} = {@1}$. Chýba ${@2}\\,\\text{cm}$.": "$1\\,\\text{m} = 100\\,\\text{cm}$, $100 - {@0} = {@1}$. Mancano ${@2}\\,\\text{cm}$.",
+  "${@0} - {@1} = {@2}$. Úsečka $KL$ je o ${@3}\\,\\text{cm}$ dlhšia.": "${@0} - {@1} = {@2}$. Il segmento $KL$ è più lungo di ${@3}\\,\\text{cm}$.",
+  "${@0} : {@1} = {@2}$, teda ${@3} \\cdot {@4} = {@5}$.": "${@0} : {@1} = {@2}$, quindi ${@3} \\cdot {@4} = {@5}$.",
+  "${@0} = {@1}$ centov.": "${@0} = {@1}$ centesimi.",
+  "${@0} \\cdot {@1} = {@2}$, preto ${@3} : {@4} = {@5}$.": "${@0} \\cdot {@1} = {@2}$, perciò ${@3} : {@4} = {@5}$.",
+  "${@0} \\cdot {@1} = {@2}$, preto {@3} je násobok čísla {@4}. Ostatné čísla v násobilke čísla {@5} nie sú.": "${@0} \\cdot {@1} = {@2}$, perciò {@3} è un multiplo di {@4}. Gli altri numeri non sono nella tabellina del {@5}.",
+  "1 dm je 10 cm.": "1 dm è 10 cm.",
+  "1 euro je 100 centov: $100 - {@0} = {@1}$. Chýba {@2} {@3}.": "1 euro è 100 centesimi: $100 - {@0} = {@1}$. Mancano {@2} {@3}.",
+  "1 hodina": "1 ora",
+  "1 hodina je 60 minút: $60 + {@0} = {@1}$ minút.": "1 ora è 60 minuti: $60 + {@0} = {@1}$ minuti.",
+  "1 m je 100 cm.": "1 m è 100 cm.",
+  "1 € = 100 centov.": "1 € = 100 centesimi.",
+  "Aká dlhá je úsečka $AB$? Odpoveď napíš v centimetroch.{@0}": "Quanto è lungo il segmento $AB$? Scrivi la risposta in centimetri.{@0}",
+  "Bod $A$ je pri čísle {@0}, bod $B$ pri čísle {@1}. ${@2} - {@3} = {@4}$, úsečka meria ${@5}\\,\\text{cm}$.": "Il punto $A$ è sul numero {@0}, il punto $B$ sul numero {@1}. ${@2} - {@3} = {@4}$, il segmento misura ${@5}\\,\\text{cm}$.",
+  "Bod je len jedna malá bodka. Na obrázku je čiara.": "Un punto è solo un piccolo puntino. Nella figura c'è una linea.",
+  "Bod, úsečka, priamka a krivá čiara": "Punto, segmento, retta e linea curva",
+  "Celá dĺžka je súčet dĺžok všetkých úsečiek.": "La lunghezza totale è la somma delle lunghezze di tutti i segmenti.",
+  "Celá lomená čiara je dlhšia ako každá jej časť. Dĺžky úsečiek sčítaj, nie odčítaj.": "La linea spezzata intera è più lunga di ogni sua parte. Le lunghezze dei segmenti vanno sommate, non sottratte.",
+  "Centimeter je veľmi malý, asi ako šírka prsta. Tu treba väčšiu jednotku.": "Il centimetro è molto piccolo, più o meno quanto la larghezza di un dito. Qui serve un'unità più grande.",
+  "Centov máš 100 alebo viac. Zo 100 centov je ďalšie celé euro – pripočítaj ho k eurám.": "Hai 100 centesimi o più. Con 100 centesimi fai un altro euro intero: aggiungilo agli euro.",
+  "Ceny píšeme v eurách.": "I prezzi si scrivono in euro.",
+  "Ceruzka je dlhá asi 15 …": "Una matita è lunga circa 15 …",
+  "Cez dva rôzne body prechádza práve jedna priamka.": "Per due punti diversi passa una sola retta.",
+  "Chýbajúce číslo zistíme odčítaním: ${@0} - {@1} = {@2}$. Skúška: ${@3} + {@4} = {@5}$.": "Il numero mancante si trova con la sottrazione: ${@0} - {@1} = {@2}$. Verifica: ${@3} + {@4} = {@5}$.",
+  "Delenie nie je odčítanie. Hľadaj číslo, ktoré krát {@0} dá {@1}.": "La divisione non è una sottrazione. Cerca il numero che moltiplicato per {@0} dà {@1}.",
+  "Delíme na {@0} {@1}: ${@2} : {@3} = {@4}$, lebo ${@5} \\cdot {@6} = {@7}$.": "Dividiamo in {@0} {@1}: ${@2} : {@3} = {@4}$, perché ${@5} \\cdot {@6} = {@7}$.",
+  "Desať nepripočítavaj. Každý decimeter má 10 cm, preto počet decimetrov násob desiatimi.": "Non aggiungere dieci. Ogni decimetro ha 10 cm, perciò moltiplica il numero di decimetri per dieci.",
+  "Desiatky a jednotky nesčítavaj ako obyčajné čísla. Desiatky napíš na prvé miesto a jednotky za ne.": "Non sommare decine e unità come numeri normali. Scrivi le decine al primo posto e le unità dopo.",
+  "Desiatky sú rovnaké, porovnáme jednotky: {@0} a {@1}. Preto ${@2} {@3} {@4}$.": "Le decine sono uguali, confrontiamo le unità: {@0} e {@1}. Perciò ${@2} {@3} {@4}$.",
+  "Deň (s nocou) má 24 hodín.": "Un giorno (con la notte) ha 24 ore.",
+  "Dlhšie veci meriame v metroch.": "Le cose più lunghe si misurano in metri.",
+  "Dlhší čas meriame v hodinách.": "I tempi più lunghi si misurano in ore.",
+  "Dom je vysoký asi 10 …": "Una casa è alta circa 10 …",
+  "Doplň chýbajúce číslo: ${@0} - \\square = {@1}$": "Completa il numero mancante: ${@0} - \\square = {@1}$",
+  "Doplň chýbajúce číslo: ${@0} \\cdot \\square = {@1}$": "Completa il numero mancante: ${@0} \\cdot \\square = {@1}$",
+  "Doplň chýbajúci násobok čísla {@0}: {@1}": "Completa il multiplo mancante di {@0}: {@1}",
+  "Doplň správnu jednotku: {@0}": "Completa con l'unità giusta: {@0}",
+  "Doplň číslo, ktoré chýba v rade: {@0}": "Completa il numero che manca nella sequenza: {@0}",
+  "Dĺžky nesčítavaj. Pýtame sa, o koľko je jedna úsečka dlhšia – odčítaj.": "Non sommare le lunghezze. Chiediamo di quanto un segmento è più lungo: sottrai.",
+  "Dĺžky sčítame: ${@0} + {@1} = {@2}$. Lomená čiara meria ${@3}\\,\\text{cm}$.": "Sommiamo le lunghezze: ${@0} + {@1} = {@2}$. La linea spezzata misura ${@3}\\,\\text{cm}$.",
+  "Euromince": "Monete in euro",
+  "Hodina je dlhý čas. Tu treba kratšiu jednotku.": "Un'ora è un tempo lungo. Qui serve un'unità più piccola.",
+  "Hodina má 60 minút. Polovica z 60 je 30, štvrtina je 15.": "Un'ora ha 60 minuti. La metà di 60 è 30, un quarto è 15.",
+  "Hodina má 60 minút. {@0} je {@1} minút.": "Un'ora ha 60 minuti. {@0} sono {@1} minuti.",
+  "Hodina nemá 100 minút, ale 60 minút.": "Un'ora non ha 100 minuti, ma 60 minuti.",
+  "Hodinu musíš najprv premeniť na minúty: 1 hodina je 60 minút.": "Prima devi trasformare l'ora in minuti: 1 ora è 60 minuti.",
+  "Hodiny ukazujú 7:00 a 2:30": "Gli orologi segnano le 7:00 e le 2:30",
+  "Hľadaj suseda čísla v číselnom rade.": "Cerca il vicino del numero sulla retta dei numeri.",
+  "Je to dĺžka, čas, alebo cena? A je to krátke, alebo dlhé?": "È una lunghezza, un tempo o un prezzo? Ed è una cosa corta o lunga?",
+  "Je to len jedna bodka, teda bod.": "È solo un puntino, quindi un punto.",
+  "Je čiara rovná? Má krajné body?": "La linea è dritta? Ha degli estremi?",
+  "Jednotky dali spolu viac ako 10, ale zabudol si pripočítať túto novú desiatku.": "Le unità insieme hanno fatto più di 10, ma hai dimenticato di aggiungere questa nuova decina.",
+  "Každé ďalšie číslo je o {@0} väčšie.": "Ogni numero è più grande del precedente di {@0}.",
+  "Keď je viackrát to isté číslo, môžeš násobiť.": "Quando c'è più volte lo stesso numero, puoi moltiplicare.",
+  "Kniha stojí asi 12 …": "Un libro costa circa 12 …",
+  "Koľko centimetrov je ${@0}\\,\\text{dm}$?": "Quanti centimetri sono ${@0}\\,\\text{dm}$?",
+  "Koľko centimetrov je od {@0} po {@1}? Vypočítaj ${@2} - {@3}$.": "Quanti centimetri ci sono da {@0} a {@1}? Calcola ${@2} - {@3}$.",
+  "Koľko centimetrov má 1 meter?": "Quanti centimetri ha 1 metro?",
+  "Koľko centov je spolu?{@0}": "Quanti centesimi ci sono in tutto?{@0}",
+  "Koľko centov je v ostatných minciach?": "Quanti centesimi ci sono nelle altre monete?",
+  "Koľko centov má 1 euro?": "Quanti centesimi ha 1 euro?",
+  "Koľko eur je v minciach 1 € a 2 €?": "Quanti euro ci sono nelle monete da 1 € e da 2 €?",
+  "Koľko hodín má jeden deň?": "Quante ore ha un giorno?",
+  "Koľko je $100 - {@0}$?": "Quanto fa $100 - {@0}$?",
+  "Koľko je $60 + {@0}$?": "Quanto fa $60 + {@0}$?",
+  "Koľko je ${@0} \\cdot {@1}$?": "Quanto fa ${@0} \\cdot {@1}$?",
+  "Koľko je hodín?<svg viewBox=\"0 0 180 180\" width=\"180\" role=\"img\" aria-label=\"ciferník hodín\">{@0}</svg>": "Che ore sono?<svg viewBox=\"0 0 180 180\" width=\"180\" role=\"img\" aria-label=\"quadrante dell'orologio\">{@0}</svg>",
+  "Koľko je skupín?": "Quanti sono i gruppi?",
+  "Koľko je spolu {@0}? <span class=\"emoji-row\">{@1}</span>": "Qual è il numero totale di {@0}? <span class=\"emoji-row\">{@1}</span>",
+  "Koľko je to spolu eur a centov? Napíš dve čísla oddelené bodkočiarkou (napr. 2; 35).{@0}": "Quanti euro e centesimi sono in tutto? Scrivi due numeri separati da un punto e virgola (per es. 2; 35).{@0}",
+  "Koľko krajných bodov má priamka?": "Quanti estremi ha una retta?",
+  "Koľko krajných bodov má úsečka?": "Quanti estremi ha un segmento?",
+  "Koľko kúskov je v jednej skupine?": "Quanti pezzi ci sono in un gruppo?",
+  "Koľko minút je 1 hodina a {@0} minút?": "Quanti minuti sono 1 ora e {@0} minuti?",
+  "Koľko minút je {@0}?": "Quanti minuti sono {@0}?",
+  "Koľko minút má 1 hodina?": "Quanti minuti ha 1 ora?",
+  "Koľko priamok môžeš nakresliť cez dva rôzne body?": "Quante rette puoi disegnare per due punti diversi?",
+  "Koľkokrát musíš sčítať {@0}, aby si dostal {@1}?": "Quante volte devi sommare {@0} per ottenere {@1}?",
+  "Koľkokrát sa opakuje to isté číslo?": "Quante volte si ripete lo stesso numero?",
+  "Koľkokrát sa v súčte opakuje číslo {@0}?": "Quante volte si ripete il numero {@0} nella somma?",
+  "Krivá čiara je čiara. Tu je len jedna bodka.": "La linea curva è una linea. Qui c'è solo un puntino.",
+  "Krivá čiara sa zatáča. Táto čiara je rovná.": "La linea curva si piega. Questa linea è dritta.",
+  "Krátka ručička je ešte len medzi {@0} a {@1}. Kým nedôjde k {@2}, platí menšia hodina.": "La lancetta corta è ancora tra il {@0} e il {@1}. Finché non arriva al {@2}, vale l'ora più piccola.",
+  "Krátka ručička ukazuje hodiny, dlhá minúty. Keď je dlhá na 6, je pol.": "La lancetta corta indica le ore, quella lunga i minuti. Quando la lunga è sul 6, è la mezza.",
+  "Krátka ručička {@0}, dlhá ručička ukazuje na {@1}, teda {@2} minút. Je {@3} ({@4}).": "La lancetta corta {@0}, la lancetta lunga indica il {@1}, cioè {@2} minuti. Sono le {@3} ({@4}).",
+  "Krátke veci meriame v centimetroch.": "Le cose corte si misurano in centimetri.",
+  "Krátky čas meriame v minútach.": "I tempi brevi si misurano in minuti.",
+  "Ktoré celé desiatky sú v čísle {@0}? (Pri čísle 36 by to bolo 30.)": "Quali decine intere ci sono nel numero {@0}? (Per il numero 36 sarebbe 30.)",
+  "Ktoré z týchto čísel je násobkom čísla {@0}?": "Quale di questi numeri è un multiplo di {@0}?",
+  "Ktoré číslo je o {@0} {@1} ako {@2}?": "Quale numero è {@1} di {@0} rispetto a {@2}?",
+  "Ktoré číslo krát {@0} dá {@1}?": "Quale numero moltiplicato per {@0} dà {@1}?",
+  "Ktoré číslo má {@0} {@1} a {@2} {@3}?": "Quale numero ha {@0} {@1} e {@2} {@3}?",
+  "Ktorú počtovú operáciu použiješ?": "Quale operazione usi?",
+  "Lomená čiara sa skladá z dvoch úsečiek. Prvá meria ${@0}\\,\\text{cm}$, druhá ${@1}\\,\\text{cm}$. Aká dlhá je celá lomená čiara (v cm)?": "Una linea spezzata è formata da due segmenti. Il primo misura ${@0}\\,\\text{cm}$, il secondo ${@1}\\,\\text{cm}$. Quanto è lunga tutta la linea spezzata (in cm)?",
+  "Meter je asi taký dlhý ako veľký krok. Tu je to priveľa, treba menšiu jednotku.": "Un metro è lungo più o meno come un passo lungo. Qui è troppo, serve un'unità più piccola.",
+  "Mince 1 € a 2 € maj zvlášť, centy sčítaj zvlášť. 100 centov je 1 euro.": "Conta a parte le monete da 1 € e 2 €, e somma a parte i centesimi. 100 centesimi sono 1 euro.",
+  "Minúta je krátky čas. Tu treba dlhšiu jednotku.": "Un minuto è un tempo breve. Qui serve un'unità più grande.",
+  "Máš {@0} {@1}. Koľko centov ti chýba do 1 eura?": "Hai {@0} {@1}. Quanti centesimi ti mancano per arrivare a 1 euro?",
+  "Najprv odčítaj desiatky, potom jednotky.": "Prima sottrai le decine, poi le unità.",
+  "Najprv odčítaj desiatky: koľko je ${@0} - {@1}$?": "Prima sottrai le decine: quanto fa ${@0} - {@1}$?",
+  "Najprv odčítame desiatky: ${@0} - {@1} = {@2}$. Potom jednotky: ${@3} - {@4} = {@5}$.": "Prima sottraiamo le decine: ${@0} - {@1} = {@2}$. Poi le unità: ${@3} - {@4} = {@5}$.",
+  "Najprv porovnaj desiatky. Ak sú rovnaké, porovnaj jednotky.": "Prima confronta le decine. Se sono uguali, confronta le unità.",
+  "Najprv premeň hodinu na minúty a potom pripočítaj.": "Prima trasforma l'ora in minuti e poi aggiungi.",
+  "Najprv pripočítaj desiatky: koľko je ${@0} + {@1}$?": "Prima aggiungi le decine: quanto fa ${@0} + {@1}$?",
+  "Najprv pripočítame desiatky: ${@0} + {@1} = {@2}$. Potom jednotky: ${@3} + {@4} = {@5}$.": "Prima aggiungiamo le decine: ${@0} + {@1} = {@2}$. Poi le unità: ${@3} + {@4} = {@5}$.",
+  "Neodčítavaj. Cukríky rozdeľujeme rovnako, to je delenie.": "Non sottrarre. Le caramelle si dividono in parti uguali, è una divisione.",
+  "Neodčítavaj. Hľadáš číslo, ktoré krát {@0} dá {@1}.": "Non sottrarre. Cerchi il numero che moltiplicato per {@0} dà {@1}.",
+  "Neodčítavaj. Keď rozdeľujeme rovnako, delíme.": "Non sottrarre. Quando dividiamo in parti uguali, facciamo una divisione.",
+  "Neodčítavaj. Zisťujeme, koľkokrát sa {@0} zmestí do {@1}, to je delenie.": "Non sottrarre. Cerchiamo quante volte {@0} sta in {@1}: è una divisione.",
+  "Nesčítavaj počet sčítancov a číslo {@0}. Číslo {@1} sa opakuje {@2}-krát – to je násobenie.": "Non sommare il numero degli addendi e il numero {@0}. Il numero {@1} si ripete {@2} volte: è una moltiplicazione.",
+  "Násobenie použiješ, keď máš viackrát po rovnako.": "La moltiplicazione si usa quando hai più volte la stessa quantità.",
+  "Násobky {@0} rastú vždy o {@1}: {@2}. Chýba ${@3} \\cdot {@4} = {@5}$.": "I multipli di {@0} crescono sempre di {@1}: {@2}. Manca ${@3} \\cdot {@4} = {@5}$.",
+  "Násobky {@0}: {@1}. Teda ${@2} \\cdot {@3} = {@4}$.": "Multipli di {@0}: {@1}. Quindi ${@2} \\cdot {@3} = {@4}$.",
+  "Násobky čísla 3 na číselnom rade": "Multipli del 3 sulla retta dei numeri",
+  "O koľko je {@0} viac ako {@1}?": "Di quanto {@0} è più grande di {@1}?",
+  "Od {@0} sme ubrali toľko, koľko je ${@1} - {@2} = {@3}$. Skúška: ${@4} - {@5} = {@6}$.": "Da {@0} abbiamo tolto ${@1} - {@2} = {@3}$. Verifica: ${@4} - {@5} = {@6}$.",
+  "Odčítanie použiješ, keď niečo ubudne.": "La sottrazione si usa quando qualcosa diminuisce.",
+  "Otázka „o koľko viac“ sa rieši odčítaním väčšieho a menšieho čísla.": "La domanda “di quanto di più” si risolve sottraendo il numero minore dal maggiore.",
+  "Palec na ruke je dlhý asi 5 …": "Il pollice della mano è lungo circa 5 …",
+  "Pol hodiny": "Mezz'ora",
+  "Porovnáme desiatky: {@0} a {@1}. Preto ${@2} {@3} {@4}$.": "Confrontiamo le decine: {@0} e {@1}. Perciò ${@2} {@3} {@4}$.",
+  "Porovnávame, preto odčítame: {@0} {@1} má o {@2} {@3} viac.": "Confrontiamo, perciò sottraiamo: {@0} {@1} ha {@2} {@3} in più.",
+  "Posunul si sa na opačnú stranu. Menšie číslo dostaneš odčítaním.": "Ti sei spostato dalla parte opposta. Il numero più piccolo si ottiene sottraendo.",
+  "Posunul si sa na opačnú stranu. Väčšie číslo dostaneš pripočítaním.": "Ti sei spostato dalla parte opposta. Il numero più grande si ottiene addizionando.",
+  "Pozor, úsečka nezačína na nule. Spočítaj centimetre medzi A a B.": "Attenzione, il segmento non comincia dallo zero. Conta i centimetri tra A e B.",
+  "Pozri sa na dve susedné čísla. O koľko sa líšia?": "Guarda due numeri vicini. Di quanto sono diversi?",
+  "Pozri sa presne, na ktoré číslo ukazuje krátka ručička.": "Guarda bene su quale numero è la lancetta corta.",
+  "Pozri sa, pri ktorom čísle je bod B.": "Guarda su quale numero si trova il punto B.",
+  "Počet skupín a počet v jednej skupine nesčítavaj. Rovnaké skupiny spočítaš násobením.": "Non sommare il numero dei gruppi e il numero in un gruppo. I gruppi uguali si contano con la moltiplicazione.",
+  "Počet tanierov a počet na jednom tanieri nesčítavaj. Na každom tanieri je rovnako – násob.": "Non sommare il numero dei piatti e il numero su un piatto. Su ogni piatto ce n'è la stessa quantità: moltiplica.",
+  "Počítaj s desiatkami ako s jednotkami: 3 desiatky + 4 desiatky = 7 desiatok.": "Conta con le decine come con le unità: 3 decine + 4 decine = 7 decine.",
+  "Počítal si, akoby mala hodina 100 minút. Hodina má len 60 minút.": "Hai calcolato come se un'ora avesse 100 minuti. Un'ora ha solo 60 minuti.",
+  "Pravítko a úsečka AB": "Il righello e il segmento AB",
+  "Prejdi násobky čísla {@0}, kým nenájdeš {@1}.": "Scorri i multipli di {@0} finché non trovi {@1}.",
+  "Prestávka trvá 10 …": "La ricreazione dura 10 …",
+  "Prečítal si len číslo pri bode B. Úsečka nezačína na nule, preto odčítaj číslo pri bode A.": "Hai letto solo il numero vicino al punto B. Il segmento non comincia dallo zero, perciò sottrai il numero vicino al punto A.",
+  "Pri jednotkách si odčítal obrátene ({@0} − {@1}). Keď jednotky nestačia, prejdi cez desiatku: uber najprv desiatky, potom jednotky.": "Nelle unità hai sottratto al contrario ({@0} − {@1}). Quando le unità non bastano, passa attraverso la decina: togli prima le decine, poi le unità.",
+  "Pri ktorom čísle na pravítku je bod A?": "Su quale numero del righello si trova il punto A?",
+  "Pri ktorom čísle na pravítku je bod B?": "Su quale numero del righello si trova il punto B?",
+  "Priamka je rovná čiara. Tu je len jedna bodka.": "La retta è una linea dritta. Qui c'è solo un puntino.",
+  "Priamka je rovná. Táto čiara sa zatáča.": "La retta è dritta. Questa linea si piega.",
+  "Priamka nemá krajné body. Táto čiara má dva krajné body, kde začína a končí.": "La retta non ha estremi. Questa linea ha due estremi, dove comincia e dove finisce.",
+  "Priamka nemá začiatok ani koniec, nemá žiadny krajný bod.": "La retta non ha né inizio né fine, non ha nessun estremo.",
+  "Pribudlo → sčítanie, ubudlo → odčítanie, viackrát po rovnako → násobenie.": "È aumentato → addizione, è diminuito → sottrazione, più volte la stessa quantità → moltiplicazione.",
+  "Pribudlo, preto sčítame.": "È aumentato, perciò addizioniamo.",
+  "Pridávame, preto sčítame: {@0} {@1} má {@2} {@3}.": "Aggiungiamo, perciò addizioniamo: {@0} {@1} ha {@2} {@3}.",
+  "Pripočítal si len desiatky. Nezabudni pridať aj {@0} {@1}.": "Hai aggiunto solo le decine. Non dimenticare di aggiungere anche {@0} {@1}.",
+  "Pripočítavaj {@0} toľkokrát, koľko je {@1}, alebo si spomeň na násobilku čísla {@2}.": "Aggiungi {@0} tante volte quante indica {@1}, oppure ricorda la tabellina del {@2}.",
+  "Rovnaké rozdeľovanie je delenie.": "Dividere in parti uguali è una divisione.",
+  "Rovná čiara bez krajných bodov, ktorá ide cez celý obrázok, je priamka.": "Una linea dritta senza estremi, che attraversa tutta la figura, è una retta.",
+  "Rovná čiara s dvoma krajnými bodmi je úsečka.": "Una linea dritta con due estremi è un segmento.",
+  "Rozdeľ druhé číslo na desiatky a jednotky a pripočítaj ich postupne.": "Dividi il secondo numero in decine e unità e aggiungile una alla volta.",
+  "Rozdeľujeme na {@0} {@1}: ${@2} : {@3} = {@4}$, lebo ${@5} \\cdot {@6} = {@7}$. Každý dostal {@8} {@9}.": "Dividiamo in {@0} {@1}: ${@2} : {@3} = {@4}$, perché ${@5} \\cdot {@6} = {@7}$. Ognuno ha ricevuto {@8} {@9}.",
+  "Rozlož číslo na desiatky a jednotky: ${@0} = \\square + \\square$.": "Scomponi il numero in decine e unità: ${@0} = \\square + \\square$.",
+  "Si o jeden násobok čísla {@0} nižšie. Spočítaj skoky po {@1} ešte raz.": "Sei un multiplo di {@0} più in basso. Conta di nuovo i salti di {@1}.",
+  "Si o jeden násobok čísla {@0} vyššie. Spočítaj skoky po {@1} ešte raz.": "Sei un multiplo di {@0} più in alto. Conta di nuovo i salti di {@1}.",
+  "Skoky na číselnom rade: 38 plus 20 plus 5": "Salti sulla retta dei numeri: 38 più 20 più 5",
+  "Spolu je to {@0} € a {@1} c. Koľko je to eur a centov? (Pamätaj: 100 centov je 1 euro.)": "In tutto sono {@0} € e {@1} c. Quanti euro e centesimi sono? (Ricorda: 100 centesimi sono 1 euro.)",
+  "Spočítaj 12 hodín dopoludnia a 12 hodín popoludní.": "Conta 12 ore di mattina e 12 ore di pomeriggio.",
+  "Spočítaj skupiny a koľko je v jednej skupine. Potom vynásob.": "Conta i gruppi e quanti ce ne sono in un gruppo. Poi moltiplica.",
+  "Spočítal si, koľko je mincí. Treba sčítať čísla napísané na minciach.": "Hai contato quante monete ci sono. Bisogna sommare i numeri scritti sulle monete.",
+  "Stovková tabuľka čísel od 1 do 100": "Tabella del cento con i numeri da 1 a 100",
+  "Stuha meria ${@0}\\,\\text{cm}$. Koľko centimetrov chýba do $1\\,\\text{m}$?": "Un nastro misura ${@0}\\,\\text{cm}$. Quanti centimetri mancano per arrivare a $1\\,\\text{m}$?",
+  "Sú tu {@0} {@1} po {@2}: ${@3} = {@4} \\cdot {@5} = {@6}$.": "Ci sono {@0} {@1} da {@2}: ${@3} = {@4} \\cdot {@5} = {@6}$.",
+  "Sčítaj hodnoty mincí, začni od najväčšej.": "Somma i valori delle monete, comincia dalla più grande.",
+  "Sčítanie použiješ, keď niečo pribudne.": "L'addizione si usa quando qualcosa aumenta.",
+  "Teraz odčítaj jednotky: koľko je ${@0} - {@1}$?": "Ora sottrai le unità: quanto fa ${@0} - {@1}$?",
+  "Teraz pripočítaj jednotky: koľko je ${@0} + {@1}$?": "Ora aggiungi le unità: quanto fa ${@0} + {@1}$?",
+  "To je dĺžka stuhy. Pýtame sa, koľko jej chýba do 1 metra – odčítaj od 100.": "Questa è la lunghezza del nastro. Chiediamo quanto manca per arrivare a 1 metro: sottrai da 100.",
+  "To je len polovica dňa. Ciferník ukazuje 12 hodín, ale ručička ho za deň obehne dvakrát.": "Questa è solo metà giornata. Il quadrante mostra 12 ore, ma in un giorno la lancetta fa il giro due volte.",
+  "To je počet desiatok. Jednotky sú posledná číslica vpravo.": "Questo è il numero delle decine. Le unità sono l'ultima cifra a destra.",
+  "To je počet jednotiek. Desiatky sú prvá číslica vľavo.": "Questo è il numero delle unità. Le decine sono la prima cifra a sinistra.",
+  "Toľko centov už máš. Pýtame sa, koľko ti chýba do 100 centov – odčítaj.": "Questi centesimi li hai già. Chiediamo quanti ne mancano per arrivare a 100 centesimi: sottrai.",
+  "Tri rady po štyri bodky": "Tre file da quattro puntini",
+  "Trieda je dlhá asi 9 …": "Un'aula è lunga circa 9 …",
+  "Trištvrte hodiny": "Tre quarti d'ora",
+  "Trojuholník má 3 strany a každá strana je úsečka.": "Il triangolo ha 3 lati e ogni lato è un segmento.",
+  "Uberáme, preto odčítame: {@0} Zostalo {@1} {@2} {@3}.": "Togliamo, perciò sottraiamo: {@0} {@1} restano {@2} {@3}.",
+  "Ubudlo, preto odčítame.": "È diminuito, perciò sottraiamo.",
+  "V centoch: ${@0} = {@1}$ centov. 100 centov je 1 euro, preto je to {@2} € a {@3} c.": "In centesimi: ${@0} = {@1}$ centesimi. 100 centesimi sono 1 euro, perciò sono {@2} € e {@3} c.",
+  "V jednotkách {@0} meriame {@1}, ale tu ide o {@2}.": "Con {@0} si misura {@1}, ma qui la grandezza è {@2}.",
+  "V noci spíme asi 10 …": "Di notte dormiamo circa 10 …",
+  "Vymenil si desiatky a jednotky. Desiatky píšeme na prvé miesto, jednotky na druhé.": "Hai scambiato decine e unità. Le decine si scrivono al primo posto, le unità al secondo.",
+  "Vymenil si ručičky. Krátka ručička ukazuje hodiny, dlhá ručička minúty.": "Hai scambiato le lancette. La lancetta corta indica le ore, quella lunga i minuti.",
+  "Vymenuj násobky {@0}: {@1}, {@2}, {@3}, …": "Elenca i multipli di {@0}: {@1}, {@2}, {@3}, …",
+  "Vypočítaj ${@0} : {@1}$.": "Calcola ${@0} : {@1}$.",
+  "Vypočítaj ${@0} \\cdot {@1}$.": "Calcola ${@0} \\cdot {@1}$.",
+  "Vypočítaj ${@0} {@1} {@2}$.": "Calcola ${@0} {@1} {@2}$.",
+  "Vyučovanie trvá asi 5 …": "Le lezioni durano circa 5 …",
+  "Z koľkých úsečiek sa skladá obvod trojuholníka?": "Da quanti segmenti è formato il perimetro di un triangolo?",
+  "Z koľkých úsečiek sa skladá obvod štvorca?": "Da quanti segmenti è formato il perimetro di un quadrato?",
+  "Z {@0} balónov robíme zväzky po {@1} {@2}. Koľko zväzkov urobíme?": "Con {@0} palloncini facciamo mazzi da {@1} {@2}. Quanti mazzi facciamo?",
+  "Zapíš súčet ako násobenie a vypočítaj: ${@0}$": "Scrivi la somma come moltiplicazione e calcola: ${@0}$",
+  "Zisťujeme, koľkokrát sa {@0} zmestí do {@1}: ${@2} : {@3} = {@4}$, lebo ${@5} \\cdot {@6} = {@7}$.": "Cerchiamo quante volte {@0} sta in {@1}: ${@2} : {@3} = {@4}$, perché ${@5} \\cdot {@6} = {@7}$.",
+  "Zmení sa len počet desiatok, jednotky ostanú rovnaké. V stovkovej tabuľke sa posuň o riadok.": "Cambia solo il numero delle decine, le unità restano uguali. Nella tabella del cento spostati di una riga.",
+  "Zmrzlina stojí asi 2 …": "Un gelato costa circa 2 …",
+  "Znak = patrí len medzi dve rovnaké čísla. Tieto čísla sú rôzne.": "Il segno = va solo tra due numeri uguali. Questi numeri sono diversi.",
+  "Znak je otočený naopak. Desiatky sú rovnaké, preto rozhodujú jednotky.": "Il segno è girato al contrario. Le decine sono uguali, perciò decidono le unità.",
+  "Znak je otočený naopak. Rozhodujú desiatky: väčšie je číslo, ktoré má viac desiatok.": "Il segno è girato al contrario. Decidono le decine: è maggiore il numero che ha più decine.",
+  "Znamienko + znamená pridať. Tu treba sčítať, nie odčítať.": "Il segno + significa aggiungere. Qui bisogna addizionare, non sottrarre.",
+  "Znamienko − znamená ubrať. Tu treba odčítať, nie sčítať.": "Il segno − significa togliere. Qui bisogna sottrarre, non addizionare.",
+  "balón": "palloncino",
+  "balónov": "palloncini",
+  "balóny": "palloncini",
+  "bod": "punto",
+  "bod A": "punto A",
+  "cent": "centesimo",
+  "centov": "centesimi",
+  "centy": "centesimi",
+  "cenu": "il prezzo",
+  "ciferník hodín": "quadrante dell'orologio",
+  "citrónov": "limoni",
+  "desiatku": "decina",
+  "deti": "bambini",
+  "detí": "bambini",
+  "dieťa": "bambino",
+  "dĺžku": "la lunghezza",
+  "eurá; centy": "euro; centesimi",
+  "hodina": "ora",
+  "hodiny": "ore",
+  "hodín": "ore",
+  "hrušiek": "pere",
+  "jahôd": "fragole",
+  "je medzi {@0} a {@1}": "è tra il {@0} e il {@1}",
+  "jednotku": "unità",
+  "krivá čiara": "linea curva",
+  "kúpil": "ha comprato",
+  "kúpila": "ha comprato",
+  "min": "min",
+  "mince": "monete",
+  "mrkiev": "carote",
+  "orechov": "noci",
+  "orechy": "noci",
+  "pol hodiny": "mezz'ora",
+  "položil": "ha messo",
+  "položila": "ha messo",
+  "presne {@0} {@1}": "le {@0} in punto",
+  "priamka": "retta",
+  "priamka p": "retta p",
+  "rovnaké časti": "parti uguali",
+  "rovnakú časť": "parte uguale",
+  "rovnakých častí": "parti uguali",
+  "rozdelil": "ha diviso",
+  "rozdelila": "ha diviso",
+  "skupina": "gruppo",
+  "skupiny": "gruppi",
+  "skupín": "gruppi",
+  "skáčeme vždy o 3": "saltiamo sempre di 3",
+  "stratil": "ha perso",
+  "stratila": "ha perso",
+  "tanier": "piatto",
+  "taniere": "piatti",
+  "tanierov": "piatti",
+  "trištvrte hodiny": "tre quarti d'ora",
+  "ukazuje na {@0}": "indica il {@0}",
+  "vreciek": "sacchetti",
+  "vrecko": "sacchetto",
+  "vrecká": "sacchetti",
+  "{@0} Skúška: ${@1} + {@2} = {@3}$.": "{@0} Verifica: ${@1} + {@2} = {@3}$.",
+  "{@0} Správny zápis je {@1}.": "{@0} La scrittura giusta è {@1}.",
+  "{@0} desiatka je {@1}.": "{@0} decina è {@1}.",
+  "{@0} desiatky sú {@1}.": "{@0} decine sono {@1}.",
+  "{@0} desiatok je {@1}.": "{@0} decine sono {@1}.",
+  "{@0} je len to, o koľko má {@1} menej. Odčítaj to od toho, čo má {@2}.": "{@0} è solo la differenza, cioè quanto ha in meno {@1}. Sottrailo da quanto ha {@2}.",
+  "{@0} má menej ako {@1}, preto treba odčítať, nie sčítať.": "{@0} ha meno di {@1}, perciò bisogna sottrarre, non addizionare.",
+  "{@0} má {@1} {@2}. {@3} má o {@4} {@5} menej. Koľko {@6} má {@7}?": "{@0} ha {@1} {@2}. {@3} ha {@4} {@5} in meno. Quante {@6} ha {@7}?",
+  "{@0} {@1} a {@2} minút": "le {@0} e {@2} minuti",
+  "{@0} {@1} na {@2} {@3} po {@4} {@5}. Koľko {@6} je na tanieroch spolu?": "{@0} {@1} {@4} {@5} su ciascuno di {@2} {@3}. Qual è il numero totale di {@6} sui piatti?",
+  "{@0} {@1} {@2} {@3} a {@4} ešte {@5}. Ktorý zápis ukazuje, koľko {@6} má teraz?": "{@0} {@1} {@2} {@3} e poi {@4} ancora {@5}. Quale scrittura indica il numero di {@6} che ha adesso?",
+  "{@0} {@1} {@2} {@3} a {@4} {@5}. Ktorý zápis ukazuje, koľko {@6} {@7} zostalo?": "{@0} {@1} {@2} {@3} e ne {@5} {@4}. Quale scrittura indica il numero di {@6} che {@7} restano?",
+  "{@0} {@1} {@2} {@3} po {@4} {@5}. Ktorý zápis ukazuje, koľko {@6} {@7} spolu?": "{@0} {@1} {@2} {@3} da {@4} {@5}. Quale scrittura indica il numero di {@6} che {@7} in tutto?",
+  "{@0} {@1} {@2} {@3} rovnako medzi {@4} kamarátov. Koľko {@5} dostal každý kamarát?": "{@0} {@1} {@2} {@3} in parti uguali tra {@4} amici. Quante {@5} ha ricevuto ogni amico?",
+  "{@0} {@1} {@2} {@3} rovnako medzi {@4} {@5}. Koľko cukríkov dostalo každé dieťa?": "{@0} {@1} {@2} {@3} in parti uguali tra {@4} {@5}. Quante caramelle ha ricevuto ogni bambino?",
+  "{@0} {@1} {@2} {@3} {@4}: ${@5} {@6} {@7} = {@8}$.": "{@0} {@1} {@2} {@3} {@4}: ${@5} {@6} {@7} = {@8}$.",
+  "{@0}-krát po {@1} je násobenie.": "{@0} volte {@1} è una moltiplicazione.",
+  "{@0}-krát po {@1} je násobenie: ${@2} \\cdot {@3} = {@4}$. Na tanieroch je {@5} {@6}.": "{@0} volte {@1} è una moltiplicazione: ${@2} \\cdot {@3} = {@4}$. Sui piatti ci sono {@5} {@6}.",
+  "Úsečka $KL$ meria ${@0}\\,\\text{cm}$, úsečka $MN$ meria ${@1}\\,\\text{cm}$. O koľko centimetrov je úsečka $KL$ dlhšia?": "Il segmento $KL$ misura ${@0}\\,\\text{cm}$, il segmento $MN$ misura ${@1}\\,\\text{cm}$. Di quanti centimetri il segmento $KL$ è più lungo?",
+  "Úsečka je rovná. Táto čiara sa zatáča.": "Il segmento è dritto. Questa linea si piega.",
+  "Úsečka je čiara medzi dvoma bodmi. Tu je len jedna bodka.": "Il segmento è una linea tra due punti. Qui c'è solo un puntino.",
+  "Úsečka má dva krajné body, napríklad $A$ a $B$.": "Il segmento ha due estremi, per esempio $A$ e $B$.",
+  "Úsečka má na koncoch dva krajné body. Táto čiara ich nemá, pokračuje ďalej.": "Il segmento ha alle estremità due punti. Questa linea non li ha, continua oltre.",
+  "Úsečka má začiatok aj koniec, priamka nemá ani jedno.": "Il segmento ha un inizio e una fine, la retta non ha né l'uno né l'altra.",
+  "Úsečka začína na nule a končí pri čísle {@0}. Je dlhá ${@1}\\,\\text{cm}$.": "Il segmento comincia dallo zero e finisce al numero {@0}. È lungo ${@1}\\,\\text{cm}$.",
+  "úsečka": "segmento",
+  "úsečka CD": "segmento CD",
+  "Čiara sa zatáča, nie je rovná, teda je to krivá čiara.": "La linea si piega, non è dritta, quindi è una linea curva.",
+  "Čistenie zubov trvá asi 3 …": "Lavarsi i denti dura circa 3 …",
+  "Čo je na obrázku?<svg viewBox=\"0 0 180 120\" width=\"200\" role=\"img\" aria-label=\"čiara alebo bod\">{@0}</svg>": "Che cosa c'è nella figura?<svg viewBox=\"0 0 180 120\" width=\"200\" role=\"img\" aria-label=\"linea o punto\">{@0}</svg>",
+  "Čísla nesčítavaj. Hľadáš, koľko sme ubrali, aby z čísla {@0} zostalo {@1} – to zistíš odčítaním.": "Non sommare i numeri. Cerchi quanto abbiamo tolto perché da {@0} restasse {@1}: lo trovi con la sottrazione.",
+  "Čísla nesčítavaj. Hľadáš, koľko treba pridať k {@0}, aby vyšlo {@1} – to zistíš odčítaním.": "Non sommare i numeri. Cerchi quanto bisogna aggiungere a {@0} per ottenere {@1}: lo trovi con la sottrazione.",
+  "Čísla nesčítavaj. Otázka „o koľko viac“ porovnáva – odčítaj menšie číslo od väčšieho.": "Non sommare i numeri. La domanda “di quanto di più” confronta: sottrai il numero minore dal maggiore.",
+  "Čísla si sčítal. Znak · znamená násobiť.": "Hai sommato i numeri. Il segno · significa moltiplicare.",
+  "Čísla sú rovnaké: ${@0} = {@1}$.": "I numeri sono uguali: ${@0} = {@1}$.",
+  "Čísla sú úplne rovnaké, ani jedno nie je väčšie.": "I numeri sono proprio uguali, nessuno dei due è maggiore.",
+  "Čísla {@0} vždy o {@1}: {@2}.": "I numeri {@0} sempre di {@1}: {@2}.",
+  "Číslo {@0} nie je v násobilke čísla {@1}: leží medzi násobkami {@2} a {@3}.": "Il numero {@0} non è nella tabellina del {@1}: si trova tra i multipli {@2} e {@3}.",
+  "Číslo {@0} sčítavame {@1}-krát: ${@2} \\cdot {@3} = {@4}$.": "Sommiamo il numero {@0} {@1} volte: ${@2} \\cdot {@3} = {@4}$.",
+  "čas": "il tempo",
+  "čiara alebo bod": "linea o punto",
+  "Štvorec má 4 strany, každá strana je úsečka.": "Il quadrato ha 4 lati, ogni lato è un segmento.",
+  "Štvrť hodiny": "Un quarto d'ora",
+  "štvrť hodiny": "un quarto d'ora",
+  "„O {@0} menej“ znamená {@1} ubrať: {@2} {@3} má {@4} {@5}.": "“{@0} in meno” significa togliere {@1}: {@2} {@3} ha {@4} {@5}.",
+  "„O … menej“ znamená odčítať.": "“… in meno” significa sottrarre.",
+  "🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋": "🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋",
+  "🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋": "🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋",
+  "🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋": "🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋",
+  "🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋": "🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋",
+  "🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋": "🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋",
+  "🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋": "🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋",
+  "🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋": "🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋",
+  "🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋": "🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋",
+  "🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋": "🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋",
+  "🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋": "🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋",
+  "🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋": "🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋",
+  "🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋": "🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋",
+  "🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋": "🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋",
+  "🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋": "🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋",
+  "🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋": "🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋",
+  "🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋": "🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋&nbsp;&nbsp;&nbsp;🍋🍋🍋🍋🍋",
+  "🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎": "🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎",
+  "🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎": "🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎",
+  "🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎": "🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎",
+  "🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎": "🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎",
+  "🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎": "🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎",
+  "🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎": "🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎",
+  "🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎": "🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎",
+  "🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎": "🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎",
+  "🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎": "🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎",
+  "🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎": "🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎",
+  "🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎": "🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎",
+  "🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎": "🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎",
+  "🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎": "🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎",
+  "🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎": "🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎",
+  "🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎": "🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎&nbsp;&nbsp;&nbsp;🍎🍎🍎🍎🍎",
+  "🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐": "🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐",
+  "🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐": "🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐",
+  "🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐": "🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐",
+  "🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐": "🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐",
+  "🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐": "🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐",
+  "🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐": "🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐",
+  "🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐": "🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐",
+  "🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐": "🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐",
+  "🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐": "🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐",
+  "🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐": "🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐",
+  "🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐": "🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐",
+  "🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐": "🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐",
+  "🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐": "🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐",
+  "🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐": "🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐&nbsp;&nbsp;&nbsp;🍐🍐🍐🍐🍐",
+  "🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓": "🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓",
+  "🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓": "🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓",
+  "🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓": "🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓",
+  "🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓": "🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓",
+  "🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓": "🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓",
+  "🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓": "🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓",
+  "🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓": "🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓",
+  "🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓": "🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓",
+  "🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓": "🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓",
+  "🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓": "🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓",
+  "🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓": "🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓",
+  "🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓": "🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓",
+  "🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓": "🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓",
+  "🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓": "🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓",
+  "🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓": "🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓",
+  "🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓": "🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓&nbsp;&nbsp;&nbsp;🍓🍓🍓🍓🍓",
+  "🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕": "🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕",
+  "🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕": "🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕",
+  "🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕": "🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕",
+  "🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕": "🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕",
+  "🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕": "🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕",
+  "🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕": "🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕",
+  "🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕": "🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕",
+  "🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕": "🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕",
+  "🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕": "🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕",
+  "🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕": "🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕",
+  "🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕": "🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕",
+  "🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕": "🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕",
+  "🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕": "🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕",
+  "🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕": "🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕",
+  "🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕": "🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕&nbsp;&nbsp;&nbsp;🥕🥕🥕🥕🥕",
+  "Il righello e il segmento AB": "Il righello e il segmento AB",
+  "linea o punto": "linea o punto",
+  "quadrante dell'orologio": "quadrante dell'orologio",
+  "monete": "monete",
+  "Monete in euro": "Monete in euro",
+  "Gli orologi segnano le 7:00 e le 2:30": "Gli orologi segnano le 7:00 e le 2:30"
+ }
+});
