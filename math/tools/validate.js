@@ -313,6 +313,10 @@ if (CI) {
     });
     checkDict(`preklad ${lang} strings`, pack.strings);
     Object.entries(pack.lessons).forEach(([id, t]) => checkDict(`preklad ${lang} ${id} strings`, t.strings || {}));
+    Object.entries(pack.lessonStrings || {}).forEach(([id, d]) => {
+      if (!lessonIds.has(id)) err(`preklad ${lang} lessonStrings`, `neexistujúca lekcia ${id}`);
+      checkDict(`preklad ${lang} ${id} lessonStrings`, d);
+    });
   }
 }
 if (missingFor) {

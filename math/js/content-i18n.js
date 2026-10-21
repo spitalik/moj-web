@@ -31,9 +31,14 @@
   const norm = (s) => String(s).replace(/\s+/g, ' ').trim();
 
   function add(lang, pack) {
-    const p = packs[lang] || (packs[lang] = { decimal: '.', lessons: {}, strings: {} });
+    const p = packs[lang] || (packs[lang] = { decimal: '.', lessons: {}, strings: {}, lessonStrings: {} });
     if (pack.decimal) p.decimal = pack.decimal;
     Object.entries(pack.strings || {}).forEach(([k, v]) => { p.strings[norm(k)] = v; });
+    // preklady platné len v jednej lekcii (rovnaké slovenské slovo potrebuje inde iný preklad)
+    Object.entries(pack.lessonStrings || {}).forEach(([id, d]) => {
+      const own = p.lessonStrings[id] || (p.lessonStrings[id] = {});
+      Object.entries(d).forEach(([k, v]) => { own[norm(k)] = v; });
+    });
     Object.entries(pack.lessons || {}).forEach(([id, l]) => {
       const strings = {};
       Object.entries(l.strings || {}).forEach(([k, v]) => { strings[norm(k)] = v; });
@@ -62,6 +67,9 @@
   function entry(key) {
     const p = packs[ctx.lang];
     if (!p) return undefined;
+    // poradie: preklady len pre lekciu (lessonStrings – opravy kolízií), slovník v preklade lekcie, spoločný slovník
+    const extra = ctx.lesson && p.lessonStrings[ctx.lesson];
+    if (extra && extra[key] !== undefined) return extra[key];
     const own = ctx.lesson && p.lessons[ctx.lesson];
     if (own && own.strings[key] !== undefined) return own.strings[key];
     return p.strings[key];
@@ -75,7 +83,8 @@
 
   // hodnota diery: celý slovenský text zo slovníka sa preloží, inak zostane
   // (tools/i18n_extract.js zapne harvest a zbiera aj diery so slovami bez prekladu – kandidáti na slovník)
-  const harvest = { on: false, values: new Set() };
+  // harvest.uses: kde sa ktorá diera so slovom použila (kľúč šablóny a lekcia) – tools/i18n_collisions.js
+  const harvest = { on: false, values: new Set(), uses: [] };
   function value(v) {
     if (typeof v !== 'string') return v;
     const e = entry(norm(v));
@@ -93,6 +102,7 @@
     if (ctx.lang === SOURCE) return String.raw({ raw: strings }, ...vals);
     const key = norm(strings.reduce((s, part, i) => s + (i ? `{@${i - 1}}` : '') + part, ''));
     const tv = vals.map(value);
+    if (harvest.on) vals.forEach((v, i) => { if (typeof v === 'string' && /[A-Za-zÀ-ž]{2,}/.test(v) && !/[$\\<\d]/.test(v)) harvest.uses.push({ value: norm(v), template: key, hole: i, lesson: ctx.lesson }); });
     const e = entry(key);
     const src = String.raw({ raw: strings }, ...vals);
     if (e === undefined) { miss(key); return src; }
@@ -167,8 +177,46 @@
     return loaded[lang];
   }
 
+  /* ---------- zápis intervalov, bodov a zoznamov podľa jazyka ----------
+     Generátory píšu slovenský zápis: uzavretý interval ⟨a; b⟩ (\langle a; b\rangle), otvorený (a; b),
+     bod [x; y], zoznam/súradnice/množina s bodkočiarkou. V iných jazykoch sa zápis prevedie:
+       iso – [a, b], [a, b), (a, b), bod (x, y)          (en, ja, ko, zh: desatinná bodka → oddeľovač čiarka)
+       iso – [a; b], [a; b), (a; b), bod (x; y)          (es, pt, it, ru, tr: desatinná čiarka → bodkočiarka ostáva)
+       de  – ako iso s bodkočiarkou, bod (x | y)
+       fr  – [a ; b], ]a ; b], ]a ; b[, bod (x ; y)
+     Prevádza sa len obsah bez vnorených zátvoriek (zložitejší zápis ostane slovenský, je stále zrozumiteľný).
+     Statický obsah lekcií upravili prekladatelia, týka sa to len výstupov generátorov (EXERCISES.make). */
+  const NOTATION = { de: { point: 'bar' }, fr: { iv: 'fr' } };
+  const INNER = '[^()\\[\\]⟨⟩{}]*?;[^()\\[\\]⟨⟩{}]*?';
+  const IV = new RegExp(`(\\\\left\\s*\\\\langle\\s*|\\\\langle\\s*|⟨|\\\\left\\s*\\(|\\()(${INNER})(\\s*\\\\right\\s*\\\\rangle|\\s*\\\\rangle|⟩|\\\\right\\s*\\)|\\))`, 'g');
+  const PT = new RegExp(`(?<!\\\\)(?:\\\\left\\s*)?\\[(${INNER})(?:\\\\right\\s*)?\\]`, 'g');
+  const PAREN = new RegExp(`\\((${INNER})\\)`, 'g');
+  const SET = new RegExp(`\\\\\\{(${INNER})\\\\\\}`, 'g');
+  function notation(s) {
+    if (typeof s !== 'string' || ctx.lang === SOURCE || s.indexOf(';') < 0) return s;
+    // obrázky (SVG) sa nemenia – bodkočiarky v ich atribútoch nie sú matematický zápis
+    if (s.indexOf('<svg') >= 0) return s.split(/(<svg[\s\S]*?<\/svg>)/).map((p, i) => (i % 2 ? p : notation(p))).join('');
+    const n = NOTATION[ctx.lang] || {};
+    const comma = ((packs[ctx.lang] && packs[ctx.lang].decimal) || '.') === '.';
+    const sep = (x) => (comma ? x.replace(/;/g, ',') : x);
+    const angle = (x) => /langle|rangle|⟨|⟩/.test(x);
+    // najprv body [x; y] (v slovenčine hranatá zátvorka s bodkočiarkou je vždy bod), potom intervaly s ⟨ ⟩
+    let out = s.replace(PT, (m, inner) => (n.point === 'bar' ? `(${inner.replace(/;/g, ' |')})` : `(${sep(inner)})`));
+    out = out.replace(IV, (m, l, inner, r) => {
+      if (!angle(l) && !angle(r)) return m; // (a; b) bez lomených zátvoriek: interval aj vektor, rieši PAREN
+      const lc = angle(l), rc = angle(r);
+      const L = n.iv === 'fr' ? (lc ? '[' : ']') : (lc ? '[' : '(');
+      const R = n.iv === 'fr' ? (rc ? ']' : '[') : (rc ? ']' : ')');
+      return L + sep(inner) + R;
+    });
+    if (comma) out = out.replace(PAREN, (m, inner) => `(${sep(inner)})`).replace(SET, (m, inner) => `\\{${sep(inner)}\\}`);
+    return out;
+  }
+  // oddeľovač čísel v zozname odpovede (správna odpoveď, zápis viacerých čísel)
+  const listSep = () => (ctx.lang !== SOURCE && ((packs[ctx.lang] && packs[ctx.lang].decimal) || '.') === '.' ? ', ' : '; ');
+
   window.CONTENT_I18N = {
-    SOURCE, add, has, langFor, lesson, run, T, text, markup, misses, harvest, tr, load, files,
+    SOURCE, add, has, langFor, lesson, run, T, text, markup, misses, harvest, tr, load, files, notation, listSep,
     lang: () => ctx.lang,
     decimal: () => (ctx.lang === SOURCE ? ',' : (packs[ctx.lang] && packs[ctx.lang].decimal) || '.'),
     languages: () => Object.keys(packs),

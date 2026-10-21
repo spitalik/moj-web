@@ -49,6 +49,8 @@ I18N.add('sk', {
   check: 'Skontrolovať',
   hint: 'Nápoveda',
   showSolution: 'Ukáž riešenie',
+  reportError: 'Nahlásiť chybu',
+  reportErrorTitle: 'Otvorí formulár na GitHube (potrebujete účet na GitHube).',
   next: 'Ďalší príklad →',
   inputTip: 'Desatinné čísla píš s bodkou alebo čiarkou, zlomky ako p/q (napr. 5/6).',
   correctAnswer: 'Správna odpoveď:',

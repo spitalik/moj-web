@@ -1,0 +1,30 @@
+# Kontrola obsahu aplikácie Matematika krok za krokom (math/) pri každom pushe a pull requeste.
+# Validátor načíta lekcie, generátory úloh a preklady a overí ich (math/tools/validate.js).
+# Každý jazyk beží ako samostatná úloha, aby bolo hneď vidieť, ktorý preklad sa pokazil;
+# slovenský zdroj (lekcie, generátory, obrázky) sa kontroluje v každej z nich.
+name: Matematika – kontrola obsahu
+
+on:
+  push:
+    paths: ['math/**', '.github/workflows/math-validate.yml']
+  pull_request:
+    paths: ['math/**', '.github/workflows/math-validate.yml']
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: validate (${{ matrix.lang }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: [sk, en, es, pt, de, fr, it, ru, tr, ja, ko, zh]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validátor
+        working-directory: math
+        run: node tools/validate.js --lang ${{ matrix.lang }}

@@ -132,7 +132,7 @@
         <p class="font-preview">${esc(t('fontPreview'))} $\\frac{3}{4} + \\frac{1}{8} = \\frac{7}{8}$</p>
         <label class="field">🔊 ${esc(t('ttsRate'))} <input type="range" name="ttsRate" min="0.6" max="1.4" step="0.1" value="${s.ttsRate}"${ttsOk ? '' : ' disabled'}></label>
         ${ttsOk ? `<button class="btn btn-small" type="button" id="tts-try">🔊 ${esc(t('ttsTry'))}</button>
-          ${window.TTS && !TTS.hasVoice('sk') ? `<p class="muted small">${esc(t('ttsNoVoice'))}</p>` : ''}` : `<p class="muted small">${esc(t('ttsUnsupported'))}</p>`}
+          ${window.TTS && !TTS.hasVoice(I18N.getLang()) ? `<p class="muted small">${esc(t('ttsNoVoice'))}</p>` : ''}` : `<p class="muted small">${esc(t('ttsUnsupported'))}</p>`}
       </section>
       <section class="block settings" id="transfer">
         <h2>🔄 ${esc(t('transferTitle'))}</h2>

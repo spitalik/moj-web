@@ -77,6 +77,7 @@
         <div class="solution" hidden></div>
         <div class="pw-scratch" hidden></div>
         <p class="muted small pw-tip">${esc(t('inputTip'))}</p>
+        ${!exam && window.REPORT ? `<p class="report-row small">${REPORT.link('pw-report')}</p>` : ''}
       </div>`;
 
     const $ = (s) => root.querySelector(s);
@@ -88,6 +89,9 @@
       skip: $('.pw-skip'), finishBtn: $('.pw-finish')
     };
     let activeInput = el.input; // pole, do ktorého píše klávesnica (hlavné alebo pole kroku)
+    // nahlásenie chyby: odkaz sa skladá až pri kliknutí, s aktuálnou úlohou
+    const reportLink = $('.pw-report');
+    if (reportLink) reportLink.addEventListener('click', () => { if (ex) reportLink.href = REPORT.exerciseUrl(ex, cur && cur.id); });
 
     /* ---------- nástroje: čítanie nahlas, zošit, klávesnica ---------- */
     const tts = window.TTS && TTS.button(() => (stepState ? el.steps.querySelector('.step-current') || el.q : el.q), () => lang);

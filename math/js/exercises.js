@@ -454,19 +454,38 @@
   }
 
   // lang = jazyk obsahu lekcie (CONTENT_I18N.langFor); bez neho slovenčina. seed = voliteľné semienko.
+  // Bez semienka sa vyžrebuje náhodné a uloží do ex.seed – úloha sa dá zopakovať (nahlásenie chyby).
   function make(id, lang, seed) {
     const gen = G[id];
     if (!gen) throw new Error('Neznáma téma: ' + id);
+    if (seed === undefined || seed === null) seed = Math.floor(Math.random() * 2147483647);
     return withSeed(seed, () => CONTENT_I18N.run(lang, id, () => {
       const ex = gen();
       ex.type = ex.type || 'num';
       ex.lang = CONTENT_I18N.lang();
       ex.lesson = id;
+      ex.seed = seed;
       // obrázky v zadaní: popisy v SVG podľa slovníka
       ex.q = CONTENT_I18N.markup(ex.q);
       if (Array.isArray(ex.steps)) ex.steps.forEach((s) => { s.q = CONTENT_I18N.markup(s.q); });
+      // úloha prevzatá z inej lekcie (opakovanie na maturitu) už prevedená je – druhý prevod by pokazil zápis
+      if (ex.lang !== CONTENT_I18N.SOURCE && !ex.localized) { localize(ex); ex.localized = true; }
       return ex;
     }));
+  }
+
+  // zápis intervalov, bodov a zoznamov podľa jazyka (CONTENT_I18N.notation) vo všetkých textoch úlohy;
+  // možnosti, odpoveď a kľúče choiceHints sa prevedú rovnako, takže kontrola odpovede sedí
+  function localize(task) {
+    const N = CONTENT_I18N.notation;
+    ['q', 'solution', 'hint', 'placeholder', 'show'].forEach((k) => { if (typeof task[k] === 'string') task[k] = N(task[k]); });
+    // nápoveda vstupu „x; y“ → „x, y“ v jazykoch s desatinnou bodkou (kontrola odpovede prijme oba oddeľovače)
+    if (typeof task.placeholder === 'string' && CONTENT_I18N.listSep() === ', ') task.placeholder = task.placeholder.replace(/\s*;\s*/g, ', ');
+    if (Array.isArray(task.options)) task.options = task.options.map(N);
+    if (task.type === 'choice' && typeof task.answer === 'string') task.answer = N(task.answer);
+    if (Array.isArray(task.mistakes)) task.mistakes.forEach((m) => { m.msg = N(m.msg); });
+    if (task.choiceHints) task.choiceHints = Object.fromEntries(Object.entries(task.choiceHints).map(([k, v]) => [N(k), N(v)]));
+    if (Array.isArray(task.steps)) task.steps.forEach(localize);
   }
 
   /* ---------- kroky riešenia ----------
@@ -569,8 +588,8 @@
   }
   function formatIn(ex) {
     if (ex.show) return ex.show;
-    if (ex.type === 'set') return [...ex.answer].sort((x, y) => x - y).map(fmt).join('; ');
-    if (ex.type === 'tuple') return ex.answer.map(fmt).join('; ');
+    if (ex.type === 'set') return [...ex.answer].sort((x, y) => x - y).map(fmt).join(CONTENT_I18N.listSep());
+    if (ex.type === 'tuple') return ex.answer.map(fmt).join(CONTENT_I18N.listSep());
     if (ex.type === 'text' || ex.type === 'choice') return String(ex.answer);
     return fmt(ex.answer);
   }

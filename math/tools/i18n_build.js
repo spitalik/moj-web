@@ -21,17 +21,20 @@ const langs = process.argv.slice(2).length ? process.argv.slice(2) : dirs(OUT);
 for (const lang of langs) {
   for (const base of dirs(path.join(OUT, lang)).sort()) {
     const dir = path.join(OUT, lang, base);
-    const pack = { decimal: DECIMAL[lang] || ',', lessons: {}, strings: {} };
-    for (const f of fs.readdirSync(dir).filter((x) => /^[LS]\d+\.json$/.test(x)).sort()) {
+    const pack = { decimal: DECIMAL[lang] || ',', lessons: {}, strings: {}, lessonStrings: {} };
+    // L*.json = lekcie, S*.json = slovník, K*.json = preklady len pre lekciu { lessonStrings: { id: { kľúč: preklad } } }
+    for (const f of fs.readdirSync(dir).filter((x) => /^[LSK]\d+\.json$/.test(x)).sort()) {
       let part;
       try { part = readJson(path.join(dir, f)); } catch (e) { console.log(`CHYBA ${lang}/${base}/${f}: neplatný JSON (${e.message})`); continue; }
       Object.assign(pack.lessons, part.lessons || {});
       // jedno malé písmeno (napr. „a“) je aj popis v obrázkoch (strana a) – také kľúče do slovníka nepatria
       Object.entries(part.strings || {}).forEach(([k, v]) => { if (typeof v === 'string' && v.trim() && !/^[a-z]$/.test(k)) pack.strings[k] = v; });
+      Object.entries(part.lessonStrings || {}).forEach(([id, d]) => {
+        Object.entries(d).forEach(([k, v]) => { if (typeof v === 'string' && v.trim()) (pack.lessonStrings[id] || (pack.lessonStrings[id] = {}))[k] = v; });
+      });
     }
-    if (!Object.keys(pack.lessons).length) delete pack.lessons;
-    if (!Object.keys(pack.strings).length) delete pack.strings;
-    if (!pack.lessons && !pack.strings) continue;
+    ['lessons', 'strings', 'lessonStrings'].forEach((k) => { if (!Object.keys(pack[k]).length) delete pack[k]; });
+    if (!pack.lessons && !pack.strings && !pack.lessonStrings) continue;
     const src = base === 'vzorce' ? 'js/vzorce.js' : base === 'content' ? 'js/content.js, js/exercises.js' : base === 'figures' ? 'js/figures.js' : `js/rocniky/${base}.js`;
     const body = `/* ${NAMES[lang] || lang}: preklad ${src}. Vygenerované nástrojom tools/i18n_build.js z .i18n/out/${lang}/${base}/ – needitovať ručne. */\n`
       + `CONTENT_I18N.add('${lang}', ${JSON.stringify(pack, null, 1)});\n`;
@@ -41,7 +44,7 @@ for (const lang of langs) {
     const manual = fs.existsSync(own) && !fs.readFileSync(own, 'utf8').includes('tools/i18n_build.js');
     const name = manual ? `${base}-doplnky` : base;
     fs.writeFileSync(path.join(CI_DIR, lang, `${name}.js`), body);
-    console.log(`${lang}/${name}.js: ${Object.keys(pack.lessons || {}).length} lekcií, ${Object.keys(pack.strings || {}).length} textov`);
+    console.log(`${lang}/${name}.js: ${Object.keys(pack.lessons || {}).length} lekcií, ${Object.keys(pack.strings || {}).length} textov, ${Object.keys(pack.lessonStrings || {}).length} lekcií s vlastným slovníkom`);
   }
 }
 
