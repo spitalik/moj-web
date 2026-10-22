@@ -454,7 +454,7 @@
   }
 
   // lang = jazyk obsahu lekcie (CONTENT_I18N.langFor); bez neho slovenčina. seed = voliteľné semienko.
-  // Bez semienka sa vyžrebuje náhodné a uloží do ex.seed – úloha sa dá zopakovať (nahlásenie chyby).
+  // Bez semienka sa vyžrebuje náhodné a uloží do ex.seed – úloha sa dá zopakovať (ladenie).
   function make(id, lang, seed) {
     const gen = G[id];
     if (!gen) throw new Error('Neznáma téma: ' + id);

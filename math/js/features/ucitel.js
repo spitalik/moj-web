@@ -186,6 +186,7 @@
         ${cfg.tm ? `<li>${esc(t('testRuleTime', { m: cfg.tm }))}</li>` : ''}
       </ul>
       <label class="field">${esc(t('worksheetStudent'))} <input id="nm" type="text" maxlength="60" value="${esc(STORE.settings().childName || '')}" autocomplete="name"></label>
+      <p class="muted small">${esc(t('studentNameHint'))}</p>
       <p class="feedback warn" id="nm-err" hidden>${esc(t('assignNeedName'))}</p>
       <button class="btn btn-primary" type="button" id="go">${esc(t('testStart'))}</button></div>`);
     document.getElementById('go').addEventListener('click', () => {

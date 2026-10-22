@@ -287,7 +287,7 @@ mark { background: color-mix(in srgb, var(--warn) 35%, transparent); color: inhe
 .worksheet .f-text, .worksheet .f-math { fill: #000; }
 
 /* ---------- nastavenia, Jocadium ---------- */
-.settings h2 { margin-top: 0; }
+.settings h2, .legal h2 { margin-top: 0; }
 .settings.danger { border-color: var(--bad); }
 .theme-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
 .theme-opt { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; }
@@ -337,8 +337,3 @@ html.wide-spacing .katex { letter-spacing: normal; word-spacing: normal; }
   .block, .card, .formula, .stat, .figure { box-shadow: none; border-color: #999; background: #fff !important; color: #000 !important; }
   a { color: #000; text-decoration: none; }
 }
-
-/* ---------- nahlásenie chyby ---------- */
-.report-row { margin: 10px 0 0; text-align: right; }
-.report-link { color: var(--muted); text-decoration: none; }
-.report-link:hover, .report-link:focus-visible { color: var(--primary); text-decoration: underline; }

@@ -392,24 +392,14 @@
   }
   const themeOptions = () => Object.keys(THEME_COLORS).map((id) => ({ id, icon: THEME_ICONS[id], label: t(THEME_KEYS[id]) }));
 
-  /* ---------- písmo pre ľahšie čítanie (nastavenie) ---------- */
-  const FONT_URLS = {
-    readable: 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap',
-    lexend: 'https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap'
-  };
+  /* ---------- písmo pre ľahšie čítanie (nastavenie) ----------
+     Písma sú v aplikácii (vendor/fonts/fonts.css); prehliadač stiahne súbor písma až vtedy, keď ho text použije. */
   function applyReading() {
     const s = STORE.settings();
     const root = document.documentElement;
     root.classList.toggle('font-readable', s.font === 'readable');
     root.classList.toggle('font-lexend', s.font === 'lexend');
     root.classList.toggle('wide-spacing', !!s.spacing);
-    if (FONT_URLS[s.font] && !document.querySelector(`link[data-font="${s.font}"]`)) {
-      const l = document.createElement('link');
-      l.rel = 'stylesheet';
-      l.href = FONT_URLS[s.font];
-      l.dataset.font = s.font;
-      document.head.appendChild(l);
-    }
   }
   STORE.on('settings', (e) => { if (e.key === 'font' || e.key === 'spacing') applyReading(); });
 
@@ -491,6 +481,7 @@
     if (desc) desc.setAttribute('content', t('appDescription'));
     document.getElementById('brand-name').textContent = t('appName');
     document.getElementById('footer').textContent = t('footer');
+    document.getElementById('footer-privacy').textContent = t('menuPrivacy');
     const install = document.getElementById('install-btn');
     install.setAttribute('aria-label', t('installAria'));
     install.querySelector('.hide-narrow').textContent = ' ' + t('install');

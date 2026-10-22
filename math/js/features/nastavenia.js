@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   const { t, esc } = APP;
-  const QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+  const QR_LIB = 'vendor/qrcode/qrcode.js'; // qrcode-generator 1.4.4 (MIT), uložená v aplikácii
 
   /* ---------- QR kód (zdieľané s režimom pre učiteľa) ---------- */
   let qrLoading = null;

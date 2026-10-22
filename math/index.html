@@ -10,7 +10,8 @@
   <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="vendor/fonts/fonts.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/features.css">
   <script>
@@ -51,10 +52,10 @@
     <p class="muted">Načítavam…</p>
   </main>
 
-  <footer class="footer" id="footer">Všetok obsah je pôvodný a voľne použiteľný. Po prvom načítaní funguje aj offline.</footer>
+  <footer class="footer"><span id="footer">Kód: licencia MIT · obsah: CC BY 4.0. Po prvom načítaní funguje aj offline.</span> · <a href="#/sukromie" id="footer-privacy">Súkromie a licencia</a></footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
   <script src="js/content-i18n.js"></script>
   <script src="js/content.js"></script>
   <script src="js/exercises.js"></script>
@@ -116,6 +117,6 @@
   <script src="js/features/ucitel.js"></script>
   <script src="js/features/jocadium.js"></script>
   <script src="js/features/nastavenia.js"></script>
-  <script src="js/features/nahlasit.js"></script>
+  <script src="js/features/sukromie.js"></script>
 </body>
 </html>
