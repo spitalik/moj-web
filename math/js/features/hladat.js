@@ -1,5 +1,5 @@
-/* Vyhľadávanie naprieč učivom: názvy a opisy lekcií, teória, vyriešené príklady, témy a vzorce.
-   Bez ohľadu na diakritiku a veľkosť písmen; všetky slová musia byť nájdené. Index sa stavia pri prvom
+/* Vyhľadávanie naprieč učivom: názvy a opisy lekcií, teória, vyriešené príklady, témy, vzorce a symboly.
+   Bez ohľadu na diakritiku a veľkosť písmen; všetky slová (aspoň 2 znaky, alebo samostatný znak ako ¬, ⇒) musia byť nájdené. Index sa stavia pri prvom
    hľadaní v jazyku obsahu (preklad lekcie, ak existuje). */
 (function () {
   'use strict';
@@ -38,12 +38,19 @@
         index.push({ kind: 'formula', id: thId, title: it.name, summary: g.title, tex: it.tex, body: '', f: { title: fold(it.name), summary: fold(g.title), body: fold(it.note || '') } });
       })));
     }
+    // symboly (js/features/symboly.js): hľadá sa aj podľa znaku (¬, ⇒, ∈…)
+    if (window.SYMBOLS_I18N) {
+      SYMBOLS_I18N.entries(SYMBOLS_I18N.contentLang()).forEach((e) => {
+        index.push({ kind: 'symbol', id: e.group.id, title: e.name, summary: e.note, tex: e.tex, body: '',
+          f: { title: fold(`${e.name} ${e.glyphs}`), summary: fold(e.note), body: fold(e.it.tex) } });
+      });
+    }
     indexLang = lang;
     return index;
   }
 
   function search(q) {
-    const words = fold(q).split(/\s+/).filter((w) => w.length >= 2);
+    const words = fold(q).split(/\s+/).filter((w) => w.length >= 2 || /[^a-z0-9]/.test(w));
     if (!words.length) return [];
     return build().map((e) => {
       let score = 0;
@@ -63,7 +70,7 @@
 
   // úryvok okolo prvého výskytu a zvýraznenie slov
   function snippet(text, q) {
-    const words = fold(q).split(/\s+/).filter((w) => w.length >= 2);
+    const words = fold(q).split(/\s+/).filter((w) => w.length >= 2 || /[^a-z0-9]/.test(w));
     const ft = fold(text);
     let at = -1;
     for (const w of words) { const k = ft.indexOf(w); if (k >= 0 && (at < 0 || k < at)) at = k; }
@@ -87,7 +94,7 @@
 
   function page(q) {
     const res = q ? search(q) : [];
-    const words = fold(q || '').split(/\s+/).filter((w) => w.length >= 2);
+    const words = fold(q || '').split(/\s+/).filter((w) => w.length >= 2 || /[^a-z0-9]/.test(w));
     const item = ({ e }) => {
       if (e.kind === 'lesson') {
         const L = APP.lessonById(e.id), lv = APP.levelById(L.level);
@@ -95,6 +102,8 @@
           <span class="muted small">· ${esc(APP.lvName(lv).title)}</span>
           <div class="small" lang="${APP.langOf(L)}">${snippet(e.summary + ' — ' + e.body, q)}</div></li>`;
       }
+      if (e.kind === 'symbol') return `<li><a href="#/symboly/${e.id}"><strong>${highlight(e.title, words)}</strong></a> <span class="muted small">· ${esc(t('symbolsTitle'))}</span>
+        <div class="formula-inline">$${e.tex}$</div><div class="small">${esc(e.summary)}</div></li>`;
       if (e.kind === 'topic') return `<li><a href="#/tema/${e.id}"><strong>${highlight(e.title, words)}</strong></a> <span class="muted small">· ${esc(t('topicsCrumb'))}</span><div class="small">${esc(e.summary)}</div></li>`;
       return `<li><a href="#/vzorce/${e.id}"><strong lang="sk">${highlight(e.title, words)}</strong></a> <span class="muted small">· ${esc(t('formulasTitle'))}</span>
         <div class="formula-inline">$${e.tex}$</div></li>`;

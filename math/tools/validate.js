@@ -202,6 +202,19 @@ for (const L of LESSONS) {
   checkGenerator(L, 'sk', w);
 }
 
+// Symboly (js/symboly.js): existujúca lekcia, texty a príklady s platnou matematikou.
+if (global.SYMBOLS) {
+  for (const g of SYMBOLS) {
+    for (const it of g.items) {
+      const w = `symbol ${g.id} „${it.name}“`;
+      if (!seen.has(it.lesson)) err(w, `neexistujúca lekcia ${it.lesson}`);
+      for (const k of ['name', 'note']) if (!it[k]) err(w, `chýba ${k}`); else checkText(`${w} ${k}`, it[k]);
+      checkText(`${w} príklad`, `$${it.ex}$`);
+      checkText(`${w} symbol`, `$${it.tex}$`);
+    }
+  }
+}
+
 // Témy: každá lekcia práve v jednej téme, žiadne neexistujúce id.
 if (global.THEMES) {
   const owner = new Map();

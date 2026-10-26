@@ -337,3 +337,17 @@ html.wide-spacing .katex { letter-spacing: normal; word-spacing: normal; }
   .block, .card, .formula, .stat, .figure { box-shadow: none; border-color: #999; background: #fff !important; color: #000 !important; }
   a { color: #000; text-decoration: none; }
 }
+
+/* ---------- prehľad symbolov ---------- */
+.sym-toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 16px; }
+.sym-table td { text-align: left; vertical-align: middle; }
+.sym-table .sym-tex { text-align: center; font-size: 1.25rem; white-space: nowrap; }
+.sym-table .sym-ex { white-space: nowrap; }
+.sym-group h2 { margin-top: 0; }
+@media (max-width: 640px) {
+  .sym-table tr:first-child { display: none; }
+  .sym-table tr { display: grid; grid-template-columns: 5.5em 1fr; border-bottom: 1px solid var(--border); padding: 6px 0; }
+  .sym-table td { border: 0; padding: 4px 6px; }
+  .sym-table .sym-tex { grid-row: span 3; align-self: center; }
+  .sym-table .sym-ex { white-space: normal; overflow-x: auto; }
+}

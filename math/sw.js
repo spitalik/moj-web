@@ -1,7 +1,7 @@
 /* Service worker: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu.
    Preklady obsahu (js/content-i18n/<jazyk>/*.js) sa neukladajú vopred: uložia sa pri prvom načítaní jazyka. */
-const CACHE = 'matika-v31';
+const CACHE = 'matika-v33';
 const ASSETS = [
   './',
   './index.html',
@@ -46,6 +46,7 @@ const ASSETS = [
   './js/lang/zh.js',
   './js/content-i18n/files.js',
   './js/vzorce.js',
+  './js/symboly.js',
   './js/store.js',
   './js/keypad.js',
   './js/scratchpad.js',
@@ -60,6 +61,7 @@ const ASSETS = [
   './js/features/vstupny.js',
   './js/features/hladat.js',
   './js/features/vzorce.js',
+  './js/features/symboly.js',
   './js/features/prehlad.js',
   './js/features/ucitel.js',
   './js/features/jocadium.js',
@@ -108,7 +110,9 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    // cache: 'reload' – nová verzia sa stiahne zo siete, nie zo (starej) HTTP cache prehliadača
+    caches.open(CACHE).then((cache) => cache.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
   );
 });
 

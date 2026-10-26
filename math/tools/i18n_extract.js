@@ -193,4 +193,19 @@ if (!only.length || only.includes('vzorce')) {
   const n = writeChunks('vzorce', {}, [...keys].map((k) => k.replace(/\s+/g, ' ').trim()));
   summary.push(`vzorce: ${keys.size} kľúčov, ${n} častí`);
 }
+
+// symboly: nadpisy skupín, názvy, významy a symboly/príklady s textom (\text{…})
+if (!only.length || only.includes('symboly')) {
+  const keys = new Set();
+  (global.SYMBOLS || []).forEach((g) => {
+    keys.add(g.title);
+    g.items.forEach((it) => {
+      keys.add(it.name);
+      keys.add(it.note);
+      [it.tex, it.ex].forEach((x) => { if (/\\text\{[^}]*[A-Za-zÀ-ž]{2,}/.test(x)) keys.add(x); });
+    });
+  });
+  const n = writeChunks('symboly', {}, [...keys].map((k) => k.replace(/\s+/g, ' ').trim()));
+  summary.push(`symboly: ${keys.size} kľúčov, ${n} častí`);
+}
 console.log(summary.join('\n'));
