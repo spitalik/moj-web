@@ -1,0 +1,1 @@
+window.CONTENT_I18N_FILES = {"de":["symboly","vzorce"],"en":["symboly","vzorce"],"es":["symboly","vzorce"],"fr":["symboly","vzorce"],"it":["symboly","vzorce"],"pt":["symboly","vzorce"],"ru":["symboly","vzorce"],"tr":["symboly","vzorce"],"ja":["symboly","vzorce"],"ko":["symboly","vzorce"],"zh":["symboly","vzorce"]};
