@@ -128,9 +128,9 @@
     return {
       type: 'choice',
       q: T`Ktorý bozón sprostredkuje ${inter} interakciu?`,
-      options,
-      answer: ans,
-      choiceHints: hintsFor(options, ans, HINT),
+      options: options.map((o) => T.s(o)),
+      answer: T.s(ans),
+      choiceHints: Object.fromEntries(Object.entries(hintsFor(options, ans, HINT)).map(([k, v]) => [T.s(k), v])),
       solution: T`${inter} interakciu sprostredkuje ${ans}.`,
       hint: T`Každú interakciu sprostredkuje iný bozón. Pozri si tabuľku v teórii.`
     };
@@ -203,9 +203,9 @@
       q: strongest
         ? T`Ktorá zo štyroch základných interakcií je najsilnejšia?`
         : T`Ktorá zo štyroch základných interakcií je najslabšia?`,
-      options,
-      answer: ans,
-      choiceHints: hintsFor(options, ans, HINT),
+      options: options.map((o) => T.s(o)),
+      answer: T.s(ans),
+      choiceHints: Object.fromEntries(Object.entries(hintsFor(options, ans, HINT)).map(([k, v]) => [T.s(k), v])),
       solution: strongest
         ? T`Najsilnejšia je silná interakcia, relatívna sila približne 1.`
         : T`Najslabšia je gravitačná interakcia, relatívna sila približne $10^{-39}$.`,

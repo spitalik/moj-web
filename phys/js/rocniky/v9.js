@@ -90,9 +90,9 @@
     return {
       type: 'choice',
       q: T`Ktorá väzba vzniká ${p.desc}?`,
-      options,
-      answer: p.ans,
-      choiceHints: hintsFor(options, p.ans, HINT),
+      options: options.map((o) => T.s(o)),
+      answer: T.s(p.ans),
+      choiceHints: Object.fromEntries(Object.entries(hintsFor(options, p.ans, HINT)).map(([k, v]) => [T.s(k), v])),
       solution: T`Správna odpoveď je ${p.ans} väzba, lebo sa uskutočňuje ${p.desc}.`,
       hint: T`Zamysli sa, či atómy zdieľajú elektróny, prenášajú ich, alebo majú spoločný elektrónový plyn.`
     };
@@ -167,9 +167,9 @@
     return {
       type: 'choice',
       q: T`Materiál ${name} má šírku zakázaného pásu $E_g = ${mn(eg)}\\,\\text{eV}$. Ako ho zatriedime?`,
-      options,
-      answer: ans,
-      choiceHints: hintsFor(options, ans, HINT),
+      options: options.map((o) => T.s(o)),
+      answer: T.s(ans),
+      choiceHints: Object.fromEntries(Object.entries(hintsFor(options, ans, HINT)).map(([k, v]) => [T.s(k), v])),
       solution: T`Pre ${name} je $E_g=${mn(eg)}\\,\\text{eV}$, teda ide o ${ans}.`,
       hint: T`Porovnaj šírku zakázaného pásu s hranicami: do 0,1 eV je vodič, 0,1 až 3 eV polovodič, nad 3 eV izolant.`
     };
@@ -212,9 +212,9 @@
       q: donor
         ? T`Ktorý prvok pridáme do kremíka, aby vznikol polovodič typu $n$?`
         : T`Ktorý prvok pridáme do kremíka, aby vznikol polovodič typu $p$?`,
-      options,
-      answer: ans,
-      choiceHints: hintsFor(options, ans, HINT),
+      options: options.map((o) => T.s(o)),
+      answer: T.s(ans),
+      choiceHints: Object.fromEntries(Object.entries(hintsFor(options, ans, HINT)).map(([k, v]) => [T.s(k), v])),
       solution: donor
         ? T`${ans} má 5 valenčných elektrónov a dodá kremíku voľný elektrón, vznikne typ $n$.`
         : T`${ans} má 3 valenčné elektróny, v kremíku vzniká diera, vznikne typ $p$.`,
@@ -293,9 +293,9 @@
     return {
       type: 'choice',
       q: T`Ktorý z uvedených materiálov je feromagnetický?`,
-      options,
-      answer: ans,
-      choiceHints: hintsFor(options, ans, HINT),
+      options: options.map((o) => T.s(o)),
+      answer: T.s(ans),
+      choiceHints: Object.fromEntries(Object.entries(hintsFor(options, ans, HINT)).map(([k, v]) => [T.s(k), v])),
       solution: T`Feromagnetický materiál silno priťahovaný magnetom je ${ans}.`,
       hint: T`Feromagnetizmus majú len niektoré prechodné kovy, najmä železo, nikel a kobalt.`
     };
