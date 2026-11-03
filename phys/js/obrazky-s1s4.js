@@ -210,7 +210,7 @@
       ${arr(100, 120, 60, 120)}
       ${arr(50, 120, 40, 120)}
       <text class="f-small" x="220" y="108" text-anchor="middle">E</text>
-      <text class="f-small" x="255" y="108" text-anchor="middle">E/4</text>
+      <text class="f-small" x="264" y="110">E/4</text>
       <text class="f-small" x="300" y="30" text-anchor="middle">r → 2r: E klesne na štvrtinu</text></svg>`
   });
 
@@ -228,18 +228,37 @@
     }
   });
 
+  // cievka navinutá na stĺpik jadra: predné polovice závitov sa kreslia pred jadrom, zadné za ním;
+  // w < 0 cievku zrkadlí, aby vývody smerovali von z jadra
+  function coil(cx, y0, y1, n, w, cls) {
+    const s = (y1 - y0) / n;
+    let back = '', front = '';
+    for (let i = 0; i < n; i++) {
+      const ya = y0 + i * s, yb = ya + s / 2, yc = ya + s;
+      front += `M${cx - w} ${ya} Q${cx} ${yb + 7} ${cx + w} ${yb} `;
+      back += `M${cx + w} ${yb} Q${cx} ${yc - 7} ${cx - w} ${yc} `;
+    }
+    return { back: `<path class="${cls}" opacity="0.55" d="${back}"/>`, front: `<path class="${cls}" d="${front}"/>` };
+  }
+
   FIGURES.register('s1s4-transformator', {
-    draw: () => `<svg viewBox="0 0 420 240" role="img" aria-label="Schéma transformátora so železným jadrom a dvoma vinutiami">
-      <rect class="f-line" fill="none" x="120" y="40" width="180" height="160"/>
-      <rect class="f-fill f-outline" x="100" y="70" width="20" height="100"/>
-      <rect class="f-fill2 f-outline2" x="300" y="70" width="20" height="100"/>
-      <text class="f-small" x="110" y="60" text-anchor="middle">N₁ závitov</text>
-      <text class="f-small" x="310" y="60" text-anchor="middle">N₂ závitov</text>
-      <text class="f-small" x="210" y="120" text-anchor="middle">železné jadro</text>
-      ${arr(30, 120, 96, 120, 'f-ok')}
-      ${arr(324, 120, 392, 120, 'f-ok')}
-      <text class="f-math" x="30" y="110">U₁</text>
-      <text class="f-math" x="340" y="110">U₂</text></svg>`
+    draw: () => {
+      const c1 = coil(124, 70, 170, 4, 20, 'f-accent');
+      const c2 = coil(296, 70, 170, 8, -20, 'f-ok');
+      const pin = (x, y) => `<circle class="f-tri" cx="${x}" cy="${y}" r="4"/>`;
+      return `<svg viewBox="0 0 420 240" role="img" aria-label="Schéma transformátora so železným jadrom a dvoma vinutiami">
+      ${c1.back}${c2.back}
+      <path class="f-core" fill-rule="evenodd" d="M110 30 H310 V210 H110 Z M138 58 V182 H282 V58 Z"/>
+      ${c1.front}${c2.front}
+      <path class="f-accent" d="M104 70 H54 M104 170 H54"/>
+      <path class="f-ok" d="M316 70 H366 M316 170 H366"/>
+      ${pin(50, 70)}${pin(50, 170)}${pin(370, 70)}${pin(370, 170)}
+      <text class="f-small" x="124" y="20" text-anchor="middle">N₁ závitov</text>
+      <text class="f-small" x="296" y="20" text-anchor="middle">N₂ závitov</text>
+      <text class="f-small" x="210" y="125" text-anchor="middle">železné jadro</text>
+      <text class="f-math" x="50" y="126" text-anchor="middle">U₁</text>
+      <text class="f-math" x="370" y="126" text-anchor="middle">U₂</text></svg>`;
+    }
   });
 
   FIGURES.register('s1s4-striedavy-prud', {

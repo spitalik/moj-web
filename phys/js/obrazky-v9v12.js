@@ -72,12 +72,13 @@
       <text class="f-math" x="30" y="22">E</text>
       <rect class="f-fill2 f-outline2" x="70" y="90" width="90" height="40"/>
       <rect class="f-fill3 f-outline3" x="70" y="120" width="90" height="80"/>
-      <rect class="f-fill2 f-outline2" x="180" y="80" width="90" height="30"/>
+      <rect class="f-fill2 f-outline2" x="180" y="68" width="90" height="30"/>
       <rect class="f-fill3 f-outline3" x="180" y="130" width="90" height="70"/>
       <rect class="f-fill2 f-outline2" x="290" y="50" width="90" height="30"/>
       <rect class="f-fill3 f-outline3" x="290" y="150" width="90" height="50"/>
-      <text class="f-math" x="276" y="124">E_g</text>
-      <text class="f-math" x="335" y="118" text-anchor="middle">E_g</text>
+      <text class="f-math" x="225" y="119" text-anchor="middle">E_g</text>
+      ${arr(310, 115, 310, 82, 'f-thin')}${arr(310, 115, 310, 148, 'f-thin')}
+      <text class="f-math" x="318" y="121">E_g</text>
       <text class="f-text" x="115" y="228" text-anchor="middle">kov</text>
       <text class="f-text" x="225" y="228" text-anchor="middle">polovodič</text>
       <text class="f-text" x="335" y="228" text-anchor="middle">izolant</text></svg>`
@@ -95,7 +96,7 @@
       <text class="f-math" x="150" y="72">+</text><text class="f-math" x="90" y="112">+</text>
       <text class="f-math" x="170" y="112">+</text>
       <text class="f-math" x="250" y="72">−</text><text class="f-math" x="290" y="95">−</text>
-      <text class="f-math" x="330" y="72">−</text><text class="f-math" x="370" y="112">−</text>
+      <text class="f-math" x="330" y="72">−</text><text class="f-math" x="352" y="112">−</text>
       <text class="f-math" x="300" y="118">−</text>
       <text class="f-small" x="210" y="164" text-anchor="middle">rozhranie PN prechodu</text></svg>`
   });
@@ -113,7 +114,7 @@
       <text class="f-math" x="388" y="222" text-anchor="middle">T</text>
       <text class="f-math" x="170" y="226" text-anchor="middle">T_c</text>
       <text class="f-small" x="95" y="188" text-anchor="middle">R = 0</text>
-      <text class="f-small" x="230" y="100">normálny kov: R s teplotou rastie</text></svg>`
+      <text class="f-small" x="176" y="62">normálny kov: R s teplotou rastie</text></svg>`
   });
 
   // domény vo feromagnetiku: bez poľa a v poli
@@ -157,7 +158,7 @@
       ${arr(60, 210, 400, 210, 'f-line')}
       ${arr(60, 210, 60, 20, 'f-line')}
       <polygon class="f-fill3 f-outline3" points="90,44 370,184 370,196 90,56"/>
-      <text class="f-small" x="190" y="92">hlavná postupnosť</text>
+      <text class="f-small" x="180" y="80">hlavná postupnosť</text>
       <ellipse class="f-fill2 f-outline2" cx="330" cy="60" rx="35" ry="18"/>
       <text class="f-small" x="330" y="34" text-anchor="middle">obri</text>
       <ellipse class="f-fill f-outline" cx="110" cy="175" rx="30" ry="12"/>
@@ -208,7 +209,7 @@
         <circle class="f-dot" cx="150" cy="${n1(Y(150))}" r="4"/>
         <circle class="f-dot" cx="250" cy="${n1(Y(250))}" r="4"/>
         <circle class="f-dot" cx="340" cy="${n1(Y(340))}" r="4"/>
-        <text class="f-math" x="290" y="62">v = H₀ · d</text>
+        <text class="f-math" x="300" y="130">v = H₀ · d</text>
         <text class="f-math" x="46" y="26" text-anchor="end">v</text>
         <text class="f-math" x="392" y="222" text-anchor="middle">d</text></svg>`;
     }
@@ -385,8 +386,8 @@
         ${cara(3, 'f-thin f-dash')}
         ${cara(2, 'f-accent')}
         <circle class="f-dot" cx="60" cy="${n1(Y(0, 2))}" r="4"/>
-        <text class="f-small" x="70" y="${n1(Y(0, 2)) - 10}">v(0) = v₀</text>
-        <text class="f-small" x="290" y="60">iná C, iné riešenie</text>
+        <text class="f-small" x="54" y="${n1(Y(0, 2)) + 4}" text-anchor="end">v(0) = v₀</text>
+        <text class="f-small" x="140" y="62">iná C, iné riešenie</text>
         <text class="f-math" x="392" y="222" text-anchor="middle">t</text>
         <text class="f-math" x="46" y="26" text-anchor="end">v</text></svg>`;
     }

@@ -221,7 +221,7 @@
       <circle class="f-dot" cx="270" cy="170" r="5"/>
       <circle class="f-dot" cx="195" cy="80" r="5"/>
       <circle class="f-dot" cx="255" cy="80" r="5"/>
-      <text class="f-math" x="20" y="222">N₂/N₁ = e^(−ΔE/kT)</text></svg>`
+      <text class="f-math" x="20" y="222">N₂/N₁ = e<tspan dy="-8" font-size="75%">−ΔE/kT</tspan></text></svg>`
   });
 
   /* ---------- v3: elektromagnetizmus ---------- */
@@ -230,13 +230,13 @@
     draw: () => {
       const rays = [0, 45, 90, 135, 180, 225, 270, 315].map((d) => {
         const a = d * Math.PI / 180;
-        return arr(210 + 22 * Math.cos(a), 120 - 22 * Math.sin(a), 210 + 100 * Math.cos(a), 120 - 100 * Math.sin(a), 'f-accent');
+        return arr(210 + 24 * Math.cos(a), 125 - 24 * Math.sin(a), 210 + 90 * Math.cos(a), 125 - 90 * Math.sin(a), 'f-accent');
       }).join('');
       return `<svg viewBox="0 0 420 240" role="img" aria-label="Radiálne siločiary kladného bodového náboja">
       ${rays}
-      <circle class="f-fill2 f-outline2" cx="210" cy="120" r="14"/>
-      <text class="f-math" x="210" y="125" text-anchor="middle">+Q</text>
-      <text class="f-small" x="20" y="26">siločiary vychádzajú z kladného náboja</text>
+      <circle class="f-fill2 f-outline2" cx="210" cy="125" r="18"/>
+      <text class="f-math" x="210" y="131" text-anchor="middle">+Q</text>
+      <text class="f-small" x="20" y="22">siločiary vychádzajú z kladného náboja</text>
       <text class="f-math" x="210" y="232" text-anchor="middle">E = k·Q / r²</text></svg>`;
     }
   });
@@ -245,12 +245,12 @@
     draw: () => {
       const rays = [0, 45, 90, 135, 180, 225, 270, 315].map((d) => {
         const a = d * Math.PI / 180;
-        return arr(210 + 18 * Math.cos(a), 120 - 18 * Math.sin(a), 210 + 118 * Math.cos(a), 120 - 118 * Math.sin(a), 'f-accent');
+        return arr(210 + 18 * Math.cos(a), 115 - 18 * Math.sin(a), 210 + 100 * Math.cos(a), 115 - 100 * Math.sin(a), 'f-accent');
       }).join('');
       return `<svg viewBox="0 0 420 240" role="img" aria-label="Tok uzavretou plochou obklopujúcou náboj">
-      <circle class="f-dash" fill="none" cx="210" cy="120" r="95"/>
+      <circle class="f-dash" fill="none" cx="210" cy="115" r="85"/>
       ${rays}
-      <circle class="f-fill3 f-outline3" cx="210" cy="120" r="10"/>
+      <circle class="f-fill3 f-outline3" cx="210" cy="115" r="10"/>
       <text class="f-small" x="300" y="70">uzavretá plocha S</text>
       <text class="f-math" x="20" y="30">Φ_E = Q / ε₀</text>
       <text class="f-small" x="210" y="232" text-anchor="middle">tok závisí len od náboja vnútri plochy</text></svg>`;

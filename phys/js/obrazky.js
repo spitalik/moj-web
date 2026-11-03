@@ -22,7 +22,7 @@
       <circle class="f-dot" cx="40" cy="170" r="5"/><circle class="f-dot" cx="145" cy="30" r="5"/>
       <text class="f-text" x="92" y="190" text-anchor="middle">3 m</text>
       <text class="f-text" x="158" y="100">4 m</text>
-      <text class="f-text" x="62" y="95" text-anchor="end">vzdialenosť 5 m</text>
+      <text class="f-text" x="84" y="96" text-anchor="end">5 m</text>
       <text class="f-text" x="200" y="40">plná čiara = dráha (7 m)</text>
       <text class="f-text" x="200" y="62">čiarkovaná = vzdialenosť (5 m)</text></svg>`
   });
@@ -99,27 +99,37 @@
 
   FIGURES.register('obr-magnet-vodic', {
     draw: () => `<svg viewBox="0 0 420 240" role="img" aria-label="Magnetické pole okolo priameho vodiča">
-      <circle cx="210" cy="120" r="40" fill="none" class="f-dash"/>
-      <circle cx="210" cy="120" r="80" fill="none" class="f-dash"/>
-      <circle cx="210" cy="120" r="110" fill="none" class="f-dash"/>
-      ${arr(290, 130, 290, 110, 'f-ok')}
-      <circle class="f-solid" cx="210" cy="120" r="7"/>
-      <text class="f-text" x="226" y="116">I</text>
+      <circle cx="210" cy="115" r="40" fill="none" class="f-dash"/>
+      <circle cx="210" cy="115" r="80" fill="none" class="f-dash"/>
+      <circle cx="210" cy="115" r="100" fill="none" class="f-dash"/>
+      ${arr(290, 125, 290, 105, 'f-ok')}
+      <circle class="f-solid" cx="210" cy="115" r="7"/>
+      <text class="f-text" x="226" y="111">I</text>
       <text class="f-small" x="210" y="236" text-anchor="middle">prúd vystupuje z nákresne, siločiary sú kružnice</text></svg>`
   });
 
   /* ---------- magnetizmus ---------- */
 
+  // siločiary vychádzajú zo severného pólu a vchádzajú do južného; šípky ukazujú smer poľa mimo magnetu
   FIGURES.register('obr-magnet', {
-    draw: () => `<svg viewBox="0 0 420 240" role="img" aria-label="Siločiary tyčového magnetu">
-      <path class="f-line" fill="none" d="M150 120 C 60 0, 360 0, 270 120"/>
-      <path class="f-line" fill="none" d="M150 120 C 100 50, 320 50, 270 120"/>
-      <path class="f-line" fill="none" d="M150 120 C 100 190, 320 190, 270 120"/>
-      <path class="f-line" fill="none" d="M150 120 C 60 240, 360 240, 270 120"/>
+    draw: () => {
+      const head = (x, y, dir) => `<polygon class="f-solid" points="${x + 6 * dir},${y} ${x - 4 * dir},${y - 5} ${x - 4 * dir},${y + 5}"/>`;
+      let lines = '';
+      for (let k = 1; k <= 3; k++) {
+        const up = 112 - 45 * k, down = 128 + 45 * k;
+        lines += `<path class="f-line" fill="none" d="M150 112 C ${150 - 40 * k} ${up}, ${270 + 40 * k} ${up}, 270 112"/>`
+          + `<path class="f-line" fill="none" d="M150 128 C ${150 - 40 * k} ${down}, ${270 + 40 * k} ${down}, 270 128"/>`
+          + head(210, n1(28 + 0.75 * up), 1) + head(210, n1(32 + 0.75 * down), 1);
+      }
+      lines += `<line class="f-line" x1="20" y1="120" x2="150" y2="120"/><line class="f-line" x1="270" y1="120" x2="400" y2="120"/>`
+        + head(60, 120, -1) + head(350, 120, -1);
+      return `<svg viewBox="0 0 420 240" role="img" aria-label="Siločiary tyčového magnetu">
+      ${lines}
       <rect class="f-fill3 f-outline3" x="150" y="105" width="60" height="30"/>
       <rect class="f-fill2 f-outline2" x="210" y="105" width="60" height="30"/>
       <text class="f-math" x="180" y="126" text-anchor="middle">N</text>
-      <text class="f-math" x="240" y="126" text-anchor="middle">S</text></svg>`
+      <text class="f-math" x="240" y="126" text-anchor="middle">S</text></svg>`;
+    }
   });
 
   /* ---------- svetlo ---------- */
@@ -213,9 +223,9 @@
       <circle class="f-fill3 f-outline3" cx="40" cy="50" r="10"/>
       <circle class="f-fill2 f-outline2" cx="210" cy="190" r="10"/>
       <circle class="f-fill3 f-outline3" cx="380" cy="50" r="10"/>
-      <text class="f-small" x="40" y="80" text-anchor="middle">Ep max, Ek = 0</text>
-      <text class="f-small" x="210" y="214" text-anchor="middle">Ek max, Ep min</text>
-      <text class="f-small" x="380" y="80" text-anchor="middle">Ep max, Ek = 0</text></svg>`
+      <text class="f-small" x="40" y="80" text-anchor="middle">E_p max, E_k = 0</text>
+      <text class="f-small" x="210" y="214" text-anchor="middle">E_k max, E_p min</text>
+      <text class="f-small" x="380" y="80" text-anchor="middle">E_p max, E_k = 0</text></svg>`
   });
 
   /* ---------- pripojenie k lekciám ---------- */

@@ -224,8 +224,8 @@ CONTENT_I18N.add('ko', {
     "Prácu si vynásobil časom. Výkon sa počíta ako práca delená časom.": "일에 시간을 곱했네요. 일률은 일을 시간으로 나누어 구합니다.",
     "Výsledkom je práca, nie výkon. Ešte ju musíš vydeliť časom.": "결과는 일이지 일률이 아닙니다. 아직 시간으로 나누어야 합니다.",
 
-    "Ep max, Ek = 0": "Ep 최대, Ek = 0",
-    "Ek max, Ep min": "Ek 최대, Ep 최소",
+    "E_p max, E_k = 0": "Ep 최대, Ek = 0",
+    "E_k max, E_p min": "Ek 최대, Ep 최소",
     "Premena potenciálnej a kinetickej energie": "위치 에너지와 운동 에너지의 전환",
     "vnútornú energiu (teplo)": "내부 에너지(열)",
     "chemickú energiu v podlahe": "바닥의 화학 에너지",

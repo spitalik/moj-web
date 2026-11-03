@@ -239,10 +239,24 @@
       { id: 'd', label: 'vzdialenosť predmetu a (cm)', min: 1, max: 30, step: 1, value: 12 }
     ],
     draw: ({ f, d }) => {
-      const s = 5, cx = 210, cy = 150, h = 50;
+      const s = 6, cx = 210, cy = 150, h = 50;
       const near = Math.abs(d - f) < 0.05;
       const dp = near ? null : f * d / (d - f);
       const mag = near ? null : -dp / d;
+      // dva lúče z vrcholu predmetu: rovnobežný s osou (za šošovkou cez F′) a cez stred šošovky (bez lomu)
+      const xo = cx - d * s, yo = cy - h, xf = cx + f * s;
+      const ray = (x1, y1, x2, y2, cls = 'f-ok') => {
+        const k = (y2 - y1) / (x2 - x1);
+        return `<line class="${cls}" style="stroke-width:1.5" x1="${n1(x1)}" y1="${n1(y1)}" x2="420" y2="${n1(y1 + k * (420 - x1))}"/>`;
+      };
+      let rays = `<line class="f-ok" style="stroke-width:1.5" x1="${n1(xo)}" y1="${yo}" x2="${cx}" y2="${yo}"/>`
+        + ray(cx, yo, xf, cy) + ray(xo, yo, cx, cy);
+      if (!near && dp < 0) {
+        // zdanlivý obraz: predĺženia lomených lúčov dozadu
+        const xi = cx + dp * s, yi = cy + (dp / d) * h;
+        rays += `<line class="f-dash" x1="${cx}" y1="${yo}" x2="${n1(xi)}" y2="${n1(yi)}"/>
+          <line class="f-dash" x1="${cx}" y1="${cy}" x2="${n1(xi)}" y2="${n1(yi)}"/>`;
+      }
       let img = '', readout;
       if (near) {
         readout = T`Predmet je v ohniskovej vzdialenosti: lúče sa vychádzajú rovnobežne a obraz vzniká v nekonečne.`;
@@ -255,8 +269,11 @@
       return {
         svg: `<svg viewBox="0 0 420 300" role="img" aria-label="Spojná šošovka a zobrazenie predmetu">
           <line class="f-axis" x1="0" y1="${cy}" x2="420" y2="${cy}"/>
-          <line class="f-fill" x1="${cx}" y1="${cy - 80}" x2="${cx}" y2="${cy + 80}" stroke-width="4"/>
-          <circle class="f-dot" cx="${cx - f * s}" cy="${cy}" r="3"/><circle class="f-dot" cx="${cx + f * s}" cy="${cy}" r="3"/>
+          <ellipse class="f-fill f-outline" cx="${cx}" cy="${cy}" rx="9" ry="85"/>
+          ${rays}
+          <circle class="f-dot" cx="${cx - f * s}" cy="${cy}" r="3"/><circle class="f-dot" cx="${xf}" cy="${cy}" r="3"/>
+          <text class="f-math" x="${cx - f * s}" y="${cy + 20}" text-anchor="middle">F</text>
+          <text class="f-math" x="${xf}" y="${cy + 20}" text-anchor="middle">F′</text>
           ${arrow(cx - d * s, cy, cx - d * s, cy - h, 'f-line')}
           ${img}</svg>`,
         readout

@@ -53,8 +53,8 @@
     draw: () => `<svg viewBox="0 0 420 220" role="img" aria-label="Stĺpec vzduchu nad hladinou mora a nad horou">
       <line class="f-line" x1="20" y1="190" x2="400" y2="190"/>
       <rect class="f-fill2 f-outline2" x="60" y="40" width="60" height="150"/>
-      <rect class="f-fill2 f-outline2" x="280" y="40" width="40" height="100"/>
-      <polygon class="f-fill3 f-outline3" points="230,190 300,120 370,190"/>
+      <polygon class="f-fill3 f-outline3" points="220,190 280,120 320,120 380,190"/>
+      <rect class="f-fill2 f-outline2" x="280" y="40" width="40" height="80"/>
       ${arr(90, 16, 90, 34, 'f-warn')}
       ${arr(300, 16, 300, 34, 'f-warn')}
       <text class="f-small" x="104" y="26">tlak</text>

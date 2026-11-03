@@ -547,6 +547,8 @@ line.f-solid { stroke: var(--text); }
 /* schémy obvodov (js/schemy.js): krátka hrubá doska článku a uzol */
 .f-plate { stroke: var(--text); stroke-width: 5; fill: none; }
 .f-node { fill: var(--text); }
+/* železné jadro transformátora: nepriehľadné, aby zakrylo zadné polovice závitov */
+.f-core { fill: color-mix(in srgb, var(--muted) 30%, var(--card)); stroke: var(--text); stroke-width: 1.5; }
 .f-text { fill: var(--text); font: 15px system-ui, -apple-system, "Segoe UI", sans-serif; }
 .f-small { fill: var(--muted); font: 12px system-ui, -apple-system, "Segoe UI", sans-serif; }
 .f-math { fill: var(--text); font: italic 18px "Times New Roman", Georgia, serif; }

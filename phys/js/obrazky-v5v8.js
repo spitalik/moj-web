@@ -14,11 +14,12 @@
   };
 
   // osi grafu s popiskami hodnôt (xs, ys sú dvojice [hodnota, text])
-  const frame = (p, xs, ys, xl, yl) => `<line class="f-line" x1="${n1(p.X(p.xmin))}" y1="${n1(p.Y(p.ymin))}" x2="${n1(p.X(p.xmax))}" y2="${n1(p.Y(p.ymin))}"/>
+  // dy: o koľko nad osou x leží jej popis (väčšie, keď krivka končí tesne nad osou)
+  const frame = (p, xs, ys, xl, yl, dy = 6) => `<line class="f-line" x1="${n1(p.X(p.xmin))}" y1="${n1(p.Y(p.ymin))}" x2="${n1(p.X(p.xmax))}" y2="${n1(p.Y(p.ymin))}"/>
     <line class="f-line" x1="${n1(p.X(p.xmin))}" y1="${n1(p.Y(p.ymin))}" x2="${n1(p.X(p.xmin))}" y2="${n1(p.Y(p.ymax))}"/>
     ${xs.map(([v, t]) => `<text class="f-small" x="${n1(p.X(v))}" y="${n1(p.Y(p.ymin)) + 14}" text-anchor="middle">${t}</text>`).join('')}
     ${ys.map(([v, t]) => `<text class="f-small" x="${n1(p.X(p.xmin)) - 5}" y="${n1(p.Y(v)) + 4}" text-anchor="end">${t}</text>`).join('')}
-    <text class="f-math" x="${p.W - p.pad}" y="${n1(p.Y(p.ymin)) - 6}" text-anchor="end">${xl}</text>
+    <text class="f-math" x="${p.W - p.pad}" y="${n1(p.Y(p.ymin)) - dy}" text-anchor="end">${xl}</text>
     <text class="f-math" x="${n1(p.X(p.xmin)) + 6}" y="${p.pad - 8}">${yl}</text>`;
 
   /* ---------- kvantová mechanika (v5) ---------- */
@@ -164,7 +165,7 @@
       const clipped = `<path class="f-accent" fill="none" d="${d}"/>
         <circle class="f-dot" cx="${n1(p.X(0.6))}" cy="${n1(p.Y(1.25))}" r="4"/>`;
       const front = `<text class="f-small" x="${n1(p.X(0.05))}" y="${n1(p.Y(1)) - 6}">γ = 1 pri v ≪ c</text>
-        <text class="f-small" x="${n1(p.X(0.6)) + 10}" y="${n1(p.Y(1.25)) + 18}">v = 0,6 c: γ = 1,25</text>`;
+        <text class="f-small" x="${n1(p.X(0.6)) + 6}" y="${n1(p.Y(1)) + 16}">v = 0,6 c: γ = 1,25</text>`;
       return svg(p, back, clipped, front, 'Lorentzov faktor v závislosti od rýchlosti');
     }
   });
@@ -185,8 +186,7 @@
         <text class="f-math" x="388" y="226">x</text>
         <text class="f-math" x="66" y="22">ct</text>
         <text class="f-math" x="${X(10) + 6}" y="${Y(6) - 4}">x′</text>
-        <text class="f-math" x="${X(4.8) + 6}" y="${Y(8) + 4}">ct′</text>
-        <text class="f-small" x="210" y="236" text-anchor="middle">osi S′ sú naklonené; súradnice udalosti sa prepočítajú Lorentzovou transformáciou</text></svg>`;
+        <text class="f-math" x="${X(4.8) + 6}" y="${Y(8) + 4}">ct′</text></svg>`;
     }
   });
 
@@ -221,8 +221,8 @@
         <text class="f-math" x="${X(3) + 6}" y="${Y(5) - 4}">B</text>
         <text class="f-small" x="${X(3) / 2 + 30}" y="230" text-anchor="middle">Δx = 3 ls</text>
         <text class="f-small" x="${X(3) + 8}" y="${Y(2.5)}">Δt = 5 s</text>
-        <text class="f-math" x="88" y="150" text-anchor="end">Δτ = 4 s</text>
-        <text class="f-small" x="250" y="46">svetelný kužeľ (ct = x)</text>
+        <text class="f-math" x="${X(3) - 10}" y="${Y(5) - 10}" text-anchor="end">Δτ = 4 s</text>
+        <text class="f-small" x="400" y="110" text-anchor="end">svetelný kužeľ (ct = x)</text>
         <text class="f-math" x="66" y="20">ct</text>
         <text class="f-math" x="388" y="226">x</text></svg>`;
     }
@@ -277,7 +277,8 @@
       const p = plane(0, 100, 0, 150, 420, 260);
       const pts = [['C-12', 6, 6], ['Ca-40', 20, 20], ['Fe-56', 26, 30], ['Pb-208', 82, 126], ['U-238', 92, 146]];
       const dots = pts.map(([s, Z, N]) => `<circle class="f-fill3 f-outline3" cx="${n1(p.X(Z))}" cy="${n1(p.Y(N))}" r="4"/>
-        <text class="f-small" x="${n1(p.X(Z)) - 7}" y="${n1(p.Y(N)) - 5}" text-anchor="end">${s}</text>`).join('');
+        ${Z < 10 ? `<text class="f-small" x="${n1(p.X(Z)) + 8}" y="${n1(p.Y(N)) + 4}">${s}</text>`
+    : `<text class="f-small" x="${n1(p.X(Z)) - 8}" y="${n1(p.Y(N)) + 4}" text-anchor="end">${s}</text>`}`).join('');
       const back = frame(p, [[20, '20'], [40, '40'], [60, '60'], [80, '80'], [100, '100']], [[50, '50'], [100, '100'], [150, '150']], 'Z (protóny)', 'N (neutróny)')
         + `<line class="f-dash" x1="${n1(p.X(0))}" y1="${n1(p.Y(0))}" x2="${n1(p.X(100))}" y2="${n1(p.Y(100))}"/>`;
       const front = `<text class="f-small" x="${n1(p.X(68)) + 8}" y="${n1(p.Y(68)) + 14}">N = Z</text>
@@ -297,7 +298,7 @@
       const pts = [[1, '50 %'], [2, '25 %'], [3, '12,5 %']];
       const guides = pts.map(([t, s]) => `<line class="f-dash" x1="${n1(p.X(t))}" y1="${n1(p.Y(100 * Math.pow(2, -t)))}" x2="${n1(p.X(t))}" y2="${n1(p.Y(0))}"/>
         <circle class="f-dot" cx="${n1(p.X(t))}" cy="${n1(p.Y(100 * Math.pow(2, -t)))}" r="4"/>`).join('');
-      const back = frame(p, [[1, 'T'], [2, '2T'], [3, '3T'], [4, '4T']], [[25, '25'], [50, '50'], [75, '75'], [100, '100']], 't / T', 'N / N₀ (%)');
+      const back = frame(p, [[1, 'T'], [2, '2T'], [3, '3T'], [4, '4T']], [[25, '25'], [50, '50'], [75, '75'], [100, '100']], 't / T', 'N / N₀ (%)', 24);
       const clipped = `<path class="f-accent" fill="none" d="${d}"/>${guides}`;
       const front = pts.map(([t, s]) => `<text class="f-small" x="${n1(p.X(t)) + 8}" y="${n1(p.Y(100 * Math.pow(2, -t))) - 8}">${s}</text>`).join('');
       return svg(p, back, clipped, front, 'Exponenciálny pokles počtu jadier s polčasom rozpadu');
@@ -314,7 +315,7 @@
       }
       const pts = [[1, '50 %'], [2, '25 %'], [3, '12,5 %']];
       const dots = pts.map(([x]) => `<circle class="f-dot" cx="${n1(p.X(x))}" cy="${n1(p.Y(100 * Math.pow(2, -x)))}" r="4"/>`).join('');
-      const back = frame(p, [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], [[25, '25'], [50, '50'], [75, '75'], [100, '100']], 'x / d½', 'I / I₀ (%)');
+      const back = frame(p, [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], [[25, '25'], [50, '50'], [75, '75'], [100, '100']], 'x / d½', 'I / I₀ (%)', 20);
       const clipped = `<path class="f-accent" fill="none" d="${d}"/>${dots}`;
       const front = pts.map(([x, s]) => `<text class="f-small" x="${n1(p.X(x)) + 8}" y="${n1(p.Y(100 * Math.pow(2, -x))) - 8}">${s}</text>`).join('');
       return svg(p, back, clipped, front, 'Exponenciálny útlm žiarenia vo vrstve');
@@ -335,7 +336,7 @@
       const clipped = `<path class="f-accent" fill="none" d="${line}"/>${dots}`;
       const front = `<text class="f-small" x="${n1(p.X(4)) + 6}" y="${n1(p.Y(7.07)) - 6}">He-4</text>
         <text class="f-small" x="${n1(p.X(56)) + 6}" y="${n1(p.Y(8.79)) - 6}">Fe-56</text>
-        <text class="f-small" x="${n1(p.X(238)) - 6}" y="${n1(p.Y(7.57)) - 8}" text-anchor="end">U-238</text>
+        <text class="f-small" x="${n1(p.X(238)) - 6}" y="${n1(p.Y(7.57)) + 16}" text-anchor="end">U-238</text>
         <text class="f-small" x="${n1(p.X(26))}" y="${n1(p.Y(6.45)) - 8}" text-anchor="middle">fúzia</text>
         <text class="f-small" x="${n1(p.X(170))}" y="${n1(p.Y(6.45)) - 8}" text-anchor="middle">štiepenie</text>`;
       return svg(p, back, clipped, front, 'Väzbová energia na nukleón v závislosti od nukleónového čísla');
@@ -353,7 +354,7 @@
       <text class="f-text" x="215" y="85" text-anchor="middle">turbína</text>
       <text class="f-text" x="215" y="106" text-anchor="middle">generátor</text>
       ${arr(270, 90, 310, 90, 'f-ok')}
-      <text class="f-small" x="290" y="80" text-anchor="middle">elektrina</text>
+      <text class="f-small" x="290" y="50" text-anchor="middle">elektrina</text>
       <rect class="f-fill3 f-outline3" x="310" y="60" width="100" height="60" rx="6"/>
       <text class="f-math" x="360" y="96" text-anchor="middle">P_el ≈ 33 %</text>
       ${arr(215, 122, 215, 160, 'f-warn')}
@@ -389,11 +390,11 @@
         { y: 46, cls: 'f-fill2 f-outline2', items: [['u', '+2/3'], ['c', '+2/3'], ['t', '+2/3']] },
         { y: 92, cls: 'f-fill3 f-outline3', items: [['d', '−1/3'], ['s', '−1/3'], ['b', '−1/3']] },
         { y: 138, cls: 'f-fill f-outline', items: [['e', '−1'], ['μ', '−1'], ['τ', '−1']] },
-        { y: 184, cls: 'f-fill f-outline', items: [['νe', '0'], ['νμ', '0'], ['ντ', '0']] }
+        { y: 184, cls: 'f-fill f-outline', items: [['ν_e', '0'], ['ν_μ', '0'], ['ν_τ', '0']] }
       ];
       const cells = rows.map((r) => r.items.map(([sym, ch], i) => `<rect class="${r.cls}" x="${cols[i] - 40}" y="${r.y}" width="80" height="38" rx="6"/>
-        <text class="f-math" x="${cols[i]}" y="${r.y + 17}" text-anchor="middle">${sym}</text>
-        <text class="f-small" x="${cols[i]}" y="${r.y + 31}" text-anchor="middle">${ch}</text>`).join('')).join('');
+        <text class="f-math" x="${cols[i]}" y="${r.y + 16}" text-anchor="middle">${sym}</text>
+        <text class="f-small" x="${cols[i]}" y="${r.y + 33}" text-anchor="middle">${ch}</text>`).join('')).join('');
       return `<svg viewBox="0 0 420 230" role="img" aria-label="Tri generácie fermiónov">
         ${cols.map((cx, i) => `<text class="f-small" x="${cx}" y="34" text-anchor="middle">${i + 1}. generácia</text>`).join('')}
         <text class="f-small" x="10" y="70">kvarky</text>

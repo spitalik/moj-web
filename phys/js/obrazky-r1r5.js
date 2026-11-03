@@ -101,15 +101,15 @@
       for (let k = 0; k <= 10; k++) {
         const x = 30 + 30 * k;
         ticks += `<line class="f-thin" x1="${x}" y1="100" x2="${x}" y2="112"/>
-          <text class="f-small" x="${x}" y="126" text-anchor="middle">${k}</text>`;
+          <text class="f-small" x="${x}" y="142" text-anchor="middle">${k}</text>`;
       }
-      return `<svg viewBox="0 0 360 170" role="img" aria-label="Meranie dĺžky predmetu pravítkom od nuly">
+      return `<svg viewBox="0 0 360 185" role="img" aria-label="Meranie dĺžky predmetu pravítkom od nuly">
         <rect class="f-fill2 f-outline2" x="30" y="50" width="210" height="28"/>
         <text class="f-small" x="135" y="68" text-anchor="middle">predmet</text>
         <rect class="f-line" fill="none" x="30" y="100" width="300" height="26"/>
         ${ticks}
         <line class="f-accent" x1="30" y1="84" x2="30" y2="100"/>
-        <text class="f-text" x="30" y="158">dĺžka predmetu = 7 cm</text></svg>`;
+        <text class="f-text" x="30" y="174">dĺžka predmetu = 7 cm</text></svg>`;
     }
   });
 
@@ -155,8 +155,6 @@
         <path class="f-line" fill="none" d="M240 50 V190 H370 V50"/>
         ${part(0, 16, 'f-accent')}
         ${part(210, 26, 'f-warn')}
-        <rect class="f-fill3 f-outline3" x="84" y="168" width="16" height="12"/>
-        <rect class="f-fill3 f-outline3" x="294" y="168" width="16" height="12"/>
         <text class="f-small" x="95" y="215" text-anchor="middle">studená voda: pomalé častice</text>
         <text class="f-small" x="305" y="215" text-anchor="middle">teplá voda: rýchle častice</text></svg>`;
     }
@@ -186,7 +184,7 @@
       ${arr(200, 117, 200, 52, 'f-ok')}
       ${arr(200, 117, 200, 182, 'f-warn')}
       <text class="f-math" x="214" y="62">N</text>
-      <text class="f-math" x="214" y="176">Fg</text></svg>`
+      <text class="f-math" x="214" y="176">F_g</text></svg>`
   });
 
   FIGURES.register('r1r5-zvuk-vlna', {
