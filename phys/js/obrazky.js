@@ -65,19 +65,19 @@
 
   /* ---------- elektrina ---------- */
 
-  // vľavo dve žiarovky za sebou, vpravo každá na vlastnej vetve medzi dvoma uzlami
+  // vľavo dva rezistory za sebou, vpravo každý na vlastnej vetve medzi dvoma uzlami
   FIGURES.register('obr-obvod', {
     draw: () => {
       const { seg, node } = SCHEMA;
       return `<svg viewBox="0 0 460 210" role="img" aria-label="Sériové a paralelné zapojenie">
       ${seg(30, 50, 30, 160, 'cell')}
-      ${seg(30, 50, 120, 50, 'bulb')}${seg(120, 50, 210, 50, 'bulb')}
+      ${seg(30, 50, 120, 50, 'resistor', { label: 'R_1', at: 'b' })}${seg(120, 50, 210, 50, 'resistor', { label: 'R_2', at: 'b' })}
       ${seg(210, 50, 210, 160)}${seg(210, 160, 30, 160)}
       <text class="f-small" x="120" y="22" text-anchor="middle">prúd všade rovnaký</text>
       <text class="f-text" x="120" y="196" text-anchor="middle">sériovo</text>
       ${seg(250, 50, 250, 160, 'cell')}
       ${seg(250, 50, 430, 50)}${seg(250, 160, 430, 160)}
-      ${seg(340, 50, 340, 160, 'bulb')}${seg(430, 50, 430, 160, 'bulb')}
+      ${seg(340, 50, 340, 160, 'resistor', { label: 'R_1' })}${seg(430, 50, 430, 160, 'resistor', { label: 'R_2' })}
       ${node(340, 50)}${node(340, 160)}
       <text class="f-small" x="340" y="22" text-anchor="middle">napätie na vetvách rovnaké</text>
       <text class="f-text" x="340" y="196" text-anchor="middle">paralelne</text></svg>`;
