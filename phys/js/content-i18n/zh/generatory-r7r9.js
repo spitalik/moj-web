@@ -462,7 +462,7 @@ CONTENT_I18N.add('zh', {
   "Otočenie cievky samo o sebe pole nezosilní.": "仅仅转动线圈并不能增强磁场。",
   "Ako zosilníme magnetické pole cievky s prúdom?": "怎样增强通电线圈的磁场？",
   "Väčší prúd a väčší počet závitov zosilnia pole vnútri cievky.": "增大电流和增加匝数都会增强线圈内部的磁场。",
-  "cievka s jadrom z železa": "带铁芯的线圈",
+  "cievka so železným jadrom": "带铁芯的线圈",
   "Elektromagnet: cievka s železným jadrom": "电磁铁：带铁芯的线圈",
   "prechádzajúci elektrický prúd cievkou": "流过线圈的电流",
   "trvalý magnet pripevnený na jadre": "固定在铁芯上的永磁体",

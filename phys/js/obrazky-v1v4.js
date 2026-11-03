@@ -258,19 +258,19 @@
   });
 
   FIGURES.register('v1v4-paralelne', {
-    draw: () => `<svg viewBox="0 0 420 220" role="img" aria-label="Dva rezistory zapojené paralelne na zdroj">
-      <path class="f-line" fill="none" d="M60 40 H360 M60 40 V180 M60 180 H360 M360 40 V180"/>
-      <path class="f-line" fill="none" d="M160 40 V85 M160 135 V180 M280 40 V85 M280 135 V180"/>
-      <rect class="f-fill f-outline" x="145" y="85" width="30" height="50"/>
-      <rect class="f-fill f-outline" x="265" y="85" width="30" height="50"/>
-      <line class="f-accent" x1="46" y1="100" x2="74" y2="100" stroke-width="3"/>
-      <line class="f-accent" x1="54" y1="112" x2="66" y2="112"/>
-      <text class="f-math" x="28" y="110">U</text>
-      <text class="f-math" x="190" y="115">R₁</text>
-      <text class="f-math" x="310" y="115">R₂</text>
-      ${arr(90, 40, 130, 40, 'f-ok')}
-      <text class="f-math" x="110" y="30" text-anchor="middle">I</text>
-      <text class="f-small" x="210" y="206" text-anchor="middle">paralelne: napätie U je na oboch vetvách rovnaké</text></svg>`
+    // dve vetvy medzi uzlami hore a dole, každá s jedným rezistorom
+    draw: () => {
+      const { seg, node } = SCHEMA;
+      return `<svg viewBox="0 0 420 220" role="img" aria-label="Dva rezistory zapojené paralelne na zdroj">
+      ${seg(60, 40, 60, 180, 'cell', { label: 'U', at: 'l' })}
+      ${seg(60, 40, 330, 40)}${seg(60, 180, 330, 180)}
+      ${seg(200, 40, 200, 180, 'resistor', { label: 'R₁', at: 'r' })}
+      ${seg(330, 40, 330, 180, 'resistor', { label: 'R₂', at: 'r' })}
+      ${node(200, 40)}${node(200, 180)}
+      ${arr(90, 40, 150, 40, 'f-ok')}
+      <text class="f-math" x="120" y="30" text-anchor="middle">I</text>
+      <text class="f-small" x="210" y="206" text-anchor="middle">paralelne: napätie U je na oboch vetvách rovnaké</text></svg>`;
+    }
   });
 
   FIGURES.register('v1v4-lorentz', {

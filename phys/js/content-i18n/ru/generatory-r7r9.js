@@ -462,7 +462,7 @@ CONTENT_I18N.add('ru', {
     "Otočenie cievky samo o sebe pole nezosilní.": "Поворот катушки сам по себе поле не усиливает.",
     "Ako zosilníme magnetické pole cievky s prúdom?": "Как усилить магнитное поле катушки с током?",
     "Väčší prúd a väčší počet závitov zosilnia pole vnútri cievky.": "Больший ток и большее число витков усиливают поле внутри катушки.",
-    "cievka s jadrom z železa": "катушка с железным сердечником",
+    "cievka so železným jadrom": "катушка с железным сердечником",
     "Elektromagnet: cievka s železným jadrom": "Электромагнит: катушка с железным сердечником",
     "elektrická na pohybovú (mechanickú)": "электрическая в движение (механическую)",
     "elektrická na tepelnú": "электрическая в тепловую",

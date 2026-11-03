@@ -224,20 +224,17 @@
 
   // ampérmeter v sérii, voltmeter paralelne k žiarovke
   FIGURES.register('r6r9-merania', {
-    draw: () => `<svg viewBox="0 0 420 240" role="img" aria-label="Zapojenie ampérmetra v sérii a voltmetra paralelne so žiarovkou">
-      <path class="f-line" fill="none" d="M60 50 H360 V160 H60 V118 M60 92 V50"/>
-      <line class="f-solid" x1="48" y1="98" x2="72" y2="98" stroke-width="4"/>
-      <line class="f-line" x1="54" y1="112" x2="66" y2="112"/>
-      <text class="f-small" x="36" y="108" text-anchor="end">zdroj</text>
-      <circle class="f-fill" cx="210" cy="50" r="12"/>
-      <text class="f-math" x="210" y="55" text-anchor="middle">A</text>
-      <text class="f-small" x="210" y="30" text-anchor="middle">ampérmeter v sérii</text>
-      <circle class="f-fill3 f-outline3" cx="290" cy="160" r="12"/>
-      <text class="f-small" x="290" y="140" text-anchor="middle">žiarovka</text>
-      <path class="f-line" fill="none" d="M250 160 V200 H278 M302 200 H330 V160"/>
-      <circle class="f-fill" cx="290" cy="200" r="12"/>
-      <text class="f-math" x="290" y="205" text-anchor="middle">V</text>
-      <text class="f-small" x="290" y="232" text-anchor="middle">voltmeter paralelne</text></svg>`
+    draw: () => {
+      const { seg, node } = SCHEMA;
+      return `<svg viewBox="0 0 420 240" role="img" aria-label="Zapojenie ampérmetra v sérii a voltmetra paralelne so žiarovkou">
+      ${seg(60, 40, 60, 150, 'cell', { label: 'zdroj', cls: 'f-small', at: 'l' })}
+      ${seg(60, 40, 360, 40, 'meter', { letter: 'A', label: 'ampérmeter v sérii', cls: 'f-small' })}
+      ${seg(360, 40, 360, 150)}
+      ${seg(360, 150, 260, 150)}${seg(260, 150, 160, 150, 'bulb', { label: 'žiarovka', cls: 'f-small' })}${seg(160, 150, 60, 150)}
+      ${seg(160, 150, 160, 205)}${seg(160, 205, 260, 205, 'meter', { letter: 'V' })}${seg(260, 205, 260, 150)}
+      ${node(160, 150)}${node(260, 150)}
+      <text class="f-small" x="210" y="234" text-anchor="middle">voltmeter paralelne</text></svg>`;
+    }
   });
 
   // Ohmov zákon: pri rovnakom napätí väčší odpor znamená menší prúd
@@ -294,11 +291,10 @@
       return `<svg viewBox="0 0 420 240" role="img" aria-label="Elektromagnet: cievka s železným jadrom">
         <rect class="f-fill2 f-outline2" x="130" y="100" width="160" height="20"/>
         ${loops}
-        <path class="f-line" fill="none" d="M144 110 H96 V200 H168 M184 200 H276 V110 H268"/>
-        <line class="f-solid" x1="172" y1="190" x2="172" y2="210" stroke-width="4"/>
-        <line class="f-line" x1="180" y1="196" x2="180" y2="204"/>
-        <text class="f-small" x="176" y="228" text-anchor="middle">zdroj</text>
-        <text class="f-small" x="210" y="68" text-anchor="middle">cievka s jadrom z železa</text></svg>`;
+        <path class="f-line" d="M144 110 H96 V200 M276 200 V110 H268"/>
+        ${SCHEMA.seg(96, 200, 276, 200, 'cell')}
+        <text class="f-small" x="186" y="232" text-anchor="middle">zdroj</text>
+        <text class="f-small" x="210" y="68" text-anchor="middle">cievka so železným jadrom</text></svg>`;
     }
   });
 

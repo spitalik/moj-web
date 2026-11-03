@@ -462,7 +462,7 @@ CONTENT_I18N.add('tr', {
     "Pole zmizne len vtedy, keď prúd vypneme, nie pri otočení.": "Alan yalnızca akımı kapattığımızda kaybolur, yönü değiştirdiğimizde değil.",
     "Čo sa stane so smerom magnetického poľa, ak otočíme smer prúdu vo vodiči?": "İletkendeki akımın yönünü tersine çevirirsek manyetik alanın yönüne ne olur?",
     "Smer poľa závisí od smeru prúdu. Pri otočení prúdu sa pole obráti.": "Alanın yönü akımın yönüne bağlıdır. Akım tersine çevrilince alan da tersine döner.",
-    "cievka s jadrom z železa": "demir çekirdekli bobin",
+    "cievka so železným jadrom": "demir çekirdekli bobin",
     "Elektromagnet: cievka s železným jadrom": "Elektromıknatıs: demir çekirdekli bobin",
     "zväčšíme počet závitov cievky": "bobinin sarım sayısını artırırız",
     "zmenšíme prúd tečúci cievkou": "bobinden akan akımı azaltırız",

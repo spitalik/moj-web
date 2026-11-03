@@ -289,7 +289,7 @@
     html += `<div class="lesson-body" lang="${lang}">`;
     html += L.theory.map((x) => (typeof x === 'string'
       ? `<div class="block theory">${x}</div>`
-      : `<figure class="figure" data-fig="${x.fig}"><div class="fig-body"></div>${x.caption ? `<figcaption>${x.caption}</figcaption>` : ''}</figure>`
+      : `<figure class="figure" data-fig="${x.fig}"><div class="fig-body"></div>${x.caption ? `<figcaption>${FIGURES.subHtml(x.caption)}</figcaption>` : ''}</figure>`
     )).join('');
     html += `</div><h2>${esc(t('solvedExamples'))}</h2>`;
     L.examples.forEach((ex, k) => {

@@ -465,7 +465,7 @@ CONTENT_I18N.add('fr', {
     "Otočenie cievky samo o sebe pole nezosilní.": "Tourner la bobine ne renforce pas le champ à lui seul.",
     "Ako zosilníme magnetické pole cievky s prúdom?": "Comment renforcer le champ magnétique d’une bobine parcourue par un courant ?",
     "Väčší prúd a väčší počet závitov zosilnia pole vnútri cievky.": "Un courant plus grand et un plus grand nombre de spires renforcent le champ à l’intérieur de la bobine.",
-    "cievka s jadrom z železa": "bobine avec un noyau de fer",
+    "cievka so železným jadrom": "bobine avec un noyau de fer",
     "Elektromagnet: cievka s železným jadrom": "Électroaimant : bobine à noyau de fer",
     "prechádzajúci elektrický prúd cievkou": "un courant électrique traversant la bobine",
     "trvalý magnet pripevnený na jadre": "un aimant permanent fixé sur le noyau",

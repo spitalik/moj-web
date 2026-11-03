@@ -65,21 +65,23 @@
 
   /* ---------- elektrina ---------- */
 
+  // vľavo dve žiarovky za sebou, vpravo každá na vlastnej vetve medzi dvoma uzlami
   FIGURES.register('obr-obvod', {
-    draw: () => `<svg viewBox="0 0 460 200" role="img" aria-label="Sériové a paralelné zapojenie">
-      <path class="f-line" d="M40 40 H200 V160 H40 Z"/>
-      <line class="f-accent" x1="28" y1="96" x2="52" y2="96"/><line class="f-line" x1="36" y1="106" x2="44" y2="106"/>
-      <circle class="f-fill3 f-outline3" cx="90" cy="40" r="10"/>
-      <circle class="f-fill3 f-outline3" cx="150" cy="40" r="10"/>
-      <text class="f-text" x="120" y="190" text-anchor="middle">sériovo</text>
-      <text class="f-small" x="120" y="30" text-anchor="middle">prúd všade rovnaký</text>
-      <path class="f-line" d="M260 40 H420 V160 H260 Z"/>
-      <line class="f-accent" x1="248" y1="96" x2="272" y2="96"/><line class="f-line" x1="256" y1="106" x2="264" y2="106"/>
-      <path class="f-line" d="M300 90 H380 M300 130 H380"/>
-      <circle class="f-fill3 f-outline3" cx="340" cy="90" r="10"/>
-      <circle class="f-fill3 f-outline3" cx="340" cy="130" r="10"/>
-      <text class="f-text" x="340" y="190" text-anchor="middle">paralelne</text>
-      <text class="f-small" x="340" y="30" text-anchor="middle">napätie na vetvách rovnaké</text></svg>`
+    draw: () => {
+      const { seg, node } = SCHEMA;
+      return `<svg viewBox="0 0 460 210" role="img" aria-label="Sériové a paralelné zapojenie">
+      ${seg(30, 50, 30, 160, 'cell')}
+      ${seg(30, 50, 120, 50, 'bulb')}${seg(120, 50, 210, 50, 'bulb')}
+      ${seg(210, 50, 210, 160)}${seg(210, 160, 30, 160)}
+      <text class="f-small" x="120" y="22" text-anchor="middle">prúd všade rovnaký</text>
+      <text class="f-text" x="120" y="196" text-anchor="middle">sériovo</text>
+      ${seg(250, 50, 250, 160, 'cell')}
+      ${seg(250, 50, 430, 50)}${seg(250, 160, 430, 160)}
+      ${seg(340, 50, 340, 160, 'bulb')}${seg(430, 50, 430, 160, 'bulb')}
+      ${node(340, 50)}${node(340, 160)}
+      <text class="f-small" x="340" y="22" text-anchor="middle">napätie na vetvách rovnaké</text>
+      <text class="f-text" x="340" y="196" text-anchor="middle">paralelne</text></svg>`;
+    }
   });
 
   FIGURES.register('obr-ohm', {

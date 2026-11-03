@@ -458,7 +458,7 @@ CONTENT_I18N.add('en', {
     "Materiál vodiča nezruší pole, ktoré vzniká prúdom.": "The material of the conductor does not cancel the field produced by the current.",
     "Ktoré tvrdenie o magnetickom poli okolo vodiča je pravdivé?": "Which statement about the magnetic field around a conductor is true?",
     "Magnetické pole okolo vodiča vzniká prúdom. Bez prúdu pole nie je.": "The magnetic field around a conductor is produced by the current. Without current there is no field.",
-    "cievka s jadrom z železa": "coil with an iron core",
+    "cievka so železným jadrom": "coil with an iron core",
     "Elektromagnet: cievka s železným jadrom": "Electromagnet: coil with an iron core",
     "zväčšíme počet závitov cievky": "increase the number of turns of the coil",
     "zmenšíme prúd tečúci cievkou": "reduce the current flowing through the coil",

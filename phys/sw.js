@@ -1,7 +1,7 @@
 /* Service worker: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu.
    Preklady obsahu (js/content-i18n/<jazyk>/*.js) sa neukladajú vopred: uložia sa pri prvom načítaní jazyka. */
-const CACHE = 'fyzika-v22';
+const CACHE = 'fyzika-v25';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const ASSETS = [
   './js/content.js',
   './js/exercises.js',
   './js/figures.js',
+  './js/schemy.js',
   './js/simulacie.js',
   './js/rocniky/r1.js',
   './js/rocniky/r2.js',

@@ -366,7 +366,7 @@ CONTENT_I18N.add('pt', {
     "chemická": "química",
     "chemickú energiu v podlahe": "energia química no piso",
     "chemickú energiu": "energia química",
-    "cievka s jadrom z železa": "bobina com núcleo de ferro",
+    "cievka so železným jadrom": "bobina com núcleo de ferro",
     "cievku otočíme bez zmeny prúdu": "rodamos a bobina sem alterar a corrente",
     "dodaná": "fornecida",
     "dolievať vodu a znova ho zapnúť": "deitar mais água e voltar a ligá-lo",

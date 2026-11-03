@@ -462,7 +462,7 @@ CONTENT_I18N.add('ja', {
     "Materiál vodiča nezruší pole, ktoré vzniká prúdom.": "導線の材質は、電流によって生じる磁場を打ち消しません。",
     "Ktoré tvrdenie o magnetickom poli okolo vodiča je pravdivé?": "導線の周りの磁場について正しい記述はどれですか？",
     "Magnetické pole okolo vodiča vzniká prúdom. Bez prúdu pole nie je.": "導線の周りの磁場は電流によって生じます。電流がなければ磁場はありません。",
-    "cievka s jadrom z železa": "鉄心入りのコイル",
+    "cievka so železným jadrom": "鉄心入りのコイル",
     "Elektromagnet: cievka s železným jadrom": "電磁石：鉄心入りのコイル",
     "prechádzajúci elektrický prúd cievkou": "コイルを流れる電流",
     "trvalý magnet pripevnený na jadre": "鉄心に取り付けた永久磁石",

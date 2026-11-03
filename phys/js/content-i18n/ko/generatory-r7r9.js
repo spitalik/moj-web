@@ -489,7 +489,7 @@ CONTENT_I18N.add('ko', {
     "Ako zosilníme magnetické pole cievky s prúdom?": "전류가 흐르는 코일의 자기장을 어떻게 세게 할 수 있나요?",
     "Väčší prúd a väčší počet závitov zosilnia pole vnútri cievky.": "전류가 크고 감은 수가 많으면 코일 안의 자기장이 세집니다.",
 
-    "cievka s jadrom z železa": "철심이 든 코일",
+    "cievka so železným jadrom": "철심이 든 코일",
     "Elektromagnet: cievka s železným jadrom": "전자석: 철심이 든 코일",
     "zväčšíme počet závitov cievky": "코일의 감은 수를 늘립니다",
     "zmenšíme prúd tečúci cievkou": "코일에 흐르는 전류를 줄입니다",

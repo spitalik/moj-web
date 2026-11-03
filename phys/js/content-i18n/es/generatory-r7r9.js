@@ -465,7 +465,7 @@ CONTENT_I18N.add('es', {
     "Otočenie cievky samo o sebe pole nezosilní.": "Girar la bobina por sí solo no intensifica el campo.",
     "Ako zosilníme magnetické pole cievky s prúdom?": "¿Cómo intensificamos el campo magnético de una bobina con corriente?",
     "Väčší prúd a väčší počet závitov zosilnia pole vnútri cievky.": "Una corriente mayor y un mayor número de espiras intensifican el campo dentro de la bobina.",
-    "cievka s jadrom z železa": "bobina con núcleo de hierro",
+    "cievka so železným jadrom": "bobina con núcleo de hierro",
     "Elektromagnet: cievka s železným jadrom": "Electroimán: bobina con núcleo de hierro",
     "prechádzajúci elektrický prúd cievkou": "la corriente eléctrica que atraviesa la bobina",
     "trvalý magnet pripevnený na jadre": "un imán permanente sujeto al núcleo",

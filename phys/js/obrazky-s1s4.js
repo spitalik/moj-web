@@ -215,18 +215,17 @@
   });
 
   FIGURES.register('s1s4-jednoduchy-obvod', {
-    draw: () => `<svg viewBox="0 0 420 240" role="img" aria-label="Jednoduchý elektrický obvod so zdrojom a rezistorom">
-      <path class="f-line" d="M60 50 H230 M290 50 H360 V190 H60 V118 M60 106 V50"/>
-      <line class="f-solid" x1="44" y1="106" x2="76" y2="106" stroke-width="3"/>
-      <line class="f-solid" x1="52" y1="118" x2="68" y2="118" stroke-width="3"/>
-      <rect class="f-fill f-outline" x="230" y="38" width="60" height="24"/>
-      <text class="f-math" x="32" y="112" text-anchor="end">U</text>
-      <text class="f-math" x="84" y="110">+</text>
-      <text class="f-math" x="84" y="124">−</text>
-      <text class="f-math" x="260" y="30" text-anchor="middle">R</text>
-      ${arr(100, 50, 170, 50, 'f-ok')}
-      <text class="f-math" x="135" y="40" text-anchor="middle">I</text>
-      <text class="f-small" x="210" y="222" text-anchor="middle">prúd tečie od + k −</text></svg>`
+    draw: () => {
+      const { seg } = SCHEMA;
+      return `<svg viewBox="0 0 420 240" role="img" aria-label="Jednoduchý elektrický obvod so zdrojom a rezistorom">
+      ${seg(60, 50, 60, 190, 'cell')}
+      ${seg(60, 50, 360, 50, 'resistor', { label: 'R' })}
+      ${seg(360, 50, 360, 190)}${seg(360, 190, 60, 190)}
+      <text class="f-math" x="30" y="125" text-anchor="end">U</text>
+      ${arr(90, 50, 150, 50, 'f-ok')}
+      <text class="f-math" x="120" y="40" text-anchor="middle">I</text>
+      <text class="f-small" x="210" y="222" text-anchor="middle">prúd tečie od + k −</text></svg>`;
+    }
   });
 
   FIGURES.register('s1s4-transformator', {
@@ -246,6 +245,7 @@
   FIGURES.register('s1s4-striedavy-prud', {
     draw: () => `<svg viewBox="0 0 420 240" role="img" aria-label="Sínusové striedavé napätie v čase">
       <path class="f-line" d="M40 20 V200 M40 120 H400"/>
+      <text class="f-math" x="32" y="30" text-anchor="end">u</text>
       <line class="f-dash" x1="40" y1="40" x2="400" y2="40"/>
       <line class="f-thin" x1="40" y1="63" x2="400" y2="63"/>
       <path class="f-accent" fill="none" d="${curve(40, 400, 2, (x) => 120 - 80 * Math.sin(2 * Math.PI * (x - 40) / 200))}"/>

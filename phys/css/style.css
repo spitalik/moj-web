@@ -542,6 +542,11 @@ summary { cursor: pointer; color: var(--primary); font-weight: 600; }
 .f-dot-ok { fill: var(--ok); }
 .f-vertex { fill: var(--warn); }
 .f-solid { fill: var(--text); }
+/* čiara s triedou f-solid by bez obrysu nebola vidieť (hrúbku určuje atribút stroke-width) */
+line.f-solid { stroke: var(--text); }
+/* schémy obvodov (js/schemy.js): krátka hrubá doska článku a uzol */
+.f-plate { stroke: var(--text); stroke-width: 5; fill: none; }
+.f-node { fill: var(--text); }
 .f-text { fill: var(--text); font: 15px system-ui, -apple-system, "Segoe UI", sans-serif; }
 .f-small { fill: var(--muted); font: 12px system-ui, -apple-system, "Segoe UI", sans-serif; }
 .f-math { fill: var(--text); font: italic 18px "Times New Roman", Georgia, serif; }

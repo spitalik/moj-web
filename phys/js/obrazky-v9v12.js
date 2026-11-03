@@ -413,7 +413,10 @@
         h.push([x, 120 - H * Math.cos((2 * Math.PI * (x - 40)) / T)]);
       }
       return `<svg viewBox="0 0 420 240" role="img" aria-label="Štvorcový signál a jeho prvá harmonická">
-        <path class="f-dash" fill="none" d="M40 120 H380"/>
+        <line class="f-axis" x1="40" y1="120" x2="388" y2="120"/>
+        <line class="f-axis" x1="40" y1="36" x2="40" y2="204"/>
+        <text class="f-math" x="394" y="125">t</text>
+        <text class="f-math" x="32" y="48" text-anchor="end">u</text>
         <path class="f-line" fill="none" d="M40 60 H125 V180 H210 V60 H295 V180 H380"/>
         <path class="f-accent" fill="none" d="${poly(h)}"/>
         <text class="f-small" x="40" y="22">tenká čiara: štvorcový signál</text>

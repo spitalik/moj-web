@@ -38,6 +38,42 @@
     return s;
   }
 
+  // „pekný“ krok osi (1, 2 alebo 5 krát mocnina desiatky), aby bolo na osi asi n popisov
+  function nice(range, n = 5) {
+    const raw = range / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), r = raw / mag;
+    return (r <= 1 ? 1 : r <= 2 ? 2 : r <= 5 ? 5 : 10) * mag;
+  }
+
+  // mriežka a osi s krokom dx, dy (pri veľkých rozsahoch, kde by mriežka po jednotkách z axes() splynula)
+  function grid(p, dx, dy) {
+    const ticks = (a, b, d) => {
+      const t = [];
+      for (let v = Math.ceil(a / d - 1e-9) * d; v <= b + 1e-9; v += d) t.push(+v.toFixed(6));
+      return t;
+    };
+    const x0 = Math.min(Math.max(0, p.xmin), p.xmax), y0 = Math.min(Math.max(0, p.ymin), p.ymax);
+    let s = '';
+    ticks(p.xmin, p.xmax, dx).forEach((x) => {
+      s += `<line class="f-grid" x1="${n1(p.X(x))}" y1="${n1(p.Y(p.ymax))}" x2="${n1(p.X(x))}" y2="${n1(p.Y(p.ymin))}"/>`;
+      if (x !== x0) s += `<text class="f-small" x="${n1(p.X(x))}" y="${n1(p.Y(y0) + 14)}" text-anchor="middle">${sk(x, decimals(dx))}</text>`;
+    });
+    ticks(p.ymin, p.ymax, dy).forEach((y) => {
+      s += `<line class="f-grid" x1="${n1(p.X(p.xmin))}" y1="${n1(p.Y(y))}" x2="${n1(p.X(p.xmax))}" y2="${n1(p.Y(y))}"/>`;
+      if (y !== y0) s += `<text class="f-small" x="${n1(p.X(x0) - 5)}" y="${n1(p.Y(y) + 4)}" text-anchor="end">${sk(y, decimals(dy))}</text>`;
+    });
+    s += `<line class="f-axis" x1="${n1(p.X(p.xmin))}" y1="${n1(p.Y(y0))}" x2="${n1(p.X(p.xmax))}" y2="${n1(p.Y(y0))}"/>`;
+    s += `<line class="f-axis" x1="${n1(p.X(x0))}" y1="${n1(p.Y(p.ymin))}" x2="${n1(p.X(x0))}" y2="${n1(p.Y(p.ymax))}"/>`;
+    return s;
+  }
+
+  // popisy osí: veličina s jednotkou na konci osi x a hore pri osi y. Značky a jednotky sú medzinárodné,
+  // preto sú v <tspan>, ktorý preklad SVG (CONTENT_I18N.markup) obíde.
+  function axisLabels(p, xl, yl) {
+    const x0 = Math.min(Math.max(0, p.xmin), p.xmax), y0 = Math.min(Math.max(0, p.ymin), p.ymax);
+    return `<text class="f-small" x="${p.W - 4}" y="${n1(p.Y(y0) - 6)}" text-anchor="end"><tspan>${xl}</tspan></text>`
+      + `<text class="f-small" x="${n1(p.X(x0) + 6)}" y="${p.pad - 8}"><tspan>${yl}</tspan></text>`;
+  }
+
   function curvePath(p, fn, a = p.xmin, b = p.xmax, steps = 240) {
     let d = '';
     for (let i = 0; i <= steps; i++) {
@@ -278,6 +314,26 @@
     }
   };
 
+  // Dolné indexy: v popisoch sa píše U_max, F_g, Q_h (tak sú aj kľúče prekladov). Pri vykreslení sa časť za
+  // podčiarkovníkom zmenší a posunie nadol. Robí sa až po preklade, aby kľúče slovníka ostali nezmenené.
+  const SUB = /([\p{L}\p{N})])_([\p{L}\p{N}]+)/gu;
+  function subText(t) {
+    let out = '', last = 0, down = false;
+    for (const m of t.matchAll(SUB)) {
+      const before = t.slice(last, m.index) + m[1];
+      out += down ? `<tspan dy="-0.3em">${before}</tspan>` : before;
+      out += `<tspan dy="0.3em" font-size="75%">${m[2]}</tspan>`;
+      down = true;
+      last = m.index + m[0].length;
+    }
+    if (!down) return t;
+    const rest = t.slice(last);
+    return out + (rest ? `<tspan dy="-0.3em">${rest}</tspan>` : '');
+  }
+  const subSvg = (html) => html.replace(/(<text\b[^>]*>)([^<]+)(<\/text>)/g, (m, a, t, b) => a + subText(t) + b);
+  // v HTML (popisok obrázka) <sub>; vzorce v $…$ sa nemenia, tie vysádza KaTeX
+  const subHtml = (html) => String(html).split(/(\$[^$]*\$)/).map((p, i) => (i % 2 ? p : p.replace(SUB, '$1<sub>$2</sub>'))).join('');
+
   // Jazyk obrázka je lang najbližšieho predka (obsah lekcie); popisy v SVG sa preložia (CONTENT_I18N.markup).
   function mount(el) {
     const def = DEFS[el.dataset.fig];
@@ -287,7 +343,7 @@
     const lang = holder ? holder.getAttribute('lang') : CONTENT_I18N.SOURCE;
     const inLang = (fn) => CONTENT_I18N.run(lang, null, fn);
     if (!def.controls) {
-      body.innerHTML = inLang(() => CONTENT_I18N.markup(def.draw()));
+      body.innerHTML = subSvg(inLang(() => CONTENT_I18N.markup(def.draw())));
       return;
     }
     const vals = {};
@@ -301,7 +357,7 @@
 
     const update = () => inLang(() => {
       const r = def.draw(vals);
-      body.querySelector('.fig-svg').innerHTML = CONTENT_I18N.markup(r.svg);
+      body.querySelector('.fig-svg').innerHTML = subSvg(CONTENT_I18N.markup(r.svg));
       body.querySelector('.fig-readout').innerHTML = r.readout;
     });
     def.controls.forEach((c) => {
@@ -322,8 +378,8 @@
   }
 
   window.FIGURES = {
-    mount, register,
+    mount, register, subHtml,
     get: (id) => DEFS[id],
-    util: { plane, axes, curvePath, svg, n1, sk, term }
+    util: { plane, axes, grid, nice, axisLabels, curvePath, svg, n1, sk, term }
   };
 })();

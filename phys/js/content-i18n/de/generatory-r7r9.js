@@ -462,7 +462,7 @@ CONTENT_I18N.add('de', {
     "Pole zmizne len vtedy, keď prúd vypneme, nie pri otočení.": "Das Feld verschwindet nur, wenn wir den Strom ausschalten, nicht beim Umkehren.",
     "Čo sa stane so smerom magnetického poľa, ak otočíme smer prúdu vo vodiči?": "Was geschieht mit der Richtung des Magnetfelds, wenn wir die Stromrichtung im Leiter umkehren?",
     "Smer poľa závisí od smeru prúdu. Pri otočení prúdu sa pole obráti.": "Die Richtung des Feldes hängt von der Stromrichtung ab. Beim Umkehren des Stroms kehrt sich das Feld um.",
-    "cievka s jadrom z železa": "Spule mit einem Eisenkern",
+    "cievka so železným jadrom": "Spule mit einem Eisenkern",
     "Elektromagnet: cievka s železným jadrom": "Elektromagnet: Spule mit Eisenkern",
     "elektrická na pohybovú (mechanickú)": "elektrische in Bewegungs- (mechanische) Energie",
     "elektrická na tepelnú": "elektrische in thermische Energie",

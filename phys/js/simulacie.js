@@ -4,7 +4,7 @@
   'use strict';
 
   const { T } = CONTENT_I18N;
-  const { plane, axes, curvePath, svg, n1, sk } = FIGURES.util;
+  const { plane, axes, grid, nice, axisLabels, curvePath, svg, n1, sk } = FIGURES.util;
   const G = 9.81;
   const PI = Math.PI;
   const deg = (x) => x * PI / 180;
@@ -34,7 +34,7 @@
       const area = `M${n1(p.X(0))} ${n1(p.Y(0))} L${n1(p.X(0))} ${n1(p.Y(v0))} L${n1(p.X(10))} ${n1(p.Y(v10))} L${n1(p.X(10))} ${n1(p.Y(0))} Z`;
       const s10 = v0 * 10 + a * 50;
       return {
-        svg: svg(p, axes(p, 1, 2), `<path class="f-fill2" d="${area}"/><path class="f-accent" d="${line(p, [[0, v0], [10, v10]])}"/>`, '', 'Graf rýchlosti v čase'),
+        svg: svg(p, axes(p, 1, 2), `<path class="f-fill2" d="${area}"/><path class="f-accent" d="${line(p, [[0, v0], [10, v10]])}"/>`, axisLabels(p, 't (s)', 'v (m/s)'), 'Graf rýchlosti v čase'),
         readout: T`Graf v(t) od 0 do 10 s, plocha pod ním je dráha. Rýchlosť v(10 s) = ${sk(v10)} m/s, dráha s = ${sk(s10)} m.`
       };
     }
@@ -52,7 +52,7 @@
       const pts = [];
       for (let k = 0; k <= 60; k++) { const q = tf * k / 60; pts.push([vx * q, vy * q - G * q * q / 2]); }
       return {
-        svg: svg(p, axes(p, 5, 5), `<path class="f-accent" d="${line(p, pts)}"/>`, '', 'Trajektória šikmého vrhu'),
+        svg: svg(p, grid(p, nice(p.xmax), nice(p.ymax)), `<path class="f-accent" d="${line(p, pts)}"/>`, axisLabels(p, 'x (m)', 'y (m)'), 'Trajektória šikmého vrhu'),
         readout: T`Dolet ${sk(R)} m · najvyšší bod ${sk(H)} m · čas letu ${sk(tf)} s. Odpor vzduchu sa zanedbáva.`
       };
     }
@@ -67,7 +67,7 @@
       const acc = F / m, t = 4;
       const p = plane(0, t, 0, Math.max(acc * t, 1) * 1.2);
       return {
-        svg: svg(p, axes(p, 1, 1), `<path class="f-accent" d="${curvePath(p, (x) => acc * x, 0, t)}"/><circle class="f-dot" cx="${n1(p.X(t))}" cy="${n1(p.Y(acc * t))}" r="5"/>`, '', 'Rýchlosť pri stálom zrýchlení'),
+        svg: svg(p, grid(p, 1, nice(p.ymax)), `<path class="f-accent" d="${curvePath(p, (x) => acc * x, 0, t)}"/><circle class="f-dot" cx="${n1(p.X(t))}" cy="${n1(p.Y(acc * t))}" r="5"/>`, axisLabels(p, 't (s)', 'v (m/s)'), 'Rýchlosť pri stálom zrýchlení'),
         readout: T`Zrýchlenie a = F / m = ${sk(acc)} m/s². Rýchlosť po ${t} s je ${sk(acc * t)} m/s (zo sily ${sk(F, 0)} N, pri hmotnosti ${sk(m, 1)} kg).`
       };
     }
@@ -159,10 +159,11 @@
     ],
     draw: ({ Tk, n, Vl }) => {
       const K = n * 8.314 * Tk;
-      const p = plane(0, 10, 0, K * 1.1);
+      // väčší okraj: popisy tlaku majú až štyri číslice
+      const p = plane(0, 10, 0, K * 1.1, 420, 300, 40);
       const pr = K / Vl;
       return {
-        svg: svg(p, axes(p, 1, Math.ceil(K / 4 / 100) * 100), `<path class="f-accent" d="${curvePath(p, (v) => K / v, 1, 10)}"/><circle class="f-dot" cx="${n1(p.X(Vl))}" cy="${n1(p.Y(pr))}" r="5"/>`, '', 'Izoterma ideálneho plynu'),
+        svg: svg(p, grid(p, 1, nice(p.ymax)), `<path class="f-accent" d="${curvePath(p, (v) => K / v, 1, 10)}"/><circle class="f-dot" cx="${n1(p.X(Vl))}" cy="${n1(p.Y(pr))}" r="5"/>`, axisLabels(p, 'V (l)', 'p (kPa)'), 'Izoterma ideálneho plynu'),
         readout: T`p = ${sk(pr, 0)} kPa pri V = ${sk(Vl, 1)} l. Izoterma platí, keď pV = nRT = ${sk(K, 0)} J.`
       };
     }
@@ -175,9 +176,10 @@
     ],
     draw: ({ P, m }) => {
       const c = 4186, t0 = 20, tBoil = m * c * (100 - t0) / P, tEnd = tBoil * 1.5;
-      const p = plane(0, tEnd, 0, 110);
+      // čas τ, teplota t v °C (ako v učebniciach ZŠ)
+      const p = plane(0, tEnd, 0, 110, 420, 300, 32);
       return {
-        svg: svg(p, axes(p, Math.ceil(tEnd / 6 / 10) * 10, 20), `<line class="f-dash" x1="${n1(p.X(0))}" y1="${n1(p.Y(100))}" x2="${n1(p.X(tEnd))}" y2="${n1(p.Y(100))}"/><path class="f-accent" d="${curvePath(p, (t) => Math.min(100, t0 + P * t / (m * c)), 0, tEnd)}"/>`, '', 'Ohrievanie vody'),
+        svg: svg(p, grid(p, nice(tEnd), 20), `<line class="f-dash" x1="${n1(p.X(0))}" y1="${n1(p.Y(100))}" x2="${n1(p.X(tEnd))}" y2="${n1(p.Y(100))}"/><path class="f-accent" d="${curvePath(p, (t) => Math.min(100, t0 + P * t / (m * c)), 0, tEnd)}"/>`, axisLabels(p, 'τ (s)', 't (°C)'), 'Ohrievanie vody'),
         readout: T`Voda zovrie za ${sk(tBoil, 0)} s (približne ${sk(tBoil / 60, 1)} min). Teplo Q = m·c·Δt, c = 4 186 J/(kg·K).`
       };
     }
@@ -194,7 +196,7 @@
       const p = plane(0, 4, -2.2, 2.2);
       const y1 = (t) => Math.sin(2 * PI * f1 * t), y2 = (t) => Math.sin(2 * PI * f2 * t);
       return {
-        svg: svg(p, axes(p, 1, 1), `<path class="f-thin" d="${curvePath(p, y1, 0, 4)}"/><path class="f-thin" d="${curvePath(p, y2, 0, 4)}"/><path class="f-accent" d="${curvePath(p, (t) => y1(t) + y2(t), 0, 4, 400)}"/>`, '', 'Skladanie dvoch kmitov'),
+        svg: svg(p, axes(p, 1, 1), `<path class="f-thin" d="${curvePath(p, y1, 0, 4)}"/><path class="f-thin" d="${curvePath(p, y2, 0, 4)}"/><path class="f-accent" d="${curvePath(p, (t) => y1(t) + y2(t), 0, 4, 400)}"/>`, axisLabels(p, 't (s)', 'y'), 'Skladanie dvoch kmitov'),
         readout: T`Dva kmity s frekvenciami ${sk(f1, 1)} Hz a ${sk(f2, 1)} Hz sa skladajú. Rázová frekvencia je |f₁ − f₂| = ${sk(Math.abs(f1 - f2), 1)} Hz.`
       };
     }

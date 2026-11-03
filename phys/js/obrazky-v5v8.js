@@ -49,6 +49,7 @@
       <text class="f-small" x="40" y="176" text-anchor="middle">0</text>
       <text class="f-small" x="125" y="176" text-anchor="middle">a</text>
       <text class="f-small" x="380" y="176" text-anchor="middle">L</text>
+      <text class="f-math" x="392" y="165">x</text>
       <text class="f-math" x="82" y="118" text-anchor="middle">P = a/L</text>
       <text class="f-small" x="210" y="40" text-anchor="middle">hustota je na celej úsečke rovnaká</text></svg>`
   });
@@ -85,6 +86,7 @@
         <line class="f-line" x1="90" y1="220" x2="330" y2="220"/>
         <path class="f-line" fill="none" d="${d}"/>
         <text class="f-math" x="60" y="44" text-anchor="end">U(x)</text>
+        <text class="f-math" x="336" y="224">x</text>
         ${levels}
         <text class="f-small" x="210" y="236" text-anchor="middle">hladiny sú rovnako od seba vzdialené o ħω</text></svg>`;
     }

@@ -213,17 +213,15 @@
   });
 
   FIGURES.register('r1r5-obvod-spinac', {
-    draw: () => `<svg viewBox="0 0 420 200" role="img" aria-label="Jednoduchý obvod s rozpojeným spínačom">
-      <path class="f-line" fill="none" d="M60 160 V122 M60 78 V40 H190 M240 40 H360 V86 M360 114 V160 H60"/>
-      <rect class="f-fill3 f-outline3" x="48" y="78" width="24" height="44"/>
-      <text class="f-small" x="38" y="104" text-anchor="end">zdroj</text>
-      <line class="f-accent" x1="190" y1="40" x2="222" y2="22"/>
-      <circle class="f-dot" cx="190" cy="40" r="3"/>
-      <circle class="f-dot" cx="240" cy="40" r="3"/>
-      <text class="f-small" x="215" y="14" text-anchor="middle">spínač rozpojený</text>
-      <text class="f-small" x="215" y="62" text-anchor="middle">prúd netečie</text>
-      <circle class="f-fill2 f-outline2" cx="360" cy="100" r="14"/>
-      <text class="f-small" x="336" y="104" text-anchor="end">žiarovka</text></svg>`
+    draw: () => {
+      const { seg } = SCHEMA;
+      return `<svg viewBox="0 0 420 200" role="img" aria-label="Jednoduchý obvod s rozpojeným spínačom">
+      ${seg(70, 50, 70, 160, 'cell', { label: 'zdroj', cls: 'f-small', at: 'l' })}
+      ${seg(70, 50, 360, 50, 'switch', { label: 'spínač rozpojený', cls: 'f-small' })}
+      ${seg(360, 50, 360, 160, 'bulb', { label: 'žiarovka', cls: 'f-small', at: 'l' })}
+      ${seg(360, 160, 70, 160)}
+      <text class="f-small" x="200" y="112" text-anchor="middle">prúd netečie</text></svg>`;
+    }
   });
 
   FIGURES.register('r1r5-premeny-energie', {
