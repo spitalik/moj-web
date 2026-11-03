@@ -441,7 +441,7 @@ CONTENT_I18N.add('ko', {
   "${@0}\\lt {@1}$, $H_0$ <strong>nezamietame</strong>.": "${@0}\\lt {@1}$이므로 $H_0$를 <strong>기각하지 않아요</strong>.",
   "(medián do polovíc nezahŕňaj)": "(중앙값은 두 절반에 넣지 마세요)",
   "<span class=\"c-accent\">F({@0}) = P(X ≤ {@1}) = x³/8 = {@2}</span> · medián x₀,₅ = 2·∛{@3} ≈ {@4}": "<span class=\"c-accent\">F({@0}) = P(X ≤ {@1}) = x³/8 = {@2}</span> · 중앙값 x₀.₅ = 2·∛{@3} ≈ {@4}",
-  "<span class=\"c-accent\">P(X &gt; {@0}) = e^(−λt) = {@1}</span> · E(X) = {@2} · medián = ln 2/λ = {@3}": "<span class=\"c-accent\">P(X &gt; {@0}) = e^(−λt) = {@1}</span> · E(X) = {@2} · 중앙값 = ln 2/λ = {@3}",
+  "<span class=\"c-accent\">P(X &gt; {@0}) = e<sup>−λt</sup> = {@1}</span> · E(X) = {@2} · medián = ln 2/λ = {@3}": "<span class=\"c-accent\">P(X &gt; {@0}) = e<sup>−λt</sup> = {@1}</span> · E(X) = {@2} · 중앙값 = ln 2/λ = {@3}",
   "<span class=\"c-accent\">ŷ = {@0} + {@1}x</span> · r = {@2} · R² = {@3} (skutočná priamka y = 2 + {@4}x)": "<span class=\"c-accent\">ŷ = {@0} + {@1}x</span> · r = {@2} · R² = {@3} (실제 직선 y = 2 + {@4}x)",
   "Absolútny člen nie je $\\bar y$ – je to hodnota priamky v bode $x=0$, teda $a=\\bar{y}-b\\bar{x}$.": "절편은 $\\bar y$가 아니에요. $x=0$에서 직선의 값이므로 $a=\\bar{y}-b\\bar{x}$예요.",
   "Absolútny člen nie je $\\bar y$: priamka prechádza bodom $(\\bar x, \\bar y)$, takže $a=\\bar{y}-b\\bar{x}$.": "절편은 $\\bar y$가 아니에요. 직선은 점 $(\\bar x, \\bar y)$를 지나므로 $a=\\bar{y}-b\\bar{x}$예요.",

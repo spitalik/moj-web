@@ -497,8 +497,8 @@
         <circle class="f-dot f-dot-ok" cx="${n1(p.X(-0.5))}" cy="${n1(p.Y(0))}" r="5"/>
         <circle class="f-dot f-dot-ok" cx="${n1(p.X(0))}" cy="${n1(p.Y(-1))}" r="5"/>`;
       const front = `<text class="f-small" x="${n1(p.X(1) + 6)}" y="${n1(p.Y(8.4))}">x = 1</text>
-        <text class="f-small" x="${n1(p.X(5.2))}" y="${n1(p.Y(2) - 6)}">y = 2</text>
-        <text class="f-math c-accent" x="${n1(p.X(3.4))}" y="${n1(p.Y(5.6))}">y = (2x + 1)/(x − 1)</text>`;
+        <text class="f-small" x="${n1(p.X(5.2))}" y="${n1(p.Y(2) + 16)}">y = 2</text>
+        <text class="f-math c-accent" x="${n1(p.X(6.8))}" y="${n1(p.Y(6))}" text-anchor="end">y = (2x + 1)/(x − 1)</text>`;
       return svg(p, axes(p, 2, 2), clipped, front, 'Graf racionálnej funkcie s asymptotami');
     }
   });

@@ -1084,7 +1084,7 @@
       const front = `<text class="f-small" x="${n1(p.X(1 / lam) + 4)}" y="${n1(p.Y(f(1 / lam)) - 6)}">E(X) = 1/λ</text>`;
       return {
         svg: svg(p, back, clipped, front, 'Hustota exponenciálneho rozdelenia'),
-        readout: T`<span class="c-accent">P(X &gt; ${sk(v.t, 1)}) = e^(−λt) = ${sk(Math.exp(-lam * v.t), 4)}</span> · E(X) = ${sk(1 / lam, 3)} · medián = ln 2/λ = ${sk(Math.LN2 / lam, 3)}`
+        readout: T`<span class="c-accent">P(X &gt; ${sk(v.t, 1)}) = e<sup>−λt</sup> = ${sk(Math.exp(-lam * v.t), 4)}</span> · E(X) = ${sk(1 / lam, 3)} · medián = ln 2/λ = ${sk(Math.LN2 / lam, 3)}`
       };
     }
   });

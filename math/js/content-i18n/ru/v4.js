@@ -441,7 +441,7 @@ CONTENT_I18N.add('ru', {
   "${@0}\\lt {@1}$, $H_0$ <strong>nezamietame</strong>.": "${@0}\\lt {@1}$, $H_0$ <strong>не отвергаем</strong>.",
   "(medián do polovíc nezahŕňaj)": "(медиану в половины не включай)",
   "<span class=\"c-accent\">F({@0}) = P(X ≤ {@1}) = x³/8 = {@2}</span> · medián x₀,₅ = 2·∛{@3} ≈ {@4}": "<span class=\"c-accent\">F({@0}) = P(X ≤ {@1}) = x³/8 = {@2}</span> · медиана x₀,₅ = 2·∛{@3} ≈ {@4}",
-  "<span class=\"c-accent\">P(X &gt; {@0}) = e^(−λt) = {@1}</span> · E(X) = {@2} · medián = ln 2/λ = {@3}": "<span class=\"c-accent\">P(X &gt; {@0}) = e^(−λt) = {@1}</span> · E(X) = {@2} · медиана = ln 2/λ = {@3}",
+  "<span class=\"c-accent\">P(X &gt; {@0}) = e<sup>−λt</sup> = {@1}</span> · E(X) = {@2} · medián = ln 2/λ = {@3}": "<span class=\"c-accent\">P(X &gt; {@0}) = e<sup>−λt</sup> = {@1}</span> · E(X) = {@2} · медиана = ln 2/λ = {@3}",
   "<span class=\"c-accent\">ŷ = {@0} + {@1}x</span> · r = {@2} · R² = {@3} (skutočná priamka y = 2 + {@4}x)": "<span class=\"c-accent\">ŷ = {@0} + {@1}x</span> · r = {@2} · R² = {@3} (истинная прямая y = 2 + {@4}x)",
   "Absolútny člen nie je $\\bar y$ – je to hodnota priamky v bode $x=0$, teda $a=\\bar{y}-b\\bar{x}$.": "Свободный член — это не $\\bar y$, а значение прямой в точке $x=0$, то есть $a=\\bar{y}-b\\bar{x}$.",
   "Absolútny člen nie je $\\bar y$: priamka prechádza bodom $(\\bar x, \\bar y)$, takže $a=\\bar{y}-b\\bar{x}$.": "Свободный член — это не $\\bar y$: прямая проходит через точку $(\\bar x, \\bar y)$, поэтому $a=\\bar{y}-b\\bar{x}$.",

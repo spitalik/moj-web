@@ -137,7 +137,7 @@
            <line class="f-dash" x1="${n1(p.X(0))}" y1="${n1(p.Y(2))}" x2="${n1(p.X(3))}" y2="${n1(p.Y(2))}"/>
            <text class="f-math" x="${n1(p.X(5) - 4)}" y="${n1(p.Y(0) - 8)}" text-anchor="end">x</text>
            <text class="f-math" x="${n1(p.X(0) + 8)}" y="${n1(p.Y(5) + 12)}">y</text>`;
-      return svg(p, axes(p), '', front, 'Body v súradnicovej sústave');
+      return svg(p, axes(p, 1, 1, false), '', front, 'Body v súradnicovej sústave');
     }
   });
 
@@ -235,7 +235,7 @@
         <circle class="f-solid" cx="30" cy="120" r="5"/>`;
       [[60, 'T1'], [180, 'T2']].forEach(([y, t], i) => {
         s += `<line class="f-line" x1="30" y1="120" x2="140" y2="${y}"/><circle class="f-dot" cx="140" cy="${y}" r="6"/>
-          <text class="f-text c-accent" x="128" y="${y - 10}" text-anchor="end">${t}</text>`;
+          <text class="f-text c-accent" x="128" y="${i ? y + 24 : y - 10}" text-anchor="end">${t}</text>`;
         [-35, 0, 35].forEach((dy, j) => {
           const yy = y + dy;
           s += `<line class="f-thin" x1="140" y1="${y}" x2="260" y2="${yy}"/><circle class="f-dot f-dot-ok" cx="260" cy="${yy}" r="5"/>

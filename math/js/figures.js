@@ -19,7 +19,8 @@
     return { xmin, xmax, ymin, ymax, W, H, pad, X, Y };
   }
 
-  function axes(p, lx = 1, ly = lx) {
+  // names: popisy osí [vodorovná, zvislá]; false, keď ich obrázok kreslí sám
+  function axes(p, lx = 1, ly = lx, names = ['x', 'y']) {
     let s = '';
     for (let x = Math.ceil(p.xmin); x <= p.xmax; x++) {
       s += `<line class="f-grid" x1="${n1(p.X(x))}" y1="${n1(p.Y(p.ymax))}" x2="${n1(p.X(x))}" y2="${n1(p.Y(p.ymin))}"/>`;
@@ -34,6 +35,10 @@
     }
     for (let y = Math.ceil(p.ymin); y <= p.ymax; y++) {
       if (y !== 0 && y % ly === 0) s += `<text class="f-small" x="${n1(p.X(0) - 5)}" y="${n1(p.Y(y) + 4)}" text-anchor="end">${y}</text>`;
+    }
+    if (names) {
+      s += `<text class="f-math" x="${n1(p.X(p.xmax) - 4)}" y="${n1(p.Y(0) - 7)}" text-anchor="end">${names[0]}</text>`;
+      s += `<text class="f-math" x="${n1(p.X(0) + 7)}" y="${n1(p.Y(p.ymax) + 14)}">${names[1]}</text>`;
     }
     return s;
   }

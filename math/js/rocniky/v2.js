@@ -119,7 +119,7 @@
       const sg = (x) => (x < 0 ? '−' : '+');
       const deg = ((v.n * v.phi) % 360 + 360) % 360;
       return {
-        svg: svg(p, axes(p, 1), clipped, front, 'Komplexné číslo a jeho mocnina v Gaussovej rovine'),
+        svg: svg(p, axes(p, 1, 1, false), clipped, front, 'Komplexné číslo a jeho mocnina v Gaussovej rovine'),
         readout: T`<span class="c-accent">z ≈ ${sk(a)} ${sg(b)} ${sk(Math.abs(b))}i</span> = ${sk(v.r)}·(cos ${v.phi}° + i sin ${v.phi}°) · `
           + `<span class="c-ok">z${SUP[v.n]} = ${sk(rn, 3)}·(cos ${deg}° + i sin ${deg}°) ≈ ${sk(an)} ${sg(bn)} ${sk(Math.abs(bn))}i</span>`
       };
@@ -401,7 +401,7 @@
       const front = `<text class="f-small c-accent" x="${n1(p.X(30.5))}" y="${n1(p.Y(1 + e) - 4)}" text-anchor="end">1 + ε</text>
         <text class="f-small" x="${n1(p.X(N) + 4)}" y="${n1(p.Y(3.2) + 12)}">N = ${N}</text>`;
       return {
-        svg: svg(p, axes(p, 5, 1), clipped, front, 'Členy postupnosti a ε-pás okolo limity'),
+        svg: svg(p, axes(p, 5, 1, ['n', 'aₙ']), clipped, front, 'Členy postupnosti a ε-pás okolo limity'),
         readout: T`ε = ${sk(e, 2)} · N = ${N} · <span class="c-ok">pre všetky n ≥ ${N} je |aₙ − 1| = 2/n &lt; ε</span>`
       };
     }
@@ -1244,7 +1244,7 @@
       const clipped = `<line class="f-dash" x1="${n1(p.X(-0.8))}" y1="${n1(p.Y(s))}" x2="${n1(p.X(21))}" y2="${n1(p.Y(s))}"/>${dots}`;
       const front = `<text class="f-small" x="${n1(p.X(20.5))}" y="${n1(p.Y(s) - 6)}" text-anchor="end">s = 1/(1 − q)</text>`;
       return {
-        svg: svg(p, axes(p, 5, ymax > 6 ? 2 : 1), clipped, front, 'Čiastočné súčty geometrického radu'),
+        svg: svg(p, axes(p, 5, ymax > 6 ? 2 : 1, ['n', 'sₙ']), clipped, front, 'Čiastočné súčty geometrického radu'),
         readout: T`q = ${sk(q, 1)} · súčet s = ${sk(s, 4)} · <span class="c-accent">s<sub>${v.n}</sub> = ${sk(sn, 4)}</span> · s − s<sub>${v.n}</sub> = ${sk(s - sn, 4)}`
       };
     }

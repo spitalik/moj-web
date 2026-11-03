@@ -816,7 +816,7 @@
       else if (k > 0) info = T`čas zdvojnásobenia ln 2 / k = ${sk(Math.log(2) / k)}`;
       else info = T`polčas ln 2 / |k| = ${sk(Math.log(2) / -k)}`;
       return {
-        svg: svg(p, axes(p, 2, 2), clipped, '', 'Exponenciálny a logistický rast'),
+        svg: svg(p, axes(p, 2, 2, ['t', 'y']), clipped, '', 'Exponenciálny a logistický rast'),
         readout: `<span class="c-accent">y = e<sup>${sk(k)}·t</sup></span> · ${info} · <span class="c-ok">${T`logistická krivka s K = ${sk(K, 1)}`}</span>`
       };
     }
@@ -1044,7 +1044,7 @@
       else if (D > -1e-9) roots = T`λ = ${sk(-P / 2)} (dvojnásobný koreň)`;
       else roots = T`λ = ${sk(-P / 2)} ± ${sk(Math.sqrt(-D) / 2)}i (komplexné korene)`;
       return {
-        svg: svg(p, axes(p, 1, 1), `<path class="f-accent" d="${ptsPath(p, pts)}"/><circle class="f-dot" cx="${n1(p.X(0))}" cy="${n1(p.Y(1))}" r="5"/>`, '', 'Riešenie rovnice y″ + py′ + qy = 0'),
+        svg: svg(p, axes(p, 1, 1, ['t', 'y']), `<path class="f-accent" d="${ptsPath(p, pts)}"/><circle class="f-dot" cx="${n1(p.X(0))}" cy="${n1(p.Y(1))}" r="5"/>`, '', 'Riešenie rovnice y″ + py′ + qy = 0'),
         readout: `λ² ${P < 0 ? '−' : '+'} ${sk(Math.abs(P), 1)}λ ${Q < 0 ? '−' : '+'} ${sk(Math.abs(Q), 1)} = 0 · <span class="c-accent">${roots}</span>`
       };
     }
@@ -1414,7 +1414,7 @@
       }
       clipped += `<path class="f-accent" d="${curvePath(p, x, 0, 10, 400)}"/><circle class="f-dot" cx="${n1(p.X(0))}" cy="${n1(p.Y(1))}" r="5"/>`;
       return {
-        svg: svg(p, axes(p, 1, 1), clipped, '', 'Tlmený harmonický oscilátor'),
+        svg: svg(p, axes(p, 1, 1, ['t', 'x']), clipped, '', 'Tlmený harmonický oscilátor'),
         readout: `x″ + ${sk(2 * d, 1)}x′ + 4x = 0 · δ = ${sk(d, 1)}, ω₀ = 2 · <span class="c-accent">${regime}</span>`
       };
     }
@@ -1431,7 +1431,7 @@
         <path class="f-accent" d="${curvePath(p, amp, 0, 4.5, 400)}"/>
         <circle class="f-dot" cx="${n1(p.X(wr))}" cy="${n1(p.Y(Math.min(amp(wr), 2.6)))}" r="5"/>`;
       return {
-        svg: svg(p, axes(p, 1, 1), clipped, '', 'Amplitúda vynútených kmitov v závislosti od frekvencie'),
+        svg: svg(p, axes(p, 1, 1, ['ω', 'A']), clipped, '', 'Amplitúda vynútených kmitov v závislosti od frekvencie'),
         readout: T`ω₀ = 2, δ = ${sk(d)} · <span class="c-accent">maximum pri ω = ${sk(wr)}, amplitúda ${sk(amp(wr))}</span> (pre F₀/m = 1)`
       };
     }

@@ -441,7 +441,7 @@ CONTENT_I18N.add('it', {
   "${@0}\\lt {@1}$, $H_0$ <strong>nezamietame</strong>.": "${@0}\\lt {@1}$, <strong>non rifiutiamo</strong> $H_0$.",
   "(medián do polovíc nezahŕňaj)": "(non includere la mediana nelle due metà)",
   "<span class=\"c-accent\">F({@0}) = P(X ≤ {@1}) = x³/8 = {@2}</span> · medián x₀,₅ = 2·∛{@3} ≈ {@4}": "<span class=\"c-accent\">F({@0}) = P(X ≤ {@1}) = x³/8 = {@2}</span> · mediana x₀,₅ = 2·∛{@3} ≈ {@4}",
-  "<span class=\"c-accent\">P(X &gt; {@0}) = e^(−λt) = {@1}</span> · E(X) = {@2} · medián = ln 2/λ = {@3}": "<span class=\"c-accent\">P(X &gt; {@0}) = e^(−λt) = {@1}</span> · E(X) = {@2} · mediana = ln 2/λ = {@3}",
+  "<span class=\"c-accent\">P(X &gt; {@0}) = e<sup>−λt</sup> = {@1}</span> · E(X) = {@2} · medián = ln 2/λ = {@3}": "<span class=\"c-accent\">P(X &gt; {@0}) = e<sup>−λt</sup> = {@1}</span> · E(X) = {@2} · mediana = ln 2/λ = {@3}",
   "<span class=\"c-accent\">ŷ = {@0} + {@1}x</span> · r = {@2} · R² = {@3} (skutočná priamka y = 2 + {@4}x)": "<span class=\"c-accent\">ŷ = {@0} + {@1}x</span> · r = {@2} · R² = {@3} (retta vera y = 2 + {@4}x)",
   "Absolútny člen nie je $\\bar y$ – je to hodnota priamky v bode $x=0$, teda $a=\\bar{y}-b\\bar{x}$.": "Il termine noto non è $\\bar y$: è il valore della retta nel punto $x=0$, cioè $a=\\bar{y}-b\\bar{x}$.",
   "Absolútny člen nie je $\\bar y$: priamka prechádza bodom $(\\bar x, \\bar y)$, takže $a=\\bar{y}-b\\bar{x}$.": "Il termine noto non è $\\bar y$: la retta passa per il punto $(\\bar x, \\bar y)$, quindi $a=\\bar{y}-b\\bar{x}$.",
