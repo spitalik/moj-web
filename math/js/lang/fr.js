@@ -5,6 +5,8 @@ I18N.add('fr', {
   appName: 'Les maths pas à pas',
   appDescription: 'Apprendre les mathématiques des bases jusqu’à l’université : théorie, exemples corrigés et exercices.',
   loading: 'Chargement…',
+  loadFailed: 'Impossible de charger cette partie du programme. Vérifie ta connexion internet.',
+  loadRetry: 'Réessayer',
   footer: 'Code : licence MIT · contenu : CC BY 4.0. Fonctionne hors ligne après la première visite.',
   menuPrivacy: 'Confidentialité et licence',
   menuSymbols: 'Symboles',

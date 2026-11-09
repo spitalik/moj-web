@@ -5,6 +5,8 @@ I18N.add('zh', {
   appName: '一步一步学数学',
   appDescription: '从基础到大学水平学习数学：理论讲解、详解例题和练习题。',
   loading: '加载中…',
+  loadFailed: '无法加载这部分学习内容。请检查网络连接。',
+  loadRetry: '重试',
   footer: '代码：MIT 许可 · 内容：CC BY 4.0。首次访问后可离线使用。',
   menuPrivacy: '隐私与许可',
   menuSymbols: '符号',

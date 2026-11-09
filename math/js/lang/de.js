@@ -5,6 +5,8 @@ I18N.add('de', {
   appName: 'Mathematik Schritt für Schritt',
   appDescription: 'Mathematik lernen von den Grundlagen bis zur Hochschule: Theorie, Musterbeispiele und Übungen.',
   loading: 'Wird geladen…',
+  loadFailed: 'Dieser Teil des Lernstoffs konnte nicht geladen werden. Prüfe deine Internetverbindung.',
+  loadRetry: 'Erneut versuchen',
   footer: 'Code: MIT-Lizenz · Inhalte: CC BY 4.0. Nach dem ersten Aufruf funktioniert die App auch offline.',
   menuPrivacy: 'Datenschutz und Lizenz',
   menuSymbols: 'Symbole',

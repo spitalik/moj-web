@@ -19,8 +19,11 @@ const missingFor = (() => { const k = process.argv.indexOf('--missing'); return 
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 // skripty rozhrania (potrebujú prehliadač) – validátor načíta len obsah a logiku úloh
-const UI_SCRIPTS = ['js/app.js', 'js/store.js', 'js/keypad.js', 'js/scratchpad.js', 'js/tts.js', 'js/widget.js'];
+const UI_SCRIPTS = ['js/app.js', 'js/store.js', 'js/keypad.js', 'js/scratchpad.js', 'js/tts.js', 'js/widget.js', 'js/nacitanie.js'];
 const scripts = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map((m) => m[1]).filter((s) => !UI_SCRIPTS.includes(s) && !s.startsWith('js/features/'));
+// ročníky sa v prehliadači načítajú lenivo (js/nacitanie.js); validátor ich načíta všetky hneď za js/figures.js
+const INDEX_TOOL = require('./index_build.js');
+scripts.splice(scripts.indexOf('js/figures.js') + 1, 0, ...INDEX_TOOL.FILES.map((f) => `js/rocniky/${f}.js`));
 // preklady obsahu sa v prehliadači načítajú len pre zvolený jazyk; validátor načíta všetky (--lang <kód> = len jeden)
 const noStrings = process.argv.includes('--no-strings');
 const onlyLang = (() => { const k = process.argv.indexOf('--lang'); return k > 0 ? process.argv[k + 1] : missingFor; })();
@@ -484,6 +487,12 @@ if (global.I18N) {
     for (const lv of LEVELS) if (!(d.levels && Array.isArray(d.levels[lv.id]) && d.levels[lv.id].length === 2)) err(w, `chýba preklad úrovne ${lv.id} [názov, opis]`);
     for (const th of (global.THEMES || [])) if (!(d.topics && Array.isArray(d.topics[th.id]) && d.topics[th.id].length === 2)) err(w, `chýba preklad témy ${th.id} [názov, opis]`);
   }
+}
+
+// index pre lenivé načítanie ročníkov (js/index-lekcii.js, js/content-i18n/<jazyk>/zaklad.js)
+{
+  const stale = INDEX_TOOL.check();
+  if (stale.length) err('index lekcií', `zastarané ${stale.join(', ')} → spusti node tools/index_build.js`);
 }
 
 const perLevel = LEVELS.map((lv) => `${lv.id}: ${LESSONS.filter((l) => l.level === lv.id).length}`).join(', ');

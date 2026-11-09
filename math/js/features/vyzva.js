@@ -63,7 +63,13 @@
         `<option value="${lv.id}"${lv.id === cur ? ' selected' : ''}>${esc(APP.lvName(lv).title)}</option>`).join('')}</select></label>`;
   }
 
+  // súbory ročníkov s dnešnými úlohami sa najprv načítajú (js/nacitanie.js)
   function page() {
+    const level = myLevel();
+    if (!level) return render();
+    APP.need(plan(level, STORE.day()).map((x) => x.id), render);
+  }
+  function render() {
     const level = myLevel();
     const d = STORE.daily();
     const head = `<nav class="crumbs"><a href="#/">${esc(t('home'))}</a></nav><h1>🎯 ${esc(t('dailyTitle'))}</h1>

@@ -5,6 +5,8 @@ I18N.add('es', {
   appName: 'Matemáticas paso a paso',
   appDescription: 'Aprende matemáticas desde lo básico hasta la universidad: teoría, ejemplos resueltos y práctica.',
   loading: 'Cargando…',
+  loadFailed: 'No se pudo cargar esta parte del temario. Comprueba tu conexión a internet.',
+  loadRetry: 'Reintentar',
   footer: 'Código: licencia MIT · contenido: CC BY 4.0. Funciona sin conexión tras la primera visita.',
   menuPrivacy: 'Privacidad y licencia',
   menuSymbols: 'Símbolos',

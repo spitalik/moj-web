@@ -54,6 +54,9 @@
   function session(kind) {
     const ids = (kind === 'weak' ? weak() : due()).slice(0, MAX_LESSONS);
     if (!ids.length) { overview(); return; }
+    APP.need(ids, () => sessionRun(kind, ids));
+  }
+  function sessionRun(kind, ids) {
     const total = ids.length * PER_LESSON;
     APP.setPage(`<nav class="crumbs"><a href="#/">${esc(t('home'))}</a> / <a href="#/opakovanie">${esc(t('reviewTitle'))}</a></nav>
       <h1>🔁 ${esc(kind === 'weak' ? t('weakTitle') : t('reviewTitle'))}</h1>

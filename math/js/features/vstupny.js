@@ -30,6 +30,9 @@
   }
 
   function run(tg, ls) {
+    APP.need(ls.map((l) => l.id), () => runNow(tg, ls));
+  }
+  function runNow(tg, ls) {
     let lo = 0, hi = ls.length - 1, probe = null;
     APP.setPage(`<nav class="crumbs"><a href="${tg.back}">${esc(tg.title)}</a></nav>
       <h1>🧭 ${esc(t('placementTitle'))}</h1><div id="pw"></div>`);

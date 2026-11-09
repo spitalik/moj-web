@@ -5,6 +5,8 @@ I18N.add('ko', {
   appName: '한 걸음씩 수학',
   appDescription: '기초부터 대학 수준까지 수학을 배우세요: 개념 설명, 풀이가 있는 예제, 연습 문제.',
   loading: '불러오는 중…',
+  loadFailed: '이 학습 내용을 불러오지 못했습니다. 인터넷 연결을 확인하세요.',
+  loadRetry: '다시 시도',
   footer: '코드: MIT 라이선스 · 콘텐츠: CC BY 4.0. 처음 방문한 뒤에는 오프라인에서도 작동합니다.',
   menuPrivacy: '개인정보 보호 및 라이선스',
   menuSymbols: '기호',

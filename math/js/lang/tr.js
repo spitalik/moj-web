@@ -5,6 +5,8 @@ I18N.add('tr', {
   appName: 'Adım Adım Matematik',
   appDescription: 'Temellerden üniversite düzeyine kadar matematik öğrenin: konu anlatımı, çözümlü örnekler ve alıştırmalar.',
   loading: 'Yükleniyor…',
+  loadFailed: 'Konunun bu bölümü yüklenemedi. İnternet bağlantını kontrol et.',
+  loadRetry: 'Tekrar dene',
   footer: 'Kod: MIT lisansı · içerik: CC BY 4.0. İlk ziyaretten sonra çevrimdışı da çalışır.',
   menuPrivacy: 'Gizlilik ve lisans',
   menuSymbols: 'Semboller',

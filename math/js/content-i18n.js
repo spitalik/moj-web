@@ -40,6 +40,8 @@
       Object.entries(d).forEach(([k, v]) => { own[norm(k)] = v; });
     });
     Object.entries(pack.lessons || {}).forEach(([id, l]) => {
+      // záznam z js/content-i18n/<jazyk>/zaklad.js (len názov a opis) neprepíše už načítanú celú lekciu
+      if (l.stub && p.lessons[id] && !p.lessons[id].stub) return;
       const strings = {};
       Object.entries(l.strings || {}).forEach(([k, v]) => { strings[norm(k)] = v; });
       p.lessons[id] = Object.assign({}, l, { strings });
@@ -161,20 +163,28 @@
 
   // Balíky prekladov sa načítajú len pre zvolený jazyk: pri štarte cez document.write v index.html,
   // pri zmene jazyka dynamicky (load). Zoznam súborov je v js/content-i18n/files.js (generuje tools/i18n_build.js).
+  // Balíky ročníkov (r1…v7, aj <ročník>-doplnky) sa načítajú až s ročníkom (js/nacitanie.js): files(lang, ročník);
+  // bez ročníka files(lang) vráti ostatné balíky, ktoré treba hneď (vrátane zaklad.js s názvami a slovníkom).
   const loaded = {};
-  const files = (lang) => ((window.CONTENT_I18N_FILES || {})[lang] || []).map((f) => `js/content-i18n/${lang}/${f}.js`);
-  function load(lang) {
+  const ofBase = (f, base) => f === base || f.startsWith(base + '-');
+  const lazyBase = (f) => !!window.LESSON_INDEX && Object.keys(LESSON_INDEX.files).some((b) => ofBase(f, b));
+  const files = (lang, base) => ((window.CONTENT_I18N_FILES || {})[lang] || [])
+    .filter((f) => (base ? ofBase(f, base) : !lazyBase(f)))
+    .map((f) => `js/content-i18n/${lang}/${f}.js`);
+  function load(lang, base) {
     if (lang === SOURCE) return Promise.resolve();
-    if (!loaded[lang]) {
-      loaded[lang] = Promise.all(files(lang).map((src) => (document.querySelector(`script[src="${src}"]`) ? null : new Promise((resolve) => {
+    const key = lang + '|' + (base || '');
+    if (!loaded[key]) {
+      loaded[key] = Promise.all(files(lang, base).map((src) => (document.querySelector(`script[src="${src}"]`) ? null : new Promise((resolve) => {
         const s = document.createElement('script');
         s.src = src;
+        s.async = false;
         s.onload = resolve;
-        s.onerror = resolve; // bez balíka (offline) zostane slovenčina
+        s.onerror = () => { s.remove(); delete loaded[key]; resolve(); }; // bez balíka (offline) zostane slovenčina
         document.head.appendChild(s);
       }))));
     }
-    return loaded[lang];
+    return loaded[key];
   }
 
   /* ---------- zápis intervalov, bodov a zoznamov podľa jazyka ----------

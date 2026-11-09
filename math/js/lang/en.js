@@ -5,6 +5,8 @@ I18N.add('en', {
   appName: 'Math Step by Step',
   appDescription: 'Learn mathematics from the basics to university level: theory, worked examples and practice.',
   loading: 'Loading…',
+  loadFailed: 'This part of the course could not be loaded. Check your internet connection.',
+  loadRetry: 'Try again',
   footer: 'Code: MIT licence · content: CC BY 4.0. Works offline after the first visit.',
   menuPrivacy: 'Privacy and licence',
   menuSymbols: 'Symbols',

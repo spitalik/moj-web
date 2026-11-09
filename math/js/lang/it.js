@@ -5,6 +5,8 @@ I18N.add('it', {
   appName: 'Matematica passo dopo passo',
   appDescription: 'Impara la matematica dalle basi fino all’università: teoria, esempi svolti ed esercizi.',
   loading: 'Caricamento…',
+  loadFailed: 'Non è stato possibile caricare questa parte del programma. Controlla la connessione a internet.',
+  loadRetry: 'Riprova',
   footer: 'Codice: licenza MIT · contenuti: CC BY 4.0. Dopo la prima visita funziona anche offline.',
   menuPrivacy: 'Privacy e licenza',
   menuSymbols: 'Simboli',

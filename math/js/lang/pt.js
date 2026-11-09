@@ -5,6 +5,8 @@ I18N.add('pt', {
   appName: 'Matemática passo a passo',
   appDescription: 'Aprenda matemática do básico ao ensino superior: teoria, exemplos resolvidos e exercícios.',
   loading: 'Carregando…',
+  loadFailed: 'Não foi possível carregar esta parte da matéria. Verifique sua conexão com a internet.',
+  loadRetry: 'Tentar novamente',
   footer: 'Código: licença MIT · conteúdo: CC BY 4.0. Funciona off-line após o primeiro acesso.',
   menuPrivacy: 'Privacidade e licença',
   menuSymbols: 'Símbolos',

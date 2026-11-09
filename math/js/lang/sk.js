@@ -5,6 +5,8 @@ I18N.add('sk', {
   appName: 'Matematika krok za krokom',
   appDescription: 'Štúdium matematiky od základov po vysokú školu: teória, vyriešené príklady a precvičovanie.',
   loading: 'Načítavam…',
+  loadFailed: 'Túto časť učiva sa nepodarilo načítať. Skontroluj pripojenie na internet.',
+  loadRetry: 'Skúsiť znova',
   footer: 'Kód: licencia MIT · obsah: CC BY 4.0. Po prvom načítaní funguje aj offline.',
   menuPrivacy: 'Súkromie a licencia',
   menuSymbols: 'Symboly',

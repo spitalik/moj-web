@@ -5,6 +5,8 @@ I18N.add('ja', {
   appName: 'ステップで学ぶ数学',
   appDescription: '基礎から大学レベルまで数学を学べます。解説、解き方つきの例題、練習問題。',
   loading: '読み込み中…',
+  loadFailed: 'この単元を読み込めませんでした。インターネット接続を確認してください。',
+  loadRetry: '再試行',
   footer: 'コード：MIT ライセンス · コンテンツ：CC BY 4.0。初回アクセス後はオフラインでも動作します。',
   menuPrivacy: 'プライバシーとライセンス',
   menuSymbols: '記号',

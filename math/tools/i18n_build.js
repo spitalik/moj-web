@@ -1,6 +1,6 @@
 /* Zostavenie prekladov obsahu: node tools/i18n_build.js [jazyk …]
    Z preložených častí .i18n/out/<jazyk>/<súbor>/L*.json (lekcie) a S*.json (slovník { kľúč: preklad })
-   zapíše js/content-i18n/<jazyk>/<súbor>.js a obnoví zoznam js/content-i18n/files.js.
+   zapíše js/content-i18n/<jazyk>/<súbor>.js; potom tools/index_build.js obnoví index a zoznam js/content-i18n/files.js.
    Podklady na preklad (.i18n/src) vytvára tools/i18n_extract.js. Ručne písané balíky (napr. en/r1.js, en/s1.js)
    sa neprepíšu: preklady k nim sa zapíšu do <súbor>-doplnky.js. */
 'use strict';
@@ -48,10 +48,5 @@ for (const lang of langs) {
   }
 }
 
-// zoznam balíkov podľa jazyka (načítava index.html a CONTENT_I18N.load)
-const files = {};
-for (const lang of dirs(CI_DIR).sort()) {
-  files[lang] = fs.readdirSync(path.join(CI_DIR, lang)).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3)).sort();
-}
-fs.writeFileSync(path.join(CI_DIR, 'files.js'), `/* Balíky prekladov obsahu podľa jazyka. Vygenerované nástrojom tools/i18n_build.js. */\nwindow.CONTENT_I18N_FILES = ${JSON.stringify(files)};\n`);
-console.log('files.js:', Object.entries(files).map(([l, f]) => `${l} (${f.length})`).join(', '));
+// index lenivého načítania (názvy lekcií a spoločný slovník v js/content-i18n/<jazyk>/zaklad.js) a zoznam js/content-i18n/files.js
+require('./index_build.js').write();
