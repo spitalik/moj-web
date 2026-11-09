@@ -1,7 +1,7 @@
 /* Service worker: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu.
    Preklady obsahu (js/content-i18n/<jazyk>/*.js) sa neukladajú vopred: uložia sa pri prvom načítaní jazyka. */
-const CACHE = 'matika-v35';
+const CACHE = 'matika-v36';
 const ASSETS = [
   './',
   './index.html',
@@ -47,6 +47,9 @@ const ASSETS = [
   './js/content-i18n/files.js',
   './js/vzorce.js',
   './js/symboly.js',
+  './js/nadvaznosti.js',
+  './js/projekty.js',
+  './js/mathexpr.js',
   './js/store.js',
   './js/keypad.js',
   './js/scratchpad.js',
@@ -62,6 +65,11 @@ const ASSETS = [
   './js/features/hladat.js',
   './js/features/vzorce.js',
   './js/features/symboly.js',
+  './js/features/graf.js',
+  './js/features/pomocky.js',
+  './js/features/mapa.js',
+  './js/features/postup.js',
+  './js/features/projekty.js',
   './js/features/prehlad.js',
   './js/features/ucitel.js',
   './js/features/jocadium.js',

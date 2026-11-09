@@ -208,4 +208,21 @@ if (!only.length || only.includes('symboly')) {
   const n = writeChunks('symboly', {}, [...keys].map((k) => k.replace(/\s+/g, ' ').trim()));
   summary.push(`symboly: ${keys.size} kľúčov, ${n} častí`);
 }
+
+// projekty z praxe (js/projekty.js): názvy, príbehy, zadania krokov, nápovedy, riešenia a zhrnutia sú T`…` / T.s –
+// zadania sa vygenerujú v pomocnom jazyku (RUNS semienok na projekt) a zaznamená sa každý text bez prekladu
+if ((!only.length || only.includes('projekty')) && global.PROJECTS_API) {
+  const keys = new Set();
+  const m0 = CI.misses.length;
+  CI.harvest.values.clear();
+  for (const p of global.PROJECTS) {
+    for (let s = 1; s <= RUNS; s++) {
+      try { global.PROJECTS_API.make(p.id, H, s * 7919); } catch (e) { /* chyby hlási validátor */ }
+    }
+  }
+  CI.misses.slice(m0).forEach((m) => keys.add(m.key));
+  CI.harvest.values.forEach((v) => keys.add(v));
+  const n = writeChunks('projekty', {}, [...keys].sort());
+  summary.push(`projekty: ${global.PROJECTS.length} projektov, ${keys.size} kľúčov, ${n} častí`);
+}
 console.log(summary.join('\n'));

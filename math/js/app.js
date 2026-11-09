@@ -76,15 +76,22 @@
   };
   const progressMeta = (ls) => t('progressMeta', { m: masteredCount(ls), p: practicedCount(ls) });
 
-  // Predpoklady lekcie: explicitné pole prereq, inak predchádzajúca lekcia v tej istej téme.
+  // Predpoklady lekcie: explicitné pole prereq, inak predchádzajúca lekcia v tej istej téme
+  // a medzitémové nadväznosti z js/nadvaznosti.js (bez duplicít).
   function prereqs(id) {
     const L = lessonById(id);
     if (L && Array.isArray(L.prereq)) return L.prereq.map(lessonById).filter(Boolean);
-    const th = themeOf(id);
-    if (!th) return [];
-    const tl = themeLessons(th), j = tl.findIndex((l) => l.id === id);
-    return j > 0 ? [tl[j - 1]] : [];
+    const th = themeOf(id), out = [];
+    if (th) {
+      const tl = themeLessons(th), j = tl.findIndex((l) => l.id === id);
+      if (j > 0) out.push(tl[j - 1]);
+    }
+    const extra = (window.NADVAZNOSTI && NADVAZNOSTI.lessons && NADVAZNOSTI.lessons[id]) || [];
+    extra.map(lessonById).forEach((p) => { if (p && !out.includes(p)) out.push(p); });
+    return out;
   }
+  // Lekcie, ktoré na danej lekcii priamo stavajú (opak prereqs).
+  const dependents = (id) => LESSONS.filter((l) => prereqs(l.id).some((p) => p.id === id));
 
   // Zvolené zobrazenie hlavnej stránky (len pohodlie, predvolené sú témy).
   const VIEW_KEY = 'matika.view';
@@ -510,7 +517,7 @@
     levelById, lessonById, groupById, lessonsOf, allOrdered,
     themeById, themeOf, themeLessons, THEMES: THEME_LIST,
     lvName, thName, grName, shortLevel, tr, lessonTitle, langOf, contentLang, htmlLang, contentNotice,
-    stateBadge, lessonStat, progressBar, progressMeta, prereqs,
+    stateBadge, lessonStat, progressBar, progressMeta, prereqs, dependents,
     route: (name, fn) => { routes[name] = fn; },
     addMenu: (item) => { menu.push(item); },
     addHomePanel: (fn) => { homePanels.push(fn); },
