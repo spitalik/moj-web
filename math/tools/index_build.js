@@ -110,7 +110,8 @@ function build() {
 function check() {
   return Object.entries(build()).filter(([rel, s]) => {
     const f = path.join(root, rel);
-    return !fs.existsSync(f) || fs.readFileSync(f, 'utf8') !== s;
+    // CRLF po checkoute na Windows (git autocrlf) nevadí
+    return !fs.existsSync(f) || fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n') !== s;
   }).map(([rel]) => rel);
 }
 
