@@ -37,13 +37,13 @@ CONTENT_I18N.add('en', {
       title: 'Electrical and thermal properties of materials',
       summary: 'Resistivity, the temperature dependence of resistance and thermal conductivity.',
       theory: [
-        `<p>The resistance of a conductor is $R = \\rho\\dfrac{l}{S}$, where $\\rho$ is the <em>resistivity</em> of the material, $l$ the length and $S$ the cross-section. The resistivity of copper is approximately $1{,}7\\cdot 10^{-8}\\,\\Omega\\cdot\\text{m}$. A longer and thinner conductor has a larger resistance.</p>`,
+        `<p>The resistance of a conductor is $R = \\rho\\dfrac{l}{S}$, where $\\rho$ is the <em>resistivity</em> of the material, $l$ the length and $S$ the cross-section. The resistivity of copper is approximately $1.7\\cdot 10^{-8}\\,\\Omega\\cdot\\text{m}$. A longer and thinner conductor has a larger resistance.</p>`,
         `<p>A metal conducts current because its valence electrons move freely in the lattice. When the temperature rises, the vibrations of the lattice ions scatter this motion, so the resistance of a metal increases with temperature. In contrast, in semiconductors and insulators more carriers are released as the temperature rises and the resistance decreases.</p>`,
         `<p><strong>Thermal conductivity:</strong> in metals heat is carried mainly by free electrons, in non-metals by lattice vibrations (phonons). That is why copper is an excellent heat conductor, while glass and ceramics insulate against heat.</p>`
       ],
       examples: [
-        { task: `A copper wire of length 50 m and cross-section 2 mm² has what resistance? The resistivity of copper is $\\rho=1{,}7\\cdot 10^{-8}\\,\\Omega\\cdot\\text{m}$.`,
-          steps: ['Convert the cross-section: $S=2\\,\\text{mm}^2=2\\cdot 10^{-6}\\,\\text{m}^2$.', '$R=\\rho\\dfrac{l}{S}=1{,}7\\cdot 10^{-8}\\cdot\\dfrac{50}{2\\cdot 10^{-6}}=0{,}425\\,\\Omega$.', '<strong>Result: approximately 0.43 Ω</strong>'] },
+        { task: `A copper wire of length 50 m and cross-section 2 mm² has what resistance? The resistivity of copper is $\\rho=1.7\\cdot 10^{-8}\\,\\Omega\\cdot\\text{m}$.`,
+          steps: ['Convert the cross-section: $S=2\\,\\text{mm}^2=2\\cdot 10^{-6}\\,\\text{m}^2$.', '$R=\\rho\\dfrac{l}{S}=1.7\\cdot 10^{-8}\\cdot\\dfrac{50}{2\\cdot 10^{-6}}=0.425\\,\\Omega$.', '<strong>Result: approximately 0.43 Ω</strong>'] },
         { task: 'Which conductor has the larger resistance: the longer one or the shorter one, with the same cross-section and material?',
           steps: ['The resistance is proportional to the length $l$.', '<strong>Result: the longer one</strong>'] }
       ]
@@ -58,9 +58,9 @@ CONTENT_I18N.add('en', {
         { fig: 'v9v12-pasy', caption: 'In a conductor the bands overlap, in a semiconductor there is a narrow forbidden band E_g, and in an insulator a wide one.' }
       ],
       examples: [
-        { task: 'A material has a forbidden band width $E_g = 0{,}67\\,\\text{eV}$. Is it a conductor, a semiconductor or an insulator?',
+        { task: 'A material has a forbidden band width $E_g = 0.67\\,\\text{eV}$. Is it a conductor, a semiconductor or an insulator?',
           steps: ['The value lies between 0.1 and 3 eV and is not zero.', '<strong>Result: a semiconductor (e.g. germanium)</strong>'] },
-        { task: 'Why does diamond ($E_g=5{,}5\\,\\text{eV}$) not conduct current?',
+        { task: 'Why does diamond ($E_g=5.5\\,\\text{eV}$) not conduct current?',
           steps: ['The forbidden band is very wide.', 'At ordinary temperatures the electrons do not reach the conduction band.', '<strong>Result: it is an insulator</strong>'] }
       ]
     },
@@ -87,13 +87,13 @@ CONTENT_I18N.add('en', {
       theory: [
         `<p>Superconductivity is a state in which a material loses its electrical resistance completely below the <em>critical temperature</em> $T_c$. Current can flow in it without losses.</p>`,
         `<p><strong>Meissner effect</strong>: a superconductor expels a magnetic field from its interior. That is why a superconductor levitates above a magnet.</p>`,
-        `<p>Classical superconductors, such as lead or niobium, have $T_c$ of several kelvins and are cooled with liquid helium ($4{,}2\\,\\text{K}$). High-temperature superconductors (cuprates, e.g. YBCO with $T_c\\approx 92\\,\\text{K}$) can be cooled with the cheaper liquid nitrogen ($77\\,\\text{K}$).</p>`,
+        `<p>Classical superconductors, such as lead or niobium, have $T_c$ of several kelvins and are cooled with liquid helium ($4.2\\,\\text{K}$). High-temperature superconductors (cuprates, e.g. YBCO with $T_c\\approx 92\\,\\text{K}$) can be cooled with the cheaper liquid nitrogen ($77\\,\\text{K}$).</p>`,
         `<p>According to BCS theory, electrons in a crystal pair up into <em>Cooper pairs</em> thanks to the exchange of lattice vibrations. These pairs move without scattering, which is why the resistance is zero.</p>`,
         { fig: 'v9v12-supra', caption: 'Below the critical temperature Tc the resistance of a superconductor drops to zero, whereas a normal metal has a resistance that grows with temperature.' }
       ],
       examples: [
-        { task: 'The critical temperature of niobium is $T_c=9{,}2\\,\\text{K}$. What is it in degrees Celsius?',
-          steps: ['$t = T - 273{,}15$.', '$t = 9{,}2 - 273{,}15 = -263{,}95\\,{}^{\\circ}\\text{C}$.', '<strong>Result: approximately -263.95 °C</strong>'] },
+        { task: 'The critical temperature of niobium is $T_c=9.2\\,\\text{K}$. What is it in degrees Celsius?',
+          steps: ['$t = T - 273.15$.', '$t = 9.2 - 273.15 = -263.95\\,{}^{\\circ}\\text{C}$.', '<strong>Result: approximately -263.95 °C</strong>'] },
         { task: 'Why does a superconductor levitate above a magnet?',
           steps: ['The magnetic field cannot penetrate the superconductor (Meissner effect).', 'Induced currents in the surface create a field that repels the magnet.', '<strong>Result: the repulsive force lifts the superconductor</strong>'] }
       ]
@@ -169,12 +169,12 @@ CONTENT_I18N.add('en', {
       theory: [
         `<p>When a star of sufficient mass exhausts its nuclear fuel, its core collapses. If the remaining mass does not exceed approximately 1.4 solar masses, a <strong>neutron star</strong> forms: a dense sphere with a radius of about 10 km, held up by neutron pressure.</p>`,
         `<p>A <strong>black hole</strong> forms if the mass is larger. Gravity near it is so strong that not even light can escape beyond the boundary called the <em>event horizon</em>. The radius of this boundary is the Schwarzschild radius.</p>`,
-        `<p>The Schwarzschild radius is $r_s=\\frac{2GM}{c^2}$, where $G$ is the gravitational constant, $M$ the mass and $c$ the speed of light. For the mass of the Sun it is approximately $2{,}95\\,\\text{km}$. The radius is proportional to the mass, so a black hole twice as heavy has a twice as large horizon.</p>`,
+        `<p>The Schwarzschild radius is $r_s=\\frac{2GM}{c^2}$, where $G$ is the gravitational constant, $M$ the mass and $c$ the speed of light. For the mass of the Sun it is approximately $2.95\\,\\text{km}$. The radius is proportional to the mass, so a black hole twice as heavy has a twice as large horizon.</p>`,
         { fig: 'v9v12-cierna-diera', caption: 'The Schwarzschild radius is proportional to the mass. A black hole twice as heavy has a twice as large horizon.' }
       ],
       examples: [
         { task: 'What is the Schwarzschild radius of a black hole with mass $5\\,M_\\odot$?',
-          steps: ['$r_s\\approx 2{,}95\\,\\text{km}\\cdot 5$.', '$r_s\\approx 14{,}75\\,\\text{km}$.', '<strong>Result: approximately 14.75 km</strong>'] }
+          steps: ['$r_s\\approx 2.95\\,\\text{km}\\cdot 5$.', '$r_s\\approx 14.75\\,\\text{km}$.', '<strong>Result: approximately 14.75 km</strong>'] }
       ]
     },
     'v10-exoplanety': {
@@ -196,7 +196,7 @@ CONTENT_I18N.add('en', {
       summary: `Hubble's law: the farther a galaxy lies, the faster it recedes from us.`,
       theory: [
         `<p>Edwin Hubble found that the spectra of distant galaxies are shifted towards red. This <em>redshift</em> means that the galaxies are receding from us. The farther the galaxy, the larger its shift.</p>`,
-        `<p><strong>Hubble's law:</strong> $v=H_0\\,d$, where $v$ is the recession velocity, $d$ the distance and $H_0$ the Hubble constant. Its value is approximately $70\\,\\text{km/s/Mpc}$, where $1\\,\\text{Mpc}\\approx 3{,}26$ million light-years.</p>`,
+        `<p><strong>Hubble's law:</strong> $v=H_0\\,d$, where $v$ is the recession velocity, $d$ the distance and $H_0$ the Hubble constant. Its value is approximately $70\\,\\text{km/s/Mpc}$, where $1\\,\\text{Mpc}\\approx 3.26$ million light-years.</p>`,
         `<p>It is important to understand that <strong>the galaxies do not move through space</strong>; it is the space between them that expands. Therefore more distant galaxies recede faster, even if they have no velocity of their own.</p>`,
         { fig: 'v9v12-hubble', caption: "Hubble's law: the recession velocity of galaxies is proportional to their distance." }
       ],
@@ -210,13 +210,13 @@ CONTENT_I18N.add('en', {
       summary: 'How the universe emerged from a hot phase, and why we observe a faint radiation coming from all directions today.',
       theory: [
         `<p>According to the <strong>Big Bang</strong> model, the universe was once very dense and hot. Since then it has been expanding and cooling. It was not an explosion in empty space, but the expansion of space itself.</p>`,
-        `<p>Shortly after the beginning the universe was filled with radiation, and it became transparent when atoms formed. This radiation has since only been stretched, and today we see it as the <strong>cosmic microwave background</strong> with a temperature of approximately $2{,}725\\,\\text{K}$.</p>`,
+        `<p>Shortly after the beginning the universe was filled with radiation, and it became transparent when atoms formed. This radiation has since only been stretched, and today we see it as the <strong>cosmic microwave background</strong> with a temperature of approximately $2.725\\,\\text{K}$.</p>`,
         `<p>Expansion increases the wavelengths of radiation in the same ratio as the scale of the universe. Therefore the temperature of the radiation in the past was proportional to $(1+z)$, where $z$ is the redshift. At $z=1$ the temperature was twice today's value.</p>`,
         { fig: 'v9v12-natiahnutie', caption: "The expansion of the universe stretches the wavelength of radiation, so today's microwave background has a lower temperature." }
       ],
       examples: [
         { task: 'What was the temperature of the radiation at redshift $z=3$?',
-          steps: ['$T(z)=T_0(1+z)=2{,}725\\cdot(1+3)$.', '$=10{,}9\\,\\text{K}$.', '<strong>Result: approximately 10.9 K</strong>'] }
+          steps: ['$T(z)=T_0(1+z)=2.725\\cdot(1+3)$.', '$=10.9\\,\\text{K}$.', '<strong>Result: approximately 10.9 K</strong>'] }
       ]
     },
     'v10-temna-hmota': {
@@ -229,8 +229,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v9v12-zlozenie', caption: 'Shares of the present universe: ordinary matter about 5 %, dark matter 27 %, dark energy 68 %.' }
       ],
       examples: [
-        { task: 'The matter density is $\\Omega_m=0{,}3$. What share does dark energy make up in a flat universe?',
-          steps: ['$\\Omega_\\Lambda=1-\\Omega_m=1-0{,}3$.', '<strong>Result: 0.7</strong>'] }
+        { task: 'The matter density is $\\Omega_m=0.3$. What share does dark energy make up in a flat universe?',
+          steps: ['$\\Omega_\\Lambda=1-\\Omega_m=1-0.3$.', '<strong>Result: 0.7</strong>'] }
       ]
     },
     'v10-kozmologicke-modely': {
@@ -246,8 +246,8 @@ CONTENT_I18N.add('en', {
         `<p>Observations of the cosmic background radiation show that the present universe is very close to flat. The modern model, which includes dark energy, therefore assumes a total density close to one.</p>`
       ],
       examples: [
-        { task: 'The universe has $\\Omega=0{,}4$. What is its model?',
-          steps: ['We compare: $0{,}4&lt;1$.', '<strong>Result: an open universe</strong>'] }
+        { task: 'The universe has $\\Omega=0.4$. What is its model?',
+          steps: ['We compare: $0.4&lt;1$.', '<strong>Result: an open universe</strong>'] }
       ]
     },
     'v11-hydrostatika': {
@@ -261,8 +261,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v9v12-nadoba', caption: 'The pressure in a liquid depends on the depth h, not on the shape of the vessel. The pressure at the bottom of both vessels is the same.' }
       ],
       examples: [
-        { task: 'What is the gauge pressure of water at a depth of $4\\,\\text{m}$? The density of water is $1000\\,\\text{kg/m}^3$ and $g=9{,}81\\,\\text{m/s}^2$.',
-          steps: ['$p=\\rho g h=1000\\cdot 9{,}81\\cdot 4=39\\,240\\,\\text{Pa}$.', '<strong>Result: 39.24 kPa</strong>'] }
+        { task: 'What is the gauge pressure of water at a depth of $4\\,\\text{m}$? The density of water is $1000\\,\\text{kg/m}^3$ and $g=9.81\\,\\text{m/s}^2$.',
+          steps: ['$p=\\rho g h=1000\\cdot 9.81\\cdot 4=39\\,240\\,\\text{Pa}$.', '<strong>Result: 39.24 kPa</strong>'] }
       ]
     },
     'v11-tlak-vztlak': {
@@ -276,7 +276,7 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'A body of volume $3\\,\\text{dm}^3$ is fully submerged in water. What is the buoyant force?',
-          steps: ['$V=3\\,\\text{dm}^3=0{,}003\\,\\text{m}^3$.', '$F_{vz}=1000\\cdot 9{,}81\\cdot 0{,}003=29{,}43\\,\\text{N}$.', '<strong>Result: 29.43 N</strong>'] }
+          steps: ['$V=3\\,\\text{dm}^3=0.003\\,\\text{m}^3$.', '$F_{vz}=1000\\cdot 9.81\\cdot 0.003=29.43\\,\\text{N}$.', '<strong>Result: 29.43 N</strong>'] }
       ]
     },
     'v11-kontinuita': {
@@ -289,8 +289,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v9v12-kontinuita', caption: 'For an incompressible liquid S₁v₁ = S₂v₂ holds. Where the cross-section is smaller, the liquid flows faster.' }
       ],
       examples: [
-        { task: 'A pipe narrows from a cross-section of $6\\,\\text{cm}^2$ to $2\\,\\text{cm}^2$. The water in the wider section flows at $1{,}5\\,\\text{m/s}$. What is the velocity in the narrower section?',
-          steps: ['$S_1 v_1=S_2 v_2$, therefore $v_2=\\frac{6\\cdot 1{,}5}{2}$.', '<strong>Result: 4.5 m/s</strong>'] }
+        { task: 'A pipe narrows from a cross-section of $6\\,\\text{cm}^2$ to $2\\,\\text{cm}^2$. The water in the wider section flows at $1.5\\,\\text{m/s}$. What is the velocity in the narrower section?',
+          steps: ['$S_1 v_1=S_2 v_2$, therefore $v_2=\\frac{6\\cdot 1.5}{2}$.', '<strong>Result: 4.5 m/s</strong>'] }
       ]
     },
     'v11-bernoulli': {
@@ -317,8 +317,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v9v12-vrstvy', caption: 'In laminar flow the layers of liquid slide past each other, and internal friction causes the resistance.' }
       ],
       examples: [
-        { task: 'A sphere of radius $1\\,\\text{cm}$ moves at a velocity of $0{,}5\\,\\text{m/s}$ in a liquid with $\\eta=2\\,\\text{Pa}\\cdot\\text{s}$. What is the resistance?',
-          steps: ['$F=6\\pi\\eta r v=6\\pi\\cdot 2\\cdot 0{,}01\\cdot 0{,}5$.', '$F\\approx 0{,}188\\,\\text{N}$.', '<strong>Result: approximately 188 mN</strong>'] }
+        { task: 'A sphere of radius $1\\,\\text{cm}$ moves at a velocity of $0.5\\,\\text{m/s}$ in a liquid with $\\eta=2\\,\\text{Pa}\\cdot\\text{s}$. What is the resistance?',
+          steps: ['$F=6\\pi\\eta r v=6\\pi\\cdot 2\\cdot 0.01\\cdot 0.5$.', '$F\\approx 0.188\\,\\text{N}$.', '<strong>Result: approximately 188 mN</strong>'] }
       ]
     },
     'v11-turbulencia': {
@@ -331,8 +331,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v9v12-profil', caption: 'In laminar flow the velocity across the cross-section is parabolic; in turbulent flow the profile is flatter.' }
       ],
       examples: [
-        { task: `Water ($\\rho=1000\\,\\text{kg/m}^3$, $\\eta=10^{-3}\\,\\text{Pa}\\cdot\\text{s}$) flows through a pipe of diameter $0{,}05\\,\\text{m}$ at a velocity of $1\\,\\text{m/s}$. What is the Reynolds number?`,
-          steps: ['$\\text{Re}=\\frac{1000\\cdot 1\\cdot 0{,}05}{10^{-3}}$.', '<strong>Result: Re = 50 000, the flow is turbulent</strong>'] }
+        { task: `Water ($\\rho=1000\\,\\text{kg/m}^3$, $\\eta=10^{-3}\\,\\text{Pa}\\cdot\\text{s}$) flows through a pipe of diameter $0.05\\,\\text{m}$ at a velocity of $1\\,\\text{m/s}$. What is the Reynolds number?`,
+          steps: ['$\\text{Re}=\\frac{1000\\cdot 1\\cdot 0.05}{10^{-3}}$.', '<strong>Result: Re = 50 000, the flow is turbulent</strong>'] }
       ]
     },
     'v11-aerodynamika': {
@@ -345,8 +345,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v9v12-krido', caption: 'Above the wing the flow is faster and the pressure lower, below the wing the pressure is higher. The pressure difference creates lift.' }
       ],
       examples: [
-        { task: 'A car has a frontal area of $2\\,\\text{m}^2$, a drag coefficient $c_w=0{,}5$ and travels at $20\\,\\text{m/s}$. What is the air drag? The density of air is $1{,}2\\,\\text{kg/m}^3$.',
-          steps: ['$F=\\frac{1}{2}\\cdot 0{,}5\\cdot 1{,}2\\cdot 2\\cdot 20^2$.', '$=0{,}6\\cdot 400=240\\,\\text{N}$.', '<strong>Result: 240 N</strong>'] }
+        { task: 'A car has a frontal area of $2\\,\\text{m}^2$, a drag coefficient $c_w=0.5$ and travels at $20\\,\\text{m/s}$. What is the air drag? The density of air is $1.2\\,\\text{kg/m}^3$.',
+          steps: ['$F=\\frac{1}{2}\\cdot 0.5\\cdot 1.2\\cdot 2\\cdot 20^2$.', '$=0.6\\cdot 400=240\\,\\text{N}$.', '<strong>Result: 240 N</strong>'] }
       ]
     },
     'v12-modelovanie': {
@@ -402,7 +402,7 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'What is the amplitude of the first harmonic of a square-wave signal with amplitude $A=3$?',
-          steps: ['For the first harmonic $n=1$ and the formula $\\frac{4A}{n\\pi}$.', '$\\frac{4\\cdot 3}{\\pi}\\approx 3{,}82$.', '<strong>Result: approximately 3.82</strong>'] }
+          steps: ['For the first harmonic $n=1$ and the formula $\\frac{4A}{n\\pi}$.', '$\\frac{4\\cdot 3}{\\pi}\\approx 3.82$.', '<strong>Result: approximately 3.82</strong>'] }
       ]
     },
     'v12-numericke-metody': {
@@ -415,8 +415,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v9v12-euler', caption: "Euler's method with step h = 0.5 approximates the equation dy/dt = y by a polyline that lies below the exact curve." }
       ],
       examples: [
-        { task: `Solve $\\frac{dy}{dt}=-y$ with $y(0)=10$ by Euler's method using the step $h=0{,}1$. What is the value of $y_1$?`,
-          steps: ['$y_1=y_0+h\\cdot(-y_0)=10+0{,}1\\cdot(-10)$.', '$=10-1=9$.', '<strong>Result: 9</strong>'] }
+        { task: `Solve $\\frac{dy}{dt}=-y$ with $y(0)=10$ by Euler's method using the step $h=0.1$. What is the value of $y_1$?`,
+          steps: ['$y_1=y_0+h\\cdot(-y_0)=10+0.1\\cdot(-10)$.', '$=10-1=9$.', '<strong>Result: 9</strong>'] }
       ]
     },
     'v12-pocitacove-simulacie': {
@@ -428,8 +428,8 @@ CONTENT_I18N.add('en', {
         `<p>Simulations are used wherever there is no solution in the form of a formula: the motion of planets in a three-body system, the air flow around a wing, or the spread of heat in a material.</p>`
       ],
       examples: [
-        { task: 'A simulation of a fall is to last $10\\,\\text{s}$ and the step is $0{,}05\\,\\text{s}$. How many steps are needed?',
-          steps: ['$N=\\frac{t}{h}=\\frac{10}{0{,}05}$.', '<strong>Result: 200 steps</strong>'] }
+        { task: 'A simulation of a fall is to last $10\\,\\text{s}$ and the step is $0.05\\,\\text{s}$. How many steps are needed?',
+          steps: ['$N=\\frac{t}{h}=\\frac{10}{0.05}$.', '<strong>Result: 200 steps</strong>'] }
       ]
     },
     'v12-konecne-prvky': {

@@ -45,8 +45,8 @@ CONTENT_I18N.add('ko', {
         `<p><strong>이렇게 되는 이유:</strong> 힘은 충분히 오래 작용할 때만 운동량을 바꿉니다. 짧은 충격은 힘이 커도 역적이 작습니다. 각운동량은 물체에 토크 $\\vec M=\\vec r\\times\\vec F$가 작용할 때만 변합니다.</p>`
       ],
       examples: [
-        { task: '질량 $m=0{,}02\\,\\text{kg}$인 총알이 속도 $v=300\\,\\text{m/s}$로 날아갑니다. 운동량은 얼마입니까?',
-          steps: ['$p=m\\,v=0{,}02\\cdot 300$.', '<strong>결과: $p=6\\,\\text{kg\\,m/s}$</strong>'] },
+        { task: '질량 $m=0.02\\,\\text{kg}$인 총알이 속도 $v=300\\,\\text{m/s}$로 날아갑니다. 운동량은 얼마입니까?',
+          steps: ['$p=m\\,v=0.02\\cdot 300$.', '<strong>결과: $p=6\\,\\text{kg\\,m/s}$</strong>'] },
         { task: '물체에 힘 $F=50\\,\\text{N}$이 $4\\,\\text{s}$ 동안 작용합니다. 운동량의 변화는 얼마입니까?',
           steps: ['힘의 역적: $\\Delta p=F\\,\\Delta t=50\\cdot 4$.', '<strong>결과: $\\Delta p=200\\,\\text{kg\\,m/s}$</strong>'] }
       ]
@@ -72,15 +72,15 @@ CONTENT_I18N.add('ko', {
       title: '중력장',
       summary: '뉴턴의 만유인력 법칙, 중력 가속도, 그리고 행성 중심으로부터의 거리에 따른 중력 가속도의 변화를 다룹니다.',
       theory: [
-        `<p><strong>뉴턴의 만유인력 법칙</strong>: 질량이 각각 $m_1$, $m_2$인 두 물체가 거리 $r$만큼 떨어져 있으면 서로 $F=G\\frac{m_1 m_2}{r^2}$의 힘으로 당깁니다. 여기서 $G\\approx 6{,}67\\cdot 10^{-11}\\,\\text{N\\,m}^2/\\text{kg}^2$입니다.</p>`,
+        `<p><strong>뉴턴의 만유인력 법칙</strong>: 질량이 각각 $m_1$, $m_2$인 두 물체가 거리 $r$만큼 떨어져 있으면 서로 $F=G\\frac{m_1 m_2}{r^2}$의 힘으로 당깁니다. 여기서 $G\\approx 6.67\\cdot 10^{-11}\\,\\text{N\\,m}^2/\\text{kg}^2$입니다.</p>`,
         `<p><strong>중력장</strong>은 물체에 중력이 작용하는 영역입니다. 장의 세기, 즉 <em>중력 가속도</em>는 $g=\\frac{F}{m}=G\\frac{M}{r^2}$이며, 여기서 $M$은 장을 만드는 물체의 질량입니다.</p>`,
         `<p><strong>거리에 따라 감소하는 이유:</strong> 중력의 영향은 넓이 $4\\pi r^2$인 점점 더 큰 구면에 퍼집니다. 따라서 중력 가속도는 중심으로부터의 거리에 선형이 아니라 거리의 제곱에 반비례하여 변합니다.</p>`,
-        `<p>지구 표면에서 $g\\approx 9{,}81\\,\\text{m/s}^2$입니다. 지구 중심으로부터 거리 $r$에서는 $g(r)=9{,}81\\cdot\\left(\\frac{R}{r}\\right)^2$이며, 여기서 $R$은 지구의 반지름입니다.</p>`,
+        `<p>지구 표면에서 $g\\approx 9.81\\,\\text{m/s}^2$입니다. 지구 중심으로부터 거리 $r$에서는 $g(r)=9.81\\cdot\\left(\\frac{R}{r}\\right)^2$이며, 여기서 $R$은 지구의 반지름입니다.</p>`,
         { fig: 'v1v4-gravitacia-r', caption: '중력 가속도는 중심으로부터의 거리의 제곱에 반비례하여 감소합니다. 거리 2R에서는 표면 값의 4분의 1입니다.' }
       ],
       examples: [
         { task: '지구 중심으로부터의 거리가 지구 반지름의 두 배인 높이에서 중력 가속도는 얼마입니까?',
-          steps: ['거리의 비는 $\\frac{r}{R}=2$이므로 $g(r)=g\\cdot\\left(\\frac{1}{2}\\right)^2$입니다.', '$g(r)=\\frac{9{,}81}{4}\\approx 2{,}45\\,\\text{m/s}^2$.', '<strong>결과: 약 $2{,}45\\,\\text{m/s}^2$</strong>'] },
+          steps: ['거리의 비는 $\\frac{r}{R}=2$이므로 $g(r)=g\\cdot\\left(\\frac{1}{2}\\right)^2$입니다.', '$g(r)=\\frac{9.81}{4}\\approx 2.45\\,\\text{m/s}^2$.', '<strong>결과: 약 $2.45\\,\\text{m/s}^2$</strong>'] },
         { task: '질량이 $m_1=10\\,\\text{kg}$, $m_2=5\\,\\text{kg}$인 두 물체가 거리 $r$만큼 떨어져 있습니다. 거리를 두 배로 늘리면 힘은 어떻게 변합니까?',
           steps: ['힘은 $\\frac{1}{r^2}$에 비례하므로, 거리 $2r$에서 힘은 네 배 작아집니다.', '<strong>결과: 힘은 4분의 1로 줄어듭니다</strong>'] }
       ]
@@ -97,9 +97,9 @@ CONTENT_I18N.add('ko', {
       ],
       examples: [
         { task: '원판이 진동수 $f=3\\,\\text{Hz}$로 회전합니다. 각속도는 얼마입니까?',
-          steps: ['$\\omega=2\\pi f=2\\pi\\cdot 3$.', '<strong>결과: $\\omega=6\\pi\\approx 18{,}85\\,\\text{rad/s}$</strong>'] },
-        { task: '바퀴 위의 점이 축으로부터 $r=0{,}5\\,\\text{m}$ 떨어져 있고 각속도는 $\\omega=4\\,\\text{rad/s}$입니다. 이 점의 접선 속도는 얼마입니까?',
-          steps: ['$v=\\omega\\,r=4\\cdot 0{,}5$.', '<strong>결과: $v=2\\,\\text{m/s}$</strong>'] }
+          steps: ['$\\omega=2\\pi f=2\\pi\\cdot 3$.', '<strong>결과: $\\omega=6\\pi\\approx 18.85\\,\\text{rad/s}$</strong>'] },
+        { task: '바퀴 위의 점이 축으로부터 $r=0.5\\,\\text{m}$ 떨어져 있고 각속도는 $\\omega=4\\,\\text{rad/s}$입니다. 이 점의 접선 속도는 얼마입니까?',
+          steps: ['$v=\\omega\\,r=4\\cdot 0.5$.', '<strong>결과: $v=2\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v1-sustavy': {
@@ -139,24 +139,24 @@ CONTENT_I18N.add('ko', {
       title: '온도, 압력, 열, 내부 에너지',
       summary: '켈빈 단위의 열역학적 온도, 면적당 힘으로서의 압력, 그리고 입자 에너지의 합으로서의 내부 에너지를 다룹니다.',
       theory: [
-        `<p><strong>열역학적 온도</strong> $T$는 켈빈으로 측정합니다. 입자의 평균 운동 에너지에 비례하므로 음수가 될 수 없습니다. 섭씨 온도로부터의 환산은 $T=t+273{,}15$이며, 여기서 $0\\,\\text{K}$는 절대 영도입니다.</p>`,
+        `<p><strong>열역학적 온도</strong> $T$는 켈빈으로 측정합니다. 입자의 평균 운동 에너지에 비례하므로 음수가 될 수 없습니다. 섭씨 온도로부터의 환산은 $T=t+273.15$이며, 여기서 $0\\,\\text{K}$는 절대 영도입니다.</p>`,
         `<p><strong>압력</strong>은 단위 넓이에 수직으로 작용하는 힘입니다: $p=\\frac{F}{S}$, 단위는 파스칼이며 $1\\,\\text{Pa}=1\\,\\text{N/m}^2$입니다. 기체는 용기 벽을 밀어냅니다. 기체 입자가 벽에 부딪혀 벽에 운동량을 전달하기 때문입니다.</p>`,
         `<p><strong>내부 에너지</strong> $U$는 계의 모든 입자의 운동 에너지와 위치 에너지의 합입니다. <strong>열</strong> $Q$는 온도 차 때문에 물체 사이에서 전달되는 에너지이며, 물체가 가진 "내용물"이 아닙니다.</p>`,
         `<p><strong>켈빈을 쓰는 이유:</strong> 섭씨 눈금의 영점은 임의로 정한 것입니다. 에너지나 비율과 관련된 식에서는 에너지가 0이 되는 영점, 즉 켈빈을 써야 합니다.</p>`,
-        { fig: 'v1v4-teplota-stupnice', caption: '온도 환산은 T = t + 273,15입니다. 절대 영도는 0 K, 즉 −273,15 °C에 해당합니다.' }
+        { fig: 'v1v4-teplota-stupnice', caption: '온도 환산은 T = t + 273.15입니다. 절대 영도는 0 K, 즉 −273.15 °C에 해당합니다.' }
       ],
       examples: [
         { task: '온도 $t=27\\,{}^\\circ\\text{C}$는 켈빈으로 얼마입니까?',
-          steps: ['$T=t+273{,}15=27+273{,}15$.', '<strong>결과: $T=300{,}15\\,\\text{K}$</strong>'] },
-        { task: '힘 $F=600\\,\\text{N}$이 넓이 $S=0{,}2\\,\\text{m}^2$에 수직으로 작용합니다. 압력은 얼마입니까?',
-          steps: ['$p=\\frac{F}{S}=\\frac{600}{0{,}2}$.', '<strong>결과: $p=3000\\,\\text{Pa}$</strong>'] }
+          steps: ['$T=t+273.15=27+273.15$.', '<strong>결과: $T=300.15\\,\\text{K}$</strong>'] },
+        { task: '힘 $F=600\\,\\text{N}$이 넓이 $S=0.2\\,\\text{m}^2$에 수직으로 작용합니다. 압력은 얼마입니까?',
+          steps: ['$p=\\frac{F}{S}=\\frac{600}{0.2}$.', '<strong>결과: $p=3000\\,\\text{Pa}$</strong>'] }
       ]
     },
     'v2-stavove-rovnice': {
       title: '상태 방정식',
       summary: '이상기체의 상태 방정식 pV = nRT와 그것을 이용한 압력 계산을 다룹니다.',
       theory: [
-        `<p>이상기체의 <strong>상태 방정식</strong>은 압력 $p$, 부피 $V$, 물질량 $n$, 온도 $T$를 관계짓습니다: $pV=nRT$, 여기서 $R\\approx 8{,}314\\,\\text{J/(mol\\,K)}$입니다.</p>`,
+        `<p>이상기체의 <strong>상태 방정식</strong>은 압력 $p$, 부피 $V$, 물질량 $n$, 온도 $T$를 관계짓습니다: $pV=nRT$, 여기서 $R\\approx 8.314\\,\\text{J/(mol\\,K)}$입니다.</p>`,
         `<p>이상기체는 입자가 자체 부피를 가지지 않고, 충돌하는 경우를 제외하면 서로 상호작용하지 않는다고 보는 모형입니다. 충분히 묽은 기체를 보통의 온도에서 다룰 때 이 모형은 매우 정확합니다.</p>`,
         `<p><strong>사용법:</strong> 세 양을 알면 네 번째 양을 구할 수 있습니다. 예를 들어 압력은 $p=\\frac{nRT}{V}$입니다. 한 양이 변하면 나머지는 비례 관계에 따라 변합니다. 온도가 일정할 때 압력은 부피에 반비례합니다.</p>`,
         `<p><strong>단위에 주의하십시오:</strong> 온도는 켈빈, 부피는 세제곱미터로 써야 합니다. 그렇지 않으면 결과가 파스칼 단위가 되지 않습니다. 리터와 세제곱데시미터는 $1000$으로 나누어 환산합니다.</p>`,
@@ -164,7 +164,7 @@ CONTENT_I18N.add('ko', {
       ],
       examples: [
         { task: '기체의 $n=1\\,\\text{mol}$, 온도 $T=300\\,\\text{K}$, 부피 $V=2\\,\\text{dm}^3$입니다. 압력은 kPa 단위로 얼마입니까?',
-          steps: ['$V=2\\,\\text{dm}^3=0{,}002\\,\\text{m}^3$.', '$p=\\frac{nRT}{V}=\\frac{1\\cdot 8{,}314\\cdot 300}{0{,}002}\\approx 1\\,247\\,100\\,\\text{Pa}$.', '<strong>결과: $p\\approx 1247\\,\\text{kPa}$</strong>'] },
+          steps: ['$V=2\\,\\text{dm}^3=0.002\\,\\text{m}^3$.', '$p=\\frac{nRT}{V}=\\frac{1\\cdot 8.314\\cdot 300}{0.002}\\approx 1\\,247\\,100\\,\\text{Pa}$.', '<strong>결과: $p\\approx 1247\\,\\text{kPa}$</strong>'] },
         { task: '온도가 일정할 때 기체의 부피가 두 배가 됩니다. 압력은 어떻게 변합니까?',
           steps: ['$T$와 $n$이 일정하면 $p\\,V=\\text{const.}$입니다.', '$V\\to 2V$이면 $p\\to \\frac{p}{2}$입니다.', '<strong>결과: 압력은 절반으로 줄어듭니다</strong>'] }
       ]
@@ -214,9 +214,9 @@ CONTENT_I18N.add('ko', {
       ],
       examples: [
         { task: '열기관이 온도 $T_h=500\\,\\text{K}$인 가열기와 온도 $T_c=300\\,\\text{K}$인 냉각기 사이에서 작동합니다. 이상적인 효율은 얼마입니까?',
-          steps: ['$\\eta=1-\\frac{T_c}{T_h}=1-\\frac{300}{500}$.', '$\\eta=1-0{,}6=0{,}4$.', '<strong>결과: $\\eta=40\\,\\%$</strong>'] },
+          steps: ['$\\eta=1-\\frac{T_c}{T_h}=1-\\frac{300}{500}$.', '$\\eta=1-0.6=0.4$.', '<strong>결과: $\\eta=40\\,\\%$</strong>'] },
         { task: '효율 $25\\,\\%$인 기관이 가열기에서 열 $Q_h=800\\,\\text{J}$을 받습니다. 이 기관은 얼마의 일을 합니까?',
-          steps: ['$W=\\eta\\,Q_h=0{,}25\\cdot 800$.', '<strong>결과: $W=200\\,\\text{J}$</strong>'] }
+          steps: ['$W=\\eta\\,Q_h=0.25\\cdot 800$.', '<strong>결과: $W=200\\,\\text{J}$</strong>'] }
       ]
     },
     'v2-kinetika-plynov': {
@@ -224,13 +224,13 @@ CONTENT_I18N.add('ko', {
       summary: '기체의 분자적 관점: 입자의 평균 운동 에너지는 절대 온도에 비례합니다.',
       theory: [
         `<p><strong>기체의 운동론</strong>은 분자의 운동으로 압력과 온도를 설명합니다. 압력은 분자가 용기 벽에 부딪혀 생기고, 온도는 분자의 평균 운동 에너지를 재는 척도입니다.</p>`,
-        `<p>이상기체 분자 하나의 평균 운동 에너지는 $\\overline{E_k}=\\frac{3}{2}k\\,T$입니다. 여기서 $k\\approx 1{,}38\\cdot 10^{-23}\\,\\text{J/K}$는 볼츠만 상수입니다. 이 값은 온도에만 의존하며, 기체의 종류에는 의존하지 않습니다.</p>`,
+        `<p>이상기체 분자 하나의 평균 운동 에너지는 $\\overline{E_k}=\\frac{3}{2}k\\,T$입니다. 여기서 $k\\approx 1.38\\cdot 10^{-23}\\,\\text{J/K}$는 볼츠만 상수입니다. 이 값은 온도에만 의존하며, 기체의 종류에는 의존하지 않습니다.</p>`,
         `<p><strong>인자 $\\frac{3}{2}$가 나오는 이유:</strong> 분자는 세 방향으로 움직일 수 있고, 각 방향은 에너지에 $k\\,T$의 절반씩 기여합니다. 세 자유도가 합쳐서 $\\frac{3}{2}k\\,T$를 줍니다.</p>`,
         `<p><strong>켈빈을 쓰는 이유:</strong> 이 식은 절대 온도에 직접 비례합니다. $0\\,\\text{K}$에서 분자의 운동 에너지는 0이어야 하므로, 이 식에서는 섭씨 눈금을 쓰지 않습니다.</p>`
       ],
       examples: [
-        { task: '온도 $T=300\\,\\text{K}$인 기체 분자의 평균 운동 에너지는 얼마입니까? $k=1{,}38\\cdot 10^{-23}\\,\\text{J/K}$를 사용하십시오.',
-          steps: ['$\\overline{E_k}=\\frac{3}{2}k\\,T=1{,}5\\cdot 1{,}38\\cdot 10^{-23}\\cdot 300$.', '$\\overline{E_k}\\approx 6{,}21\\cdot 10^{-21}\\,\\text{J}$.', '<strong>결과: 약 $6{,}21\\cdot 10^{-21}\\,\\text{J}$</strong>'] },
+        { task: '온도 $T=300\\,\\text{K}$인 기체 분자의 평균 운동 에너지는 얼마입니까? $k=1.38\\cdot 10^{-23}\\,\\text{J/K}$를 사용하십시오.',
+          steps: ['$\\overline{E_k}=\\frac{3}{2}k\\,T=1.5\\cdot 1.38\\cdot 10^{-23}\\cdot 300$.', '$\\overline{E_k}\\approx 6.21\\cdot 10^{-21}\\,\\text{J}$.', '<strong>결과: 약 $6.21\\cdot 10^{-21}\\,\\text{J}$</strong>'] },
         { task: '기체의 온도가 두 배가 되면 분자의 평균 운동 에너지는 어떻게 변합니까?',
           steps: ['에너지는 $T$에 직접 비례합니다.', '<strong>결과: 두 배가 됩니다</strong>'] }
       ]
@@ -243,13 +243,13 @@ CONTENT_I18N.add('ko', {
         `<p>지수 함수는 온도가 낮을 때 준위 사이의 작은 에너지 차이가 큰 영향을 준다는 뜻입니다. 온도가 높으면 준위들의 차이가 줄어들어 점유가 균일한 분포에 가까워집니다.</p>`,
         `<p><strong>왜 정확히 지수 함수인가:</strong> 에너지 $E$를 가진 상태의 확률은, $E$가 커질 때 같은 에너지 증가분마다 일정한 비율로 줄어듭니다. 이것이 정확히 지수 의존성으로 이어집니다.</p>`,
         `<p>이 결과는 온도가 단지 열의 척도일 뿐 아니라, 어떤 상태가 접근 가능한지를 정하는 눈금이기도 함을 보여 줍니다. 이 분포는 거시적 성질에 대한 모든 통계적 계산의 기초입니다.</p>`,
-        { fig: 'v1v4-boltzmann', caption: '바닥 준위보다 ΔE = k·T만큼 높은 준위는, 온도 T에서 바닥 준위보다 약 e⁻¹ ≈ 0,37배만큼 채워집니다.' }
+        { fig: 'v1v4-boltzmann', caption: '바닥 준위보다 ΔE = k·T만큼 높은 준위는, 온도 T에서 바닥 준위보다 약 e⁻¹ ≈ 0.37배만큼 채워집니다.' }
       ],
       examples: [
         { task: '어떤 준위가 바닥 준위보다 $\\Delta E=kT$만큼 높이 있습니다. 비 $\\frac{N_2}{N_1}$은 얼마입니까?',
-          steps: ['$\\frac{N_2}{N_1}=e^{-\\Delta E/(kT)}=e^{-1}$.', '<strong>결과: $\\frac{N_2}{N_1}\\approx 0{,}368$</strong>'] },
+          steps: ['$\\frac{N_2}{N_1}=e^{-\\Delta E/(kT)}=e^{-1}$.', '<strong>결과: $\\frac{N_2}{N_1}\\approx 0.368$</strong>'] },
         { task: '어떤 준위가 $2\\,kT$만큼 더 높이 있습니다. 점유 비는 얼마입니까?',
-          steps: ['$\\frac{N_2}{N_1}=e^{-2}\\approx 0{,}135$.', '<strong>결과: 약 $0{,}135$</strong>'] }
+          steps: ['$\\frac{N_2}{N_1}=e^{-2}\\approx 0.135$.', '<strong>결과: 약 $0.135$</strong>'] }
       ]
     },
     'v2-statisticke': {
@@ -265,7 +265,7 @@ CONTENT_I18N.add('ko', {
         { task: '계에 두 상태를 가질 수 있는 독립 입자가 $N=3$개 있습니다. 미시 상태의 수 $W$는 얼마입니까?',
           steps: ['$W=2^N=2^3$.', '<strong>결과: $W=8$</strong>'] },
         { task: '두 상태를 가진 입자가 $N=4$개일 때 $S/k$의 값은 얼마입니까? 소수점 둘째 자리까지 반올림하십시오.',
-          steps: ['$W=2^4=16$이므로 $\\frac{S}{k}=\\ln 16$.', '$\\ln 16=4\\ln 2\\approx 2{,}77$.', '<strong>결과: $\\frac{S}{k}\\approx 2{,}77$</strong>'] }
+          steps: ['$W=2^4=16$이므로 $\\frac{S}{k}=\\ln 16$.', '$\\ln 16=4\\ln 2\\approx 2.77$.', '<strong>결과: $\\frac{S}{k}\\approx 2.77$</strong>'] }
       ]
     },
     'v3-elektricke-pole': {
@@ -273,14 +273,14 @@ CONTENT_I18N.add('ko', {
       summary: '점전하의 장의 세기와 전위, 중첩 원리, 그리고 전기장에서 한 일을 다룹니다.',
       theory: [
         `<p>한 점에서의 <strong>전기장의 세기</strong>는 양의 시험 전하에 작용하는 힘을 그 전하의 크기로 나눈 것입니다: $\\vec E=\\frac{\\vec F}{q}$, 단위는 $\\text{V/m}$입니다. 전기장은 공간의 성질이며, 시험 전하의 성질이 아닙니다.</p>`,
-        `<p>거리 $r$에 있는 점전하 $Q$에 대해 $E=k\\frac{Q}{r^2}$이며, 여기서 $k\\approx 8{,}99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$입니다. 전기장의 방향은 방사형입니다. 양전하에서는 밖으로, 음전하에서는 안으로 향합니다.</p>`,
+        `<p>거리 $r$에 있는 점전하 $Q$에 대해 $E=k\\frac{Q}{r^2}$이며, 여기서 $k\\approx 8.99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$입니다. 전기장의 방향은 방사형입니다. 양전하에서는 밖으로, 음전하에서는 안으로 향합니다.</p>`,
         `<p><strong>전위</strong>는 단위 전하당 에너지입니다: $V=k\\frac{Q}{r}$. 전하 $q$를 두 점 사이로 옮기는 데 드는 일은 $W=q\\,\\Delta V$이며, 경로에 무관하고 시작점과 끝점에만 의존합니다.</p>`,
         `<p><strong>중첩:</strong> 여러 전하의 전기장은 벡터로 더하고, 전위는 스칼라로 더합니다. 그래서 전위는 전기장의 세기보다 계산하기 더 간단합니다.</p>`,
         { fig: 'v1v4-elektricke-pole', caption: '양의 점전하의 전기력선은 사방으로 방사형으로 뻗어 나갑니다. 전기장의 세기는 거리의 제곱에 반비례하여 감소합니다.' }
       ],
       examples: [
-        { task: '점전하 $Q=2\\,\\mu\\text{C}$이 거리 $r=3\\,\\text{m}$에 있습니다. 전기장의 세기는 kV/m 단위로 얼마입니까? $k\\approx 8{,}99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$를 사용하십시오.',
-          steps: ['$E=k\\frac{Q}{r^2}=8{,}99\\cdot\\frac{2}{3^2}$.', '$E\\approx 2{,}00\\,\\text{kV/m}$', '<strong>결과: 약 $2{,}00\\,\\text{kV/m}$</strong>'] },
+        { task: '점전하 $Q=2\\,\\mu\\text{C}$이 거리 $r=3\\,\\text{m}$에 있습니다. 전기장의 세기는 kV/m 단위로 얼마입니까? $k\\approx 8.99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$를 사용하십시오.',
+          steps: ['$E=k\\frac{Q}{r^2}=8.99\\cdot\\frac{2}{3^2}$.', '$E\\approx 2.00\\,\\text{kV/m}$', '<strong>결과: 약 $2.00\\,\\text{kV/m}$</strong>'] },
         { task: '거리를 두 배로 늘리면 점전하의 전기장 세기는 어떻게 변합니까?',
           steps: ['전기장의 세기는 $\\frac{1}{r^2}$에 비례합니다.', '$\\frac{1}{(2r)^2}=\\frac{1}{4r^2}$.', '<strong>결과: 4분의 1로 줄어듭니다</strong>'] }
       ]
@@ -290,14 +290,14 @@ CONTENT_I18N.add('ko', {
       summary: '닫힌 곡면을 통과하는 전기 선속과, 그것이 곡면 안의 전하와 맺는 관계를 다룹니다.',
       theory: [
         `<p>곡면 $S$를 통과하는 <strong>전기 선속</strong>은 $\\Phi_E=\\oint \\vec E\\cdot d\\vec S$, 즉 곡면에 수직인 전기장 성분들의 합입니다. 단위는 $\\text{N\\,m}^2/\\text{C}$입니다.</p>`,
-        `<p><strong>가우스 법칙</strong>은 닫힌 곡면을 통과하는 선속이 곡면 안의 전하에 비례한다고 말합니다: $\\oint \\vec E\\cdot d\\vec S=\\frac{Q_{\\text{inside}}}{\\varepsilon_0}$, 여기서 $\\varepsilon_0\\approx 8{,}854\\cdot 10^{-12}\\,\\text{F/m}$입니다.</p>`,
+        `<p><strong>가우스 법칙</strong>은 닫힌 곡면을 통과하는 선속이 곡면 안의 전하에 비례한다고 말합니다: $\\oint \\vec E\\cdot d\\vec S=\\frac{Q_{\\text{inside}}}{\\varepsilon_0}$, 여기서 $\\varepsilon_0\\approx 8.854\\cdot 10^{-12}\\,\\text{F/m}$입니다.</p>`,
         `<p><strong>이렇게 되는 이유:</strong> 전기력선은 양전하에서 나와 음전하로 들어갑니다. 따라서 닫힌 곡면을 통과하는 선속은 곡면의 모양과 무관하게, 안에 있는 전하만큼의 전기력선을 정확히 포착합니다.</p>`,
         `<p>가우스 법칙은 대칭적인 문제, 예를 들어 구나 무한한 전하 평면에 편리합니다. 적절히 고른 곡면에서는 전기장을 적분 밖으로 꺼낼 수 있어 계산이 간단해집니다.</p>`,
         { fig: 'v1v4-gauss', caption: '닫힌 곡면을 통과하는 전체 선속은 곡면의 모양과 무관하게, 안에 있는 전하에만 의존합니다. Φ = Q/ε₀입니다.' }
       ],
       examples: [
-        { task: '전하 $Q=1\\,\\mu\\text{C}$이 닫힌 곡면을 통과합니다. $\\varepsilon_0=8{,}854\\cdot 10^{-12}\\,\\text{F/m}$일 때 곡면을 통과하는 전체 선속은 얼마입니까?',
-          steps: ['$\\Phi_E=\\frac{Q}{\\varepsilon_0}=\\frac{10^{-6}}{8{,}854\\cdot 10^{-12}}$.', '$\\Phi_E\\approx 1{,}13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$', '<strong>결과: 약 $1{,}13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$</strong>'] },
+        { task: '전하 $Q=1\\,\\mu\\text{C}$이 닫힌 곡면을 통과합니다. $\\varepsilon_0=8.854\\cdot 10^{-12}\\,\\text{F/m}$일 때 곡면을 통과하는 전체 선속은 얼마입니까?',
+          steps: ['$\\Phi_E=\\frac{Q}{\\varepsilon_0}=\\frac{10^{-6}}{8.854\\cdot 10^{-12}}$.', '$\\Phi_E\\approx 1.13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$', '<strong>결과: 약 $1.13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$</strong>'] },
         { task: '곡면 안의 전하가 두 배가 됩니다. 선속은 어떻게 변합니까?',
           steps: ['선속은 전하에 직접 비례합니다.', '<strong>결과: 두 배가 됩니다</strong>'] }
       ]
@@ -330,10 +330,10 @@ CONTENT_I18N.add('ko', {
         { fig: 'v1v4-lorentz', caption: '자기장에 수직으로 날아가는 양전하에 작용하는 로렌츠 힘은 속도와 자기장 모두에 수직입니다. 이 힘은 속력이 아니라 운동 방향을 바꿉니다.' }
       ],
       examples: [
-        { task: '전자가 자기 선속 밀도 $B=0{,}2\\,\\text{T}$인 자기장에 수직으로 속력 $v=10^{5}\\,\\text{m/s}$로 날아갑니다. $q=1{,}6\\cdot 10^{-19}\\,\\text{C}$일 때 힘의 크기는 얼마입니까?',
-          steps: ['$\\alpha=90^\\circ$이므로 $\\sin\\alpha=1$입니다.', '$F=qvB=1{,}6\\cdot 10^{-19}\\cdot 10^{5}\\cdot 0{,}2$.', '<strong>결과: $F=3{,}2\\cdot 10^{-15}\\,\\text{N}$</strong>'] },
-        { task: '전하 $q=2\\,\\mu\\text{C}$인 입자가 속력 $v=300\\,\\text{m/s}$로 자기장 $B=0{,}5\\,\\text{T}$에 수직으로 날아갑니다. 힘은 마이크로뉴턴 단위로 얼마입니까?',
-          steps: ['$F=qvB=2\\cdot 300\\cdot 0{,}5$, 단위는 $\\mu\\text{N}$입니다.', '<strong>결과: $F=300\\,\\mu\\text{N}$</strong>'] }
+        { task: '전자가 자기 선속 밀도 $B=0.2\\,\\text{T}$인 자기장에 수직으로 속력 $v=10^{5}\\,\\text{m/s}$로 날아갑니다. $q=1.6\\cdot 10^{-19}\\,\\text{C}$일 때 힘의 크기는 얼마입니까?',
+          steps: ['$\\alpha=90^\\circ$이므로 $\\sin\\alpha=1$입니다.', '$F=qvB=1.6\\cdot 10^{-19}\\cdot 10^{5}\\cdot 0.2$.', '<strong>결과: $F=3.2\\cdot 10^{-15}\\,\\text{N}$</strong>'] },
+        { task: '전하 $q=2\\,\\mu\\text{C}$인 입자가 속력 $v=300\\,\\text{m/s}$로 자기장 $B=0.5\\,\\text{T}$에 수직으로 날아갑니다. 힘은 마이크로뉴턴 단위로 얼마입니까?',
+          steps: ['$F=qvB=2\\cdot 300\\cdot 0.5$, 단위는 $\\mu\\text{N}$입니다.', '<strong>결과: $F=300\\,\\mu\\text{N}$</strong>'] }
       ]
     },
     'v3-indukcia': {
@@ -347,8 +347,8 @@ CONTENT_I18N.add('ko', {
         { fig: 'v1v4-tok-indukcia', caption: '곡면을 통과하는 자기 선속은 Φ = B·S·cos α입니다. 여기서 α는 자기장 B와 곡면의 법선 n 사이의 각입니다.' }
       ],
       examples: [
-        { task: '넓이 $S=0{,}5\\,\\text{m}^2$인 고리가 자기장에 수직으로 놓여 있습니다. 자기장은 $2\\,\\text{s}$ 동안 $\\Delta B=4\\,\\text{T}$만큼 변합니다. 유도되는 전압은 얼마입니까?',
-          steps: ['$U_i=\\frac{\\Delta\\Phi}{\\Delta t}=\\frac{S\\,\\Delta B}{\\Delta t}=\\frac{0{,}5\\cdot 4}{2}$.', '<strong>결과: $U_i=1\\,\\text{V}$</strong>'] },
+        { task: '넓이 $S=0.5\\,\\text{m}^2$인 고리가 자기장에 수직으로 놓여 있습니다. 자기장은 $2\\,\\text{s}$ 동안 $\\Delta B=4\\,\\text{T}$만큼 변합니다. 유도되는 전압은 얼마입니까?',
+          steps: ['$U_i=\\frac{\\Delta\\Phi}{\\Delta t}=\\frac{S\\,\\Delta B}{\\Delta t}=\\frac{0.5\\cdot 4}{2}$.', '<strong>결과: $U_i=1\\,\\text{V}$</strong>'] },
         { task: '곡면을 통과하는 선속이 일정합니다. 유도되는 전압은 얼마입니까?',
           steps: ['전압은 선속의 변화에 비례합니다. $\\Delta\\Phi=0$입니다.', '<strong>결과: $U_i=0\\,\\text{V}$</strong>'] }
       ]
@@ -364,8 +364,8 @@ CONTENT_I18N.add('ko', {
         { fig: 'v1v4-ampere', caption: '전류가 흐르는 직선 도체 주위에서 자기 선속 밀도의 자기력선은 원입니다. 자기 선속 밀도 B는 거리 r에 따라 감소합니다.' }
       ],
       examples: [
-        { task: '직선 도체에 전류 $I=10\\,\\text{A}$가 흐릅니다. 거리 $r=0{,}2\\,\\text{m}$에서의 자기 선속 밀도는 얼마입니까? 결과를 마이크로테슬라로 주십시오.',
-          steps: ['$B=\\frac{\\mu_0 I}{2\\pi r}=\\frac{4\\pi\\cdot 10^{-7}\\cdot 10}{2\\pi\\cdot 0{,}2}$.', '$B=\\frac{2\\cdot 10^{-7}\\cdot 10}{0{,}2}=10^{-5}\\,\\text{T}$.', '<strong>결과: $B=10\\,\\mu\\text{T}$</strong>'] },
+        { task: '직선 도체에 전류 $I=10\\,\\text{A}$가 흐릅니다. 거리 $r=0.2\\,\\text{m}$에서의 자기 선속 밀도는 얼마입니까? 결과를 마이크로테슬라로 주십시오.',
+          steps: ['$B=\\frac{\\mu_0 I}{2\\pi r}=\\frac{4\\pi\\cdot 10^{-7}\\cdot 10}{2\\pi\\cdot 0.2}$.', '$B=\\frac{2\\cdot 10^{-7}\\cdot 10}{0.2}=10^{-5}\\,\\text{T}$.', '<strong>결과: $B=10\\,\\mu\\text{T}$</strong>'] },
         { task: '전류가 흐르는 도체로부터의 거리를 두 배로 늘리면 자기 선속 밀도는 어떻게 변합니까?',
           steps: ['$B$는 $\\frac{1}{r}$에 비례합니다.', '<strong>결과: 절반으로 줄어듭니다</strong>'] }
       ]
@@ -383,8 +383,8 @@ CONTENT_I18N.add('ko', {
       examples: [
         { task: '송신기가 진동수 $f=100\\,\\text{MHz}$로 작동합니다. 공기 중에서 이 파동의 파장은 얼마입니까?',
           steps: ['$\\lambda=\\frac{c}{f}=\\frac{3\\cdot 10^{8}}{100\\cdot 10^{6}}$.', '<strong>결과: $\\lambda=3\\,\\text{m}$</strong>'] },
-        { task: '파장이 $\\lambda=0{,}5\\,\\text{m}$입니다. 이 파동의 진동수는 얼마입니까?',
-          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{0{,}5}$.', '<strong>결과: $f=6\\cdot 10^{8}\\,\\text{Hz}=600\\,\\text{MHz}$</strong>'] }
+        { task: '파장이 $\\lambda=0.5\\,\\text{m}$입니다. 이 파동의 진동수는 얼마입니까?',
+          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{0.5}$.', '<strong>결과: $f=6\\cdot 10^{8}\\,\\text{Hz}=600\\,\\text{MHz}$</strong>'] }
       ]
     },
     'v3-sirenie': {
@@ -401,7 +401,7 @@ CONTENT_I18N.add('ko', {
         { task: '어떤 매질의 상대 유전율은 $\\varepsilon_r=4$입니다. 이 매질의 굴절률은 얼마입니까?',
           steps: ['$n=\\sqrt{\\varepsilon_r}=\\sqrt{4}$.', '<strong>결과: $n=2$</strong>'] },
         { task: '굴절률이 $n=2$인 매질에서 빛의 속력은 얼마입니까? 단, $c=3\\cdot 10^{8}\\,\\text{m/s}$입니다.',
-          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{2}$.', '<strong>결과: $v=1{,}5\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
+          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{2}$.', '<strong>결과: $v=1.5\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v4-vlnenie': {
@@ -433,7 +433,7 @@ CONTENT_I18N.add('ko', {
         { task: '파동의 진동수는 $f=50\\,\\text{Hz}$이고 파장은 $\\lambda=6\\,\\text{m}$입니다. 속력은 얼마입니까?',
           steps: ['$v=\\lambda\\cdot f=6\\cdot 50$.', '<strong>결과: $v=300\\,\\text{m/s}$</strong>'] },
         { task: '진동수가 $f=4\\,\\text{Hz}$인 파동의 주기는 얼마입니까?',
-          steps: ['$T=\\frac{1}{f}=\\frac{1}{4}$.', '<strong>결과: $T=0{,}25\\,\\text{s}$</strong>'] }
+          steps: ['$T=\\frac{1}{f}=\\frac{1}{4}$.', '<strong>결과: $T=0.25\\,\\text{s}$</strong>'] }
       ]
     },
     'v4-interferencia': {
@@ -446,8 +446,8 @@ CONTENT_I18N.add('ko', {
         { fig: 'v1v4-interferencia', caption: '같은 위상의 파동은 경로차 m·λ에서 서로 강화하고, 반대 위상에서는 (m + ½)·λ에서 서로 상쇄합니다.' }
       ],
       examples: [
-        { task: '파장 $\\lambda=0{,}5\\,\\text{m}$인 두 가간섭성 파동의 경로차가 $\\Delta d=1{,}25\\,\\text{m}$입니다. 강화가 일어납니까, 상쇄가 일어납니까?',
-          steps: ['$\\frac{\\Delta d}{\\lambda}=\\frac{1{,}25}{0{,}5}=2{,}5$.', '수 $2{,}5$는 반파장의 홀수배입니다: $2{,}5=\\left(2+\\tfrac{1}{2}\\right)$.', '<strong>결과: 상쇄가 일어납니다.</strong>'] }
+        { task: '파장 $\\lambda=0.5\\,\\text{m}$인 두 가간섭성 파동의 경로차가 $\\Delta d=1.25\\,\\text{m}$입니다. 강화가 일어납니까, 상쇄가 일어납니까?',
+          steps: ['$\\frac{\\Delta d}{\\lambda}=\\frac{1.25}{0.5}=2.5$.', '수 $2.5$는 반파장의 홀수배입니다: $2.5=\\left(2+\\tfrac{1}{2}\\right)$.', '<strong>결과: 상쇄가 일어납니다.</strong>'] }
       ]
     },
     'v4-polarizacia': {
@@ -461,7 +461,7 @@ CONTENT_I18N.add('ko', {
       ],
       examples: [
         { task: '세기 $I_0=80$인 선편광이 $60^\\circ$ 회전된 검광자를 통과합니다. 통과한 뒤의 세기는 얼마입니까?',
-          steps: ['$\\cos^2 60^\\circ=\\left(\\tfrac{1}{2}\\right)^2=0{,}25$.', '$I=80\\cdot 0{,}25=20$.', '<strong>결과: $I=20$</strong>'] }
+          steps: ['$\\cos^2 60^\\circ=\\left(\\tfrac{1}{2}\\right)^2=0.25$.', '$I=80\\cdot 0.25=20$.', '<strong>결과: $I=20$</strong>'] }
       ]
     },
     'v4-geometricka-optika': {
@@ -469,13 +469,13 @@ CONTENT_I18N.add('ko', {
       summary: '굴절률, 물질 속에서의 빛의 속력, 그리고 스넬의 굴절 법칙을 다룹니다.',
       theory: [
         `<p><strong>기하광학</strong>은 빛을 직선으로 진행하며, 반사 법칙($\\alpha=\\alpha'$)에 따라 반사하고, 매질의 경계에서 굴절하는 광선으로 기술합니다. 파동광학은 광선으로는 설명되지 않는 현상, 예를 들어 간섭과 회절을 설명합니다.</p>`,
-        `<p><strong>굴절률</strong> $n=\\frac{c}{v}$는 빛이 물질 속에서 진공보다 몇 배 느린지를 알려 줍니다. 물에서 $n\\approx 1{,}33$, 유리에서 약 $1{,}5$입니다. 물질 속 빛의 속력은 $v=\\frac{c}{n}$입니다.</p>`,
+        `<p><strong>굴절률</strong> $n=\\frac{c}{v}$는 빛이 물질 속에서 진공보다 몇 배 느린지를 알려 줍니다. 물에서 $n\\approx 1.33$, 유리에서 약 $1.5$입니다. 물질 속 빛의 속력은 $v=\\frac{c}{n}$입니다.</p>`,
         `<p><strong>스넬의 법칙</strong> $n_1\\sin\\alpha=n_2\\sin\\beta$는 광선이 어떻게 굴절하는지 알려 줍니다. 광학적으로 더 밀한 매질($n_2>n_1$)로 들어가면 광선은 법선 쪽으로 꺾이고, 덜 밀한 매질로 들어가면 법선에서 멀어지는 방향으로 꺾입니다.</p>`,
         { fig: 'v1v4-lom', caption: '광학적으로 더 밀한 매질에 들어가면 광선은 법선 쪽으로 굴절하므로 β는 α보다 작습니다(n₂ > n₁).' }
       ],
       examples: [
-        { task: '굴절률 $n=1{,}5$인 유리에서 빛의 속력은 얼마입니까? $c=3\\cdot 10^{8}\\,\\text{m/s}$를 사용하십시오.',
-          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{1{,}5}$.', '<strong>결과: $v=2\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
+        { task: '굴절률 $n=1.5$인 유리에서 빛의 속력은 얼마입니까? $c=3\\cdot 10^{8}\\,\\text{m/s}$를 사용하십시오.',
+          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{1.5}$.', '<strong>결과: $v=2\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v4-zobrazovanie': {
@@ -502,7 +502,7 @@ CONTENT_I18N.add('ko', {
       ],
       examples: [
         { task: '빨간색 레이저 빛의 파장은 $\\lambda=650\\,\\text{nm}$입니다. 진동수는 $10^{14}\\,\\text{Hz}$ 단위로 얼마입니까?',
-          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{650\\cdot 10^{-9}}\\approx 4{,}6\\cdot 10^{14}\\,\\text{Hz}$.', '<strong>결과: 약 $4{,}6\\cdot 10^{14}\\,\\text{Hz}$</strong>'] }
+          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{650\\cdot 10^{-9}}\\approx 4.6\\cdot 10^{14}\\,\\text{Hz}$.', '<strong>결과: 약 $4.6\\cdot 10^{14}\\,\\text{Hz}$</strong>'] }
       ]
     },
     'v4-vlakna': {
@@ -515,8 +515,8 @@ CONTENT_I18N.add('ko', {
         { fig: 'v1v4-vlakno', caption: '빛은 임계각보다 큰 각으로 입사하므로 전반사에 의해 코어 안에 머무릅니다. 여기서 sin α_c = n₂/n₁입니다.' }
       ],
       examples: [
-        { task: '광섬유 코어의 굴절률은 $n_1=1{,}5$이고 클래딩의 굴절률은 $n_2=1{,}0$입니다. 임계각의 사인은 얼마입니까?',
-          steps: ['$\\sin\\alpha_c=\\frac{n_2}{n_1}=\\frac{1{,}0}{1{,}5}$.', '<strong>결과: $\\sin\\alpha_c\\approx 0{,}67$</strong>'] }
+        { task: '광섬유 코어의 굴절률은 $n_1=1.5$이고 클래딩의 굴절률은 $n_2=1.0$입니다. 임계각의 사인은 얼마입니까?',
+          steps: ['$\\sin\\alpha_c=\\frac{n_2}{n_1}=\\frac{1.0}{1.5}$.', '<strong>결과: $\\sin\\alpha_c\\approx 0.67$</strong>'] }
       ]
     }
   }

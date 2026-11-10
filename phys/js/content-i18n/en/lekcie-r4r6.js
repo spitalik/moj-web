@@ -254,10 +254,10 @@ CONTENT_I18N.add('en', {
         `<p>Watch out for a common mistake: $1\\,\\text{m}$ is not $10\\,\\text{cm}$, but $100\\,\\text{cm}$.</p>`
       ],
       examples: [
-        { task: 'Convert $3{,}5\\,\\text{m}$ to centimetres.',
-          steps: ['A metre has 100 cm, and converting to a smaller unit means multiplying the number.', '$3{,}5\\cdot 100=350$', '<strong>Result: 350 cm</strong>'] },
+        { task: 'Convert $3.5\\,\\text{m}$ to centimetres.',
+          steps: ['A metre has 100 cm, and converting to a smaller unit means multiplying the number.', '$3.5\\cdot 100=350$', '<strong>Result: 350 cm</strong>'] },
         { task: 'Convert $4\\,500\\,\\text{g}$ to kilograms.',
-          steps: ['A kilogram has 1000 g, and converting to a bigger unit means dividing the number.', '$4500 : 1000=4{,}5$', '<strong>Result: $4{,}5\\,\\text{kg}$</strong>'] }
+          steps: ['A kilogram has 1000 g, and converting to a bigger unit means dividing the number.', '$4500 : 1000=4.5$', '<strong>Result: $4.5\\,\\text{kg}$</strong>'] }
       ]
     },
     'r5-teplota': {
@@ -314,17 +314,17 @@ CONTENT_I18N.add('en', {
        $\\rho = \\frac{m}{V}$, where $m$ is the mass and $V$ the volume. So we divide the mass by the volume.</p>`,
         `<ul>
          <li>Units: $\\text{g/cm}^3$ (in practice) and $\\text{kg/m}^3$ (in SI).</li>
-         <li>Conversion: $1\\,\\text{g/cm}^3 = 1000\\,\\text{kg/m}^3$, because $1\\,\\text{g}=0{,}001\\,\\text{kg}$ and $1\\,\\text{cm}^3=0{,}000001\\,\\text{m}^3$.</li>
+         <li>Conversion: $1\\,\\text{g/cm}^3 = 1000\\,\\text{kg/m}^3$, because $1\\,\\text{g}=0.001\\,\\text{kg}$ and $1\\,\\text{cm}^3=0.000001\\,\\text{m}^3$.</li>
        </ul>`,
         `<p>Density is a property of the substance, not of the body. All pieces of the same substance have the same density, whether they are large or small.
        It helps us tell apart substances that look similar, and later it explains why some bodies float and others sink.</p>`,
-        `<p>Approximate densities: water $1\\,\\text{g/cm}^3$, oil approximately $0{,}9\\,\\text{g/cm}^3$, aluminium $2{,}7\\,\\text{g/cm}^3$, iron $7{,}8\\,\\text{g/cm}^3$.
-       Wood is lighter than water, for example pine has approximately $0{,}5\\,\\text{g/cm}^3$.</p>`,
+        `<p>Approximate densities: water $1\\,\\text{g/cm}^3$, oil approximately $0.9\\,\\text{g/cm}^3$, aluminium $2.7\\,\\text{g/cm}^3$, iron $7.8\\,\\text{g/cm}^3$.
+       Wood is lighter than water, for example pine has approximately $0.5\\,\\text{g/cm}^3$.</p>`,
         { fig: 'r6r9-hustota', caption: 'Density shows what mass a unit of volume of a substance has. For the same volume, iron is much heavier than water.' }
       ],
       examples: [
         { task: 'A block of aluminium has a mass of $135\\,\\text{g}$ and a volume of $50\\,\\text{cm}^3$. Calculate its density.',
-          steps: ['We use the formula $\\rho = \\frac{m}{V}$.', '$\\rho = \\frac{135}{50} = 2{,}7\\,\\text{g/cm}^3$', '<strong>Result: 2.7 g/cm³</strong>'] },
+          steps: ['We use the formula $\\rho = \\frac{m}{V}$.', '$\\rho = \\frac{135}{50} = 2.7\\,\\text{g/cm}^3$', '<strong>Result: 2.7 g/cm³</strong>'] },
         { task: 'What mass does $200\\,\\text{cm}^3$ of water have? The density of water is $1\\,\\text{g/cm}^3$.',
           steps: ['From the formula $\\rho = \\frac{m}{V}$ we get $m = \\rho\\cdot V$.', '$m = 1\\,\\text{g/cm}^3\\cdot 200\\,\\text{cm}^3 = 200\\,\\text{g}$', '<strong>Result: 200 g</strong>'] }
       ]
@@ -368,8 +368,8 @@ CONTENT_I18N.add('en', {
         { fig: 'obr-tlak', caption: 'Pressure in a liquid increases with depth: the deeper we go, the greater the force acting on the wall.' }
       ],
       examples: [
-        { task: 'A force of $600\\,\\text{N}$ acts perpendicular to an area of $0{,}5\\,\\text{m}^2$. What pressure does it cause?',
-          steps: ['$p=\\frac{F}{S}=\\frac{600}{0{,}5}$', '$p=1200\\,\\text{Pa}$', '<strong>Result: 1200 Pa</strong>'] },
+        { task: 'A force of $600\\,\\text{N}$ acts perpendicular to an area of $0.5\\,\\text{m}^2$. What pressure does it cause?',
+          steps: ['$p=\\frac{F}{S}=\\frac{600}{0.5}$', '$p=1200\\,\\text{Pa}$', '<strong>Result: 1200 Pa</strong>'] },
         { task: 'What is the pressure in water at a depth of $3\\,\\text{m}$? The density of water is $1000\\,\\text{kg/m}^3$, $g=10\\,\\text{N/kg}$.',
           steps: ['$p=\\rho\\cdot g\\cdot h$', '$p=1000\\cdot 10\\cdot 3=30\\,000\\,\\text{Pa}$', '<strong>Result: 30 000 Pa = 30 kPa</strong>'] }
       ]
@@ -389,7 +389,7 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'A barometer shows a pressure of $1013\\,\\text{hPa}$. How many kilopascals is that?',
-          steps: ['$1\\,\\text{kPa}=10\\,\\text{hPa}$, so we divide the result by ten.', '$1013 : 10 = 101{,}3$', '<strong>Result: 101.3 kPa</strong>'] },
+          steps: ['$1\\,\\text{kPa}=10\\,\\text{hPa}$, so we divide the result by ten.', '$1013 : 10 = 101.3$', '<strong>Result: 101.3 kPa</strong>'] },
         { task: 'How does atmospheric pressure change when we climb a high mountain?',
           steps: ['There is less air above us pressing on us.', 'So the air pressure falls.', '<strong>Result: the pressure falls</strong>'] }
       ]

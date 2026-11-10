@@ -39,7 +39,7 @@ CONTENT_I18N.add('zh', {
     "Zamysli sa, či atómy zdieľajú elektróny, prenášajú ich, alebo majú spoločný elektrónový plyn.": "请思考原子是共用电子、转移电子，还是拥有共同的电子气。",
 
     // v9-elektricke-tepelne
-    "Medený vodič má dĺžku $l={@0}\\,\\text{m}$ a prierez $S={@1}\\,\\text{mm}^2$. Aký je jeho odpor v ohmoch? Merný odpor medi je $\\rho=1{,}7\\cdot 10^{-8}\\,\\Omega\\cdot\\text{m}$. Zaokrúhli na 2 desatinné miesta.": "铜导线长 $l={@0}\\,\\text{m}$，横截面积 $S={@1}\\,\\text{mm}^2$。其电阻为多少欧姆？铜的比电阻为 $\\rho=1{,}7\\cdot 10^{-8}\\,\\Omega\\cdot\\text{m}$。结果保留 2 位小数。",
+    "Medený vodič má dĺžku $l={@0}\\,\\text{m}$ a prierez $S={@1}\\,\\text{mm}^2$. Aký je jeho odpor v ohmoch? Merný odpor medi je $\\rho=1{,}7\\cdot 10^{-8}\\,\\Omega\\cdot\\text{m}$. Zaokrúhli na 2 desatinné miesta.": "铜导线长 $l={@0}\\,\\text{m}$，横截面积 $S={@1}\\,\\text{mm}^2$。其电阻为多少欧姆？铜的比电阻为 $\\rho=1.7\\cdot 10^{-8}\\,\\Omega\\cdot\\text{m}$。结果保留 2 位小数。",
     "Prierez sme mali deliť, nie násobiť. Väčší prierez znamená menší odpor.": "横截面积应当相除，而不是相乘。横截面积越大，电阻越小。",
     "Prierez treba previesť na m²: $1\\,\\text{mm}^2=10^{-6}\\,\\text{m}^2$. Inak vyjde nezmyselne veľké číslo.": "须将横截面积换算为 m²：$1\\,\\text{mm}^2=10^{-6}\\,\\text{m}^2$。否则会得到荒谬的大数值。",
     "$S={@0}\\,\\text{mm}^2={@1}\\cdot 10^{-6}\\,\\text{m}^2$, teda $R=\\rho\\dfrac{l}{S}\\approx {@2}\\,\\Omega$.": "$S={@0}\\,\\text{mm}^2={@1}\\cdot 10^{-6}\\,\\text{m}^2$，因此 $R=\\rho\\dfrac{l}{S}\\approx {@2}\\,\\Omega$。",
@@ -57,11 +57,11 @@ CONTENT_I18N.add('zh', {
     "diamant": "金刚石",
     "sklo": "玻璃",
     "Vodič nemá zakázaný pás alebo sa pásy prekrývajú.": "导体没有禁带，或其能带相互重叠。",
-    "Polovodič má úzky zakázaný pás, približne 0,1 až 3 eV.": "半导体的禁带较窄，约为 0,1 至 3 eV。",
+    "Polovodič má úzky zakázaný pás, približne 0,1 až 3 eV.": "半导体的禁带较窄，约为 0.1 至 3 eV。",
     "Izolant má široký zakázaný pás, väčší ako 3 eV.": "绝缘体的禁带较宽，大于 3 eV。",
     "Materiál {@0} má šírku zakázaného pásu $E_g = {@1}\\,\\text{eV}$. Ako ho zatriedime?": "材料{@0}的禁带宽度为 $E_g = {@1}\\,\\text{eV}$，应如何归类？",
     "Pre {@0} je $E_g={@1}\\,\\text{eV}$, teda ide o {@2}.": "对于{@0}，$E_g={@1}\\,\\text{eV}$，因此它是{@2}。",
-    "Porovnaj šírku zakázaného pásu s hranicami: do 0,1 eV je vodič, 0,1 až 3 eV polovodič, nad 3 eV izolant.": "将禁带宽度与界限比较：0,1 eV 以下为导体，0,1 至 3 eV 为半导体，3 eV 以上为绝缘体。",
+    "Porovnaj šírku zakázaného pásu s hranicami: do 0,1 eV je vodič, 0,1 až 3 eV polovodič, nad 3 eV izolant.": "将禁带宽度与界限比较：0.1 eV 以下为导体，0.1 至 3 eV 为半导体，3 eV 以上为绝缘体。",
 
     // v9-polovodice
     "p (diery)": "p 型（空穴）",
@@ -93,10 +93,10 @@ CONTENT_I18N.add('zh', {
     "niób": "铌",
     "YBCO": "YBCO",
     "Materiál {@0} má kritickú teplotu $T_c={@1}\\,\\text{K}$. Aká je jeho kritická teplota v stupňoch Celzia? Zaokrúhli na 1 desatinné miesto.": "材料{@0}的临界温度为 $T_c={@1}\\,\\text{K}$。其临界温度以摄氏度计是多少？结果保留 1 位小数。",
-    "To je teplota v kelvinoch. Na stupne Celzia prevedieme odčítaním 273,15.": "这是开尔文温度。换算为摄氏度需减去 273,15。",
-    "Pri prevode na Celzia sa 273,15 odčítava, nie pripočítava.": "换算为摄氏度时应减去 273,15，而不是加上。",
-    "$t = T_c - 273{,}15 = {@0} - 273{,}15 \\approx {@1}\\,{}^{\\circ}\\text{C}$.": "$t = T_c - 273{,}15 = {@0} - 273{,}15 \\approx {@1}\\,{}^{\\circ}\\text{C}$。",
-    "Prevod z kelvinov na stupne Celzia: $t = T - 273{,}15$.": "从开尔文换算为摄氏度：$t = T - 273{,}15$。",
+    "To je teplota v kelvinoch. Na stupne Celzia prevedieme odčítaním 273,15.": "这是开尔文温度。换算为摄氏度需减去 273.15。",
+    "Pri prevode na Celzia sa 273,15 odčítava, nie pripočítava.": "换算为摄氏度时应减去 273.15，而不是加上。",
+    "$t = T_c - 273{,}15 = {@0} - 273{,}15 \\approx {@1}\\,{}^{\\circ}\\text{C}$.": "$t = T_c - 273.15 = {@0} - 273.15 \\approx {@1}\\,{}^{\\circ}\\text{C}$。",
+    "Prevod z kelvinov na stupne Celzia: $t = T - 273{,}15$.": "从开尔文换算为摄氏度：$t = T - 273.15$。",
 
     // v9-magneticke
     "bez poľa: domény nahodené": "无外场：磁畴取向杂乱",
@@ -165,7 +165,7 @@ CONTENT_I18N.add('zh', {
     "Polomery neutrónovej hviezdy a čiernej diery v rovnakej mierke": "中子星与黑洞在相同比例下的半径",
     "Aký je Schwarzschildov polomer čiernej diery s hmotnosťou ${@0}\\,M_\\odot$ v kilometroch? Výsledok zaokrúhli na 2 desatinné miesta.": "质量为 ${@0}\\,M_\\odot$ 的黑洞，其施瓦西半径是多少千米？结果保留 2 位小数。",
     "$r_s=\\frac{2GM}{c^2}\\approx {@0}\\,\\text{km}\\cdot {@1}={@2}\\,\\text{km}$.": "$r_s=\\frac{2GM}{c^2}\\approx {@0}\\,\\text{km}\\cdot {@1}={@2}\\,\\text{km}$。",
-    "Použi vzorec $r_s=\\frac{2GM}{c^2}$; pre Slnko je polomer približne 2,95 km a výsledok sa škáluje hmotnosťou.": "使用公式 $r_s=\\frac{2GM}{c^2}$；对于太阳，半径约为 2,95 km，结果与质量成正比。",
+    "Použi vzorec $r_s=\\frac{2GM}{c^2}$; pre Slnko je polomer približne 2,95 km a výsledok sa škáluje hmotnosťou.": "使用公式 $r_s=\\frac{2GM}{c^2}$；对于太阳，半径约为 2.95 km，结果与质量成正比。",
     "Vo vzorci $r_s=\\frac{2GM}{c^2}$ nesmieš zabudnúť dvojku v čitateli.": "在公式 $r_s=\\frac{2GM}{c^2}$ 中，分子上的 2 不能漏掉。",
     "Dostal si priemer horizontu. Vzorec dáva polomer $r_s$.": "你得到的是视界的直径。该公式给出的是半径 $r_s$。",
 
@@ -235,7 +235,7 @@ CONTENT_I18N.add('zh', {
     "$F_{vz}=\\rho\\,g\\,V=1000\\cdot {@0}\\cdot {@1}={@2}\\,\\text{N}$.": "$F_{vz}=\\rho\\,g\\,V=1000\\cdot {@0}\\cdot {@1}={@2}\\,\\text{N}$。",
     "Vztlak je tiaž vytlačenej vody: $F_{vz}=\\rho g V$. Objem najprv premeň na metre kubické.": "浮力等于排开水的重量：$F_{vz}=\\rho g V$。请先把体积换算为立方米。",
     "Zabudol si gravitačné zrýchlenie. Vztlak je $\\rho g V$.": "你忘记了重力加速度。浮力为 $\\rho g V$。",
-    "Objem si nepremenil na metre kubické. Jeden decimeter kubický je $0{,}001\\,\\text{m}^3$.": "你没有把体积换算为立方米。一立方分米是 $0{,}001\\,\\text{m}^3$。",
+    "Objem si nepremenil na metre kubické. Jeden decimeter kubický je $0{,}001\\,\\text{m}^3$.": "你没有把体积换算为立方米。一立方分米是 $0.001\\,\\text{m}^3$。",
 
     // v11-kontinuita
     "Zúžené potrubie: menší prierez, väčšia rýchlosť": "收缩的管道：截面较小，流速较大",
@@ -332,7 +332,7 @@ CONTENT_I18N.add('zh', {
 
     // v12-numericke-metody
     "presné riešenie: y = eᵗ": "精确解：y = eᵗ",
-    "lomená čiara: Eulerova metóda, h = 0,5": "折线：欧拉方法，h = 0,5",
+    "lomená čiara: Eulerova metóda, h = 0,5": "折线：欧拉方法，h = 0.5",
     "Eulerova čiara leží pod presnou krivkou": "欧拉折线位于精确曲线之下",
     "Eulerova metóda pri numerickom riešení rovnice": "用欧拉方法数值求解方程",
     "Rovnica $\\frac{dy}{dt}=-{@0}\\,y$ s počiatočnou podmienkou $y(0)={@1}$. Eulerovou metódou s krokom $h={@2}$ vypočítaj $y_1=y_0+h\\,f(t_0,y_0)$.": "方程 $\\frac{dy}{dt}=-{@0}\\,y$，初始条件 $y(0)={@1}$。用步长 $h={@2}$ 的欧拉方法计算 $y_1=y_0+h\\,f(t_0,y_0)$。",

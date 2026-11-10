@@ -17,7 +17,7 @@ CONTENT_I18N.add('en', {
  "Rýchlosť bez času": "Speed without time",
  "Voľný pád": "Free fall",
  "Dráha pádu": "Fall distance",
- "g ≈ 9{,}81 m/s² na Zemi.": "g ≈ 9{,}81 m/s² on Earth.",
+ "g ≈ 9{,}81 m/s² na Zemi.": "g ≈ 9.81 m/s² on Earth.",
  "Rýchlosť pádu": "Speed of fall",
  "Sila a tiaž": "Force and weight",
  "Tiaž": "Weight",

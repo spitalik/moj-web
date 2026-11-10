@@ -7,12 +7,12 @@ CONTENT_I18N.add('zh', {
       theory: [
         `<p>光电效应和康普顿效应表明，光表现为一束粒子（光子），其能量为 $E=h\\,f$。另一方面，干涉和衍射显示的是波动性质。我们称之为<strong>波粒二象性</strong>：每个量子物体都同时具有两种性质，但一次具体测量只会显示其中一种。</p>`,
         `<p>路易·德布罗意提出，具有动量 $p$ 的粒子也具有波长 $\\lambda=\\frac{h}{p}$。对于速度为 $v$ 的自由电子（非相对论情形），有 $p=m_e\\,v$。粒子越重或速度越快，其波长就越短。</p>`,
-        `<p>因此宏观物体（例如一个小球）的波长小到无法观测，而晶体中的电子会产生与 X 射线相似的衍射图样。常数 $h=6{,}63\\cdot 10^{-34}\\,\\text{J}\\,\\text{s}$ 决定了量子效应在何处显现。</p>`,
+        `<p>因此宏观物体（例如一个小球）的波长小到无法观测，而晶体中的电子会产生与 X 射线相似的衍射图样。常数 $h=6.63\\cdot 10^{-34}\\,\\text{J}\\,\\text{s}$ 决定了量子效应在何处显现。</p>`,
         { fig: 'v5v8-dualizmus', caption: '德布罗意波长 λ = h/p：动量越大，波长越短。' }
       ],
       examples: [
-        { task: '电子以速度 $v=2\\cdot 10^{6}\\,\\text{m/s}$ 运动。它的德布罗意波长是多少？取 $m_e=9{,}11\\cdot 10^{-31}\\,\\text{kg}$。',
-          steps: ['$p=m_e v=9{,}11\\cdot 10^{-31}\\cdot 2\\cdot 10^{6}$。', '$\\lambda=\\frac{h}{p}=\\frac{6{,}63\\cdot 10^{-34}}{1{,}82\\cdot 10^{-24}}\\approx 3{,}6\\cdot 10^{-10}\\,\\text{m}$。', '<strong>结果：$\\lambda\\approx 0{,}36\\,\\text{nm}$</strong>'] }
+        { task: '电子以速度 $v=2\\cdot 10^{6}\\,\\text{m/s}$ 运动。它的德布罗意波长是多少？取 $m_e=9.11\\cdot 10^{-31}\\,\\text{kg}$。',
+          steps: ['$p=m_e v=9.11\\cdot 10^{-31}\\cdot 2\\cdot 10^{6}$。', '$\\lambda=\\frac{h}{p}=\\frac{6.63\\cdot 10^{-34}}{1.82\\cdot 10^{-24}}\\approx 3.6\\cdot 10^{-10}\\,\\text{m}$。', '<strong>结果：$\\lambda\\approx 0.36\\,\\text{nm}$</strong>'] }
       ]
     },
     'v5-vlnova-funkcia': {
@@ -26,7 +26,7 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '粒子以均匀密度分布在长度为 $L=20\\,\\text{nm}$ 的线段上。它位于从 $0$ 到 $5\\,\\text{nm}$ 区间内的概率是多少？',
-          steps: ['密度为常数，$|\\psi|^2=\\frac{1}{L}$。', '$P=\\frac{5}{20}=\\frac{1}{4}$。', '<strong>结果：$P=0{,}25$</strong>'] }
+          steps: ['密度为常数，$|\\psi|^2=\\frac{1}{L}$。', '$P=\\frac{5}{20}=\\frac{1}{4}$。', '<strong>结果：$P=0.25$</strong>'] }
       ]
     },
     'v5-schrodinger': {
@@ -35,12 +35,12 @@ CONTENT_I18N.add('zh', {
       theory: [
         `<p><strong>薛定谔方程</strong>描述波函数的演化。其定态形式 $\\hat{H}\\psi=E\\psi$ 表明，对于定态，能量 $E$ 为常数，且波函数是能量算符 $\\hat{H}$ 的本征函数。</p>`,
         `<p>考虑宽度为 $L$ 的<strong>无限深势阱</strong>中的粒子。波函数在阱的边界处必须为零，因此阱内只能容纳整数个半波长。结果得到离散能级 $E_n=\\frac{n^2 h^2}{8 m L^2}$，其中 $n=1,2,3,\\dots$</p>`,
-        `<p>能量随 $n$ 的平方增长，并随阱宽的平方减小。因此，对于宽度为 $1\\,\\text{nm}$ 的阱中电子，最低能量为 $E_1=0{,}376\\,\\text{eV}$，而在较宽的阱中，各能级彼此更为接近。</p>`,
+        `<p>能量随 $n$ 的平方增长，并随阱宽的平方减小。因此，对于宽度为 $1\\,\\text{nm}$ 的阱中电子，最低能量为 $E_1=0.376\\,\\text{eV}$，而在较宽的阱中，各能级彼此更为接近。</p>`,
         { fig: 'v5v8-jama', caption: '无限深势阱中的粒子只有离散能级；能量随 n² 增长。' }
       ],
       examples: [
-        { task: '电子处于宽度为 $L=1\\,\\text{nm}$ 的阱中，量子态为 $n=2$。它的能量是多少？已知 $n=1$ 时 $E_1=0{,}376\\,\\text{eV}$。',
-          steps: ['$E_n=E_1\\cdot\\frac{n^2}{L^2}$，其中 $L$ 以纳米为单位。', '$E_2=0{,}376\\cdot 4=1{,}504\\,\\text{eV}$。', '<strong>结果：$E_2\\approx 1{,}5\\,\\text{eV}$</strong>'] }
+        { task: '电子处于宽度为 $L=1\\,\\text{nm}$ 的阱中，量子态为 $n=2$。它的能量是多少？已知 $n=1$ 时 $E_1=0.376\\,\\text{eV}$。',
+          steps: ['$E_n=E_1\\cdot\\frac{n^2}{L^2}$，其中 $L$ 以纳米为单位。', '$E_2=0.376\\cdot 4=1.504\\,\\text{eV}$。', '<strong>结果：$E_2\\approx 1.5\\,\\text{eV}$</strong>'] }
       ]
     },
     'v5-operatory': {
@@ -67,7 +67,7 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '以 $\\hbar\\omega$ 为单位，振子在 $n=3$ 态的能量是多少？',
-          steps: ['$E_3=\\left(3+\\tfrac{1}{2}\\right)\\hbar\\omega$。', '<strong>结果：$E_3=3{,}5\\,\\hbar\\omega$</strong>'] }
+          steps: ['$E_3=\\left(3+\\tfrac{1}{2}\\right)\\hbar\\omega$。', '<strong>结果：$E_3=3.5\\,\\hbar\\omega$</strong>'] }
       ]
     },
     'v5-spin': {
@@ -88,14 +88,14 @@ CONTENT_I18N.add('zh', {
       title: '氢原子与量子态',
       summary: '氢原子的能级，以及在能级跃迁中发射的光子能量。',
       theory: [
-        `<p>氢原子中电子的能量为 $E_n=-\\frac{13{,}6\\,\\text{eV}}{n^2}$，其中 $n=1,2,3,\\dots$ 为主量子数。负号表示电子处于束缚态；当 $n\\to\\infty$ 时，能量趋近于零。</p>`,
+        `<p>氢原子中电子的能量为 $E_n=-\\frac{13.6\\,\\text{eV}}{n^2}$，其中 $n=1,2,3,\\dots$ 为主量子数。负号表示电子处于束缚态；当 $n\\to\\infty$ 时，能量趋近于零。</p>`,
         `<p>当电子从较高能级 $n_i$ 跃迁到较低能级 $n_f$ 时，原子发射一个能量（取绝对值）为 $E_f=E_{n_i}-E_{n_f}$ 的光子。吸收光子则是相反的过程。这就是为什么氢的光谱由谱线构成，而不是连续的带。</p>`,
         `<p>最重要的是跃迁到 $n_f=2$ 的系列（巴耳末系），它位于可见光区域。跃迁到 $n_f=1$ 则产生紫外辐射。</p>`,
         { fig: 'v5v8-vodik', caption: '跃迁到较低能级时，原子发射的光子能量等于两能级之差。' }
       ],
       examples: [
         { task: '氢原子中的电子从 $n=3$ 跃迁到 $n=2$。发射的光子能量是多少？',
-          steps: ['$E_3=-\\frac{13{,}6}{9}\\approx -1{,}51\\,\\text{eV}$，$E_2=-\\frac{13{,}6}{4}=-3{,}40\\,\\text{eV}$。', '$\\Delta E=|E_2-E_3|\\approx 1{,}89\\,\\text{eV}$。', '<strong>结果：$\\Delta E\\approx 1{,}89\\,\\text{eV}$</strong>'] }
+          steps: ['$E_3=-\\frac{13.6}{9}\\approx -1.51\\,\\text{eV}$，$E_2=-\\frac{13.6}{4}=-3.40\\,\\text{eV}$。', '$\\Delta E=|E_2-E_3|\\approx 1.89\\,\\text{eV}$。', '<strong>结果：$\\Delta E\\approx 1.89\\,\\text{eV}$</strong>'] }
       ]
     },
     'v5-neurcitost': {
@@ -108,8 +108,8 @@ CONTENT_I18N.add('zh', {
         { fig: 'v5v8-tunel', caption: '能量低于势垒高度的粒子，在势垒内部的波呈指数衰减，并可以隧穿通过势垒。' }
       ],
       examples: [
-        { task: '已知电子位置的不确定度为 $\\Delta x=1\\,\\text{pm}$。其动量的最小不确定度是多少？取 $\\hbar=1{,}0546\\cdot 10^{-34}\\,\\text{J}\\,\\text{s}$。',
-          steps: ['$\\Delta p_{\\min}=\\frac{\\hbar}{2\\,\\Delta x}=\\frac{1{,}0546\\cdot 10^{-34}}{2\\cdot 10^{-12}}$。', '$\\Delta p_{\\min}\\approx 5{,}27\\cdot 10^{-23}\\,\\text{kg}\\,\\text{m/s}$。', '<strong>结果：$\\Delta p_{\\min}\\approx 52{,}7\\cdot 10^{-24}\\,\\text{kg}\\,\\text{m/s}$</strong>'] }
+        { task: '已知电子位置的不确定度为 $\\Delta x=1\\,\\text{pm}$。其动量的最小不确定度是多少？取 $\\hbar=1.0546\\cdot 10^{-34}\\,\\text{J}\\,\\text{s}$。',
+          steps: ['$\\Delta p_{\\min}=\\frac{\\hbar}{2\\,\\Delta x}=\\frac{1.0546\\cdot 10^{-34}}{2\\cdot 10^{-12}}$。', '$\\Delta p_{\\min}\\approx 5.27\\cdot 10^{-23}\\,\\text{kg}\\,\\text{m/s}$。', '<strong>结果：$\\Delta p_{\\min}\\approx 52.7\\cdot 10^{-24}\\,\\text{kg}\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v6-specialna': {
@@ -122,8 +122,8 @@ CONTENT_I18N.add('zh', {
         { fig: 'v5v8-gama', caption: '洛伦兹因子 γ 在低速时接近 1，并随速度接近 c 而急剧增大。' }
       ],
       examples: [
-        { task: '粒子以速度 $v=0{,}6\\,c$ 运动。它的洛伦兹因子是多少？',
-          steps: ['$\\gamma=\\frac{1}{\\sqrt{1-0{,}6^2}}=\\frac{1}{\\sqrt{0{,}64}}$。', '$\\sqrt{0{,}64}=0{,}8$，因此 $\\gamma=\\frac{1}{0{,}8}$。', '<strong>结果：$\\gamma=1{,}25$</strong>'] }
+        { task: '粒子以速度 $v=0.6\\,c$ 运动。它的洛伦兹因子是多少？',
+          steps: ['$\\gamma=\\frac{1}{\\sqrt{1-0.6^2}}=\\frac{1}{\\sqrt{0.64}}$。', '$\\sqrt{0.64}=0.8$，因此 $\\gamma=\\frac{1}{0.8}$。', '<strong>结果：$\\gamma=1.25$</strong>'] }
       ]
     },
     'v6-lorentz': {
@@ -136,8 +136,8 @@ CONTENT_I18N.add('zh', {
         { fig: 'v5v8-lorentz', caption: '参考系 S′ 的坐标轴 x′ 与 ct′ 是倾斜的；洛伦兹变换重新计算事件的坐标。' }
       ],
       examples: [
-        { task: '在参考系 $S$ 中，某事件的坐标为 $x=8\\,\\text{m}$，$ct=4\\,\\text{m}$。参考系 $S\'$ 以速度 $0{,}6\\,c$ 沿 $x$ 轴正方向运动。$S\'$ 中的 $x\'$ 是多少？',
-          steps: ['$\\gamma=1{,}25$，$\\beta=0{,}6$。', '$x\'=\\gamma\\,(x-\\beta\\,ct)=1{,}25\\cdot(8-0{,}6\\cdot 4)=1{,}25\\cdot 5{,}6=7$。', '<strong>结果：$x\'=7\\,\\text{m}$</strong>'] }
+        { task: '在参考系 $S$ 中，某事件的坐标为 $x=8\\,\\text{m}$，$ct=4\\,\\text{m}$。参考系 $S\'$ 以速度 $0.6\\,c$ 沿 $x$ 轴正方向运动。$S\'$ 中的 $x\'$ 是多少？',
+          steps: ['$\\gamma=1.25$，$\\beta=0.6$。', '$x\'=\\gamma\\,(x-\\beta\\,ct)=1.25\\cdot(8-0.6\\cdot 4)=1.25\\cdot 5.6=7$。', '<strong>结果：$x\'=7\\,\\text{m}$</strong>'] }
       ]
     },
     'v6-energia': {
@@ -150,8 +150,8 @@ CONTENT_I18N.add('zh', {
         { fig: 'v5v8-energia', caption: '总能量 γmc² 等于静能 mc² 加上动能 (γ − 1)mc²。' }
       ],
       examples: [
-        { task: '电子（$m\\,c^2=0{,}511\\,\\text{MeV}$）以速度 $0{,}8\\,c$ 运动。它的动能是多少？',
-          steps: ['$\\gamma=\\frac{1}{\\sqrt{1-0{,}64}}=\\frac{5}{3}$。', '$E_k=(\\gamma-1)\\,mc^2=\\frac{2}{3}\\cdot 0{,}511\\approx 0{,}34\\,\\text{MeV}$。', '<strong>结果：$E_k\\approx 0{,}34\\,\\text{MeV}$</strong>'] }
+        { task: '电子（$m\\,c^2=0.511\\,\\text{MeV}$）以速度 $0.8\\,c$ 运动。它的动能是多少？',
+          steps: ['$\\gamma=\\frac{1}{\\sqrt{1-0.64}}=\\frac{5}{3}$。', '$E_k=(\\gamma-1)\\,mc^2=\\frac{2}{3}\\cdot 0.511\\approx 0.34\\,\\text{MeV}$。', '<strong>结果：$E_k\\approx 0.34\\,\\text{MeV}$</strong>'] }
       ]
     },
     'v6-ekvivalencia': {
@@ -190,8 +190,8 @@ CONTENT_I18N.add('zh', {
         `<p>强引力场会减慢时间：靠近大质量天体的时钟比远离它的时钟走得更慢。对于质量 $M$，<strong>施瓦西半径</strong>为 $r_s=\\frac{2GM}{c^2}$。对于地球，它约为 $9$ 毫米；对于太阳，约为 $3\\,\\text{km}$。</p>`
       ],
       examples: [
-        { task: '若太阳的质量 $M=1{,}989\\cdot 10^{30}\\,\\text{kg}$，$G=6{,}674\\cdot 10^{-11}$，$c=3\\cdot 10^{8}\\,\\text{m/s}$，则太阳的施瓦西半径是多少？',
-          steps: ['$r_s=\\frac{2GM}{c^2}=\\frac{2\\cdot 6{,}674\\cdot 10^{-11}\\cdot 1{,}989\\cdot 10^{30}}{9\\cdot 10^{16}}$。', '$r_s\\approx 2{,}95\\cdot 10^{3}\\,\\text{m}$。', '<strong>结果：$r_s\\approx 2{,}95\\,\\text{km}$</strong>'] }
+        { task: '若太阳的质量 $M=1.989\\cdot 10^{30}\\,\\text{kg}$，$G=6.674\\cdot 10^{-11}$，$c=3\\cdot 10^{8}\\,\\text{m/s}$，则太阳的施瓦西半径是多少？',
+          steps: ['$r_s=\\frac{2GM}{c^2}=\\frac{2\\cdot 6.674\\cdot 10^{-11}\\cdot 1.989\\cdot 10^{30}}{9\\cdot 10^{16}}$。', '$r_s\\approx 2.95\\cdot 10^{3}\\,\\text{m}$。', '<strong>结果：$r_s\\approx 2.95\\,\\text{km}$</strong>'] }
       ]
     },
     'v6-zakrivenie': {
@@ -218,8 +218,8 @@ CONTENT_I18N.add('zh', {
         { fig: 'v5v8-horizont', caption: '事件视界的半径为 r_s = 2GM/c²；视界内部的光无法逃逸。' }
       ],
       examples: [
-        { task: '若太阳的 $r_s\\approx 2{,}95\\,\\text{km}$，则质量为 $10\\,M_{\\odot}$ 的黑洞的视界半径是多少？',
-          steps: ['半径与质量成正比：$r_s=2{,}95\\,\\text{km}\\cdot 10$。', '<strong>结果：$r_s\\approx 29{,}5\\,\\text{km}$</strong>'] }
+        { task: '若太阳的 $r_s\\approx 2.95\\,\\text{km}$，则质量为 $10\\,M_{\\odot}$ 的黑洞的视界半径是多少？',
+          steps: ['半径与质量成正比：$r_s=2.95\\,\\text{km}\\cdot 10$。', '<strong>结果：$r_s\\approx 29.5\\,\\text{km}$</strong>'] }
       ]
     },
     'v7-atom': {
@@ -244,16 +244,16 @@ CONTENT_I18N.add('zh', {
       summary: '电子在能级之间的跃迁，以及发射光子的能量。',
       theory: [
         `<p>原子只能具有某些特定的<strong>能级</strong>。当电子从较高能级跃迁到较低能级时，它会发射一个能量等于两能级之差的<strong>光子</strong>。反之，具有合适能量的光子可以将电子激发到较高能级。</p>`,
-        `<p>光子的能量为 $E = h f = \\dfrac{h c}{\\lambda}$，其中 $h \\approx 6{,}63\\cdot 10^{-34}\\,\\text{J·s}$ 为普朗克常数。在原子物理中，能量以电子伏特表示：$1\\,\\text{eV} = 1{,}6\\cdot 10^{-19}\\,\\text{J}$。</p>`,
-        `<p>对于氢原子，$E_n = -\\dfrac{13{,}6}{n^2}\\,\\text{eV}$。基态（$n = 1$）能量最低，各能级从负值一侧趋近于零。在从 $n_i$ 到 $n_f$ 的跃迁中，会产生能量为 $\\Delta E = 13{,}6\\,\\text{eV}\\left(\\dfrac{1}{n_f^2}-\\dfrac{1}{n_i^2}\\right)$ 的光子。</p>`,
+        `<p>光子的能量为 $E = h f = \\dfrac{h c}{\\lambda}$，其中 $h \\approx 6.63\\cdot 10^{-34}\\,\\text{J·s}$ 为普朗克常数。在原子物理中，能量以电子伏特表示：$1\\,\\text{eV} = 1.6\\cdot 10^{-19}\\,\\text{J}$。</p>`,
+        `<p>对于氢原子，$E_n = -\\dfrac{13.6}{n^2}\\,\\text{eV}$。基态（$n = 1$）能量最低，各能级从负值一侧趋近于零。在从 $n_i$ 到 $n_f$ 的跃迁中，会产生能量为 $\\Delta E = 13.6\\,\\text{eV}\\left(\\dfrac{1}{n_f^2}-\\dfrac{1}{n_i^2}\\right)$ 的光子。</p>`,
         `<p><strong>为什么光谱由谱线构成？</strong>能级是离散的，因此光子只能具有少数几个确定的能量。在光谱图上，我们看到的是锐利的谱线，而非连续的彩虹。每种元素都有自己特有的谱线组，因此其光谱如同指纹一般。</p>`,
         { fig: 'v5v8-vodik', caption: '跃迁到较低能级时，原子发射的光子能量等于两能级之差。' }
       ],
       examples: [
         { task: '氢原子中的电子从能级 $n=3$ 跃迁到 $n=2$。发射的光子能量是多少？',
-          steps: ['能级之差：$\\Delta E = 13{,}6\\,\\text{eV}\\left(\\dfrac{1}{2^2}-\\dfrac{1}{3^2}\\right)$。', '$\\dfrac{1}{4}-\\dfrac{1}{9}=\\dfrac{5}{36}$，因此 $\\Delta E = 13{,}6\\cdot\\dfrac{5}{36}\\approx 1{,}89\\,\\text{eV}$。', '<strong>结果：约 1.89 eV</strong>'] },
+          steps: ['能级之差：$\\Delta E = 13.6\\,\\text{eV}\\left(\\dfrac{1}{2^2}-\\dfrac{1}{3^2}\\right)$。', '$\\dfrac{1}{4}-\\dfrac{1}{9}=\\dfrac{5}{36}$，因此 $\\Delta E = 13.6\\cdot\\dfrac{5}{36}\\approx 1.89\\,\\text{eV}$。', '<strong>结果：约 1.89 eV</strong>'] },
         { task: '哪一种跃迁发射的光子能量更大：$2\\to 1$，还是 $3\\to 2$？',
-          steps: ['跃迁 $2\\to 1$：$13{,}6\\cdot\\left(1-\\dfrac{1}{4}\\right)=10{,}2\\,\\text{eV}$。', '跃迁 $3\\to 2$ 的能量约为 $1{,}89\\,\\text{eV}$。', '<strong>结果：跃迁 $2\\to 1$</strong>'] }
+          steps: ['跃迁 $2\\to 1$：$13.6\\cdot\\left(1-\\dfrac{1}{4}\\right)=10.2\\,\\text{eV}$。', '跃迁 $3\\to 2$ 的能量约为 $1.89\\,\\text{eV}$。', '<strong>结果：跃迁 $2\\to 1$</strong>'] }
       ]
     },
     'v7-jadro': {
@@ -261,7 +261,7 @@ CONTENT_I18N.add('zh', {
       summary: '质子、中子、核素符号、同位素以及原子核的大小。',
       theory: [
         `<p>原子核由质子（电荷 $+e$）和中子（不带电）组成。二者统称为核子。核素记作 $^{A}_{Z}\\mathrm{X}$：$A$ 为质量数，$Z$ 为原子序数，中子数为 $N = A - Z$。</p>`,
-        `<p>原子核的半径近似与质量数的立方根成正比：$r \\approx 1{,}2\\cdot 10^{-15}\\,\\text{m}\\cdot A^{1/3}$。因此原子核非常小（量级为飞米），但它们的密度几乎相同。</p>`,
+        `<p>原子核的半径近似与质量数的立方根成正比：$r \\approx 1.2\\cdot 10^{-15}\\,\\text{m}\\cdot A^{1/3}$。因此原子核非常小（量级为飞米），但它们的密度几乎相同。</p>`,
         `<p><strong>为什么原子核不会四散飞开？</strong>质子之间存在电排斥，但强相互作用也同时起作用。它是一种短程吸引力，强度大于电排斥。稳定的较重原子核中，中子数多于质子数（例如 $^{208}_{82}\\mathrm{Pb}$）。</p>`,
         `<ul><li><strong>同位素</strong>具有相同的 $Z$，但 $N$ 不同（例如 $^{12}_{6}\\mathrm{C}$ 与 $^{14}_{6}\\mathrm{C}$）。</li><li><strong>同量异位素</strong>具有相同的 $A$，但 $Z$ 不同。</li></ul>`,
         { fig: 'v5v8-nuklidy', caption: '较轻的稳定原子核有 N ≈ Z，而较重的稳定原子核中中子多于质子。' }
@@ -294,15 +294,15 @@ CONTENT_I18N.add('zh', {
       title: '核裂变与核聚变',
       summary: '质量亏损、结合能，以及裂变或聚变释放的能量。',
       theory: [
-        `<p>原子核的质量小于其核子质量之和。这一差值称为<em>质量亏损</em> $\\Delta m$。根据关系式 $E = \\Delta m\\, c^2$，相应的能量被释放出来。在实际计算中，$1\\,\\text{u}\\cdot c^2 \\approx 931{,}5\\,\\text{MeV}$。</p>`,
+        `<p>原子核的质量小于其核子质量之和。这一差值称为<em>质量亏损</em> $\\Delta m$。根据关系式 $E = \\Delta m\\, c^2$，相应的能量被释放出来。在实际计算中，$1\\,\\text{u}\\cdot c^2 \\approx 931.5\\,\\text{MeV}$。</p>`,
         `<p>每个核子的结合能最大的原子核位于铁附近（$A\\approx 56$）。因此，重原子核可以发生<strong>裂变</strong>，分裂为中等质量的原子核；而轻原子核可以<strong>结合</strong>（聚变）。两种途径都导致更大的结合能，并释放能量。</p>`,
         `<p>在中子轰击 $^{235}_{92}\\mathrm{U}$ 的裂变中，产生两个碎片、2 至 3 个中子，并释放约 200 MeV 的能量。这些中子可以引发链式反应，而在反应堆中必须对其加以控制。</p>`,
         `<p>聚变需要极高的温度，使带正电的原子核相互靠近到强相互作用的作用范围之内。在反应 $^{2}_{1}\\mathrm{H}+{}^{3}_{1}\\mathrm{H}\\to{}^{4}_{2}\\mathrm{He}+n$ 中，约释放 17.6 MeV 的能量。</p>`,
         { fig: 'v5v8-vazba', caption: '每个核子的结合能在铁处达到峰值：轻核聚变，重核裂变。' }
       ],
       examples: [
-        { task: '某核反应产生的质量亏损为 $\\Delta m = 0{,}2\\,\\text{u}$。对应的能量是多少？',
-          steps: ['$E=\\Delta m\\cdot 931{,}5\\,\\text{MeV}$。', '$E=0{,}2\\cdot 931{,}5=186{,}3\\,\\text{MeV}$。', '<strong>结果：186.3 MeV</strong>'] },
+        { task: '某核反应产生的质量亏损为 $\\Delta m = 0.2\\,\\text{u}$。对应的能量是多少？',
+          steps: ['$E=\\Delta m\\cdot 931.5\\,\\text{MeV}$。', '$E=0.2\\cdot 931.5=186.3\\,\\text{MeV}$。', '<strong>结果：186.3 MeV</strong>'] },
         { task: '为什么在地球上实现聚变比裂变更困难？',
           steps: ['原子核带正电，彼此排斥。', '需要极高的温度和压强，才能使它们进入强相互作用的范围。', '<strong>结果：聚变需要极端条件</strong>'] }
       ]
@@ -319,7 +319,7 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '铅的半值层为 1.2 cm。穿过 3.6 cm 厚的铅层后，有多少百分比的辐射能穿透？',
-          steps: ['$x/d_{1/2}=3{,}6/1{,}2=3$ 个半值层。', '$I = I_0\\cdot 2^{-3}=\\dfrac{I_0}{8}$。', '<strong>结果：12.5%</strong>'] },
+          steps: ['$x/d_{1/2}=3.6/1.2=3$ 个半值层。', '$I = I_0\\cdot 2^{-3}=\\dfrac{I_0}{8}$。', '<strong>结果：12.5%</strong>'] },
         { task: '辐射强度降到了四分之一。该层有多少个半值层厚度？',
           steps: ['$\\dfrac{1}{4}=2^{-2}$。', '因此该层的厚度为 2 个半值层。', '<strong>结果：2</strong>'] }
       ]
@@ -336,9 +336,9 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '反应堆的热功率为 3000 MW，效率为 33%。它的电功率是多少？',
-          steps: ['$P_{\\text{el}}=\\eta\\,P_{\\text{t}}$。', '$0{,}33\\cdot 3000=990\\,\\text{MW}$。', '<strong>结果：990 MW</strong>'] },
+          steps: ['$P_{\\text{el}}=\\eta\\,P_{\\text{t}}$。', '$0.33\\cdot 3000=990\\,\\text{MW}$。', '<strong>结果：990 MW</strong>'] },
         { task: '受照射后，某物体吸收了 0.5 J 的能量。物体的质量为 50 kg。吸收剂量是多少？',
-          steps: ['$D = E/m$。', '$D = 0{,}5/50 = 0{,}01\\,\\text{Gy}$。', '<strong>结果：0.01 Gy</strong>'] }
+          steps: ['$D = E/m$。', '$D = 0.5/50 = 0.01\\,\\text{Gy}$。', '<strong>结果：0.01 Gy</strong>'] }
       ]
     },
     'v8-castice': {
@@ -453,7 +453,7 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '希格斯玻色子的质量是质子的多少倍（质子质量约为 0.94 GeV/$c^2$）？',
-          steps: ['$125/0{,}94\\approx 133$。', '<strong>结果：约 133 倍</strong>'] },
+          steps: ['$125/0.94\\approx 133$。', '<strong>结果：约 133 倍</strong>'] },
         { task: '宇宙能量构成中，暗物质约占多少比例？',
           steps: ['暗物质约占 27%，而普通物质仅约占 5%。', '<strong>结果：约 27%</strong>'] }
       ]

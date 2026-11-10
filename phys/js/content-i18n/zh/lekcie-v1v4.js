@@ -45,8 +45,8 @@ CONTENT_I18N.add('zh', {
         `<p><strong>道理何在：</strong>力只有作用足够长的时间才会改变动量。短促的冲击即使力很大，冲量也很小。只有当力矩 $\\vec M=\\vec r\\times\\vec F$ 作用于物体时，角动量才会改变。</p>`
       ],
       examples: [
-        { task: '质量 $m=0{,}02\\,\\text{kg}$ 的子弹以速度 $v=300\\,\\text{m/s}$ 飞行。其动量是多少？',
-          steps: ['$p=m\\,v=0{,}02\\cdot 300$。', '<strong>结果：$p=6\\,\\text{kg\\,m/s}$</strong>'] },
+        { task: '质量 $m=0.02\\,\\text{kg}$ 的子弹以速度 $v=300\\,\\text{m/s}$ 飞行。其动量是多少？',
+          steps: ['$p=m\\,v=0.02\\cdot 300$。', '<strong>结果：$p=6\\,\\text{kg\\,m/s}$</strong>'] },
         { task: '力 $F=50\\,\\text{N}$ 作用于物体 $4\\,\\text{s}$。其动量的变化是多少？',
           steps: ['力的冲量：$\\Delta p=F\\,\\Delta t=50\\cdot 4$。', '<strong>结果：$\\Delta p=200\\,\\text{kg\\,m/s}$</strong>'] }
       ]
@@ -72,15 +72,15 @@ CONTENT_I18N.add('zh', {
       title: '引力场',
       summary: '牛顿万有引力定律，重力加速度及其随离行星中心距离的变化。',
       theory: [
-        `<p><strong>牛顿万有引力定律</strong>：质量分别为 $m_1$ 和 $m_2$、相距为 $r$ 的两个物体以力 $F=G\\frac{m_1 m_2}{r^2}$ 相互吸引，其中 $G\\approx 6{,}67\\cdot 10^{-11}\\,\\text{N\\,m}^2/\\text{kg}^2$。</p>`,
+        `<p><strong>牛顿万有引力定律</strong>：质量分别为 $m_1$ 和 $m_2$、相距为 $r$ 的两个物体以力 $F=G\\frac{m_1 m_2}{r^2}$ 相互吸引，其中 $G\\approx 6.67\\cdot 10^{-11}\\,\\text{N\\,m}^2/\\text{kg}^2$。</p>`,
         `<p><strong>引力场</strong>是一个区域，在其中物质物体受到引力作用。场强，即<em>重力加速度</em>，为 $g=\\frac{F}{m}=G\\frac{M}{r^2}$，其中 $M$ 为产生该场的物体的质量。</p>`,
         `<p><strong>为什么随距离减小：</strong>引力作用分布在面积为 $4\\pi r^2$ 的越来越大的球面上。因此重力加速度随距中心距离的平方变化，而不是线性变化。</p>`,
-        `<p>在地球表面 $g\\approx 9{,}81\\,\\text{m/s}^2$。在距地心 $r$ 处，$g(r)=9{,}81\\cdot\\left(\\frac{R}{r}\\right)^2$，其中 $R$ 为地球半径。</p>`,
+        `<p>在地球表面 $g\\approx 9.81\\,\\text{m/s}^2$。在距地心 $r$ 处，$g(r)=9.81\\cdot\\left(\\frac{R}{r}\\right)^2$，其中 $R$ 为地球半径。</p>`,
         { fig: 'v1v4-gravitacia-r', caption: '重力加速度随距地心距离的平方下降：在距离 2R 处为表面值的四分之一。' }
       ],
       examples: [
         { task: '在距地心距离为地球半径两倍的高度，重力加速度是多少？',
-          steps: ['距离之比为 $\\frac{r}{R}=2$，所以 $g(r)=g\\cdot\\left(\\frac{1}{2}\\right)^2$。', '$g(r)=\\frac{9{,}81}{4}\\approx 2{,}45\\,\\text{m/s}^2$。', '<strong>结果：约 $2{,}45\\,\\text{m/s}^2$</strong>'] },
+          steps: ['距离之比为 $\\frac{r}{R}=2$，所以 $g(r)=g\\cdot\\left(\\frac{1}{2}\\right)^2$。', '$g(r)=\\frac{9.81}{4}\\approx 2.45\\,\\text{m/s}^2$。', '<strong>结果：约 $2.45\\,\\text{m/s}^2$</strong>'] },
         { task: '质量分别为 $m_1=10\\,\\text{kg}$ 和 $m_2=5\\,\\text{kg}$ 的两个物体相距 $r$。若距离加倍，力如何变化？',
           steps: ['力与 $\\frac{1}{r^2}$ 成正比，在 $2r$ 处减小为四分之一。', '<strong>结果：力减小为原来的四分之一</strong>'] }
       ]
@@ -97,9 +97,9 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '圆盘以频率 $f=3\\,\\text{Hz}$ 转动。其角速度是多少？',
-          steps: ['$\\omega=2\\pi f=2\\pi\\cdot 3$。', '<strong>结果：$\\omega=6\\pi\\approx 18{,}85\\,\\text{rad/s}$</strong>'] },
-        { task: '车轮上的一点距轴 $r=0{,}5\\,\\text{m}$，角速度为 $\\omega=4\\,\\text{rad/s}$。其切向速度是多少？',
-          steps: ['$v=\\omega\\,r=4\\cdot 0{,}5$。', '<strong>结果：$v=2\\,\\text{m/s}$</strong>'] }
+          steps: ['$\\omega=2\\pi f=2\\pi\\cdot 3$。', '<strong>结果：$\\omega=6\\pi\\approx 18.85\\,\\text{rad/s}$</strong>'] },
+        { task: '车轮上的一点距轴 $r=0.5\\,\\text{m}$，角速度为 $\\omega=4\\,\\text{rad/s}$。其切向速度是多少？',
+          steps: ['$v=\\omega\\,r=4\\cdot 0.5$。', '<strong>结果：$v=2\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v1-sustavy': {
@@ -139,24 +139,24 @@ CONTENT_I18N.add('zh', {
       title: '温度、压强、热量与内能',
       summary: '以开尔文为单位的热力学温度，作为单位面积上的力的压强，以及作为粒子能量之和的内能。',
       theory: [
-        `<p><strong>热力学温度</strong> $T$ 以开尔文为单位。它与粒子的平均动能成正比，因此不可能为负。由摄氏度换算为 $T=t+273{,}15$，其中 $0\\,\\text{K}$ 为绝对零度。</p>`,
+        `<p><strong>热力学温度</strong> $T$ 以开尔文为单位。它与粒子的平均动能成正比，因此不可能为负。由摄氏度换算为 $T=t+273.15$，其中 $0\\,\\text{K}$ 为绝对零度。</p>`,
         `<p><strong>压强</strong>是垂直作用于单位面积上的力：$p=\\frac{F}{S}$，单位为帕斯卡，$1\\,\\text{Pa}=1\\,\\text{N/m}^2$。气体压迫容器壁，是因为其粒子撞击器壁并把动量传递给器壁。</p>`,
         `<p><strong>内能</strong> $U$ 是系统所有粒子的动能与势能之和。热量 $Q$ 是由于温差而在物体之间传递的能量，它并不是物体所“含有”的东西。</p>`,
         `<p><strong>为什么用开尔文：</strong>摄氏度的零点是任意选定的。对于与能量或比值有关的公式，必须使用能量为零的零点，即开尔文。</p>`,
-        { fig: 'v1v4-teplota-stupnice', caption: '温度换算为 T = t + 273,15。绝对零度对应 0 K，即 −273,15 °C。' }
+        { fig: 'v1v4-teplota-stupnice', caption: '温度换算为 T = t + 273.15。绝对零度对应 0 K，即 −273.15 °C。' }
       ],
       examples: [
         { task: '温度 $t=27\\,{}^\\circ\\text{C}$ 换算为开尔文是多少？',
-          steps: ['$T=t+273{,}15=27+273{,}15$。', '<strong>结果：$T=300{,}15\\,\\text{K}$</strong>'] },
-        { task: '力 $F=600\\,\\text{N}$ 垂直作用于面积 $S=0{,}2\\,\\text{m}^2$ 上。压强是多少？',
-          steps: ['$p=\\frac{F}{S}=\\frac{600}{0{,}2}$。', '<strong>结果：$p=3000\\,\\text{Pa}$</strong>'] }
+          steps: ['$T=t+273.15=27+273.15$。', '<strong>结果：$T=300.15\\,\\text{K}$</strong>'] },
+        { task: '力 $F=600\\,\\text{N}$ 垂直作用于面积 $S=0.2\\,\\text{m}^2$ 上。压强是多少？',
+          steps: ['$p=\\frac{F}{S}=\\frac{600}{0.2}$。', '<strong>结果：$p=3000\\,\\text{Pa}$</strong>'] }
       ]
     },
     'v2-stavove-rovnice': {
       title: '状态方程',
       summary: '理想气体的状态方程 pV = nRT 及其在计算压强中的应用。',
       theory: [
-        `<p>理想气体的<strong>状态方程</strong>联系压强 $p$、体积 $V$、物质的量 $n$ 和温度 $T$：$pV=nRT$，其中 $R\\approx 8{,}314\\,\\text{J/(mol\\,K)}$。</p>`,
+        `<p>理想气体的<strong>状态方程</strong>联系压强 $p$、体积 $V$、物质的量 $n$ 和温度 $T$：$pV=nRT$，其中 $R\\approx 8.314\\,\\text{J/(mol\\,K)}$。</p>`,
         `<p>理想气体是一种模型：其中粒子没有自身体积，除碰撞外彼此之间不发生相互作用。对于常温下足够稀薄的气体，该模型非常精确。</p>`,
         `<p><strong>如何使用：</strong>若已知三个量，即可求出第四个量。例如压强为 $p=\\frac{nRT}{V}$。当一个量变化时，其他量按比例关系变化：温度不变时，压强与体积成反比。</p>`,
         `<p><strong>注意单位：</strong>温度必须用开尔文，体积必须用立方米，否则结果将不是帕斯卡。升和立方分米需除以 $1000$ 换算。</p>`,
@@ -164,7 +164,7 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '气体的 $n=1\\,\\text{mol}$，温度 $T=300\\,\\text{K}$，体积 $V=2\\,\\text{dm}^3$。压强是多少千帕？',
-          steps: ['$V=2\\,\\text{dm}^3=0{,}002\\,\\text{m}^3$。', '$p=\\frac{nRT}{V}=\\frac{1\\cdot 8{,}314\\cdot 300}{0{,}002}\\approx 1\\,247\\,100\\,\\text{Pa}$。', '<strong>结果：$p\\approx 1247\\,\\text{kPa}$</strong>'] },
+          steps: ['$V=2\\,\\text{dm}^3=0.002\\,\\text{m}^3$。', '$p=\\frac{nRT}{V}=\\frac{1\\cdot 8.314\\cdot 300}{0.002}\\approx 1\\,247\\,100\\,\\text{Pa}$。', '<strong>结果：$p\\approx 1247\\,\\text{kPa}$</strong>'] },
         { task: '温度不变时，气体的体积加倍。压强如何变化？',
           steps: ['在 $T$ 和 $n$ 不变时，有 $p\\,V=\\text{常数}$。', '若 $V\\to 2V$，则 $p\\to \\frac{p}{2}$。', '<strong>结果：压强降为一半</strong>'] }
       ]
@@ -214,9 +214,9 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '热机工作于温度 $T_h=500\\,\\text{K}$ 的加热器与 $T_c=300\\,\\text{K}$ 的冷却器之间。其理想效率是多少？',
-          steps: ['$\\eta=1-\\frac{T_c}{T_h}=1-\\frac{300}{500}$。', '$\\eta=1-0{,}6=0{,}4$。', '<strong>结果：$\\eta=40\\,\\%$</strong>'] },
+          steps: ['$\\eta=1-\\frac{T_c}{T_h}=1-\\frac{300}{500}$。', '$\\eta=1-0.6=0.4$。', '<strong>结果：$\\eta=40\\,\\%$</strong>'] },
         { task: '效率为 $25\\,\\%$ 的热机从加热器获得热量 $Q_h=800\\,\\text{J}$。它做了多少功？',
-          steps: ['$W=\\eta\\,Q_h=0{,}25\\cdot 800$。', '<strong>结果：$W=200\\,\\text{J}$</strong>'] }
+          steps: ['$W=\\eta\\,Q_h=0.25\\cdot 800$。', '<strong>结果：$W=200\\,\\text{J}$</strong>'] }
       ]
     },
     'v2-kinetika-plynov': {
@@ -224,13 +224,13 @@ CONTENT_I18N.add('zh', {
       summary: '气体的分子图像：粒子的平均动能与热力学温度成正比。',
       theory: [
         `<p><strong>气体动理论</strong>通过分子的运动解释压强和温度。压强来自分子与容器壁的碰撞，温度则是其平均动能的量度。</p>`,
-        `<p>理想气体中单个分子的平均动能为 $\\overline{E_k}=\\frac{3}{2}k\\,T$，其中 $k\\approx 1{,}38\\cdot 10^{-23}\\,\\text{J/K}$ 为玻尔兹曼常数。它只取决于温度，与气体种类无关。</p>`,
+        `<p>理想气体中单个分子的平均动能为 $\\overline{E_k}=\\frac{3}{2}k\\,T$，其中 $k\\approx 1.38\\cdot 10^{-23}\\,\\text{J/K}$ 为玻尔兹曼常数。它只取决于温度，与气体种类无关。</p>`,
         `<p><strong>为什么是 $\\frac{3}{2}$：</strong>分子可以沿三个方向运动，每个方向对能量的贡献为 $k\\,T$ 的一半。三个自由度合起来给出 $\\frac{3}{2}k\\,T$。</p>`,
         `<p><strong>为什么用开尔文：</strong>该公式与热力学温度严格成正比。在 $0\\,\\text{K}$ 时分子的动能应为零，因此这个公式中从不使用摄氏度。</p>`
       ],
       examples: [
-        { task: '温度为 $T=300\\,\\text{K}$ 时，气体分子的平均动能是多少？取 $k=1{,}38\\cdot 10^{-23}\\,\\text{J/K}$。',
-          steps: ['$\\overline{E_k}=\\frac{3}{2}k\\,T=1{,}5\\cdot 1{,}38\\cdot 10^{-23}\\cdot 300$。', '$\\overline{E_k}\\approx 6{,}21\\cdot 10^{-21}\\,\\text{J}$。', '<strong>结果：约 $6{,}21\\cdot 10^{-21}\\,\\text{J}$</strong>'] },
+        { task: '温度为 $T=300\\,\\text{K}$ 时，气体分子的平均动能是多少？取 $k=1.38\\cdot 10^{-23}\\,\\text{J/K}$。',
+          steps: ['$\\overline{E_k}=\\frac{3}{2}k\\,T=1.5\\cdot 1.38\\cdot 10^{-23}\\cdot 300$。', '$\\overline{E_k}\\approx 6.21\\cdot 10^{-21}\\,\\text{J}$。', '<strong>结果：约 $6.21\\cdot 10^{-21}\\,\\text{J}$</strong>'] },
         { task: '若气体温度加倍，分子的平均动能如何变化？',
           steps: ['能量与 $T$ 成正比。', '<strong>结果：加倍</strong>'] }
       ]
@@ -243,13 +243,13 @@ CONTENT_I18N.add('zh', {
         `<p>指数意味着：温度较低时，能级之间的微小能量差会产生很大影响。在高温下能级趋于接近，占据趋向均匀分布。</p>`,
         `<p><strong>为什么恰好是指数：</strong>能量为 $E$ 的状态的概率，随 $E$ 增大，每增加一份固定的能量就按固定倍数减小。正是这一点导致了指数依赖关系。</p>`,
         `<p>该结果表明，温度不仅是热量的量度，也是决定哪些状态可以到达的尺度。这一分布是计算宏观性质的所有统计方法的基础。</p>`,
-        { fig: 'v1v4-boltzmann', caption: '比基态高 ΔE = k·T 的能级在温度 T 下的占据数，约为基态的 e⁻¹ ≈ 0,37 倍。' }
+        { fig: 'v1v4-boltzmann', caption: '比基态高 ΔE = k·T 的能级在温度 T 下的占据数，约为基态的 e⁻¹ ≈ 0.37 倍。' }
       ],
       examples: [
         { task: '某能级比基态高 $\\Delta E=kT$。比值 $\\frac{N_2}{N_1}$ 是多少？',
-          steps: ['$\\frac{N_2}{N_1}=e^{-\\Delta E/(kT)}=e^{-1}$。', '<strong>结果：$\\frac{N_2}{N_1}\\approx 0{,}368$</strong>'] },
+          steps: ['$\\frac{N_2}{N_1}=e^{-\\Delta E/(kT)}=e^{-1}$。', '<strong>结果：$\\frac{N_2}{N_1}\\approx 0.368$</strong>'] },
         { task: '某能级高出 $2\\,kT$。占据比是多少？',
-          steps: ['$\\frac{N_2}{N_1}=e^{-2}\\approx 0{,}135$。', '<strong>结果：约 $0{,}135$</strong>'] }
+          steps: ['$\\frac{N_2}{N_1}=e^{-2}\\approx 0.135$。', '<strong>结果：约 $0.135$</strong>'] }
       ]
     },
     'v2-statisticke': {
@@ -265,7 +265,7 @@ CONTENT_I18N.add('zh', {
         { task: '系统有 $N=3$ 个独立粒子，每个粒子有两种状态。它有多少个微观状态 $W$？',
           steps: ['$W=2^N=2^3$。', '<strong>结果：$W=8$</strong>'] },
         { task: '对于 $N=4$ 个各有两种状态的粒子，$S/k$ 的值是多少？取两位小数。',
-          steps: ['$W=2^4=16$，所以 $\\frac{S}{k}=\\ln 16$。', '$\\ln 16=4\\ln 2\\approx 2{,}77$。', '<strong>结果：$\\frac{S}{k}\\approx 2{,}77$</strong>'] }
+          steps: ['$W=2^4=16$，所以 $\\frac{S}{k}=\\ln 16$。', '$\\ln 16=4\\ln 2\\approx 2.77$。', '<strong>结果：$\\frac{S}{k}\\approx 2.77$</strong>'] }
       ]
     },
     'v3-elektricke-pole': {
@@ -273,14 +273,14 @@ CONTENT_I18N.add('zh', {
       summary: '点电荷的场强与电势，叠加原理，以及电场中的功。',
       theory: [
         `<p>某点的<strong>电场强度</strong>是作用于正检验电荷上的力除以其电荷量：$\\vec E=\\frac{\\vec F}{q}$，单位为 $\\text{V/m}$。电场是空间的性质，而非检验电荷的性质。</p>`,
-        `<p>对于距离为 $r$ 的点电荷 $Q$，有 $E=k\\frac{Q}{r^2}$，其中 $k\\approx 8{,}99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$。场的方向是径向的：自正电荷向外，指向负电荷。</p>`,
+        `<p>对于距离为 $r$ 的点电荷 $Q$，有 $E=k\\frac{Q}{r^2}$，其中 $k\\approx 8.99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$。场的方向是径向的：自正电荷向外，指向负电荷。</p>`,
         `<p><strong>电势</strong>是单位电荷的能量：$V=k\\frac{Q}{r}$。将电荷 $q$ 从一点移到另一点所做的功为 $W=q\\,\\Delta V$，它与路径无关，只取决于起点和终点。</p>`,
         `<p><strong>叠加：</strong>多个电荷的场按矢量相加，而它们的电势按标量相加。因此电势比场强更容易计算。</p>`,
         { fig: 'v1v4-elektricke-pole', caption: '正点电荷的电场线从电荷径向向外发出。场强随距离的平方减小。' }
       ],
       examples: [
-        { task: '点电荷 $Q=2\\,\\mu\\text{C}$ 位于距离 $r=3\\,\\text{m}$ 处。场强是多少 kV/m？取 $k\\approx 8{,}99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$。',
-          steps: ['$E=k\\frac{Q}{r^2}=8{,}99\\cdot\\frac{2}{3^2}$。', '$E\\approx 2{,}00\\,\\text{kV/m}$', '<strong>结果：约 $2{,}00\\,\\text{kV/m}$</strong>'] },
+        { task: '点电荷 $Q=2\\,\\mu\\text{C}$ 位于距离 $r=3\\,\\text{m}$ 处。场强是多少 kV/m？取 $k\\approx 8.99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$。',
+          steps: ['$E=k\\frac{Q}{r^2}=8.99\\cdot\\frac{2}{3^2}$。', '$E\\approx 2.00\\,\\text{kV/m}$', '<strong>结果：约 $2.00\\,\\text{kV/m}$</strong>'] },
         { task: '若距离加倍，点电荷的场强如何变化？',
           steps: ['场强与 $\\frac{1}{r^2}$ 成正比。', '$\\frac{1}{(2r)^2}=\\frac{1}{4r^2}$。', '<strong>结果：降为四分之一</strong>'] }
       ]
@@ -290,14 +290,14 @@ CONTENT_I18N.add('zh', {
       summary: '穿过闭合曲面的电通量及其与曲面内电荷的关系。',
       theory: [
         `<p>穿过曲面 $S$ 的<strong>电通量</strong>为 $\\Phi_E=\\oint \\vec E\\cdot d\\vec S$，即场垂直于曲面的分量之和。其单位为 $\\text{N\\,m}^2/\\text{C}$。</p>`,
-        `<p><strong>高斯定律</strong>指出，穿过闭合曲面的通量与曲面内的电荷成正比：$\\oint \\vec E\\cdot d\\vec S=\\frac{Q_{\\text{内}}}{\\varepsilon_0}$，其中 $\\varepsilon_0\\approx 8{,}854\\cdot 10^{-12}\\,\\text{F/m}$。</p>`,
+        `<p><strong>高斯定律</strong>指出，穿过闭合曲面的通量与曲面内的电荷成正比：$\\oint \\vec E\\cdot d\\vec S=\\frac{Q_{\\text{内}}}{\\varepsilon_0}$，其中 $\\varepsilon_0\\approx 8.854\\cdot 10^{-12}\\,\\text{F/m}$。</p>`,
         `<p><strong>为什么成立：</strong>电场线从正电荷发出，并进入负电荷。因此穿过闭合曲面的通量恰好捕获与其内部电荷数量相对应的电场线，与曲面形状无关。</p>`,
         `<p>高斯定律对于对称问题很方便，例如球体或无限大的均匀带电平面。在适当选取的曲面上，场可以提到积分号外，计算十分简单。</p>`,
         { fig: 'v1v4-gauss', caption: '穿过闭合曲面的总通量只取决于曲面内的电荷，Φ = Q/ε₀，与曲面形状无关。' }
       ],
       examples: [
-        { task: '电荷 $Q=1\\,\\mu\\text{C}$ 穿过一个闭合曲面。若 $\\varepsilon_0=8{,}854\\cdot 10^{-12}\\,\\text{F/m}$，穿过该曲面的总通量是多少？',
-          steps: ['$\\Phi_E=\\frac{Q}{\\varepsilon_0}=\\frac{10^{-6}}{8{,}854\\cdot 10^{-12}}$。', '$\\Phi_E\\approx 1{,}13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$', '<strong>结果：约 $1{,}13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$</strong>'] },
+        { task: '电荷 $Q=1\\,\\mu\\text{C}$ 穿过一个闭合曲面。若 $\\varepsilon_0=8.854\\cdot 10^{-12}\\,\\text{F/m}$，穿过该曲面的总通量是多少？',
+          steps: ['$\\Phi_E=\\frac{Q}{\\varepsilon_0}=\\frac{10^{-6}}{8.854\\cdot 10^{-12}}$。', '$\\Phi_E\\approx 1.13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$', '<strong>结果：约 $1.13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$</strong>'] },
         { task: '曲面内的电荷加倍。通量如何变化？',
           steps: ['通量与电荷成正比。', '<strong>结果：加倍</strong>'] }
       ]
@@ -330,10 +330,10 @@ CONTENT_I18N.add('zh', {
         { fig: 'v1v4-lorentz', caption: '垂直于磁场飞行的正电荷所受洛伦兹力，既垂直于速度，也垂直于磁场。它改变运动方向，而不改变速率。' }
       ],
       examples: [
-        { task: '电子以速率 $v=10^{5}\\,\\text{m/s}$ 垂直于磁感应强度 $B=0{,}2\\,\\text{T}$ 的磁场飞行。若 $q=1{,}6\\cdot 10^{-19}\\,\\text{C}$，力的大小是多少？',
-          steps: ['$\\alpha=90^\\circ$，所以 $\\sin\\alpha=1$。', '$F=qvB=1{,}6\\cdot 10^{-19}\\cdot 10^{5}\\cdot 0{,}2$。', '<strong>结果：$F=3{,}2\\cdot 10^{-15}\\,\\text{N}$</strong>'] },
-        { task: '电荷 $q=2\\,\\mu\\text{C}$ 的粒子以速率 $v=300\\,\\text{m/s}$ 垂直于磁场 $B=0{,}5\\,\\text{T}$ 飞行。以微牛顿为单位，力是多少？',
-          steps: ['$F=qvB=2\\cdot 300\\cdot 0{,}5$，单位为 $\\mu\\text{N}$。', '<strong>结果：$F=300\\,\\mu\\text{N}$</strong>'] }
+        { task: '电子以速率 $v=10^{5}\\,\\text{m/s}$ 垂直于磁感应强度 $B=0.2\\,\\text{T}$ 的磁场飞行。若 $q=1.6\\cdot 10^{-19}\\,\\text{C}$，力的大小是多少？',
+          steps: ['$\\alpha=90^\\circ$，所以 $\\sin\\alpha=1$。', '$F=qvB=1.6\\cdot 10^{-19}\\cdot 10^{5}\\cdot 0.2$。', '<strong>结果：$F=3.2\\cdot 10^{-15}\\,\\text{N}$</strong>'] },
+        { task: '电荷 $q=2\\,\\mu\\text{C}$ 的粒子以速率 $v=300\\,\\text{m/s}$ 垂直于磁场 $B=0.5\\,\\text{T}$ 飞行。以微牛顿为单位，力是多少？',
+          steps: ['$F=qvB=2\\cdot 300\\cdot 0.5$，单位为 $\\mu\\text{N}$。', '<strong>结果：$F=300\\,\\mu\\text{N}$</strong>'] }
       ]
     },
     'v3-indukcia': {
@@ -347,8 +347,8 @@ CONTENT_I18N.add('zh', {
         { fig: 'v1v4-tok-indukcia', caption: '穿过曲面的磁通量为 Φ = B·S·cos α，其中 α 为磁感应强度 B 与曲面法线 n 之间的夹角。' }
       ],
       examples: [
-        { task: '回路面积 $S=0{,}5\\,\\text{m}^2$ 与磁场垂直，磁场在 $2\\,\\text{s}$ 内变化了 $\\Delta B=4\\,\\text{T}$。感应电压是多少？',
-          steps: ['$U_i=\\frac{\\Delta\\Phi}{\\Delta t}=\\frac{S\\,\\Delta B}{\\Delta t}=\\frac{0{,}5\\cdot 4}{2}$。', '<strong>结果：$U_i=1\\,\\text{V}$</strong>'] },
+        { task: '回路面积 $S=0.5\\,\\text{m}^2$ 与磁场垂直，磁场在 $2\\,\\text{s}$ 内变化了 $\\Delta B=4\\,\\text{T}$。感应电压是多少？',
+          steps: ['$U_i=\\frac{\\Delta\\Phi}{\\Delta t}=\\frac{S\\,\\Delta B}{\\Delta t}=\\frac{0.5\\cdot 4}{2}$。', '<strong>结果：$U_i=1\\,\\text{V}$</strong>'] },
         { task: '穿过曲面的磁通量恒定。感应电压是多少？',
           steps: ['电压与磁通量的变化成正比，$\\Delta\\Phi=0$。', '<strong>结果：$U_i=0\\,\\text{V}$</strong>'] }
       ]
@@ -364,8 +364,8 @@ CONTENT_I18N.add('zh', {
         { fig: 'v1v4-ampere', caption: '载流直导线周围，磁感应强度的磁场线是同心圆。磁感应强度 B 随距离 r 增大而减小。' }
       ],
       examples: [
-        { task: '直导线中的电流 $I=10\\,\\text{A}$。在距离 $r=0{,}2\\,\\text{m}$ 处磁感应强度是多少？结果以微特斯拉给出。',
-          steps: ['$B=\\frac{\\mu_0 I}{2\\pi r}=\\frac{4\\pi\\cdot 10^{-7}\\cdot 10}{2\\pi\\cdot 0{,}2}$。', '$B=\\frac{2\\cdot 10^{-7}\\cdot 10}{0{,}2}=10^{-5}\\,\\text{T}$。', '<strong>结果：$B=10\\,\\mu\\text{T}$</strong>'] },
+        { task: '直导线中的电流 $I=10\\,\\text{A}$。在距离 $r=0.2\\,\\text{m}$ 处磁感应强度是多少？结果以微特斯拉给出。',
+          steps: ['$B=\\frac{\\mu_0 I}{2\\pi r}=\\frac{4\\pi\\cdot 10^{-7}\\cdot 10}{2\\pi\\cdot 0.2}$。', '$B=\\frac{2\\cdot 10^{-7}\\cdot 10}{0.2}=10^{-5}\\,\\text{T}$。', '<strong>结果：$B=10\\,\\mu\\text{T}$</strong>'] },
         { task: '若与载流导线的距离加倍，其磁感应强度如何变化？',
           steps: ['$B$ 与 $\\frac{1}{r}$ 成正比。', '<strong>结果：减小为一半</strong>'] }
       ]
@@ -383,8 +383,8 @@ CONTENT_I18N.add('zh', {
       examples: [
         { task: '发射机工作频率为 $f=100\\,\\text{MHz}$。空气中该波的波长是多少？',
           steps: ['$\\lambda=\\frac{c}{f}=\\frac{3\\cdot 10^{8}}{100\\cdot 10^{6}}$。', '<strong>结果：$\\lambda=3\\,\\text{m}$</strong>'] },
-        { task: '波长为 $\\lambda=0{,}5\\,\\text{m}$。该波的频率是多少？',
-          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{0{,}5}$。', '<strong>结果：$f=6\\cdot 10^{8}\\,\\text{Hz}=600\\,\\text{MHz}$</strong>'] }
+        { task: '波长为 $\\lambda=0.5\\,\\text{m}$。该波的频率是多少？',
+          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{0.5}$。', '<strong>结果：$f=6\\cdot 10^{8}\\,\\text{Hz}=600\\,\\text{MHz}$</strong>'] }
       ]
     },
     'v3-sirenie': {
@@ -401,7 +401,7 @@ CONTENT_I18N.add('zh', {
         { task: '某介质的相对介电常数为 $\\varepsilon_r=4$。其折射率是多少？',
           steps: ['$n=\\sqrt{\\varepsilon_r}=\\sqrt{4}$。', '<strong>结果：$n=2$</strong>'] },
         { task: '若 $c=3\\cdot 10^{8}\\,\\text{m/s}$，在折射率为 $n=2$ 的介质中光速是多少？',
-          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{2}$。', '<strong>结果：$v=1{,}5\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
+          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{2}$。', '<strong>结果：$v=1.5\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v4-vlnenie': {
@@ -433,7 +433,7 @@ CONTENT_I18N.add('zh', {
         { task: '波的频率为 $f=50\\,\\text{Hz}$，波长为 $\\lambda=6\\,\\text{m}$。其速度是多少？',
           steps: ['$v=\\lambda\\cdot f=6\\cdot 50$。', '<strong>结果：$v=300\\,\\text{m/s}$</strong>'] },
         { task: '频率为 $f=4\\,\\text{Hz}$ 的波的周期是多少？',
-          steps: ['$T=\\frac{1}{f}=\\frac{1}{4}$。', '<strong>结果：$T=0{,}25\\,\\text{s}$</strong>'] }
+          steps: ['$T=\\frac{1}{f}=\\frac{1}{4}$。', '<strong>结果：$T=0.25\\,\\text{s}$</strong>'] }
       ]
     },
     'v4-interferencia': {
@@ -446,8 +446,8 @@ CONTENT_I18N.add('zh', {
         { fig: 'v1v4-interferencia', caption: '同相的波在光程差为 m·λ 时加强，反相的波在光程差为 (m + ½)·λ 时减弱。' }
       ],
       examples: [
-        { task: '两束相干波的波长为 $\\lambda=0{,}5\\,\\text{m}$，光程差为 $\\Delta d=1{,}25\\,\\text{m}$。该点是加强还是减弱？',
-          steps: ['$\\frac{\\Delta d}{\\lambda}=\\frac{1{,}25}{0{,}5}=2{,}5$。', '数 $2{,}5$ 是半波长的奇数倍：$2{,}5=\\left(2+\\tfrac{1}{2}\\right)$。', '<strong>结果：减弱。</strong>'] }
+        { task: '两束相干波的波长为 $\\lambda=0.5\\,\\text{m}$，光程差为 $\\Delta d=1.25\\,\\text{m}$。该点是加强还是减弱？',
+          steps: ['$\\frac{\\Delta d}{\\lambda}=\\frac{1.25}{0.5}=2.5$。', '数 $2.5$ 是半波长的奇数倍：$2.5=\\left(2+\\tfrac{1}{2}\\right)$。', '<strong>结果：减弱。</strong>'] }
       ]
     },
     'v4-polarizacia': {
@@ -461,7 +461,7 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '强度为 $I_0=80$ 的线偏振光通过转过 $60^\\circ$ 的检偏器。通过后的强度是多少？',
-          steps: ['$\\cos^2 60^\\circ=\\left(\\tfrac{1}{2}\\right)^2=0{,}25$。', '$I=80\\cdot 0{,}25=20$。', '<strong>结果：$I=20$</strong>'] }
+          steps: ['$\\cos^2 60^\\circ=\\left(\\tfrac{1}{2}\\right)^2=0.25$。', '$I=80\\cdot 0.25=20$。', '<strong>结果：$I=20$</strong>'] }
       ]
     },
     'v4-geometricka-optika': {
@@ -469,13 +469,13 @@ CONTENT_I18N.add('zh', {
       summary: '折射率、光在各种物质中的速度以及斯涅耳折射定律。',
       theory: [
         `<p><strong>几何光学</strong>将光描述为沿直线传播的光线，按反射定律（$\\alpha=\\alpha'$）反射，并在介质分界面上折射。波动光学解释光线无法解释的现象，例如干涉和衍射。</p>`,
-        `<p><strong>折射率</strong> $n=\\frac{c}{v}$ 表示光在介质中比真空中慢多少倍。在水中 $n\\approx 1{,}33$，在玻璃中约为 $1{,}5$。光在介质中的速度为 $v=\\frac{c}{n}$。</p>`,
+        `<p><strong>折射率</strong> $n=\\frac{c}{v}$ 表示光在介质中比真空中慢多少倍。在水中 $n\\approx 1.33$，在玻璃中约为 $1.5$。光在介质中的速度为 $v=\\frac{c}{n}$。</p>`,
         `<p><strong>斯涅耳定律</strong> $n_1\\sin\\alpha=n_2\\sin\\beta$ 描述光线如何折射。进入光密介质（$n_2>n_1$）时光线向法线偏折，进入光疏介质时则远离法线。</p>`,
         { fig: 'v1v4-lom', caption: '光进入光密介质时向法线偏折，因此 β 小于 α（n₂ > n₁）。' }
       ],
       examples: [
-        { task: '折射率为 $n=1{,}5$ 的玻璃中光速是多少？取 $c=3\\cdot 10^{8}\\,\\text{m/s}$。',
-          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{1{,}5}$。', '<strong>结果：$v=2\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
+        { task: '折射率为 $n=1.5$ 的玻璃中光速是多少？取 $c=3\\cdot 10^{8}\\,\\text{m/s}$。',
+          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{1.5}$。', '<strong>结果：$v=2\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v4-zobrazovanie': {
@@ -502,7 +502,7 @@ CONTENT_I18N.add('zh', {
       ],
       examples: [
         { task: '红色激光的波长为 $\\lambda=650\\,\\text{nm}$。以 $10^{14}\\,\\text{Hz}$ 为单位，其频率是多少？',
-          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{650\\cdot 10^{-9}}\\approx 4{,}6\\cdot 10^{14}\\,\\text{Hz}$。', '<strong>结果：约 $4{,}6\\cdot 10^{14}\\,\\text{Hz}$</strong>'] }
+          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{650\\cdot 10^{-9}}\\approx 4.6\\cdot 10^{14}\\,\\text{Hz}$。', '<strong>结果：约 $4.6\\cdot 10^{14}\\,\\text{Hz}$</strong>'] }
       ]
     },
     'v4-vlakna': {
@@ -515,8 +515,8 @@ CONTENT_I18N.add('zh', {
         { fig: 'v1v4-vlakno', caption: '光在纤芯中依靠全反射传播，因为其入射角大于临界角，此时 sin α_c = n₂/n₁。' }
       ],
       examples: [
-        { task: '纤芯的 $n_1=1{,}5$，包层的 $n_2=1{,}0$。临界角的正弦是多少？',
-          steps: ['$\\sin\\alpha_c=\\frac{n_2}{n_1}=\\frac{1{,}0}{1{,}5}$。', '<strong>结果：$\\sin\\alpha_c\\approx 0{,}67$</strong>'] }
+        { task: '纤芯的 $n_1=1.5$，包层的 $n_2=1.0$。临界角的正弦是多少？',
+          steps: ['$\\sin\\alpha_c=\\frac{n_2}{n_1}=\\frac{1.0}{1.5}$。', '<strong>结果：$\\sin\\alpha_c\\approx 0.67$</strong>'] }
       ]
     }
   }

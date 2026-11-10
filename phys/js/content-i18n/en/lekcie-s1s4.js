@@ -8,11 +8,11 @@ CONTENT_I18N.add('en', {
         `<p>A physical quantity is a property of a body or a phenomenon that we can <strong>measure</strong> and express as a number with a unit. For example, length $s = 12\\,\\text{m}$: the number $12$ tells us how many times we used the unit, and $\\text{m}$ tells us which unit we used. A value without a unit has no meaning.</p>`,
         `<p>The International System of Units (SI) has seven base units. For this grade these are enough: metre $\\text{m}$ (length), kilogram $\\text{kg}$ (mass), second $\\text{s}$ (time) and kelvin $\\text{K}$ (temperature). Derived units are built by combining base units: speed has the unit $\\text{m/s}$ and force $1\\,\\text{N}=1\\,\\text{kg}\\cdot\\text{m/s}^2$.</p>`,
         `<p><strong>Prefixes</strong> shorten the notation of very large and very small numbers. For example $1\\,\\text{km}=10^3\\,\\text{m}$, $1\\,\\text{cm}=10^{-2}\\,\\text{m}$ and $1\\,\\text{g}=10^{-3}\\,\\text{kg}$. When converting, it is enough to know how many times the new unit is larger or smaller, and then multiply or divide accordingly.</p>`,
-        `<p>Every measurement has an <strong>error</strong>, so we write the result with an appropriate number of significant digits and always state the unit. The notation $s = 12{,}0\\,\\text{m}$ says more than $s = 12\\,\\text{m}$, because it implies precision to the tenth of a metre.</p>`
+        `<p>Every measurement has an <strong>error</strong>, so we write the result with an appropriate number of significant digits and always state the unit. The notation $s = 12.0\\,\\text{m}$ says more than $s = 12\\,\\text{m}$, because it implies precision to the tenth of a metre.</p>`
       ],
       examples: [
-        { task: 'Convert $3{,}5\\,\\text{km}$ to metres.',
-          steps: ['The prefix k means thousand, so $1\\,\\text{km}=10^3\\,\\text{m}$.', '$3{,}5\\cdot 10^3\\,\\text{m}=3500\\,\\text{m}$.', '<strong>Result: 3500 m</strong>'] },
+        { task: 'Convert $3.5\\,\\text{km}$ to metres.',
+          steps: ['The prefix k means thousand, so $1\\,\\text{km}=10^3\\,\\text{m}$.', '$3.5\\cdot 10^3\\,\\text{m}=3500\\,\\text{m}$.', '<strong>Result: 3500 m</strong>'] },
         { task: 'How many seconds are in $2\\,\\text{h}$?',
           steps: ['One hour has $60\\,\\text{min}$ and one minute has $60\\,\\text{s}$.', 'One hour therefore has $60\\cdot 60=3600\\,\\text{s}$.', '$2\\,\\text{h}=2\\cdot 3600\\,\\text{s}=7200\\,\\text{s}$.', '<strong>Result: 7200 s</strong>'] }
       ]
@@ -41,7 +41,7 @@ CONTENT_I18N.add('en', {
         `<p><strong>Acceleration</strong> is the change of speed per unit time: $a=\\frac{\\Delta v}{\\Delta t}=\\frac{v-v_0}{t}$. Its unit is $\\text{m/s}^2$. If the speed increases by $2\\,\\text{m/s}$ every second, the acceleration is $2\\,\\text{m/s}^2$.</p>`,
         `<p>Acceleration is not only speeding up. Positive $a$ means that the speed increases, negative $a$ means braking. Acceleration also occurs when the direction of motion changes while the magnitude of the speed stays the same, for example when moving along a circle.</p>`,
         `<p>In <strong>uniformly accelerated motion</strong> the speed grows in proportion to time: $v=v_0+a\\,t$. The average speed is $\\frac{v_0+v}{2}$, therefore the distance is $s=v_0\\,t+\\frac{1}{2}a\\,t^2$. The term with $\\frac{1}{2}$ is important, because the speed keeps changing during the trip.</p>`,
-        `<p>In free fall near the surface of the Earth the acceleration points downwards and has a magnitude of about $g\\approx 9{,}81\\,\\text{m/s}^2$. A body falling from rest increases its speed by about $9{,}81\\,\\text{m/s}$ every second.</p>`,
+        `<p>In free fall near the surface of the Earth the acceleration points downwards and has a magnitude of about $g\\approx 9.81\\,\\text{m/s}^2$. A body falling from rest increases its speed by about $9.81\\,\\text{m/s}$ every second.</p>`,
         { fig: "s1s4-v-t-zrychlenie", caption: "The slope of the v–t graph is the acceleration, and the area under the graph is the distance. For uniformly accelerated motion the graph is a straight line." }
       ],
       examples: [
@@ -73,16 +73,16 @@ CONTENT_I18N.add('en', {
       summary: 'Mass and weight, gravitational acceleration on Earth and on the Moon.',
       theory: [
         `<p><strong>Gravitational force</strong> is the attractive force between all bodies. The heavier the bodies and the closer they are, the greater the force. For bodies on the surface of the Earth we observe it as <strong>weight</strong>.</p>`,
-        `<p><strong>Weight</strong> is the force with which the Earth attracts a body: $F_g=m\\,g$, where $g\\approx 9{,}81\\,\\text{m/s}^2$ is the gravitational acceleration. The mass $m$ in kilograms is a property of the body and does not change. Weight in newtons depends on the place: on the Moon, where $g\\approx 1{,}62\\,\\text{m/s}^2$, it is about six times smaller.</p>`,
+        `<p><strong>Weight</strong> is the force with which the Earth attracts a body: $F_g=m\\,g$, where $g\\approx 9.81\\,\\text{m/s}^2$ is the gravitational acceleration. The mass $m$ in kilograms is a property of the body and does not change. Weight in newtons depends on the place: on the Moon, where $g\\approx 1.62\\,\\text{m/s}^2$, it is about six times smaller.</p>`,
         `<p><strong>Why do all bodies fall equally fast?</strong> Weight is proportional to mass, and so is inertia. The acceleration $a=\\frac{F_g}{m}=g$ therefore does not depend on the mass. In a fall without air resistance, a stone and a grain of pollen fall equally fast.</p>`,
         `<p>Do not confuse the terms: <strong>mass</strong> is measured in kilograms and is the amount of matter in a body, <strong>weight</strong> is a force and is measured in newtons.</p>`,
         { fig: "s1s4-tiaz-zem-mesiac", caption: "The same mass has about six times smaller weight on the Moon, because the gravitational acceleration there is smaller." }
       ],
       examples: [
         { task: 'What is the weight of a body with mass $5\\,\\text{kg}$ on Earth?',
-          steps: ['$F_g=m\\,g=5\\cdot 9{,}81$.', '<strong>Result: approximately 49.1 N</strong>'] },
-        { task: 'What is the weight of the same body on the Moon, where $g\\approx 1{,}62\\,\\text{m/s}^2$? What is its mass?',
-          steps: ['$F_g=5\\cdot 1{,}62=8{,}1\\,\\text{N}$.', 'The mass does not change, it stays $5\\,\\text{kg}$.', '<strong>Result: 8.1 N, mass 5 kg</strong>'] }
+          steps: ['$F_g=m\\,g=5\\cdot 9.81$.', '<strong>Result: approximately 49.1 N</strong>'] },
+        { task: 'What is the weight of the same body on the Moon, where $g\\approx 1.62\\,\\text{m/s}^2$? What is its mass?',
+          steps: ['$F_g=5\\cdot 1.62=8.1\\,\\text{N}$.', 'The mass does not change, it stays $5\\,\\text{kg}$.', '<strong>Result: 8.1 N, mass 5 kg</strong>'] }
       ]
     },
     's1-praca-energia': {
@@ -113,8 +113,8 @@ CONTENT_I18N.add('en', {
         { fig: "s1s4-hybnost", caption: "The sum of the momenta of the system stays zero: the lighter body moves faster, the heavier one more slowly." }
       ],
       examples: [
-        { task: 'A bullet of mass $0{,}01\\,\\text{kg}$ flies with a speed of $500\\,\\text{m/s}$. What is its momentum?',
-          steps: ['$p=m\\,v=0{,}01\\cdot 500$.', '<strong>Result: 5 kg·m/s</strong>'] },
+        { task: 'A bullet of mass $0.01\\,\\text{kg}$ flies with a speed of $500\\,\\text{m/s}$. What is its momentum?',
+          steps: ['$p=m\\,v=0.01\\cdot 500$.', '<strong>Result: 5 kg·m/s</strong>'] },
         { task: 'A body falls from rest from a height of $5\\,\\text{m}$ without air resistance. With what speed does it hit the ground? Use $g=10\\,\\text{m/s}^2$.',
           steps: ['$m\\,g\\,h=\\frac{1}{2}m\\,v^2$, so $v^2=2gh=2\\cdot 10\\cdot 5=100$.', '<strong>Result: v = 10 m/s</strong>'] }
       ]
@@ -130,8 +130,8 @@ CONTENT_I18N.add('en', {
         { fig: "obr-tlak", caption: "Pressure in a liquid increases with depth: the deeper the body, the greater the force acting on the wall." }
       ],
       examples: [
-        { task: 'A block with a weight of $600\\,\\text{N}$ stands on a floor with an area of $0{,}5\\,\\text{m}^2$. What pressure does it exert?',
-          steps: ['$p=\\frac{F}{S}=\\frac{600}{0{,}5}$.', '<strong>Result: 1200 Pa</strong>'] },
+        { task: 'A block with a weight of $600\\,\\text{N}$ stands on a floor with an area of $0.5\\,\\text{m}^2$. What pressure does it exert?',
+          steps: ['$p=\\frac{F}{S}=\\frac{600}{0.5}$.', '<strong>Result: 1200 Pa</strong>'] },
         { task: 'What is the hydrostatic pressure of water at a depth of $3\\,\\text{m}$? Use $\\rho=1000\\,\\text{kg/m}^3$ and $g=10\\,\\text{m/s}^2$.',
           steps: ['$p=\\rho\\,g\\,h=1000\\cdot 10\\cdot 3=30000\\,\\text{Pa}$.', '<strong>Result: 30 kPa</strong>'] }
       ]
@@ -142,7 +142,7 @@ CONTENT_I18N.add('en', {
       theory: [
         `<p>Every substance is made of very small particles: atoms or molecules. They are in constant disordered motion and act on each other with attractive and repulsive forces. These forces determine whether the substance is solid, liquid or gaseous.</p>`,
         `<p>Evidence of molecular motion is the <strong>Brownian motion</strong>: tiny particles suspended in a liquid tremble irregularly, because molecules of the liquid hit them from all sides. We cannot see the motion of the molecules themselves, but we can see its consequences.</p>`,
-        `<p>The amount of substance is given in moles. One mole contains $N_A\\approx 6{,}02\\cdot 10^{23}$ particles (the Avogadro constant). The <strong>molar mass</strong> $M$ is the mass of one mole, in grams per mole. For example, water has $M=18\\,\\text{g/mol}$, which is the mass of $6{,}02\\cdot 10^{23}$ water molecules.</p>`,
+        `<p>The amount of substance is given in moles. One mole contains $N_A\\approx 6.02\\cdot 10^{23}$ particles (the Avogadro constant). The <strong>molar mass</strong> $M$ is the mass of one mole, in grams per mole. For example, water has $M=18\\,\\text{g/mol}$, which is the mass of $6.02\\cdot 10^{23}$ water molecules.</p>`,
         `<p>Relations: amount of substance $n=\\frac{m}{M}$ and number of particles $N=n\\,N_A$. Therefore even a very small amount of substance contains an enormous number of particles.</p>`,
         { fig: "s1s4-brownov-pohyb", caption: "Brownian motion: the grain trembles irregularly, because molecules of the liquid hit it from all sides." }
       ],
@@ -150,14 +150,14 @@ CONTENT_I18N.add('en', {
         { task: 'How many moles are in $36\\,\\text{g}$ of water, if $M=18\\,\\text{g/mol}$?',
           steps: ['$n=\\frac{m}{M}=\\frac{36}{18}$.', '<strong>Result: 2 mol</strong>'] },
         { task: 'How many molecules are in $2\\,\\text{mol}$ of water?',
-          steps: ['$N=n\\,N_A=2\\cdot 6{,}02\\cdot 10^{23}$.', '<strong>Result: approximately $1{,}2\\cdot 10^{24}$ molecules</strong>'] }
+          steps: ['$N=n\\,N_A=2\\cdot 6.02\\cdot 10^{23}$.', '<strong>Result: approximately $1.2\\cdot 10^{24}$ molecules</strong>'] }
       ]
     },
     's2-teplo': {
       title: 'Temperature, heat and internal energy',
       summary: 'Temperature, kelvin, internal energy and the heat needed for heating.',
       theory: [
-        `<p><strong>Temperature</strong> is a measure of the average kinetic energy of the disordered motion of particles. A warmer body has particles that move faster on average. The Celsius scale has zero at the melting point of ice, the absolute scale in kelvins has zero at absolute zero. $T=t+273{,}15$ holds, and the size of one degree is the same.</p>`,
+        `<p><strong>Temperature</strong> is a measure of the average kinetic energy of the disordered motion of particles. A warmer body has particles that move faster on average. The Celsius scale has zero at the melting point of ice, the absolute scale in kelvins has zero at absolute zero. $T=t+273.15$ holds, and the size of one degree is the same.</p>`,
         `<p>The <strong>internal energy</strong> $U$ of a body is the sum of the kinetic and potential energies of all its particles. It changes in two ways: by work (for example by friction) or by transfer of heat.</p>`,
         `<p><strong>Heat</strong> is the energy that flows from a warmer body to a cooler one. Heat is not a substance and bodies do not "contain" it. The heat needed to warm a body is $Q=m\\,c\\,\\Delta T$, where $c$ is the specific heat capacity. Water has $c=4200\\,\\text{J/(kg\\,K)}$, aluminium $900\\,\\text{J/(kg\\,K)}$. That is why water warms up slowly and keeps its heat for a long time.</p>`,
         `<p>We calculate a change of temperature in kelvins and in degrees Celsius in the same way, because $\\Delta T=\\Delta t$. Conversion to absolute temperature is needed only for a specific temperature value.</p>`,
@@ -167,7 +167,7 @@ CONTENT_I18N.add('en', {
         { task: 'How much heat is needed to warm $2\\,\\text{kg}$ of water by $10\\,\\text{K}$? Use $c=4200\\,\\text{J/(kg\\,K)}$.',
           steps: ['$Q=m\\,c\\,\\Delta T=2\\cdot 4200\\cdot 10$.', '<strong>Result: 84 000 J = 84 kJ</strong>'] },
         { task: 'What is the temperature $25\\,{}^\\circ\\text{C}$ in kelvins?',
-          steps: ['$T=t+273{,}15=25+273{,}15$.', '<strong>Result: 298.15 K</strong>'] }
+          steps: ['$T=t+273.15=25+273.15$.', '<strong>Result: 298.15 K</strong>'] }
       ]
     },
     's2-skupenstva': {
@@ -183,8 +183,8 @@ CONTENT_I18N.add('en', {
       examples: [
         { task: 'How much heat is needed to melt $2\\,\\text{kg}$ of ice at $0\\,{}^\\circ\\text{C}$? Use $L_t=334\\,\\text{kJ/kg}$.',
           steps: ['$Q=m\\,L_t=2\\cdot 334$.', '<strong>Result: 668 kJ</strong>'] },
-        { task: 'How much heat is released when $0{,}5\\,\\text{kg}$ of steam condenses into water at $100\\,{}^\\circ\\text{C}$? Use $L_v=2260\\,\\text{kJ/kg}$.',
-          steps: ['$Q=m\\,L_v=0{,}5\\cdot 2260$.', '<strong>Result: 1130 kJ</strong>'] }
+        { task: 'How much heat is released when $0.5\\,\\text{kg}$ of steam condenses into water at $100\\,{}^\\circ\\text{C}$? Use $L_v=2260\\,\\text{kJ/kg}$.',
+          steps: ['$Q=m\\,L_v=0.5\\cdot 2260$.', '<strong>Result: 1130 kJ</strong>'] }
       ]
     },
     's2-ideal': {
@@ -192,7 +192,7 @@ CONTENT_I18N.add('en', {
       summary: 'Model of an ideal gas, the equation of state and isothermal process.',
       theory: [
         `<p>An <strong>ideal gas</strong> is a model: the molecules are small points, no forces act between them, and they bounce off the walls of the container and off each other elastically. Real gases at low pressure and high temperature behave almost ideally.</p>`,
-        `<p>The <strong>equation of state</strong> of an ideal gas: $p\\,V=n\\,R\\,T$, where $R\\approx 8{,}31\\,\\text{J/(mol\\,K)}$ is the molar gas constant, and the temperature $T$ is substituted in kelvins. If we raise the temperature in a closed container, the molecules hit the walls harder and more often, and the pressure rises.</p>`,
+        `<p>The <strong>equation of state</strong> of an ideal gas: $p\\,V=n\\,R\\,T$, where $R\\approx 8.31\\,\\text{J/(mol\\,K)}$ is the molar gas constant, and the temperature $T$ is substituted in kelvins. If we raise the temperature in a closed container, the molecules hit the walls harder and more often, and the pressure rises.</p>`,
         `<p>An <strong>isothermal process</strong> takes place at constant temperature. Then $p\\,V=\\text{const.}$, that is $p_1V_1=p_2V_2$: when the pressure doubles, the volume halves. Similarly, at constant pressure the volume is proportional to temperature, and at constant volume the pressure is proportional to temperature.</p>`,
         `<p>In every calculation we must pay attention to units: pressure in pascals, volume in cubic metres and temperature in kelvins.</p>`,
         { fig: "s1s4-izoterma", caption: "At constant temperature the product p·V is constant: when the volume halves, the pressure doubles." }
@@ -200,8 +200,8 @@ CONTENT_I18N.add('en', {
       examples: [
         { task: 'A gas has a volume of $4\\,\\text{l}$ and a pressure of $200\\,\\text{kPa}$ at constant temperature. What will its volume be at a pressure of $400\\,\\text{kPa}$?',
           steps: ['$p_1V_1=p_2V_2$, so $V_2=\\frac{p_1V_1}{p_2}=\\frac{200\\cdot 4}{400}$.', '<strong>Result: 2 l</strong>'] },
-        { task: 'What pressure does $1\\,\\text{mol}$ of gas have at $T=300\\,\\text{K}$ and volume $V=0{,}025\\,\\text{m}^3$? Use $R=8{,}31\\,\\text{J/(mol\\,K)}$.',
-          steps: ['$p=\\frac{nRT}{V}=\\frac{1\\cdot 8{,}31\\cdot 300}{0{,}025}$.', '<strong>Result: 99 720 Pa</strong>'] }
+        { task: 'What pressure does $1\\,\\text{mol}$ of gas have at $T=300\\,\\text{K}$ and volume $V=0.025\\,\\text{m}^3$? Use $R=8.31\\,\\text{J/(mol\\,K)}$.',
+          steps: ['$p=\\frac{nRT}{V}=\\frac{1\\cdot 8.31\\cdot 300}{0.025}$.', '<strong>Result: 99 720 Pa</strong>'] }
       ]
     },
     's2-termo': {
@@ -218,7 +218,7 @@ CONTENT_I18N.add('en', {
         { task: 'A gas receives $300\\,\\text{J}$ of heat and does work of $120\\,\\text{J}$. What is the change of its internal energy?',
           steps: ['$\\Delta U=Q-A=300-120$.', '<strong>Result: 180 J (the internal energy increased)</strong>'] },
         { task: 'An engine takes $1000\\,\\text{J}$ from the heater and does work of $250\\,\\text{J}$. What is its efficiency?',
-          steps: ['$\\eta=\\frac{A}{Q_1}=\\frac{250}{1000}=0{,}25$.', '<strong>Result: 25 %</strong>'] }
+          steps: ['$\\eta=\\frac{A}{Q_1}=\\frac{250}{1000}=0.25$.', '<strong>Result: 25 %</strong>'] }
       ]
     },
     's2-kmitanie': {
@@ -233,7 +233,7 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'A weight performs $40$ oscillations in $20\\,\\text{s}$. What are its period and frequency?',
-          steps: ['$T=\\frac{t}{n}=\\frac{20}{40}=0{,}5\\,\\text{s}$.', '$f=\\frac{1}{T}=\\frac{1}{0{,}5}$.', '<strong>Result: T = 0.5 s, f = 2 Hz</strong>'] },
+          steps: ['$T=\\frac{t}{n}=\\frac{20}{40}=0.5\\,\\text{s}$.', '$f=\\frac{1}{T}=\\frac{1}{0.5}$.', '<strong>Result: T = 0.5 s, f = 2 Hz</strong>'] },
         { task: 'A body oscillates with a frequency of $5\\,\\text{Hz}$. What is its period?',
           steps: ['$T=\\frac{1}{f}=\\frac{1}{5}$.', '<strong>Result: 0.2 s</strong>'] }
       ]
@@ -259,7 +259,7 @@ CONTENT_I18N.add('en', {
       title: 'Electric charge and electric field',
       summary: 'Charges attract and repel; the field around a point charge and its intensity.',
       theory: [
-        `<p>Electric charge $Q$ is a property of bodies. It is measured in coulombs ($\\text{C}$). Like charges <strong>repel</strong>, opposite charges <strong>attract</strong>. The smallest charge in nature is the charge of an electron, $e \\approx 1{,}6\\cdot 10^{-19}\\,\\text{C}$.</p>`,
+        `<p>Electric charge $Q$ is a property of bodies. It is measured in coulombs ($\\text{C}$). Like charges <strong>repel</strong>, opposite charges <strong>attract</strong>. The smallest charge in nature is the charge of an electron, $e \\approx 1.6\\cdot 10^{-19}\\,\\text{C}$.</p>`,
         `<p>An <strong>electric field</strong> is the space around a charged body that exerts a force on another charge. We describe its strength by the <em>intensity</em> $E = \\frac{F}{q}$: the force with which the field acts on a small positive charge $q$, divided by this charge. The unit is $\\text{N/C}$, which is the same as $\\text{V/m}$.</p>`,
         `<p>For a point charge $Q$ at distance $r$, $E = k\\frac{Q}{r^2}$, where $k \\approx 9\\cdot 10^{9}\\,\\text{N·m}^2/\\text{C}^2$. The intensity falls with the <strong>square</strong> of the distance: at twice the distance the field is one quarter as strong. That is why the field weakens quickly with distance.</p>`,
         `<ol><li>Write down the charge and the distance and convert them to SI units (nC = $10^{-9}$ C, cm = $10^{-2}$ m).</li>
@@ -267,9 +267,9 @@ CONTENT_I18N.add('en', {
         { fig: "s1s4-pole-naboja", caption: "The intensity of the field of a point charge falls with the square of the distance: at twice the distance it is a quarter." }
       ],
       examples: [
-        { task: 'A point charge $Q = 2\\,\\text{nC}$. What is the field intensity at a distance $r = 0{,}5\\,\\text{m}$?',
+        { task: 'A point charge $Q = 2\\,\\text{nC}$. What is the field intensity at a distance $r = 0.5\\,\\text{m}$?',
           steps: ['Convert the charge: $Q = 2\\cdot 10^{-9}\\,\\text{C}$.',
-            '$E = 9\\cdot 10^{9}\\cdot\\frac{2\\cdot 10^{-9}}{0{,}25}=72\\,\\text{N/C}$.',
+            '$E = 9\\cdot 10^{9}\\cdot\\frac{2\\cdot 10^{-9}}{0.25}=72\\,\\text{N/C}$.',
             '<strong>Result: $E = 72\\,\\text{N/C}$.</strong>'] },
         { task: 'How does the field intensity change if we double the distance from the charge?',
           steps: ['In the formula there is $r^2$, so at $2r$ the denominator is four times larger.', '<strong>The intensity falls to one quarter.</strong>'] }
@@ -314,15 +314,15 @@ CONTENT_I18N.add('en', {
       summary: 'Power of an appliance, energy in joules and kilowatt-hours.',
       theory: [
         `<p><strong>Electrical power</strong> $P$ states how quickly an appliance converts electrical energy: $P = U\\,I = \\frac{W}{t}$. The unit is the watt ($\\text{W}$), where $1\\,\\text{W} = 1\\,\\text{J/s}$.</p>`,
-        `<p><strong>Electrical work</strong> (energy) $W$ over time $t$ is $W = P\\,t = U\\,I\\,t$. The unit is the joule ($\\text{J}$). On electricity bills the kilowatt-hour is used: $1\\,\\text{kWh} = 3{,}6\\cdot 10^{6}\\,\\text{J}$.</p>`,
+        `<p><strong>Electrical work</strong> (energy) $W$ over time $t$ is $W = P\\,t = U\\,I\\,t$. The unit is the joule ($\\text{J}$). On electricity bills the kilowatt-hour is used: $1\\,\\text{kWh} = 3.6\\cdot 10^{6}\\,\\text{J}$.</p>`,
         `<p>Why this holds: voltage gives the energy per coulomb, and current gives how many coulombs pass per second. Their product is the energy per second, that is the power.</p>`,
         `<p>The rating plate of an appliance shows its power (for example 2000 W). You find the energy by multiplying the power in kilowatts by the time in hours.</p>`
       ],
       examples: [
         { task: 'A light bulb is connected to 230 V and a current of 0.5 A flows through it. What is its power?',
-          steps: ['$P = U\\,I = 230\\,\\text{V}\\cdot 0{,}5\\,\\text{A}$.', '<strong>Result: P = 115 W.</strong>'] },
+          steps: ['$P = U\\,I = 230\\,\\text{V}\\cdot 0.5\\,\\text{A}$.', '<strong>Result: P = 115 W.</strong>'] },
         { task: 'A hair dryer with a power of 1.5 kW runs for 2 hours. How many kWh of energy does it use?',
-          steps: ['$W = P\\,t = 1{,}5\\,\\text{kW}\\cdot 2\\,\\text{h}$.', '<strong>Result: 3 kWh.</strong>'] }
+          steps: ['$W = P\\,t = 1.5\\,\\text{kW}\\cdot 2\\,\\text{h}$.', '<strong>Result: 3 kWh.</strong>'] }
       ]
     },
     's3-magnetizmus': {
@@ -330,18 +330,18 @@ CONTENT_I18N.add('en', {
       summary: 'Magnetic field of a conductor and a coil, and voltage induced by a changing magnetic flux.',
       theory: [
         `<p>A <strong>magnetic field</strong> arises around magnets and around a conductor carrying current. Its direction is shown by field lines, which leave the north pole and enter the south pole. Magnetic induction $B$ is measured in teslas ($\\text{T}$).</p>`,
-        `<p>A long straight conductor carrying current $I$ produces at distance $r$ the field $B = \\frac{\\mu_0 I}{2\\pi r}$. Inside a <strong>coil</strong> with $N$ turns over length $l$ the field is approximately uniform: $B = \\mu_0\\frac{N}{l}I$, where $\\mu_0 \\approx 1{,}26\\cdot 10^{-6}\\,\\text{T·m/A}$.</p>`,
+        `<p>A long straight conductor carrying current $I$ produces at distance $r$ the field $B = \\frac{\\mu_0 I}{2\\pi r}$. Inside a <strong>coil</strong> with $N$ turns over length $l$ the field is approximately uniform: $B = \\mu_0\\frac{N}{l}I$, where $\\mu_0 \\approx 1.26\\cdot 10^{-6}\\,\\text{T·m/A}$.</p>`,
         `<p><strong>Electromagnetic induction:</strong> if the magnetic flux through a closed loop of conductor changes, a voltage is induced in it. According to Lenz's law, the induced current flows in the direction that opposes the change which caused it. That is why a coil resists when a magnet is brought close to it.</p>`,
         `<p>Why this holds: the changing magnetic field exerts a force on the free charges in the conductor, and they start to move. If the induced current supported the change, energy would appear from nothing, which contradicts the law of conservation of energy.</p>`,
         { fig: "obr-magnet-vodic", caption: "Around a conductor carrying current there is a magnetic field in the form of circles around the conductor." }
       ],
       examples: [
         { task: 'A coil has 500 turns over a length of 0.25 m and a current of 2 A flows through it. What is the induction inside it?',
-          steps: ['$\\frac{N}{l}=\\frac{500}{0{,}25}=2000\\,\\text{m}^{-1}$.',
-            '$B = \\mu_0\\frac{N}{l}I \\approx 1{,}26\\cdot 10^{-6}\\cdot 2000\\cdot 2 \\approx 5{,}0\\cdot 10^{-3}\\,\\text{T}$.',
+          steps: ['$\\frac{N}{l}=\\frac{500}{0.25}=2000\\,\\text{m}^{-1}$.',
+            '$B = \\mu_0\\frac{N}{l}I \\approx 1.26\\cdot 10^{-6}\\cdot 2000\\cdot 2 \\approx 5.0\\cdot 10^{-3}\\,\\text{T}$.',
             '<strong>Result: B ≈ 5.0 mT.</strong>'] },
         { task: 'A straight conductor carries a current of 4 A. What is the induction at a distance of 0.2 m from the conductor?',
-          steps: ['$B = \\frac{\\mu_0 I}{2\\pi r}=\\frac{1{,}26\\cdot 10^{-6}\\cdot 4}{2\\pi\\cdot 0{,}2}$.', '<strong>Result: B ≈ 4.0·10⁻⁶ T.</strong>'] }
+          steps: ['$B = \\frac{\\mu_0 I}{2\\pi r}=\\frac{1.26\\cdot 10^{-6}\\cdot 4}{2\\pi\\cdot 0.2}$.', '<strong>Result: B ≈ 4.0·10⁻⁶ T.</strong>'] }
       ]
     },
     's3-transformator': {
@@ -366,14 +366,14 @@ CONTENT_I18N.add('en', {
       summary: 'Sinusoidal voltage, period, frequency and the effective value in the mains.',
       theory: [
         `<p><strong>Alternating current</strong> periodically changes both its direction and its magnitude. The voltage varies sinusoidally with time: $u = U_{max}\\sin(\\omega t)$, where $U_{max}$ is the amplitude and $\\omega = 2\\pi f$ is the angular frequency.</p>`,
-        `<p>The duration of one period is $T = \\frac{1}{f}$. In the public mains the frequency is $f = 50\\,\\text{Hz}$, so the period is $T = 0{,}02\\,\\text{s}$. The voltage repeats 50 times per second.</p>`,
+        `<p>The duration of one period is $T = \\frac{1}{f}$. In the public mains the frequency is $f = 50\\,\\text{Hz}$, so the period is $T = 0.02\\,\\text{s}$. The voltage repeats 50 times per second.</p>`,
         `<p>The <strong>effective value</strong> is the value of direct voltage that would produce the same heating effect in a device. For a sinusoidal voltage $U_{ef} = \\frac{U_{max}}{\\sqrt{2}}$, so $U_{max} = U_{ef}\\sqrt{2}$. A mains with an effective voltage of 230 V has an amplitude of about $325\\,\\text{V}$.</p>`,
         `<p>Why we use effective values: appliances (a light bulb, a hair dryer) respond to the average power, not to the peaks. That is why effective values are stated on labels and shown by voltmeters.</p>`,
         { fig: "s1s4-striedavy-prud", caption: "Sinusoidal voltage: the effective value is the amplitude divided by √2. The period is T = 1/f; at 50 Hz it is 0.02 s." }
       ],
       examples: [
         { task: 'The effective voltage of the mains is 230 V. What is the amplitude of the voltage?',
-          steps: ['$U_{max}=U_{ef}\\sqrt{2}=230\\cdot 1{,}414\\approx 325\\,\\text{V}$.', '<strong>Result: approximately 325 V.</strong>'] },
+          steps: ['$U_{max}=U_{ef}\\sqrt{2}=230\\cdot 1.414\\approx 325\\,\\text{V}$.', '<strong>Result: approximately 325 V.</strong>'] },
         { task: 'The mains has a frequency of 50 Hz. What is its period?',
           steps: ['$T=\\frac{1}{f}=\\frac{1}{50}\\,\\text{s}$.', '<strong>Result: T = 0.02 s.</strong>'] }
       ]
@@ -389,8 +389,8 @@ CONTENT_I18N.add('en', {
         { fig: "obr-odraz", caption: "When light is reflected from a plane mirror, the law of reflection holds." }
       ],
       examples: [
-        { task: 'Light passes from air into glass with refractive index $n = 1{,}5$. What is the speed of light in the glass?',
-          steps: ['$n=\\frac{c}{v}$, so $v=\\frac{c}{n}$.', '$v=\\frac{3\\cdot 10^{8}}{1{,}5}=2\\cdot 10^{8}\\,\\text{m/s}$.', '<strong>Result: 2·10⁸ m/s.</strong>'] },
+        { task: 'Light passes from air into glass with refractive index $n = 1.5$. What is the speed of light in the glass?',
+          steps: ['$n=\\frac{c}{v}$, so $v=\\frac{c}{n}$.', '$v=\\frac{3\\cdot 10^{8}}{1.5}=2\\cdot 10^{8}\\,\\text{m/s}$.', '<strong>Result: 2·10⁸ m/s.</strong>'] },
         { task: 'A ray hits the boundary perpendicularly. What is the angle of refraction?',
           steps: ['Perpendicular incidence means $\\alpha=0^\\circ$, so $\\sin\\alpha=0$.', '$n_1\\cdot 0 = n_2\\sin\\beta$, so $\\sin\\beta = 0$.', '<strong>Result: $\\beta = 0^\\circ$, the ray does not change direction.</strong>'] }
       ]
@@ -424,8 +424,8 @@ CONTENT_I18N.add('en', {
         { fig: "s1s4-interferencia", caption: "Bright fringes appear in directions where the path difference is a whole-number multiple of λ: y_k = k·λL/d." }
       ],
       examples: [
-        { task: 'The slits are $d = 0{,}5\\,\\text{mm}$ apart, the light has $\\lambda = 500\\,\\text{nm}$ and the screen is $L = 1\\,\\text{m}$ away. What is the distance of the first bright fringe ($k=1$)?',
-          steps: ['$y_1 = \\frac{\\lambda L}{d}=\\frac{500\\cdot 10^{-9}\\cdot 1}{0{,}5\\cdot 10^{-3}}\\,\\text{m}$.',
+        { task: 'The slits are $d = 0.5\\,\\text{mm}$ apart, the light has $\\lambda = 500\\,\\text{nm}$ and the screen is $L = 1\\,\\text{m}$ away. What is the distance of the first bright fringe ($k=1$)?',
+          steps: ['$y_1 = \\frac{\\lambda L}{d}=\\frac{500\\cdot 10^{-9}\\cdot 1}{0.5\\cdot 10^{-3}}\\,\\text{m}$.',
             '$y_1 = 10^{-3}\\,\\text{m}=1\\,\\text{mm}$.',
             '<strong>Result: 1 mm from the centre.</strong>'] },
         { task: 'With the same setup, which wavelength gives wider fringes: 400 nm, or 700 nm?',
@@ -437,7 +437,7 @@ CONTENT_I18N.add('en', {
       summary: 'Wavelength, frequency and energy of a photon; line and continuous spectra.',
       theory: [
         `<p>Electromagnetic radiation consists of waves that travel in a vacuum at the speed $c = 3\\cdot 10^{8}\\,\\text{m/s}$. Wavelength and frequency are related by $c = \\lambda f$. Radio waves, microwaves, infrared, visible light, ultraviolet, X-rays and gamma rays are just different parts of the same phenomenon.</p>`,
-        `<p><strong>Photon energy</strong>: light is emitted and absorbed in quanta called photons. The energy of a photon is $E = h f = \\frac{h c}{\\lambda}$, where $h \\approx 6{,}63\\cdot 10^{-34}\\,\\text{J·s}$. In atomic calculations the electronvolt is convenient ($1\\,\\text{eV} \\approx 1{,}6\\cdot 10^{-19}\\,\\text{J}$), together with the relation $hc \\approx 1240\\,\\text{eV·nm}$.</p>`,
+        `<p><strong>Photon energy</strong>: light is emitted and absorbed in quanta called photons. The energy of a photon is $E = h f = \\frac{h c}{\\lambda}$, where $h \\approx 6.63\\cdot 10^{-34}\\,\\text{J·s}$. In atomic calculations the electronvolt is convenient ($1\\,\\text{eV} \\approx 1.6\\cdot 10^{-19}\\,\\text{J}$), together with the relation $hc \\approx 1240\\,\\text{eV·nm}$.</p>`,
         `<p><strong>Spectra</strong>: solids heated to incandescence emit a continuous spectrum, thin gases emit a line spectrum. Each element has its own lines, which is why spectra are used to determine the chemical composition of stars.</p>`,
         `<p>Why spectra are made of lines: the energy levels of atoms are discrete, so an atom emits or absorbs only photons whose energy equals the difference between two levels. A higher photon energy means a shorter wavelength.</p>`,
         { fig: "s1s4-spektrum", caption: "Electromagnetic radiation is one phenomenon with different wavelengths. Visible light is only a narrow band." }
@@ -454,18 +454,18 @@ CONTENT_I18N.add('en', {
       summary: 'Bohr model of hydrogen: quantized levels and the energy of a photon emitted in a transition between them.',
       theory: [
         `<p>According to the Rutherford model, an atom has a small positive nucleus with electrons around it. However, according to classical physics an electron moving around the nucleus should keep radiating and fall into the nucleus, which does not happen. The Bohr model therefore introduced <strong>quantized levels</strong>, on which an electron does not radiate energy.</p>`,
-        `<p>The energy of an electron in a hydrogen atom is quantized: $E_n = -\\frac{13{,}6\\,\\text{eV}}{n^2}$, where $n = 1, 2, 3, \\dots$ is the principal quantum number. The higher $n$, the more weakly the electron is bound and the closer its energy is to zero.</p>`,
-        `<p><strong>Transition between levels</strong>: when an atom drops from a higher level $n_i$ to a lower level $n_f$, it emits a photon with energy $\\Delta E = 13{,}6\\,\\text{eV}\\left(\\frac{1}{n_f^2}-\\frac{1}{n_i^2}\\right)$. The opposite transition absorbs a photon of the same energy.</p>`,
+        `<p>The energy of an electron in a hydrogen atom is quantized: $E_n = -\\frac{13.6\\,\\text{eV}}{n^2}$, where $n = 1, 2, 3, \\dots$ is the principal quantum number. The higher $n$, the more weakly the electron is bound and the closer its energy is to zero.</p>`,
+        `<p><strong>Transition between levels</strong>: when an atom drops from a higher level $n_i$ to a lower level $n_f$, it emits a photon with energy $\\Delta E = 13.6\\,\\text{eV}\\left(\\frac{1}{n_f^2}-\\frac{1}{n_i^2}\\right)$. The opposite transition absorbs a photon of the same energy.</p>`,
         `<p>Why this holds: the wavelength of the emitted light corresponds to the difference between levels, so hydrogen emits only a line spectrum. Similarly, the photoelectric effect shows that light carries energy in quanta and therefore also has particle properties.</p>`,
         { fig: "obr-atom", caption: "Simplified model of an atom: a positive nucleus and electrons in orbits around it." }
       ],
       examples: [
         { task: 'An electron in a hydrogen atom drops from level $n=3$ to $n=2$. What energy does it emit?',
-          steps: ['$\\Delta E = 13{,}6\\left(\\frac{1}{2^2}-\\frac{1}{3^2}\\right)\\,\\text{eV}$.',
-            '$\\frac{1}{4}-\\frac{1}{9}=\\frac{5}{36}$, so $\\Delta E = 13{,}6\\cdot\\frac{5}{36}\\approx 1{,}89\\,\\text{eV}$.',
+          steps: ['$\\Delta E = 13.6\\left(\\frac{1}{2^2}-\\frac{1}{3^2}\\right)\\,\\text{eV}$.',
+            '$\\frac{1}{4}-\\frac{1}{9}=\\frac{5}{36}$, so $\\Delta E = 13.6\\cdot\\frac{5}{36}\\approx 1.89\\,\\text{eV}$.',
             '<strong>Result: approximately 1.89 eV.</strong>'] },
         { task: 'What is the energy of the electron on level $n=1$?',
-          steps: ['$E_1=-\\frac{13{,}6}{1^2}\\,\\text{eV}$.', '<strong>Result: E₁ = −13.6 eV.</strong>'] }
+          steps: ['$E_1=-\\frac{13.6}{1^2}\\,\\text{eV}$.', '<strong>Result: E₁ = −13.6 eV.</strong>'] }
       ]
     },
     's4-radioaktivita': {
@@ -490,25 +490,25 @@ CONTENT_I18N.add('en', {
       summary: 'Mass defect and energy released in fission of heavy nuclei and fusion of light nuclei.',
       theory: [
         `<p>A nucleus has a smaller mass than the sum of the masses of its nucleons. The difference is the <strong>mass defect</strong> $\\Delta m$, and it corresponds to the binding energy according to Einstein's relation $\\Delta E = \\Delta m\\,c^2$.</p>`,
-        `<p>If mass is measured in atomic mass units ($1\\,\\text{u}$), a practical relation holds: a mass defect of $1\\,\\text{u}$ corresponds to an energy of about $931{,}5\\,\\text{MeV}$.</p>`,
+        `<p>If mass is measured in atomic mass units ($1\\,\\text{u}$), a practical relation holds: a mass defect of $1\\,\\text{u}$ corresponds to an energy of about $931.5\\,\\text{MeV}$.</p>`,
         `<p><strong>Fission</strong>: a heavy nucleus (for example uranium-235) splits into two medium-heavy nuclei and releases energy. <strong>Fusion</strong>: light nuclei join into a heavier nucleus and again energy is released. The Sun gets its energy from the fusion of hydrogen into helium.</p>`,
         `<p>Why energy is released: nuclei are most tightly bound around iron. Moving towards it, whether by splitting a heavy nucleus or joining light ones, releases the difference in binding energies.</p>`,
         { fig: "s1s4-vazbova-energia", caption: "The binding energy per nucleon is largest around iron, which is why both fission of heavy nuclei and fusion of light nuclei release energy." }
       ],
       examples: [
-        { task: 'In a certain process the mass defect is $\\Delta m = 0{,}2\\,\\text{u}$. How many MeV of energy are released?',
-          steps: ['$\\Delta E = \\Delta m\\cdot 931{,}5\\,\\text{MeV/u}=0{,}2\\cdot 931{,}5\\,\\text{MeV}$.', '<strong>Result: approximately 186 MeV.</strong>'] },
+        { task: 'In a certain process the mass defect is $\\Delta m = 0.2\\,\\text{u}$. How many MeV of energy are released?',
+          steps: ['$\\Delta E = \\Delta m\\cdot 931.5\\,\\text{MeV/u}=0.2\\cdot 931.5\\,\\text{MeV}$.', '<strong>Result: approximately 186 MeV.</strong>'] },
         { task: 'In the reaction D + T → He + n the masses before the reaction total 5.0301 u and after the reaction 5.0113 u. How many MeV are released?',
-          steps: ['$\\Delta m = 5{,}0301-5{,}0113=0{,}0188\\,\\text{u}$.', '$\\Delta E = 0{,}0188\\cdot 931{,}5\\approx 17{,}5\\,\\text{MeV}$.', '<strong>Result: approximately 17.5 MeV.</strong>'] }
+          steps: ['$\\Delta m = 5.0301-5.0113=0.0188\\,\\text{u}$.', '$\\Delta E = 0.0188\\cdot 931.5\\approx 17.5\\,\\text{MeV}$.', '<strong>Result: approximately 17.5 MeV.</strong>'] }
       ]
     },
     's4-astrofyzika': {
       title: 'Basics of astrophysics and cosmology',
       summary: 'Distance of stars by parallax, Hubble law of expansion and Wien law of radiation.',
       theory: [
-        `<p><strong>Distances in space</strong> are measured in light-years or parsecs: $1\\,\\text{pc}\\approx 3{,}26\\,\\text{ly}$. With <strong>parallax</strong>, a star appears shifted against distant stars as the Earth orbits the Sun. The distance in parsecs is $d = \\frac{1}{p}$, where $p$ is the annual parallax in arcseconds.</p>`,
+        `<p><strong>Distances in space</strong> are measured in light-years or parsecs: $1\\,\\text{pc}\\approx 3.26\\,\\text{ly}$. With <strong>parallax</strong>, a star appears shifted against distant stars as the Earth orbits the Sun. The distance in parsecs is $d = \\frac{1}{p}$, where $p$ is the annual parallax in arcseconds.</p>`,
         `<p><strong>Hubble's law</strong>: distant galaxies move away from us at a speed $v = H_0\\,d$, where $H_0 \\approx 70\\,\\text{km/(s·Mpc)}$. The more distant the galaxy, the faster it recedes. This is evidence that the universe is expanding.</p>`,
-        `<p><strong>Wien's law</strong>: the surface temperature of a star determines the wavelength at which it radiates most strongly: $\\lambda_{max} = \\frac{b}{T}$, where $b \\approx 2{,}9\\cdot 10^{-3}\\,\\text{m·K}$. Cooler stars glow red, hotter ones blue.</p>`,
+        `<p><strong>Wien's law</strong>: the surface temperature of a star determines the wavelength at which it radiates most strongly: $\\lambda_{max} = \\frac{b}{T}$, where $b \\approx 2.9\\cdot 10^{-3}\\,\\text{m·K}$. Cooler stars glow red, hotter ones blue.</p>`,
         `<p>Why this works: parallax is the geometry of the Earth–Sun–star triangle, and Hubble found that the shift of spectral lines towards red increases with distance. From both measurements we can estimate distances as well as the age of the universe.</p>`,
         { fig: "s1s4-paralaxa", caption: "Parallax: seen from two points of the Earth's orbit, a star appears shifted against more distant stars. The distance in parsecs is d = 1/p." }
       ],
@@ -516,7 +516,7 @@ CONTENT_I18N.add('en', {
         { task: 'A galaxy recedes from us at 3500 km/s. What is its distance for $H_0 = 70\\,\\text{km/(s·Mpc)}$?',
           steps: ['$d=\\frac{v}{H_0}=\\frac{3500}{70}\\,\\text{Mpc}$.', '<strong>Result: 50 Mpc.</strong>'] },
         { task: 'The surface of a star has a temperature of 5800 K. At what wavelength does it radiate most strongly?',
-          steps: ['$\\lambda_{max}=\\frac{2{,}9\\cdot 10^{-3}}{5800}\\,\\text{m}=5\\cdot 10^{-7}\\,\\text{m}$.', '<strong>Result: 500 nm (green region).</strong>'] }
+          steps: ['$\\lambda_{max}=\\frac{2.9\\cdot 10^{-3}}{5800}\\,\\text{m}=5\\cdot 10^{-7}\\,\\text{m}$.', '<strong>Result: 500 nm (green region).</strong>'] }
       ]
     },
     's4-opakovanie': {
@@ -525,7 +525,7 @@ CONTENT_I18N.add('en', {
       theory: [
         `<p>Revision connects things you learn separately. Mechanics: $F = m\\,a$, $E_k = \\frac{1}{2}m v^2$, $W = F\\,s$, $P = \\frac{W}{t}$. Electricity: $I = \\frac{Q}{t}$, $U = R\\,I$, $P = U\\,I$. Always first find out what is given and what is asked, and only then choose the formula.</p>`,
         `<p><strong>Checking units:</strong> force in newtons ($\\text{N} = \\text{kg·m/s}^2$), energy in joules, voltage in volts. If the units on both sides do not match, the error is in the procedure.</p>`,
-        `<p><strong>Common mistakes:</strong> do not forget the $\\frac{1}{2}$ and the square of the speed in kinetic energy; convert km/h to m/s by dividing by $3{,}6$; in a parallel connection add the reciprocals of the resistances.</p>`,
+        `<p><strong>Common mistakes:</strong> do not forget the $\\frac{1}{2}$ and the square of the speed in kinetic energy; convert km/h to m/s by dividing by $3.6$; in a parallel connection add the reciprocals of the resistances.</p>`,
         `<p>Why this helps: physics is one system of laws. Energy is conserved across areas, for example electrical energy is converted into mechanical energy in a motor, so the same way of thinking works everywhere.</p>`
       ],
       examples: [

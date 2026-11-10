@@ -149,9 +149,15 @@
   function markup(html) {
     if (ctx.lang === SOURCE || typeof html !== 'string') return html;
     const tr = text;
-    return html
+    const out = html
       .replace(/(<text\b[^>]*>)([^<]+)(<\/text>)/g, (m, a, txt, b) => a + tr(txt) + b)
       .replace(/aria-label="([^"]*)"/g, (m, txt) => `aria-label="${tr(txt)}"`);
+    // jazyk s desatinnou bodkou (en, ja, ko, zh): čísla v popisoch obrázka 9,81 → 9.81 (aj vo vnorených <tspan>)
+    if (((packs[ctx.lang] && packs[ctx.lang].decimal) || '.') !== '.') return out;
+    const dot = (s) => s.replace(/(\d),(?=\d)/g, '$1.');
+    return out
+      .replace(/<text\b[\s\S]*?<\/text>/g, (blk) => blk.replace(/>([^<]*)</g, (m, s) => `>${dot(s)}<`))
+      .replace(/aria-label="([^"]*)"/g, (m, txt) => `aria-label="${dot(txt)}"`);
   }
 
   // preklad pevného textu do jazyka bez hlásenia chýbajúceho prekladu (vzorce)

@@ -7,12 +7,12 @@ CONTENT_I18N.add('en', {
       theory: [
         `<p>The photoelectric effect and the Compton effect showed that light behaves as a stream of particles (photons) with energy $E=h\\,f$. Interference and diffraction, on the other hand, show wave properties. We speak of <strong>wave-particle duality</strong>: every quantum object has both properties, but a given measurement reveals only one of them.</p>`,
         `<p>Louis de Broglie proposed that particles with momentum $p$ also have a wavelength $\\lambda=\\frac{h}{p}$. For a free electron with speed $v$ (non-relativistically) we have $p=m_e\\,v$. The heavier or faster a particle is, the shorter its wavelength.</p>`,
-        `<p>That is why macroscopic bodies (e.g. a small ball) have a wavelength so small that it cannot be observed, while electrons in a crystal produce a diffraction pattern similar to an X-ray one. The constant $h=6{,}63\\cdot 10^{-34}\\,\\text{J}\\,\\text{s}$ determines where quantum effects show up.</p>`,
+        `<p>That is why macroscopic bodies (e.g. a small ball) have a wavelength so small that it cannot be observed, while electrons in a crystal produce a diffraction pattern similar to an X-ray one. The constant $h=6.63\\cdot 10^{-34}\\,\\text{J}\\,\\text{s}$ determines where quantum effects show up.</p>`,
         { fig: 'v5v8-dualizmus', caption: 'The de Broglie wavelength λ = h/p: the larger the momentum, the shorter the wave.' }
       ],
       examples: [
-        { task: 'An electron moves with speed $v=2\\cdot 10^{6}\\,\\text{m/s}$. What is its de Broglie wavelength? Use $m_e=9{,}11\\cdot 10^{-31}\\,\\text{kg}$.',
-          steps: ['$p=m_e v=9{,}11\\cdot 10^{-31}\\cdot 2\\cdot 10^{6}$.', '$\\lambda=\\frac{h}{p}=\\frac{6{,}63\\cdot 10^{-34}}{1{,}82\\cdot 10^{-24}}\\approx 3{,}6\\cdot 10^{-10}\\,\\text{m}$.', '<strong>Result: $\\lambda\\approx 0{,}36\\,\\text{nm}$</strong>'] }
+        { task: 'An electron moves with speed $v=2\\cdot 10^{6}\\,\\text{m/s}$. What is its de Broglie wavelength? Use $m_e=9.11\\cdot 10^{-31}\\,\\text{kg}$.',
+          steps: ['$p=m_e v=9.11\\cdot 10^{-31}\\cdot 2\\cdot 10^{6}$.', '$\\lambda=\\frac{h}{p}=\\frac{6.63\\cdot 10^{-34}}{1.82\\cdot 10^{-24}}\\approx 3.6\\cdot 10^{-10}\\,\\text{m}$.', '<strong>Result: $\\lambda\\approx 0.36\\,\\text{nm}$</strong>'] }
       ]
     },
     'v5-vlnova-funkcia': {
@@ -26,7 +26,7 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'A particle is spread with uniform density over a segment of length $L=20\\,\\text{nm}$. What is the probability that it lies in the interval from $0$ to $5\\,\\text{nm}$?',
-          steps: ['The density is constant, $|\\psi|^2=\\frac{1}{L}$.', '$P=\\frac{5}{20}=\\frac{1}{4}$.', '<strong>Result: $P=0{,}25$</strong>'] }
+          steps: ['The density is constant, $|\\psi|^2=\\frac{1}{L}$.', '$P=\\frac{5}{20}=\\frac{1}{4}$.', '<strong>Result: $P=0.25$</strong>'] }
       ]
     },
     'v5-schrodinger': {
@@ -35,12 +35,12 @@ CONTENT_I18N.add('en', {
       theory: [
         `<p><strong>The Schrödinger equation</strong> describes the evolution of the wave function. Its time-independent form $\\hat{H}\\psi=E\\psi$ says that for stationary states the energy $E$ is constant and the wave function is an eigenfunction of the energy operator $\\hat{H}$.</p>`,
         `<p>Consider a particle in an <strong>infinitely deep potential well</strong> of width $L$. The wave function must vanish at the edges of the well, so only an integer number of half wavelengths fits into it. The result is discrete energies $E_n=\\frac{n^2 h^2}{8 m L^2}$, where $n=1,2,3,\\dots$</p>`,
-        `<p>The energy grows with the square of $n$ and falls with the square of the well width. Therefore, for an electron in a well of width $1\\,\\text{nm}$ the lowest energy is $E_1=0{,}376\\,\\text{eV}$, while in a wider well the levels lie closer together.</p>`,
+        `<p>The energy grows with the square of $n$ and falls with the square of the well width. Therefore, for an electron in a well of width $1\\,\\text{nm}$ the lowest energy is $E_1=0.376\\,\\text{eV}$, while in a wider well the levels lie closer together.</p>`,
         { fig: 'v5v8-jama', caption: 'A particle in an infinitely deep well has only discrete levels; the energy grows with n².' }
       ],
       examples: [
-        { task: 'An electron is in a well of width $L=1\\,\\text{nm}$ in the state $n=2$. What is its energy? For $n=1$ we have $E_1=0{,}376\\,\\text{eV}$.',
-          steps: ['$E_n=E_1\\cdot\\frac{n^2}{L^2}$ with $L$ in nanometres.', '$E_2=0{,}376\\cdot 4=1{,}504\\,\\text{eV}$.', '<strong>Result: $E_2\\approx 1{,}5\\,\\text{eV}$</strong>'] }
+        { task: 'An electron is in a well of width $L=1\\,\\text{nm}$ in the state $n=2$. What is its energy? For $n=1$ we have $E_1=0.376\\,\\text{eV}$.',
+          steps: ['$E_n=E_1\\cdot\\frac{n^2}{L^2}$ with $L$ in nanometres.', '$E_2=0.376\\cdot 4=1.504\\,\\text{eV}$.', '<strong>Result: $E_2\\approx 1.5\\,\\text{eV}$</strong>'] }
       ]
     },
     'v5-operatory': {
@@ -67,7 +67,7 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'What is the energy of the oscillator in the state $n=3$, in units of $\\hbar\\omega$?',
-          steps: ['$E_3=\\left(3+\\tfrac{1}{2}\\right)\\hbar\\omega$.', '<strong>Result: $E_3=3{,}5\\,\\hbar\\omega$</strong>'] }
+          steps: ['$E_3=\\left(3+\\tfrac{1}{2}\\right)\\hbar\\omega$.', '<strong>Result: $E_3=3.5\\,\\hbar\\omega$</strong>'] }
       ]
     },
     'v5-spin': {
@@ -88,14 +88,14 @@ CONTENT_I18N.add('en', {
       title: 'The hydrogen atom and quantum states',
       summary: 'Energy levels of the hydrogen atom and the energy of a photon emitted in a transition between them.',
       theory: [
-        `<p>The energies of an electron in the hydrogen atom are $E_n=-\\frac{13{,}6\\,\\text{eV}}{n^2}$, where $n=1,2,3,\\dots$ is the principal quantum number. The negative sign means that the electron is bound; as $n\\to\\infty$ the energy approaches zero.</p>`,
+        `<p>The energies of an electron in the hydrogen atom are $E_n=-\\frac{13.6\\,\\text{eV}}{n^2}$, where $n=1,2,3,\\dots$ is the principal quantum number. The negative sign means that the electron is bound; as $n\\to\\infty$ the energy approaches zero.</p>`,
         `<p>When an electron drops from a higher level $n_i$ to a lower one $n_f$, the atom emits a photon with energy $E_f=E_{n_i}-E_{n_f}$ in absolute value. Absorption of a photon is the reverse process. That is why the spectrum of hydrogen consists of lines, not a continuous band.</p>`,
         `<p>The most important is the series of transitions to $n_f=2$ (the Balmer series), which lies in the visible region of light. Transitions to $n_f=1$ give ultraviolet radiation.</p>`,
         { fig: 'v5v8-vodik', caption: 'On a transition to a lower level the atom emits a photon with energy equal to the difference of the levels.' }
       ],
       examples: [
         { task: 'An electron in a hydrogen atom goes from $n=3$ to $n=2$. What energy does the emitted photon have?',
-          steps: ['$E_3=-\\frac{13{,}6}{9}\\approx -1{,}51\\,\\text{eV}$ and $E_2=-\\frac{13{,}6}{4}=-3{,}40\\,\\text{eV}$.', '$\\Delta E=|E_2-E_3|\\approx 1{,}89\\,\\text{eV}$.', '<strong>Result: $\\Delta E\\approx 1{,}89\\,\\text{eV}$</strong>'] }
+          steps: ['$E_3=-\\frac{13.6}{9}\\approx -1.51\\,\\text{eV}$ and $E_2=-\\frac{13.6}{4}=-3.40\\,\\text{eV}$.', '$\\Delta E=|E_2-E_3|\\approx 1.89\\,\\text{eV}$.', '<strong>Result: $\\Delta E\\approx 1.89\\,\\text{eV}$</strong>'] }
       ]
     },
     'v5-neurcitost': {
@@ -108,8 +108,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v5v8-tunel', caption: 'A particle with energy lower than the height of the barrier has an exponentially decaying wave inside the barrier and can tunnel through it.' }
       ],
       examples: [
-        { task: 'The position of an electron is known with an uncertainty $\\Delta x=1\\,\\text{pm}$. What is the smallest uncertainty of its momentum? Use $\\hbar=1{,}0546\\cdot 10^{-34}\\,\\text{J}\\,\\text{s}$.',
-          steps: ['$\\Delta p_{\\min}=\\frac{\\hbar}{2\\,\\Delta x}=\\frac{1{,}0546\\cdot 10^{-34}}{2\\cdot 10^{-12}}$.', '$\\Delta p_{\\min}\\approx 5{,}27\\cdot 10^{-23}\\,\\text{kg}\\,\\text{m/s}$.', '<strong>Result: $\\Delta p_{\\min}\\approx 52{,}7\\cdot 10^{-24}\\,\\text{kg}\\,\\text{m/s}$</strong>'] }
+        { task: 'The position of an electron is known with an uncertainty $\\Delta x=1\\,\\text{pm}$. What is the smallest uncertainty of its momentum? Use $\\hbar=1.0546\\cdot 10^{-34}\\,\\text{J}\\,\\text{s}$.',
+          steps: ['$\\Delta p_{\\min}=\\frac{\\hbar}{2\\,\\Delta x}=\\frac{1.0546\\cdot 10^{-34}}{2\\cdot 10^{-12}}$.', '$\\Delta p_{\\min}\\approx 5.27\\cdot 10^{-23}\\,\\text{kg}\\,\\text{m/s}$.', '<strong>Result: $\\Delta p_{\\min}\\approx 52.7\\cdot 10^{-24}\\,\\text{kg}\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v6-specialna': {
@@ -122,8 +122,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v5v8-gama', caption: 'The Lorentz factor γ is close to 1 at low speeds and grows steeply as the speed approaches c.' }
       ],
       examples: [
-        { task: 'A particle moves with speed $v=0{,}6\\,c$. What is its Lorentz factor?',
-          steps: ['$\\gamma=\\frac{1}{\\sqrt{1-0{,}6^2}}=\\frac{1}{\\sqrt{0{,}64}}$.', '$\\sqrt{0{,}64}=0{,}8$, so $\\gamma=\\frac{1}{0{,}8}$.', '<strong>Result: $\\gamma=1{,}25$</strong>'] }
+        { task: 'A particle moves with speed $v=0.6\\,c$. What is its Lorentz factor?',
+          steps: ['$\\gamma=\\frac{1}{\\sqrt{1-0.6^2}}=\\frac{1}{\\sqrt{0.64}}$.', '$\\sqrt{0.64}=0.8$, so $\\gamma=\\frac{1}{0.8}$.', '<strong>Result: $\\gamma=1.25$</strong>'] }
       ]
     },
     'v6-lorentz': {
@@ -136,8 +136,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v5v8-lorentz', caption: 'The axes x′ and ct′ of frame S′ are tilted; the Lorentz transformation recalculates the coordinates of the event.' }
       ],
       examples: [
-        { task: 'In frame $S$ an event has coordinates $x=8\\,\\text{m}$ and $ct=4\\,\\text{m}$. Frame $S\'$ moves with speed $0{,}6\\,c$ in the positive direction of the $x$ axis. What is $x\'$ in $S\'$?',
-          steps: ['$\\gamma=1{,}25$, $\\beta=0{,}6$.', '$x\'=\\gamma\\,(x-\\beta\\,ct)=1{,}25\\cdot(8-0{,}6\\cdot 4)=1{,}25\\cdot 5{,}6=7$.', '<strong>Result: $x\'=7\\,\\text{m}$</strong>'] }
+        { task: 'In frame $S$ an event has coordinates $x=8\\,\\text{m}$ and $ct=4\\,\\text{m}$. Frame $S\'$ moves with speed $0.6\\,c$ in the positive direction of the $x$ axis. What is $x\'$ in $S\'$?',
+          steps: ['$\\gamma=1.25$, $\\beta=0.6$.', '$x\'=\\gamma\\,(x-\\beta\\,ct)=1.25\\cdot(8-0.6\\cdot 4)=1.25\\cdot 5.6=7$.', '<strong>Result: $x\'=7\\,\\text{m}$</strong>'] }
       ]
     },
     'v6-energia': {
@@ -150,8 +150,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v5v8-energia', caption: 'The total energy γmc² is the rest energy mc² plus the kinetic energy (γ − 1)mc².' }
       ],
       examples: [
-        { task: 'An electron ($m\\,c^2=0{,}511\\,\\text{MeV}$) moves with speed $0{,}8\\,c$. What is its kinetic energy?',
-          steps: ['$\\gamma=\\frac{1}{\\sqrt{1-0{,}64}}=\\frac{5}{3}$.', '$E_k=(\\gamma-1)\\,mc^2=\\frac{2}{3}\\cdot 0{,}511\\approx 0{,}34\\,\\text{MeV}$.', '<strong>Result: $E_k\\approx 0{,}34\\,\\text{MeV}$</strong>'] }
+        { task: 'An electron ($m\\,c^2=0.511\\,\\text{MeV}$) moves with speed $0.8\\,c$. What is its kinetic energy?',
+          steps: ['$\\gamma=\\frac{1}{\\sqrt{1-0.64}}=\\frac{5}{3}$.', '$E_k=(\\gamma-1)\\,mc^2=\\frac{2}{3}\\cdot 0.511\\approx 0.34\\,\\text{MeV}$.', '<strong>Result: $E_k\\approx 0.34\\,\\text{MeV}$</strong>'] }
       ]
     },
     'v6-ekvivalencia': {
@@ -190,8 +190,8 @@ CONTENT_I18N.add('en', {
         `<p>A strong gravitational field slows down time: clocks close to a massive body run slower than those far from it. For a mass $M$ the <strong>Schwarzschild radius</strong> is $r_s=\\frac{2GM}{c^2}$. For the Earth it is about $9$ mm, for the Sun about $3\\,\\text{km}$.</p>`
       ],
       examples: [
-        { task: 'What is the Schwarzschild radius of the Sun, if $M=1{,}989\\cdot 10^{30}\\,\\text{kg}$, $G=6{,}674\\cdot 10^{-11}$ and $c=3\\cdot 10^{8}\\,\\text{m/s}$?',
-          steps: ['$r_s=\\frac{2GM}{c^2}=\\frac{2\\cdot 6{,}674\\cdot 10^{-11}\\cdot 1{,}989\\cdot 10^{30}}{9\\cdot 10^{16}}$.', '$r_s\\approx 2{,}95\\cdot 10^{3}\\,\\text{m}$.', '<strong>Result: $r_s\\approx 2{,}95\\,\\text{km}$</strong>'] }
+        { task: 'What is the Schwarzschild radius of the Sun, if $M=1.989\\cdot 10^{30}\\,\\text{kg}$, $G=6.674\\cdot 10^{-11}$ and $c=3\\cdot 10^{8}\\,\\text{m/s}$?',
+          steps: ['$r_s=\\frac{2GM}{c^2}=\\frac{2\\cdot 6.674\\cdot 10^{-11}\\cdot 1.989\\cdot 10^{30}}{9\\cdot 10^{16}}$.', '$r_s\\approx 2.95\\cdot 10^{3}\\,\\text{m}$.', '<strong>Result: $r_s\\approx 2.95\\,\\text{km}$</strong>'] }
       ]
     },
     'v6-zakrivenie': {
@@ -218,8 +218,8 @@ CONTENT_I18N.add('en', {
         { fig: 'v5v8-horizont', caption: 'The radius of the event horizon is r_s = 2GM/c²; light from inside the horizon cannot escape.' }
       ],
       examples: [
-        { task: 'What is the radius of the horizon of a black hole with mass $10\\,M_{\\odot}$, if for the Sun $r_s\\approx 2{,}95\\,\\text{km}$?',
-          steps: ['The radius is proportional to the mass: $r_s=2{,}95\\,\\text{km}\\cdot 10$.', '<strong>Result: $r_s\\approx 29{,}5\\,\\text{km}$</strong>'] }
+        { task: 'What is the radius of the horizon of a black hole with mass $10\\,M_{\\odot}$, if for the Sun $r_s\\approx 2.95\\,\\text{km}$?',
+          steps: ['The radius is proportional to the mass: $r_s=2.95\\,\\text{km}\\cdot 10$.', '<strong>Result: $r_s\\approx 29.5\\,\\text{km}$</strong>'] }
       ]
     },
     'v7-atom': {
@@ -244,16 +244,16 @@ CONTENT_I18N.add('en', {
       summary: 'Transitions of electrons between levels and the energy of the emitted photons.',
       theory: [
         `<p>An atom can have only certain <strong>energy levels</strong>. When an electron drops from a higher level to a lower one, it emits a <strong>photon</strong> with energy equal to the difference of the levels. Conversely, a photon of the right energy can excite an electron to a higher level.</p>`,
-        `<p>The energy of a photon is $E = h f = \\dfrac{h c}{\\lambda}$, where $h \\approx 6{,}63\\cdot 10^{-34}\\,\\text{J·s}$ is the Planck constant. In atomic physics energy is given in electronvolts: $1\\,\\text{eV} = 1{,}6\\cdot 10^{-19}\\,\\text{J}$.</p>`,
-        `<p>For the hydrogen atom $E_n = -\\dfrac{13{,}6}{n^2}\\,\\text{eV}$. The ground state ($n = 1$) is the lowest, and the levels approach zero from below. In a transition from $n_i$ to $n_f$ a photon with energy $\\Delta E = 13{,}6\\,\\text{eV}\\left(\\dfrac{1}{n_f^2}-\\dfrac{1}{n_i^2}\\right)$ is produced.</p>`,
+        `<p>The energy of a photon is $E = h f = \\dfrac{h c}{\\lambda}$, where $h \\approx 6.63\\cdot 10^{-34}\\,\\text{J·s}$ is the Planck constant. In atomic physics energy is given in electronvolts: $1\\,\\text{eV} = 1.6\\cdot 10^{-19}\\,\\text{J}$.</p>`,
+        `<p>For the hydrogen atom $E_n = -\\dfrac{13.6}{n^2}\\,\\text{eV}$. The ground state ($n = 1$) is the lowest, and the levels approach zero from below. In a transition from $n_i$ to $n_f$ a photon with energy $\\Delta E = 13.6\\,\\text{eV}\\left(\\dfrac{1}{n_f^2}-\\dfrac{1}{n_i^2}\\right)$ is produced.</p>`,
         `<p><strong>Why are the spectra made of lines?</strong> The levels are discrete, so photons have only a few precise energies. On a spectrogram we therefore see sharp lines, not a continuous rainbow. Each element has its own set of lines, which is why its spectrum is like a fingerprint.</p>`,
         { fig: 'v5v8-vodik', caption: 'On a transition to a lower level the atom emits a photon with energy equal to the difference of the levels.' }
       ],
       examples: [
         { task: 'An electron in a hydrogen atom goes from level $n=3$ to $n=2$. What energy does the emitted photon have?',
-          steps: ['The difference of the levels: $\\Delta E = 13{,}6\\,\\text{eV}\\left(\\dfrac{1}{2^2}-\\dfrac{1}{3^2}\\right)$.', '$\\dfrac{1}{4}-\\dfrac{1}{9}=\\dfrac{5}{36}$, so $\\Delta E = 13{,}6\\cdot\\dfrac{5}{36}\\approx 1{,}89\\,\\text{eV}$.', '<strong>Result: approximately 1.89 eV</strong>'] },
+          steps: ['The difference of the levels: $\\Delta E = 13.6\\,\\text{eV}\\left(\\dfrac{1}{2^2}-\\dfrac{1}{3^2}\\right)$.', '$\\dfrac{1}{4}-\\dfrac{1}{9}=\\dfrac{5}{36}$, so $\\Delta E = 13.6\\cdot\\dfrac{5}{36}\\approx 1.89\\,\\text{eV}$.', '<strong>Result: approximately 1.89 eV</strong>'] },
         { task: 'Which transition emits a photon with the larger energy: $2\\to 1$, or $3\\to 2$?',
-          steps: ['Transition $2\\to 1$: $13{,}6\\cdot\\left(1-\\dfrac{1}{4}\\right)=10{,}2\\,\\text{eV}$.', 'The transition $3\\to 2$ gives approximately $1{,}89\\,\\text{eV}$.', '<strong>Result: the transition $2\\to 1$</strong>'] }
+          steps: ['Transition $2\\to 1$: $13.6\\cdot\\left(1-\\dfrac{1}{4}\\right)=10.2\\,\\text{eV}$.', 'The transition $3\\to 2$ gives approximately $1.89\\,\\text{eV}$.', '<strong>Result: the transition $2\\to 1$</strong>'] }
       ]
     },
     'v7-jadro': {
@@ -261,7 +261,7 @@ CONTENT_I18N.add('en', {
       summary: 'Protons, neutrons, nuclide notation, isotopes and the size of the nucleus.',
       theory: [
         `<p>The nucleus consists of protons (charge $+e$) and neutrons (no charge). Together they are called nucleons. A nuclide is written as $^{A}_{Z}\\mathrm{X}$: $A$ is the mass number, $Z$ is the atomic number, and the number of neutrons is $N = A - Z$.</p>`,
-        `<p>The radius of the nucleus grows approximately with the cube root of the mass number: $r \\approx 1{,}2\\cdot 10^{-15}\\,\\text{m}\\cdot A^{1/3}$. Nuclei are therefore very small (of the order of femtometres), but they have almost the same density.</p>`,
+        `<p>The radius of the nucleus grows approximately with the cube root of the mass number: $r \\approx 1.2\\cdot 10^{-15}\\,\\text{m}\\cdot A^{1/3}$. Nuclei are therefore very small (of the order of femtometres), but they have almost the same density.</p>`,
         `<p><strong>Why does the nucleus not fly apart?</strong> Protons repel each other electrically, but the strong nuclear interaction acts as well. It is a short-range attractive force that is stronger than the electric repulsion. Stable heavier nuclei have more neutrons than protons (e.g. $^{208}_{82}\\mathrm{Pb}$).</p>`,
         `<ul><li><strong>Isotopes</strong> have the same $Z$ but different $N$ (e.g. $^{12}_{6}\\mathrm{C}$ and $^{14}_{6}\\mathrm{C}$).</li><li><strong>Isobars</strong> have the same $A$ but different $Z$.</li></ul>`,
         { fig: 'v5v8-nuklidy', caption: 'Light stable nuclei have N ≈ Z, while heavier stable nuclei have more neutrons than protons.' }
@@ -294,15 +294,15 @@ CONTENT_I18N.add('en', {
       title: 'Nuclear fission and fusion',
       summary: 'Mass defect, binding energy and the energy released by fission or fusion.',
       theory: [
-        `<p>A nucleus has a smaller mass than the sum of the masses of its nucleons. This difference is the <em>mass defect</em> $\\Delta m$. According to the relation $E = \\Delta m\\, c^2$ the corresponding energy is released. For practical calculations $1\\,\\text{u}\\cdot c^2 \\approx 931{,}5\\,\\text{MeV}$.</p>`,
+        `<p>A nucleus has a smaller mass than the sum of the masses of its nucleons. This difference is the <em>mass defect</em> $\\Delta m$. According to the relation $E = \\Delta m\\, c^2$ the corresponding energy is released. For practical calculations $1\\,\\text{u}\\cdot c^2 \\approx 931.5\\,\\text{MeV}$.</p>`,
         `<p>The largest binding energy per nucleon is found in nuclei around iron ($A\\approx 56$). Therefore heavy nuclei can undergo <strong>fission</strong> into medium-heavy nuclei, and light nuclei can <strong>merge</strong> (fusion). Both paths lead to greater binding energy and release energy.</p>`,
         `<p>In the fission of $^{235}_{92}\\mathrm{U}$ by a neutron, two fragments, 2 to 3 neutrons and approximately 200 MeV of energy are produced. These neutrons can trigger a chain reaction, which must be controlled in a reactor.</p>`,
         `<p>Fusion requires an extremely high temperature so that positively charged nuclei approach each other within the range of the strong interaction. In the reaction $^{2}_{1}\\mathrm{H}+{}^{3}_{1}\\mathrm{H}\\to{}^{4}_{2}\\mathrm{He}+n$ approximately 17.6 MeV is released.</p>`,
         { fig: 'v5v8-vazba', caption: 'The binding energy per nucleon peaks at iron: light nuclei fuse, heavy nuclei split.' }
       ],
       examples: [
-        { task: 'In a nuclear reaction a mass defect $\\Delta m = 0{,}2\\,\\text{u}$ arises. What energy is that?',
-          steps: ['$E=\\Delta m\\cdot 931{,}5\\,\\text{MeV}$.', '$E=0{,}2\\cdot 931{,}5=186{,}3\\,\\text{MeV}$.', '<strong>Result: 186.3 MeV</strong>'] },
+        { task: 'In a nuclear reaction a mass defect $\\Delta m = 0.2\\,\\text{u}$ arises. What energy is that?',
+          steps: ['$E=\\Delta m\\cdot 931.5\\,\\text{MeV}$.', '$E=0.2\\cdot 931.5=186.3\\,\\text{MeV}$.', '<strong>Result: 186.3 MeV</strong>'] },
         { task: 'Why is fusion on Earth more demanding than fission?',
           steps: ['The nuclei are positively charged and repel each other.', 'Extreme temperature and pressure are needed to bring them into the range of the strong interaction.', '<strong>Result: fusion requires extreme conditions</strong>'] }
       ]
@@ -319,7 +319,7 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'A lead layer has a half-value thickness of 1.2 cm. What percentage of the radiation passes through a layer 3.6 cm thick?',
-          steps: ['$x/d_{1/2}=3{,}6/1{,}2=3$ half-value thicknesses.', '$I = I_0\\cdot 2^{-3}=\\dfrac{I_0}{8}$.', '<strong>Result: 12.5%</strong>'] },
+          steps: ['$x/d_{1/2}=3.6/1.2=3$ half-value thicknesses.', '$I = I_0\\cdot 2^{-3}=\\dfrac{I_0}{8}$.', '<strong>Result: 12.5%</strong>'] },
         { task: 'The intensity of the radiation dropped to a quarter. How many half-value thicknesses did the layer have?',
           steps: ['$\\dfrac{1}{4}=2^{-2}$.', 'So the layer had 2 half-value thicknesses.', '<strong>Result: 2</strong>'] }
       ]
@@ -336,9 +336,9 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'A reactor has a thermal power of 3000 MW and an efficiency of 33%. What is its electrical power?',
-          steps: ['$P_{\\text{el}}=\\eta\\,P_{\\text{t}}$.', '$0{,}33\\cdot 3000=990\\,\\text{MW}$.', '<strong>Result: 990 MW</strong>'] },
+          steps: ['$P_{\\text{el}}=\\eta\\,P_{\\text{t}}$.', '$0.33\\cdot 3000=990\\,\\text{MW}$.', '<strong>Result: 990 MW</strong>'] },
         { task: 'As a result of irradiation a body absorbed an energy of 0.5 J. The mass of the body is 50 kg. What is the absorbed dose?',
-          steps: ['$D = E/m$.', '$D = 0{,}5/50 = 0{,}01\\,\\text{Gy}$.', '<strong>Result: 0.01 Gy</strong>'] }
+          steps: ['$D = E/m$.', '$D = 0.5/50 = 0.01\\,\\text{Gy}$.', '<strong>Result: 0.01 Gy</strong>'] }
       ]
     },
     'v8-castice': {
@@ -453,7 +453,7 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'How many times heavier is the Higgs boson than the proton (the mass of the proton is approximately 0.94 GeV/$c^2$)?',
-          steps: ['$125/0{,}94\\approx 133$.', '<strong>Result: about 133 times</strong>'] },
+          steps: ['$125/0.94\\approx 133$.', '<strong>Result: about 133 times</strong>'] },
         { task: 'What fraction of the energy content of the universe is dark matter, approximately?',
           steps: ['Dark matter makes up approximately 27% and ordinary matter only about 5%.', '<strong>Result: about 27%</strong>'] }
       ]

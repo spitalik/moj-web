@@ -45,8 +45,8 @@ CONTENT_I18N.add('ja', {
         `<p><strong>この関係が成り立つ理由：</strong>力は、十分に長く作用したときにのみ運動量を変化させます。短い衝撃は、力が大きくても小さな力積しか与えません。角運動量は、物体に力のモーメント $\\vec M=\\vec r\\times\\vec F$ が作用するときにのみ変化します。</p>`
       ],
       examples: [
-        { task: '質量 $m=0{,}02\\,\\text{kg}$ の弾丸が、速度 $v=300\\,\\text{m/s}$ で飛んでいます。その運動量はいくらですか？',
-          steps: ['$p=m\\,v=0{,}02\\cdot 300$。', '<strong>結果：$p=6\\,\\text{kg\\,m/s}$</strong>'] },
+        { task: '質量 $m=0.02\\,\\text{kg}$ の弾丸が、速度 $v=300\\,\\text{m/s}$ で飛んでいます。その運動量はいくらですか？',
+          steps: ['$p=m\\,v=0.02\\cdot 300$。', '<strong>結果：$p=6\\,\\text{kg\\,m/s}$</strong>'] },
         { task: '力 $F=50\\,\\text{N}$ が物体に $4\\,\\text{s}$ の間作用します。その運動量の変化はいくらですか？',
           steps: ['力積：$\\Delta p=F\\,\\Delta t=50\\cdot 4$。', '<strong>結果：$\\Delta p=200\\,\\text{kg\\,m/s}$</strong>'] }
       ]
@@ -72,15 +72,15 @@ CONTENT_I18N.add('ja', {
       title: '重力場',
       summary: 'ニュートンの万有引力の法則、重力加速度、そして惑星の中心からの距離による重力加速度の変化を扱います。',
       theory: [
-        `<p><strong>ニュートンの万有引力の法則</strong>：質量 $m_1$ と $m_2$ の二つの物体は、距離 $r$ において力 $F=G\\frac{m_1 m_2}{r^2}$ で引き合います。ここで $G\\approx 6{,}67\\cdot 10^{-11}\\,\\text{N\\,m}^2/\\text{kg}^2$ です。</p>`,
+        `<p><strong>ニュートンの万有引力の法則</strong>：質量 $m_1$ と $m_2$ の二つの物体は、距離 $r$ において力 $F=G\\frac{m_1 m_2}{r^2}$ で引き合います。ここで $G\\approx 6.67\\cdot 10^{-11}\\,\\text{N\\,m}^2/\\text{kg}^2$ です。</p>`,
         `<p><strong>重力場</strong>は、質量をもつ物体に重力が作用する空間の領域です。場の強さ、すなわち<em>重力加速度</em>は $g=\\frac{F}{m}=G\\frac{M}{r^2}$ で、$M$ は場の源の質量です。</p>`,
         `<p><strong>なぜ距離とともに減少するのか：</strong>重力の作用は、面積 $4\\pi r^2$ の大きくなる球面に広がっていきます。そのため重力加速度は、中心からの距離の二乗に反比例して変化し、線形ではありません。</p>`,
-        `<p>地表では $g\\approx 9{,}81\\,\\text{m/s}^2$ です。地球の中心から距離 $r$ の地点では $g(r)=9{,}81\\cdot\\left(\\frac{R}{r}\\right)^2$ です。ここで $R$ は地球の半径です。</p>`,
+        `<p>地表では $g\\approx 9.81\\,\\text{m/s}^2$ です。地球の中心から距離 $r$ の地点では $g(r)=9.81\\cdot\\left(\\frac{R}{r}\\right)^2$ です。ここで $R$ は地球の半径です。</p>`,
         { fig: 'v1v4-gravitacia-r', caption: '重力加速度は中心からの距離の二乗とともに減少します。距離が 2R のとき、その値は4分の1になります。' }
       ],
       examples: [
         { task: '地球の中心からの距離が地球半径の2倍となる高度では、重力加速度はいくらですか？',
-          steps: ['距離の比は $\\frac{r}{R}=2$ なので、$g(r)=g\\cdot\\left(\\frac{1}{2}\\right)^2$。', '$g(r)=\\frac{9{,}81}{4}\\approx 2{,}45\\,\\text{m/s}^2$。', '<strong>結果：約 $2{,}45\\,\\text{m/s}^2$</strong>'] },
+          steps: ['距離の比は $\\frac{r}{R}=2$ なので、$g(r)=g\\cdot\\left(\\frac{1}{2}\\right)^2$。', '$g(r)=\\frac{9.81}{4}\\approx 2.45\\,\\text{m/s}^2$。', '<strong>結果：約 $2.45\\,\\text{m/s}^2$</strong>'] },
         { task: '質量 $m_1=10\\,\\text{kg}$ と $m_2=5\\,\\text{kg}$ の二つの物体が距離 $r$ にあります。距離を2倍にすると、力はどう変わりますか？',
           steps: ['力は $\\frac{1}{r^2}$ に比例するので、距離が $2r$ になると4分の1に減ります。', '<strong>結果：力は4分の1になります</strong>'] }
       ]
@@ -97,9 +97,9 @@ CONTENT_I18N.add('ja', {
       ],
       examples: [
         { task: '円板が振動数 $f=3\\,\\text{Hz}$ で回転しています。その角速度はいくらですか？',
-          steps: ['$\\omega=2\\pi f=2\\pi\\cdot 3$。', '<strong>結果：$\\omega=6\\pi\\approx 18{,}85\\,\\text{rad/s}$</strong>'] },
-        { task: '車輪上の点は軸から $r=0{,}5\\,\\text{m}$ の位置にあり、角速度は $\\omega=4\\,\\text{rad/s}$ です。その周速度はいくらですか？',
-          steps: ['$v=\\omega\\,r=4\\cdot 0{,}5$。', '<strong>結果：$v=2\\,\\text{m/s}$</strong>'] }
+          steps: ['$\\omega=2\\pi f=2\\pi\\cdot 3$。', '<strong>結果：$\\omega=6\\pi\\approx 18.85\\,\\text{rad/s}$</strong>'] },
+        { task: '車輪上の点は軸から $r=0.5\\,\\text{m}$ の位置にあり、角速度は $\\omega=4\\,\\text{rad/s}$ です。その周速度はいくらですか？',
+          steps: ['$v=\\omega\\,r=4\\cdot 0.5$。', '<strong>結果：$v=2\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v1-sustavy': {
@@ -140,24 +140,24 @@ CONTENT_I18N.add('ja', {
       title: '温度、圧力、熱、内部エネルギー',
       summary: '熱力学的温度はケルビンで表し、圧力は面積あたりの力、内部エネルギーは粒子のエネルギーの和として扱います。',
       theory: [
-        `<p><strong>熱力学的温度</strong> $T$ はケルビンで測られます。粒子の平均運動エネルギーに比例するため、負の値にはなりえません。摂氏からの換算は $T=t+273{,}15$ で、$0\\,\\text{K}$ が絶対零度です。</p>`,
+        `<p><strong>熱力学的温度</strong> $T$ はケルビンで測られます。粒子の平均運動エネルギーに比例するため、負の値にはなりえません。摂氏からの換算は $T=t+273.15$ で、$0\\,\\text{K}$ が絶対零度です。</p>`,
         `<p><strong>圧力</strong>は、単位面積に垂直に作用する力です：$p=\\frac{F}{S}$、単位はパスカル、$1\\,\\text{Pa}=1\\,\\text{N/m}^2$。気体は、粒子が容器の壁に衝突して運動量を与えるため、壁を押します。</p>`,
         `<p><strong>内部エネルギー</strong> $U$ は、系のすべての粒子の運動エネルギーと位置エネルギーの和です。熱 $Q$ は、温度差によって物体の間を移動するエネルギーであり、物体が「もつ」ものではありません。</p>`,
         `<p><strong>なぜケルビンか：</strong>摂氏の目盛りの零点は任意に定められています。エネルギーや比に関係する式では、エネルギーが消失する零点、すなわちケルビンを用いなければなりません。</p>`,
-        { fig: 'v1v4-teplota-stupnice', caption: '温度の換算は T = t + 273,15 です。絶対零度は 0 K、すなわち −273,15 °C に対応します。' }
+        { fig: 'v1v4-teplota-stupnice', caption: '温度の換算は T = t + 273.15 です。絶対零度は 0 K、すなわち −273.15 °C に対応します。' }
       ],
       examples: [
         { task: '温度 $t=27\\,{}^\\circ\\text{C}$ はケルビンでいくらですか？',
-          steps: ['$T=t+273{,}15=27+273{,}15$。', '<strong>結果：$T=300{,}15\\,\\text{K}$</strong>'] },
-        { task: '面積 $S=0{,}2\\,\\text{m}^2$ に垂直に、力 $F=600\\,\\text{N}$ が作用します。圧力はいくらですか？',
-          steps: ['$p=\\frac{F}{S}=\\frac{600}{0{,}2}$。', '<strong>結果：$p=3000\\,\\text{Pa}$</strong>'] }
+          steps: ['$T=t+273.15=27+273.15$。', '<strong>結果：$T=300.15\\,\\text{K}$</strong>'] },
+        { task: '面積 $S=0.2\\,\\text{m}^2$ に垂直に、力 $F=600\\,\\text{N}$ が作用します。圧力はいくらですか？',
+          steps: ['$p=\\frac{F}{S}=\\frac{600}{0.2}$。', '<strong>結果：$p=3000\\,\\text{Pa}$</strong>'] }
       ]
     },
     'v2-stavove-rovnice': {
       title: '状態方程式',
       summary: '理想気体の状態方程式 pV = nRT と、それを用いた圧力の計算を扱います。',
       theory: [
-        `<p><strong>理想気体の状態方程式</strong>は、圧力 $p$、体積 $V$、物質量 $n$、温度 $T$ を結びつけます：$pV=nRT$。ここで $R\\approx 8{,}314\\,\\text{J/(mol\\,K)}$ です。</p>`,
+        `<p><strong>理想気体の状態方程式</strong>は、圧力 $p$、体積 $V$、物質量 $n$、温度 $T$ を結びつけます：$pV=nRT$。ここで $R\\approx 8.314\\,\\text{J/(mol\\,K)}$ です。</p>`,
         `<p>理想気体は、粒子が固有の体積をもたず、衝突を除いて互いに作用しないとするモデルです。通常の温度で十分に希薄な気体では、このモデルは非常に正確です。</p>`,
         `<p><strong>使い方：</strong>三つの量が分かれば、四つ目を求めることができます。たとえば圧力は $p=\\frac{nRT}{V}$ です。一つの量を変えると、他の量は比例関係に従って変化します。温度が一定のとき、圧力は体積に反比例します。</p>`,
         `<p><strong>単位に注意：</strong>温度はケルビン、体積は立方メートルで表さなければなりません。そうしないと結果はパスカルになりません。リットルや立方デシメートルは、$1000$ で割って換算します。</p>`,
@@ -165,7 +165,7 @@ CONTENT_I18N.add('ja', {
       ],
       examples: [
         { task: '気体の物質量は $n=1\\,\\text{mol}$、温度は $T=300\\,\\text{K}$、体積は $V=2\\,\\text{dm}^3$ です。圧力は kPa でいくらですか？',
-          steps: ['$V=2\\,\\text{dm}^3=0{,}002\\,\\text{m}^3$。', '$p=\\frac{nRT}{V}=\\frac{1\\cdot 8{,}314\\cdot 300}{0{,}002}\\approx 1\\,247\\,100\\,\\text{Pa}$。', '<strong>結果：$p\\approx 1247\\,\\text{kPa}$</strong>'] },
+          steps: ['$V=2\\,\\text{dm}^3=0.002\\,\\text{m}^3$。', '$p=\\frac{nRT}{V}=\\frac{1\\cdot 8.314\\cdot 300}{0.002}\\approx 1\\,247\\,100\\,\\text{Pa}$。', '<strong>結果：$p\\approx 1247\\,\\text{kPa}$</strong>'] },
         { task: '温度が一定のまま、気体の体積が2倍になります。圧力はどう変わりますか？',
           steps: ['$T$ と $n$ が一定のとき、$p\\,V=\\text{一定}$ が成り立ちます。', '$V\\to 2V$ のとき $p\\to \\frac{p}{2}$。', '<strong>結果：圧力は半分になります</strong>'] }
       ]
@@ -215,9 +215,9 @@ CONTENT_I18N.add('ja', {
       ],
       examples: [
         { task: '熱源の温度 $T_h=500\\,\\text{K}$ と冷却器の温度 $T_c=300\\,\\text{K}$ の間で動作する熱機関があります。その理想効率はいくらですか？',
-          steps: ['$\\eta=1-\\frac{T_c}{T_h}=1-\\frac{300}{500}$。', '$\\eta=1-0{,}6=0{,}4$。', '<strong>結果：$\\eta=40\\,\\%$</strong>'] },
+          steps: ['$\\eta=1-\\frac{T_c}{T_h}=1-\\frac{300}{500}$。', '$\\eta=1-0.6=0.4$。', '<strong>結果：$\\eta=40\\,\\%$</strong>'] },
         { task: '効率 $25\\,\\%$ の機関が、熱源から熱 $Q_h=800\\,\\text{J}$ を受け取ります。どれだけの仕事をしますか？',
-          steps: ['$W=\\eta\\,Q_h=0{,}25\\cdot 800$。', '<strong>結果：$W=200\\,\\text{J}$</strong>'] }
+          steps: ['$W=\\eta\\,Q_h=0.25\\cdot 800$。', '<strong>結果：$W=200\\,\\text{J}$</strong>'] }
       ]
     },
     'v2-kinetika-plynov': {
@@ -225,13 +225,13 @@ CONTENT_I18N.add('ja', {
       summary: '分子論的な気体の描像を扱います。粒子の平均運動エネルギーは絶対温度に比例します。',
       theory: [
         `<p><strong>気体の運動論</strong>は、圧力と温度を分子の運動によって説明します。圧力は分子が容器の壁と衝突することで生じ、温度は分子の平均運動エネルギーの尺度です。</p>`,
-        `<p>理想気体の一分子の平均運動エネルギーは $\\overline{E_k}=\\frac{3}{2}k\\,T$ です。ここで $k\\approx 1{,}38\\cdot 10^{-23}\\,\\text{J/K}$ はボルツマン定数です。これは温度だけに依存し、気体の種類には依存しません。</p>`,
+        `<p>理想気体の一分子の平均運動エネルギーは $\\overline{E_k}=\\frac{3}{2}k\\,T$ です。ここで $k\\approx 1.38\\cdot 10^{-23}\\,\\text{J/K}$ はボルツマン定数です。これは温度だけに依存し、気体の種類には依存しません。</p>`,
         `<p><strong>なぜ $\\frac{3}{2}$ なのか：</strong>分子は三つの方向に運動でき、それぞれの方向が $k\\,T$ の半分をエネルギーに寄与します。三つの自由度を合わせると $\\frac{3}{2}k\\,T$ になります。</p>`,
         `<p><strong>なぜケルビンか：</strong>この式は絶対温度に正比例します。温度 $0\\,\\text{K}$ では分子の運動エネルギーが零になるはずなので、この式では摂氏を決して用いません。</p>`
       ],
       examples: [
-        { task: '温度 $T=300\\,\\text{K}$ における気体分子の平均運動エネルギーはいくらですか？ $k=1{,}38\\cdot 10^{-23}\\,\\text{J/K}$ を用いなさい。',
-          steps: ['$\\overline{E_k}=\\frac{3}{2}k\\,T=1{,}5\\cdot 1{,}38\\cdot 10^{-23}\\cdot 300$。', '$\\overline{E_k}\\approx 6{,}21\\cdot 10^{-21}\\,\\text{J}$。', '<strong>結果：約 $6{,}21\\cdot 10^{-21}\\,\\text{J}$</strong>'] },
+        { task: '温度 $T=300\\,\\text{K}$ における気体分子の平均運動エネルギーはいくらですか？ $k=1.38\\cdot 10^{-23}\\,\\text{J/K}$ を用いなさい。',
+          steps: ['$\\overline{E_k}=\\frac{3}{2}k\\,T=1.5\\cdot 1.38\\cdot 10^{-23}\\cdot 300$。', '$\\overline{E_k}\\approx 6.21\\cdot 10^{-21}\\,\\text{J}$。', '<strong>結果：約 $6.21\\cdot 10^{-21}\\,\\text{J}$</strong>'] },
         { task: '気体の温度が2倍になると、分子の平均運動エネルギーはどう変わりますか？',
           steps: ['エネルギーは $T$ に正比例します。', '<strong>結果：2倍になります</strong>'] }
       ]
@@ -244,13 +244,13 @@ CONTENT_I18N.add('ja', {
         `<p>指数関数は、温度が低いとき準位間のわずかなエネルギー差も大きな影響をもつことを意味します。温度が高いと、準位は均されて占有数は一様な分布に近づきます。</p>`,
         `<p><strong>なぜ指数関数なのか：</strong>エネルギー $E$ の状態が占有される確率は、エネルギーが一定量増えるごとに一定の倍率で減少します。この性質が指数関数的な依存性をもたらします。</p>`,
         `<p>この結果は、温度が単なる熱の尺度ではなく、どの状態がアクセス可能かを決める尺度でもあることを示しています。この分布は、巨視的な性質を統計的に計算するための基礎です。</p>`,
-        { fig: 'v1v4-boltzmann', caption: '基底準位より ΔE = k·T だけ高い準位は、温度 T において基底準位に比べて約 e⁻¹ ≈ 0,37 倍の割合で占有されます。' }
+        { fig: 'v1v4-boltzmann', caption: '基底準位より ΔE = k·T だけ高い準位は、温度 T において基底準位に比べて約 e⁻¹ ≈ 0.37 倍の割合で占有されます。' }
       ],
       examples: [
         { task: '準位が基底準位より $\\Delta E=kT$ だけ高いとします。比 $\\frac{N_2}{N_1}$ はいくらですか？',
-          steps: ['$\\frac{N_2}{N_1}=e^{-\\Delta E/(kT)}=e^{-1}$。', '<strong>結果：$\\frac{N_2}{N_1}\\approx 0{,}368$</strong>'] },
+          steps: ['$\\frac{N_2}{N_1}=e^{-\\Delta E/(kT)}=e^{-1}$。', '<strong>結果：$\\frac{N_2}{N_1}\\approx 0.368$</strong>'] },
         { task: '準位が $2\\,kT$ だけ高いとします。占有数の比はいくらですか？',
-          steps: ['$\\frac{N_2}{N_1}=e^{-2}\\approx 0{,}135$。', '<strong>結果：約 $0{,}135$</strong>'] }
+          steps: ['$\\frac{N_2}{N_1}=e^{-2}\\approx 0.135$。', '<strong>結果：約 $0.135$</strong>'] }
       ]
     },
     'v2-statisticke': {
@@ -266,7 +266,7 @@ CONTENT_I18N.add('ja', {
         { task: '系は、それぞれ二つの状態をもつ $N=3$ 個の独立な粒子からなります。微視的状態の数 $W$ はいくつですか？',
           steps: ['$W=2^N=2^3$。', '<strong>結果：$W=8$</strong>'] },
         { task: '二つの状態をもつ $N=4$ 個の粒子について、$S/k$ の値はいくらですか？ 小数第2位まで丸めなさい。',
-          steps: ['$W=2^4=16$ なので、$\\frac{S}{k}=\\ln 16$。', '$\\ln 16=4\\ln 2\\approx 2{,}77$。', '<strong>結果：$\\frac{S}{k}\\approx 2{,}77$</strong>'] }
+          steps: ['$W=2^4=16$ なので、$\\frac{S}{k}=\\ln 16$。', '$\\ln 16=4\\ln 2\\approx 2.77$。', '<strong>結果：$\\frac{S}{k}\\approx 2.77$</strong>'] }
       ]
     },
 
@@ -275,14 +275,14 @@ CONTENT_I18N.add('ja', {
       summary: '点電荷の電場の強さと電位、重ね合わせの原理、そして電場中の仕事を扱います。',
       theory: [
         `<p>ある点における<strong>電場の強さ</strong>は、正の試験電荷に働く力をその電荷の大きさで割ったものです：$\\vec E=\\frac{\\vec F}{q}$、単位は $\\text{V/m}$。電場は空間の性質であり、試験電荷の性質ではありません。</p>`,
-        `<p>距離 $r$ にある点電荷 $Q$ に対して $E=k\\frac{Q}{r^2}$ です。ここで $k\\approx 8{,}99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$ です。電場の向きは放射状で、正の電荷からは外へ、負の電荷へは内へ向かいます。</p>`,
+        `<p>距離 $r$ にある点電荷 $Q$ に対して $E=k\\frac{Q}{r^2}$ です。ここで $k\\approx 8.99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$ です。電場の向きは放射状で、正の電荷からは外へ、負の電荷へは内へ向かいます。</p>`,
         `<p><strong>電位</strong>は単位電荷あたりのエネルギーです：$V=k\\frac{Q}{r}$。電荷 $q$ を二点間で動かすときの仕事は $W=q\\,\\Delta V$ で、経路には依存せず、始点と終点だけで決まります。</p>`,
         `<p><strong>重ね合わせ：</strong>複数の電荷の電場はベクトルとして合成され、電位はスカラーとして足し合わされます。そのため電位は、電場の強さよりも計算が簡単です。</p>`,
         { fig: 'v1v4-elektricke-pole', caption: '正の点電荷の電気力線は放射状に外へ出ていきます。電場の強さは距離の二乗とともに減少します。' }
       ],
       examples: [
-        { task: '点電荷 $Q=2\\,\\mu\\text{C}$ が距離 $r=3\\,\\text{m}$ にあります。電場の強さは kV/m でいくらですか？ $k\\approx 8{,}99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$ を用いなさい。',
-          steps: ['$E=k\\frac{Q}{r^2}=8{,}99\\cdot\\frac{2}{3^2}$。', '$E\\approx 2{,}00\\,\\text{kV/m}$', '<strong>結果：約 $2{,}00\\,\\text{kV/m}$</strong>'] },
+        { task: '点電荷 $Q=2\\,\\mu\\text{C}$ が距離 $r=3\\,\\text{m}$ にあります。電場の強さは kV/m でいくらですか？ $k\\approx 8.99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$ を用いなさい。',
+          steps: ['$E=k\\frac{Q}{r^2}=8.99\\cdot\\frac{2}{3^2}$。', '$E\\approx 2.00\\,\\text{kV/m}$', '<strong>結果：約 $2.00\\,\\text{kV/m}$</strong>'] },
         { task: '点電荷の電場の強さは、距離を2倍にするとどう変わりますか？',
           steps: ['電場の強さは $\\frac{1}{r^2}$ に比例します。', '$\\frac{1}{(2r)^2}=\\frac{1}{4r^2}$。', '<strong>結果：4分の1に減ります</strong>'] }
       ]
@@ -292,14 +292,14 @@ CONTENT_I18N.add('ja', {
       summary: '閉じた面を通る電束と、その面の内部の電荷との関係を扱います。',
       theory: [
         `<p>面 $S$ を通る<strong>電束</strong>は $\\Phi_E=\\oint \\vec E\\cdot d\\vec S$、すなわち面に垂直な電場成分の和です。単位は $\\text{N\\,m}^2/\\text{C}$ です。</p>`,
-        `<p><strong>ガウスの法則</strong>は、閉じた面を通る電束が面の内部の電荷に比例することを述べます：$\\oint \\vec E\\cdot d\\vec S=\\frac{Q_{\\text{内部}}}{\\varepsilon_0}$。ここで $\\varepsilon_0\\approx 8{,}854\\cdot 10^{-12}\\,\\text{F/m}$ です。</p>`,
+        `<p><strong>ガウスの法則</strong>は、閉じた面を通る電束が面の内部の電荷に比例することを述べます：$\\oint \\vec E\\cdot d\\vec S=\\frac{Q_{\\text{内部}}}{\\varepsilon_0}$。ここで $\\varepsilon_0\\approx 8.854\\cdot 10^{-12}\\,\\text{F/m}$ です。</p>`,
         `<p><strong>なぜ成り立つのか：</strong>電気力線は正の電荷から出て、負の電荷へ入ります。したがって閉じた面は、内部の電荷の数だけ正確に電気力線を捉え、面の形には依存しません。</p>`,
         `<p>ガウスの法則は、球や無限に広い電荷の平面などの対称性のある問題で有用です。適切に選んだ面では電場を積分の外に出すことができ、計算が簡単になります。</p>`,
         { fig: 'v1v4-gauss', caption: '閉じた面を通る全電束は、面の形に関係なく、面の内部の電荷だけに依存します：Φ = Q/ε₀。' }
       ],
       examples: [
-        { task: '閉じた面を電荷 $Q=1\\,\\mu\\text{C}$ が貫いています。$\\varepsilon_0=8{,}854\\cdot 10^{-12}\\,\\text{F/m}$ のとき、面を通る全電束はいくらですか？',
-          steps: ['$\\Phi_E=\\frac{Q}{\\varepsilon_0}=\\frac{10^{-6}}{8{,}854\\cdot 10^{-12}}$。', '$\\Phi_E\\approx 1{,}13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$', '<strong>結果：約 $1{,}13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$</strong>'] },
+        { task: '閉じた面を電荷 $Q=1\\,\\mu\\text{C}$ が貫いています。$\\varepsilon_0=8.854\\cdot 10^{-12}\\,\\text{F/m}$ のとき、面を通る全電束はいくらですか？',
+          steps: ['$\\Phi_E=\\frac{Q}{\\varepsilon_0}=\\frac{10^{-6}}{8.854\\cdot 10^{-12}}$。', '$\\Phi_E\\approx 1.13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$', '<strong>結果：約 $1.13\\cdot 10^{5}\\,\\text{N\\,m}^2/\\text{C}$</strong>'] },
         { task: '面の内部の電荷が2倍になります。電束はどう変わりますか？',
           steps: ['電束は電荷に正比例します。', '<strong>結果：2倍になります</strong>'] }
       ]
@@ -332,10 +332,10 @@ CONTENT_I18N.add('ja', {
         { fig: 'v1v4-lorentz', caption: '速度に垂直に磁場へ入る正の電荷に働くローレンツ力は、速度にも磁場にも垂直です。運動の向きを変えますが、速さは変えません。' }
       ],
       examples: [
-        { task: '電子が、磁束密度 $B=0{,}2\\,\\text{T}$ の磁場に垂直に、速度 $v=10^{5}\\,\\text{m/s}$ で入射します。$q=1{,}6\\cdot 10^{-19}\\,\\text{C}$ のとき、力の大きさはいくらですか？',
-          steps: ['$\\alpha=90^\\circ$ なので、$\\sin\\alpha=1$。', '$F=qvB=1{,}6\\cdot 10^{-19}\\cdot 10^{5}\\cdot 0{,}2$。', '<strong>結果：$F=3{,}2\\cdot 10^{-15}\\,\\text{N}$</strong>'] },
-        { task: '電荷 $q=2\\,\\mu\\text{C}$ の粒子が、磁場 $B=0{,}5\\,\\text{T}$ に垂直に、速度 $v=300\\,\\text{m/s}$ で入射します。力をマイクロニュートンで求めなさい。',
-          steps: ['$F=qvB=2\\cdot 300\\cdot 0{,}5$ を、単位 $\\mu\\text{N}$ で表します。', '<strong>結果：$F=300\\,\\mu\\text{N}$</strong>'] }
+        { task: '電子が、磁束密度 $B=0.2\\,\\text{T}$ の磁場に垂直に、速度 $v=10^{5}\\,\\text{m/s}$ で入射します。$q=1.6\\cdot 10^{-19}\\,\\text{C}$ のとき、力の大きさはいくらですか？',
+          steps: ['$\\alpha=90^\\circ$ なので、$\\sin\\alpha=1$。', '$F=qvB=1.6\\cdot 10^{-19}\\cdot 10^{5}\\cdot 0.2$。', '<strong>結果：$F=3.2\\cdot 10^{-15}\\,\\text{N}$</strong>'] },
+        { task: '電荷 $q=2\\,\\mu\\text{C}$ の粒子が、磁場 $B=0.5\\,\\text{T}$ に垂直に、速度 $v=300\\,\\text{m/s}$ で入射します。力をマイクロニュートンで求めなさい。',
+          steps: ['$F=qvB=2\\cdot 300\\cdot 0.5$ を、単位 $\\mu\\text{N}$ で表します。', '<strong>結果：$F=300\\,\\mu\\text{N}$</strong>'] }
       ]
     },
     'v3-indukcia': {
@@ -349,8 +349,8 @@ CONTENT_I18N.add('ja', {
         { fig: 'v1v4-tok-indukcia', caption: '磁場中の面を通る磁束は Φ = B·S·cos α です。α は磁場 B と面の法線 n のなす角です。' }
       ],
       examples: [
-        { task: 'ループの面積 $S=0{,}5\\,\\text{m}^2$ が磁場に垂直に置かれています。磁場は $2\\,\\text{s}$ の間に $\\Delta B=4\\,\\text{T}$ 変化します。誘導される電圧はいくらですか？',
-          steps: ['$U_i=\\frac{\\Delta\\Phi}{\\Delta t}=\\frac{S\\,\\Delta B}{\\Delta t}=\\frac{0{,}5\\cdot 4}{2}$。', '<strong>結果：$U_i=1\\,\\text{V}$</strong>'] },
+        { task: 'ループの面積 $S=0.5\\,\\text{m}^2$ が磁場に垂直に置かれています。磁場は $2\\,\\text{s}$ の間に $\\Delta B=4\\,\\text{T}$ 変化します。誘導される電圧はいくらですか？',
+          steps: ['$U_i=\\frac{\\Delta\\Phi}{\\Delta t}=\\frac{S\\,\\Delta B}{\\Delta t}=\\frac{0.5\\cdot 4}{2}$。', '<strong>結果：$U_i=1\\,\\text{V}$</strong>'] },
         { task: '面を通る磁束は一定です。誘導される電圧はいくらですか？',
           steps: ['電圧は磁束の変化に比例し、$\\Delta\\Phi=0$ です。', '<strong>結果：$U_i=0\\,\\text{V}$</strong>'] }
       ]
@@ -366,8 +366,8 @@ CONTENT_I18N.add('ja', {
         { fig: 'v1v4-ampere', caption: '直線電流の周りの磁力線は同心円を描きます。磁束密度 B は距離 r とともに減少します。' }
       ],
       examples: [
-        { task: '直線導線に電流 $I=10\\,\\text{A}$ が流れています。距離 $r=0{,}2\\,\\text{m}$ での磁束密度はいくらですか？ 結果はマイクロテスラで答えなさい。',
-          steps: ['$B=\\frac{\\mu_0 I}{2\\pi r}=\\frac{4\\pi\\cdot 10^{-7}\\cdot 10}{2\\pi\\cdot 0{,}2}$。', '$B=\\frac{2\\cdot 10^{-7}\\cdot 10}{0{,}2}=10^{-5}\\,\\text{T}$。', '<strong>結果：$B=10\\,\\mu\\text{T}$</strong>'] },
+        { task: '直線導線に電流 $I=10\\,\\text{A}$ が流れています。距離 $r=0.2\\,\\text{m}$ での磁束密度はいくらですか？ 結果はマイクロテスラで答えなさい。',
+          steps: ['$B=\\frac{\\mu_0 I}{2\\pi r}=\\frac{4\\pi\\cdot 10^{-7}\\cdot 10}{2\\pi\\cdot 0.2}$。', '$B=\\frac{2\\cdot 10^{-7}\\cdot 10}{0.2}=10^{-5}\\,\\text{T}$。', '<strong>結果：$B=10\\,\\mu\\text{T}$</strong>'] },
         { task: '電流の流れる導線からの距離を2倍にすると、磁束密度はどう変わりますか？',
           steps: ['$B$ は $\\frac{1}{r}$ に比例します。', '<strong>結果：半分になります</strong>'] }
       ]
@@ -385,8 +385,8 @@ CONTENT_I18N.add('ja', {
       examples: [
         { task: '送信機は振動数 $f=100\\,\\text{MHz}$ で動作します。空気中での波長はいくらですか？',
           steps: ['$\\lambda=\\frac{c}{f}=\\frac{3\\cdot 10^{8}}{100\\cdot 10^{6}}$。', '<strong>結果：$\\lambda=3\\,\\text{m}$</strong>'] },
-        { task: '波長が $\\lambda=0{,}5\\,\\text{m}$ です。波の振動数はいくらですか？',
-          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{0{,}5}$。', '<strong>結果：$f=6\\cdot 10^{8}\\,\\text{Hz}=600\\,\\text{MHz}$</strong>'] }
+        { task: '波長が $\\lambda=0.5\\,\\text{m}$ です。波の振動数はいくらですか？',
+          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{0.5}$。', '<strong>結果：$f=6\\cdot 10^{8}\\,\\text{Hz}=600\\,\\text{MHz}$</strong>'] }
       ]
     },
     'v3-sirenie': {
@@ -403,7 +403,7 @@ CONTENT_I18N.add('ja', {
         { task: '媒質の比誘電率は $\\varepsilon_r=4$ です。屈折率はいくらですか？',
           steps: ['$n=\\sqrt{\\varepsilon_r}=\\sqrt{4}$。', '<strong>結果：$n=2$</strong>'] },
         { task: '屈折率 $n=2$ の媒質中での光速はいくらですか？ $c=3\\cdot 10^{8}\\,\\text{m/s}$ とします。',
-          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{2}$。', '<strong>結果：$v=1{,}5\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
+          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{2}$。', '<strong>結果：$v=1.5\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
       ]
     },
 
@@ -436,7 +436,7 @@ CONTENT_I18N.add('ja', {
         { task: '波の振動数は $f=50\\,\\text{Hz}$、波長は $\\lambda=6\\,\\text{m}$ です。その速さはいくらですか？',
           steps: ['$v=\\lambda\\cdot f=6\\cdot 50$。', '<strong>結果：$v=300\\,\\text{m/s}$</strong>'] },
         { task: '振動数 $f=4\\,\\text{Hz}$ の波の周期はいくらですか？',
-          steps: ['$T=\\frac{1}{f}=\\frac{1}{4}$。', '<strong>結果：$T=0{,}25\\,\\text{s}$</strong>'] }
+          steps: ['$T=\\frac{1}{f}=\\frac{1}{4}$。', '<strong>結果：$T=0.25\\,\\text{s}$</strong>'] }
       ]
     },
     'v4-interferencia': {
@@ -449,8 +449,8 @@ CONTENT_I18N.add('ja', {
         { fig: 'v1v4-interferencia', caption: '同位相の波は行路差 m·λ で強め合い、逆位相では (m + ½)·λ で弱め合います。' }
       ],
       examples: [
-        { task: '波長 $\\lambda=0{,}5\\,\\text{m}$ の二つの干渉性の波が、行路差 $\\Delta d=1{,}25\\,\\text{m}$ をもちます。強め合いですか、弱め合いですか？',
-          steps: ['$\\frac{\\Delta d}{\\lambda}=\\frac{1{,}25}{0{,}5}=2{,}5$。', '数 $2{,}5$ は半波長の奇数倍です：$2{,}5=\\left(2+\\tfrac{1}{2}\\right)$。', '<strong>結果：弱め合いです。</strong>'] }
+        { task: '波長 $\\lambda=0.5\\,\\text{m}$ の二つの干渉性の波が、行路差 $\\Delta d=1.25\\,\\text{m}$ をもちます。強め合いですか、弱め合いですか？',
+          steps: ['$\\frac{\\Delta d}{\\lambda}=\\frac{1.25}{0.5}=2.5$。', '数 $2.5$ は半波長の奇数倍です：$2.5=\\left(2+\\tfrac{1}{2}\\right)$。', '<strong>結果：弱め合いです。</strong>'] }
       ]
     },
     'v4-polarizacia': {
@@ -464,7 +464,7 @@ CONTENT_I18N.add('ja', {
       ],
       examples: [
         { task: '強度 $I_0=80$ の直線偏光が、$60^\\circ$ 回転した検光子を通過します。その後の強度はいくらですか？',
-          steps: ['$\\cos^2 60^\\circ=\\left(\\tfrac{1}{2}\\right)^2=0{,}25$。', '$I=80\\cdot 0{,}25=20$。', '<strong>結果：$I=20$</strong>'] }
+          steps: ['$\\cos^2 60^\\circ=\\left(\\tfrac{1}{2}\\right)^2=0.25$。', '$I=80\\cdot 0.25=20$。', '<strong>結果：$I=20$</strong>'] }
       ]
     },
     'v4-geometricka-optika': {
@@ -472,13 +472,13 @@ CONTENT_I18N.add('ja', {
       summary: '屈折率、物質中の光速、そしてスネルの屈折の法則を扱います。',
       theory: [
         `<p><strong>幾何光学</strong>は、光を直進し、反射の法則（$\\alpha=\\alpha'$）に従って反射し、媒質の境界で屈折する光線として記述します。波動光学は、光線では捉えられない干渉や回折などの現象を説明します。</p>`,
-        `<p><strong>屈折率</strong> $n=\\frac{c}{v}$ は、光が物質中で真空中より何倍遅いかを示します。水では $n\\approx 1{,}33$、ガラスでは約 $1{,}5$ です。物質中の光速は $v=\\frac{c}{n}$ です。</p>`,
+        `<p><strong>屈折率</strong> $n=\\frac{c}{v}$ は、光が物質中で真空中より何倍遅いかを示します。水では $n\\approx 1.33$、ガラスでは約 $1.5$ です。物質中の光速は $v=\\frac{c}{n}$ です。</p>`,
         `<p><strong>スネルの法則</strong> $n_1\\sin\\alpha=n_2\\sin\\beta$ は、光線がどのように曲がるかを示します。光学的に密な媒質（$n_2>n_1$）へ入るときは光線が法線に近づく向きに曲がり、疎な媒質へ入るときは法線から離れる向きに曲がります。</p>`,
         { fig: 'v1v4-lom', caption: '光学的に密な媒質へ入る光線は法線の方へ曲がり、β は α より小さくなります（n₂ > n₁）。' }
       ],
       examples: [
-        { task: '屈折率 $n=1{,}5$ のガラス中での光速はいくらですか？ $c=3\\cdot 10^{8}\\,\\text{m/s}$ を用いなさい。',
-          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{1{,}5}$。', '<strong>結果：$v=2\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
+        { task: '屈折率 $n=1.5$ のガラス中での光速はいくらですか？ $c=3\\cdot 10^{8}\\,\\text{m/s}$ を用いなさい。',
+          steps: ['$v=\\frac{c}{n}=\\frac{3\\cdot 10^{8}}{1.5}$。', '<strong>結果：$v=2\\cdot 10^{8}\\,\\text{m/s}$</strong>'] }
       ]
     },
     'v4-zobrazovanie': {
@@ -505,7 +505,7 @@ CONTENT_I18N.add('ja', {
       ],
       examples: [
         { task: '赤色レーザー光の波長は $\\lambda=650\\,\\text{nm}$ です。その振動数を $10^{14}\\,\\text{Hz}$ の単位で求めるといくらですか？',
-          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{650\\cdot 10^{-9}}\\approx 4{,}6\\cdot 10^{14}\\,\\text{Hz}$。', '<strong>結果：約 $4{,}6\\cdot 10^{14}\\,\\text{Hz}$</strong>'] }
+          steps: ['$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{650\\cdot 10^{-9}}\\approx 4.6\\cdot 10^{14}\\,\\text{Hz}$。', '<strong>結果：約 $4.6\\cdot 10^{14}\\,\\text{Hz}$</strong>'] }
       ]
     },
     'v4-vlakna': {
@@ -518,8 +518,8 @@ CONTENT_I18N.add('ja', {
         { fig: 'v1v4-vlakno', caption: '光はコア内で、入射角が臨界角 sin α_c = n₂/n₁ より大きいため全反射によって保持されます。' }
       ],
       examples: [
-        { task: 'ファイバーのコアは $n_1=1{,}5$、クラッドは $n_2=1{,}0$ です。臨界角の正弦はいくらですか？',
-          steps: ['$\\sin\\alpha_c=\\frac{n_2}{n_1}=\\frac{1{,}0}{1{,}5}$。', '<strong>結果：$\\sin\\alpha_c\\approx 0{,}67$</strong>'] }
+        { task: 'ファイバーのコアは $n_1=1.5$、クラッドは $n_2=1.0$ です。臨界角の正弦はいくらですか？',
+          steps: ['$\\sin\\alpha_c=\\frac{n_2}{n_1}=\\frac{1.0}{1.5}$。', '<strong>結果：$\\sin\\alpha_c\\approx 0.67$</strong>'] }
       ]
     }
   }

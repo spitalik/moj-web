@@ -34,8 +34,8 @@ CONTENT_I18N.add('en', {
         `<p>From this formula we derive two more: $s=v\\cdot t$ and $t=\\frac{s}{v}$. Always check the units before calculating.
        If the path is in kilometres and the time in minutes, we must convert one of the quantities.</p>`,
         `<ul>
-         <li>$1\\,\\text{m/s}=3{,}6\\,\\text{km/h}$: to convert from metres per second to kilometres per hour, we multiply by $3{,}6$.</li>
-         <li>$1\\,\\text{km/h}=\\frac{1}{3{,}6}\\,\\text{m/s}$: to convert from kilometres per hour to metres per second, we divide by $3{,}6$.</li>
+         <li>$1\\,\\text{m/s}=3.6\\,\\text{km/h}$: to convert from metres per second to kilometres per hour, we multiply by $3.6$.</li>
+         <li>$1\\,\\text{km/h}=\\frac{1}{3.6}\\,\\text{m/s}$: to convert from kilometres per hour to metres per second, we divide by $3.6$.</li>
        </ul>`,
         `<p><strong>Average speed</strong> is not equal to the average of speeds. It is calculated as the total path divided by the total time:
        $v_p=\\frac{s_{\\text{celk}}}{t_{\\text{celk}}}$. If a car stopped for a while on part of the route, its average speed is lower than its highest speed.</p>`,
@@ -45,7 +45,7 @@ CONTENT_I18N.add('en', {
         { task: 'A car covered $120\\,\\text{km}$ in $2\\,\\text{h}$. What was its average speed?',
           steps: ['$v=\\frac{s}{t}=\\frac{120}{2}$', '$v=60\\,\\text{km/h}$', '<strong>Result: 60 km/h</strong>'] },
         { task: 'A cyclist moves at $5\\,\\text{m/s}$. What is this speed in $\\text{km/h}$?',
-          steps: ['To convert from m/s to km/h we multiply by 3.6.', '$5\\cdot 3{,}6=18\\,\\text{km/h}$', '<strong>Result: 18 km/h</strong>'] }
+          steps: ['To convert from m/s to km/h we multiply by 3.6.', '$5\\cdot 3.6=18\\,\\text{km/h}$', '<strong>Result: 18 km/h</strong>'] }
       ]
     },
     'r7-rovnomerny': {
@@ -101,9 +101,9 @@ CONTENT_I18N.add('en', {
         `<p>All bodies attract each other with a <strong>gravitational force</strong>. The greater the masses and the closer the bodies, the greater the attractive force.
        Earth's gravity keeps us on its surface, and the Moon orbits the Earth.</p>`,
         `<p><strong>Weight</strong> $F_G$ is the force with which the Earth attracts a body towards itself. We calculate it from the formula $F_G=m\\cdot g$, where $m$ is the mass in kilograms
-       and $g$ is the gravitational acceleration. On Earth $g\\approx 10\\,\\text{N/kg}$ (more precisely $9{,}81\\,\\text{N/kg}$).</p>`,
+       and $g$ is the gravitational acceleration. On Earth $g\\approx 10\\,\\text{N/kg}$ (more precisely $9.81\\,\\text{N/kg}$).</p>`,
         `<p><strong>Mass and weight are not the same.</strong> Mass in kilograms tells how much matter a body contains, and it is the same everywhere.
-       Weight in newtons depends on the place. On the Moon $g\\approx 1{,}6\\,\\text{N/kg}$, so a body with a mass of $5\\,\\text{kg}$ weighs about $8\\,\\text{N}$ there.</p>`,
+       Weight in newtons depends on the place. On the Moon $g\\approx 1.6\\,\\text{N/kg}$, so a body with a mass of $5\\,\\text{kg}$ weighs about $8\\,\\text{N}$ there.</p>`,
         `<ul>
          <li>Weight is a force, measured with a spring balance in newtons.</li>
          <li>Mass is measured with scales in kilograms.</li>
@@ -150,7 +150,7 @@ CONTENT_I18N.add('en', {
         `<p>In one medium light travels in a <strong>straight line</strong>. That is why a shadow forms behind an opaque object: the object blocks the light behind it.
        A large light source also creates a penumbra, where only part of the source is visible.</p>`,
         `<p>The speed of light in a vacuum is $c=300\\,000\\,\\text{km/s}$, that is $3\\cdot 10^8\\,\\text{m/s}$. In air it is almost the same,
-       in water and glass it is lower. Light from the Moon reaches us in about $1{,}3\\,\\text{s}$, light from the Sun in about 8 minutes.</p>`,
+       in water and glass it is lower. Light from the Moon reaches us in about $1.3\\,\\text{s}$, light from the Sun in about 8 minutes.</p>`,
         `<p>A solar eclipse occurs when the Moon gets between the Sun and the Earth and casts its shadow on the Earth. A lunar eclipse occurs when the Earth gets between the Sun and the Moon.</p>`,
         { fig: 'r6r9-zatmenie', caption: 'In a solar eclipse the Moon lies between the Sun and the Earth and casts a shadow on the Earth.' }
       ],
@@ -296,8 +296,8 @@ CONTENT_I18N.add('en', {
         { fig: 'obr-paka', caption: 'A lever is in balance when the product of force and arm on one side equals the product on the other.' }
       ],
       examples: [
-        { task: 'On a lever, the lever arm of the force is $r_1 = 2\\,\\text{m}$ and we lift a load with a force $F_2 = 300\\,\\text{N}$ on the lever arm $r_2 = 0{,}5\\,\\text{m}$. With what force do we act on the arm $r_1$?',
-          steps: ['Balance: $F_1\\cdot r_1 = F_2\\cdot r_2$.', '$F_1 = \\frac{F_2\\cdot r_2}{r_1} = \\frac{300\\cdot 0{,}5}{2}$.', '<strong>Result: F_1 = 75 N</strong>'] },
+        { task: 'On a lever, the lever arm of the force is $r_1 = 2\\,\\text{m}$ and we lift a load with a force $F_2 = 300\\,\\text{N}$ on the lever arm $r_2 = 0.5\\,\\text{m}$. With what force do we act on the arm $r_1$?',
+          steps: ['Balance: $F_1\\cdot r_1 = F_2\\cdot r_2$.', '$F_1 = \\frac{F_2\\cdot r_2}{r_1} = \\frac{300\\cdot 0.5}{2}$.', '<strong>Result: F_1 = 75 N</strong>'] },
         { task: 'We lift a load with a weight of $200\\,\\text{N}$ with a movable pulley. What force do we pull with if we neglect friction?',
           steps: ['A movable pulley halves the force: $F = \\frac{200}{2}$.', '<strong>Result: F = 100 N, but we must pull along twice the path.</strong>'] }
       ]
@@ -337,7 +337,7 @@ CONTENT_I18N.add('en', {
         `<p><strong>Electrification by friction:</strong> during friction electrons pass from one body to the other. The body that gains electrons
        becomes negatively charged. The body that loses them becomes positively charged. Charge cannot be created or destroyed, only transferred.</p>`,
         `<ul>
-         <li>The elementary charge $e \\approx 1{,}6\\cdot 10^{-19}\\,\\text{C}$ is carried by one electron.</li>
+         <li>The elementary charge $e \\approx 1.6\\cdot 10^{-19}\\,\\text{C}$ is carried by one electron.</li>
          <li>The charge of a body with $n$ extra electrons is $Q = -n\\,e$; with $n$ electrons fewer it is $Q = +n\\,e$.</li>
        </ul>`,
         { fig: 'r6r9-naboj', caption: 'Like charges repel, opposite charges attract.' }
@@ -503,15 +503,15 @@ CONTENT_I18N.add('en', {
          <li>Substitute the units V, A and Ω; when converting, use multiples.</li>
          <li>Check the units of the result.</li>
        </ol>`,
-        `<p><strong>Watch the units:</strong> $1\\,\\text{mA}=0{,}001\\,\\text{A}$ and $1\\,\\text{k}\\Omega=1000\\,\\Omega$. If a value is in milliamperes or kilohms,
+        `<p><strong>Watch the units:</strong> $1\\,\\text{mA}=0.001\\,\\text{A}$ and $1\\,\\text{k}\\Omega=1000\\,\\Omega$. If a value is in milliamperes or kilohms,
        first rewrite it in the basic unit.</p>`,
         { fig: 'r6r9-trojuholnik', caption: 'Cover the quantity sought and the rest shows the formula, for example U = I · R.' }
       ],
       examples: [
         { task: 'The voltage across a resistor with resistance $R = 4\\,\\Omega$ is $U = 12\\,\\text{V}$. What current flows through it?',
           steps: ['$I=\\frac{U}{R}=\\frac{12}{4}$.', '<strong>Result: I = 3 A</strong>'] },
-        { task: 'An appliance carries a current $I = 0{,}5\\,\\text{A}$ at a voltage $U = 230\\,\\text{V}$. What is its resistance?',
-          steps: ['$R=\\frac{U}{I}=\\frac{230}{0{,}5}$.', 'Dividing by a decimal number: $\\frac{230}{0{,}5}=\\frac{460}{1}$.', '<strong>Result: R = 460 Ω</strong>'] }
+        { task: 'An appliance carries a current $I = 0.5\\,\\text{A}$ at a voltage $U = 230\\,\\text{V}$. What is its resistance?',
+          steps: ['$R=\\frac{U}{I}=\\frac{230}{0.5}$.', 'Dividing by a decimal number: $\\frac{230}{0.5}=\\frac{460}{1}$.', '<strong>Result: R = 460 Ω</strong>'] }
       ]
     },
     'r9-ohmov-zakon': {
@@ -545,17 +545,17 @@ CONTENT_I18N.add('en', {
         `<p><strong>Electrical work</strong> (energy consumed) is $W=P\\cdot t=U\\cdot I\\cdot t$, where $t$ is the time in seconds. The unit is the joule (J),
        because $1\\,\\text{W}\\cdot 1\\,\\text{s}=1\\,\\text{J}$.</p>`,
         `<p>In households energy is billed in <strong>kilowatt-hours</strong> (kWh). We calculate it as the power in kilowatts multiplied by the time in hours:
-       $E = P\\cdot t$, where $1\\,\\text{kWh} = 3{,}6\\cdot 10^{6}\\,\\text{J}$.</p>`,
+       $E = P\\cdot t$, where $1\\,\\text{kWh} = 3.6\\cdot 10^{6}\\,\\text{J}$.</p>`,
         `<ol>
          <li>Power in kilowatts: $1000\\,\\text{W} = 1\\,\\text{kW}$.</li>
          <li>Energy in kWh: power in kW multiplied by time in hours.</li>
        </ol>`
       ],
       examples: [
-        { task: 'A bulb is connected to a voltage of $230\\,\\text{V}$ and a current of $0{,}5\\,\\text{A}$ flows through it. What is its power?',
-          steps: ['$P = U\\cdot I = 230\\cdot 0{,}5$.', '<strong>Result: P = 115 W</strong>'] },
-        { task: 'A washing machine has a power of $2\\,\\text{kW}$ and runs for $1{,}5\\,\\text{h}$. How much energy does it consume in kWh?',
-          steps: ['$E = P\\cdot t = 2\\cdot 1{,}5$.', '<strong>Result: E = 3 kWh</strong>'] }
+        { task: 'A bulb is connected to a voltage of $230\\,\\text{V}$ and a current of $0.5\\,\\text{A}$ flows through it. What is its power?',
+          steps: ['$P = U\\cdot I = 230\\cdot 0.5$.', '<strong>Result: P = 115 W</strong>'] },
+        { task: 'A washing machine has a power of $2\\,\\text{kW}$ and runs for $1.5\\,\\text{h}$. How much energy does it consume in kWh?',
+          steps: ['$E = P\\cdot t = 2\\cdot 1.5$.', '<strong>Result: E = 3 kWh</strong>'] }
       ]
     },
     'r9-magnetizmus': {
@@ -650,9 +650,9 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'A motor receives 400 J of energy and converts 100 J into motion. What is its efficiency?',
-          steps: ['$\\eta = \\frac{100}{400}\\cdot 100\\,\\%$.', '$\\eta = 0{,}25\\cdot 100\\,\\% = 25\\,\\%$.', '<strong>Result: 25 %</strong>'] },
+          steps: ['$\\eta = \\frac{100}{400}\\cdot 100\\,\\%$.', '$\\eta = 0.25\\cdot 100\\,\\% = 25\\,\\%$.', '<strong>Result: 25 %</strong>'] },
         { task: 'A heater with an efficiency of $90\\,\\%$ receives $1000\\,\\text{J}$. How much energy is lost?',
-          steps: ['The useful energy is $0{,}9\\cdot 1000 = 900\\,\\text{J}$.', 'The rest is lost: $1000 - 900 = 100\\,\\text{J}$.', '<strong>Result: 100 J</strong>'] }
+          steps: ['The useful energy is $0.9\\cdot 1000 = 900\\,\\text{J}$.', 'The rest is lost: $1000 - 900 = 100\\,\\text{J}$.', '<strong>Result: 100 J</strong>'] }
       ]
     },
     'r9-opakovanie': {
@@ -676,7 +676,7 @@ CONTENT_I18N.add('en', {
       ],
       examples: [
         { task: 'A motor with a power of $1500\\,\\text{W}$ runs for $2\\,\\text{h}$. How much energy does it consume in kWh?',
-          steps: ['Power in kilowatts: $1500\\,\\text{W} = 1{,}5\\,\\text{kW}$.', '$E = P\\cdot t = 1{,}5\\cdot 2 = 3$.', '<strong>Result: E = 3 kWh</strong>'] },
+          steps: ['Power in kilowatts: $1500\\,\\text{W} = 1.5\\,\\text{kW}$.', '$E = P\\cdot t = 1.5\\cdot 2 = 3$.', '<strong>Result: E = 3 kWh</strong>'] },
         { task: 'A body with a mass of $3\\,\\text{kg}$ is at a height of $4\\,\\text{m}$. What is its potential energy when $g = 10\\,\\text{m/s}^2$?',
           steps: ['$E_p = m\\,g\\,h = 3\\cdot 10\\cdot 4$.', '<strong>Result: E_p = 120 J</strong>'] }
       ]
