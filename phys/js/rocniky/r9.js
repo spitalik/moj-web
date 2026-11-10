@@ -110,6 +110,7 @@
       return {
         q: T`Rezistory s odpormi $${R1}\\,\\Omega$ a $${R2}\\,\\Omega$ sú zapojené za sebou (sériovo). Aký je celkový odpor?`,
         answer: R,
+        unit: 'Ω',
         solution: T`Pri sérii sa odpory sčítajú: $R=R_1+R_2=${R1}+${R2}=${R}\\,\\Omega$.`,
         hint: T.s('Pri sériovom zapojení platí $R=R_1+R_2$.'),
         mistakes: [{ value: R1 * R2, msg: T`Odpory si vynásobil. Pri sérii sa odpory sčítajú.` }].filter((x) => x.value !== R),
@@ -123,13 +124,14 @@
     return {
       q: T`Rezistory s odpormi $${R1}\\,\\Omega$ a $${R2}\\,\\Omega$ sú zapojené vedľa seba (paralelne). Aký je celkový odpor?`,
       answer: R,
+      unit: 'Ω',
       solution: T`$\\frac{1}{R}=\\frac{1}{${R1}}+\\frac{1}{${R2}}$, teda $R=${R}\\,\\Omega$.`,
       hint: T.s('Pri paralelnom zapojení platí $\\frac{1}{R}=\\frac{1}{R_1}+\\frac{1}{R_2}$.'),
       mistakes: [{ value: R1 + R2, msg: T`Odpory si sčítal ako pri sérii. Pri paralele sa sčítavajú prevrátené hodnoty.` }]
         .filter((x) => x.value !== R),
       steps: [
         { q: T`Koľko je $\\frac{1}{${R1}}+\\frac{1}{${R2}}$? Zadaj ako zlomok.`, answer: 1 / R1 + 1 / R2, tol: 0.001, placeholder: T.s('napr. 1/2') },
-        { q: T`Aký je celkový odpor $R$? Prevráť výsledok predchádzajúceho kroku.`, answer: R }
+        { q: T`Aký je celkový odpor $R$? Prevráť výsledok predchádzajúceho kroku.`, answer: R, unit: 'Ω' }
       ]
     };
   });
@@ -166,6 +168,7 @@
       return {
         q: T`Na rezistore s odporom $${R}\\,\\Omega$ je napätie $${U}\\,\\text{V}$. Aký prúd ním preteká v ampéroch?`,
         answer: I,
+        unit: 'A',
         solution: T`$I=\\frac{U}{R}=\\frac{${U}}{${R}}=${I}\\,\\text{A}$.`,
         hint: T.s('Prúd je napätie delené odporom: $I=\\frac{U}{R}$.'),
         mistakes: [
@@ -182,6 +185,7 @@
       return {
         q: T`Rezistorom s odporom $${R}\\,\\Omega$ preteká prúd $${I}\\,\\text{A}$. Aké je napätie na rezistore?`,
         answer: U,
+        unit: 'V',
         solution: T`$U=I\\cdot R=${I}\\cdot ${R}=${U}\\,\\text{V}$.`,
         hint: T.s('Napätie je súčin prúdu a odporu: $U=I\\cdot R$.'),
         mistakes: [{ value: I + R, msg: T`Prúd a odpor si sčítal. Napätie je ich súčin.` }].filter((x) => x.value !== U),
@@ -194,6 +198,7 @@
     return {
       q: T`Na rezistore je napätie $${U}\\,\\text{V}$ a preteká ním prúd $${I}\\,\\text{A}$. Aký je jeho odpor v ohmoch?`,
       answer: R,
+      unit: 'Ω',
       solution: T`$R=\\frac{U}{I}=\\frac{${U}}{${I}}=${R}\\,\\Omega$.`,
       hint: T.s('Odpor je napätie delené prúdom: $R=\\frac{U}{I}$.'),
       mistakes: [
@@ -293,6 +298,7 @@
       return {
         q: T`Spotrebič je pripojený na napätie $${U}\\,\\text{V}$ a odoberá prúd $${I}\\,\\text{A}$. Aký je jeho elektrický výkon vo wattoch?`,
         answer: P,
+        unit: 'W',
         solution: T`$P=U\\cdot I=${U}\\cdot ${I}=${P}\\,\\text{W}$.`,
         hint: T.s('Elektrický výkon je súčin napätia a prúdu: $P=U\\cdot I$.'),
         mistakes: [{ value: U + I, msg: T`Napätie a prúd si sčítal. Výkon je ich súčin.` }].filter((x) => x.value !== P),
@@ -306,6 +312,7 @@
     return {
       q: T`Spotrebič s výkonom $${P}\\,\\text{W}$ beží $${t}\\,\\text{h}$. Koľko energie spotrebuje v kilowatthodinách?`,
       answer: E,
+      unit: 'kWh',
       solution: T`$E=P\\cdot t=${P / 1000}\\,\\text{kW}\\cdot ${t}\\,\\text{h}=${E}\\,\\text{kWh}$.`,
       hint: T.s('Výkon najprv prepíš na kilowatty (1 kW = 1000 W). Energia je výkon krát čas.'),
       mistakes: [
@@ -484,7 +491,7 @@
     if (Math.random() < 0.5) {
       return {
         q: T`Zariadenie dostane energiu $${Ed}\\,\\text{J}$ a premení z nej na užitočnú prácu $${Eu}\\,\\text{J}$. Aká je jeho účinnosť v percentách?`,
-        answer: p,
+        answer: p, unit: '%',
         solution: T`$\\eta=\\frac{E_u}{E_d}\\cdot 100\\,\\%=\\frac{${Eu}}{${Ed}}\\cdot 100\\,\\%=${p}\\,\\%$.`,
         hint: T.s('Účinnosť je pomer užitočnej energie k dodanej, vynásobený 100 %.'),
         mistakes: [
@@ -500,6 +507,7 @@
     return {
       q: T`Zariadenie s účinnosťou $${p}\\,\\%$ dostane energiu $${Ed}\\,\\text{J}$. Koľko joulov je jeho užitočná energia?`,
       answer: Eu,
+      unit: 'J',
       solution: T`$E_u=\\eta\\cdot E_d=\\frac{${p}}{100}\\cdot ${Ed}=${Eu}\\,\\text{J}$.`,
       hint: T.s('Užitočná energia je účinnosť (ako desatinné číslo) krát dodaná energia.'),
       mistakes: [
@@ -549,6 +557,7 @@
       return {
         q: T`Na žiarovke je napätie $${U}\\,\\text{V}$ a jej odpor je $${R}\\,\\Omega$. Aký prúd žiarovkou preteká?`,
         answer: I,
+        unit: 'A',
         solution: T`$I=\\frac{U}{R}=\\frac{${U}}{${R}}=${I}\\,\\text{A}$.`,
         hint: T.s('Prúd je napätie delené odporom: $I=\\frac{U}{R}$.'),
         mistakes: [
@@ -566,12 +575,13 @@
       return {
         q: T`Teleso s hmotnosťou $${m}\\,\\text{kg}$ je vo výške $${h}\\,\\text{m}$. Aká je jeho polohová energia v joule? Uvažuj $g=10\\,\\text{m/s}^2$.`,
         answer: Ep,
+        unit: 'J',
         solution: T`$E_p=m\\,g\\,h=${m}\\cdot 10\\cdot ${h}=${Ep}\\,\\text{J}$.`,
         hint: T.s('Polohová energia je $E_p=m\\,g\\,h$. Nezabudni na gravitačné zrýchlenie.'),
         mistakes: [{ value: m * h, msg: T`Zabudol si vynásobiť gravitačným zrýchlením $g=10\\,\\text{m/s}^2$.` }]
           .filter((x) => x.value !== Ep),
         steps: [
-          { q: T`Aká je tiaž telesa $m\\cdot g=${m}\\cdot 10$ v newtonoch?`, answer: 10 * m },
+          { q: T`Aká je tiaž telesa $m\\cdot g=${m}\\cdot 10$ v newtonoch?`, answer: 10 * m, unit: 'N' },
           { q: T`Polohová energia je tiaž krát výška. Koľko je $${10 * m}\\cdot ${h}$?`, answer: Ep }
         ]
       };
@@ -580,6 +590,7 @@
     return {
       q: T`Nabíjačka dodáva prúd $${I}\\,\\text{A}$ počas $${t}\\,\\text{s}$. Aký elektrický náboj prejde prierezom nabíjacieho kábla?`,
       answer: Q,
+      unit: 'C',
       solution: T`$Q=I\\cdot t=${I}\\cdot ${t}=${Q}\\,\\text{C}$.`,
       hint: T.s('Náboj je súčin prúdu a času: $Q=I\\cdot t$.'),
       mistakes: [

@@ -270,7 +270,7 @@ CONTENT_I18N.add('zh', {
     "Nezohľadnil si náboj častice. Energia je $z\\,e\\,U$, nie len $e\\,U$.": "你没有考虑粒子的电荷。能量为 $z\\,e\\,U$，而不只是 $e\\,U$。",
     "Výsledok je v MeV, nie v keV. Pozor: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.": "结果的单位是 MeV，而不是 keV。注意：$1\\,\\text{MeV}=10^{6}\\,\\text{eV}$。",
     "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.": "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.",
-    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.": "以电子伏特为单位的能量等于电荷数 $z$ 乘以以伏特为单位的电压。",
+    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu vo voltoch.": "以电子伏特为单位的能量等于电荷数 $z$ 乘以以伏特为单位的电压。",
     "pión": "π 介子",
     "Higgsov bozón má hmotnosť približne 125 GeV/$c^2$. Koľkokrát je ťažší ako {@0}, ak hmotnosť tejto častice je ${@1}\\,\\text{GeV}/c^2$? Zaokrúhli na celé číslo.": "希格斯玻色子的质量约为 125 GeV/$c^2$。若该粒子的质量为 ${@1}\\,\\text{GeV}/c^2$，它的质量是{@0}的多少倍？结果取整数。",
     "Hmotnosti sa nenásobia. Podiel dostaneš delením: $m_H / m$.": "质量不是相乘的。比值通过相除得到：$m_H / m$。",

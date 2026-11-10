@@ -217,7 +217,7 @@ CONTENT_I18N.add('ko', {
     "pevná doska": "고정된 판",
     "vnútorné trenie medzi vrstvami": "층 사이의 내부 마찰",
     "Laminárne prúdenie medzi dvoma doskami": "두 판 사이의 층류",
-    "Guľôčka s polomerom $r={@0}\\,\\text{m}$ sa pohybuje rýchlosťou $v={@1}\\,\\text{m/s}$ v kvapaline s viskozitou $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$. Vypočítaj odpor podľa Stokesovho zákona $F=6\\pi\\eta r v$. Výsledok v miliníutonoch, zaokrúhli na 1 desatinné miesto.": "반지름 $r={@0}\\,\\text{m}$인 구슬이 점성 $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$인 액체 속에서 속도 $v={@1}\\,\\text{m/s}$로 움직인다. 스토크스 법칙 $F=6\\pi\\eta r v$로 저항을 계산하라. 결과는 밀리뉴턴 단위로 답하고 소수점 첫째 자리까지 반올림하라.",
+    "Guľôčka s polomerom $r={@0}\\,\\text{m}$ sa pohybuje rýchlosťou $v={@1}\\,\\text{m/s}$ v kvapaline s viskozitou $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$. Vypočítaj odpor podľa Stokesovho zákona $F=6\\pi\\eta r v$. Výsledok v milinewtonoch, zaokrúhli na 1 desatinné miesto.": "반지름 $r={@0}\\,\\text{m}$인 구슬이 점성 $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$인 액체 속에서 속도 $v={@1}\\,\\text{m/s}$로 움직인다. 스토크스 법칙 $F=6\\pi\\eta r v$로 저항을 계산하라. 결과는 밀리뉴턴 단위로 답하고 소수점 첫째 자리까지 반올림하라.",
     "$F=6\\pi\\eta r v\\approx {@0}\\,\\text{mN}\\approx {@1}\\,\\text{N}$.": "$F=6\\pi\\eta r v\\approx {@0}\\,\\text{mN}\\approx {@1}\\,\\text{N}$.",
     "Dosaď do vzorca $F=6\\pi\\eta r v$ a výsledok v newtonoch vynásob tisíckou.": "공식 $F=6\\pi\\eta r v$에 대입하고, 뉴턴 단위 결과에 1000을 곱하라.",
     "Dosadil si priemer namiesto polomeru. Vo vzorci je $r$ polomer, priemer je $2r$.": "반지름 대신 지름을 대입했다. 공식의 $r$은 반지름이며, 지름은 $2r$이다.",

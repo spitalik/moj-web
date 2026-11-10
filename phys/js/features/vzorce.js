@@ -5,6 +5,8 @@
   const { t, esc } = APP;
   const has = (id) => !!(window.FORMULAS && FORMULAS[id] && FORMULAS[id].length);
   const count = (id) => (has(id) ? FORMULAS[id].reduce((s, g) => s + g.items.length, 0) : 0);
+  // odkaz „Vypočítať“ do kalkulačky vzorcov (js/features/kalkulacka.js), ak vzorec pozná
+  const calc = (id, it) => (window.KALKULACKA && KALKULACKA.link ? KALKULACKA.link(id, it) : '');
 
   function list() {
     APP.setPage(`<nav class="crumbs"><a href="#/">${esc(t('home'))}</a></nav>
@@ -31,7 +33,7 @@
       <div class="formula-sheet" lang="${APP.htmlLang(lang)}">${FORMULAS[id].map((g) => {
         const lv = APP.levelById(g.level);
         return `<section class="formula-group"><h2>${esc(tr(g.title))} ${lv ? `<span class="muted small">· ${esc(APP.lvName(lv).title)}</span>` : ''}</h2>
-          <dl>${g.items.map((it) => `<div class="formula"><dt>${esc(tr(it.name))}</dt><dd>$$${tr(it.tex)}$$${it.note ? `<span class="muted small">${tr(it.note)}</span>` : ''}</dd></div>`).join('')}</dl>
+          <dl>${g.items.map((it) => `<div class="formula"><dt>${esc(tr(it.name))}</dt><dd>$$${tr(it.tex)}$$${it.note ? `<span class="muted small">${tr(it.note)}</span>` : ''}${calc(id, it)}</dd></div>`).join('')}</dl>
         </section>`;
       }).join('')}</div>`);
     document.getElementById('pr').addEventListener('click', () => window.print());

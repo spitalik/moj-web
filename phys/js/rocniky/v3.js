@@ -44,6 +44,7 @@
       tol: 0.01,
       q: T`Bodový náboj $Q=${Q}\\,\\mu\\text{C}$ je v bode vo vzdialenosti $r=${r}\\,\\text{m}$ od seba. Aká je veľkosť intenzity elektrického poľa v kV/m? Použi $k=8{,}99\\cdot 10^{9}\\,\\text{N\\,m}^2/\\text{C}^2$ a výsledok zaokrúhli na 2 desatinné miesta.`,
       answer: E,
+      unit: 'kV/m',
       solution: T`$E=k\\frac{Q}{r^2}=8{,}99\\cdot 10^{9}\\cdot\\frac{${Q}\\cdot 10^{-6}}{${r * r}}\\approx ${fmt(E)}\\,\\text{kV/m}$.`,
       hint: T`Intenzita klesá s druhou mocninou vzdialenosti. Náboj v mikrokulomboch najprv prepočítaj na kulomby ($1\\,\\mu\\text{C}=10^{-6}\\,\\text{C}$).`,
       mistakes: [
@@ -51,8 +52,8 @@
         ...mis(r2(K * Q * r * r), E, T`Vzdialenosť si dal do čitateľa. Vo vzorci $E=k\\frac{Q}{r^2}$ je v menovateli.`, 0.01)
       ],
       steps: [
-        { q: T`Koľko je $r^2$ v $\\text{m}^2$?`, answer: r * r },
-        { q: T`Aká je intenzita $E=8{,}99\\cdot\\frac{${Q}}{${r * r}}$ v $\\text{kV/m}$? (na 2 desatinné miesta)`, answer: E, tol: 0.01 }
+        { q: T`Koľko je $r^2$ v $\\text{m}^2$?`, answer: r * r, unit: 'm²' },
+        { q: T`Aká je intenzita $E=8{,}99\\cdot\\frac{${Q}}{${r * r}}$ v $\\text{kV/m}$? (na 2 desatinné miesta)`, answer: E, tol: 0.01, unit: 'kV/m' }
       ]
     };
   });
@@ -120,6 +121,7 @@
       tol: 0.01,
       q: T`Zdroj napätia $U=${U}\\,\\text{V}$ je pripojený na dva rezistory zapojené paralelne: $R_1=${R1}\\,\\Omega$ a $R_2=${R2}\\,\\Omega$. Aký celkový prúd dodáva zdroj v amperoch? Výsledok zaokrúhli na 2 desatinné miesta.`,
       answer: ans,
+      unit: 'A',
       solution: T`$\\frac{1}{R}=\\frac{1}{${R1}}+\\frac{1}{${R2}}$, teda $R\\approx ${fmt(r3(Req))}\\,\\Omega$. Potom $I=\\frac{U}{R}\\approx ${fmt(ans)}\\,\\text{A}$.`,
       hint: T`Najprv nájdi ekvivalentný odpor paralelného zapojenia, potom použi Ohmov zákon.`,
       mistakes: [
@@ -127,8 +129,8 @@
         ...mis(r2(U * Req), ans, T`Výsledok si vynásobil odporom namiesto delenia. Podľa Ohmovho zákona je $I=\\frac{U}{R}$.`, 0.01)
       ],
       steps: [
-        { q: T`Aký je ekvivalentný odpor $R=\\frac{R_1R_2}{R_1+R_2}$ v $\\Omega$? (na 2 desatinné miesta)`, answer: r2(Req), tol: 0.01 },
-        { q: T`Aký prúd dodáva zdroj, $I=\\frac{U}{R}$, v amperoch? (na 2 desatinné miesta)`, answer: ans, tol: 0.01 }
+        { q: T`Aký je ekvivalentný odpor $R=\\frac{R_1R_2}{R_1+R_2}$ v $\\Omega$? (na 2 desatinné miesta)`, answer: r2(Req), tol: 0.01, unit: 'Ω' },
+        { q: T`Aký prúd dodáva zdroj, $I=\\frac{U}{R}$, v amperoch? (na 2 desatinné miesta)`, answer: ans, tol: 0.01, unit: 'A' }
       ]
     };
   });
@@ -157,6 +159,7 @@
     return {
       q: T`Častica s nábojom $q=${q}\\,\\mu\\text{C}$ letí rýchlosťou $v=${v}\\,\\text{m/s}$ kolmo na magnetické pole s indukciou $B=${fmt(B)}\\,\\text{T}$. Akú silu na ňu pôsobí pole? Výsledok vyjadri v mikronewtonoch ($\\mu\\text{N}$).`,
       answer: F,
+      unit: 'µN',
       solution: T`Lorentzova sila: $F=qvB=${q}\\cdot 10^{-6}\\cdot ${v}\\cdot ${fmt(B)}=${F}\\cdot 10^{-6}\\,\\text{N}$, teda $${F}\\,\\mu\\text{N}$.`,
       hint: T`Pri kolmom smere rýchlosti je $\\sin\\alpha=1$, takže $F=qvB$. Pozor na predpony: $1\\,\\mu\\text{C}=10^{-6}\\,\\text{C}$.`,
       mistakes: [
@@ -165,7 +168,7 @@
       ],
       steps: [
         { q: T`Koľko je súčin $q\\,v$ v jednotkách $\\mu\\text{C}\\cdot\\text{m/s}$?`, answer: q * v },
-        { q: T`Aká je sila $F=qvB$ v $\\mu\\text{N}$?`, answer: F, tol: 1e-6 }
+        { q: T`Aká je sila $F=qvB$ v $\\mu\\text{N}$?`, answer: F, tol: 1e-6, unit: 'µN' }
       ]
     };
   });
@@ -195,6 +198,7 @@
       tol: 0.01,
       q: T`Plocha slučky $S=${fmt(S)}\\,\\text{m}^2$ je celá v magnetickom poli, ktoré kolmo na plochu narastie za čas $\\Delta t=${dt}\\,\\text{s}$ o $\\Delta B=${dB}\\,\\text{T}$. Aké je veľkosť indukovaného napätia v voltoch? Výsledok zaokrúhli na 2 desatinné miesta.`,
       answer: U,
+      unit: 'V',
       solution: T`$U_i=\\left|\\frac{\\Delta\\Phi}{\\Delta t}\\right|=\\frac{S\\,\\Delta B}{\\Delta t}=\\frac{${fmt(S)}\\cdot ${dB}}{${dt}}\\approx ${fmt(U)}\\,\\text{V}$.`,
       hint: T`Tok je $BS$ a napätie je jeho zmena za čas. Plocha je konštantná, takže sa mení len indukcia.`,
       mistakes: [
@@ -202,8 +206,8 @@
         ...mis(r2(dB * S), U, T`Zabudol si deliť časom. Napätie závisí od rýchlosti zmeny toku, nie od samotnej zmeny.`, 0.01)
       ],
       steps: [
-        { q: T`O koľko weberov sa zmení magnetický tok, $\\Delta\\Phi=S\\,\\Delta B$?`, answer: r2(dB * S), tol: 0.001 },
-        { q: T`Aké je indukované napätie $\\frac{\\Delta\\Phi}{\\Delta t}$ vo voltoch? (na 2 desatinné miesta)`, answer: U, tol: 0.01 }
+        { q: T`O koľko weberov sa zmení magnetický tok, $\\Delta\\Phi=S\\,\\Delta B$?`, answer: r2(dB * S), tol: 0.001, unit: 'Wb' },
+        { q: T`Aké je indukované napätie $\\frac{\\Delta\\Phi}{\\Delta t}$ vo voltoch? (na 2 desatinné miesta)`, answer: U, tol: 0.01, unit: 'V' }
       ]
     };
   });
@@ -233,6 +237,7 @@
       tol: 0.01,
       q: T`Dlhým priamym vodičom preteká prúd $I=${I}\\,\\text{A}$. Aká je veľkosť magnetickej indukcie vo vzdialenosti $r=${fmt(r)}\\,\\text{m}$ od vodiča? Výsledok v mikroteslach ($\\mu\\text{T}$) zaokrúhli na 2 desatinné miesta. Použi $\\mu_0=4\\pi\\cdot 10^{-7}\\,\\text{T\\,m/A}$.`,
       answer: B,
+      unit: 'µT',
       solution: T`$B=\\frac{\\mu_0 I}{2\\pi r}=\\frac{4\\pi\\cdot 10^{-7}\\cdot ${I}}{2\\pi\\cdot ${fmt(r)}}=\\frac{2\\cdot 10^{-7}\\cdot ${I}}{${fmt(r)}}\\,\\text{T}\\approx ${fmt(B)}\\,\\mu\\text{T}$.`,
       hint: T`Pre priamy vodič je indukcia úmerná prúdu a nepriamo úmerná vzdialenosti. Nezabudni na $2\\pi$ v menovateli.`,
       mistakes: [
@@ -240,8 +245,8 @@
         ...mis(r2(0.2 * I * r), B, T`Vzdialenosť si násobil namiesto delenia. Indukcia so vzdialenosťou klesá.`, 0.01)
       ],
       steps: [
-        { q: T`Koľko je $\\frac{I}{r}=\\frac{${I}}{${dm(r)}}$ v $\\text{A/m}$?`, answer: I / r, tol: 0.01 },
-        { q: T`Aká je indukcia $B=2\\cdot 10^{-7}\\cdot\\frac{I}{r}$ v $\\mu\\text{T}$?`, answer: B, tol: 0.01 }
+        { q: T`Koľko je $\\frac{I}{r}=\\frac{${I}}{${dm(r)}}$ v $\\text{A/m}$?`, answer: I / r, tol: 0.01, unit: 'A/m' },
+        { q: T`Aká je indukcia $B=2\\cdot 10^{-7}\\cdot\\frac{I}{r}$ v $\\mu\\text{T}$?`, answer: B, tol: 0.01, unit: 'µT' }
       ]
     };
   });
@@ -270,6 +275,7 @@
     return {
       q: T`Rozhlasová stanica vysiela na frekvencii $f=${f}\\,\\text{MHz}$. Akú vlnovú dĺžku $\\lambda$ má jej elektromagnetická vlna vo vzduchu? Použi $c=3\\cdot 10^{8}\\,\\text{m/s}$, výsledok v metroch.`,
       answer: lam,
+      unit: 'm',
       solution: T`$\\lambda=\\frac{c}{f}=\\frac{3\\cdot 10^{8}}{${f}\\cdot 10^{6}}=${fmt(lam)}\\,\\text{m}$.`,
       hint: T`Frekvenciu najprv prepočítaj na hertze ($1\\,\\text{MHz}=10^{6}\\,\\text{Hz}$), potom použi $\\lambda=\\frac{c}{f}$.`,
       mistakes: [
@@ -278,7 +284,7 @@
       ],
       steps: [
         { q: T`Koľko je $\\frac{c}{10^{6}}=\\frac{3\\cdot 10^{8}}{10^{6}}$?`, answer: 300 },
-        { q: T`Aká je vlnová dĺžka $\\lambda=\\frac{300}{${f}}$ v metroch?`, answer: lam, tol: 0.001 }
+        { q: T`Aká je vlnová dĺžka $\\lambda=\\frac{300}{${f}}$ v metroch?`, answer: lam, tol: 0.001, unit: 'm' }
       ]
     };
   });

@@ -16,7 +16,9 @@
    - Pri prvej nesprávnej odpovedi, ktorú vie diagnose() vysvetliť (typická chyba), sa ukáže vysvetlenie
      a žiak má ešte jeden pokus; do štatistiky sa počíta prvý pokus.
    - Úlohy so steps sa dajú riešiť po krokoch (prepínač si aplikácia pamätá). Po krokoch je úloha správna,
-     ak žiak nespravil chybu a žiadny krok si nedal ukázať. */
+     ak žiak nespravil chybu a žiadny krok si nedal ukázať.
+   Úloha alebo krok s jednotkou (ex.unit): pod poľom je očakávaná jednotka (aria-describedby), klávesnica
+   dostane tlačidlá jednotiek a chybný zápis jednotky má vlastné upozornenie. */
 (function () {
   'use strict';
 
@@ -39,7 +41,37 @@
   // text diagnózy: konkrétna chyba z generátora (obsah) alebo všeobecná (preklad rozhrania)
   const diagText = (d) => (d.msg !== undefined ? d.msg : esc(t(d.key, d.vars || {})));
 
+  let mounts = 0; // jedinečné id prvkov (aria-describedby)
+
+  // očakávaná jednotka pod poľom odpovede (úloha alebo krok); bez jednotky sa prvok skryje
+  function unitHint(task, input, hintEl) {
+    const info = window.EXERCISES && EXERCISES.unitInfo ? EXERCISES.unitInfo(task) : null;
+    if (!hintEl) return info;
+    hintEl.hidden = !info;
+    if (!info) {
+      hintEl.textContent = '';
+      input.removeAttribute('aria-describedby');
+      return null;
+    }
+    const alts = info.alts.slice(0, 2);
+    hintEl.textContent = alts.length ? t('unitExpectAlso', { u: info.text, list: alts.join(', ') }) : t('unitExpect', { u: info.text });
+    input.setAttribute('aria-describedby', hintEl.id);
+    if (!task.placeholder) input.placeholder = `${t('yourAnswer')} (${info.text})`;
+    return info;
+  }
+
+  // text upozornenia, keď sa odpoveď nedá prečítať (zlý zápis jednotky má vlastný text)
+  function warnText(task, input) {
+    if (task.type === 'text') return t('enterText');
+    if (task.unit && window.EXERCISES && EXERCISES.readQty && /[^0-9\s.,;\/+\-−]/.test(String(input))) {
+      const r = EXERCISES.readQty(task, input);
+      if (r && r.error) return t(r.error, { u: r.u || '' });
+    }
+    return t('enterNumber');
+  }
+
   function mount(root, opts) {
+    const uid = 'pw' + (++mounts);
     const mode = opts.mode || 'practice';
     const exam = mode === 'exam';
     const results = [];
@@ -64,6 +96,7 @@
           <input class="pw-input" type="text" inputmode="decimal" aria-label="${esc(t('yourAnswer'))}">
           <button class="btn btn-primary pw-submit" type="submit">${esc(exam ? t('examSave') : t('check'))}</button>
         </form>
+        <p class="jed-hint muted small" id="${uid}-unit" hidden></p>
         <div class="pw-keypad" hidden></div>
         <div class="feedback" aria-live="polite"></div>
         <div class="actions">
@@ -85,7 +118,7 @@
       q: $('.question'), steps: $('.pw-steps'), choices: $('.choices'), form: $('.answer-row'), input: $('.pw-input'),
       submit: $('.pw-submit'), keypad: $('.pw-keypad'), fb: $('.feedback'), sol: $('.solution'), scratch: $('.pw-scratch'),
       tip: $('.pw-tip'), hint: $('.pw-hint'), stepBtn: $('.pw-stepbtn'), show: $('.pw-show'), next: $('.pw-next'),
-      skip: $('.pw-skip'), finishBtn: $('.pw-finish')
+      skip: $('.pw-skip'), finishBtn: $('.pw-finish'), unit: $('.jed-hint')
     };
     let activeInput = el.input; // pole, do ktorého píše klávesnica (hlavné alebo pole kroku)
 
@@ -133,6 +166,10 @@
       root.querySelectorAll('.pw-input, .step-input').forEach((inp) => {
         inp.inputMode = show ? 'none' : (inp.dataset.mode || 'decimal');
       });
+      if (show && KEYPAD.units) {
+        const info = ex && EXERCISES.unitInfo ? EXERCISES.unitInfo(stepState ? stepTask() : ex) : null;
+        KEYPAD.units(el.keypad, info ? [info.text, ...info.alts.slice(0, 3)] : []);
+      }
     }
 
     /* ---------- časový limit (testy) ---------- */
@@ -203,7 +240,7 @@
         el.stepBtn.hidden = !(Array.isArray(ex.steps) && ex.steps.length);
         el.stepBtn.disabled = false;
       }
-      showAnswerArea(ex, el.input, el.choices, el.form);
+      showAnswerArea(ex, el.input, el.choices, el.form, el.unit);
       el.tip.hidden = ex.type === 'choice' || ex.type === 'text';
       renderMath(el.q);
       updateHead();
@@ -221,7 +258,7 @@
     }
 
     // pole alebo možnosti pre úlohu / krok
-    function showAnswerArea(task, input, choicesEl, form) {
+    function showAnswerArea(task, input, choicesEl, form, hintEl) {
       const isChoice = task.type === 'choice';
       form.hidden = isChoice;
       choicesEl.hidden = !isChoice;
@@ -237,6 +274,7 @@
         input.value = '';
         input.disabled = false;
       }
+      unitHint(isChoice ? {} : task, input, hintEl);
     }
 
     /* ---------- vyhodnotenie celej úlohy ---------- */
@@ -244,13 +282,13 @@
       if (done || finalized) return;
       if (exam) {
         const res = input === '' ? false : EXERCISES.check(ex, input);
-        if (res === null) { warn(); return; }
+        if (res === null) { warn(input); return; }
         record(res === true, false, input);
         load();
         return;
       }
       const res = EXERCISES.check(ex, input);
-      if (res === null) { warn(); return; }
+      if (res === null) { warn(input); return; }
       attempts += 1;
       if (res) {
         if (attempts === 1) record(true, false, input);
@@ -276,9 +314,9 @@
       reveal();
     }
 
-    function warn() {
+    function warn(input) {
       el.fb.className = 'feedback warn';
-      el.fb.textContent = (stepState ? stepType() : ex.type) === 'text' ? t('enterText') : t('enterNumber');
+      el.fb.textContent = warnText(stepState ? stepTask() : ex, input === undefined ? el.input.value : input);
     }
 
     function reveal() {
@@ -299,6 +337,7 @@
         if (ex.options[b.dataset.k] === String(ex.answer)) b.classList.add('correct');
       });
       el.keypad.hidden = true;
+      el.unit.hidden = true;
       if (el.next) el.next.focus({ preventScroll: true });
     }
 
@@ -311,6 +350,7 @@
       stepState = { k: 0, wrong: 0, revealed: 0, tries: 0 };
       el.form.hidden = true;
       el.choices.hidden = true;
+      el.unit.hidden = true;
       el.steps.hidden = false;
       el.tip.hidden = true;
       if (el.stepBtn) el.stepBtn.disabled = true;
@@ -330,6 +370,7 @@
           <input class="step-input" type="text" aria-label="${esc(t('yourAnswer'))}">
           <button class="btn btn-primary" type="submit">${esc(t('check'))}</button>
         </form>
+        <p class="jed-hint muted small" id="${uid}-s${stepState.k}" hidden></p>
         <div class="step-fb feedback" aria-live="polite"></div>
         <div class="actions step-actions">
           ${s.hint ? `<button class="btn btn-small step-hint" type="button">${esc(t('hint'))}</button>` : ''}
@@ -337,7 +378,7 @@
         </div>`;
       list.appendChild(li);
       const input = li.querySelector('.step-input'), form = li.querySelector('.step-form'), choices = li.querySelector('.step-choices');
-      showAnswerArea(s, input, choices, form);
+      showAnswerArea(s, input, choices, form, li.querySelector('.jed-hint'));
       renderMath(li);
       stepState.tries = 0;
       form.addEventListener('submit', (e) => { e.preventDefault(); stepAnswer(input.value); });
@@ -362,7 +403,7 @@
       const li = el.steps.querySelector('.step-current');
       const fb = li.querySelector('.step-fb');
       const res = EXERCISES.check(s, input);
-      if (res === null) { fb.className = 'step-fb feedback warn'; fb.textContent = s.type === 'text' ? t('enterText') : t('enterNumber'); return; }
+      if (res === null) { fb.className = 'step-fb feedback warn'; fb.textContent = warnText(s, input); return; }
       if (res) { completeStep(false); return; }
       stepState.wrong += 1;
       stepState.tries += 1;

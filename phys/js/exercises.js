@@ -1,6 +1,9 @@
 /* Generátory úloh na precvičovanie a kontrola odpovedí.
    Každý generátor vráti: q (zadanie, LaTeX), answer (číslo, alebo pole čísel pri type 'set'),
    type ('num' | 'set'), tol (tolerancia), solution (HTML), hint (text).
+   Voliteľne unit: jednotka, v ktorej je answer (napr. 'm/s'); žiak potom smie napísať samé číslo (myslí sa unit)
+   alebo číslo s jednotkou rovnakého rozmeru ('72 km/h'), hodnota sa prevedie (js/jednotky.js). unitDelta: true = ide
+   o rozdiel (teplotný rozdiel 10 °C = 10 K, prevod bez posunu). Kroky (steps) môžu mať vlastné unit.
    Texty sa označujú značkou T (js/content-i18n.js): make(id, jazyk) spustí generátor v kontexte jazyka. */
 (function () {
   'use strict';
@@ -508,7 +511,20 @@
     const tol = ex.tol ?? 1e-6;
     const near = (x, y) => Math.abs(x - y) <= Math.max(tol, 1e-9 * Math.abs(y));
     if (ex.type === 'num' && typeof ex.answer === 'number') {
-      const v = parseNum(input), a = ex.answer;
+      let v = parseNum(input);
+      const a = ex.answer;
+      if (unitOf(ex)) {
+        const r = readQty(ex, input);
+        if (r.error) return null;
+        // jednotka iného rozmeru (napr. 20 m pri rýchlosti)
+        if (r.wrongDim) return { key: 'unitWrongDim', vars: { u: r.wrongDim.text, want: unitOf(ex).text } };
+        v = r.value;
+        // zabudnutý prevod: samé číslo sa rovná výsledku v inej bežnej jednotke (km namiesto m, min namiesto s …)
+        if (r.bare && a !== 0) {
+          const alt = forgotUnit(ex, v);
+          if (alt) return alt === '1' ? { key: 'unitForgotPercent', vars: { want: unitOf(ex).text } } : { key: 'unitForgotConvert', vars: { u: alt, want: unitOf(ex).text } };
+        }
+      }
       if (Number.isNaN(v)) return null;
       if (a !== 0 && near(v, -a)) return { key: 'mistakeSign' };
       for (const k of [10, 100, 1000]) {
@@ -520,8 +536,8 @@
       return null;
     }
     if (ex.type === 'set' || ex.type === 'tuple') {
-      const got = String(input || '').split(/[;\s]+|,(?=\s)|,(?!\d)/).filter(Boolean).map(parseNum);
-      if (!got.length || got.some(Number.isNaN)) return null;
+      const got = readList(ex, input);
+      if (!got || !got.length || got.some(Number.isNaN)) return null;
       const want = [...ex.answer];
       const hit = (x) => want.some((w) => near(x, w));
       if (ex.type === 'tuple' && got.length === want.length && want.length > 1 &&
@@ -535,6 +551,97 @@
       if (ex.type === 'set' && got.length === want.length && want.every((w) => got.some((x) => near(x, -w)))) return { key: 'mistakeSign' };
     }
     return null;
+  }
+
+  /* ---------- odpovede s jednotkami ---------- */
+  const unitCache = new Map();
+  // rozparsovaná jednotka úlohy (ex.unit), alebo null (bez jednotky / knižnica jednotiek chýba / zlý zápis)
+  function unitOf(ex) {
+    if (!ex || typeof ex.unit !== 'string' || !ex.unit || !window.JEDNOTKY) return null;
+    if (!unitCache.has(ex.unit)) {
+      const u = JEDNOTKY.parse(ex.unit);
+      unitCache.set(ex.unit, u.ok ? u : null);
+    }
+    return unitCache.get(ex.unit);
+  }
+  // jednotky sú zameniteľné: rovnaký rozmer a rovnaký druh – uhol (°, rad) nie je pomer (%), Hz nie je rad/s
+  const kindOf = (u) => {
+    const units = u.parts.map((q) => q.unit);
+    if (units.some((x) => x === 'rad' || x === '°' || x === 'sr')) return 'angle';
+    if (units.includes('Hz') || units.includes('Bq')) return 'hz';
+    return '';
+  };
+  function compatible(a, b) {
+    if (!JEDNOTKY.sameDim(a, b)) return false;
+    const ka = kindOf(a), kb = kindOf(b);
+    if (ka === kb) return true;
+    // rad/s a 1/s, ° a samé číslo sú zameniteľné; uhol a Hz alebo pomer (%) nie
+    const dimless = a.dim.every((x) => x === 0);
+    if (dimless) return false;
+    return !(ka === 'angle' && kb === 'hz') && !(ka === 'hz' && kb === 'angle');
+  }
+  // jedno číslo, ktoré napísal žiak, v jednotke úlohy:
+  //   { value, bare } | { wrongDim: jednotka } | { error, pos, u } (kľúč chyby zápisu jednotky)
+  function readQty(ex, input) {
+    const want = unitOf(ex);
+    const n = parseNum(input);
+    if (!Number.isNaN(n) || !want) return { value: n, bare: true };
+    const q = JEDNOTKY.parseQuantity(input);
+    if (!q.ok) return { error: q.error, pos: q.pos, u: q.u };
+    if (!q.unit) return { value: q.value, bare: true };
+    if (!compatible(q.unit, want)) return { wrongDim: q.unit };
+    return { value: JEDNOTKY.convert(q.value, q.unit, want, !!ex.unitDelta), bare: false, unit: q.unit };
+  }
+  // viac čísel (set, tuple): bez jednotky ako doteraz; s jednotkou oddelené bodkočiarkou („3 m; 40 cm“)
+  // → pole čísel v jednotke úlohy, false (zlý rozmer), null (nedá sa prečítať)
+  function readList(ex, input) {
+    const s = String(input || '');
+    if (!unitOf(ex) || !/[A-Za-zµμΩ°%‰]/.test(s)) return s.split(/[;\s]+|,(?=\s)|,(?!\d)/).filter(Boolean).map(parseNum);
+    const out = [];
+    for (const part of s.split(/;|,\s+(?=[-+−]?[0-9])/).map((x) => x.trim()).filter(Boolean)) {
+      const r = readQty(ex, part);
+      if (r.error) return null;
+      if (r.wrongDim) return false;
+      out.push(r.value);
+    }
+    return out;
+  }
+  // samé číslo v, ktoré sa rovná správnej odpovedi v inej bežnej jednotke rovnakého rozmeru → text tej jednotky
+  // (násobok 10 vynecháme – to je skôr posunutá desatinná čiarka, mistakeDecimal)
+  function forgotUnit(ex, v) {
+    const want = unitOf(ex), tol = ex.tol ?? 1e-6;
+    for (const u of JEDNOTKY.common(want.dim).filter((x) => compatible(JEDNOTKY.parse(x), want))) {
+      if (JEDNOTKY.parse(u).text === want.text) continue;
+      const alt = JEDNOTKY.convert(ex.answer, want, u, !!ex.unitDelta);
+      const ratio = Math.abs(ex.answer) > 0 ? Math.abs(alt / ex.answer) : 1;
+      if (!Number.isFinite(alt) || Math.abs(ratio - 1) < 1e-6 || Math.abs(ratio - 10) < 1e-6 || Math.abs(ratio - 0.1) < 1e-9) continue;
+      if (Math.abs(v - alt) <= Math.max(tol * ratio, 1e-3 * Math.abs(alt))) return u;
+    }
+    // percentá a promile: samé desatinné číslo (0,4 namiesto 40 %)
+    if (want.dim.every((x) => x === 0) && !kindOf(want) && want.factor !== 1) {
+      const alt = ex.answer * want.factor;
+      if (Math.abs(v - alt) <= Math.max(tol * want.factor, 1e-3 * Math.abs(alt))) return '1';
+    }
+    return null;
+  }
+  // jednotka úlohy pre rozhranie: { text, tex, alts: iné bežné jednotky rovnakého rozmeru } alebo null
+  function unitInfo(ex) {
+    const u = unitOf(ex);
+    if (!u) return null;
+    const alts = JEDNOTKY.common(u.dim).filter((x) => JEDNOTKY.parse(x).text !== u.text && compatible(JEDNOTKY.parse(x), u));
+    return { text: u.text, tex: u.tex, alts };
+  }
+  // číslo v KaTeX: veľmi veľké a malé hodnoty ako a·10^n, desatinný oddeľovač jazyka
+  function texNum(x) {
+    const dec = (y) => fmt(y).replace(/[,.]/, '{' + CONTENT_I18N.decimal() + '}');
+    const ax = Math.abs(x);
+    if (ax !== 0 && (ax >= 1e6 || ax < 1e-3)) {
+      let e = Math.floor(Math.log10(ax));
+      let m = Math.round(x / Math.pow(10, e) * 1000) / 1000;
+      if (Math.abs(m) >= 10) { m /= 10; e += 1; }
+      return `${dec(m)}\\cdot 10^{${e}}`;
+    }
+    return dec(x);
   }
 
   // správna odpoveď v tvare, ktorý prejde kontrolou (pre validátor a testy)
@@ -561,8 +668,9 @@
       return [ex.answer, ...(ex.accept || [])].some((a) => normText(a) === got);
     }
     if (ex.type === 'set' || ex.type === 'tuple') {
-      const got = String(input || '').split(/[;\s]+|,(?=\s)|,(?!\d)/).filter(Boolean).map(parseNum);
-      if (got.length === 0 || got.some(Number.isNaN)) return null;
+      const got = readList(ex, input);
+      if (got === false) return false;
+      if (!got || got.length === 0 || got.some(Number.isNaN)) return null;
       const want = [...ex.answer];
       if (ex.type === 'set') {
         got.sort((x, y) => x - y);
@@ -578,6 +686,12 @@
       }
       return want.every((v, i) => Math.abs(v - got[i]) <= tol);
     }
+    if (unitOf(ex)) {
+      const r = readQty(ex, input);
+      if (r.error) return null;
+      if (r.wrongDim) return false;
+      return Math.abs(r.value - ex.answer) <= Math.max(tol, 1e-9 * Math.abs(ex.answer));
+    }
     const v = parseNum(input);
     if (Number.isNaN(v)) return null;
     return Math.abs(v - ex.answer) <= tol;
@@ -588,6 +702,14 @@
   }
   function formatIn(ex) {
     if (ex.show) return ex.show;
+    // s jednotkou: $20\,\text{m/s}$
+    const u = unitOf(ex);
+    if (u && (ex.type === 'num' || ex.type === 'set' || ex.type === 'tuple')) {
+      const one = (x) => `$${texNum(x)}\\,${u.tex}$`;
+      if (ex.type === 'num') return one(ex.answer);
+      const list = ex.type === 'set' ? [...ex.answer].sort((x, y) => x - y) : ex.answer;
+      return list.map(one).join(CONTENT_I18N.listSep());
+    }
     if (ex.type === 'set') return [...ex.answer].sort((x, y) => x - y).map(fmt).join(CONTENT_I18N.listSep());
     if (ex.type === 'tuple') return ex.answer.map(fmt).join(CONTENT_I18N.listSep());
     if (ex.type === 'text' || ex.type === 'choice') return String(ex.answer);
@@ -610,7 +732,7 @@
   };
 
   window.EXERCISES = {
-    make, check, formatAnswer, parseNum, register, diagnose, stepEx, canonical, withSeed, hashSeed,
+    make, check, formatAnswer, parseNum, register, diagnose, stepEx, canonical, withSeed, hashSeed, readQty, unitInfo,
     has: (id) => !!G[id],
     util: { rnd, pick, gcd, fmt, term, shuffle }
   };

@@ -64,6 +64,7 @@
       return {
         q: T`Koľko gramov má $${V}\\,\\text{cm}^3$ ${M.g}, ak má hustotu $\\rho=${mf(rho)}\\,\\text{g/cm}^3$?`,
         answer: m,
+        unit: 'g',
         solution: T`Zo vzorca $m=\\rho\\cdot V$ dostaneme $m=${mf(rho)}\\cdot ${V}=${m}$, teda ${m} g.`,
         hint: T`Hmotnosť dostaneš vynásobením hustoty objemom: $m=\\rho\\cdot V$.`,
         mistakes: m !== V ? [
@@ -80,6 +81,7 @@
       return {
         q: T`Teleso má hmotnosť $${m}\\,\\text{g}$ a objem $${V}\\,\\text{cm}^3$. Aká je jeho hustota v $\\text{g/cm}^3$?`,
         answer: rho,
+        unit: 'g/cm³',
         tol: 0.001,
         solution: T`Hustotu dostaneme zo vzorca $\\rho=\\frac{m}{V}=\\frac{${m}}{${V}}=${mf(rho)}\\,\\text{g/cm}^3$.`,
         hint: T`Hustotu vypočítaš, ak hmotnosť vydelíš objemom: $\\rho=\\frac{m}{V}$.`,
@@ -93,6 +95,7 @@
     return {
       q: T`Aký objem má teleso z ${M.g}, ktoré má hmotnosť $${m}\\,\\text{g}$ a hustotu $\\rho=${mf(rho)}\\,\\text{g/cm}^3$?`,
       answer: V,
+      unit: 'cm³',
       tol: 0.01,
       solution: T`Objem dostaneme zo vzorca $V=\\frac{m}{\\rho}=\\frac{${m}}{${mf(rho)}}=${V}\\,\\text{cm}^3$.`,
       hint: T`Objem dostaneš, ak hmotnosť vydelíš hustotou: $V=\\frac{m}{\\rho}$.`,
@@ -173,6 +176,7 @@
       return {
         q: T`Sila $${F}\\,\\text{N}$ pôsobí kolmo na plochu $${S}\\,\\text{m}^2$. Aký tlak (v pascaloch) vyvolá?`,
         answer: p,
+        unit: 'Pa',
         solution: T`$p=\\frac{F}{S}=\\frac{${F}}{${S}}=${p}\\,\\text{Pa}$.`,
         hint: T`Tlak je sila delená plochou: $p=\\frac{F}{S}$.`,
         mistakes: [{ value: F * S, msg: T`Silu si vynásobil plochou. Tlak sa počíta delením: $p=\\frac{F}{S}$.` }],
@@ -188,6 +192,7 @@
     return {
       q: T`Aký je tlak v kilopascaloch na dne nádoby hlbokej $${h}\\,\\text{m}$, ktorú naplníme ${L.inst}? Hustota je $\\rho=${L.r}\\,\\text{kg/m}^3$, $g=10\\,\\text{N/kg}$.`,
       answer: kpa,
+      unit: 'kPa',
       solution: T`$p=\\rho\\cdot g\\cdot h=${L.r}\\cdot 10\\cdot ${h}=${L.r * 10 * h}\\,\\text{Pa}=${kpa}\\,\\text{kPa}$.`,
       hint: T`Hydrostatický tlak je $p=\\rho\\cdot g\\cdot h$. Výsledok v pascaloch vydeľ tisíckou.`,
       mistakes: [
@@ -195,7 +200,7 @@
         { value: L.r * h / 1000, msg: T`Chýba tu gravitačné zrýchlenie $g=10\\,\\text{N/kg}$. Tlak v kvapaline je $p=\\rho\\cdot g\\cdot h$.` }
       ],
       steps: [
-        { q: T`Aký je tlak v pascaloch? Vypočítaj $p=\\rho\\cdot g\\cdot h=${L.r}\\cdot 10\\cdot ${h}$.`, answer: L.r * 10 * h },
+        { q: T`Aký je tlak v pascaloch? Vypočítaj $p=\\rho\\cdot g\\cdot h=${L.r}\\cdot 10\\cdot ${h}$.`, answer: L.r * 10 * h, unit: 'Pa' },
         { q: T`Koľko kilopascalov je $${L.r * 10 * h}\\,\\text{Pa}$?`, answer: kpa }
       ]
     };
@@ -286,6 +291,7 @@
       return {
         q: T`Teleso s objemom $${V}\\,\\text{dm}^3$ je celé ponorené ${K.inst}. Aká je veľkosť vztlakovej sily? Hustota kvapaliny je $\\rho=${mf(K.r / 10)}\\,\\text{kg/dm}^3$ a $g=10\\,\\text{N/kg}$.`,
         answer: F,
+        unit: 'N',
         solution: T`$F_{vz}=\\rho\\cdot g\\cdot V=${mf(K.r / 10)}\\cdot 10\\cdot ${V}=${F}\\,\\text{N}$.`,
         hint: T`Vztlak závisí od hustoty kvapaliny a od objemu ponorenej časti telesa.`,
         mistakes: [
@@ -302,13 +308,14 @@
     return {
       q: T`Teleso s hmotnosťou $${m}\\,\\text{kg}$ pláva na hladine. Aká je veľkosť vztlakovej sily? Použi $g=10\\,\\text{N/kg}$.`,
       answer: m * 10,
+      unit: 'N',
       solution: T`Teleso pláva, takže vztlak sa rovná tiaži: $F_{vz}=F_G=m\\cdot g=${m}\\cdot 10=${m * 10}\\,\\text{N}$.`,
       hint: T`Plávajúce teleso je v rovnováhe: vztlaková sila a tiaž sú rovnaké.`,
       mistakes: [{ value: m, msg: T`Hmotnosť si nechal bez zmeny. Vztlak sa počíta v newtonoch, preto hmotnosť vynásob gravitačným zrýchlením $g=10\\,\\text{N/kg}$.` }],
       steps: [
         { q: T.s('Teleso pláva na hladine. Aký je vzťah medzi vztlakovou silou $F_{vz}$ a tiažou $F_G$?'), type: 'choice',
           options: shuffle(['$F_{vz}=F_G$', '$F_{vz}\\gt F_G$', '$F_{vz}\\lt F_G$']), answer: '$F_{vz}=F_G$' },
-        { q: T`Aká je tiaž telesa $F_G=m\\cdot g=${m}\\cdot 10$ v newtonoch?`, answer: m * 10 }
+        { q: T`Aká je tiaž telesa $F_G=m\\cdot g=${m}\\cdot 10$ v newtonoch?`, answer: m * 10, unit: 'N' }
       ]
     };
   });
@@ -359,6 +366,7 @@
     return {
       q: T`Zmiešame rovnaké množstvá vody s teplotami ${t1} °C a ${t2} °C. Aká bude výsledná teplota? Tepelné straty zanedbaj.`,
       answer: (t1 + t2) / 2,
+      unit: '°C',
       solution: T`Pri rovnakých množstvách vody je výsledná teplota priemer: $\\frac{${t1}+${t2}}{2}=${(t1 + t2) / 2}$, teda ${(t1 + t2) / 2} °C.`,
       hint: T`Teploty sa nesčítavajú. Pri rovnakých množstvách vody vypočítaj ich priemer.`,
       mistakes: [

@@ -265,7 +265,7 @@ CONTENT_I18N.add('ru', {
     "Nezohľadnil si náboj častice. Energia je $z\\,e\\,U$, nie len $e\\,U$.": "Ты не учёл заряд частицы. Энергия равна $z\\,e\\,U$, а не только $e\\,U$.",
     "Výsledok je v MeV, nie v keV. Pozor: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.": "Результат в МэВ, а не в кэВ. Внимание: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.",
     "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.": "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.",
-    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.": "Энергия в электронвольтах равна зарядовому числу $z$, умноженному на напряжение в вольтах.",
+    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu vo voltoch.": "Энергия в электронвольтах равна зарядовому числу $z$, умноженному на напряжение в вольтах.",
     "pión": "пион",
     "Higgsov bozón má hmotnosť približne 125 GeV/$c^2$. Koľkokrát je ťažší ako {@0}, ak hmotnosť tejto častice je ${@1}\\,\\text{GeV}/c^2$? Zaokrúhli na celé číslo.": "Масса бозона Хиггса примерно 125 ГэВ/$c^2$. Во сколько раз он тяжелее, чем {@0}, если масса этой частицы равна ${@1}\\,\\text{GeV}/c^2$? Округли до целого числа.",
     "Hmotnosti sa nenásobia. Podiel dostaneš delením: $m_H / m$.": "Массы не перемножают. Частное получаем делением: $m_H / m$.",

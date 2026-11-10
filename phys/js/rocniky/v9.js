@@ -126,6 +126,7 @@
     return {
       q: T`Medený vodič má dĺžku $l=${L}\\,\\text{m}$ a prierez $S=${S}\\,\\text{mm}^2$. Aký je jeho odpor v ohmoch? Merný odpor medi je $\\rho=1{,}7\\cdot 10^{-8}\\,\\Omega\\cdot\\text{m}$. Zaokrúhli na 2 desatinné miesta.`,
       answer: ans,
+      unit: 'Ω',
       tol: 0.01,
       mistakes: dropAns([
         { value: Math.round(0.017 * L * S * 100) / 100, msg: T`Prierez sme mali deliť, nie násobiť. Väčší prierez znamená menší odpor.` },
@@ -133,7 +134,7 @@
       ], ans),
       steps: [
         { q: T`Koľko je $\\frac{l}{S}$ v jednotkách $10^{6}\\,\\text{m}^{-1}$ (prierez v $\\text{m}^2$)?`, answer: L / S, tol: 1e-6 },
-        { q: T`Aký je odpor $R=\\rho\\frac{l}{S}$ v ohmoch? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+        { q: T`Aký je odpor $R=\\rho\\frac{l}{S}$ v ohmoch? Zaokrúhli na 2 desatinné miesta.`, answer: ans, unit: 'Ω', tol: 0.01 }
       ],
       solution: T`$S=${S}\\,\\text{mm}^2=${S}\\cdot 10^{-6}\\,\\text{m}^2$, teda $R=\\rho\\dfrac{l}{S}\\approx ${mn(ans)}\\,\\Omega$.`,
       hint: T`Dosaď do vzorca $R=\\rho\\dfrac{l}{S}$ s prierezom v m². Pozor na prevod jednotiek.`
@@ -338,15 +339,16 @@
     return {
       q: T`Kocka z nanomateriálu má hranu $a=${a}\\,\\text{nm}$. Aký je pomer povrchu k objemu $S/V$ v jednotkách $\\text{nm}^{-1}$?`,
       answer: ans,
+      unit: 'nm⁻¹',
       tol: 1e-3,
       mistakes: dropAns([
         { value: 6 * a, msg: T`S rastúcou hranou pomer klesá. Hrana je v menovateli: $6/a$, nie $6a$.` },
         { value: 6 / (a * a), msg: T`Vzorec je $S/V=6/a$, nie $6/a^2$. Mocninu hrany nedelíme dvakrát.` }
       ], ans),
       steps: [
-        { q: T`Aký je povrch kocky $S=6a^2$ v $\\text{nm}^2$?`, answer: 6 * a * a },
-        { q: T`Aký je objem kocky $V=a^3$ v $\\text{nm}^3$?`, answer: a * a * a },
-        { q: T`Koľko je pomer $S/V$ v $\\text{nm}^{-1}$?`, answer: ans, tol: 1e-3 }
+        { q: T`Aký je povrch kocky $S=6a^2$ v $\\text{nm}^2$?`, answer: 6 * a * a, unit: 'nm²' },
+        { q: T`Aký je objem kocky $V=a^3$ v $\\text{nm}^3$?`, answer: a * a * a, unit: 'nm³' },
+        { q: T`Koľko je pomer $S/V$ v $\\text{nm}^{-1}$?`, answer: ans, unit: 'nm⁻¹', tol: 1e-3 }
       ],
       solution: T`$\\dfrac{S}{V}=\\dfrac{6a^2}{a^3}=\\dfrac{6}{a}=\\dfrac{6}{${a}}=${mn(ans)}\\,\\text{nm}^{-1}$.`,
       hint: T`Pre kocku je $S=6a^2$ a $V=a^3$. Skráť a dostaneš $S/V$.`

@@ -53,6 +53,7 @@
     const ans = Math.round((9 * qnc / rr) * 1e6) / 1e6;
     return {
       answer: ans,
+      unit: 'N/C',
       q: T`Bodový náboj $Q = ${qnc}\\,\\text{nC}$ vytvára elektrické pole. Aká je intenzita $E$ vo vzdialenosti $r = ${dm(r)}\\,\\text{m}$ od tohto náboja v $\\text{N/C}$? Použi $k = 9\\cdot 10^{9}\\,\\text{N·m}^2/\\text{C}^2$.`,
       solution: T`$E=k\\frac{Q}{r^2}=9\\cdot 10^{9}\\cdot\\frac{${qnc}\\cdot 10^{-9}}{${dm(rr)}}=${fmt(ans)}\\,\\text{N/C}$.`,
       hint: T.s('Intenzita klesá s druhou mocninou vzdialenosti: $r^2$ je v menovateli.'),
@@ -63,7 +64,7 @@
       steps: [
         { q: T`Koľko je $k\\,Q$ v jednotkách $\\text{N·m}^2/\\text{C}$, ak $Q = ${qnc}\\,\\text{nC}=${qnc}\\cdot 10^{-9}\\,\\text{C}$?`, answer: 9 * qnc },
         { q: T`Koľko je $r^2$ pre $r = ${dm(r)}\\,\\text{m}$?`, answer: rr },
-        { q: T`Aká je intenzita $E = \\frac{${9 * qnc}}{${dm(rr)}}$ v $\\text{N/C}$?`, answer: ans }
+        { q: T`Aká je intenzita $E = \\frac{${9 * qnc}}{${dm(rr)}}$ v $\\text{N/C}$?`, answer: ans, unit: 'N/C' }
       ]
     };
   });
@@ -97,6 +98,7 @@
       const I = rnd(1, 9), t = rnd(2, 12), Q = I * t;
       return {
         answer: I,
+        unit: 'A',
         q: T`Za $${t}\\,\\text{s}$ prejde vodičom náboj $${Q}\\,\\text{C}$. Aký je prúd $I$ vo vodiči v $\\text{A}$?`,
         solution: T`$I = \\frac{Q}{t} = \\frac{${Q}\\,\\text{C}}{${t}\\,\\text{s}} = ${I}\\,\\text{A}$.`,
         hint: T.s('Prúd je náboj delený časom: $I = \\frac{Q}{t}$.'),
@@ -106,6 +108,7 @@
     const Qc = rnd(2, 9), U = rnd(2, 12), W = Qc * U;
     return {
       answer: U,
+      unit: 'V',
       q: T`Pri prenose náboja $${Qc}\\,\\text{C}$ pole vykoná prácu $${W}\\,\\text{J}$. Aké je napätie $U$ medzi týmito bodmi v $\\text{V}$?`,
       solution: T`$U = \\frac{W}{Q} = \\frac{${W}\\,\\text{J}}{${Qc}\\,\\text{C}} = ${U}\\,\\text{V}$.`,
       hint: T.s('Napätie je práca na jeden coulomb: $U = \\frac{W}{Q}$.'),
@@ -144,6 +147,7 @@
       const I = rnd(1, 8), R = rnd(2, 12), U = I * R;
       return {
         answer: I,
+        unit: 'A',
         q: T`Na rezistor s odporom $${R}\\,\\Omega$ priložíme napätie $${U}\\,\\text{V}$. Aký prúd $I$ ním prechádza v $\\text{A}$?`,
         solution: T`$I = \\frac{U}{R} = \\frac{${U}\\,\\text{V}}{${R}\\,\\Omega} = ${I}\\,\\text{A}$.`,
         hint: T.s('Ohmov zákon: $I = \\frac{U}{R}$.'),
@@ -157,6 +161,7 @@
       const R1 = rnd(2, 15), R2 = rnd(2, 15), s = R1 + R2;
       return {
         answer: s,
+        unit: 'Ω',
         q: T`Rezistory s odpormi $${R1}\\,\\Omega$ a $${R2}\\,\\Omega$ sú zapojené za sebou (v sérii). Aký je celkový odpor $R$ v $\\Omega$?`,
         solution: T`Pri sériovom zapojení sa odpory sčítajú: $R = ${R1} + ${R2} = ${s}\\,\\Omega$.`,
         hint: T.s('V sérii sa odpory sčítajú. Paralelné zapojenie počíta s prevrátenými hodnotami.'),
@@ -166,13 +171,14 @@
     const R = 2 * rnd(2, 8);
     return {
       answer: R / 2,
+      unit: 'Ω',
       q: T`Dva rovnaké rezistory s odporom $${R}\\,\\Omega$ sú zapojené paralelne (vedľa seba). Aký je celkový odpor $R$ v $\\Omega$?`,
       solution: T`$\\frac{1}{R}=\\frac{1}{${R}}+\\frac{1}{${R}}=\\frac{2}{${R}}$, teda $R=\\frac{${R}}{2}=${R / 2}\\,\\Omega$.`,
       hint: T.s('Pri paralelnom zapojení sčítaj prevrátené hodnoty: $\\frac{1}{R}=\\frac{1}{R_1}+\\frac{1}{R_2}$.'),
       mistakes: [{ value: 2 * R, msg: T`Odpory si sčítal ako v sérii. Pri paralelnom zapojení sa sčítavajú prevrátené hodnoty.` }],
       steps: [
         { q: T`Koľko je $\\frac{1}{R_1}+\\frac{1}{R_2}=\\frac{2}{${R}}$ v $\\Omega^{-1}$? (na 3 desatinné miesta)`, answer: 2 / R, tol: 0.001 },
-        { q: T`Aký je celkový odpor $R$ ako prevrátená hodnota tohto súčtu? (v $\\Omega$)`, answer: R / 2 }
+        { q: T`Aký je celkový odpor $R$ ako prevrátená hodnota tohto súčtu? (v $\\Omega$)`, answer: R / 2, unit: 'Ω' }
       ]
     };
   });
@@ -205,19 +211,21 @@
       const U = pick([12, 230]), I = rnd(1, 10), P = U * I;
       return {
         answer: P,
+        unit: 'W',
         q: T`Spotrebič je pripojený na napätie $${U}\\,\\text{V}$ a prechádza ním prúd $${I}\\,\\text{A}$. Aký je jeho výkon $P$ vo $\\text{W}$?`,
         solution: T`$P = U\\,I = ${U}\\,\\text{V}\\cdot ${I}\\,\\text{A} = ${P}\\,\\text{W}$.`,
         hint: T.s('Výkon je súčin napätia a prúdu: $P = U\\,I$.'),
         mistakes: [{ value: U + I, msg: T`Napätie a prúd si sčítal. Výkon je ich súčin $P = U\\,I$.` }],
         steps: [
-          { q: T`Aký výkon by mal spotrebič pri prúde $1\\,\\text{A}$? (vo $\\text{W}$)`, answer: U },
-          { q: T`Aký je výkon pri prúde $${I}\\,\\text{A}$? (vo $\\text{W}$)`, answer: P }
+          { q: T`Aký výkon by mal spotrebič pri prúde $1\\,\\text{A}$? (vo $\\text{W}$)`, answer: U, unit: 'W' },
+          { q: T`Aký je výkon pri prúde $${I}\\,\\text{A}$? (vo $\\text{W}$)`, answer: P, unit: 'W' }
         ]
       };
     }
     const P = rnd(1, 5), t = rnd(1, 8), E = P * t;
     return {
       answer: E,
+      unit: 'kWh',
       q: T`Spotrebič s výkonom $${P}\\,\\text{kW}$ beží $${t}\\,\\text{h}$. Koľko kilowatthodín energie spotrebuje?`,
       solution: T`$W = P\\,t = ${P}\\,\\text{kW}\\cdot ${t}\\,\\text{h} = ${E}\\,\\text{kWh}$.`,
       hint: T.s('Energia je výkon krát čas: $W = P\\,t$. Výkon musí byť v kW a čas v h.'),
@@ -226,8 +234,8 @@
         { value: E * 1000, msg: T`Výsledok si vyjadril vo wattohodinách. Úloha chce kilowatthodiny, a $1\\,\\text{kWh} = 1000\\,\\text{Wh}$.` }
       ].filter((m) => m.value !== E),
       steps: [
-        { q: T`Koľko kilowatthodín spotrebuje spotrebič za $1\\,\\text{h}$?`, answer: P },
-        { q: T`Koľko kilowatthodín spotrebuje za $${t}\\,\\text{h}$?`, answer: E }
+        { q: T`Koľko kilowatthodín spotrebuje spotrebič za $1\\,\\text{h}$?`, answer: P, unit: 'kWh' },
+        { q: T`Koľko kilowatthodín spotrebuje za $${t}\\,\\text{h}$?`, answer: E, unit: 'kWh' }
       ]
     };
   });
@@ -268,6 +276,7 @@
       const ans = Math.round((0.2 * I / r) * 1e6) / 1e6;
       return {
         answer: ans,
+        unit: 'µT',
         q: T`Priamym vodičom tečie prúd $${I}\\,\\text{A}$. Aká je veľkosť magnetickej indukcie vo vzdialenosti $r = ${dm(r)}\\,\\text{m}$ od vodiča? Výsledok zadaj v $\\mu\\text{T}$ a použi $\\mu_0 = 4\\pi\\cdot 10^{-7}\\,\\text{T·m/A}$.`,
         solution: T`$B=\\frac{\\mu_0 I}{2\\pi r}=2\\cdot 10^{-7}\\cdot\\frac{${I}}{${dm(r)}}\\,\\text{T}=${fmt(ans)}\\,\\mu\\text{T}$.`,
         hint: T.s('Pre priamy vodič je $B=\\frac{\\mu_0 I}{2\\pi r}$ a $\\frac{\\mu_0}{2\\pi}=2\\cdot 10^{-7}\\,\\text{T·m/A}$.'),
@@ -275,7 +284,7 @@
           .filter((m) => m.value !== ans),
         steps: [
           { q: T`Koľko je $\\frac{I}{r}=\\frac{${I}}{${dm(r)}}$ v $\\text{A/m}$?`, answer: I / r, tol: 0.01 },
-          { q: T`Aká je indukcia $B=2\\cdot 10^{-7}\\cdot\\frac{I}{r}$ v $\\mu\\text{T}$?`, answer: ans, tol: 0.005 }
+          { q: T`Aká je indukcia $B=2\\cdot 10^{-7}\\cdot\\frac{I}{r}$ v $\\mu\\text{T}$?`, answer: ans, tol: 0.005, unit: 'µT' }
         ]
       };
     }
@@ -284,13 +293,14 @@
     return {
       answer: ans,
       tol: ans * 0.02,
+      unit: 'T',
       q: T`Cievka má $${N}$ závitov na dĺžke $${dm(l)}\\,\\text{m}$ a prechádza ňou prúd $${I}\\,\\text{A}$. Aká je magnetická indukcia $B$ vo vnútri cievky v teslach? Použi $\\mu_0 \\approx 1{,}26\\cdot 10^{-6}\\,\\text{T·m/A}$.`,
       solution: T`$B=\\mu_0\\frac{N}{l}I=1{,}26\\cdot 10^{-6}\\cdot\\frac{${N}}{${dm(l)}}\\cdot ${I}\\approx ${dm(ans * 1000)}\\,\\text{mT}$.`,
       hint: T.s('Vnútri cievky je pole rovnomerné: $B=\\mu_0\\frac{N}{l}I$.'),
       mistakes: [{ value: Number((ans * l).toPrecision(3)), msg: T`Zabudol si deliť dĺžkou cievky. Počet závitov na jednotku dĺžky je $\\frac{N}{l}$.` }],
       steps: [
         { q: T`Koľko závitov pripadá na jeden meter cievky, teda koľko je $\\frac{N}{l}$?`, answer: N / l, tol: 0.01 },
-        { q: T`Aká je indukcia $B=\\mu_0\\frac{N}{l}I$ v teslach?`, answer: ans, tol: ans * 0.02 }
+        { q: T`Aká je indukcia $B=\\mu_0\\frac{N}{l}I$ v teslach?`, answer: ans, tol: ans * 0.02, unit: 'T' }
       ]
     };
   });
@@ -329,6 +339,7 @@
     const U2 = U1 * N2 / N1;
     return {
       answer: U2,
+      unit: 'V',
       q: T`Transformátor má na primárnom vinutí $${N1}$ závitov a na sekundárnom $${N2}$ závitov. Na primárne vinutie privedieme napätie $${U1}\\,\\text{V}$. Aké je napätie $U_2$ na sekundárnom vinutí v $\\text{V}$? Transformátor považuj za ideálny.`,
       solution: T`$\\frac{U_2}{U_1}=\\frac{N_2}{N_1}$, teda $U_2=${U1}\\cdot\\frac{${N2}}{${N1}}=${U2}\\,\\text{V}$.`,
       hint: T.s('Napätia sa správajú ako počty závitov: $\\frac{U_2}{U_1}=\\frac{N_2}{N_1}$.'),
@@ -336,7 +347,7 @@
         .filter((x) => x.value !== U2),
       steps: [
         { q: T`Koľko je pomer $\\frac{N_2}{N_1}=\\frac{${N2}}{${N1}}$?`, answer: N2 / N1, tol: 0.001 },
-        { q: T`Koľko je $U_2 = ${U1}\\,\\text{V}\\cdot$ tento pomer, v $\\text{V}$?`, answer: U2 }
+        { q: T`Koľko je $U_2 = ${U1}\\,\\text{V}\\cdot$ tento pomer, v $\\text{V}$?`, answer: U2, unit: 'V' }
       ]
     };
   });
@@ -373,6 +384,7 @@
       return {
         answer: ans,
         tol: 0.1,
+        unit: 'V',
         q: T`Efektívne napätie siete je $U_{ef}=${Uef}\\,\\text{V}$. Aká je amplitúda $U_{max}$ napätia v $\\text{V}$? Výsledok zaokrúhli na jedno desatinné miesto.`,
         solution: T`$U_{max}=U_{ef}\\sqrt{2}=${Uef}\\cdot\\sqrt{2}\\approx ${dm(ans)}\\,\\text{V}$.`,
         hint: T.s('Amplitúda je $\\sqrt{2}$-krát väčšia ako efektívna hodnota: $U_{max}=U_{ef}\\sqrt{2}$.'),
@@ -382,13 +394,14 @@
         ],
         steps: [
           { q: T`Koľko je $\\sqrt{2}$? (na 2 desatinné miesta)`, answer: 1.41, tol: 0.006 },
-          { q: T`Aká je amplitúda $U_{max}=${Uef}\\cdot\\sqrt{2}$ v $\\text{V}$? (na 1 desatinné miesto)`, answer: ans, tol: 0.1 }
+          { q: T`Aká je amplitúda $U_{max}=${Uef}\\cdot\\sqrt{2}$ v $\\text{V}$? (na 1 desatinné miesto)`, answer: ans, tol: 0.1, unit: 'V' }
         ]
       };
     }
     const f = pick([10, 20, 25, 50, 100]), ans = 1 / f;
     return {
       answer: ans,
+      unit: 's',
       q: T`Striedavý prúd má frekvenciu $${f}\\,\\text{Hz}$. Aká je jeho perióda $T$ v sekundách?`,
       solution: T`$T=\\frac{1}{f}=\\frac{1}{${f}}\\,\\text{s}=${dm(ans)}\\,\\text{s}$.`,
       hint: T.s('Perióda je prevrátená hodnota frekvencie: $T=\\frac{1}{f}$.'),
@@ -438,6 +451,7 @@
     const a = pick([20, 30, 35, 40, 50, 60, 70]);
     return {
       answer: a,
+      unit: '°',
       q: T`Svetelný lúč dopadá na rovné zrkadlo tak, že uhol dopadu meraný od kolmice je $${a}^\\circ$. Aký je uhol odrazu meraný od kolmice?`,
       solution: T`Podľa zákona odrazu sa uhol odrazu rovná uhlu dopadu: $\\beta=\\alpha=${a}^\\circ$.`,
       hint: T.s('Uhol odrazu je rovnaký ako uhol dopadu. Oba merajme od kolmice, nie od povrchu.'),
@@ -476,6 +490,7 @@
     if (Math.random() < 0.6) {
       return {
         answer: b,
+        unit: 'cm',
         q: T`Predmet je vo vzdialenosti $${a}\\,\\text{cm}$ pred spojnou šošovkou s ohniskovou vzdialenosťou $${f}\\,\\text{cm}$. Vo vzdialenosti koľkých centimetrov za šošovkou vznikne obraz?`,
         solution: T`$\\frac{1}{b}=\\frac{1}{f}-\\frac{1}{a}=\\frac{1}{${f}}-\\frac{1}{${a}}=\\frac{1}{${b}}$, teda $b=${b}\\,\\text{cm}$.`,
         hint: T.s('Zo zobrazovacej rovnice $\\frac{1}{f}=\\frac{1}{a}+\\frac{1}{b}$ vyjadri $\\frac{1}{b}$.'),
@@ -485,7 +500,7 @@
         ].filter((m) => m.value !== b),
         steps: [
           { q: T`Koľko je $\\frac{1}{f}-\\frac{1}{a}=\\frac{1}{${f}}-\\frac{1}{${a}}$? (na 4 desatinné miesta)`, answer: 1 / f - 1 / a, tol: 0.0001 },
-          { q: T`Aká je vzdialenosť obrazu $b$ ako prevrátená hodnota tohto čísla? (v cm)`, answer: b }
+          { q: T`Aká je vzdialenosť obrazu $b$ ako prevrátená hodnota tohto čísla? (v cm)`, answer: b, unit: 'cm' }
         ]
       };
     }

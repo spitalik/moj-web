@@ -277,6 +277,26 @@
     const S = SAMPLES[id];
     return { x: { q: S.x[0], u: S.x[1] }, y: { q: S.y[0], u: S.y[1] }, rows: sampleRows(id).map(([x, y]) => [cell(x), cell(y)]), model: S.model, sample: id };
   }
+
+  // Import nameraných dát z iných stránok (#/senzory, #/laboratorium): nahradí tabuľku a otvorí režim Merania.
+  // Prijme dva tvary: { x: {q, u}, y: {q, u}, rows: [[x, y]…], model }
+  //               aj { x: [čísla], y: [čísla], xName, xUnit, yName, yUnit, model }.
+  GRAF_LOGIC.importData = function (d) {
+    if (!d) return false;
+    const cols = Array.isArray(d.x);
+    const rows = cols ? d.x.map((x, i) => [x, d.y[i]]) : d.rows;
+    if (!Array.isArray(rows) || !rows.length) return false;
+    const ax = (a, name, unit, def) => (cols ? { q: String(name || def), u: String(unit || '') } : { q: String((a && a.q) || def), u: String((a && a.u) || '') });
+    const num = (v) => (typeof v === 'number' ? cell(+v.toPrecision(6)) : String(v));
+    M = {
+      x: ax(d.x, d.xName, d.xUnit, 'x'), y: ax(d.y, d.yName, d.yUnit, 'y'),
+      rows: rows.map(([x, y]) => [num(x), num(y)]),
+      model: MODELS[d.model] || d.model === 'none' ? d.model : 'lin', sample: null
+    };
+    save();
+    if (location.hash === '#/graf/meranie') APP.refresh(); else location.hash = '#/graf/meranie';
+    return true;
+  };
   const points = () => M.rows.map((r) => [parseNum(r[0]), parseNum(r[1])]).filter((p) => fin(p[0]) && fin(p[1]));
   const badCells = () => M.rows.reduce((s, r) => s + r.filter((c) => Number.isNaN(parseNum(c))).length, 0);
 

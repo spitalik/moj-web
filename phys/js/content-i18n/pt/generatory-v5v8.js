@@ -331,7 +331,7 @@ CONTENT_I18N.add('pt', {
     "Nezohľadnil si náboj častice. Energia je $z\\,e\\,U$, nie len $e\\,U$.": "Você não levou em conta a carga da partícula. A energia é $z\\,e\\,U$, e não apenas $e\\,U$.",
     "Výsledok je v MeV, nie v keV. Pozor: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.": "O resultado está em MeV, e não em keV. Atenção: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.",
     "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.": "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.",
-    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.": "A energia em elétron-volts é igual ao número de carga $z$ multiplicado pela tensão em volts.",
+    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu vo voltoch.": "A energia em elétron-volts é igual ao número de carga $z$ multiplicado pela tensão em volts.",
 
     // v8-higgs
     "pión": "píon",

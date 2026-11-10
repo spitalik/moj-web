@@ -76,6 +76,7 @@
     return {
       q: T`Ideálny plyn má látkové množstvo $n=${n}\\,\\text{mol}$, teplotu $T=${Tk}\\,\\text{K}$ a objem $V=${k}\\,\\text{dm}^3$. Aký je jeho tlak v kilopascaloch? Výsledok zaokrúhli na 2 desatinné miesta.`,
       answer: r2(p),
+      unit: 'kPa',
       tol: 0.01,
       solution: T`$p=\\frac{nRT}{V}=\\frac{${n}\\cdot 8{,}314\\cdot ${Tk}}{${k}\\cdot 10^{-3}}=${fmt(Math.round(p * 1000))}\\,\\text{Pa}\\approx ${fmt(r2(p))}\\,\\text{kPa}$.`,
       hint: T`Objem najprv prepočítaj na kubické metre ($1\\,\\text{dm}^3=10^{-3}\\,\\text{m}^3$), potom použi $p=\\frac{nRT}{V}$.`,
@@ -85,8 +86,8 @@
       ],
       steps: [
         { q: T`Koľko kubických metrov je $${k}\\,\\text{dm}^3$?`, answer: k / 1000, tol: 1e-6 },
-        { q: T`Aký je súčin $nRT$ v džouloch? (na 2 desatinné miesta)`, answer: r2(n * R * Tk), tol: 0.01 },
-        { q: T`Aký je tlak $p=\\frac{nRT}{V}$ v kilopascaloch? (na 2 desatinné miesta)`, answer: r2(p), tol: 0.01 }
+        { q: T`Aký je súčin $nRT$ v džouloch? (na 2 desatinné miesta)`, answer: r2(n * R * Tk), tol: 0.01, unit: 'J' },
+        { q: T`Aký je tlak $p=\\frac{nRT}{V}$ v kilopascaloch? (na 2 desatinné miesta)`, answer: r2(p), tol: 0.01, unit: 'kPa' }
       ]
     };
   });
@@ -116,6 +117,7 @@
       signed: true,
       q: T`Plynu sa dodá teplo $Q=${Q}\\,\\text{J}$ a plyn pri tom vykoná prácu $W=${W}\\,\\text{J}$. Aká je zmena jeho vnútornej energie $\\Delta U$ v džouloch?`,
       answer: dU,
+      unit: 'J',
       solution: T`Prvý termodynamický zákon: $\\Delta U=Q-W=${Q}-${W}=${dU}\\,\\text{J}$.`,
       hint: T`Teplo, ktoré plyn dostane, zvyšuje jeho energiu. Práca, ktorú plyn vykoná, energiu odnáša.`,
       mistakes: [
@@ -123,9 +125,9 @@
         ...mis(W - Q, dU, T`Odčítal si v opačnom poradí. Dodané teplo zvyšuje vnútornú energiu plynu.`)
       ],
       steps: [
-        { q: T`O koľko joulov vnútornú energiu zvýši dodané teplo?`, answer: Q },
-        { q: T`O koľko joulov ju zníži práca, ktorú plyn vykoná?`, answer: W },
-        { q: T`Aká je výsledná zmena $\\Delta U$ v jouloch?`, answer: dU, signed: true }
+        { q: T`O koľko joulov vnútornú energiu zvýši dodané teplo?`, answer: Q, unit: 'J' },
+        { q: T`O koľko joulov ju zníži práca, ktorú plyn vykoná?`, answer: W, unit: 'J' },
+        { q: T`Aká je výsledná zmena $\\Delta U$ v jouloch?`, answer: dU, signed: true, unit: 'J' }
       ]
     };
   });
@@ -154,6 +156,7 @@
     return {
       q: T`Plyn pri stálej teplote $T=${Tk}\\,\\text{K}$ vratne prijme teplo $Q=${Q}\\,\\text{J}$. Aká je zmena jeho entropie $\\Delta S$ v jednotkách $\\text{J/K}$?`,
       answer: s,
+      unit: 'J/K',
       solution: T`$\\Delta S=\\frac{Q}{T}=\\frac{${Q}}{${Tk}}=${s}\\,\\text{J/K}$.`,
       hint: T`Entropia sa mení podielom tepla a teploty, pri ktorej sa teplo prijme.`,
       mistakes: [
@@ -187,7 +190,7 @@
     return {
       tol: 0.1,
       q: T`Ideálny tepelný motor pracuje medzi ohrievačom s teplotou $T_h=${Th}\\,\\text{K}$ a chladičom s teplotou $T_c=${Tc}\\,\\text{K}$. Aká je jeho účinnosť v percentách? Výsledok zaokrúhli na 1 desatinné miesto.`,
-      answer: ans,
+      answer: ans, unit: '%',
       solution: T`$\\eta=1-\\frac{T_c}{T_h}=1-\\frac{${Tc}}{${Th}}\\approx ${fmt(ans / 100)}$, teda $\\eta\\approx ${fmt(ans)}\\,\\%$.`,
       hint: T`Účinnosť počítaj z teplôt v kelvinoch. Výsledok vynásob sto, aby si dostal percentá.`,
       mistakes: [
@@ -197,7 +200,7 @@
       steps: [
         { q: T`Koľko je pomer $\\frac{T_c}{T_h}=\\frac{${Tc}}{${Th}}$? (na 3 desatinné miesta)`, answer: r3(Tc / Th), tol: 0.001 },
         { q: T`Koľko je $1-\\frac{T_c}{T_h}$? (na 3 desatinné miesta)`, answer: r3(1 - Tc / Th), tol: 0.001 },
-        { q: T`Aká je účinnosť v percentách? (na 1 desatinné miesto)`, answer: ans, tol: 0.1 }
+        { q: T`Aká je účinnosť v percentách? (na 1 desatinné miesto)`, answer: ans, tol: 0.1, unit: '%' }
       ]
     };
   });
@@ -227,6 +230,7 @@
       tol: 0.01,
       q: T`Aká je stredná kinetická energia molekuly ideálneho plynu pri teplote $t=${t}\\,{}^\\circ\\text{C}$? Výsledok vyjadri v jednotkách $10^{-21}\\,\\text{J}$ a zaokrúhli na 2 desatinné miesta. Použi $k=1{,}38\\cdot 10^{-23}\\,\\text{J/K}$.`,
       answer: E,
+      unit: 'zJ',
       solution: T`$\\overline{E_k}=\\frac{3}{2}k\\,T$, kde $T=${t}+273{,}15=${fmt(Tk)}\\,\\text{K}$. Dostaneme $\\overline{E_k}\\approx ${fmt(E)}\\cdot 10^{-21}\\,\\text{J}$.`,
       hint: T`Najprv prepočítaj teplotu na kelvine. Nezabudni na faktor $\\frac{3}{2}$.`,
       mistakes: [
@@ -235,7 +239,7 @@
       ],
       steps: [
         { q: T`Koľko kelvinov je $${t}\\,{}^\\circ\\text{C}$? (na 2 desatinné miesta)`, answer: Tk, tol: 0.01 },
-        { q: T`Aká je stredná kinetická energia $\\frac{3}{2}k\\,T$ v jednotkách $10^{-21}\\,\\text{J}$? (na 2 desatinné miesta)`, answer: E, tol: 0.01 }
+        { q: T`Aká je stredná kinetická energia $\\frac{3}{2}k\\,T$ v jednotkách $10^{-21}\\,\\text{J}$? (na 2 desatinné miesta)`, answer: E, tol: 0.01, unit: 'zJ' }
       ]
     };
   });

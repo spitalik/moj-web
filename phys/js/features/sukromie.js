@@ -17,6 +17,7 @@
     ['🔒', 'privacyLocalH', 'privacyLocal'],
     ['🌐', 'privacyServersH', 'privacyServers'],
     ['🔊', 'privacyTtsH', 'privacyTts'],
+    ['📱', 'privacySensorsH', 'privacySensors'],
     ['🔗', 'privacyShareH', 'privacyShare'],
     ['🧒', 'privacyChildH', 'privacyChild'],
     ['🗑️', 'privacyDeleteH', 'privacyDelete']

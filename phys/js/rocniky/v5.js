@@ -34,6 +34,7 @@
     return {
       q: T`Elektrón sa pohybuje rýchlosťou $v=${v / 1e6}\\cdot 10^{6}\\,\\text{m/s}$. Aká je jeho de Broglieho vlnová dĺžka v nanometroch? Zaokrúhli na 2 des. miesta. Použi $h=6{,}63\\cdot 10^{-34}\\,\\text{J}\\,\\text{s}$ a $m_e=9{,}11\\cdot 10^{-31}\\,\\text{kg}$.`,
       answer: ans,
+      unit: 'nm',
       tol: 0.01,
       solution: T`$\\lambda=\\frac{h}{m_e v}=\\frac{6{,}63\\cdot 10^{-34}}{9{,}11\\cdot 10^{-31}\\cdot ${v / 1e6}\\cdot 10^{6}}\\approx ${M(lamM * 1e10)}\\cdot 10^{-10}\\,\\text{m}=${M(ans)}\\,\\text{nm}$.`,
       hint: T`De Broglieho vzťah je $\\lambda=\\frac{h}{p}$, kde $p=m_e\\,v$. Výsledok prepíš z metrov na nanometre ($1\\,\\text{nm}=10^{-9}\\,\\text{m}$).`,
@@ -42,7 +43,7 @@
       ], ans, 0.05),
       steps: [
         { q: T`Aká je hybnosť elektrónu $p=m_e v$ v jednotkách $10^{-24}\\,\\text{kg}\\,\\text{m/s}$? Zaokrúhli na 3 desatinné miesta.`, answer: Math.round(0.911 * (v / 1e6) * 1000) / 1000, tol: 0.002 },
-        { q: T`Aká je vlnová dĺžka $\\lambda=\\frac{h}{p}$ v nanometroch? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+        { q: T`Aká je vlnová dĺžka $\\lambda=\\frac{h}{p}$ v nanometroch? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01, unit: 'nm' }
       ]
     };
   });
@@ -76,7 +77,7 @@
         { value: a, msg: T`Dostal si dĺžku úseku, nie pravdepodobnosť. Ten treba vydeliť celou dĺžkou $L$.` }
       ], ans),
       steps: [
-        { q: T`Koľko percent celej dĺžky $L=${L}\\,\\text{nm}$ tvorí úsek dlhý $${a}\\,\\text{nm}$?`, answer: (100 * p) / q, tol: 1e-6 },
+        { q: T`Koľko percent celej dĺžky $L=${L}\\,\\text{nm}$ tvorí úsek dlhý $${a}\\,\\text{nm}$?`, answer: (100 * p) / q, tol: 1e-6, unit: '%' },
         { q: T`Aká je pravdepodobnosť ako desatinné číslo?`, answer: ans }
       ]
     };
@@ -103,6 +104,7 @@
     return {
       q: T`Elektrón je v nekonečne hlbokej potenciálovej jame šírky $L=${M(L)}\\,\\text{nm}$ v stave $n=${n}$. Akú má energiu $E_n$ v elektrónvoltoch? Zaokrúhli na 2 des. miesta. Pre elektrón v jame šírky $1\\,\\text{nm}$ platí $E_1=0{,}376\\,\\text{eV}$.`,
       answer: ans,
+      unit: 'eV',
       tol: 0.01,
       solution: T`$E_{${n}}=E_1\\cdot\\frac{${n}^2}{${M(L)}^2}=0{,}376\\cdot\\frac{${n * n}}{${M(L * L)}}\\approx ${M(ans)}\\,\\text{eV}$.`,
       hint: T`Energia v jame rastie s $n^2$ a klesá s $L^2$: $E_n\\propto\\frac{n^2}{L^2}$.`,
@@ -112,7 +114,7 @@
       ], ans, 0.05),
       steps: [
         { q: T`Koľko je pomer $\\frac{n^2}{L^2}=\\frac{${n}^2}{${M(L)}^2}$ (šírka $L$ v nm)?`, answer: (n * n) / (L * L), tol: 1e-6 },
-        { q: T`Koľko je $E_n=E_1\\cdot\\frac{n^2}{L^2}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+        { q: T`Koľko je $E_n=E_1\\cdot\\frac{n^2}{L^2}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01, unit: 'eV' }
       ]
     };
   });
@@ -257,6 +259,7 @@
     return {
       q: T`Elektrón v atóme vodíka prejde zo stavu $n=${ni}$ do stavu $n=${nf}$ a vyžiari fotón. Akú energiu má fotón v elektrónvoltoch? Použi $E_n=-\\frac{13{,}6\\,\\text{eV}}{n^2}$ a zaokrúhli na 2 des. miesta.`,
       answer: ans,
+      unit: 'eV',
       tol: 0.01,
       solution: T`$\\Delta E=13{,}6\\,\\text{eV}\\cdot\\left(\\frac{1}{${nf}^2}-\\frac{1}{${ni}^2}\\right)\\approx ${M(ans)}\\,\\text{eV}$.`,
       hint: T`Energia fotónu je rozdiel energií hladín. Dolná hladina má väčšiu väzbovú energiu, preto výsledok vyjde kladný.`,
@@ -265,9 +268,9 @@
         { value: 13.6 / (nf * nf), msg: T`Počítal si len energiu nižšej hladiny. Energia fotónu je rozdiel oboch hladín.` }
       ], ans, 0.05),
       steps: [
-        { q: T`Aká je energia hladiny $E_{${ni}}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: Math.round((-13.6 / (ni * ni)) * 100) / 100, tol: 0.01, signed: true },
-        { q: T`Aká je energia hladiny $E_{${nf}}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: Math.round((-13.6 / (nf * nf)) * 100) / 100, tol: 0.01, signed: true },
-        { q: T`Aká je energia fotónu $E_{n_i}-E_{n_f}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+        { q: T`Aká je energia hladiny $E_{${ni}}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: Math.round((-13.6 / (ni * ni)) * 100) / 100, tol: 0.01, signed: true, unit: 'eV' },
+        { q: T`Aká je energia hladiny $E_{${nf}}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: Math.round((-13.6 / (nf * nf)) * 100) / 100, tol: 0.01, signed: true, unit: 'eV' },
+        { q: T`Aká je energia fotónu $E_{n_i}-E_{n_f}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01, unit: 'eV' }
       ]
     };
   });

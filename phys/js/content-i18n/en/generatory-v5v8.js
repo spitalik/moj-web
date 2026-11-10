@@ -269,7 +269,7 @@ CONTENT_I18N.add('en', {
     "Nezohľadnil si náboj častice. Energia je $z\\,e\\,U$, nie len $e\\,U$.": "You did not take the charge of the particle into account. The energy is $z\\,e\\,U$, not just $e\\,U$.",
     "Výsledok je v MeV, nie v keV. Pozor: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.": "The result is in MeV, not keV. Note: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.",
     "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.": "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.",
-    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.": "The energy in electronvolts equals the charge number $z$ times the voltage in volts.",
+    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu vo voltoch.": "The energy in electronvolts equals the charge number $z$ times the voltage in volts.",
     "pión": "pion",
     "Higgsov bozón má hmotnosť približne 125 GeV/$c^2$. Koľkokrát je ťažší ako {@0}, ak hmotnosť tejto častice je ${@1}\\,\\text{GeV}/c^2$? Zaokrúhli na celé číslo.": "The Higgs boson has a mass of approximately 125 GeV/$c^2$. How many times heavier is it than {@0}, if the mass of this particle is ${@1}\\,\\text{GeV}/c^2$? Round to a whole number.",
     "Hmotnosti sa nenásobia. Podiel dostaneš delením: $m_H / m$.": "Masses are not multiplied. The ratio is obtained by division: $m_H / m$.",

@@ -258,7 +258,7 @@ CONTENT_I18N.add('zh', {
     "pevná doska": "固定平板",
     "vnútorné trenie medzi vrstvami": "层间的内摩擦",
     "Laminárne prúdenie medzi dvoma doskami": "两平板之间的层流",
-    "Guľôčka s polomerom $r={@0}\\,\\text{m}$ sa pohybuje rýchlosťou $v={@1}\\,\\text{m/s}$ v kvapaline s viskozitou $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$. Vypočítaj odpor podľa Stokesovho zákona $F=6\\pi\\eta r v$. Výsledok v miliníutonoch, zaokrúhli na 1 desatinné miesto.": "半径为 $r={@0}\\,\\text{m}$ 的小球以速度 $v={@1}\\,\\text{m/s}$ 在黏度为 $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$ 的液体中运动。请根据斯托克斯定律 $F=6\\pi\\eta r v$ 计算阻力。结果以毫牛为单位，保留 1 位小数。",
+    "Guľôčka s polomerom $r={@0}\\,\\text{m}$ sa pohybuje rýchlosťou $v={@1}\\,\\text{m/s}$ v kvapaline s viskozitou $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$. Vypočítaj odpor podľa Stokesovho zákona $F=6\\pi\\eta r v$. Výsledok v milinewtonoch, zaokrúhli na 1 desatinné miesto.": "半径为 $r={@0}\\,\\text{m}$ 的小球以速度 $v={@1}\\,\\text{m/s}$ 在黏度为 $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$ 的液体中运动。请根据斯托克斯定律 $F=6\\pi\\eta r v$ 计算阻力。结果以毫牛为单位，保留 1 位小数。",
     "$F=6\\pi\\eta r v\\approx {@0}\\,\\text{mN}\\approx {@1}\\,\\text{N}$.": "$F=6\\pi\\eta r v\\approx {@0}\\,\\text{mN}\\approx {@1}\\,\\text{N}$。",
     "Dosaď do vzorca $F=6\\pi\\eta r v$ a výsledok v newtonoch vynásob tisíckou.": "代入公式 $F=6\\pi\\eta r v$，并将以牛顿为单位的结果乘以一千。",
     "Dosadil si priemer namiesto polomeru. Vo vzorci je $r$ polomer, priemer je $2r$.": "你代入的是直径而不是半径。公式中的 $r$ 为半径，直径为 $2r$。",

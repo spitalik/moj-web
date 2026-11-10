@@ -86,10 +86,32 @@ function checkAnswer(ex, gw) {
   if (canonical !== undefined && EXERCISES.check(ex, canonical) !== true) {
     err(gw, `správna odpoveď „${canonical}“ neprejde kontrolou (zadanie: ${String(ex.q).slice(0, 100)})`);
   }
+  // jednotka odpovede (ex.unit): dá sa rozparsovať; správna odpoveď zapísaná s jednotkou aj prevedená do inej
+  // zameniteľnej jednotky prejde kontrolou; číslo s jednotkou iného rozmeru neprejde; hodnota typickej chyby
+  // zapísaná s jednotkou nie je správna
+  if (ex.unit !== undefined) {
+    const U = typeof ex.unit === 'string' && global.JEDNOTKY ? JEDNOTKY.parse(ex.unit) : null;
+    if (!U || !U.ok) err(gw, `jednotka „${ex.unit}“ sa nedá rozparsovať`);
+    else if (ex.type === 'num' && Number.isFinite(ex.answer)) {
+      const own = `${ex.answer} ${ex.unit}`;
+      if (EXERCISES.check(ex, own) !== true) err(gw, `správna odpoveď s jednotkou „${own}“ neprejde kontrolou`);
+      const alt = (EXERCISES.unitInfo(ex) || { alts: [] }).alts[0];
+      if (alt) {
+        const conv = `${JEDNOTKY.convert(ex.answer, U, alt, !!ex.unitDelta)} ${alt}`;
+        if (EXERCISES.check(ex, conv) !== true) err(gw, `správna odpoveď prevedená do inej jednotky „${conv}“ neprejde kontrolou`);
+      }
+      const wrong = JEDNOTKY.sameDim(U, 's') ? 'm' : 's';
+      if (EXERCISES.check(ex, `${ex.answer} ${wrong}`) !== false) err(gw, `odpoveď s jednotkou iného rozmeru („${ex.answer} ${wrong}“) prejde kontrolou`);
+      (ex.mistakes || []).forEach((m, i) => {
+        if (typeof m.value === 'number' && EXERCISES.check(ex, `${m.value} ${ex.unit}`) === true) err(gw, `typická chyba ${i + 1} zapísaná s jednotkou je správna odpoveď`);
+      });
+    }
+    if (stats.withUnit) stats.withUnit.add(ex.lesson);
+  }
 }
 
 // Typické chyby a kroky riešenia (nepovinné polia generátora).
-const stats = { withMistakes: new Set(), withSteps: new Set() };
+const stats = { withMistakes: new Set(), withSteps: new Set(), withUnit: new Set() };
 function checkExtras(ex, gw) {
   if (ex.mistakes !== undefined) {
     if (!Array.isArray(ex.mistakes)) err(gw, 'mistakes musí byť pole');
@@ -499,7 +521,7 @@ if (global.I18N) {
 
 const perLevel = LEVELS.map((lv) => `${lv.id}: ${LESSONS.filter((l) => l.level === lv.id).length}`).join(', ');
 console.log(`Lekcie: ${LESSONS.length} (${perLevel})`);
-console.log(`Typické chyby: ${stats.withMistakes.size} lekcií · kroky riešenia: ${stats.withSteps.size} lekcií`);
+console.log(`Typické chyby: ${stats.withMistakes.size} lekcií · kroky riešenia: ${stats.withSteps.size} lekcií · odpovede s jednotkou: ${stats.withUnit.size} lekcií`);
 warnings.forEach((w) => console.log('UPOZORNENIE ' + w));
 if (errors.length) {
   errors.forEach((e) => console.log('CHYBA ' + e));

@@ -119,6 +119,7 @@
     return {
       q: T`Aký je Schwarzschildov polomer čiernej diery s hmotnosťou $${n}\\,M_\\odot$ v kilometroch? Výsledok zaokrúhli na 2 desatinné miesta.`,
       answer: ans,
+      unit: 'km',
       tol: 0.01,
       solution: T`$r_s=\\frac{2GM}{c^2}\\approx ${fmt(2.95)}\\,\\text{km}\\cdot ${n}=${fmt(ans)}\\,\\text{km}$.`,
       hint: T.s('Použi vzorec $r_s=\\frac{2GM}{c^2}$; pre Slnko je polomer približne 2,95 km a výsledok sa škáluje hmotnosťou.'),
@@ -128,8 +129,8 @@
         { value: 2 * ans, msg: T`Dostal si priemer horizontu. Vzorec dáva polomer $r_s$.` }
       ].filter((m) => m.value !== ans),
       steps: [
-        { q: T`Aký je Schwarzschildov polomer Slnka v km? Zaokrúhli na 2 desatinné miesta.`, answer: 2.95, tol: 0.01 },
-        { q: T`Aký je polomer čiernej diery s hmotnosťou $${n}\\,M_\\odot$ v km, ak je úmerný hmotnosti?`, answer: ans, tol: 0.01 }
+        { q: T`Aký je Schwarzschildov polomer Slnka v km? Zaokrúhli na 2 desatinné miesta.`, answer: 2.95, unit: 'km', tol: 0.01 },
+        { q: T`Aký je polomer čiernej diery s hmotnosťou $${n}\\,M_\\odot$ v km, ak je úmerný hmotnosti?`, answer: ans, unit: 'km', tol: 0.01 }
       ]
     };
   });
@@ -156,7 +157,7 @@
     const ans = 100 / (k * k);
     return {
       q: T`Planéta prechádza pred hviezdou. Jej polomer je $${k}$-krát menší ako polomer hviezdy. O koľko percent klesne jas hviezdy? Zadaj v percentách.`,
-      answer: ans,
+      answer: ans, unit: '%',
       solution: T`Pomer plôch je $\\left(\\frac{1}{${k}}\\right)^2=\\frac{1}{${k * k}}$, teda pokles jasu je $\\frac{100}{${k * k}}=${fmt(ans)}\\,\\%$.`,
       hint: T.s('Pokles jasu je úmerný ploche kotúča planéty, nie jej polomeru. Umocni pomer polomerov na druhú.'),
       // typické chyby: pomer polomerov bez umocnenia na druhú
@@ -165,7 +166,7 @@
       ].filter((m) => m.value !== ans),
       steps: [
         { q: T`Koľko je pomer plôch kotúčov $\\left(\\frac{1}{${k}}\\right)^2$ ako desatinné číslo?`, answer: 1 / (k * k), tol: 1e-6 },
-        { q: T`O koľko percent klesne jas?`, answer: ans, tol: 1e-6 }
+        { q: T`O koľko percent klesne jas?`, answer: ans, tol: 1e-6, unit: '%' }
       ]
     };
   });
@@ -192,6 +193,7 @@
     return {
       q: T`Galaxia je vzdialená $${d}\\,\\text{Mpc}$. Aká je jej rýchlosť vzďaľovania podľa Hubbleovho zákona $v=H_0\\,d$, ak $H_0=70\\,\\text{km/s/Mpc}$? Výsledok v km/s.`,
       answer: ans,
+      unit: 'km/s',
       solution: T`$v=H_0\\,d=70\\,\\frac{\\text{km}}{\\text{s}\\cdot\\text{Mpc}}\\cdot ${d}\\,\\text{Mpc}=${ans}\\,\\text{km/s}$.`,
       hint: T.s('Dosaď do Hubbleovho zákona; jednotka Mpc sa v súčine skráti.'),
       // typické chyby: delenie Hubbleovou konštantou; zabudnutá konštanta
@@ -200,8 +202,8 @@
         { value: d, msg: T`Zabudol si Hubbleovu konštantu $H_0=70\\,\\text{km/s/Mpc}$.` }
       ].filter((m) => m.value !== ans),
       steps: [
-        { q: T`Akou rýchlosťou v km/s by sa vzďaľovala galaxia vzdialená $1\\,\\text{Mpc}$?`, answer: 70 },
-        { q: T`Akou rýchlosťou v km/s sa vzďaľuje galaxia vzdialená $${d}\\,\\text{Mpc}$?`, answer: ans }
+        { q: T`Akou rýchlosťou v km/s by sa vzďaľovala galaxia vzdialená $1\\,\\text{Mpc}$?`, answer: 70, unit: 'km/s' },
+        { q: T`Akou rýchlosťou v km/s sa vzďaľuje galaxia vzdialená $${d}\\,\\text{Mpc}$?`, answer: ans, unit: 'km/s' }
       ]
     };
   });
@@ -228,6 +230,7 @@
     return {
       q: T`Teplota kozmického mikrovlnného pozadia dnes je $T_0=${fmt(T0)}\\,\\text{K}$. Aká bola teplota žiarenia pri červenom posuve $z=${z}$? Vzorec je $T(z)=T_0(1+z)$. Výsledok v kelvinoch.`,
       answer: ans,
+      unit: 'K',
       tol: 0.001,
       solution: T`$T(z)=T_0(1+z)=${fmt(T0)}\\cdot(1+${z})=${fmt(ans)}\\,\\text{K}$.`,
       hint: T.s('Pri vyššom červenom posuve bol vesmír menší a teplejší. Dosaď do vzorca $T(z)=T_0(1+z)$.'),
@@ -238,7 +241,7 @@
       ].filter((m) => m.value !== ans),
       steps: [
         { q: T`Koľko je $1+z$?`, answer: 1 + z },
-        { q: T`Aká je teplota $T(z)=T_0(1+z)$ v kelvinoch?`, answer: ans, tol: 0.001 }
+        { q: T`Aká je teplota $T(z)=T_0(1+z)$ v kelvinoch?`, answer: ans, unit: 'K', tol: 0.001 }
       ]
     };
   });

@@ -60,6 +60,7 @@
       return {
         q: T`Sila $${F}\\,\\text{N}$ posunie teleso po dráhe $${s}\\,\\text{m}$ v smere sily. Akú prácu sila vykoná? Výsledok zadaj v jouloch.`,
         answer: W,
+        unit: 'J',
         solution: T`$W=F\\cdot s=${F}\\cdot ${s}=${W}\\,\\text{J}$.`,
         hint: T.s('Práca je súčin sily a dráhy v smere sily: $W=F\\cdot s$.'),
         mistakes: [
@@ -76,6 +77,7 @@
     return {
       q: T`Zdvíhací motor vykonal prácu $${W}\\,\\text{J}$ za $${t}\\,\\text{s}$. Aký mal výkon? Výsledok zadaj vo wattoch.`,
       answer: P,
+      unit: 'W',
       solution: T`$P=\\frac{W}{t}=\\frac{${W}}{${t}}=${P}\\,\\text{W}$.`,
       hint: T.s('Výkon je práca delená časom: $P=\\frac{W}{t}$.'),
       mistakes: [
@@ -169,12 +171,13 @@
       return {
         q: T`Teleso s hmotnosťou $${m}\\,\\text{kg}$ je vo výške $${h}\\,\\text{m}$ nad zemou. Aká je jeho polohová energia? Uvažuj $g=10\\,\\text{m/s}^2$. Výsledok zadaj v jouloch.`,
         answer: Ep,
+        unit: 'J',
         solution: T`$E_p=m\\,g\\,h=${m}\\cdot 10\\cdot ${h}=${Ep}\\,\\text{J}$.`,
         hint: T.s('Polohová energia je $E_p=m\\,g\\,h$. Nezabudni na gravitačné zrýchlenie $g$.'),
         mistakes: [{ value: m * h, msg: T`Zabudol si vynásobiť gravitačným zrýchlením $g=10\\,\\text{m/s}^2$.` }]
           .filter((x) => x.value !== Ep),
         steps: [
-          { q: T`Aká je tiaž telesa $m\\cdot g=${m}\\cdot 10$ v newtonoch?`, answer: 10 * m },
+          { q: T`Aká je tiaž telesa $m\\cdot g=${m}\\cdot 10$ v newtonoch?`, answer: 10 * m, unit: 'N' },
           { q: T`Polohová energia je tiaž krát výška. Koľko je $${10 * m}\\cdot ${h}$?`, answer: Ep }
         ]
       };
@@ -183,6 +186,7 @@
     return {
       q: T`Vozík s hmotnosťou $${m}\\,\\text{kg}$ sa pohybuje rýchlosťou $${v}\\,\\text{m/s}$. Aká je jeho pohybová energia v jouloch?`,
       answer: Ek,
+      unit: 'J',
       solution: T`$E_k=\\frac{1}{2}\\,m\\,v^2=\\frac{1}{2}\\cdot ${m}\\cdot ${v}^2=${Ek}\\,\\text{J}$.`,
       hint: T.s('Pohybová energia je $E_k=\\frac{1}{2}\\,m\\,v^2$. Rýchlosť sa umocňuje na druhú.'),
       mistakes: [
@@ -231,13 +235,14 @@
     return {
       q: T`Páka je v rovnováhe. Na ramene bremena dlhom $${rb}\\,\\text{m}$ visí bremeno s tiažou $${Fb}\\,\\text{N}$. Akou silou treba pôsobiť na rameno sily dlhé $${rs}\\,\\text{m}$? Výsledok zadaj v newtonoch.`,
       answer: Fs,
+      unit: 'N',
       solution: T`Rovnováha páky: $F_s\\cdot r_s=F_b\\cdot r_b$, teda $F_s=\\frac{${Fb}\\cdot ${rb}}{${rs}}=${Fs}\\,\\text{N}$.`,
       hint: T.s('Súčin sily a ramena musí byť na oboch stranách páky rovnaký: $F_s\\cdot r_s=F_b\\cdot r_b$.'),
       mistakes: [{ value: Fb, msg: T`Silu si nepreniesol cez pomer ramien. Sila na páke sa mení podľa dĺžky ramena.` }]
         .filter((x) => x.value !== Fs),
       steps: [
         { q: T`Koľko je súčin $F_b\\cdot r_b = ${Fb}\\cdot ${rb}$?`, answer: Fb * rb },
-        { q: T`Akou silou treba pôsobiť na rameno dlhé $${rs}\\,\\text{m}$, aby bol súčin rovnaký? Zadaj silu v newtonoch.`, answer: Fs }
+        { q: T`Akou silou treba pôsobiť na rameno dlhé $${rs}\\,\\text{m}$, aby bol súčin rovnaký? Zadaj silu v newtonoch.`, answer: Fs, unit: 'N' }
       ]
     };
   });
@@ -273,6 +278,7 @@
     return {
       q: T`Koľko tepla treba dodať $${m}\\,\\text{kg}$ vody, aby sa ohriala o ${dt} °C? Merná tepelná kapacita vody je $c=4200\\,\\text{J/(kg\\cdot K)}$. Výsledok zadaj v jouloch.`,
       answer: Q,
+      unit: 'J',
       solution: T`$Q=m\\cdot c\\cdot \\Delta t=${m}\\cdot 4200\\cdot ${dt}=${Q}\\,\\text{J}$.`,
       hint: T.s('Teplo na ohriatie je $Q=m\\cdot c\\cdot \\Delta t$. Zmena teploty je rozdiel konečnej a začiatočnej teploty.'),
       mistakes: [
@@ -373,6 +379,7 @@
       return {
         q: T`Cez prierez vodiča prešiel za $${t}\\,\\text{s}$ elektrický náboj $${Q}\\,\\text{C}$. Aká bola veľkosť prúdu v ampéroch?`,
         answer: I,
+        unit: 'A',
         solution: T`$I=\\frac{Q}{t}=\\frac{${Q}}{${t}}=${I}\\,\\text{A}$.`,
         hint: T.s('Prúd je náboj delený časom: $I=\\frac{Q}{t}$.'),
         mistakes: [
@@ -388,6 +395,7 @@
     return {
       q: T`Vodičom preteká prúd $${I}\\,\\text{A}$ počas $${t}\\,\\text{s}$. Aký elektrický náboj pretečie prierezom vodiča?`,
       answer: Q,
+      unit: 'C',
       solution: T`$Q=I\\cdot t=${I}\\cdot ${t}=${Q}\\,\\text{C}$.`,
       hint: T.s('Náboj je súčin prúdu a času: $Q=I\\cdot t$.'),
       mistakes: [
@@ -430,6 +438,7 @@
     return {
       q: T`Žiarovka je pripojená na napätie $${U}\\,\\text{V}$ a prechádza ňou prúd $${I}\\,\\text{A}$. Aký je jej elektrický odpor v ohmoch?`,
       answer: R,
+      unit: 'Ω',
       solution: T`$R=\\frac{U}{I}=\\frac{${U}}{${I}}=${R}\\,\\Omega$.`,
       hint: T.s('Odpor vypočítame zo vzťahu $R=\\frac{U}{I}$.'),
       mistakes: [

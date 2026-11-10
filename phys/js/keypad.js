@@ -1,6 +1,7 @@
 /* Matematická klávesnica na obrazovke (hlavne pre mobil): číslice, desatinná čiarka, mínus, zlomok,
    bodkočiarka na oddelenie viacerých čísel, mazanie a odoslanie. Systémová klávesnica sa pri nej
-   potlačí cez inputmode="none". Viditeľnosť: nastavenie keypad = 'auto' (dotykové zariadenie) | 'on' | 'off'. */
+   potlačí cez inputmode="none". Viditeľnosť: nastavenie keypad = 'auto' (dotykové zariadenie) | 'on' | 'off'.
+   KEYPAD.units(container, ['m/s', 'km/h']) pridá riadok tlačidiel s jednotkami (úloha s ex.unit); prázdny zoznam ho skryje. */
 (function () {
   'use strict';
 
@@ -56,7 +57,36 @@
       else insert(input, INSERT[k] || k);
       input.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    // jednotky: vloží „ km/h“ (s medzerou za číslom)
+    const row = document.createElement('div');
+    row.className = 'jed-keys';
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', t('unitKeysLabel'));
+    row.hidden = true;
+    container.appendChild(row);
+    row.addEventListener('pointerdown', (e) => { if (e.target.closest('.jed-key')) e.preventDefault(); });
+    row.addEventListener('click', (e) => {
+      const b = e.target.closest('.jed-key');
+      const input = getInput();
+      if (!b || !input || input.disabled) return;
+      const pos = input.selectionStart ?? input.value.length;
+      const before = input.value.slice(0, pos);
+      insert(input, (/[0-9]$/.test(before) ? ' ' : '') + b.dataset.u);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
   }
 
-  window.KEYPAD = { mount, wanted, touch };
+  // tlačidlá jednotiek pre aktuálnu úlohu
+  function units(container, list) {
+    const row = container.querySelector('.jed-keys');
+    if (!row) return;
+    const key = list.join('|');
+    if (row.dataset.list === key) return;
+    row.dataset.list = key;
+    row.hidden = !list.length;
+    const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    row.innerHTML = list.map((u) => `<button type="button" class="key jed-key" data-u="${esc(u)}" aria-label="${esc(I18N.t('unitKey', { u }))}">${esc(u)}</button>`).join('');
+  }
+
+  window.KEYPAD = { mount, wanted, touch, units };
 })();

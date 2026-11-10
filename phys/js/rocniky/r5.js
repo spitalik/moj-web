@@ -180,6 +180,7 @@
       return {
         q: T`Teleso má hustotu $\\rho=${rho}\\,\\text{g/cm}^3$ a objem $V=${V}\\,\\text{cm}^3$. Aká je jeho hmotnosť $m$ v gramoch?`,
         answer: m,
+        unit: 'g',
         solution: T`$m=\\rho\\cdot V=${rho}\\cdot ${V}=${m}$, teda hmotnosť je $${m}\\,\\text{g}$.`,
         hint: T`Hmotnosť dostaneš vynásobením hustoty objemom: $m=\\rho\\cdot V$.`,
         mistakes: [
@@ -195,6 +196,7 @@
     return {
       q: T`Teleso má hmotnosť $m=${m}\\,\\text{g}$ a objem $V=${V}\\,\\text{cm}^3$. Aká je jeho hustota $\\rho$ v $\\text{g/cm}^3$?`,
       answer: rho,
+      unit: 'g/cm³',
       solution: T`$\\rho=\\frac{m}{V}=\\frac{${m}}{${V}}=${rho}$, teda hustota je $${rho}\\,\\text{g/cm}^3$.`,
       hint: T`Hustota je podiel hmotnosti a objemu: $\\rho=\\frac{m}{V}$.`,
       mistakes: [
@@ -234,6 +236,7 @@
     return {
       q: T`Vo valci je $${s}\\,\\text{ml}$ vody. Do vody ponoríme kameň a hladina vystúpi na $${f}\\,\\text{ml}$. Aký objem má kameň v mililitroch?`,
       answer: d,
+      unit: 'ml',
       solution: T`Objem kameňa je rozdiel hladín: $${f} - ${s} = ${d}$, teda $${d}\\,\\text{ml}$.`,
       hint: T`Objem ponoreného telesa zistíš rozdielom hladín pred a po ponorení.`,
       mistakes: [
@@ -334,6 +337,7 @@
       signed: true,
       q: T`Ráno bolo $${t0}\\,{}^\\circ\\text{C}$. Teplota vzrástla o $${d}\\,{}^\\circ\\text{C}$. Aká je teraz teplota?`,
       answer: t1,
+      unit: '°C',
       solution: T`$${t0}+${d}=${t1}$, teda teplota je $${t1}\\,{}^\\circ\\text{C}$.`,
       hint: T`Zmena teploty sa pričíta k počiatočnej teplote.`,
       mistakes: [

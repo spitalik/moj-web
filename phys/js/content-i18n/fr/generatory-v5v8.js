@@ -56,7 +56,7 @@ CONTENT_I18N.add('fr', {
     "Energetické hladiny vodíka a prechody medzi nimi": "Niveaux d'énergie de l'hydrogène et transitions entre eux",
     "Energia fotónu je rozdiel energií hladín. Dolná hladina má väčšiu väzbovú energiu, preto výsledok vyjde kladný.": "L'énergie du photon est la différence des énergies des niveaux. Le niveau inférieur a une énergie de liaison plus grande, donc le résultat est positif.",
     "Energia fotónu sa rovná rozdielu energií hladín. Pre vodík platí $E_n=-\\dfrac{13{,}6}{n^2}\\,\\text{eV}$.": "L'énergie du photon est égale à la différence des énergies des niveaux. Pour l'hydrogène, $E_n=-\\dfrac{13{,}6}{n^2}\\,\\text{eV}$.",
-    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.": "L'énergie en électronvolts est égale au nombre de charge $z$ multiplié par la tension en volts.",
+    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu vo voltoch.": "L'énergie en électronvolts est égale au nombre de charge $z$ multiplié par la tension en volts.",
     "Energia v jame rastie s $n^2$ a klesá s $L^2$: $E_n\\propto\\frac{n^2}{L^2}$.": "L'énergie dans le puits croît avec $n^2$ et décroît avec $L^2$ : $E_n\\propto\\frac{n^2}{L^2}$.",
     "Exponenciálny pokles počtu jadier s polčasom rozpadu": "Décroissance exponentielle du nombre de noyaux avec la demi-vie",
     "Exponenciálny útlm žiarenia vo vrstve": "Atténuation exponentielle du rayonnement dans une couche",

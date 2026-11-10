@@ -54,6 +54,7 @@
     return {
       q: T`Pohybujúce sa hodiny majú vlastný čas $\\Delta t_0=${dt0}\\,\\text{s}$ a pohybujú sa rýchlosťou $v=${M(b)}\\,c$. Aký časový interval $\\Delta t$ nameria pozorovateľ v laboratóriu? Zaokrúhli na 2 des. miesta.`,
       answer: ans,
+      unit: 's',
       tol: 0.01,
       solution: T`$\\Delta t=\\gamma\\,\\Delta t_0=${M(g)}\\cdot ${dt0}\\,\\text{s}\\approx ${M(ans)}\\,\\text{s}$.`,
       hint: T`Dilatácia času je $\\Delta t=\\gamma\\,\\Delta t_0$. Pozorovateľ meria dlhší čas, nie kratší.`,
@@ -63,7 +64,7 @@
       ], ans, 0.05),
       steps: [
         { q: T`Aký je Lorentzov faktor $\\gamma=\\frac{1}{\\sqrt{1-v^2/c^2}}$? Zaokrúhli na 4 desatinné miesta.`, answer: Math.round(g * 1e4) / 1e4, tol: 0.0001 },
-        { q: T`Aký je interval $\\Delta t=\\gamma\\,\\Delta t_0$ v sekundách? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+        { q: T`Aký je interval $\\Delta t=\\gamma\\,\\Delta t_0$ v sekundách? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01, unit: 's' }
       ]
     };
   });
@@ -90,6 +91,7 @@
       signed: true,
       q: T`V sústave $S$ nastane udalosť v bode $ct=${ct}\\,\\text{m}$ a $x=${x}\\,\\text{m}$. Sústava $S'$ sa pohybuje vzhľadom na $S$ rýchlosťou $v=0{,}6\\,c$ v kladnom smere osi $x$. Aká je súradnica $x'$ tej istej udalosti v sústave $S'$ v metroch? Použi $x'=\\gamma\\,(x-\\beta\\,ct)$, kde $\\beta=0{,}6$ a $\\gamma=1{,}25$.`,
       answer: ans,
+      unit: 'm',
       solution: T`$x'=1{,}25\\cdot(${x}-${M(0.6)}\\cdot ${ct})=1{,}25\\cdot ${M(x - 0.6 * ct)}=${ans}\\,\\text{m}$.`,
       hint: T`Lorentzova transformácia je $x'=\\gamma\\,(x-\\beta\\,ct)$. Sústava sa pohybuje v kladnom smere, takže sa rýchlosť odčítava.`,
       mistakes: keep([
@@ -97,9 +99,9 @@
         { value: 5 * b + 3 * a, msg: T`Zamenil si znamienko rýchlosti. Sústava $S'$ sa pohybuje v kladnom smere, odčítame $\\beta\\,ct$.` }
       ], ans),
       steps: [
-        { q: T`Koľko je $\\beta\\,ct=${M(0.6)}\\cdot ${ct}$ v metroch?`, answer: (12 * a) / 5, tol: 1e-6 },
-        { q: T`Koľko je $x-\\beta\\,ct$ v metroch?`, answer: (20 * b - 12 * a) / 5, tol: 1e-6, signed: true },
-        { q: T`Koľko je $x'=\\gamma\\,(x-\\beta\\,ct)$ v metroch?`, answer: ans, signed: true }
+        { q: T`Koľko je $\\beta\\,ct=${M(0.6)}\\cdot ${ct}$ v metroch?`, answer: (12 * a) / 5, tol: 1e-6, unit: 'm' },
+        { q: T`Koľko je $x-\\beta\\,ct$ v metroch?`, answer: (20 * b - 12 * a) / 5, tol: 1e-6, signed: true, unit: 'm' },
+        { q: T`Koľko je $x'=\\gamma\\,(x-\\beta\\,ct)$ v metroch?`, answer: ans, signed: true, unit: 'm' }
       ]
     };
   });
@@ -126,6 +128,7 @@
     return {
       q: T`Častica (${P.n}) má pokojovú energiu $mc^2=${M(P.m)}\\,\\text{MeV}$ a pohybuje sa rýchlosťou $v=${M(b)}\\,c$. Akú má kinetickú energiu $E_k$ v MeV? Zaokrúhli na 2 des. miesta. Použi $E_k=(\\gamma-1)\\,mc^2$.`,
       answer: ans,
+      unit: 'MeV',
       tol: 0.01,
       solution: T`$\\gamma=${M(g)}$, teda $E_k=(${M(g)}-1)\\cdot ${M(P.m)}\\,\\text{MeV}\\approx ${M(ans)}\\,\\text{MeV}$.`,
       hint: T`Kinetická energia je rozdiel celkovej a pokojovej energie: $E_k=\\gamma mc^2-mc^2$.`,
@@ -136,7 +139,7 @@
       steps: [
         { q: T`Aký je Lorentzov faktor $\\gamma=\\frac{1}{\\sqrt{1-v^2/c^2}}$? Zaokrúhli na 4 desatinné miesta.`, answer: Math.round(g * 1e4) / 1e4, tol: 0.0001 },
         { q: T`Koľko je $\\gamma-1$? Zaokrúhli na 4 desatinné miesta.`, answer: Math.round((g - 1) * 1e4) / 1e4, tol: 0.0001 },
-        { q: T`Aká je kinetická energia $E_k=(\\gamma-1)\\,mc^2$ v MeV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.05 }
+        { q: T`Aká je kinetická energia $E_k=(\\gamma-1)\\,mc^2$ v MeV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.05, unit: 'MeV' }
       ]
     };
   });
@@ -162,6 +165,7 @@
       return {
         q: T`Akú energiu uvoľní úplná premena $${M(m)}\\,\\text{g}$ hmoty? Použi $E=mc^2$, $c=3\\cdot 10^{8}\\,\\text{m/s}$. Výsledok zadaj v terajouloch ($1\\,\\text{TJ}=10^{12}\\,\\text{J}$).`,
         answer: ans,
+        unit: 'TJ',
         tol: 0.001,
         solution: T`$E=mc^2=${M(m)}\\cdot 10^{-3}\\,\\text{kg}\\cdot 9\\cdot 10^{16}\\,\\text{m}^2/\\text{s}^2=${M(m)}\\cdot 9\\cdot 10^{13}\\,\\text{J}=${M(ans)}\\,\\text{TJ}$.`,
         hint: T`Najprv prepíš gramy na kilogramy ($1\\,\\text{g}=10^{-3}\\,\\text{kg}$), potom použi $E=mc^2$ a výsledok prepíš na terajouly.`,
@@ -181,6 +185,7 @@
     return {
       q: T`Koľko hmoty v gramoch sa musí úplne premeniť, aby sa uvoľnilo $${E}\\,\\text{TJ}$ energie? Použi $E=mc^2$, $c=3\\cdot 10^{8}\\,\\text{m/s}$ a $1\\,\\text{TJ}=10^{12}\\,\\text{J}$.`,
       answer: ans,
+      unit: 'g',
       tol: 0.001,
       solution: T`$m=\\frac{E}{c^2}=\\frac{${E}\\cdot 10^{12}}{9\\cdot 10^{16}}\\,\\text{kg}=${M(ans)}\\,\\text{g}$ po prepočte na gramy.`,
       hint: T`Z $E=mc^2$ vyjadri $m=\\frac{E}{c^2}$. Výsledok v kilogramoch prepočítaj na gramy ($1\\,\\text{kg}=1000\\,\\text{g}$).`,
@@ -218,6 +223,7 @@
     return {
       q: T`Dve udalosti sú od seba vzdialené v čase $\\Delta t=${dt}\\,\\text{s}$ a v priestore $\\Delta x=${dx}\\,\\text{ls}$ (svetelné sekundy). Aký je vlastný čas $\\Delta\\tau$ medzi nimi v sekundách? Predpokladaj, že $c=1$.`,
       answer: ans,
+      unit: 's',
       solution: T`$\\Delta\\tau=\\sqrt{\\Delta t^2-\\Delta x^2}=\\sqrt{${dt * dt}-${dx * dx}}=\\sqrt{${ans * ans}}=${ans}\\,\\text{s}$.`,
       hint: T`Vlastný čas je odmocnina z rozdielu $\\Delta t^2-\\Delta x^2$. Pozor na znamienko: časový člen je kladný.`,
       mistakes: keep([
@@ -225,9 +231,9 @@
         { value: dt - dx, msg: T`Odčítal si časy a priestorové vzdialenosti. Invariantný interval obsahuje štvorce oboch veličín.` }
       ], ans),
       steps: [
-        { q: T`Koľko je $\\Delta t^2$ (v $\\text{s}^2$)?`, answer: dt * dt },
+        { q: T`Koľko je $\\Delta t^2$ (v $\\text{s}^2$)?`, answer: dt * dt, unit: 's²' },
         { q: T`Koľko je $\\Delta x^2$ (v $\\text{ls}^2$)?`, answer: dx * dx },
-        { q: T`Koľko je $\\Delta\\tau=\\sqrt{\\Delta t^2-\\Delta x^2}$ v sekundách?`, answer: ans }
+        { q: T`Koľko je $\\Delta\\tau=\\sqrt{\\Delta t^2-\\Delta x^2}$ v sekundách?`, answer: ans, unit: 's' }
       ]
     };
   });
@@ -259,6 +265,7 @@
     return {
       q: T`Aký je Schwarzschildov polomer $r_s=\\frac{2GM}{c^2}$ ${b.label}, ak jeho hmotnosť je $M=${b.mtex}\\,\\text{kg}$? Použi $G=6{,}674\\cdot 10^{-11}\\,\\text{m}^3\\,\\text{kg}^{-1}\\,\\text{s}^{-2}$ a $c=2{,}998\\cdot 10^{8}\\,\\text{m/s}$. Výsledok zadaj v jednotkách $\\text{${b.unit}}$ (zaokrúhli na 2 des. miesta).`,
       answer: ans,
+      unit: b.unit,
       tol: 0.01,
       solution: T`$r_s=\\frac{2GM}{c^2}\\approx ${M(rsM)}\\,\\text{m}=${M(ans)}\\,\\text{${b.unit}}$.`,
       hint: T`Dosaď do $r_s=\\frac{2GM}{c^2}$ v jednotkách SI a výsledok prepočítaj na požadované jednotky.`,
@@ -269,7 +276,7 @@
       steps: [
         { q: T`Koľko je $2G$ v jednotkách $10^{-11}\\,\\text{m}^3\\,\\text{kg}^{-1}\\,\\text{s}^{-2}$?`, answer: 13.348, tol: 0.001 },
         { q: T`Koľko je $c^2$ v jednotkách $10^{16}\\,\\text{m}^2/\\text{s}^2$? Zaokrúhli na 3 desatinné miesta.`, answer: 8.988, tol: 0.001 },
-        { q: T`Aký je $r_s=\\frac{2GM}{c^2}$ v jednotkách $\\text{${b.unit}}$? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+        { q: T`Aký je $r_s=\\frac{2GM}{c^2}$ v jednotkách $\\text{${b.unit}}$? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01, unit: b.unit }
       ]
     };
   });
@@ -327,6 +334,7 @@
     return {
       q: T`Čierna diera má hmotnosť $M=${k}\\,M_{\\odot}$, kde $M_{\\odot}$ je hmotnosť Slnka. Aký je polomer jej horizontu udalostí v kilometroch? Zaokrúhli na 2 des. miesta. Pre Slnko platí $r_s\\approx ${M(2.95)}\\,\\text{km}$ a polomer je úmerný hmotnosti.`,
       answer: ans,
+      unit: 'km',
       tol: 0.01,
       solution: T`$r_s\\approx ${M(2.95)}\\,\\text{km}\\cdot ${k}\\approx ${M(ans)}\\,\\text{km}$.`,
       hint: T`Schwarzschildov polomer je $r_s=\\frac{2GM}{c^2}$, je teda priamo úmerný hmotnosti. Vynásob polomer Slnka číslom $${k}$.`,
@@ -336,7 +344,7 @@
       ], ans, 0.05),
       steps: [
         { q: T`Koľkokrát je čierna diera hmotnejšia ako Slnko?`, answer: k },
-        { q: T`Aký je jej polomer horizontu v km, ak je úmerný hmotnosti? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+        { q: T`Aký je jej polomer horizontu v km, ak je úmerný hmotnosti? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01, unit: 'km' }
       ]
     };
   });

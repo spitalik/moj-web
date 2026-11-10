@@ -1,13 +1,14 @@
 /* Service worker: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu.
    Preklady obsahu (js/content-i18n/<jazyk>/*.js) sa neukladajú vopred: stiahne ich na pozadí js/nacitanie.js pre zvolený jazyk. */
-const CACHE = 'fyzika-v30';
+const CACHE = 'fyzika-v31';
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
   './js/content-i18n.js',
   './js/content.js',
+  './js/jednotky.js',
   './js/exercises.js',
   './js/figures.js',
   './js/schemy.js',
@@ -24,6 +25,7 @@ const ASSETS = [
   './js/rocniky/r8.js',
   './js/rocniky/r9.js',
   './js/rocniky/s1.js',
+  './js/rocniky/s1-neistoty.js',
   './js/rocniky/s2.js',
   './js/rocniky/s3.js',
   './js/rocniky/s4.js',
@@ -80,6 +82,10 @@ const ASSETS = [
   './js/features/graf.js',
   './js/features/mapa.js',
   './js/features/projekty.js',
+  './js/features/rozmery.js',
+  './js/features/kalkulacka.js',
+  './js/features/senzory.js',
+  './js/features/laboratorium.js',
   './js/features/opakovanie.js',
   './js/features/vyzva.js',
   './js/features/testy.js',

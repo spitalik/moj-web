@@ -39,6 +39,7 @@
       return {
         q: T`Koľko mólov látky je v $${m}\\,\\text{g}$ látky s molárnou hmotnosťou $${M}\\,\\text{g/mol}$?`,
         answer: k,
+        unit: 'mol',
         solution: T`$n=\\frac{m}{M}=\\frac{${m}\\,\\text{g}}{${M}\\,\\text{g/mol}}=${k}\\,\\text{mol}$.`,
         hint: T`Látkové množstvo je podiel hmotnosti a molárnej hmotnosti: $n=\\frac{m}{M}$.`,
         mistakes: keep([
@@ -46,7 +47,7 @@
           { value: M / m, msg: T`Obrátil si podiel. Látkové množstvo je $\\frac{m}{M}$, nie $\\frac{M}{m}$.` }
         ], k),
         steps: [
-          { q: T`Koľko gramov má $1\\,\\text{mol}$ tejto látky?`, answer: M },
+          { q: T`Koľko gramov má $1\\,\\text{mol}$ tejto látky?`, answer: M, unit: 'g' },
           { q: T`Koľkokrát sa $${M}\\,\\text{g}$ zmestí do $${m}\\,\\text{g}$? (počet mólov)`, answer: k }
         ]
       };
@@ -92,6 +93,7 @@
       return {
         q: T`Koľko tepla (v joulov) treba na ohriatie $${m}\\,\\text{kg}$ látky s mernou tepelnou kapacitou $c=${c}\\,\\text{J/(kg\\,K)}$ o $${dt}\\,\\text{K}$?`,
         answer: Q,
+        unit: 'J',
         solution: T`$Q=m\\,c\\,\\Delta T=${m}\\cdot ${c}\\cdot ${dt}=${Q}\\,\\text{J}$.`,
         hint: T`Teplo na ohrev je súčin hmotnosti, mernej tepelnej kapacity a zmeny teploty: $Q=m\\,c\\,\\Delta T$.`,
         mistakes: keep([
@@ -99,9 +101,9 @@
           { value: Q / 1000, msg: T`Vydelil si tisíckou. Úloha žiada joule, nie kilojoule.` }
         ], Q),
         steps: [
-          { q: T`Koľko joulov treba na ohriatie $1\\,\\text{kg}$ tejto látky o $1\\,\\text{K}$?`, answer: c },
-          { q: T`Koľko joulov treba na ohriatie $${m}\\,\\text{kg}$ o $1\\,\\text{K}$?`, answer: m * c },
-          { q: T`Koľko joulov treba na ohriatie o $${dt}\\,\\text{K}$?`, answer: Q }
+          { q: T`Koľko joulov treba na ohriatie $1\\,\\text{kg}$ tejto látky o $1\\,\\text{K}$?`, answer: c, unit: 'J' },
+          { q: T`Koľko joulov treba na ohriatie $${m}\\,\\text{kg}$ o $1\\,\\text{K}$?`, answer: m * c, unit: 'J' },
+          { q: T`Koľko joulov treba na ohriatie o $${dt}\\,\\text{K}$?`, answer: Q, unit: 'J' }
         ]
       };
     }
@@ -148,6 +150,7 @@
       return {
         q: T`Koľko kilojoulov tepla treba na roztopenie $${m}\\,\\text{kg}$ ľadu pri teplote $0\\,{}^\\circ\\text{C}$? Merné skupenské teplo topenia ľadu je $334\\,\\text{kJ/kg}$.`,
         answer: m * 334,
+        unit: 'kJ',
         solution: T`$Q=m\\,L_t=${m}\\cdot 334=${m * 334}\\,\\text{kJ}$.`,
         hint: T`Teplota sa pri topení nemení. Teplo počítame ako $Q=m\\,L_t$.`,
         mistakes: keep([
@@ -155,14 +158,15 @@
           { value: m * 0.334, msg: T`Výsledok si dostal v megajouloch. Úloha žiada kilojouly.` }
         ], m * 334),
         steps: [
-          { q: T`Koľko kilojoulov treba na roztopenie $1\\,\\text{kg}$ ľadu?`, answer: 334 },
-          { q: T`Koľko kilojoulov treba na roztopenie $${m}\\,\\text{kg}$ ľadu?`, answer: m * 334 }
+          { q: T`Koľko kilojoulov treba na roztopenie $1\\,\\text{kg}$ ľadu?`, answer: 334, unit: 'kJ' },
+          { q: T`Koľko kilojoulov treba na roztopenie $${m}\\,\\text{kg}$ ľadu?`, answer: m * 334, unit: 'kJ' }
         ]
       };
     }
     return {
       q: T`Koľko kilojoulov tepla uvoľní $${m}\\,\\text{kg}$ vodnej pary pri kondenzácii na vodu o teplote $100\\,{}^\\circ\\text{C}$? Merné skupenské teplo vyparovania vody je $2260\\,\\text{kJ/kg}$.`,
       answer: m * 2260,
+      unit: 'kJ',
       solution: T`$Q=m\\,L_v=${m}\\cdot 2260=${m * 2260}\\,\\text{kJ}$.`,
       hint: T`Kondenzácia je opak vyparovania: teplo sa uvoľňuje. Počíta sa rovnako, $Q=m\\,L_v$.`,
       mistakes: keep([
@@ -170,8 +174,8 @@
         { value: m * 2.26, msg: T`Výsledok si dostal v megajouloch. Úloha žiada kilojouly.` }
       ], m * 2260),
       steps: [
-        { q: T`Koľko kilojoulov uvoľní kondenzácia $1\\,\\text{kg}$ pary?`, answer: 2260 },
-        { q: T`Koľko kilojoulov uvoľní kondenzácia $${m}\\,\\text{kg}$ pary?`, answer: m * 2260 }
+        { q: T`Koľko kilojoulov uvoľní kondenzácia $1\\,\\text{kg}$ pary?`, answer: 2260, unit: 'kJ' },
+        { q: T`Koľko kilojoulov uvoľní kondenzácia $${m}\\,\\text{kg}$ pary?`, answer: m * 2260, unit: 'kJ' }
       ]
     };
   });
@@ -202,6 +206,7 @@
       return {
         q: T`Plyn má pri stálej teplote objem $${V1}\\,\\text{l}$ a tlak $200\\,\\text{kPa}$. Aký bude jeho objem pri tlaku $${p2}\\,\\text{kPa}$? (v litroch)`,
         answer: V2,
+        unit: 'l',
         solution: T`Pri stálej teplote platí $p_1V_1=p_2V_2$, teda $V_2=\\frac{p_1V_1}{p_2}=\\frac{200\\cdot ${V1}}{${p2}}=${V2}\\,\\text{l}$.`,
         hint: T`Izotermický dej: súčin tlaku a objemu je stály. Keď tlak rastie, objem klesá.`,
         mistakes: keep([
@@ -210,14 +215,14 @@
         ], V2),
         steps: [
           { q: T`Koľko je súčin $p_1V_1=200\\cdot ${V1}$ v $\\text{kPa}\\cdot\\text{l}$?`, answer: 200 * V1 },
-          { q: T`Aký je objem $V_2=\\frac{p_1V_1}{p_2}$? (v litroch)`, answer: V2 }
+          { q: T`Aký je objem $V_2=\\frac{p_1V_1}{p_2}$? (v litroch)`, answer: V2, unit: 'l' }
         ]
       };
     }
     const V = pick([0.025, 0.05, 0.1]), n = pick([1, 2]), Tk = 300, p = (n * 8.31 * Tk) / V;
     return {
       q: T`Ideálny plyn má látkové množstvo $${n}\\,\\text{mol}$, teplotu $300\\,\\text{K}$ a objem $V=${fmt(V)}\\,\\text{m}^3$. Aký je jeho tlak? Použi $R=8{,}31\\,\\text{J/(mol\\,K)}$. (v pascaloch)`,
-      answer: p, tol: 1,
+      answer: p, tol: 1, unit: 'Pa',
       solution: T`Zo stavovej rovnice $pV=nRT$ dostaneme $p=\\frac{nRT}{V}=\\frac{${n}\\cdot 8{,}31\\cdot 300}{${fmt(V)}}=${fmt(p)}\\,\\text{Pa}$.`,
       hint: T`Zo stavovej rovnice vyjadri tlak: $p=\\frac{nRT}{V}$. Teplota musí byť v kelvinoch.`,
       mistakes: keep([
@@ -225,8 +230,8 @@
         { value: n * 8.31 * Tk, msg: T`Zabudol si deliť objemom.` }
       ], p, 1),
       steps: [
-        { q: T`Koľko je $nRT=${n}\\cdot 8{,}31\\cdot 300$? (v jouloch)`, answer: n * 8.31 * Tk, tol: 0.5 },
-        { q: T`Aký je tlak $p=\\frac{nRT}{V}$, ak $V=${dm(V)}\\,\\text{m}^3$? (v pascaloch)`, answer: p, tol: 1 }
+        { q: T`Koľko je $nRT=${n}\\cdot 8{,}31\\cdot 300$? (v jouloch)`, answer: n * 8.31 * Tk, tol: 0.5, unit: 'J' },
+        { q: T`Aký je tlak $p=\\frac{nRT}{V}$, ak $V=${dm(V)}\\,\\text{m}^3$? (v pascaloch)`, answer: p, tol: 1, unit: 'Pa' }
       ]
     };
   });
@@ -256,7 +261,7 @@
       const Q = rnd(50, 400), A = rnd(20, 300), dU = Q - A;
       return {
         q: T`Plynu bolo dodané teplo $${Q}\\,\\text{J}$ a plyn pri tom vykonal prácu $${A}\\,\\text{J}$. Aká je zmena jeho vnútornej energie $\\Delta U$? (v joulov, môže byť záporná)`,
-        answer: dU, signed: true,
+        answer: dU, signed: true, unit: 'J',
         solution: T`Podľa prvého termodynamického zákona $\\Delta U=Q-A=${Q}-${A}=${dU}\\,\\text{J}$.`,
         hint: T`Prvý termodynamický zákon: $\\Delta U=Q-A$, kde $A$ je práca, ktorú vykoná plyn.`,
         mistakes: keep([
@@ -264,16 +269,16 @@
           { value: A - Q, msg: T`Odčítal si v opačnom poradí. Vzorec je $\\Delta U=Q-A$.` }
         ], dU),
         steps: [
-          { q: T`O koľko joulov vnútornú energiu zvýši dodané teplo?`, answer: Q },
-          { q: T`O koľko joulov ju zníži práca, ktorú plyn vykoná?`, answer: A },
-          { q: T`Aká je výsledná zmena $\\Delta U$ v jouloch?`, answer: dU, signed: true }
+          { q: T`O koľko joulov vnútornú energiu zvýši dodané teplo?`, answer: Q, unit: 'J' },
+          { q: T`O koľko joulov ju zníži práca, ktorú plyn vykoná?`, answer: A, unit: 'J' },
+          { q: T`Aká je výsledná zmena $\\Delta U$ v jouloch?`, answer: dU, signed: true, unit: 'J' }
         ]
       };
     }
     const Q1 = pick([500, 800, 1000, 1200, 2000]), eta = pick([10, 20, 25, 30, 40, 50]), A = (Q1 * eta) / 100;
     return {
       q: T`Tepelný motor prijme z ohrievača teplo $${Q1}\\,\\text{J}$ a vykoná prácu $${A}\\,\\text{J}$. Aká je jeho účinnosť v percentách?`,
-      answer: eta, tol: 0.01,
+      answer: eta, tol: 0.01, unit: '%',
       solution: T`$\\eta=\\frac{A}{Q_1}\\cdot 100\\,\\%=\\frac{${A}}{${Q1}}\\cdot 100\\,\\%=${eta}\\,\\%$.`,
       hint: T`Účinnosť je podiel práce a tepla prijatého z ohrievača, vynásobený 100 %.`,
       mistakes: keep([
@@ -282,7 +287,7 @@
       ], eta, 0.01),
       steps: [
         { q: T`Aký je podiel $\\frac{A}{Q_1}=\\frac{${A}}{${Q1}}$ v desatinnom tvare?`, answer: A / Q1, tol: 0.001 },
-        { q: T`Koľko percent je to?`, answer: eta, tol: 0.01 }
+        { q: T`Koľko percent je to?`, answer: eta, tol: 0.01, unit: '%' }
       ]
     };
   });
@@ -313,7 +318,7 @@
       const tm = rnd(4, 20), n = rnd(10, 60);
       return {
         q: T`Teleso za $${tm}\\,\\text{s}$ vykoná $${n}$ kmitov. Aká je jeho frekvencia v hertzoch? (zaokrúhli na 2 desatinné miesta)`,
-        answer: n / tm, tol: 0.01,
+        answer: n / tm, tol: 0.01, unit: 'Hz',
         solution: T`$f=\\frac{n}{t}=\\frac{${n}}{${tm}}\\approx ${fmt(n / tm)}\\,\\text{Hz}$.`,
         hint: T`Frekvencia je počet kmitov za sekundu: $f=\\frac{n}{t}$.`,
         mistakes: keep([
@@ -325,7 +330,7 @@
       const f = pick([2, 4, 5, 10, 20, 25]);
       return {
         q: T`Teleso kmitá s frekvenciou $${f}\\,\\text{Hz}$. Aká je jeho perióda v sekundách?`,
-        answer: 1 / f, tol: 0.001,
+        answer: 1 / f, tol: 0.001, unit: 's',
         solution: T`$T=\\frac{1}{f}=\\frac{1}{${f}}=${fmt(1 / f)}\\,\\text{s}$.`,
         hint: T`Perióda a frekvencia sú prevrátené hodnoty: $T=\\frac{1}{f}$.`,
         mistakes: keep([
@@ -337,7 +342,7 @@
     const T0 = 2 * 3.14 * root;
     return {
       q: T`Matematické kyvadlo dĺžky $${fmt(l)}\\,\\text{m}$ kmitá na mieste, kde $g=10\\,\\text{m/s}^2$. Aká je jeho perióda? Použi $\\pi\\approx 3{,}14$ a zaokrúhli na 2 desatinné miesta. (v sekundách)`,
-      answer: T0, tol: 0.01,
+      answer: T0, tol: 0.01, unit: 's',
       solution: T`$T=2\\pi\\sqrt{\\frac{l}{g}}=2\\cdot 3{,}14\\cdot\\sqrt{\\frac{${fmt(l)}}{10}}=2\\cdot 3{,}14\\cdot ${fmt(root)}\\approx ${fmt(Math.round(T0 * 100) / 100)}\\,\\text{s}$.`,
       hint: T`Perióda kyvadla je $T=2\\pi\\sqrt{\\frac{l}{g}}$. Dĺžku vydeľ tiažovým zrýchlením a odmocni.`,
       mistakes: keep([
@@ -346,7 +351,7 @@
       steps: [
         { q: T`Koľko je $\\frac{l}{g}=\\frac{${dm(l)}}{10}$?`, answer: l / 10, tol: 0.0001 },
         { q: T`Koľko je $\\sqrt{\\frac{l}{g}}$?`, answer: root, tol: 0.001 },
-        { q: T`Aká je perióda $T=2\\cdot 3{,}14\\cdot\\sqrt{\\frac{l}{g}}$? (v sekundách, na 2 desatinné miesta)`, answer: T0, tol: 0.01 }
+        { q: T`Aká je perióda $T=2\\cdot 3{,}14\\cdot\\sqrt{\\frac{l}{g}}$? (v sekundách, na 2 desatinné miesta)`, answer: T0, tol: 0.01, unit: 's' }
       ]
     };
   });
@@ -377,7 +382,7 @@
       const f = pick([170, 340, 680, 850]);
       return {
         q: T`Zvuk v vzduchu sa šíri rýchlosťou $340\\,\\text{m/s}$. Aká je vlnová dĺžka zvuku s frekvenciou $${f}\\,\\text{Hz}$? (v metroch)`,
-        answer: 340 / f, tol: 0.001,
+        answer: 340 / f, tol: 0.001, unit: 'm',
         solution: T`$\\lambda=\\frac{v}{f}=\\frac{340}{${f}}=${fmt(340 / f)}\\,\\text{m}$.`,
         hint: T`Zo vzťahu $v=\\lambda\\,f$ vyjadri vlnovú dĺžku: $\\lambda=\\frac{v}{f}$.`,
         mistakes: keep([
@@ -391,14 +396,15 @@
       return {
         q: T`Ozvena od prekážky prišla po $${t}\\,\\text{s}$ od vyslania zvuku. Aká je vzdialenosť prekážky? Rýchlosť zvuku je $340\\,\\text{m/s}$. (v metroch)`,
         answer: s,
+        unit: 'm',
         solution: T`Zvuk prejde dráhu tam aj späť: $2s=v\\,t=340\\cdot ${t}=${340 * t}\\,\\text{m}$, teda $s=${s}\\,\\text{m}$.`,
         hint: T`Zvuk prejde k prekážke a naspäť, celková dráha je $2s$.`,
         mistakes: keep([
           { value: 340 * t, msg: T`To je celá dráha tam a späť. Vzdialenosť prekážky je polovica.` }
         ], s),
         steps: [
-          { q: T`Akú dráhu prejde zvuk za $${t}\\,\\text{s}$? (v metroch)`, answer: 340 * t },
-          { q: T`Zvuk prešiel cestu k prekážke aj späť. Aká je vzdialenosť prekážky? (v metroch)`, answer: s }
+          { q: T`Akú dráhu prejde zvuk za $${t}\\,\\text{s}$? (v metroch)`, answer: 340 * t, unit: 'm' },
+          { q: T`Zvuk prešiel cestu k prekážke aj späť. Aká je vzdialenosť prekážky? (v metroch)`, answer: s, unit: 'm' }
         ]
       };
     }
@@ -406,6 +412,7 @@
     return {
       q: T`Vlna má vlnovú dĺžku $${lam}\\,\\text{m}$ a frekvenciu $${f}\\,\\text{Hz}$. Akou rýchlosťou sa šíri? (v m/s)`,
       answer: lam * f,
+      unit: 'm/s',
       solution: T`$v=\\lambda\\,f=${lam}\\cdot ${f}=${lam * f}\\,\\text{m/s}$.`,
       hint: T`Rýchlosť vlny je súčin vlnovej dĺžky a frekvencie: $v=\\lambda\\,f$.`,
       mistakes: keep([
@@ -414,7 +421,7 @@
       ], lam * f),
       steps: [
         { q: T`Koľko vlnových dĺžok prejde daným bodom za $1\\,\\text{s}$?`, answer: f },
-        { q: T`Koľko metrov za sekundu to je, ak má každá vlnová dĺžka $${dm(lam)}\\,\\text{m}$?`, answer: lam * f }
+        { q: T`Koľko metrov za sekundu to je, ak má každá vlnová dĺžka $${dm(lam)}\\,\\text{m}$?`, answer: lam * f, unit: 'm/s' }
       ]
     };
   });

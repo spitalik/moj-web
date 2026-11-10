@@ -105,6 +105,7 @@
       return {
         q: T`Vlak ide stálou rýchlosťou $${v}\\,\\text{km/h}$ počas $${t}\\,\\text{h}$. Akú dráhu prejde? Výsledok zadaj v kilometroch.`,
         answer: s,
+        unit: 'km',
         solution: T`$s=v\\cdot t=${v}\\cdot ${t}=${s}\\,\\text{km}$.`,
         hint: T`Dráhu dostaneš vynásobením rýchlosti časom: $s=v\\cdot t$.`,
         mistakes: v + t !== s ? [{ value: v + t, msg: T`Dráhu nezískame sčítaním. Platí $s=v\\cdot t$.` }] : [],
@@ -120,6 +121,7 @@
       return {
         q: T`Cyklista prešiel $${s}\\,\\text{km}$ za $${t}\\,\\text{h}$. Aká bola jeho priemerná rýchlosť v $\\text{km/h}$?`,
         answer: v,
+        unit: 'km/h',
         solution: T`$v=\\frac{s}{t}=\\frac{${s}}{${t}}=${v}\\,\\text{km/h}$.`,
         hint: T`Rýchlosť dostaneš vydelením dráhy časom: $v=\\frac{s}{t}$.`,
         mistakes: s * t !== v ? [{ value: s * t, msg: T`Rýchlosť sa počíta delením dráhy časom: $v=\\frac{s}{t}$, nie násobením.` }] : [],
@@ -139,7 +141,7 @@
       hint: T`Z metrov za sekundu na kilometre za hodinu násobíme číslom 3,6.`,
       mistakes: Math.abs(ms / 3.6 - ans) > 0.01 ? [{ value: ms / 3.6, msg: T`Delil si číslom 3,6. Z m/s na km/h sa prepočítava násobením.` }] : [],
       steps: [
-        { q: T`Hodina má $3600\\,\\text{s}$. Koľko metrov prejde teleso za hodinu? Vypočítaj $${ms}\\cdot 3600$.`, answer: ms * 3600 },
+        { q: T`Hodina má $3600\\,\\text{s}$. Koľko metrov prejde teleso za hodinu? Vypočítaj $${ms}\\cdot 3600$.`, answer: ms * 3600, unit: 'm' },
         { q: T`Koľko kilometrov je $${ms * 3600}\\,\\text{m}$?`, answer: ans, tol: 0.01 }
       ]
     };
@@ -195,6 +197,7 @@
       return {
         q: T`Teleso sa pohybuje rovnomerne rýchlosťou $${v}\\,\\text{m/s}$. Akú dráhu prejde za $${t}\\,\\text{s}$?`,
         answer: s,
+        unit: 'm',
         solution: T`Pri rovnomernom pohybe je $s=v\\cdot t=${v}\\cdot ${t}=${s}\\,\\text{m}$.`,
         hint: T`Pri rovnomernom pohybe vynásob rýchlosť časom: $s=v\\cdot t$.`,
         mistakes: [
@@ -215,6 +218,7 @@
     return {
       q: T`Teleso prejde prvý úsek rýchlosťou $${v1}\\,\\text{m/s}$ počas $${t1}\\,\\text{s}$ a druhý úsek rýchlosťou $${v2}\\,\\text{m/s}$ počas $${t2}\\,\\text{s}$. Aká je jeho priemerná rýchlosť?`,
       answer: ans,
+      unit: 'm/s',
       tol: 0.01,
       solution: T`Celková dráha je $${s1}+${s2}=${s1 + s2}\\,\\text{m}$, celkový čas $${t1}+${t2}=${t1 + t2}\\,\\text{s}$, teda $v_p=\\frac{${s1 + s2}}{${t1 + t2}}=${mf(ans)}\\,\\text{m/s}$.`,
       hint: T`Priemerná rýchlosť je celková dráha delená celkovým časom, nie priemer dvoch rýchlostí.`,
@@ -223,10 +227,10 @@
         { value: s1 + s2, msg: T`To je celková dráha. Priemernú rýchlosť dostaneš, keď ju vydelíš celkovým časom.` }
       ],
       steps: [
-        { q: T`Akú dráhu prejde teleso v prvom úseku? Vypočítaj $${v1}\\cdot ${t1}$.`, answer: s1 },
-        { q: T`Akú dráhu prejde v druhom úseku? Vypočítaj $${v2}\\cdot ${t2}$.`, answer: s2 },
-        { q: T`Aký je celkový čas $${t1}+${t2}$ v sekundách?`, answer: t1 + t2 },
-        { q: T`Aká je priemerná rýchlosť $v_p=\\frac{${s1 + s2}}{${t1 + t2}}$?`, answer: ans, tol: 0.01 }
+        { q: T`Akú dráhu prejde teleso v prvom úseku? Vypočítaj $${v1}\\cdot ${t1}$.`, answer: s1, unit: 'm' },
+        { q: T`Akú dráhu prejde v druhom úseku? Vypočítaj $${v2}\\cdot ${t2}$.`, answer: s2, unit: 'm' },
+        { q: T`Aký je celkový čas $${t1}+${t2}$ v sekundách?`, answer: t1 + t2, unit: 's' },
+        { q: T`Aká je priemerná rýchlosť $v_p=\\frac{${s1 + s2}}{${t1 + t2}}$?`, answer: ans, unit: 'm/s', tol: 0.01 }
       ]
     };
   });
@@ -265,6 +269,7 @@
         return {
           q: T`Dve sily pôsobia na teleso v rovnakom smere: $${a}\\,\\text{N}$ a $${b}\\,\\text{N}$. Aká je ich výsledná sila?`,
           answer: a + b,
+          unit: 'N',
           solution: T`Sily v rovnakom smere sa sčítajú: $${a}+${b}=${a + b}\\,\\text{N}$.`,
           hint: T`Sily s rovnakým smerom sčítaj.`,
           mistakes: [{ value: Math.abs(a - b), msg: T`Sily majú rovnaký smer, preto sa sčítajú, nie odčítajú.` }],
@@ -277,6 +282,7 @@
       return {
         q: T`Dve sily pôsobia na teleso v opačných smeroch: $${a}\\,\\text{N}$ a $${b}\\,\\text{N}$. Aká je ich výsledná sila?`,
         answer: Math.abs(a - b),
+        unit: 'N',
         solution: T`Sily v opačných smeroch sa odčítajú: $${Math.max(a, b)}-${Math.min(a, b)}=${Math.abs(a - b)}\\,\\text{N}$.`,
         hint: T`Sily s opačným smerom odčítaj a výsledok má smer väčšej sily.`,
         mistakes: [{ value: a + b, msg: T`Sily majú opačný smer, preto sa odčítajú, nie sčítajú.` }],
@@ -332,6 +338,7 @@
       return {
         q: T`Aká je tiaž telesa s hmotnosťou $${m}\\,\\text{kg}$ na Zemi? Použi $g=10\\,\\text{N/kg}$.`,
         answer: m * 10,
+        unit: 'N',
         solution: T`$F_G=m\\cdot g=${m}\\cdot 10=${m * 10}\\,\\text{N}$.`,
         hint: T`Tiaž je sila, vypočítaš ju ako $F_G=m\\cdot g$.`,
         mistakes: [{ value: m, msg: T`Zabudol si vynásobiť hmotnosť gravitačným zrýchlením. Tiaž je v newtonoch: $F_G=m\\cdot g$.` }],
@@ -346,6 +353,7 @@
       return {
         q: T`Teleso má na Zemi tiaž $${F}\\,\\text{N}$. Aká je jeho hmotnosť v kilogramoch? Použi $g=10\\,\\text{N/kg}$.`,
         answer: m,
+        unit: 'kg',
         solution: T`$m=\\frac{F_G}{g}=\\frac{${F}}{10}=${m}\\,\\text{kg}$.`,
         hint: T`Hmotnosť dostaneš vydelením tiaže gravitačným zrýchlením: $m=\\frac{F_G}{g}$.`,
         mistakes: [
@@ -363,6 +371,7 @@
       return {
         q: T`Aká je tiaž telesa s hmotnosťou $${m}\\,\\text{kg}$ na Mesiaci, kde $g\\approx 1{,}6\\,\\text{N/kg}$?`,
         answer: ans,
+        unit: 'N',
         solution: T`$F_G=m\\cdot g=${m}\\cdot 1{,}6=${ans}\\,\\text{N}$.`,
         hint: T`Na Mesiaci je gravitačné zrýchlenie menšie, preto je aj tiaž menšia. Vynásob hmotnosť číslom $1{,}6$.`,
         mistakes: [{ value: m * 10, msg: T`To je tiaž na Zemi. Na Mesiaci je gravitačné zrýchlenie menšie, $g\\approx 1{,}6\\,\\text{N/kg}$.` }],
@@ -411,6 +420,7 @@
       return {
         q: T`Teleso ťahá sila $${Fz}\\,\\text{N}$ v smere pohybu, trenie je $${Ftr}\\,\\text{N}$ a pôsobí proti pohybu. Aká je výsledná sila v smere pohybu?`,
         answer: ans,
+        unit: 'N',
         solution: T`Trenie pôsobí proti pohybu, preto $${Fz}-${Ftr}=${ans}\\,\\text{N}$.`,
         hint: T`Sily opačného smeru sa odčítavajú.`,
         mistakes: [{ value: Fz + Ftr, msg: T`Trenie pôsobí proti pohybu, preto sa od ťažnej sily odčíta, nepripočíta.` }],
@@ -468,6 +478,7 @@
       return {
         q: T`Svetlo sa šíri rýchlosťou $300\\,000\\,\\text{km/s}$. Akú dráhu prejde za $${t}\\,\\text{s}$? Výsledok zadaj v kilometroch.`,
         answer: ans,
+        unit: 'km',
         solution: T`$s=c\\cdot t=300\\,000\\cdot ${t}=${ans}\\,\\text{km}$.`,
         hint: T`Dráhu dostaneš vynásobením rýchlosti svetla časom: $s=c\\cdot t$.`,
         mistakes: [{ value: ans * 1000, msg: T`Výsledok je v metroch, nie v kilometroch. Na kilometre prepočítaš delením tisíckou.` }],
@@ -526,13 +537,14 @@
       return {
         q: T`Lúč dopadá na rovinné zrkadlo pod uhlom $${th}^\\circ$ voči kolmici. Aký uhol zviera odrazený lúč s kolmicou?`,
         answer: th,
+        unit: '°',
         solution: T`Zákon odrazu hovorí $\\beta=\\alpha$, teda uhol odrazu je $${th}^\\circ$.`,
         hint: T`Uhol odrazu sa rovná uhlu dopadu. Oba merame od kolmice.`,
         mistakes: 90 - th !== th ? [{ value: 90 - th, msg: T`Uhol sa meria od kolmice, nie od povrchu zrkadla. Uhol odrazu je rovnaký ako uhol dopadu.` }] : [],
         steps: [
           { q: T.s('Ako súvisí uhol odrazu $\\beta$ s uhlom dopadu $\\alpha$?'), type: 'choice',
             options: shuffle(['$\\beta=\\alpha$', '$\\beta=90^\\circ-\\alpha$', '$\\beta=2\\alpha$']), answer: '$\\beta=\\alpha$' },
-          { q: T`Aký je teda uhol odrazu v stupňoch, ak je uhol dopadu $${th}^\\circ$?`, answer: th }
+          { q: T`Aký je teda uhol odrazu v stupňoch, ak je uhol dopadu $${th}^\\circ$?`, answer: th, unit: '°' }
         ]
       };
     }
@@ -541,11 +553,12 @@
       return {
         q: T`Lúč dopadá na zrkadlo tak, že s jeho povrchom zviera uhol $${ph}^\\circ$. Aký uhol zviera dopadajúci lúč s kolmicou?`,
         answer: 90 - ph,
+        unit: '°',
         solution: T`Uhol od kolmice je $90^\\circ-${ph}^\\circ=${90 - ph}^\\circ$.`,
         hint: T`Uhly sa merajú od kolmice. Uhol od povrchu doplň do $90^\\circ$.`,
         mistakes: ph !== 90 - ph ? [{ value: ph, msg: T`Uhol dopadu sa meria od kolmice. Uhol od povrchu musíš doplniť do $90^\\circ$.` }] : [],
         steps: [
-          { q: T.s('Aký uhol (v stupňoch) zviera kolmica s povrchom zrkadla?'), answer: 90 },
+          { q: T.s('Aký uhol (v stupňoch) zviera kolmica s povrchom zrkadla?'), answer: 90, unit: '°' },
           { q: T`Koľko je $90^\\circ-${ph}^\\circ$?`, answer: 90 - ph }
         ]
       };
@@ -589,11 +602,12 @@
       return {
         q: T`Predmet stojí pred rovinným zrkadlom vo vzdialenosti $${d}\\,\\text{m}$. Aká je vzdialenosť medzi predmetom a jeho obrazom?`,
         answer: 2 * d,
+        unit: 'm',
         solution: T`Obraz je za zrkadlom vo vzdialenosti $${d}\\,\\text{m}$, takže medzi predmetom a obrazom je $${d}+${d}=${2 * d}\\,\\text{m}$.`,
         hint: T`Medzi predmetom a obrazom je dvojnásobok vzdialenosti predmetu od zrkadla.`,
         mistakes: [{ value: d, msg: T`Počítal si len vzdialenosť od zrkadla. Obraz je za zrkadlom rovnako ďaleko, preto počítaj celú vzdialenosť: $2d$.` }],
         steps: [
-          { q: T.s('Ako ďaleko za zrkadlom (v metroch) je obraz?'), answer: d },
+          { q: T.s('Ako ďaleko za zrkadlom (v metroch) je obraz?'), answer: d, unit: 'm' },
           { q: T`Koľko je $${d}+${d}$?`, answer: 2 * d }
         ]
       };

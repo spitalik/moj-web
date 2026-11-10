@@ -66,6 +66,7 @@
       signed: true,
       q: T`Teleso má zrýchlenie opísané rovnicou $\\frac{dv}{dt}=${a}$ s počiatočnou podmienkou $v(0)=${v0}$. Vypočítaj $v(${t})$ v m/s.`,
       answer: ans,
+      unit: 'm/s',
       solution: T`Integrovaním dostaneme $v(t)=${a}\\,t+C$. Z $v(0)=${v0}$ je $C=${v0}$, teda $v(${t})=${v0}+(${a})\\cdot ${t}=${ans}$.`,
       hint: T.s('Najprv integruj rovnicu a potom dosaď počiatočnú podmienku, aby si určil konštantu.'),
       // typické chyby: znamienko počiatočnej rýchlosti; zabudnutý čas
@@ -75,7 +76,7 @@
       ].filter((m) => m.value !== ans),
       steps: [
         { q: T`Aký je koeficient pri $t$ v riešení $v(t)=k\\,t+C$? Teda koľko je $k$?`, answer: a, signed: true },
-        { q: T`Koľko je $v(${t})$?`, answer: ans, signed: true }
+        { q: T`Koľko je $v(${t})$?`, answer: ans, unit: 'm/s', signed: true }
       ]
     };
   });
@@ -257,6 +258,7 @@
     return {
       q: T`Dva prvky konštrukcie s tuhosťami $k_1=${k1}\\,\\text{N/m}$ a $k_2=${k2}\\,\\text{N/m}$ sú zapojené za sebou (sériovo). Aká je ekvivalentná tuhosť $k$? Zaokrúhli na 2 desatinné miesta.`,
       answer: ans,
+      unit: 'N/m',
       tol: 0.01,
       solution: T`Pri sérii je $\\frac{1}{k}=\\frac{1}{${k1}}+\\frac{1}{${k2}}$, teda $k=\\frac{${k1}\\cdot ${k2}}{${k1}+${k2}}=${fmt(ans)}\\,\\text{N/m}$.`,
       hint: T.s('Pri sériovom zapojení sa sčítajú prevrátené hodnoty tuhostí, nie samotné tuhosti.'),
@@ -268,7 +270,7 @@
       steps: [
         { q: T`Koľko je súčin $k_1k_2$?`, answer: k1 * k2 },
         { q: T`Koľko je súčet $k_1+k_2$?`, answer: k1 + k2 },
-        { q: T`Aká je ekvivalentná tuhosť $k=\\frac{k_1k_2}{k_1+k_2}$ v N/m? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+        { q: T`Aká je ekvivalentná tuhosť $k=\\frac{k_1k_2}{k_1+k_2}$ v N/m? Zaokrúhli na 2 desatinné miesta.`, answer: ans, unit: 'N/m', tol: 0.01 }
       ]
     };
   });

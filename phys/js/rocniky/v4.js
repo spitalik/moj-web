@@ -75,12 +75,13 @@
     return {
       q: T`Vlna má frekvenciu $f=${f}\\,\\text{Hz}$ a vlnovú dĺžku $\\lambda=${M(lam)}\\,\\text{m}$. Akou rýchlosťou sa šíri? Výsledok zadaj v m/s.`,
       answer: v,
+      unit: 'm/s',
       solution: T`$v=\\lambda\\cdot f=${M(lam)}\\cdot ${f}=${v}\\,\\text{m/s}$.`,
       hint: T`Rýchlosť vlny je súčin vlnovej dĺžky a frekvencie: $v=\\lambda\\cdot f$.`,
       mistakes: keep([{ value: f / lam, msg: T`Delil si frekvenciu vlnovou dĺžkou. Pre rýchlosť platí $v=\\lambda\\cdot f$, teda násobíme.` }], v),
       steps: [
         { q: T`Koľko vlnových dĺžok prejde daným bodom za $1\\,\\text{s}$?`, answer: f },
-        { q: T`Koľko metrov za sekundu to je, ak má každá vlnová dĺžka $${M(lam)}\\,\\text{m}$?`, answer: v }
+        { q: T`Koľko metrov za sekundu to je, ak má každá vlnová dĺžka $${M(lam)}\\,\\text{m}$?`, answer: v, unit: 'm/s' }
       ]
     };
   });
@@ -213,6 +214,7 @@
     return {
       q: T`Predmet je vo vzdialenosti $a=${a}\\,\\text{cm}$ pred spojnou šošovkou s ohniskovou vzdialenosťou $f=${f}\\,\\text{cm}$. Vo vzdialenosti $b$ za šošovkou vznikne obraz. Akú vzdialenosť $b$ má obraz od šošovky v cm?`,
       answer: b,
+      unit: 'cm',
       solution: T`$\\frac{1}{b}=\\frac{1}{f}-\\frac{1}{a}=\\frac{1}{${f}}-\\frac{1}{${a}}=\\frac{1}{${b}}$, teda $b=${b}\\,\\text{cm}$.`,
       hint: T`Použi zobrazovaciu rovnicu $\\frac{1}{f}=\\frac{1}{a}+\\frac{1}{b}$ a vyjadri z nej $b$.`,
       mistakes: keep([
@@ -221,7 +223,7 @@
       ], b),
       steps: [
         { q: T`Koľko je $\\frac{1}{f}-\\frac{1}{a}=\\frac{1}{${f}}-\\frac{1}{${a}}$? (na 4 desatinné miesta)`, answer: 1 / f - 1 / a, tol: 0.0001 },
-        { q: T`Aká je vzdialenosť obrazu $b$ ako prevrátená hodnota tohto čísla? (v cm)`, answer: b }
+        { q: T`Aká je vzdialenosť obrazu $b$ ako prevrátená hodnota tohto čísla? (v cm)`, answer: b, unit: 'cm' }
       ]
     };
   });

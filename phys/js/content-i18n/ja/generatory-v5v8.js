@@ -56,7 +56,7 @@ CONTENT_I18N.add('ja', {
     "Energetické hladiny vodíka a prechody medzi nimi": "水素のエネルギー準位と、それらの間の遷移",
     "Energia fotónu je rozdiel energií hladín. Dolná hladina má väčšiu väzbovú energiu, preto výsledok vyjde kladný.": "光子のエネルギーは準位のエネルギー差です。下の準位は結合エネルギーが大きいため、結果は正になります。",
     "Energia fotónu sa rovná rozdielu energií hladín. Pre vodík platí $E_n=-\\dfrac{13{,}6}{n^2}\\,\\text{eV}$.": "光子のエネルギーは準位のエネルギー差に等しい。水素では $E_n=-\\dfrac{13{,}6}{n^2}\\,\\text{eV}$ です。",
-    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.": "電子ボルトでのエネルギーは、電荷数 $z$ に電圧（ボルト単位）を掛けたものに等しい。",
+    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu vo voltoch.": "電子ボルトでのエネルギーは、電荷数 $z$ に電圧（ボルト単位）を掛けたものに等しい。",
     "Energia v jame rastie s $n^2$ a klesá s $L^2$: $E_n\\propto\\frac{n^2}{L^2}$.": "井戸の中のエネルギーは $n^2$ に比例して増加し、$L^2$ に反比例して減少します：$E_n\\propto\\frac{n^2}{L^2}$。",
     "Exponenciálny pokles počtu jadier s polčasom rozpadu": "半減期による原子核数の指数関数的減少",
     "Exponenciálny útlm žiarenia vo vrstve": "層中での放射線の指数関数的減衰",

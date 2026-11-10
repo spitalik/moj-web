@@ -217,7 +217,7 @@ CONTENT_I18N.add('ja', {
     "pevná doska": "固定板",
     "vnútorné trenie medzi vrstvami": "層どうしの内部摩擦",
     "Laminárne prúdenie medzi dvoma doskami": "二枚の板の間の層流",
-    "Guľôčka s polomerom $r={@0}\\,\\text{m}$ sa pohybuje rýchlosťou $v={@1}\\,\\text{m/s}$ v kvapaline s viskozitou $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$. Vypočítaj odpor podľa Stokesovho zákona $F=6\\pi\\eta r v$. Výsledok v miliníutonoch, zaokrúhli na 1 desatinné miesto.": "半径 $r={@0}\\,\\text{m}$ の小球が、粘性率 $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$ の液体中を速さ $v={@1}\\,\\text{m/s}$ で運動している。ストークスの法則 $F=6\\pi\\eta r v$ に従って抵抗を計算せよ。結果はミリニュートンで答え、小数第1位まで四捨五入せよ。",
+    "Guľôčka s polomerom $r={@0}\\,\\text{m}$ sa pohybuje rýchlosťou $v={@1}\\,\\text{m/s}$ v kvapaline s viskozitou $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$. Vypočítaj odpor podľa Stokesovho zákona $F=6\\pi\\eta r v$. Výsledok v milinewtonoch, zaokrúhli na 1 desatinné miesto.": "半径 $r={@0}\\,\\text{m}$ の小球が、粘性率 $\\eta={@2}\\,\\text{Pa}\\cdot\\text{s}$ の液体中を速さ $v={@1}\\,\\text{m/s}$ で運動している。ストークスの法則 $F=6\\pi\\eta r v$ に従って抵抗を計算せよ。結果はミリニュートンで答え、小数第1位まで四捨五入せよ。",
     "$F=6\\pi\\eta r v\\approx {@0}\\,\\text{mN}\\approx {@1}\\,\\text{N}$.": "$F=6\\pi\\eta r v\\approx {@0}\\,\\text{mN}\\approx {@1}\\,\\text{N}$。",
     "Dosaď do vzorca $F=6\\pi\\eta r v$ a výsledok v newtonoch vynásob tisíckou.": "公式 $F=6\\pi\\eta r v$ に代入し、ニュートン単位の結果を千倍せよ。",
     "Dosadil si priemer namiesto polomeru. Vo vzorci je $r$ polomer, priemer je $2r$.": "半径の代わりに直径を代入してしまっている。公式の $r$ は半径であり、直径は $2r$ である。",

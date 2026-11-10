@@ -46,6 +46,7 @@
     return {
       answer: ans,
       tol: ans * 0.01,
+      unit: 'mm',
       q: T`Dvojitou štrbinou s rozstupom $${dm(d)}\\,\\text{mm}$ svieti monochromatické svetlo s vlnovou dĺžkou $${lam}\\,\\text{nm}$. Tienidlo je vo vzdialenosti $${L}\\,\\text{m}$. Aká je vzdialenosť svetlého pruhu rádu $k=${k}$ od stredu v $\\text{mm}$? Zadaj na tri platné cifry.`,
       solution: T`$y_k=k\\frac{\\lambda L}{d}=${k}\\cdot\\frac{${lam}\\cdot 10^{-9}\\cdot ${L}}{${dm(d)}\\cdot 10^{-3}}\\,\\text{m}\\approx ${fmt(ans)}\\,\\text{mm}$.`,
       hint: T.s('Svetlé pruhy: $y_k = k\\,\\frac{\\lambda L}{d}$. Nezabudni previesť nm na m a mm na m.'),
@@ -54,8 +55,8 @@
         { value: Number(((k + 0.5) * L * lam / d * 1e-3).toPrecision(3)), msg: T`Použil si vzorec pre tmavé pruhy. Svetlé pruhy vznikajú pre celé $k$: $y_k = k\\,\\frac{\\lambda L}{d}$.` }
       ].filter((m) => m.value !== ans),
       steps: [
-        { q: T`Aká je vzdialenosť susedných svetlých pruhov $\\Delta y=\\frac{\\lambda L}{d}$ v $\\text{mm}$?`, answer: L * lam / d * 1e-3, tol: (L * lam / d * 1e-3) * 0.01 },
-        { q: T`Aká je vzdialenosť pruhu rádu $k=${k}$ od stredu v $\\text{mm}$?`, answer: ans, tol: ans * 0.01 }
+        { q: T`Aká je vzdialenosť susedných svetlých pruhov $\\Delta y=\\frac{\\lambda L}{d}$ v $\\text{mm}$?`, answer: L * lam / d * 1e-3, tol: (L * lam / d * 1e-3) * 0.01, unit: 'mm' },
+        { q: T`Aká je vzdialenosť pruhu rádu $k=${k}$ od stredu v $\\text{mm}$?`, answer: ans, tol: ans * 0.01, unit: 'mm' }
       ]
     };
   });
@@ -91,6 +92,7 @@
       const lam = pick([124, 155, 248, 310, 496, 620]), E = 1240 / lam;
       return {
         answer: E,
+        unit: 'eV',
         q: T`Fotón má vlnovú dĺžku $${lam}\\,\\text{nm}$. Akú energiu má v elektrónvoltoch? Použi $hc \\approx 1240\\,\\text{eV·nm}$.`,
         solution: T`$E=\\frac{hc}{\\lambda}=\\frac{1240}{${lam}}\\,\\text{eV}=${fmt(E)}\\,\\text{eV}$.`,
         hint: T.s('Energia fotónu je $E=\\frac{hc}{\\lambda}$. Čím kratšia vlnová dĺžka, tým väčšia energia.'),
@@ -146,13 +148,14 @@
       return {
         answer: ans,
         tol: 0.01,
+        unit: 'eV',
         q: T`Atóm vodíka je v hladine $n=${n}$. Vypočítaj absolútnu hodnotu energie $|E_n|$ v $\\text{eV}$. Výsledok zaokrúhli na dve desatinné miesta.`,
         solution: T`$|E_n|=\\frac{13{,}6}{n^2}=\\frac{13{,}6}{${n * n}}\\approx ${dm(ans)}\\,\\text{eV}$.`,
         hint: T.s('Energia hladiny je $E_n=-\\frac{13{,}6}{n^2}$ eV.'),
         mistakes: [{ value: Math.round((13.6 / n) * 100) / 100, msg: T`Vo vzorci je $n^2$, nie $n$. Energia klesá s druhou mocninou $n$.` }],
         steps: [
           { q: T`Koľko je $n^2$ pre $n=${n}$?`, answer: n * n },
-          { q: T`Koľko je $\\frac{13{,}6}{${n * n}}$ v $\\text{eV}$? (na 2 desatinné miesta)`, answer: ans, tol: 0.01 }
+          { q: T`Koľko je $\\frac{13{,}6}{${n * n}}$ v $\\text{eV}$? (na 2 desatinné miesta)`, answer: ans, tol: 0.01, unit: 'eV' }
         ]
       };
     }
@@ -161,14 +164,15 @@
     return {
       answer: ans,
       tol: 0.01,
+      unit: 'eV',
       q: T`Elektrón v atóme vodíka prejde z hladiny $n=${ni}$ na hladinu $n=${nf}$. Akú energiu vyžiari fotón v $\\text{eV}$? Zaokrúhli na dve desatinné miesta.`,
       solution: T`$\\Delta E=13{,}6\\left(\\frac{1}{${nf}^2}-\\frac{1}{${ni}^2}\\right)\\approx ${dm(ans)}\\,\\text{eV}$.`,
       hint: T.s('Energia fotónu je rozdiel hladín: $\\Delta E=13{,}6\\left(\\frac{1}{n_f^2}-\\frac{1}{n_i^2}\\right)$ eV.'),
       mistakes: [{ value: Math.round(13.6 * (1 / nf - 1 / ni) * 100) / 100, msg: T`V menovateli sú druhé mocniny $n^2$, nie $n$.` }],
       steps: [
-        { q: T`Aká je absolútna hodnota energie hladiny $n=${nf}$ v $\\text{eV}$? (na 2 desatinné miesta)`, answer: Math.round((13.6 / (nf * nf)) * 100) / 100, tol: 0.01 },
-        { q: T`Aká je absolútna hodnota energie hladiny $n=${ni}$ v $\\text{eV}$? (na 2 desatinné miesta)`, answer: Math.round((13.6 / (ni * ni)) * 100) / 100, tol: 0.01 },
-        { q: T`Aký je rozdiel týchto energií, teda energia fotónu v $\\text{eV}$?`, answer: ans, tol: 0.01 }
+        { q: T`Aká je absolútna hodnota energie hladiny $n=${nf}$ v $\\text{eV}$? (na 2 desatinné miesta)`, answer: Math.round((13.6 / (nf * nf)) * 100) / 100, tol: 0.01, unit: 'eV' },
+        { q: T`Aká je absolútna hodnota energie hladiny $n=${ni}$ v $\\text{eV}$? (na 2 desatinné miesta)`, answer: Math.round((13.6 / (ni * ni)) * 100) / 100, tol: 0.01, unit: 'eV' },
+        { q: T`Aký je rozdiel týchto energií, teda energia fotónu v $\\text{eV}$?`, answer: ans, tol: 0.01, unit: 'eV' }
       ]
     };
   });
@@ -261,6 +265,7 @@
       return {
         answer: ans,
         tol: 0.1,
+        unit: 'MeV',
         q: T`Pri jadrovej reakcii je hmotnostný úbytok $\\Delta m = ${dm(dmv)}\\,\\text{u}$. Koľko MeV energie sa uvoľní? Výsledok zaokrúhli na jedno desatinné miesto.`,
         solution: T`$\\Delta E=\\Delta m\\cdot 931{,}5\\,\\text{MeV/u}=${dm(dmv)}\\cdot 931{,}5\\approx ${dm(ans)}\\,\\text{MeV}$.`,
         hint: T.s('Energia je hmotnostný úbytok krát 931,5 MeV na jednu atómovú hmotnostnú jednotku.'),
@@ -270,20 +275,21 @@
         ].filter((m) => m.value !== ans),
         steps: [
           { q: T`Koľko MeV zodpovedá hmotnosti $1\\,\\text{u}$?`, answer: 931.5, tol: 0.05 },
-          { q: T`Koľko MeV sa uvoľní pri úbytku $${dm(dmv)}\\,\\text{u}$? (na 1 desatinné miesto)`, answer: ans, tol: 0.1 }
+          { q: T`Koľko MeV sa uvoľní pri úbytku $${dm(dmv)}\\,\\text{u}$? (na 1 desatinné miesto)`, answer: ans, tol: 0.1, unit: 'MeV' }
         ]
       };
     }
     return {
       answer: 17.5,
       tol: 0.1,
+      unit: 'MeV',
       q: T`Pri fúzii deutéria s trícium vznikne hélium a neutrón. Hmotnosti pred reakciou sú spolu $5{,}0301\\,\\text{u}$, po reakcii $5{,}0113\\,\\text{u}$. Koľko MeV energie sa uvoľní? Výsledok zaokrúhli na jedno desatinné miesto.`,
       solution: T`$\\Delta m=5{,}0301-5{,}0113=0{,}0188\\,\\text{u}$, teda $\\Delta E=0{,}0188\\cdot 931{,}5\\approx 17{,}5\\,\\text{MeV}$.`,
       hint: T.s('Najprv odčítaj hmotnosti po reakcii od hmotností pred reakciou, potom prepočítaj úbytok na MeV.'),
       mistakes: [{ value: 0.0188, msg: T`Hmotnostný úbytok je len začiatok. Treba ho prepočítať na energiu faktorom $931{,}5\\,\\text{MeV/u}$.` }],
       steps: [
-        { q: T`Aký je hmotnostný úbytok $\\Delta m$ v $\\text{u}$?`, answer: 0.0188, tol: 0.00005 },
-        { q: T`Koľko MeV sa uvoľní, ak $\\Delta E=\\Delta m\\cdot 931{,}5\\,\\text{MeV/u}$? (na 1 desatinné miesto)`, answer: 17.5, tol: 0.1 }
+        { q: T`Aký je hmotnostný úbytok $\\Delta m$ v $\\text{u}$?`, answer: 0.0188, tol: 0.00005, unit: 'u' },
+        { q: T`Koľko MeV sa uvoľní, ak $\\Delta E=\\Delta m\\cdot 931{,}5\\,\\text{MeV/u}$? (na 1 desatinné miesto)`, answer: 17.5, tol: 0.1, unit: 'MeV' }
       ]
     };
   });
@@ -320,6 +326,7 @@
       const v = pick([700, 1400, 2100, 3500, 7000]), d = v / 70;
       return {
         answer: d,
+        unit: 'Mpc',
         q: T`Galaxia sa od nás vzďaľuje rýchlosťou $${v}\\,\\text{km/s}$. Aká je jej vzdialenosť v megaparsekoch ($\\text{Mpc}$), ak Hubblova konštanta je $H_0 = 70\\,\\text{km/(s·Mpc)}$?`,
         solution: T`$d=\\frac{v}{H_0}=\\frac{${v}}{70}=${d}\\,\\text{Mpc}$.`,
         hint: T.s('Z Hubblovho zákona $v=H_0 d$ vyjadri vzdialenosť: $d=\\frac{v}{H_0}$.'),
@@ -330,6 +337,7 @@
       const p = pick([0.1, 0.2, 0.25, 0.5]), d = 1 / p;
       return {
         answer: d,
+        unit: 'pc',
         q: T`Hviezda má ročnú paralaxu $${dm(p)}$ uhlovej sekundy. Aká je jej vzdialenosť v parsekoch?`,
         solution: T`$d=\\frac{1}{p}=\\frac{1}{${dm(p)}}=${d}\\,\\text{pc}$.`,
         hint: T.s('Vzdialenosť v parsekoch je prevrátená hodnota paralaxy v uhlových sekundách: $d=\\frac{1}{p}$.'),
@@ -339,6 +347,7 @@
     const Tk = pick([2900, 3625, 5800, 7250]), lam = 2.9e6 / Tk;
     return {
       answer: lam,
+      unit: 'nm',
       q: T`Povrch hviezdy má teplotu $${Tk}\\,\\text{K}$. Pri akej vlnovej dĺžke v $\\text{nm}$ najsilnejšie žiari? Použi $b \\approx 2{,}9\\cdot 10^{-3}\\,\\text{m·K}$.`,
       solution: T`$\\lambda_{max}=\\frac{b}{T}=\\frac{2{,}9\\cdot 10^{-3}}{${Tk}}\\,\\text{m}=${fmt(lam)}\\,\\text{nm}$.`,
       hint: T.s('Wienov zákon: $\\lambda_{max}=\\frac{b}{T}$. Nezabudni previesť metre na nanometre.'),
@@ -381,13 +390,14 @@
       const m = 10 * rnd(1, 20), v = rnd(2, 30), Ek = m * v * v / 2;
       return {
         answer: Ek,
+        unit: 'J',
         q: T`Teleso s hmotnosťou $${m}\\,\\text{kg}$ sa pohybuje rýchlosťou $${v}\\,\\text{m/s}$. Aká je jeho kinetická energia v $\\text{J}$?`,
         solution: T`$E_k=\\frac{1}{2}m v^2=\\frac{1}{2}\\cdot ${m}\\cdot ${v}^2=${Ek}\\,\\text{J}$.`,
         hint: T.s('Kinetická energia je $E_k=\\frac{1}{2}m v^2$.'),
         mistakes: [{ value: m * v * v, msg: T`Zabudol si na $\\frac{1}{2}$ vo vzorci pre kinetickú energiu.` }],
         steps: [
           { q: T`Koľko je $v^2$ pre $v=${v}\\,\\text{m/s}$?`, answer: v * v },
-          { q: T`Koľko je $\\frac{1}{2}\\cdot ${m}\\cdot ${v * v}$ v džouloch?`, answer: Ek }
+          { q: T`Koľko je $\\frac{1}{2}\\cdot ${m}\\cdot ${v * v}$ v džouloch?`, answer: Ek, unit: 'J' }
         ]
       };
     }
@@ -395,14 +405,15 @@
       const I = rnd(1, 9), R = rnd(2, 12), U = I * R;
       return {
         answer: U,
+        unit: 'V',
         q: T`Cez rezistor s odporom $${R}\\,\\Omega$ preteká prúd $${I}\\,\\text{A}$. Aké je napätie na rezistore v $\\text{V}$?`,
         solution: T`$U = R\\,I = ${R}\\,\\Omega\\cdot ${I}\\,\\text{A} = ${U}\\,\\text{V}$.`,
         hint: T.s('Ohmov zákon: $U = R\\,I$.'),
         mistakes: [{ value: I / R, msg: T`Napätie je súčin, nie podiel: $U = R\\,I$.` }]
           .filter((x) => x.value !== U),
         steps: [
-          { q: T`Aké napätie by bolo na rezistore pri prúde $1\\,\\text{A}$? (v $\\text{V}$)`, answer: R },
-          { q: T`Aké je napätie pri prúde $${I}\\,\\text{A}$? (v $\\text{V}$)`, answer: U }
+          { q: T`Aké napätie by bolo na rezistore pri prúde $1\\,\\text{A}$? (v $\\text{V}$)`, answer: R, unit: 'V' },
+          { q: T`Aké je napätie pri prúde $${I}\\,\\text{A}$? (v $\\text{V}$)`, answer: U, unit: 'V' }
         ]
       };
     }
@@ -410,20 +421,22 @@
       const mk = rnd(2, 20), a = rnd(1, 9), F = mk * a;
       return {
         answer: F,
+        unit: 'N',
         q: T`Na teleso s hmotnosťou $${mk}\\,\\text{kg}$ pôsobí sila a zrýchlenie je $${a}\\,\\text{m/s}^2$. Aká je veľkosť sily v $\\text{N}$?`,
         solution: T`$F = m\\,a = ${mk}\\cdot ${a} = ${F}\\,\\text{N}$.`,
         hint: T.s('Druhý Newtonov zákon: $F = m\\,a$.'),
         mistakes: [{ value: mk + a, msg: T`Hmotnosť a zrýchlenie sa násobia, nesčítavajú: $F = m\\,a$.` }]
           .filter((x) => x.value !== F),
         steps: [
-          { q: T`Akú silu treba, aby teleso s hmotnosťou $1\\,\\text{kg}$ získalo zrýchlenie $${a}\\,\\text{m/s}^2$? (v newtonoch)`, answer: a },
-          { q: T`Akú silu treba pre teleso s hmotnosťou $${mk}\\,\\text{kg}$? (v newtonoch)`, answer: F }
+          { q: T`Akú silu treba, aby teleso s hmotnosťou $1\\,\\text{kg}$ získalo zrýchlenie $${a}\\,\\text{m/s}^2$? (v newtonoch)`, answer: a, unit: 'N' },
+          { q: T`Akú silu treba pre teleso s hmotnosťou $${mk}\\,\\text{kg}$? (v newtonoch)`, answer: F, unit: 'N' }
         ]
       };
     }
     const tt = rnd(2, 12), P = 10 * rnd(2, 20), W = P * tt;
     return {
       answer: P,
+      unit: 'W',
       q: T`Práca $${W}\\,\\text{J}$ sa vykoná za čas $${tt}\\,\\text{s}$. Aký je výkon v $\\text{W}$?`,
       solution: T`$P=\\frac{W}{t}=\\frac{${W}\\,\\text{J}}{${tt}\\,\\text{s}}=${P}\\,\\text{W}$.`,
       hint: T.s('Výkon je práca delená časom: $P = \\frac{W}{t}$.'),
@@ -465,6 +478,7 @@
     return {
       answer: ans,
       tol: 0.05,
+      unit: 'kPa',
       q: T`Sila $${F}\\,\\text{N}$ pôsobí na plochu $${S}\\,\\text{cm}^2$. Aký tlak vznikne v $\\text{kPa}$? Výsledok zaokrúhli na jedno desatinné miesto.`,
       solution: T`$S=${S}\\,\\text{cm}^2=${S}\\cdot 10^{-4}\\,\\text{m}^2$, teda $p=\\frac{F}{S}=\\frac{${F}}{${S}\\cdot 10^{-4}}\\,\\text{Pa}\\approx ${fmt(ans * 1000)}\\,\\text{Pa}$, čo je približne $${dm(ans)}\\,\\text{kPa}$.`,
       hint: T.s('Najprv prepíš plochu na $\\text{m}^2$: $1\\,\\text{cm}^2=10^{-4}\\,\\text{m}^2$. Potom použi $p=\\frac{F}{S}$.'),
@@ -474,7 +488,7 @@
       ].filter((m) => m.value !== ans),
       steps: [
         { q: T`Koľko štvorcových metrov je $${S}\\,\\text{cm}^2$?`, answer: S * 1e-4, tol: 1e-7 },
-        { q: T`Aký je tlak $p=\\frac{F}{S}$ v pascaloch?`, answer: F / (S * 1e-4), tol: 1 },
+        { q: T`Aký je tlak $p=\\frac{F}{S}$ v pascaloch?`, answer: F / (S * 1e-4), tol: 1, unit: 'Pa' },
         { q: T`Koľko kilopascalov je to? (na 1 desatinné miesto)`, answer: ans, tol: 0.05 }
       ]
     };

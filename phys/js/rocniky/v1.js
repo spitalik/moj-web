@@ -36,6 +36,7 @@
       signed: true,
       q: T`Teleso má počiatočnú rýchlosť $v_0=${v0}\\,\\text{m/s}$ a pohybuje sa so stálym zrýchlením $a=${a}\\,\\text{m/s}^2$. Akú rýchlosť bude mať po $t=${t}\\,\\text{s}$?`,
       answer: v,
+      unit: 'm/s',
       solution: T`$v=v_0+a\\,t=${v0}+(${a})\\cdot ${t}=${v}\\,\\text{m/s}$.`,
       hint: T`Rýchlosť sa mení o $a\\,t$. Túto zmenu pripočítaj k počiatočnej rýchlosti a nezabudni na znamienko zrýchlenia.`,
       mistakes: [
@@ -73,6 +74,7 @@
     return {
       q: T`Teleso s hmotnosťou $m=${m}\\,\\text{kg}$ ťahajú dve sily v opačných smeroch: $F_1=${F1}\\,\\text{N}$ a $F_2=${F2}\\,\\text{N}$. Aké je zrýchlenie telesa v smere väčšej sily?`,
       answer: a,
+      unit: 'm/s²',
       solution: T`Výslednica je $F=F_1-F_2=${F1}-${F2}=${F}\\,\\text{N}$. Podľa druhého Newtonovho zákona $a=\\frac{F}{m}=\\frac{${F}}{${m}}=${a}\\,\\text{m/s}^2$.`,
       hint: T`Sily v opačných smeroch sa odčítajú. Výslednú silu potom vydeľ hmotnosťou telesa.`,
       mistakes: [
@@ -80,8 +82,8 @@
         ...mis(F, a, T`Dostal si silu, nie zrýchlenie. Výslednú silu ešte vydeľ hmotnosťou: $a=F/m$.`)
       ],
       steps: [
-        { q: T`Aká je výslednica $F_1-F_2$ v newtonoch?`, answer: F },
-        { q: T`Aké je zrýchlenie $a=\\frac{F}{m}$?`, answer: a }
+        { q: T`Aká je výslednica $F_1-F_2$ v newtonoch?`, answer: F, unit: 'N' },
+        { q: T`Aké je zrýchlenie $a=\\frac{F}{m}$?`, answer: a, unit: 'm/s²' }
       ]
     };
   });
@@ -110,6 +112,7 @@
     return {
       q: T`Na teleso pôsobí stála sila $F=${F}\\,\\text{N}$ po dobu $\\Delta t=${t}\\,\\text{s}$. Aká je zmena jeho hybnosti $\\Delta p$ v jednotkách $\\text{kg\\,m/s}$?`,
       answer: dp,
+      unit: 'kg·m/s',
       solution: T`Impulzová veta: $\\Delta p=F\\,\\Delta t=${F}\\cdot ${t}=${dp}\\,\\text{kg\\,m/s}$.`,
       hint: T`Zmena hybnosti je súčin sily a času jej pôsobenia, nie súčet ani podiel.`,
       mistakes: [
@@ -117,8 +120,8 @@
         ...mis(F / t, dp, T`Silu si vydelil časom. Čím dlhšie sila pôsobí, tým väčšia je zmena hybnosti.`)
       ],
       steps: [
-        { q: T`O koľko $\\text{kg\\,m/s}$ sa zmení hybnosť za $1\\,\\text{s}$?`, answer: F },
-        { q: T`O koľko $\\text{kg\\,m/s}$ sa zmení hybnosť za $${t}\\,\\text{s}$?`, answer: dp }
+        { q: T`O koľko $\\text{kg\\,m/s}$ sa zmení hybnosť za $1\\,\\text{s}$?`, answer: F, unit: 'kg·m/s' },
+        { q: T`O koľko $\\text{kg\\,m/s}$ sa zmení hybnosť za $${t}\\,\\text{s}$?`, answer: dp, unit: 'kg·m/s' }
       ]
     };
   });
@@ -147,6 +150,7 @@
     return {
       q: T`Teleso s hmotnosťou $m=${m}\\,\\text{kg}$ sa pohybuje rýchlosťou $v=${v}\\,\\text{m/s}$. Aká je jeho kinetická energia $E_k$ v džouloch?`,
       answer: Ek,
+      unit: 'J',
       solution: T`$E_k=\\frac{1}{2}m v^2=\\frac{1}{2}\\cdot ${m}\\cdot ${v}^2=${Ek}\\,\\text{J}$.`,
       hint: T`Kinetická energia je polovica súčinu hmotnosti a druhej mocniny rýchlosti.`,
       mistakes: [
@@ -155,7 +159,7 @@
       ],
       steps: [
         { q: T`Koľko je $v^2$ pre $v=${v}\\,\\text{m/s}$?`, answer: v * v },
-        { q: T`Koľko je $\\frac{1}{2}\\cdot ${m}\\cdot ${v * v}$ v džouloch?`, answer: Ek }
+        { q: T`Koľko je $\\frac{1}{2}\\cdot ${m}\\cdot ${v * v}$ v džouloch?`, answer: Ek, unit: 'J' }
       ]
     };
   });
@@ -185,6 +189,7 @@
       tol: 0.01,
       q: T`Aké je gravitačné zrýchlenie vo vzdialenosti $${k}R$ od stredu Zeme, kde $R$ je polomer Zeme a $g=9{,}81\\,\\text{m/s}^2$ je zrýchlenie pri povrchu? Výsledok zaokrúhli na 2 desatinné miesta.`,
       answer: gk,
+      unit: 'm/s²',
       solution: T`$g(r)=g\\cdot\\left(\\frac{R}{r}\\right)^2=\\frac{9{,}81}{${k * k}}\\approx ${fmt(gk)}\\,\\text{m/s}^2$.`,
       hint: T`Gravitačné zrýchlenie klesá s druhou mocninou vzdialenosti od stredu Zeme, nie priamo úmerne.`,
       mistakes: [
@@ -193,7 +198,7 @@
       ],
       steps: [
         { q: T`Koľko je $\\left(\\frac{r}{R}\\right)^2$ pre $r=${k}R$?`, answer: k * k },
-        { q: T`Aké je zrýchlenie $\\frac{9{,}81}{${k * k}}$ v $\\text{m/s}^2$? (na 2 desatinné miesta)`, answer: gk, tol: 0.01 }
+        { q: T`Aké je zrýchlenie $\\frac{9{,}81}{${k * k}}$ v $\\text{m/s}^2$? (na 2 desatinné miesta)`, answer: gk, tol: 0.01, unit: 'm/s²' }
       ]
     };
   });
@@ -222,7 +227,7 @@
     return {
       tol: 0.01,
       q: T`Koleso sa otáča frekvenciou $f=${f}\\,\\text{Hz}$. Aká je jeho uhlová rýchlosť $\\omega$ v $\\text{rad/s}$? Výsledok zaokrúhli na 2 desatinné miesta.`,
-      answer: w,
+      answer: w, unit: 'rad/s',
       solution: T`$\\omega=2\\pi f=2\\pi\\cdot ${f}\\approx ${fmt(w)}\\,\\text{rad/s}$.`,
       hint: T`Uhlová rýchlosť je $2\\pi$-násobok frekvencie, lebo jeden obrat zodpovedá uhlu $2\\pi$.`,
       mistakes: [
@@ -231,7 +236,7 @@
       ],
       steps: [
         { q: T`Aký uhol v radiánoch opíše koleso za jeden obrat? (na 2 desatinné miesta)`, answer: r2(2 * Math.PI), tol: 0.01 },
-        { q: T`Aká je uhlová rýchlosť $\\omega=2\\pi f$ v $\\text{rad/s}$? (na 2 desatinné miesta)`, answer: w, tol: 0.01 }
+        { q: T`Aká je uhlová rýchlosť $\\omega=2\\pi f$ v $\\text{rad/s}$? (na 2 desatinné miesta)`, answer: w, tol: 0.01, unit: 'rad/s' }
       ]
     };
   });
@@ -261,6 +266,7 @@
       tol: 0.01,
       q: T`Dve častice ležia na osi $x$: prvá s hmotnosťou $${m1}\\,\\text{kg}$ v bode $x_1=${x1}\\,\\text{m}$, druhá s hmotnosťou $${m2}\\,\\text{kg}$ v bode $x_2=${x2}\\,\\text{m}$. Kde leží ťažisko sústavy $x_T$ v metroch? Výsledok zaokrúhli na 2 desatinné miesta.`,
       answer: xt,
+      unit: 'm',
       solution: T`$x_T=\\frac{m_1x_1+m_2x_2}{m_1+m_2}=\\frac{${m1}\\cdot ${x1}+${m2}\\cdot ${x2}}{${m1 + m2}}=\\frac{${m1 * x1 + m2 * x2}}{${m1 + m2}}\\approx ${fmt(xt)}\\,\\text{m}$.`,
       hint: T`Ťažisko je vážený priemer. Každú súradnicu vynásob hmotnosťou častice, ktorej patrí.`,
       mistakes: [
@@ -269,8 +275,8 @@
       ],
       steps: [
         { q: T`Koľko je $m_1x_1+m_2x_2$ v $\\text{kg\\,m}$?`, answer: m1 * x1 + m2 * x2 },
-        { q: T`Aká je celková hmotnosť $m_1+m_2$ v kilogramoch?`, answer: m1 + m2 },
-        { q: T`Kde leží ťažisko $x_T$? (v metroch, na 2 desatinné miesta)`, answer: xt, tol: 0.01 }
+        { q: T`Aká je celková hmotnosť $m_1+m_2$ v kilogramoch?`, answer: m1 + m2, unit: 'kg' },
+        { q: T`Kde leží ťažisko $x_T$? (v metroch, na 2 desatinné miesta)`, answer: xt, tol: 0.01, unit: 'm' }
       ]
     };
   });
@@ -302,6 +308,7 @@
       tol: 0.01,
       q: T`Častica s hmotnosťou $m=${m}\\,\\text{kg}$ sa pohybuje rýchlosťou $v=${v}\\,\\text{m/s}$ vo výške $h=${h}\\,\\text{m}$ nad nulovou hladinou. Aká je hodnota Lagrangiánu $L=T-V$ v džouloch? Výsledok zaokrúhli na 2 desatinné miesta; $g=9{,}81\\,\\text{m/s}^2$.`,
       answer: L,
+      unit: 'J',
       solution: T`$T=\\frac{1}{2}mv^2=${fmt(Kin)}\\,\\text{J}$, $V=mgh=${fmt(r2(Pot))}\\,\\text{J}$, teda $L=T-V=${fmt(L)}\\,\\text{J}$.`,
       hint: T`Lagrangián je kinetická mínus potenciálna energia. Pozor na znamienko pri $V$.`,
       mistakes: [
@@ -309,9 +316,9 @@
         ...mis(r2(Kin), L, T`Zabudol si odpočítať potenciálnu energiu $V=mgh$.`, 0.01)
       ],
       steps: [
-        { q: T`Aká je kinetická energia $T=\\frac{1}{2}mv^2$ v džouloch?`, answer: Kin },
-        { q: T`Aká je potenciálna energia $V=mgh$ v džouloch? (na 2 desatinné miesta)`, answer: r2(Pot), tol: 0.01 },
-        { q: T`Aký je Lagrangián $L=T-V$ v džouloch? (na 2 desatinné miesta)`, answer: L, tol: 0.01, signed: true }
+        { q: T`Aká je kinetická energia $T=\\frac{1}{2}mv^2$ v džouloch?`, answer: Kin, unit: 'J' },
+        { q: T`Aká je potenciálna energia $V=mgh$ v džouloch? (na 2 desatinné miesta)`, answer: r2(Pot), tol: 0.01, unit: 'J' },
+        { q: T`Aký je Lagrangián $L=T-V$ v džouloch? (na 2 desatinné miesta)`, answer: L, tol: 0.01, signed: true, unit: 'J' }
       ]
     };
   });

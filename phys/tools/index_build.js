@@ -16,15 +16,17 @@ const vm = require('vm');
 
 const root = path.join(__dirname, '..');
 // poradie súborov = pôvodné poradie načítania (určuje poradie lekcií s rovnakým order)
-const FILES = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 's1', 's2', 's3', 's4',
+const FILES = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 's1', 's1-neistoty', 's2', 's3', 's4',
   'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11', 'v12'];
 // balíky prekladu teórie podľa skupín ročníkov
 const PACKS = {
   'lekcie-r1r3': ['r1', 'r2', 'r3'], 'lekcie-r4r6': ['r4', 'r5', 'r6'], 'lekcie-r7r9': ['r7', 'r8', 'r9'],
   'lekcie-s1s4': ['s1', 's2', 's3', 's4'], 'lekcie-v1v4': ['v1', 'v2', 'v3', 'v4'],
-  'lekcie-v5v8': ['v5', 'v6', 'v7', 'v8'], 'lekcie-v9v12': ['v9', 'v10', 'v11', 'v12']
+  'lekcie-v5v8': ['v5', 'v6', 'v7', 'v8'], 'lekcie-v9v12': ['v9', 'v10', 'v11', 'v12'],
+  // lekcie o neistotách merania (úroveň s1) majú vlastný súbor aj balík prekladu (teória aj texty úloh)
+  neistoty: ['s1-neistoty']
 };
-const BASE = ['js/content-i18n.js', 'js/content.js', 'js/exercises.js', 'js/figures.js'];
+const BASE = ['js/content-i18n.js', 'js/content.js', 'js/jednotky.js', 'js/exercises.js', 'js/figures.js'];
 const CI_DIR = path.join(root, 'js', 'content-i18n');
 const langDirs = () => fs.readdirSync(CI_DIR, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
 

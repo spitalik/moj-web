@@ -247,16 +247,17 @@
     return {
       q: T`Častica s nábojom $+${z}e$ prejde urýchľovacím napätím $U=${U}\\,\\text{MV}$. Akú kinetickú energiu získa v MeV?`,
       answer: ans,
+      unit: 'MeV',
       mistakes: dropAns([
         { value: U, msg: T`Nezohľadnil si náboj častice. Energia je $z\\,e\\,U$, nie len $e\\,U$.` },
         { value: ans * 1000, msg: T`Výsledok je v MeV, nie v keV. Pozor: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.` }
       ], ans),
       steps: [
-        { q: T`Akú energiu v MeV by pri tomto napätí získala častica s nábojom $+e$?`, answer: U },
-        { q: T`Akú energiu v MeV získa častica s nábojom $+${z}e$?`, answer: ans }
+        { q: T`Akú energiu v MeV by pri tomto napätí získala častica s nábojom $+e$?`, answer: U, unit: 'MeV' },
+        { q: T`Akú energiu v MeV získa častica s nábojom $+${z}e$?`, answer: ans, unit: 'MeV' }
       ],
       solution: T`$E_k = z\\,e\\,U = ${z}\\cdot ${U}\\,\\text{MeV} = ${ans}\\,\\text{MeV}$.`,
-      hint: T`Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.`
+      hint: T`Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu vo voltoch.`
     };
   });
 

@@ -274,7 +274,7 @@ CONTENT_I18N.add('tr', {
     "Nezohľadnil si náboj častice. Energia je $z\\,e\\,U$, nie len $e\\,U$.": "Parçacığın yükünü hesaba katmadın. Enerji $z\\,e\\,U$ dur, yalnızca $e\\,U$ değil.",
     "Výsledok je v MeV, nie v keV. Pozor: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.": "Sonuç keV değil, MeV cinsindedir. Dikkat: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.",
     "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.": "$E_k = z\\,e\\,U = {@0}\\cdot {@1}\\,\\text{MeV} = {@2}\\,\\text{MeV}$.",
-    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.": "Elektronvolt cinsinden enerji, yük sayısı $z$ ile voltaj cinsinden gerilimin çarpımına eşittir.",
+    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu vo voltoch.": "Elektronvolt cinsinden enerji, yük sayısı $z$ ile voltaj cinsinden gerilimin çarpımına eşittir.",
     "pión": "pion",
     "Higgsov bozón má hmotnosť približne 125 GeV/$c^2$. Koľkokrát je ťažší ako {@0}, ak hmotnosť tejto častice je ${@1}\\,\\text{GeV}/c^2$? Zaokrúhli na celé číslo.": "Higgs bozonunun kütlesi yaklaşık 125 GeV/$c^2$ dir. Bu parçacığın kütlesi ${@1}\\,\\text{GeV}/c^2$ ise Higgs bozonu {@0} parçacığından kaç kat ağırdır? Sonucu tam sayıya yuvarla.",
     "Hmotnosti sa nenásobia. Podiel dostaneš delením: $m_H / m$.": "Kütleler çarpılmaz. Oranı bölerek bulursun: $m_H / m$.",

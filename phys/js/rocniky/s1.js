@@ -109,6 +109,7 @@
         return {
           q: T`Teleso sa pohybuje rovnomerne rýchlosťou $${v}\\,\\text{m/s}$ po dobu $${tm}\\,\\text{s}$. Akú dráhu prejde? (v metroch)`,
           answer: s,
+          unit: 'm',
           solution: T`$s=v\\,t=${v}\\cdot ${tm}=${s}\\,\\text{m}$.`,
           hint: T`Pri rovnomernom pohybe je dráha súčinom rýchlosti a času.`,
           mistakes: keep([
@@ -116,8 +117,8 @@
             { value: v / tm, msg: T`Delil si čas rýchlosťou. Dráha je súčin $s=v\\,t$.` }
           ], s),
           steps: [
-            { q: T`Koľko metrov prejde teleso za $1\\,\\text{s}$?`, answer: v },
-            { q: T`Koľko metrov prejde za $${tm}\\,\\text{s}$?`, answer: s }
+            { q: T`Koľko metrov prejde teleso za $1\\,\\text{s}$?`, answer: v, unit: 'm' },
+            { q: T`Koľko metrov prejde za $${tm}\\,\\text{s}$?`, answer: s, unit: 'm' }
           ]
         };
       }
@@ -125,6 +126,7 @@
         return {
           q: T`Teleso prejde rovnomerne dráhu $${s}\\,\\text{m}$ za $${tm}\\,\\text{s}$. Akou rýchlosťou sa pohybuje? (v m/s)`,
           answer: v,
+          unit: 'm/s',
           solution: T`$v=\\frac{s}{t}=\\frac{${s}}{${tm}}=${v}\\,\\text{m/s}$.`,
           hint: T`Rýchlosť je podiel dráhy a času.`,
           mistakes: keep([
@@ -136,6 +138,7 @@
       return {
         q: T`Rovnomerne sa pohybujúce teleso má rýchlosť $${v}\\,\\text{m/s}$ a prejde dráhu $${s}\\,\\text{m}$. Koľko sekúnd trvala cesta?`,
         answer: tm,
+        unit: 's',
         solution: T`$t=\\frac{s}{v}=\\frac{${s}}{${v}}=${tm}\\,\\text{s}$.`,
         hint: T`Čas vyjadri zo vzťahu $s=v\\,t$ ako $t=\\frac{s}{v}$.`,
         mistakes: keep([
@@ -149,16 +152,16 @@
     const s1 = v1 * t1, s2 = v2 * t2, avg = (s1 + s2) / (t1 + t2);
     return {
       q: T`Teleso sa najprv $${t1}\\,\\text{s}$ pohybovalo rýchlosťou $${v1}\\,\\text{m/s}$ a potom $${t2}\\,\\text{s}$ rýchlosťou $${v2}\\,\\text{m/s}$. Aká je jeho priemerná rýchlosť za celý čas? (zaokrúhli na 2 desatinné miesta)`,
-      answer: avg, tol: 0.01,
+      answer: avg, tol: 0.01, unit: 'm/s',
       solution: T`$s_1=${v1}\\cdot ${t1}=${s1}\\,\\text{m}$, $s_2=${v2}\\cdot ${t2}=${s2}\\,\\text{m}$. Priemerná rýchlosť je $\\bar v=\\frac{s_1+s_2}{t_1+t_2}=\\frac{${s1 + s2}}{${t1 + t2}}\\approx ${fmt(avg)}\\,\\text{m/s}$.`,
       hint: T`Priemerná rýchlosť je celková dráha delená celkovým časom, nie priemer rýchlostí.`,
       mistakes: keep([
         { value: (v1 + v2) / 2, msg: T`Spriemeroval si rýchlosti. Priemerná rýchlosť sa počíta ako celková dráha delená celkovým časom.` }
       ], avg, 0.05),
       steps: [
-        { q: T`Akú dráhu $s_1$ prejde teleso v prvom úseku? (v metroch)`, answer: s1 },
-        { q: T`Akú dráhu $s_2$ prejde teleso v druhom úseku? (v metroch)`, answer: s2 },
-        { q: T`Aká je priemerná rýchlosť $\\frac{s_1+s_2}{t_1+t_2}=\\frac{${s1 + s2}}{${t1 + t2}}$? (v m/s, na 2 desatinné miesta)`, answer: avg, tol: 0.01 }
+        { q: T`Akú dráhu $s_1$ prejde teleso v prvom úseku? (v metroch)`, answer: s1, unit: 'm' },
+        { q: T`Akú dráhu $s_2$ prejde teleso v druhom úseku? (v metroch)`, answer: s2, unit: 'm' },
+        { q: T`Aká je priemerná rýchlosť $\\frac{s_1+s_2}{t_1+t_2}=\\frac{${s1 + s2}}{${t1 + t2}}$? (v m/s, na 2 desatinné miesta)`, answer: avg, tol: 0.01, unit: 'm/s' }
       ]
     };
   });
@@ -189,14 +192,15 @@
       return {
         q: T`Teleso zmení rýchlosť z $${v0}\\,\\text{m/s}$ na $${v}\\,\\text{m/s}$ za $${tm}\\,\\text{s}$. Aké je jeho zrýchlenie v $\\text{m/s}^2$?`,
         answer: a,
+        unit: 'm/s²',
         solution: T`$a=\\frac{v-v_0}{t}=\\frac{${v}-${v0}}{${tm}}=${a}\\,\\text{m/s}^2$.`,
         hint: T`Zrýchlenie je zmena rýchlosti za jednotku času. Od konečnej rýchlosti odčítaj počiatočnú.`,
         mistakes: keep([
           { value: v / tm, msg: T`Počítal si $\\frac{v}{t}$, ale zmena rýchlosti je $v-v_0$. Najprv odčítaj počiatočnú rýchlosť.` }
         ], a),
         steps: [
-          { q: T`O koľko $\\text{m/s}$ sa zmenila rýchlosť, teda koľko je $\\Delta v=v-v_0$?`, answer: v - v0 },
-          { q: T`Aké je zrýchlenie $a=\\frac{\\Delta v}{t}=\\frac{${v - v0}}{${tm}}$ v $\\text{m/s}^2$?`, answer: a }
+          { q: T`O koľko $\\text{m/s}$ sa zmenila rýchlosť, teda koľko je $\\Delta v=v-v_0$?`, answer: v - v0, unit: 'm/s' },
+          { q: T`Aké je zrýchlenie $a=\\frac{\\Delta v}{t}=\\frac{${v - v0}}{${tm}}$ v $\\text{m/s}^2$?`, answer: a, unit: 'm/s²' }
         ]
       };
     }
@@ -204,6 +208,7 @@
     return {
       q: T`Teleso má na začiatku rýchlosť $${v0}\\,\\text{m/s}$ a rovnomerne zrýchľuje so zrýchlením $${a}\\,\\text{m/s}^2$. Akú dráhu prejde za $${tm}\\,\\text{s}$? (v metroch)`,
       answer: s,
+      unit: 'm',
       solution: T`$s=v_0\\,t+\\frac{1}{2}a\\,t^2=${v0}\\cdot ${tm}+\\frac{1}{2}\\cdot ${a}\\cdot ${tm}^2=${s}\\,\\text{m}$.`,
       hint: T`Pri rovnomerne zrýchlenom pohybe dráha nie je len $v_0\\,t$: pribudne člen $\\frac{1}{2}a\\,t^2$.`,
       mistakes: keep([
@@ -211,9 +216,9 @@
         { value: v0 + a * tm, msg: T`To je rýchlosť po $t$ sekundách, nie dráha.` }
       ], s),
       steps: [
-        { q: T`Koľko metrov je člen $v_0\\,t=${v0}\\cdot ${tm}$?`, answer: v0 * tm },
-        { q: T`Koľko metrov je člen $\\frac{1}{2}a\\,t^2=\\frac{1}{2}\\cdot ${a}\\cdot ${tm}^2$?`, answer: (a / 2) * tm * tm },
-        { q: T`Aká je celková dráha $s$ v metroch?`, answer: s }
+        { q: T`Koľko metrov je člen $v_0\\,t=${v0}\\cdot ${tm}$?`, answer: v0 * tm, unit: 'm' },
+        { q: T`Koľko metrov je člen $\\frac{1}{2}a\\,t^2=\\frac{1}{2}\\cdot ${a}\\cdot ${tm}^2$?`, answer: (a / 2) * tm * tm, unit: 'm' },
+        { q: T`Aká je celková dráha $s$ v metroch?`, answer: s, unit: 'm' }
       ]
     };
   });
@@ -245,6 +250,7 @@
       return {
         q: T`Na teleso hmotnosti $${m}\\,\\text{kg}$ pôsobí výsledná sila a udeľuje mu zrýchlenie $${a}\\,\\text{m/s}^2$. Akú silu na teleso pôsobí? (v newtonoch)`,
         answer: F,
+        unit: 'N',
         solution: T`$F=m\\,a=${m}\\cdot ${a}=${F}\\,\\text{N}$.`,
         hint: T`Druhý Newtonov zákon: sila je súčin hmotnosti a zrýchlenia.`,
         mistakes: keep([
@@ -252,8 +258,8 @@
           { value: a / m, msg: T`Delil si. Sila je súčin hmotnosti a zrýchlenia.` }
         ], F),
         steps: [
-          { q: T`Akú silu treba, aby teleso s hmotnosťou $1\\,\\text{kg}$ získalo zrýchlenie $${a}\\,\\text{m/s}^2$? (v newtonoch)`, answer: a },
-          { q: T`Akú silu treba pre teleso s hmotnosťou $${m}\\,\\text{kg}$? (v newtonoch)`, answer: F }
+          { q: T`Akú silu treba, aby teleso s hmotnosťou $1\\,\\text{kg}$ získalo zrýchlenie $${a}\\,\\text{m/s}^2$? (v newtonoch)`, answer: a, unit: 'N' },
+          { q: T`Akú silu treba pre teleso s hmotnosťou $${m}\\,\\text{kg}$? (v newtonoch)`, answer: F, unit: 'N' }
         ]
       };
     }
@@ -262,6 +268,7 @@
       return {
         q: T`Na teleso hmotnosti $${m}\\,\\text{kg}$ pôsobí výsledná sila $${F}\\,\\text{N}$. Aké zrýchlenie získa? (v $\\text{m/s}^2$)`,
         answer: a,
+        unit: 'm/s²',
         solution: T`$a=\\frac{F}{m}=\\frac{${F}}{${m}}=${a}\\,\\text{m/s}^2$.`,
         hint: T`Zo vzťahu $F=m\\,a$ vyjadri zrýchlenie: $a=\\frac{F}{m}$.`,
         mistakes: keep([
@@ -269,8 +276,8 @@
           { value: F - m, msg: T`Odčítal si hmotnosť od sily. Zrýchlenie je podiel sily a hmotnosti.` }
         ], a),
         steps: [
-          { q: T`Aké zrýchlenie by sila $${F}\\,\\text{N}$ udelila telesu s hmotnosťou $1\\,\\text{kg}$? (v $\\text{m/s}^2$)`, answer: F },
-          { q: T`Teleso je $${m}$-krát hmotnejšie. Aké zrýchlenie získa? (v $\\text{m/s}^2$)`, answer: a }
+          { q: T`Aké zrýchlenie by sila $${F}\\,\\text{N}$ udelila telesu s hmotnosťou $1\\,\\text{kg}$? (v $\\text{m/s}^2$)`, answer: F, unit: 'm/s²' },
+          { q: T`Teleso je $${m}$-krát hmotnejšie. Aké zrýchlenie získa? (v $\\text{m/s}^2$)`, answer: a, unit: 'm/s²' }
         ]
       };
     }
@@ -280,14 +287,15 @@
     return {
       q: T`Na teleso pôsobia v opačných smeroch dve sily: $${F1}\\,\\text{N}$ a $${F2}\\,\\text{N}$. Aká je veľkosť výslednej sily? (v newtonoch)`,
       answer: Math.abs(F1 - F2),
+      unit: 'N',
       solution: T`Sily majú opačný smer, preto sa odčítajú: $F=|${F1}-${F2}|=${Math.abs(F1 - F2)}\\,\\text{N}$.`,
       hint: T`Sily v opačných smeroch sa odčítavajú, v rovnakom smere sa sčítavajú.`,
       mistakes: keep([
         { value: F1 + F2, msg: T`Sily pôsobia opačne, preto ich nesčítavaj. Menšiu odčítaj od väčšej.` }
       ], Math.abs(F1 - F2)),
       steps: [
-        { q: T`Aká je veľkosť väčšej z oboch síl? (v newtonoch)`, answer: Math.max(F1, F2) },
-        { q: T`O koľko newtonov je väčšia sila väčšia ako menšia?`, answer: Math.abs(F1 - F2) }
+        { q: T`Aká je veľkosť väčšej z oboch síl? (v newtonoch)`, answer: Math.max(F1, F2), unit: 'N' },
+        { q: T`O koľko newtonov je väčšia sila väčšia ako menšia?`, answer: Math.abs(F1 - F2), unit: 'N' }
       ]
     };
   });
@@ -317,7 +325,7 @@
       const m = rnd(1, 20), F = m * 9.81;
       return {
         q: T`Aká je tiaž telesa hmotnosti $${m}\\,\\text{kg}$ na Zemi? Použi $g=9{,}81\\,\\text{m/s}^2$. (v newtonoch, zaokrúhli na 2 desatinné miesta)`,
-        answer: F, tol: 0.01,
+        answer: F, tol: 0.01, unit: 'N',
         solution: T`$F_g=m\\,g=${m}\\cdot 9{,}81=${fmt(F)}\\,\\text{N}$.`,
         hint: T`Tiaž je súčin hmotnosti a tiažového zrýchlenia.`,
         mistakes: keep([
@@ -325,15 +333,15 @@
           { value: m / 9.81, msg: T`Delil si tiažovým zrýchlením. Tiaž dostaneš násobením.` }
         ], F, 0.05),
         steps: [
-          { q: T`Akú tiaž má na Zemi teleso s hmotnosťou $1\\,\\text{kg}$? (v newtonoch)`, answer: 9.81, tol: 0.01 },
-          { q: T`Akú tiaž má teleso s hmotnosťou $${m}\\,\\text{kg}$? (v newtonoch, na 2 desatinné miesta)`, answer: F, tol: 0.01 }
+          { q: T`Akú tiaž má na Zemi teleso s hmotnosťou $1\\,\\text{kg}$? (v newtonoch)`, answer: 9.81, tol: 0.01, unit: 'N' },
+          { q: T`Akú tiaž má teleso s hmotnosťou $${m}\\,\\text{kg}$? (v newtonoch, na 2 desatinné miesta)`, answer: F, tol: 0.01, unit: 'N' }
         ]
       };
     }
     const m = rnd(1, 20), F = m * 1.62;
     return {
       q: T`Teleso má na Zemi hmotnosť $${m}\\,\\text{kg}$. Aká je jeho tiaž na Mesiaci, kde $g\\approx 1{,}62\\,\\text{m/s}^2$? (v newtonoch, zaokrúhli na 2 desatinné miesta)`,
-      answer: F, tol: 0.01,
+      answer: F, tol: 0.01, unit: 'N',
       solution: T`Hmotnosť telesa sa nemení: $F_g=m\\,g=${m}\\cdot 1{,}62=${fmt(F)}\\,\\text{N}$.`,
       hint: T`Na Mesiaci je tiažové zrýchlenie menšie než na Zemi. Hmotnosť telesa zostáva rovnaká.`,
       mistakes: keep([
@@ -341,8 +349,8 @@
         { value: m, msg: T`To je hmotnosť, ktorá sa na Mesiaci nemení. Tiaž je sila v newtonoch.` }
       ], F, 0.05),
       steps: [
-        { q: T`Akú hmotnosť má teleso na Mesiaci? (v kilogramoch)`, answer: m },
-        { q: T`Aká je jeho tiaž na Mesiaci $F_g=m\\,g$? (v newtonoch, na 2 desatinné miesta)`, answer: F, tol: 0.01 }
+        { q: T`Akú hmotnosť má teleso na Mesiaci? (v kilogramoch)`, answer: m, unit: 'kg' },
+        { q: T`Aká je jeho tiaž na Mesiaci $F_g=m\\,g$? (v newtonoch, na 2 desatinné miesta)`, answer: F, tol: 0.01, unit: 'N' }
       ]
     };
   });
@@ -374,6 +382,7 @@
       return {
         q: T`Sila $${F}\\,\\text{N}$ posunie teleso v smere pôsobenia sily o $${s}\\,\\text{m}$. Akú prácu sila vykoná? (v joulov)`,
         answer: F * s,
+        unit: 'J',
         solution: T`$W=F\\,s=${F}\\cdot ${s}=${F * s}\\,\\text{J}$.`,
         hint: T`Práca v smere sily je súčin sily a dráhy.`,
         mistakes: keep([
@@ -381,8 +390,8 @@
           { value: F / s, msg: T`Delil si dráhou. Práca je súčin sily a dráhy.` }
         ], F * s),
         steps: [
-          { q: T`Akú prácu vykoná sila $${F}\\,\\text{N}$ na dráhe $1\\,\\text{m}$? (v jouloch)`, answer: F },
-          { q: T`Akú prácu vykoná na dráhe $${s}\\,\\text{m}$? (v jouloch)`, answer: F * s }
+          { q: T`Akú prácu vykoná sila $${F}\\,\\text{N}$ na dráhe $1\\,\\text{m}$? (v jouloch)`, answer: F, unit: 'J' },
+          { q: T`Akú prácu vykoná na dráhe $${s}\\,\\text{m}$? (v jouloch)`, answer: F * s, unit: 'J' }
         ]
       };
     }
@@ -391,6 +400,7 @@
       return {
         q: T`Motor vykonal prácu $${W}\\,\\text{J}$ za $${tm}\\,\\text{s}$. Aký bol jeho výkon? (vo wattoch)`,
         answer: P,
+        unit: 'W',
         solution: T`$P=\\frac{W}{t}=\\frac{${W}}{${tm}}=${P}\\,\\text{W}$.`,
         hint: T`Výkon je práca vykonaná za jednotku času: $P=\\frac{W}{t}$.`,
         mistakes: keep([
@@ -403,6 +413,7 @@
     return {
       q: T`Teleso hmotnosti $${m}\\,\\text{kg}$ sa pohybuje rýchlosťou $${v}\\,\\text{m/s}$. Aká je jeho kinetická energia? (v joulov)`,
       answer: Ek,
+      unit: 'J',
       solution: T`$E_k=\\frac{1}{2}m\\,v^2=\\frac{1}{2}\\cdot ${m}\\cdot ${v}^2=${Ek}\\,\\text{J}$.`,
       hint: T`Kinetická energia závisí od druhej mocniny rýchlosti: $E_k=\\frac{1}{2}m\\,v^2$.`,
       mistakes: keep([
@@ -411,7 +422,7 @@
       ], Ek),
       steps: [
         { q: T`Koľko je $v^2$ pre $v=${v}\\,\\text{m/s}$?`, answer: v * v },
-        { q: T`Koľko je $\\frac{1}{2}\\cdot ${m}\\cdot ${v * v}$ v džouloch?`, answer: Ek }
+        { q: T`Koľko je $\\frac{1}{2}\\cdot ${m}\\cdot ${v * v}$ v džouloch?`, answer: Ek, unit: 'J' }
       ]
     };
   });
@@ -443,6 +454,7 @@
       return {
         q: T`Teleso hmotnosti $${m}\\,\\text{kg}$ sa pohybuje rýchlosťou $${v}\\,\\text{m/s}$. Aká je jeho hybnosť? (v $\\text{kg\\,m/s}$)`,
         answer: p,
+        unit: 'kg·m/s',
         solution: T`$p=m\\,v=${m}\\cdot ${v}=${p}\\,\\text{kg\\,m/s}$.`,
         hint: T`Hybnosť je súčin hmotnosti a rýchlosti: $p=m\\,v$.`,
         mistakes: keep([
@@ -450,8 +462,8 @@
           { value: m * v * v / 2, msg: T`To je kinetická energia $\\frac{1}{2}m\\,v^2$, nie hybnosť.` }
         ], p),
         steps: [
-          { q: T`Akú hybnosť by malo teleso s hmotnosťou $1\\,\\text{kg}$ pri tej istej rýchlosti? (v $\\text{kg\\,m/s}$)`, answer: v },
-          { q: T`Akú hybnosť má teleso s hmotnosťou $${m}\\,\\text{kg}$? (v $\\text{kg\\,m/s}$)`, answer: p }
+          { q: T`Akú hybnosť by malo teleso s hmotnosťou $1\\,\\text{kg}$ pri tej istej rýchlosti? (v $\\text{kg\\,m/s}$)`, answer: v, unit: 'kg·m/s' },
+          { q: T`Akú hybnosť má teleso s hmotnosťou $${m}\\,\\text{kg}$? (v $\\text{kg\\,m/s}$)`, answer: p, unit: 'kg·m/s' }
         ]
       };
     }
@@ -459,16 +471,16 @@
       const m1 = rnd(1, 10), v1 = rnd(2, 10), m2 = rnd(1, 10), v2 = rnd(1, 10), p = m1 * v1 - m2 * v2;
       return {
         q: T`Teleso hmotnosti $${m1}\\,\\text{kg}$ sa pohybuje rýchlosťou $${v1}\\,\\text{m/s}$ doprava, teleso hmotnosti $${m2}\\,\\text{kg}$ rýchlosťou $${v2}\\,\\text{m/s}$ doľava. Aká je celková hybnosť sústavy? Kladný smer je doprava. (v $\\text{kg\\,m/s}$)`,
-        answer: p, signed: true,
+        answer: p, signed: true, unit: 'kg·m/s',
         solution: T`$p=m_1v_1-m_2v_2=${m1 * v1}-${m2 * v2}=${p}\\,\\text{kg\\,m/s}$.`,
         hint: T`Hybnosti majú opačné smery, preto sa odčítajú. Kladný smer zvoľ doprava.`,
         mistakes: keep([
           { value: m1 * v1 + m2 * v2, msg: T`Hybnosti majú opačné smery, takže sa odčítajú, nesčítajú.` }
         ], p),
         steps: [
-          { q: T`Aká je hybnosť prvého telesa $m_1v_1$? (v $\\text{kg\\,m/s}$)`, answer: m1 * v1 },
-          { q: T`Aká je veľkosť hybnosti druhého telesa $m_2v_2$? (v $\\text{kg\\,m/s}$)`, answer: m2 * v2 },
-          { q: T`Aká je celková hybnosť $m_1v_1-m_2v_2$? (v $\\text{kg\\,m/s}$)`, answer: p, signed: true }
+          { q: T`Aká je hybnosť prvého telesa $m_1v_1$? (v $\\text{kg\\,m/s}$)`, answer: m1 * v1, unit: 'kg·m/s' },
+          { q: T`Aká je veľkosť hybnosti druhého telesa $m_2v_2$? (v $\\text{kg\\,m/s}$)`, answer: m2 * v2, unit: 'kg·m/s' },
+          { q: T`Aká je celková hybnosť $m_1v_1-m_2v_2$? (v $\\text{kg\\,m/s}$)`, answer: p, signed: true, unit: 'kg·m/s' }
         ]
       };
     }
@@ -476,6 +488,7 @@
     return {
       q: T`Teleso padá z kľudu z výšky $${h}\\,\\text{m}$ bez odporu vzduchu. Akou rýchlosťou dopadne na zem? Použi $g=10\\,\\text{m/s}^2$. (v m/s)`,
       answer: v,
+      unit: 'm/s',
       solution: T`Polohová energia sa pri páde premení na pohybovú: $m\\,g\\,h=\\frac{1}{2}m\\,v^2$, teda $v=\\sqrt{2gh}=\\sqrt{2\\cdot 10\\cdot ${h}}=\\sqrt{${v * v}}=${v}\\,\\text{m/s}$.`,
       hint: T`Zo zákona zachovania energie vyjadri $v$ z rovnosti $m\\,g\\,h=\\frac{1}{2}m\\,v^2$. Hmotnosť sa vykráti.`,
       mistakes: keep([
@@ -483,7 +496,7 @@
       ], v),
       steps: [
         { q: T`Koľko je $v^2=2gh=2\\cdot 10\\cdot ${h}$?`, answer: 20 * h },
-        { q: T`Koľko je $v=\\sqrt{${20 * h}}$? (v m/s)`, answer: v }
+        { q: T`Koľko je $v=\\sqrt{${20 * h}}$? (v m/s)`, answer: v, unit: 'm/s' }
       ]
     };
   });
@@ -515,6 +528,7 @@
       return {
         q: T`Na plochu $${S}\\,\\text{m}^2$ kolmo pôsobí sila $${F}\\,\\text{N}$. Aký tlak vyvoláva? (v pascaloch)`,
         answer: P,
+        unit: 'Pa',
         solution: T`$p=\\frac{F}{S}=\\frac{${F}}{${S}}=${P}\\,\\text{Pa}$.`,
         hint: T`Tlak je podiel sily kolmej na plochu a obsahu tejto plochy.`,
         mistakes: keep([
@@ -528,6 +542,7 @@
       return {
         q: T`Aký je hydrostatický tlak vody v hĺbke $${h}\\,\\text{m}$ pod hladinou? Hustota vody je $1000\\,\\text{kg/m}^3$, $g=10\\,\\text{m/s}^2$. (v kilopascaloch)`,
         answer: 10 * h,
+        unit: 'kPa',
         solution: T`$p=\\rho\\,g\\,h=1000\\cdot 10\\cdot ${h}=${10000 * h}\\,\\text{Pa}=${10 * h}\\,\\text{kPa}$.`,
         hint: T`Hydrostatický tlak je $p=\\rho\\,g\\,h$. Pozor na jednotky: výsledok vyjde v pascaloch.`,
         mistakes: keep([
@@ -535,7 +550,7 @@
           { value: h, msg: T`Zabudol si na hustotu a tiažové zrýchlenie. Tlak nie je len hĺbka.` }
         ], 10 * h),
         steps: [
-          { q: T`Aký je tlak v pascaloch, $p=\\rho\\,g\\,h=1000\\cdot 10\\cdot ${h}$?`, answer: 10000 * h },
+          { q: T`Aký je tlak v pascaloch, $p=\\rho\\,g\\,h=1000\\cdot 10\\cdot ${h}$?`, answer: 10000 * h, unit: 'Pa' },
           { q: T`Koľko kilopascalov je to?`, answer: 10 * h }
         ]
       };
@@ -544,6 +559,7 @@
     return {
       q: T`Hydraulický lis: na malý piest s plochou $${S1}\\,\\text{cm}^2$ pôsobí sila $${F1}\\,\\text{N}$. Veľký piest má plochu $${S1 * k}\\,\\text{cm}^2$. Akú silu prenesie veľký piest? (v newtonoch)`,
       answer: F1 * k,
+      unit: 'N',
       solution: T`Tlak sa v kvapaline prenesie do oboch piestov: $\\frac{F_1}{S_1}=\\frac{F_2}{S_2}$, teda $F_2=F_1\\cdot\\frac{S_2}{S_1}=${F1}\\cdot ${k}=${F1 * k}\\,\\text{N}$.`,
       hint: T`Pascalov zákon: tlak sa prenesie nezmenený. Pomer síl sa rovná pomeru plôch.`,
       mistakes: keep([
@@ -552,7 +568,7 @@
       ], F1 * k),
       steps: [
         { q: T`Koľkokrát je plocha veľkého piesta väčšia ako plocha malého piesta?`, answer: k },
-        { q: T`Akú silu prenesie veľký piest? (v newtonoch)`, answer: F1 * k }
+        { q: T`Akú silu prenesie veľký piest? (v newtonoch)`, answer: F1 * k, unit: 'N' }
       ]
     };
   });

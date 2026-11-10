@@ -69,7 +69,11 @@ window.NADVAZNOSTI = {
     'r9-opakovanie': ['r7-rovnomerny', 'r8-polohova-pohybova', 'r9-ohmov-zakon'],
     // 1. ročník SŠ: mechanika
     's1-veliciny': ['r5-jednotky'],
-    's1-pohyb': ['s1-veliciny'],
+    // neistoty merania (téma matematika; ďalšie lekcie nadväzujú v téme samy)
+    's1-platne-cislice': ['s1-veliciny'],
+    's1-chyby-merania': ['s1-veliciny', 'r5-merania'],
+    's1-sirenie-neistot': ['r6-hustota'],
+    's1-pohyb': ['s1-veliciny', 's1-platne-cislice'],
     's1-newton': ['s1-zrychlenie', 'r7-sila'],
     's1-gravitacia': ['r7-tiaz'],
     's1-praca-energia': ['s1-newton', 'r8-polohova-pohybova'],

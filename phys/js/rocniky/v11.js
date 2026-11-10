@@ -31,6 +31,7 @@
     return {
       q: T`Aký je pretlak vody vo hĺbke $${h}\\,\\text{m}$? Hustota vody je $1000\\,\\text{kg/m}^3$, $g=${fmt(9.81)}\\,\\text{m/s}^2$. Výsledok v kPa.`,
       answer: ans,
+      unit: 'kPa',
       tol: 0.01,
       solution: T`$p=\\rho g h=1000\\cdot ${fmt(9.81)}\\cdot ${h}=${fmt(9.81 * h * 1000)}\\,\\text{Pa}=${fmt(ans)}\\,\\text{kPa}$.`,
       hint: T.s('Pretlak v kvapaline je $p=\\rho g h$. Výsledok v pascaloch vydeľ tisíckami, aby bol v kilopascaloch.'),
@@ -40,7 +41,7 @@
         { value: 9.81 * h * 1000, msg: T`Výsledok je v pascaloch. Zadanie chce kilopascaly, vydeľ tisíckami.` }
       ].filter((m) => m.value !== ans),
       steps: [
-        { q: T`Aký je pretlak $p=\\rho g h$ v pascaloch?`, answer: 9810 * h, tol: 0.5 },
+        { q: T`Aký je pretlak $p=\\rho g h$ v pascaloch?`, answer: 9810 * h, unit: 'Pa', tol: 0.5 },
         { q: T`Koľko je to kilopascalov?`, answer: ans, tol: 0.01 }
       ]
     };
@@ -67,6 +68,7 @@
     return {
       q: T`Ponorené teleso má objem $${n}\\,\\text{dm}^3$ a je celé ponorené vo vode. Aká je veľkosť vztlakovej sily? Hustota vody je $1000\\,\\text{kg/m}^3$, $g=${fmt(9.81)}\\,\\text{m/s}^2$. Výsledok v newtonoch.`,
       answer: ans,
+      unit: 'N',
       tol: 0.01,
       solution: T`$F_{vz}=\\rho\\,g\\,V=1000\\cdot ${fmt(9.81)}\\cdot ${fmt(n * 0.001)}=${fmt(ans)}\\,\\text{N}$.`,
       hint: T.s('Vztlak je tiaž vytlačenej vody: $F_{vz}=\\rho g V$. Objem najprv premeň na metre kubické.'),
@@ -77,7 +79,7 @@
       ].filter((m) => m.value !== ans),
       steps: [
         { q: T`Koľko metrov kubických je objem $${n}\\,\\text{dm}^3$?`, answer: n / 1000, tol: 1e-6 },
-        { q: T`Aká je vztlaková sila $F_{vz}=\\rho\\,g\\,V$ v newtonoch?`, answer: ans, tol: 0.01 }
+        { q: T`Aká je vztlaková sila $F_{vz}=\\rho\\,g\\,V$ v newtonoch?`, answer: ans, unit: 'N', tol: 0.01 }
       ]
     };
   });
@@ -105,6 +107,7 @@
     return {
       q: T`Vodovodným potrubím prúdi voda. V úseku s prierezom $S_1=${a1}\\,\\text{cm}^2$ je rýchlosť $v_1=${v1}\\,\\text{m/s}$. Aká je rýchlosť $v_2$ v úseku s prierezom $S_2=${a2}\\,\\text{cm}^2$? Zadaj v m/s, zaokrúhli na 2 desatinné miesta.`,
       answer: ans,
+      unit: 'm/s',
       tol: 0.01,
       solution: T`Z rovnice kontinuity $S_1v_1=S_2v_2$: $v_2=\\frac{${a1}\\cdot ${v1}}{${a2}}=${fmt(ans)}\\,\\text{m/s}$.`,
       hint: T.s('Súčin prierezu a rýchlosti je v celom potrubí rovnaký: $S_1v_1=S_2v_2$.'),
@@ -115,7 +118,7 @@
       ].filter((m) => m.value !== ans),
       steps: [
         { q: T`Koľkokrát je prierez $S_1$ väčší ako $S_2$?`, answer: a1 / a2, tol: 1e-6 },
-        { q: T`Aká je rýchlosť $v_2=v_1\\frac{S_1}{S_2}$ v m/s?`, answer: ans, tol: 0.01 }
+        { q: T`Aká je rýchlosť $v_2=v_1\\frac{S_1}{S_2}$ v m/s?`, answer: ans, unit: 'm/s', tol: 0.01 }
       ]
     };
   });
@@ -142,6 +145,7 @@
     return {
       q: T`Vodorovným potrubím prúdi voda ($\\rho=1000\\,\\text{kg/m}^3$). Rýchlosť v bode 1 je $v_1=${v1}\\,\\text{m/s}$, v zúženom bode 2 je $v_2=${v2}\\,\\text{m/s}$. Aký je rozdiel tlakov $p_1-p_2$ v kilopascaloch?`,
       answer: ans,
+      unit: 'kPa',
       tol: 0.001,
       solution: T`$p_1-p_2=\\frac{1}{2}\\rho\\left(v_2^2-v_1^2\\right)=\\frac{1}{2}\\cdot 1000\\cdot(${v2 * v2}-${v1 * v1})=${fmt(ans * 1000)}\\,\\text{Pa}=${fmt(ans)}\\,\\text{kPa}$.`,
       hint: T.s('Pre vodorovné potrubie je $p_1-p_2=\\frac{1}{2}\\rho(v_2^2-v_1^2)$. Výsledok v pascaloch vydeľ tisíckami.'),
@@ -151,8 +155,8 @@
         { value: 0.5 * (v2 - v1) * (v2 - v1), msg: T`Najprv odčítaj rýchlosti a až potom umocni. Bernoulli používa rozdiel druhých mocnín $v_2^2-v_1^2$.` }
       ].filter((m) => m.value !== ans),
       steps: [
-        { q: T`Koľko je $v_2^2-v_1^2$ v $\\text{m}^2/\\text{s}^2$?`, answer: v2 * v2 - v1 * v1 },
-        { q: T`Aký je rozdiel tlakov $p_1-p_2=\\frac{1}{2}\\rho\\left(v_2^2-v_1^2\\right)$ v pascaloch?`, answer: 500 * (v2 * v2 - v1 * v1) },
+        { q: T`Koľko je $v_2^2-v_1^2$ v $\\text{m}^2/\\text{s}^2$?`, answer: v2 * v2 - v1 * v1, unit: 'm²/s²' },
+        { q: T`Aký je rozdiel tlakov $p_1-p_2=\\frac{1}{2}\\rho\\left(v_2^2-v_1^2\\right)$ v pascaloch?`, answer: 500 * (v2 * v2 - v1 * v1), unit: 'Pa' },
         { q: T`Koľko je to kilopascalov?`, answer: ans, tol: 0.001 }
       ]
     };
@@ -179,8 +183,9 @@
     const FN = 6 * Math.PI * eta * r * v;
     const ans = Math.round(FN * 1000 * 10) / 10;
     return {
-      q: T`Guľôčka s polomerom $r=${fmt(r)}\\,\\text{m}$ sa pohybuje rýchlosťou $v=${fmt(v)}\\,\\text{m/s}$ v kvapaline s viskozitou $\\eta=${eta}\\,\\text{Pa}\\cdot\\text{s}$. Vypočítaj odpor podľa Stokesovho zákona $F=6\\pi\\eta r v$. Výsledok v miliníutonoch, zaokrúhli na 1 desatinné miesto.`,
+      q: T`Guľôčka s polomerom $r=${fmt(r)}\\,\\text{m}$ sa pohybuje rýchlosťou $v=${fmt(v)}\\,\\text{m/s}$ v kvapaline s viskozitou $\\eta=${eta}\\,\\text{Pa}\\cdot\\text{s}$. Vypočítaj odpor podľa Stokesovho zákona $F=6\\pi\\eta r v$. Výsledok v milinewtonoch, zaokrúhli na 1 desatinné miesto.`,
       answer: ans,
+      unit: 'mN',
       tol: 0.05,
       solution: T`$F=6\\pi\\eta r v\\approx ${fmt(ans)}\\,\\text{mN}\\approx ${fmt(ans / 1000)}\\,\\text{N}$.`,
       hint: T.s('Dosaď do vzorca $F=6\\pi\\eta r v$ a výsledok v newtonoch vynásob tisíckou.'),
@@ -190,8 +195,8 @@
         { value: ans / Math.PI, msg: T`Zabudol si násobiť číslom $\\pi$. Vzorec je $F=6\\pi\\eta r v$.` }
       ].filter((m) => m.value !== ans),
       steps: [
-        { q: T`Koľko je súčin $\\eta\\,r\\,v$ v milinewtonoch?`, answer: Math.round(eta * r * v * 1e6) / 1000, tol: 1e-3 },
-        { q: T`Koľko je $F=6\\pi\\,\\eta\\,r\\,v$ v milinewtonoch? Zaokrúhli na 1 desatinné miesto.`, answer: ans, tol: 0.05 }
+        { q: T`Koľko je súčin $\\eta\\,r\\,v$ v milinewtonoch?`, answer: Math.round(eta * r * v * 1e6) / 1000, unit: 'mN', tol: 1e-3 },
+        { q: T`Koľko je $F=6\\pi\\,\\eta\\,r\\,v$ v milinewtonoch? Zaokrúhli na 1 desatinné miesto.`, answer: ans, unit: 'mN', tol: 0.05 }
       ]
     };
   });
@@ -273,6 +278,7 @@
     return {
       q: T`Automobil má čelnú plochu $S=${fmt(2)}\\,\\text{m}^2$ a súčiniteľ odporu $c_w=${fmt(0.5)}$. Hustota vzduchu je $\\rho=${fmt(1.2)}\\,\\text{kg/m}^3$. Aký je aerodynamický odpor pri rýchlosti $v=${v}\\,\\text{m/s}$? Použi $F=\\frac{1}{2}c_w\\rho S v^2$. Výsledok v newtonoch.`,
       answer: ans,
+      unit: 'N',
       tol: 0.01,
       solution: T`$F=\\frac{1}{2}\\cdot ${fmt(0.5)}\\cdot ${fmt(1.2)}\\cdot ${fmt(2)}\\cdot ${v}^2=${fmt(0.6)}\\cdot ${v * v}=${fmt(ans)}\\,\\text{N}$.`,
       hint: T.s('Odpor rastie s druhou mocninou rýchlosti. Nezabudni na polovicu vo vzorci.'),
@@ -282,9 +288,9 @@
         { value: 0.3 * v, msg: T`Odpor nerastie lineárne s rýchlosťou, ale s jej druhou mocninou.` }
       ].filter((m) => m.value !== ans),
       steps: [
-        { q: T`Koľko je súčin $\\frac{1}{2}c_w\\rho S$ v $\\text{kg/m}$?`, answer: 0.6, tol: 1e-6 },
-        { q: T`Koľko je $v^2$ v $\\text{m}^2/\\text{s}^2$?`, answer: v * v },
-        { q: T`Aký je odpor $F$ v newtonoch?`, answer: ans, tol: 0.01 }
+        { q: T`Koľko je súčin $\\frac{1}{2}c_w\\rho S$ v $\\text{kg/m}$?`, answer: 0.6, unit: 'kg/m', tol: 1e-6 },
+        { q: T`Koľko je $v^2$ v $\\text{m}^2/\\text{s}^2$?`, answer: v * v, unit: 'm²/s²' },
+        { q: T`Aký je odpor $F$ v newtonoch?`, answer: ans, unit: 'N', tol: 0.01 }
       ]
     };
   });

@@ -55,7 +55,7 @@ CONTENT_I18N.add('ko', {
     "Energetické hladiny vodíka a prechody medzi nimi": "수소의 에너지 준위와 그 사이의 전이",
     "Energia fotónu je rozdiel energií hladín. Dolná hladina má väčšiu väzbovú energiu, preto výsledok vyjde kladný.": "광자의 에너지는 준위 에너지의 차이이다. 아래 준위가 결합 에너지가 더 크므로 결과는 양수이다.",
     "Energia fotónu sa rovná rozdielu energií hladín. Pre vodík platí $E_n=-\\dfrac{13{,}6}{n^2}\\,\\text{eV}$.": "광자의 에너지는 준위 에너지의 차이와 같다. 수소에서는 $E_n=-\\dfrac{13{,}6}{n^2}\\,\\text{eV}$이다.",
-    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.": "전자볼트로 나타낸 에너지는 전하수 $z$에 볼트 단위 전압을 곱한 것과 같다.",
+    "Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu vo voltoch.": "전자볼트로 나타낸 에너지는 전하수 $z$에 볼트 단위 전압을 곱한 것과 같다.",
     "Energia v jame rastie s $n^2$ a klesá s $L^2$: $E_n\\propto\\frac{n^2}{L^2}$.": "우물 속 에너지는 $n^2$에 따라 커지고 $L^2$에 따라 작아진다: $E_n\\propto\\frac{n^2}{L^2}$.",
     "Exponenciálny pokles počtu jadier s polčasom rozpadu": "반감기에 따른 핵 수의 지수적 감소",
     "Exponenciálny útlm žiarenia vo vrstve": "층 속에서 방사선의 지수적 감쇠",
