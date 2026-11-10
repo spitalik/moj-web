@@ -46,7 +46,7 @@ I18N.add('de', {
   themeContrast: 'Hoher Kontrast',
   langLabel: 'Sprache',
 
-  heroText: 'Von den ersten Zahlen in der 1. Klasse über die Oberstufe bis zu Integralen. Jede Lektion bietet Theorie, Abbildungen, Musterbeispiele und einen Aufgabengenerator zum Üben.',
+  heroText: 'Von den ersten Naturbeobachtungen in der Grundschule über die Oberstufe bis zur Hochschulphysik. Jede Lektion bietet Theorie, Abbildungen, Musterbeispiele und einen Aufgabengenerator zum Üben.',
   viewLabel: 'Wie der Stoff angezeigt wird',
   viewThemes: 'Nach Themen',
   viewLevels: 'Nach Klassenstufen',

@@ -46,7 +46,7 @@ I18N.add('en', {
   themeContrast: 'High contrast',
   langLabel: 'Language',
 
-  heroText: 'From the first numbers in grade 1 through secondary school all the way to integrals. Every lesson has theory, pictures, worked examples and a generator of practice problems.',
+  heroText: 'From first observations of nature in primary school through secondary school all the way to university physics. Every lesson has theory, pictures, worked examples and a generator of practice problems.',
   viewLabel: 'How to browse the material',
   viewThemes: 'By topic',
   viewLevels: 'By grade',

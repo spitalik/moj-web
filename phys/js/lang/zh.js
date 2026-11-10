@@ -46,7 +46,7 @@ I18N.add('zh', {
   themeContrast: '高对比度',
   langLabel: '语言',
 
-  heroText: '从一年级认识的第一个数，经过中学，一直到积分。每节课都有理论讲解、图示、详解例题和练习题生成器。',
+  heroText: '从小学对自然的初步观察，经过中学，一直到大学物理。每节课都有理论讲解、图示、详解例题和练习题生成器。',
   viewLabel: '浏览方式',
   viewThemes: '按主题',
   viewLevels: '按年级',

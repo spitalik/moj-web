@@ -1,7 +1,7 @@
 /* Service worker: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu.
    Preklady obsahu (js/content-i18n/<jazyk>/*.js) sa neukladajú vopred: stiahne ich na pozadí js/nacitanie.js pre zvolený jazyk. */
-const CACHE = 'fyzika-v33';
+const CACHE = 'fyzika-v34';
 const ASSETS = [
   './',
   './index.html',

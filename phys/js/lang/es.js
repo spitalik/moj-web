@@ -46,7 +46,7 @@ I18N.add('es', {
   themeContrast: 'Alto contraste',
   langLabel: 'Idioma',
 
-  heroText: 'Desde los primeros números de 1.º curso, pasando por la secundaria, hasta las integrales. Cada lección tiene teoría, imágenes, ejemplos resueltos y un generador de ejercicios para practicar.',
+  heroText: 'Desde las primeras observaciones de la naturaleza en primaria, pasando por la secundaria, hasta la física universitaria. Cada lección tiene teoría, imágenes, ejemplos resueltos y un generador de ejercicios para practicar.',
   viewLabel: 'Cómo explorar el temario',
   viewThemes: 'Por temas',
   viewLevels: 'Por cursos',

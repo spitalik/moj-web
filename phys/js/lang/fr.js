@@ -46,7 +46,7 @@ I18N.add('fr', {
   themeContrast: 'Contraste élevé',
   langLabel: 'Langue',
 
-  heroText: 'Des premiers nombres en 1re année jusqu’aux intégrales, en passant par le lycée. Chaque leçon contient de la théorie, des illustrations, des exemples corrigés et un générateur d’exercices.',
+  heroText: 'Des premières observations de la nature à l’école primaire jusqu’à la physique universitaire, en passant par le lycée. Chaque leçon contient de la théorie, des illustrations, des exemples corrigés et un générateur d’exercices.',
   viewLabel: 'Comment parcourir le programme',
   viewThemes: 'Par thème',
   viewLevels: 'Par niveau',

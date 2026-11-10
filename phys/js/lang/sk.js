@@ -46,7 +46,7 @@ I18N.add('sk', {
   themeContrast: 'Kontrastná',
   langLabel: 'Jazyk',
 
-  heroText: 'Od prvých čísel v 1. ročníku cez strednú školu až po integrály. Každá lekcia má teóriu, obrázky, vyriešené príklady a generátor úloh na precvičovanie.',
+  heroText: 'Od prvých pozorovaní prírody na základnej škole cez strednú školu až po vysokoškolskú fyziku. Každá lekcia má teóriu, obrázky, vyriešené príklady a generátor úloh na precvičovanie.',
   viewLabel: 'Spôsob zobrazenia učiva',
   viewThemes: 'Podľa tém',
   viewLevels: 'Podľa ročníkov',

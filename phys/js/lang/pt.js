@@ -46,7 +46,7 @@ I18N.add('pt', {
   themeContrast: 'Alto contraste',
   langLabel: 'Idioma',
 
-  heroText: 'Dos primeiros números no 1º ano, passando pelo ensino médio, até as integrais. Cada lição tem teoria, imagens, exemplos resolvidos e um gerador de exercícios para praticar.',
+  heroText: 'Das primeiras observações da natureza no ensino fundamental, passando pelo ensino médio, até a física universitária. Cada lição tem teoria, imagens, exemplos resolvidos e um gerador de exercícios para praticar.',
   viewLabel: 'Como navegar pelo conteúdo',
   viewThemes: 'Por tema',
   viewLevels: 'Por ano',

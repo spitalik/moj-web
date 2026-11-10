@@ -46,7 +46,7 @@ I18N.add('it', {
   themeContrast: 'Contrasto elevato',
   langLabel: 'Lingua',
 
-  heroText: 'Dai primi numeri della 1ª classe, passando per le superiori, fino agli integrali. Ogni lezione ha teoria, figure, esempi svolti e un generatore di esercizi per allenarsi.',
+  heroText: 'Dalle prime osservazioni della natura alla scuola primaria, passando per le superiori, fino alla fisica universitaria. Ogni lezione ha teoria, figure, esempi svolti e un generatore di esercizi per allenarsi.',
   viewLabel: 'Come consultare il programma',
   viewThemes: 'Per argomento',
   viewLevels: 'Per classe',

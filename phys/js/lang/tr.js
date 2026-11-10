@@ -46,7 +46,7 @@ I18N.add('tr', {
   themeContrast: 'Yüksek kontrast',
   langLabel: 'Dil',
 
-  heroText: '1. sınıftaki ilk sayılardan liseye, oradan da integrallere kadar. Her derste konu anlatımı, görseller, çözümlü örnekler ve alıştırma soruları üreten bir araç bulunur.',
+  heroText: 'İlkokuldaki ilk doğa gözlemlerinden liseye, oradan da üniversite fiziğine kadar. Her derste konu anlatımı, görseller, çözümlü örnekler ve alıştırma soruları üreten bir araç bulunur.',
   viewLabel: 'İçeriğe nasıl göz atılsın',
   viewThemes: 'Konuya göre',
   viewLevels: 'Sınıfa göre',
