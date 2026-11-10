@@ -17,10 +17,15 @@
     options: shuffle([o.a, ...o.wrong]),
     answer: o.a,
     q: o.q,
-    choiceHints: Object.fromEntries(o.wrong.map((w) => [w, T.s('Táto možnosť nesedí. Over si, čo presne tento pojem alebo jav znamená.')])),
+    choiceHints: Object.fromEntries(o.wrong.map((w, i) => [w, (o.hints && o.hints[i]) || T.s('Táto možnosť nesedí. Over si, čo presne tento pojem alebo jav znamená.')])),
     solution: o.solution || T.s('Správna odpoveď vyplýva z definície tohto pojmu.'),
     hint: o.hint || T.s('Pozri si v teórii, čo tento pojem presne znamená.')
   });
+
+  // krok riešenia: výber správneho vzťahu (možnosti sú len vzorce v KaTeX, netreba ich prekladať)
+  const vzorec = (ok, ...bad) => ({ q: T.s('Ktorý vzťah tu použiješ?'), type: 'choice', options: shuffle([ok, ...bad]), answer: ok });
+  // krok riešenia: sčítať, alebo odčítať
+  const znamienko = (q, plus) => ({ q, type: 'choice', options: ['+', '−'], answer: plus ? '+' : '−' });
 
   /* ---------- pohyb ---------- */
 
@@ -52,15 +57,19 @@
     return choice(pick([
       { q: T.s('Cestujúci sedí v jedúcom vlaku. Voči ktorému telesu je v pokoji?'),
         a: T.s('voči vlaku'), wrong: [T.s('voči stromom pri trati'), T.s('voči nádraží')],
+        hints: [T.s('Stromy pri trati stoja a vlak s cestujúcim okolo nich prechádza. Voči nim sa cestujúci pohybuje.'), T.s('Nádražie stojí na mieste a vlak sa od neho vzďaľuje. Voči nemu sa cestujúci pohybuje.')],
         solution: T.s('Cestujúci sa voči vlaku, v ktorom sedí, nehýbe. Voči okoliu sa však pohybuje.') },
       { q: T.s('Čo tvorí vzťažnú sústavu?'),
         a: T.s('vzťažné teleso a hodiny'), wrong: [T.s('dráha a čas'), T.s('rýchlosť a zrýchlenie')],
+        hints: [T.s('Dráha a čas sú veličiny, ktoré vo vzťažnej sústave meriame. Sústavu netvoria.'), T.s('Rýchlosť a zrýchlenie opisujú pohyb, ale vzťažnú sústavu netvoria.')],
         solution: T.s('Vzťažná sústava je vzťažné teleso spolu s hodinami, pomocou ktorých merame čas.') },
       { q: T.s('Ako sa nazýva čiara, ktorú teleso pri pohybe opisuje?'),
         a: T.s('trajektória'), wrong: [T.s('rýchlosť'), T.s('zrýchlenie')],
+        hints: [T.s('Rýchlosť hovorí, akú dráhu teleso prejde za jednotku času. Nie je to čiara.'), T.s('Zrýchlenie opisuje zmenu rýchlosti, nie čiaru pohybu.')],
         solution: T.s('Trajektória je čiara, ktorú teleso pri pohybe opisuje. Jej dĺžka je dráha.') },
       { q: T.s('Ktorá jednotka patrí dráhe?'),
         a: T.s('meter (m)'), wrong: [T.s('sekunda (s)'), T.s('meter za sekundu (m/s)')],
+        hints: [T.s('Sekunda je jednotka času, nie dĺžky.'), T.s('Meter za sekundu je jednotka rýchlosti. Dráha je dĺžka.')],
         solution: T.s('Dráha je dĺžka, meria sa v metroch. Sekunda je jednotka času a meter za sekundu jednotka rýchlosti.') }
     ]));
   });
@@ -98,7 +107,11 @@
         answer: s,
         solution: T`$s=v\\cdot t=${v}\\cdot ${t}=${s}\\,\\text{km}$.`,
         hint: T`Dráhu dostaneš vynásobením rýchlosti časom: $s=v\\cdot t$.`,
-        mistakes: v + t !== s ? [{ value: v + t, msg: T`Dráhu nezískame sčítaním. Platí $s=v\\cdot t$.` }] : []
+        mistakes: v + t !== s ? [{ value: v + t, msg: T`Dráhu nezískame sčítaním. Platí $s=v\\cdot t$.` }] : [],
+        steps: [
+          vzorec('$s=v\\cdot t$', '$s=\\frac{v}{t}$', '$s=v+t$'),
+          { q: T`Koľko je $${v}\\cdot ${t}$?`, answer: s }
+        ]
       };
     }
     if (k === 2) {
@@ -109,7 +122,11 @@
         answer: v,
         solution: T`$v=\\frac{s}{t}=\\frac{${s}}{${t}}=${v}\\,\\text{km/h}$.`,
         hint: T`Rýchlosť dostaneš vydelením dráhy časom: $v=\\frac{s}{t}$.`,
-        mistakes: s * t !== v ? [{ value: s * t, msg: T`Rýchlosť sa počíta delením dráhy časom: $v=\\frac{s}{t}$, nie násobením.` }] : []
+        mistakes: s * t !== v ? [{ value: s * t, msg: T`Rýchlosť sa počíta delením dráhy časom: $v=\\frac{s}{t}$, nie násobením.` }] : [],
+        steps: [
+          vzorec('$v=\\frac{s}{t}$', '$v=s\\cdot t$', '$v=\\frac{t}{s}$'),
+          { q: T`Koľko je $\\frac{${s}}{${t}}$?`, answer: v }
+        ]
       };
     }
     // prepočet z m/s na km/h (výsledok môže mať jedno desatinné miesto)
@@ -120,7 +137,11 @@
       tol: 0.01,
       solution: T`$${ms}\\cdot 3{,}6=${mf(ans)}\\,\\text{km/h}$.`,
       hint: T`Z metrov za sekundu na kilometre za hodinu násobíme číslom 3,6.`,
-      mistakes: Math.abs(ms / 3.6 - ans) > 0.01 ? [{ value: ms / 3.6, msg: T`Delil si číslom 3,6. Z m/s na km/h sa prepočítava násobením.` }] : []
+      mistakes: Math.abs(ms / 3.6 - ans) > 0.01 ? [{ value: ms / 3.6, msg: T`Delil si číslom 3,6. Z m/s na km/h sa prepočítava násobením.` }] : [],
+      steps: [
+        { q: T`Hodina má $3600\\,\\text{s}$. Koľko metrov prejde teleso za hodinu? Vypočítaj $${ms}\\cdot 3600$.`, answer: ms * 3600 },
+        { q: T`Koľko kilometrov je $${ms * 3600}\\,\\text{m}$?`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -153,15 +174,19 @@
       return choice(pick([
         { q: T.s('Auto jazdí po diaľnici stále rýchlosťou 90 km/h. Aký pohyb koná?'),
           a: T.s('rovnomerný pohyb'), wrong: [T.s('nerovnomerný pohyb')],
+          hints: [T.s('Pri nerovnomernom pohybe sa rýchlosť mení. Auto tu ide stále rovnakou rýchlosťou.')],
           solution: T.s('Rýchlosť sa nemení, preto ide o rovnomerný pohyb.') },
         { q: T.s('Kameň pustený z výšky padá k zemi a jeho rýchlosť sa zväčšuje. Aký pohyb koná?'),
           a: T.s('nerovnomerný pohyb'), wrong: [T.s('rovnomerný pohyb')],
+          hints: [T.s('Pri rovnomernom pohybe je rýchlosť stále rovnaká. Rýchlosť padajúceho kameňa však rastie.')],
           solution: T.s('Rýchlosť kameňa sa počas pádu mení, preto ide o nerovnomerný pohyb.') },
         { q: T.s('Vlak sa rozbieha zo stanice. Aký pohyb koná pri rozbiehaní?'),
           a: T.s('nerovnomerný pohyb'), wrong: [T.s('rovnomerný pohyb')],
+          hints: [T.s('Pri rozbiehaní sa rýchlosť vlaku zväčšuje, takže nie je stála.')],
           solution: T.s('Pri rozbiehaní sa rýchlosť zväčšuje, takže pohyb nie je rovnomerný.') },
         { q: T.s('Eskalátor ide stále rovnakou rýchlosťou. Aký pohyb koná?'),
           a: T.s('rovnomerný pohyb'), wrong: [T.s('nerovnomerný pohyb')],
+          hints: [T.s('Pri nerovnomernom pohybe sa rýchlosť mení. Rýchlosť eskalátora sa nemení.')],
           solution: T.s('Eskalátor má stálu rýchlosť, preto sa pohybuje rovnomerne.') }
       ]));
     }
@@ -172,7 +197,14 @@
         answer: s,
         solution: T`Pri rovnomernom pohybe je $s=v\\cdot t=${v}\\cdot ${t}=${s}\\,\\text{m}$.`,
         hint: T`Pri rovnomernom pohybe vynásob rýchlosť časom: $s=v\\cdot t$.`,
-        mistakes: [{ value: t, msg: T`Zabudol si rýchlosť vynásobiť časom. Dráha je $s=v\\cdot t$.` }]
+        mistakes: [
+          { value: t, msg: T`Zabudol si rýchlosť vynásobiť časom. Dráha je $s=v\\cdot t$.` },
+          { value: v + t, msg: T`Rýchlosť a čas sa tu sčítali. Dráha je ich súčin: $s=v\\cdot t$.` }
+        ].filter((x) => x.value !== s),
+        steps: [
+          vzorec('$s=v\\cdot t$', '$s=\\frac{v}{t}$', '$s=v+t$'),
+          { q: T`Koľko je $${v}\\cdot ${t}$?`, answer: s }
+        ]
       };
     }
     // nerovnomerný pohyb: dva úseky s rôznou rýchlosťou, počíta sa priemerná rýchlosť
@@ -186,7 +218,16 @@
       tol: 0.01,
       solution: T`Celková dráha je $${s1}+${s2}=${s1 + s2}\\,\\text{m}$, celkový čas $${t1}+${t2}=${t1 + t2}\\,\\text{s}$, teda $v_p=\\frac{${s1 + s2}}{${t1 + t2}}=${mf(ans)}\\,\\text{m/s}$.`,
       hint: T`Priemerná rýchlosť je celková dráha delená celkovým časom, nie priemer dvoch rýchlostí.`,
-      mistakes: Math.abs((v1 + v2) / 2 - ans) > 0.01 ? [{ value: (v1 + v2) / 2, msg: T`Spriemeroval si rýchlosti. Priemerná rýchlosť sa počíta z celkovej dráhy a celkového času.` }] : []
+      mistakes: [
+        ...(Math.abs((v1 + v2) / 2 - ans) > 0.01 ? [{ value: (v1 + v2) / 2, msg: T`Spriemeroval si rýchlosti. Priemerná rýchlosť sa počíta z celkovej dráhy a celkového času.` }] : []),
+        { value: s1 + s2, msg: T`To je celková dráha. Priemernú rýchlosť dostaneš, keď ju vydelíš celkovým časom.` }
+      ],
+      steps: [
+        { q: T`Akú dráhu prejde teleso v prvom úseku? Vypočítaj $${v1}\\cdot ${t1}$.`, answer: s1 },
+        { q: T`Akú dráhu prejde v druhom úseku? Vypočítaj $${v2}\\cdot ${t2}$.`, answer: s2 },
+        { q: T`Aký je celkový čas $${t1}+${t2}$ v sekundách?`, answer: t1 + t2 },
+        { q: T`Aká je priemerná rýchlosť $v_p=\\frac{${s1 + s2}}{${t1 + t2}}$?`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -226,7 +267,11 @@
           answer: a + b,
           solution: T`Sily v rovnakom smere sa sčítajú: $${a}+${b}=${a + b}\\,\\text{N}$.`,
           hint: T`Sily s rovnakým smerom sčítaj.`,
-          mistakes: [{ value: Math.abs(a - b), msg: T`Sily majú rovnaký smer, preto sa sčítajú, nie odčítajú.` }]
+          mistakes: [{ value: Math.abs(a - b), msg: T`Sily majú rovnaký smer, preto sa sčítajú, nie odčítajú.` }],
+          steps: [
+            znamienko(T.s('Sily majú rovnaký smer. Budeš ich sčítať (+), alebo odčítať (−)?'), true),
+            { q: T`Koľko je $${a}+${b}$?`, answer: a + b }
+          ]
         };
       }
       return {
@@ -234,18 +279,25 @@
         answer: Math.abs(a - b),
         solution: T`Sily v opačných smeroch sa odčítajú: $${Math.max(a, b)}-${Math.min(a, b)}=${Math.abs(a - b)}\\,\\text{N}$.`,
         hint: T`Sily s opačným smerom odčítaj a výsledok má smer väčšej sily.`,
-        mistakes: [{ value: a + b, msg: T`Sily majú opačný smer, preto sa odčítajú, nie sčítajú.` }]
+        mistakes: [{ value: a + b, msg: T`Sily majú opačný smer, preto sa odčítajú, nie sčítajú.` }],
+        steps: [
+          znamienko(T.s('Sily majú opačný smer. Budeš ich sčítať (+), alebo odčítať (−)?'), false),
+          { q: T`Koľko je $${Math.max(a, b)}-${Math.min(a, b)}$?`, answer: Math.abs(a - b) }
+        ]
       };
     }
     return choice(pick([
       { q: T.s('Ktorá jednotka je jednotkou sily?'),
         a: T.s('newton (N)'), wrong: [T.s('joule (J)'), T.s('pascal (Pa)')],
+        hints: [T.s('Joule je jednotka energie a práce, nie sily.'), T.s('Pascal je jednotka tlaku, nie sily.')],
         solution: T.s('Sila sa meria v newtonoch. Joule je jednotka energie a pascal jednotka tlaku.') },
       { q: T.s('Ktorý účinok sily sa prejaví zmenou tvaru telesa?'),
         a: T.s('stlačenie alebo natiahnutie pružiny'), wrong: [T.s('zmena rýchlosti telesa'), T.s('zmena hmotnosti telesa')],
+        hints: [T.s('Zmena rýchlosti je pohybový účinok sily, tvar telesa sa pri nej nemení.'), T.s('Hmotnosť telesa sa pôsobením sily nemení.')],
         solution: T.s('Pri stlačení alebo natiahnutí sa mení tvar telesa. Hmotnosť sa silou nemení.') },
       { q: T.s('Ktorý účinok sily zodpovedá rozbehnutiu vozíka?'),
         a: T.s('zmena rýchlosti'), wrong: [T.s('zmena tvaru vozíka'), T.s('zmena hmotnosti vozíka')],
+        hints: [T.s('Pri rozbehnutí sa vozík nedeformuje. Mení sa jeho rýchlosť.'), T.s('Hmotnosť vozíka sa rozbehnutím nemení.')],
         solution: T.s('Rozbehnutie znamená, že sa zväčší rýchlosť vozíka.') }
     ]));
   });
@@ -282,7 +334,11 @@
         answer: m * 10,
         solution: T`$F_G=m\\cdot g=${m}\\cdot 10=${m * 10}\\,\\text{N}$.`,
         hint: T`Tiaž je sila, vypočítaš ju ako $F_G=m\\cdot g$.`,
-        mistakes: [{ value: m, msg: T`Zabudol si vynásobiť hmotnosť gravitačným zrýchlením. Tiaž je v newtonoch: $F_G=m\\cdot g$.` }]
+        mistakes: [{ value: m, msg: T`Zabudol si vynásobiť hmotnosť gravitačným zrýchlením. Tiaž je v newtonoch: $F_G=m\\cdot g$.` }],
+        steps: [
+          vzorec('$F_G=m\\cdot g$', '$F_G=\\frac{m}{g}$', '$F_G=m+g$'),
+          { q: T`Koľko je $${m}\\cdot 10$?`, answer: m * 10 }
+        ]
       };
     }
     if (k === 2) {
@@ -292,7 +348,14 @@
         answer: m,
         solution: T`$m=\\frac{F_G}{g}=\\frac{${F}}{10}=${m}\\,\\text{kg}$.`,
         hint: T`Hmotnosť dostaneš vydelením tiaže gravitačným zrýchlením: $m=\\frac{F_G}{g}$.`,
-        mistakes: [{ value: F, msg: T`Hmotnosť si nechal rovnakú ako tiaž. Tiaž je v newtonoch, hmotnosť v kilogramoch: $m=\\frac{F_G}{g}$.` }]
+        mistakes: [
+          { value: F, msg: T`Hmotnosť si nechal rovnakú ako tiaž. Tiaž je v newtonoch, hmotnosť v kilogramoch: $m=\\frac{F_G}{g}$.` },
+          { value: F * 10, msg: T`Tiaž sa tu násobila gravitačným zrýchlením. Hmotnosť dostaneš delením: $m=\\frac{F_G}{g}$.` }
+        ],
+        steps: [
+          vzorec('$m=\\frac{F_G}{g}$', '$m=F_G\\cdot g$', '$m=\\frac{g}{F_G}$'),
+          { q: T`Koľko je $\\frac{${F}}{10}$?`, answer: m }
+        ]
       };
     }
     if (k === 3) {
@@ -302,12 +365,17 @@
         answer: ans,
         solution: T`$F_G=m\\cdot g=${m}\\cdot 1{,}6=${ans}\\,\\text{N}$.`,
         hint: T`Na Mesiaci je gravitačné zrýchlenie menšie, preto je aj tiaž menšia. Vynásob hmotnosť číslom $1{,}6$.`,
-        mistakes: [{ value: m * 10, msg: T`To je tiaž na Zemi. Na Mesiaci je gravitačné zrýchlenie menšie, $g\\approx 1{,}6\\,\\text{N/kg}$.` }]
+        mistakes: [{ value: m * 10, msg: T`To je tiaž na Zemi. Na Mesiaci je gravitačné zrýchlenie menšie, $g\\approx 1{,}6\\,\\text{N/kg}$.` }],
+        steps: [
+          vzorec('$F_G=m\\cdot g$', '$F_G=\\frac{m}{g}$', '$F_G=m+g$'),
+          { q: T`Koľko je $${m}\\cdot ${mf(1.6)}$?`, answer: ans }
+        ]
       };
     }
     return choice({
       q: T.s('Ktorá veličina sa pri presune telesa z Zeme na Mesiac nemení?'),
       a: T.s('hmotnosť telesa'), wrong: [T.s('tiaž telesa'), T.s('gravitačné zrýchlenie')],
+      hints: [T.s('Tiaž závisí od gravitačného zrýchlenia, a to je na Mesiaci menšie. Tiaž sa teda zmení.'), T.s('Gravitačné zrýchlenie je na Mesiaci asi šesťkrát menšie ako na Zemi.')],
       solution: T.s('Hmotnosť hovorí, koľko látky je v telese, a tá sa presunom nezmení. Tiaž aj gravitačné zrýchlenie sa na Mesiaci zmenia.'),
       hint: T.s('Pomysli, či sa pri presune mení látka telesa.')
     });
@@ -345,21 +413,29 @@
         answer: ans,
         solution: T`Trenie pôsobí proti pohybu, preto $${Fz}-${Ftr}=${ans}\\,\\text{N}$.`,
         hint: T`Sily opačného smeru sa odčítavajú.`,
-        mistakes: [{ value: Fz + Ftr, msg: T`Trenie pôsobí proti pohybu, preto sa od ťažnej sily odčíta, nepripočíta.` }]
+        mistakes: [{ value: Fz + Ftr, msg: T`Trenie pôsobí proti pohybu, preto sa od ťažnej sily odčíta, nepripočíta.` }],
+        steps: [
+          znamienko(T.s('Trenie pôsobí proti pohybu. Budeš sily sčítať (+), alebo odčítať (−)?'), false),
+          { q: T`Koľko je $${Fz}-${Ftr}$?`, answer: ans }
+        ]
       };
     }
     return choice(pick([
       { q: T.s('Kedy je trenie medzi dvoma telesami väčšie?'),
         a: T.s('keď sú povrchy drsnejšie'), wrong: [T.s('keď sú povrchy leštené'), T.s('keď je dotyková plocha menšia')],
+        hints: [T.s('Leštené povrchy sú hladké, preto je trenie medzi nimi menšie.'), T.s('Trenie takmer nezávisí od veľkosti dotykovej plochy, ale od drsnosti a pritláčania.')],
         solution: T.s('Trenie závisí od drsnosti povrchov a od tlaku, ktorým jedno teleso pritláča na druhé, nie od veľkosti plochy.') },
       { q: T.s('Ktoré prostredie kladie najväčší odpor pohybu telesa?'),
         a: T.s('voda'), wrong: [T.s('vzduch'), T.s('vákuum')],
+        hints: [T.s('Vzduch má oveľa menšiu hustotu ako voda, preto brzdí pohyb menej.'), T.s('Vo vákuu nie je žiadna látka, ktorá by kládla odpor.')],
         solution: T.s('Voda má väčšiu hustotu ako vzduch, preto brzdí pohyb viac. Vo vákuu odpor prostredia nie je žiadny.') },
       { q: T.s('Ktoré opatrenie zmenší trenie v ložisku?'),
         a: T.s('pridanie maziva'), wrong: [T.s('zväčšenie drsnosti povrchov'), T.s('zvýšenie zaťaženia ložiska')],
+        hints: [T.s('Drsnejšie povrchy trenie zväčšia, nie zmenšia.'), T.s('Väčšie zaťaženie pritláča povrchy viac k sebe, takže trenie rastie.')],
         solution: T.s('Mazivo vytvorí medzi povrchmi tenkú vrstvu, takže sa trú menej.') },
       { q: T.s('Prečo padák pomaly klesá k zemi?'),
         a: T.s('veľký odpor vzduchu'), wrong: [T.s('malá tiaž padáka'), T.s('vysoká hustota padáka')],
+        hints: [T.s('Padák s parašutistom má veľkú tiaž. Pomaly klesá vďaka odporu vzduchu.'), T.s('Hustota padáka pád nespomaľuje. Rozhoduje veľká plocha, ktorá vytvára odpor vzduchu.')],
         solution: T.s('Veľký odpor vzduchu vyrovnáva tiaž padáka, preto klesá pomaly.') }
     ]));
   });
@@ -394,21 +470,29 @@
         answer: ans,
         solution: T`$s=c\\cdot t=300\\,000\\cdot ${t}=${ans}\\,\\text{km}$.`,
         hint: T`Dráhu dostaneš vynásobením rýchlosti svetla časom: $s=c\\cdot t$.`,
-        mistakes: [{ value: ans * 1000, msg: T`Výsledok je v metroch, nie v kilometroch. Na kilometre prepočítaš delením tisíckou.` }]
+        mistakes: [{ value: ans * 1000, msg: T`Výsledok je v metroch, nie v kilometroch. Na kilometre prepočítaš delením tisíckou.` }],
+        steps: [
+          vzorec('$s=c\\cdot t$', '$s=\\frac{c}{t}$', '$s=\\frac{t}{c}$'),
+          { q: T`Koľko je $300\\,000\\cdot ${t}$?`, answer: ans }
+        ]
       };
     }
     return choice(pick([
       { q: T.s('V ktorom prostredí sa svetlo šíri najpomalšie?'),
         a: T.s('voda'), wrong: [T.s('vzduch'), T.s('vákuum')],
+        hints: [T.s('Vo vzduchu sa svetlo šíri takmer tak rýchlo ako vo vákuu, rýchlejšie než vo vode.'), T.s('Vo vákuu sa svetlo šíri najrýchlejšie, nie najpomalšie.')],
         solution: T.s('Vo vode sa svetlo šíri pomalšie než vo vzduchu alebo vo vákuu.') },
       { q: T.s('Prečo za nepriehľadným predmetom vzniká tieň?'),
         a: T.s('lebo sa svetlo šíri priamočiaro'), wrong: [T.s('lebo sa svetlo ohýba okolo predmetu'), T.s('lebo predmet vyžaruje tmu')],
+        hints: [T.s('Keby sa svetlo okolo predmetu ohýbalo, za predmetom by tieň nevznikol.'), T.s('Tma nie je nič, čo by sa dalo vyžarovať. Je to miesto, kam svetlo nedopadá.')],
         solution: T.s('Svetlo sa v jednom prostredí šíri priamočiaro, a preto predmet zakryje svetlo za sebou.') },
       { q: T.s('Prečo vidíme knihu, ktorá nie je zdrojom svetla?'),
         a: T.s('odráža svetlo do našich očí'), wrong: [T.s('sama vydáva svetlo'), T.s('pohlcuje všetko svetlo')],
+        hints: [T.s('Kniha nie je zdroj svetla, v tme ju nevidíme.'), T.s('Teleso, ktoré pohltí všetko svetlo, vyzerá úplne čierne a do očí nám nič neposiela.')],
         solution: T.s('Kniha odráža svetlo zo zdroja do našich očí. Ak by všetko svetlo pohlcovala, nevideli by sme ju.') },
       { q: T.s('Kedy nastane zatmenie Slnka?'),
         a: T.s('Mesiac sa dostane medzi Slnko a Zem'), wrong: [T.s('Zem sa dostane medzi Slnko a Mesiac'), T.s('Mesiac sa dostane za Zem')],
+        hints: [T.s('Keď je Zem medzi Slnkom a Mesiacom, nastáva zatmenie Mesiaca, nie Slnka.'), T.s('Keď je Mesiac za Zemou, nemôže zakryť Slnko. Môže nastať zatmenie Mesiaca.')],
         solution: T.s('Pri zatmení Slnka vrhá Mesiac tieň na Zem, preto leží medzi Slnkom a Zemou.') }
     ]));
   });
@@ -444,7 +528,12 @@
         answer: th,
         solution: T`Zákon odrazu hovorí $\\beta=\\alpha$, teda uhol odrazu je $${th}^\\circ$.`,
         hint: T`Uhol odrazu sa rovná uhlu dopadu. Oba merame od kolmice.`,
-        mistakes: 90 - th !== th ? [{ value: 90 - th, msg: T`Uhol sa meria od kolmice, nie od povrchu zrkadla. Uhol odrazu je rovnaký ako uhol dopadu.` }] : []
+        mistakes: 90 - th !== th ? [{ value: 90 - th, msg: T`Uhol sa meria od kolmice, nie od povrchu zrkadla. Uhol odrazu je rovnaký ako uhol dopadu.` }] : [],
+        steps: [
+          { q: T.s('Ako súvisí uhol odrazu $\\beta$ s uhlom dopadu $\\alpha$?'), type: 'choice',
+            options: shuffle(['$\\beta=\\alpha$', '$\\beta=90^\\circ-\\alpha$', '$\\beta=2\\alpha$']), answer: '$\\beta=\\alpha$' },
+          { q: T`Aký je teda uhol odrazu v stupňoch, ak je uhol dopadu $${th}^\\circ$?`, answer: th }
+        ]
       };
     }
     if (k === 2) {
@@ -454,15 +543,21 @@
         answer: 90 - ph,
         solution: T`Uhol od kolmice je $90^\\circ-${ph}^\\circ=${90 - ph}^\\circ$.`,
         hint: T`Uhly sa merajú od kolmice. Uhol od povrchu doplň do $90^\\circ$.`,
-        mistakes: ph !== 90 - ph ? [{ value: ph, msg: T`Uhol dopadu sa meria od kolmice. Uhol od povrchu musíš doplniť do $90^\\circ$.` }] : []
+        mistakes: ph !== 90 - ph ? [{ value: ph, msg: T`Uhol dopadu sa meria od kolmice. Uhol od povrchu musíš doplniť do $90^\\circ$.` }] : [],
+        steps: [
+          { q: T.s('Aký uhol (v stupňoch) zviera kolmica s povrchom zrkadla?'), answer: 90 },
+          { q: T`Koľko je $90^\\circ-${ph}^\\circ$?`, answer: 90 - ph }
+        ]
       };
     }
     return choice(pick([
       { q: T.s('Ako sa láme lúč pri prechode svetla zo vzduchu do vody?'),
         a: T.s('ku kolmici'), wrong: [T.s('od kolmice'), T.s('nemení smer')],
+        hints: [T.s('Od kolmice sa lúč láme pri prechode do prostredia, kde sa svetlo šíri rýchlejšie. Vo vode sa šíri pomalšie.'), T.s('Smer sa nemení len vtedy, keď lúč dopadá kolmo. Pri šikmom dopade sa lúč láme.')],
         solution: T.s('Voda je opticky hustejšie prostredie, svetlo sa v nej šíri pomalšie, a preto sa lúč láme ku kolmici.') },
       { q: T.s('Ako sa láme lúč pri prechode svetla z vody do vzduchu?'),
         a: T.s('od kolmice'), wrong: [T.s('ku kolmici'), T.s('nemení smer')],
+        hints: [T.s('Ku kolmici sa lúč láme pri prechode do prostredia, kde sa svetlo šíri pomalšie. Vo vzduchu sa šíri rýchlejšie.'), T.s('Smer sa nemení len vtedy, keď lúč dopadá kolmo. Pri šikmom dopade sa lúč láme.')],
         solution: T.s('Vo vzduchu sa svetlo šíri rýchlejšie, preto sa lúč láme od kolmice.') }
     ]));
   });
@@ -496,21 +591,29 @@
         answer: 2 * d,
         solution: T`Obraz je za zrkadlom vo vzdialenosti $${d}\\,\\text{m}$, takže medzi predmetom a obrazom je $${d}+${d}=${2 * d}\\,\\text{m}$.`,
         hint: T`Medzi predmetom a obrazom je dvojnásobok vzdialenosti predmetu od zrkadla.`,
-        mistakes: [{ value: d, msg: T`Počítal si len vzdialenosť od zrkadla. Obraz je za zrkadlom rovnako ďaleko, preto počítaj celú vzdialenosť: $2d$.` }]
+        mistakes: [{ value: d, msg: T`Počítal si len vzdialenosť od zrkadla. Obraz je za zrkadlom rovnako ďaleko, preto počítaj celú vzdialenosť: $2d$.` }],
+        steps: [
+          { q: T.s('Ako ďaleko za zrkadlom (v metroch) je obraz?'), answer: d },
+          { q: T`Koľko je $${d}+${d}$?`, answer: 2 * d }
+        ]
       };
     }
     return choice(pick([
       { q: T.s('Aký je obraz predmetu v rovinnom zrkadle?'),
         a: T.s('zdanlivý, rovnako veľký a priamy'), wrong: [T.s('skutočný a zväčšený'), T.s('skutočný a zmenšený')],
+        hints: [T.s('Obraz v rovinnom zrkadle sa nedá zachytiť na tienidle, preto nie je skutočný. Nie je ani zväčšený.'), T.s('Obraz v rovinnom zrkadle nie je skutočný ani zmenšený. Je rovnako veľký ako predmet.')],
         solution: T.s('Rovinné zrkadlo vytvára zdanlivý obraz rovnakej veľkosti. Skutočný obraz by sa dal zachytiť na tienidle.') },
       { q: T.s('Ktorá šošovka zbiera rovnobežné lúče do jedného bodu?'),
         a: T.s('spojka (hrubšia v strede)'), wrong: [T.s('rozptylka (tenšia v strede)'), T.s('rovinné zrkadlo')],
+        hints: [T.s('Rozptylka lúče rozptyľuje od seba, nezbiera ich.'), T.s('Rovinné zrkadlo rovnobežné lúče odráža ako rovnobežné, do bodu ich nezbiera.')],
         solution: T.s('Spojka je hrubšia v strede a lúče zbieha do ohniska. Rozptylka lúče rozptyľuje.') },
       { q: T.s('Ktorý optický jav vzniká rozkladom bieleho svetla v kvapkách vody?'),
         a: T.s('dúha'), wrong: [T.s('miráž'), T.s('zatmenie Slnka')],
+        hints: [T.s('Miráž vzniká lomom svetla v teplom vzduchu, nie rozkladom svetla v kvapkách.'), T.s('Zatmenie Slnka vzniká tieňom Mesiaca, nie rozkladom svetla.')],
         solution: T.s('Biele svetlo sa v kvapkách rozkladá na farby, a tak vzniká dúha.') },
       { q: T.s('Ktorý optický jav vzniká lomom svetla v teplom vzduchu nad horúcim povrchom?'),
         a: T.s('miráž'), wrong: [T.s('dúha'), T.s('zatmenie Mesiaca')],
+        hints: [T.s('Dúha vzniká rozkladom svetla v kvapkách vody, nie v teplom vzduchu.'), T.s('Zatmenie Mesiaca vzniká tieňom Zeme, nie lomom svetla.')],
         solution: T.s('Svetlo sa láme v rôzne teplých vrstvách vzduchu, a preto vidíme na ceste zdanlivú vodu.') }
     ]));
   });

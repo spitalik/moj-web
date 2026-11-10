@@ -38,6 +38,10 @@
         { value: n * n, msg: T`Zabudol si na dvojku vo vzorci. Kapacita je $2n^2$, nie $n^2$.` },
         { value: 2 * n, msg: T`To je dvojnásobok čísla $n$. Hodnotu $n$ treba umocniť na druhú.` }
       ], ans),
+      steps: [
+        { q: T`Koľko je $n^2$ pre $n=${n}$?`, answer: n * n },
+        { q: T`Koľko je kapacita $2n^2$?`, answer: ans }
+      ],
       solution: T`Kapacita slupky je $2n^2 = 2\\cdot ${n}^2 = ${ans}$ elektrónov.`,
       hint: T`Kapacita slupky s číslom $n$ je $2n^2$.`
     };
@@ -73,6 +77,11 @@
       mistakes: dropAns([
         { value: wrong, msg: T`Zabudol si na druhé mocniny čísel $n$. Správny tvar je $\\dfrac{1}{n_f^2}-\\dfrac{1}{n_i^2}$.` }
       ], ans),
+      steps: [
+        { q: T`Aká je energia hladiny $E_{${ni}}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: Math.round((-13.6 / (ni * ni)) * 100) / 100, tol: 0.01, signed: true },
+        { q: T`Aká je energia hladiny $E_{${nf}}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: Math.round((-13.6 / (nf * nf)) * 100) / 100, tol: 0.01, signed: true },
+        { q: T`Aká je energia fotónu $E_{n_i}-E_{n_f}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ],
       solution: T`$\\Delta E = 13{,}6\\cdot\\left(\\dfrac{1}{${nf}^2}-\\dfrac{1}{${ni}^2}\\right)\\approx ${mn(ans)}\\,\\text{eV}$.`,
       hint: T`Energia fotónu sa rovná rozdielu energií hladín. Pre vodík platí $E_n=-\\dfrac{13{,}6}{n^2}\\,\\text{eV}$.`
     };
@@ -113,6 +122,12 @@
         { value: A - Z, msg: T`To je počet neutrónov. Protóny určuje dolný index $Z$.` },
         { value: A, msg: T`To je horný index $A$, počet všetkých nukleónov. Protóny určuje dolný index $Z$.` }
       ], ans),
+      // kroky len pri neutrónoch; počet protónov sa iba odčíta z dolného indexu
+      ...(isN ? { steps: [
+        { q: T`Aké je nukleónové číslo $A$ (horný index)?`, answer: A },
+        { q: T`Aké je protónové číslo $Z$ (dolný index)?`, answer: Z },
+        { q: T`Koľko je $N=A-Z$?`, answer: ans }
+      ] } : {}),
       solution: isN
         ? T`Počet neutrónov je $N = A - Z = ${A} - ${Z} = ${ans}$.`
         : T`Počet protónov je protónové číslo $Z = ${ans}$, čo je dolný index.`,
@@ -148,6 +163,11 @@
         ...(k > 1 ? [{ value: N0 / 2, msg: T`Započítal si len jeden polčas. Počet polčasov je $k=${k}$.` }] : []),
         ...(Number.isInteger(N0 / (2 * k)) ? [{ value: N0 / (2 * k), msg: T`Počet jadier si zmenšil lineárne. Každý polčas znamená delenie dvomi, pri $k$ polčasoch ide o $2^{k}$.` }] : [])
       ], ans),
+      steps: [
+        { q: T`Koľko polčasov uplynulo?`, answer: k },
+        { q: T`Koľko je $2^{${k}}$?`, answer: Math.pow(2, k) },
+        { q: T`Koľko jadier ostane?`, answer: ans }
+      ],
       solution: T`Počet polčasov je $k = \\dfrac{${k * Tt}}{${Tt}} = ${k}$, teda $N = \\dfrac{${N0}}{2^{${k}}} = ${ans}$.`,
       hint: T`Najprv zisti, koľko polčasov uplynulo ($k=t/T$), a počiatočný počet vydeľ $2^{k}$.`
     };
@@ -182,6 +202,11 @@
         { value: dm, msg: T`Dosadil si len hmotnostný úbytok. Najprv ho vynásob číslom $931{,}5\\,\\text{MeV}$.` },
         { value: E / 1000, msg: T`To je energia v GeV. Výsledok sa pýta v MeV, preto nedeľ tisíckou.` }
       ], ans),
+      steps: [
+        { q: T`Koľko tisícin atómovej hmotnostnej jednotky je $\\Delta m=${mn(dm)}\\,\\text{u}$?`, answer: Math.round(dm * 1000) },
+        { q: T`Koľko MeV zodpovedá hmotnosti $0{,}001\\,\\text{u}$?`, answer: 0.9315, tol: 0.0001 },
+        { q: T`Akú energiu v MeV sa uvoľní? Zaokrúhli na 1 desatinné miesto.`, answer: ans, tol: 0.05 }
+      ],
       solution: T`$E=\\Delta m\\cdot 931{,}5\\,\\text{MeV}=${mn(dm)}\\cdot 931{,}5\\approx ${mn(ans)}\\,\\text{MeV}$.`,
       hint: T`Hmotnostný úbytok sa mení na energiu podľa $E=\\Delta m\\,c^2$, s $1\\,\\text{u}\\,c^2 = 931{,}5\\,\\text{MeV}$.`
     };
@@ -216,6 +241,11 @@
         { value: 100 / (2 * k), msg: T`Intenzitu si delil lineárne. Každá polovičná hrúbka zníži intenzitu na polovicu, preto treba mocninu dvojky.` },
         { value: 100 - ans, msg: T`To je zoslabená časť, nie časť, ktorá prejde. Pýtame sa na zostávajúcu intenzitu.` }
       ], ans),
+      steps: [
+        { q: T`Koľko polovičných hrúbok má vrstva?`, answer: k },
+        { q: T`Koľko je $2^{${k}}$?`, answer: Math.pow(2, k) },
+        { q: T`Aké percento pôvodnej intenzity prejde?`, answer: ans, tol: 0.01 }
+      ],
       solution: T`Hrúbka $${k * d}\\,\\text{cm}$ je $${k}$ polovičných hrúbok, teda $I=I_0\\cdot 2^{-${k}}$, čo je $${mn(ans)}\\,\\%$ pôvodnej intenzity.`,
       hint: T`Každá polovičná hrúbka zníži intenzitu na polovicu. Počet takých hrúbok je $x/d_{1/2}$.`
     };
@@ -249,6 +279,10 @@
         { value: P - ans, msg: T`To je odpadové teplo, ktoré sa nepremení na elektrinu. Elektrický výkon je $\\eta\\,P_{\\text{t}}$.` },
         { value: P, msg: T`To je tepelný výkon reaktora, nie elektrický. Účinnosť sme nezohľadnili.` }
       ], ans),
+      steps: [
+        { q: T`Aká je účinnosť $\\eta=${eta}\\,\\%$ zapísaná ako desatinné číslo?`, answer: eta / 100, tol: 1e-6 },
+        { q: T`Aký je elektrický výkon $P_{\\text{el}}=\\eta\\,P_{\\text{t}}$ v MW?`, answer: ans, tol: 1e-6 }
+      ],
       solution: T`$P_{\\text{el}}=\\dfrac{${eta}}{100}\\cdot ${P}=${ans}\\,\\text{MW}$.`,
       hint: T`Účinnosť je $\\eta=\\dfrac{P_{\\text{el}}}{P_{\\text{t}}}$, takže $P_{\\text{el}}=\\eta\\,P_{\\text{t}}$.`
     };

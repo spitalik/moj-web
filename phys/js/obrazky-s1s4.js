@@ -457,8 +457,5 @@
     's1s4-paralaxa': 'Paralaxa: hviezda sa z dvoch miest dráhy Zeme javí posunutá voči vzdialenejším hviezdam. Vzdialenosť v parsekoch je d = 1/p.'
   };
 
-  LESSONS.forEach((l) => {
-    const fig = ATTACH[l.id];
-    if (fig) l.theory.push({ fig, caption: CAPTIONS[fig] });
-  });
+  FIGURES.attach(ATTACH, CAPTIONS);
 })();

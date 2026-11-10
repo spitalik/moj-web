@@ -3,10 +3,14 @@
 (function () {
   'use strict';
 
-  const { rnd, pick, shuffle } = EXERCISES.util;
+  const { rnd, pick, shuffle, fmt } = EXERCISES.util;
   const { T } = CONTENT_I18N;
   const lesson = (l) => LESSONS.push(Object.assign({ level: 'r9' }, l));
   const gen = EXERCISES.register;
+  // desatinné číslo v matematike: 0{,}35 (čiarka sa tak nerozpadne na medzeru)
+  const mf = (x) => fmt(x).replace(/[,.]/, '{' + CONTENT_I18N.decimal() + '}');
+  // krok riešenia: výber správneho vzťahu (možnosti sú len vzorce v KaTeX, netreba ich prekladať)
+  const vzorec = (ok, ...bad) => ({ q: T.s('Ktorý vzťah tu použiješ?'), type: 'choice', options: shuffle([ok, ...bad]), answer: ok });
 
   // Výber z pevného zoznamu: pool položiek { q, right, why, wrong: [[text, prečo nie], ...] }
   const choiceFrom = (pool, hint) => {
@@ -108,7 +112,11 @@
         answer: R,
         solution: T`Pri sérii sa odpory sčítajú: $R=R_1+R_2=${R1}+${R2}=${R}\\,\\Omega$.`,
         hint: T.s('Pri sériovom zapojení platí $R=R_1+R_2$.'),
-        mistakes: [{ value: R1 * R2, msg: T`Odpory si vynásobil. Pri sérii sa odpory sčítajú.` }].filter((x) => x.value !== R)
+        mistakes: [{ value: R1 * R2, msg: T`Odpory si vynásobil. Pri sérii sa odpory sčítajú.` }].filter((x) => x.value !== R),
+        steps: [
+          vzorec('$R=R_1+R_2$', '$R=R_1\\cdot R_2$', '$\\frac{1}{R}=\\frac{1}{R_1}+\\frac{1}{R_2}$'),
+          { q: T`Koľko je $${R1}+${R2}$?`, answer: R }
+        ]
       };
     }
     const [R1, R2, R] = pick(PARALLEL);
@@ -163,7 +171,11 @@
         mistakes: [
           { value: U * R, msg: T`Napätie si vynásobil odporom. Prúd sa počíta ako $I=\\frac{U}{R}$.` },
           { value: U - R, msg: T`Odčítal si napätie a odpor. Použi vzorec $I=\\frac{U}{R}$.` }
-        ].filter((x) => x.value !== I)
+        ].filter((x) => x.value !== I),
+        steps: [
+          vzorec('$I=\\frac{U}{R}$', '$I=U\\cdot R$', '$I=\\frac{R}{U}$'),
+          { q: T`Koľko je $\\frac{${U}}{${R}}$?`, answer: I }
+        ]
       };
     }
     if (target === 'U') {
@@ -172,7 +184,11 @@
         answer: U,
         solution: T`$U=I\\cdot R=${I}\\cdot ${R}=${U}\\,\\text{V}$.`,
         hint: T.s('Napätie je súčin prúdu a odporu: $U=I\\cdot R$.'),
-        mistakes: [{ value: I + R, msg: T`Prúd a odpor si sčítal. Napätie je ich súčin.` }].filter((x) => x.value !== U)
+        mistakes: [{ value: I + R, msg: T`Prúd a odpor si sčítal. Napätie je ich súčin.` }].filter((x) => x.value !== U),
+        steps: [
+          vzorec('$U=I\\cdot R$', '$U=\\frac{I}{R}$', '$U=\\frac{R}{I}$'),
+          { q: T`Koľko je $${I}\\cdot ${R}$?`, answer: U }
+        ]
       };
     }
     return {
@@ -183,7 +199,11 @@
       mistakes: [
         { value: U * I, msg: T`Napätie si vynásobil prúdom. Odpor sa počíta delením.` },
         { value: I, msg: T`Odpor si zamenil s prúdom. Prúd je $I$, odpor je $R$.` }
-      ].filter((x) => x.value !== R)
+      ].filter((x) => x.value !== R),
+      steps: [
+        vzorec('$R=\\frac{U}{I}$', '$R=U\\cdot I$', '$R=\\frac{I}{U}$'),
+        { q: T`Koľko je $\\frac{${U}}{${I}}$?`, answer: R }
+      ]
     };
   });
 
@@ -219,7 +239,12 @@
         answer: k,
         solution: T`Prúd je priamo úmerný napätiu, preto $I_2=${k}\\,I_1$, teda sa zväčší $${k}$-krát.`,
         hint: T.s('Pri stálom odpore je prúd priamo úmerný napätiu: $I=\\frac{U}{R}$.'),
-        mistakes: [{ value: 1 / k, msg: T`Prúd si zmenšil. Pri väčšom napätí a rovnakom odpore sa prúd zväčší.` }]
+        mistakes: [{ value: 1 / k, msg: T`Prúd si zmenšil. Pri väčšom napätí a rovnakom odpore sa prúd zväčší.` }],
+        steps: [
+          { q: T.s('Ako závisí prúd od napätia, ak sa odpor nemení?'), type: 'choice',
+            options: [T.s('priamo úmerne'), T.s('nepriamo úmerne'), T.s('nezávisí od neho')], answer: T.s('priamo úmerne') },
+          { q: T`Koľkokrát sa teda zväčší prúd, ak sa napätie zväčší $${k}$-krát?`, answer: k }
+        ]
       };
     }
     return {
@@ -228,7 +253,12 @@
       tol: 0.001,
       solution: T`Prúd je nepriamo úmerný odporu: $I_2=\\frac{I_1}{${k}}$, teda sa zmenší na $\\frac{1}{${k}}$ pôvodnej hodnoty.`,
       hint: T.s('Pri stálom napätí je prúd nepriamo úmerný odporu: $I=\\frac{U}{R}$.'),
-      mistakes: [{ value: k, msg: T`Prúd sa nezväčšil, ale zmenšil. Väčší odpor prepúšťa menší prúd.` }]
+      mistakes: [{ value: k, msg: T`Prúd sa nezväčšil, ale zmenšil. Väčší odpor prepúšťa menší prúd.` }],
+      steps: [
+        { q: T.s('Ako závisí prúd od odporu, ak sa napätie nemení?'), type: 'choice',
+          options: [T.s('priamo úmerne'), T.s('nepriamo úmerne'), T.s('nezávisí od neho')], answer: T.s('nepriamo úmerne') },
+        { q: T`Koľkonásobne sa teda zmení prúd, ak sa odpor zväčší $${k}$-krát? Zadaj ako zlomok.`, answer: 1 / k, tol: 0.001, placeholder: T.s('napr. 1/2') }
+      ]
     };
   });
 
@@ -265,7 +295,11 @@
         answer: P,
         solution: T`$P=U\\cdot I=${U}\\cdot ${I}=${P}\\,\\text{W}$.`,
         hint: T.s('Elektrický výkon je súčin napätia a prúdu: $P=U\\cdot I$.'),
-        mistakes: [{ value: U + I, msg: T`Napätie a prúd si sčítal. Výkon je ich súčin.` }].filter((x) => x.value !== P)
+        mistakes: [{ value: U + I, msg: T`Napätie a prúd si sčítal. Výkon je ich súčin.` }].filter((x) => x.value !== P),
+        steps: [
+          vzorec('$P=U\\cdot I$', '$P=\\frac{U}{I}$', '$P=U+I$'),
+          { q: T`Koľko je $${U}\\cdot ${I}$?`, answer: P }
+        ]
       };
     }
     const P = 1000 * pick([1, 2, 3]), t = rnd(1, 10), E = (P / 1000) * t;
@@ -277,7 +311,11 @@
       mistakes: [
         { value: P * t, msg: T`Zabudol si previesť watty na kilowatty. Najprv vydeľ výkon tisíckami.` },
         { value: P / 1000, msg: T`Zabudol si vynásobiť časom. Energia je výkon krát čas.` }
-      ].filter((x) => x.value !== E)
+      ].filter((x) => x.value !== E),
+      steps: [
+        { q: T`Koľko kilowattov je $${P}\\,\\text{W}$?`, answer: P / 1000 },
+        { q: T`Koľko je $${P / 1000}\\cdot ${t}$?`, answer: E }
+      ]
     };
   });
 
@@ -449,8 +487,14 @@
         answer: p,
         solution: T`$\\eta=\\frac{E_u}{E_d}\\cdot 100\\,\\%=\\frac{${Eu}}{${Ed}}\\cdot 100\\,\\%=${p}\\,\\%$.`,
         hint: T.s('Účinnosť je pomer užitočnej energie k dodanej, vynásobený 100 %.'),
-        mistakes: [{ value: 100 - p, msg: T`To je podiel straty, nie účinnosti. Účinnosť je podiel užitočnej energie.` }]
-          .filter((x) => x.value !== p)
+        mistakes: [
+          { value: 100 - p, msg: T`To je podiel straty, nie účinnosti. Účinnosť je podiel užitočnej energie.` },
+          { value: 10000 / p, msg: T`Podiel je obrátený. Účinnosť je užitočná energia delená dodanou: $\\eta=\\frac{E_u}{E_d}$.` }
+        ].filter((x) => Math.abs(x.value - p) > 1e-9),
+        steps: [
+          { q: T`Koľko je podiel $\\frac{${Eu}}{${Ed}}$? Zadaj desatinné číslo.`, answer: p / 100, tol: 0.001 },
+          { q: T`Koľko percent to je? Vypočítaj $${mf(p / 100)}\\cdot 100$.`, answer: p }
+        ]
       };
     }
     return {
@@ -461,7 +505,11 @@
       mistakes: [
         { value: Ed - Eu, msg: T`To je strata, nie užitočná energia. Hľadáme časť, ktorá sa využije.` },
         { value: Ed * p, msg: T`Účinnosť si nepremenil na desatinné číslo. Percentá vydeľ stotinami.` }
-      ].filter((x) => x.value !== Eu)
+      ].filter((x) => x.value !== Eu),
+      steps: [
+        { q: T`Zapíš účinnosť $${p}\\,\\%$ ako desatinné číslo.`, answer: p / 100, tol: 0.001 },
+        { q: T`Koľko je $${mf(p / 100)}\\cdot ${Ed}$?`, answer: Eu }
+      ]
     };
   });
 
@@ -506,7 +554,11 @@
         mistakes: [
           { value: U * R, msg: T`Napätie si vynásobil odporom. Prúd je $I=\\frac{U}{R}$.` },
           { value: U - R, msg: T`Odčítal si napätie a odpor. Použi vzorec $I=\\frac{U}{R}$.` }
-        ].filter((x) => x.value !== I)
+        ].filter((x) => x.value !== I),
+        steps: [
+          vzorec('$I=\\frac{U}{R}$', '$I=U\\cdot R$', '$I=\\frac{R}{U}$'),
+          { q: T`Koľko je $\\frac{${U}}{${R}}$?`, answer: I }
+        ]
       };
     }
     if (k === 1) {
@@ -517,7 +569,11 @@
         solution: T`$E_p=m\\,g\\,h=${m}\\cdot 10\\cdot ${h}=${Ep}\\,\\text{J}$.`,
         hint: T.s('Polohová energia je $E_p=m\\,g\\,h$. Nezabudni na gravitačné zrýchlenie.'),
         mistakes: [{ value: m * h, msg: T`Zabudol si vynásobiť gravitačným zrýchlením $g=10\\,\\text{m/s}^2$.` }]
-          .filter((x) => x.value !== Ep)
+          .filter((x) => x.value !== Ep),
+        steps: [
+          { q: T`Aká je tiaž telesa $m\\cdot g=${m}\\cdot 10$ v newtonoch?`, answer: 10 * m },
+          { q: T`Polohová energia je tiaž krát výška. Koľko je $${10 * m}\\cdot ${h}$?`, answer: Ep }
+        ]
       };
     }
     const I = rnd(1, 10), t = rnd(2, 30), Q = I * t;
@@ -529,7 +585,11 @@
       mistakes: [
         { value: I + t, msg: T`Prúd a čas si sčítal. Náboj je ich súčin.` },
         { value: I, msg: T`Výsledok je náboj, nie prúd. Vynásob prúd časom.` }
-      ].filter((x) => x.value !== Q)
+      ].filter((x) => x.value !== Q),
+      steps: [
+        vzorec('$Q=I\\cdot t$', '$Q=\\frac{I}{t}$', '$Q=I+t$'),
+        { q: T`Koľko je $${I}\\cdot ${t}$?`, answer: Q }
+      ]
     };
   });
 })();

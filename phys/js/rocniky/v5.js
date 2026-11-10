@@ -39,7 +39,11 @@
       hint: T`De Broglieho vzťah je $\\lambda=\\frac{h}{p}$, kde $p=m_e\\,v$. Výsledok prepíš z metrov na nanometre ($1\\,\\text{nm}=10^{-9}\\,\\text{m}$).`,
       mistakes: keep([
         { value: ans * 10, msg: T`Pomýlil si mocninu desiatky o jeden rád. Výsledok v nanometroch je $\\lambda\\approx ${M(ans)}\\,\\text{nm}$.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Aká je hybnosť elektrónu $p=m_e v$ v jednotkách $10^{-24}\\,\\text{kg}\\,\\text{m/s}$? Zaokrúhli na 3 desatinné miesta.`, answer: Math.round(0.911 * (v / 1e6) * 1000) / 1000, tol: 0.002 },
+        { q: T`Aká je vlnová dĺžka $\\lambda=\\frac{h}{p}$ v nanometroch? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -70,7 +74,11 @@
       mistakes: keep([
         { value: 1 - ans, msg: T`Vypočítal si pravdepodobnosť zvyšnej časti úsečky. Pýtame sa na úsek od $0$ do $${a}\\,\\text{nm}$.` },
         { value: a, msg: T`Dostal si dĺžku úseku, nie pravdepodobnosť. Ten treba vydeliť celou dĺžkou $L$.` }
-      ], ans)
+      ], ans),
+      steps: [
+        { q: T`Koľko percent celej dĺžky $L=${L}\\,\\text{nm}$ tvorí úsek dlhý $${a}\\,\\text{nm}$?`, answer: (100 * p) / q, tol: 1e-6 },
+        { q: T`Aká je pravdepodobnosť ako desatinné číslo?`, answer: ans }
+      ]
     };
   });
 
@@ -101,7 +109,11 @@
       mistakes: keep([
         { value: (0.376 * n) / (L * L), msg: T`Zabudol si umocniť číslo $n$ na druhú. Energia rastie s $n^2$, nie s $n$.` },
         { value: (0.376 * n * n) / L, msg: T`Zabudol si umocniť šírku jamy na druhú. Energia klesá s $L^2$.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Koľko je pomer $\\frac{n^2}{L^2}=\\frac{${n}^2}{${M(L)}^2}$ (šírka $L$ v nm)?`, answer: (n * n) / (L * L), tol: 1e-6 },
+        { q: T`Koľko je $E_n=E_1\\cdot\\frac{n^2}{L^2}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -131,7 +143,11 @@
       mistakes: keep([
         { value: k * k, msg: T`Zabudol si na znamienko. Druhá derivácia sínusu dáva záporný násobok, $\\lambda=-k^2$.` },
         { value: k, msg: T`Zderivoval si len raz. Operátor je druhá derivácia, takže vlastná hodnota je $-k^2$.` }
-      ], ans)
+      ], ans),
+      steps: [
+        { q: T`Prvá derivácia je $\\frac{d}{dx}\\sin(${k}x)=c\\cos(${k}x)$. Koľko je $c$?`, answer: k },
+        { q: T`Druhá derivácia je $\\frac{d^2}{dx^2}\\sin(${k}x)=\\lambda\\sin(${k}x)$. Koľko je $\\lambda$?`, answer: ans, signed: true }
+      ]
     };
   });
 
@@ -160,7 +176,12 @@
       mistakes: keep([
         { value: n, msg: T`Zabudol si pripočítať $\\frac{1}{2}$. Energia nulového stavu nie je nulová.` },
         { value: n + 1, msg: T`Počítal si od jednotky. Pre stav $n$ dosadzujeme priamo $n$, pričom $n$ začína nulou.` }
-      ], ans)
+      ], ans),
+      steps: [
+        { q: T`Koľkonásobok $\\hbar\\omega$ je energia základného stavu $n=0$?`, answer: 0.5 },
+        { q: T`O koľko $\\hbar\\omega$ sa líšia energie dvoch susedných hladín?`, answer: 1 },
+        { q: T`Koľkonásobok $\\hbar\\omega$ je energia stavu $n=${n}$?`, answer: ans }
+      ]
     };
   });
 
@@ -189,7 +210,11 @@
         mistakes: keep([
           { value: 2 * l, msg: T`Nezapočítal si hodnotu $m_l=0$. Počet stavov je $2l+1$.` },
           { value: l + 1, msg: T`Zamenil si počet stavov za hodnotu $l+1$. Správne je $2l+1$.` }
-        ], 2 * l + 1)
+        ], 2 * l + 1),
+        steps: [
+          { q: T`Koľko kladných hodnôt $m_l$ je možných pre $l=${l}$?`, answer: l },
+          { q: T`Koľko je spolu hodnôt $m_l$ (kladné, záporné a nula)?`, answer: 2 * l + 1 }
+        ]
       };
     }
     const ans = Math.round(Math.sqrt(l * (l + 1)) * 100) / 100;
@@ -202,7 +227,11 @@
       mistakes: keep([
         { value: l * (l + 1), msg: T`Zabudol si odmocniť. Platí $|\\vec{L}|=\\sqrt{l(l+1)}\\,\\hbar$.` },
         { value: l, msg: T`Dosadil si len $l$. Veľkosť momentu hybnosti závisí od súčinu $l(l+1)$.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Koľko je $l(l+1)$ pre $l=${l}$?`, answer: l * (l + 1) },
+        { q: T`Koľko je druhá odmocnina tohto čísla? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -234,7 +263,12 @@
       mistakes: keep([
         { value: -ans, msg: T`Zlé znamienko. Energia vyžiareného fotónu je kladná, je to rozdiel $|E_{n_i}-E_{n_f}|$.` },
         { value: 13.6 / (nf * nf), msg: T`Počítal si len energiu nižšej hladiny. Energia fotónu je rozdiel oboch hladín.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Aká je energia hladiny $E_{${ni}}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: Math.round((-13.6 / (ni * ni)) * 100) / 100, tol: 0.01, signed: true },
+        { q: T`Aká je energia hladiny $E_{${nf}}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: Math.round((-13.6 / (nf * nf)) * 100) / 100, tol: 0.01, signed: true },
+        { q: T`Aká je energia fotónu $E_{n_i}-E_{n_f}$ v eV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -264,7 +298,11 @@
       hint: T`Z princípu neurčitosti vyjadri najmenšiu neistotu hybnosti: $\\Delta p=\\frac{\\hbar}{2\\,\\Delta x}$. Pikometer je $10^{-12}\\,\\text{m}$.`,
       mistakes: keep([
         { value: ans * 2, msg: T`Zabudol si deliť dvomi. Princíp neurčitosti má tvar $\\Delta x\\,\\Delta p\\geq\\frac{\\hbar}{2}$.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Koľko je $\\frac{\\hbar}{2}$ v jednotkách $10^{-34}\\,\\text{J}\\,\\text{s}$? Zaokrúhli na 4 desatinné miesta.`, answer: 0.5273, tol: 0.0001 },
+        { q: T`Koľko je $\\Delta p=\\frac{\\hbar}{2\\,\\Delta x}$ v jednotkách $10^{-24}\\,\\text{kg}\\,\\text{m/s}$, ak $\\Delta x=${dx}\\cdot 10^{-12}\\,\\text{m}$? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 })();

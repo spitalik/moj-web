@@ -8,6 +8,9 @@
   const lesson = (l) => LESSONS.push(Object.assign({ level: 'r5' }, l));
   const gen = EXERCISES.register;
 
+  // krok riešenia: výber správneho vzťahu (možnosti sú len vzorce v KaTeX, netreba ich prekladať)
+  const vzorec = (ok, ...bad) => ({ q: T.s('Ktorý vzťah tu použiješ?'), type: 'choice', options: shuffle([ok, ...bad]), answer: ok });
+
   // Výberová úloha. ok = správna možnosť, bad = nesprávne možnosti,
   // hints = vysvetlenia pre nesprávne možnosti (zarovnané s bad; null = bez vysvetlenia).
   const choice = (it) => {
@@ -49,7 +52,7 @@
       solution: T`Stolička je konkrétny predmet, teda teleso. Drevo a železo sú látky.`,
       hint: T`Teleso je predmet, látka je materiál.` },
     { q: T`Ktorá vlastnosť opisuje, či sa látka vráti do pôvodného tvaru?`, ok: T`pružnosť`, bad: [T`tvrdosť`, T`rozpustnosť`],
-      hints: [T`Tvrdosť opisuje odolnosť voči zoškriabaniu, nie návrat tvaru.`, null],
+      hints: [T`Tvrdosť opisuje odolnosť voči zoškriabaniu, nie návrat tvaru.`, T`Rozpustnosť hovorí, či sa látka rozpustí vo vode, nie či sa vráti do tvaru.`],
       solution: T`Pružná látka sa po stlačení alebo ohnutí vráti do pôvodného tvaru.`,
       hint: T`Pomysli na gumičku.` },
     { q: T`Ktorá látka sa rozpúšťa vo vode?`, ok: T`cukor`, bad: [T`piesok`, T`kameň`],
@@ -57,6 +60,7 @@
       solution: T`Cukor sa vo vode rozpúšťa. Piesok a kameň nie.`,
       hint: T`Skús si predstaviť, čo sa stane, keď sa lyžička cukru pridá do pohára vody.` },
     { q: T`Ktorá vlastnosť opisuje odolnosť látky voči zoškriabaniu?`, ok: T`tvrdosť`, bad: [T`pružnosť`, T`rozpustnosť`],
+      hints: [T`Pružnosť opisuje návrat do pôvodného tvaru, nie odolnosť voči zoškriabaniu.`, T`Rozpustnosť hovorí, či sa látka rozpustí vo vode, nie ako ľahko sa poškriabe.`],
       solution: T`Tvrdosť určuje, ako ľahko sa látka poškriabe. Diamant je veľmi tvrdý.`,
       hint: T`Skús si predstaviť skúšku s kľúčom na sklo alebo kov.` }
   ])));
@@ -181,7 +185,11 @@
         mistakes: [
           { value: rho + V, msg: T`Hustotu a objem si sčítal. Hmotnosť sa počíta súčinom $m=\\rho\\cdot V$.` },
           { value: V, msg: T`Hustotou si delil namiesto násobenia. Pri hustote platí $m=\\rho\\cdot V$.` }
-        ].filter((x) => x.value !== m)
+        ].filter((x) => x.value !== m),
+        steps: [
+          vzorec('$m=\\rho\\cdot V$', '$m=\\frac{\\rho}{V}$', '$m=\\frac{V}{\\rho}$'),
+          { q: T`Koľko je $${rho}\\cdot ${V}$?`, answer: m }
+        ]
       };
     }
     return {
@@ -192,7 +200,11 @@
       mistakes: [
         { value: m * V, msg: T`Hmotnosť si vynásobil objemom. Hustota je podiel, nie súčin.` },
         { value: m + V, msg: T`Hmotnosť a objem si sčítal. Hustotu dostaneš delením $\\rho=\\frac{m}{V}$.` }
-      ].filter((x) => x.value !== rho)
+      ].filter((x) => x.value !== rho),
+      steps: [
+        vzorec('$\\rho=\\frac{m}{V}$', '$\\rho=m\\cdot V$', '$\\rho=\\frac{V}{m}$'),
+        { q: T`Koľko je $\\frac{${m}}{${V}}$?`, answer: rho }
+      ]
     };
   });
 
@@ -227,7 +239,12 @@
       mistakes: [
         { value: f, msg: T`To je celkový objem vody aj kameňa. Objem kameňa dostaneš rozdielom hladín.` },
         { value: s + f, msg: T`Hladiny si sčítal. Objem kameňa je ich rozdiel.` }
-      ].filter((x) => x.value !== d)
+      ].filter((x) => x.value !== d),
+      steps: [
+        Object.assign(vzorec('$V=V_2-V_1$', '$V=V_1+V_2$', '$V=V_2$'),
+          { q: T`Hladina pred ponorením je $V_1=${s}\\,\\text{ml}$, po ponorení $V_2=${f}\\,\\text{ml}$. Ktorý vzťah dá objem kameňa $V$?` }),
+        { q: T`Koľko je $${f}-${s}$?`, answer: d }
+      ]
     };
   });
 
@@ -261,16 +278,20 @@
     const opts = [
       { q: T`Koľko centimetrov je $${k}\\,\\text{m}$?`, answer: k * 100, wrong: k * 10,
         msg: T`Meter má 100 centimetrov, nie 10.`,
-        sol: T`$1\\,\\text{m}=100\\,\\text{cm}$, teda $${k}\\cdot 100=${k * 100}$ cm.` },
+        sol: T`$1\\,\\text{m}=100\\,\\text{cm}$, teda $${k}\\cdot 100=${k * 100}$ cm.`,
+        steps: [{ q: T`Koľko centimetrov má $1\\,\\text{m}$?`, answer: 100 }, { q: T`Koľko je $${k}\\cdot 100$?`, answer: k * 100 }] },
       { q: T`Koľko metrov je $${k}\\,\\text{km}$?`, answer: k * 1000, wrong: k * 100,
         msg: T`Kilometer má 1000 metrov, nie 100.`,
-        sol: T`$1\\,\\text{km}=1000\\,\\text{m}$, teda $${k}\\cdot 1000=${k * 1000}$ m.` },
+        sol: T`$1\\,\\text{km}=1000\\,\\text{m}$, teda $${k}\\cdot 1000=${k * 1000}$ m.`,
+        steps: [{ q: T`Koľko metrov má $1\\,\\text{km}$?`, answer: 1000 }, { q: T`Koľko je $${k}\\cdot 1000$?`, answer: k * 1000 }] },
       { q: T`Koľko gramov je $${k}\\,\\text{kg}$?`, answer: k * 1000, wrong: k * 100,
         msg: T`Kilogram má 1000 gramov, nie 100.`,
-        sol: T`$1\\,\\text{kg}=1000\\,\\text{g}$, teda $${k}\\cdot 1000=${k * 1000}$ g.` },
+        sol: T`$1\\,\\text{kg}=1000\\,\\text{g}$, teda $${k}\\cdot 1000=${k * 1000}$ g.`,
+        steps: [{ q: T`Koľko gramov má $1\\,\\text{kg}$?`, answer: 1000 }, { q: T`Koľko je $${k}\\cdot 1000$?`, answer: k * 1000 }] },
       { q: T`Koľko kilogramov je $${g}\\,\\text{g}$?`, answer: k / 2, wrong: k * 5,
         msg: T`Kilogram má 1000 gramov. Gramy na kilogramy delíme tisícom, nie stovkou.`,
-        sol: T`$${g} : 1000 = ${k / 2}$, teda $${g}\\,\\text{g}=${k / 2}\\,\\text{kg}$.` }
+        sol: T`$${g} : 1000 = ${k / 2}$, teda $${g}\\,\\text{g}=${k / 2}\\,\\text{kg}$.`,
+        steps: [{ q: T`Koľko gramov má $1\\,\\text{kg}$?`, answer: 1000 }, { q: T`Koľko je $${g} : 1000$?`, answer: k / 2 }] }
     ];
     const it = pick(opts);
     return {
@@ -278,7 +299,8 @@
       answer: it.answer,
       solution: it.sol,
       hint: T`Pomôže ti tento vzťah: 1 km = 1000 m, 1 m = 100 cm, 1 kg = 1000 g.`,
-      mistakes: [{ value: it.wrong, msg: it.msg }]
+      mistakes: [{ value: it.wrong, msg: it.msg }],
+      steps: it.steps
     };
   });
 
@@ -317,7 +339,11 @@
       mistakes: [
         { value: t0 - d, msg: T`Zmenu si odčítal. Pri zvýšení teploty sa hodnota pričítava.` },
         { value: d, msg: T`Zabudol si na počiatočnú teplotu. Nová teplota je počiatočná plus zmena.` }
-      ].filter((x) => x.value !== t1)
+      ].filter((x) => x.value !== t1),
+      steps: [
+        { q: T.s('Teplota vzrástla. Budeš zmenu pripočítavať (+), alebo odčítavať (−)?'), type: 'choice', options: ['+', '−'], answer: '+' },
+        { q: T`Koľko je $${t0}+${d}$?`, answer: t1, signed: true }
+      ]
     };
   });
 

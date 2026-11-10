@@ -44,6 +44,10 @@
       mistakes: [
         ...mis(tC + 273, Tk, T`Zaokrúhlil si $273{,}15$ na $273$. Pri presnom prepočte ponechaj desatinnú časť.`, 0.01),
         ...mis(tC - 273.15, Tk, T`Prepočet ide opačným smerom. K teplote v Celziu sa pripočíta $273{,}15$, neodpočíta.`, 0.01)
+      ],
+      steps: [
+        { q: T`Koľko kelvinov je $0\\,{}^\\circ\\text{C}$?`, answer: 273.15, tol: 0.001 },
+        { q: T`Koľko kelvinov je $${tC}\\,{}^\\circ\\text{C}$? (na 2 desatinné miesta)`, answer: Tk, tol: 0.01 }
       ]
     };
   });
@@ -78,6 +82,11 @@
       mistakes: [
         ...mis(r2(n * R * Tk * k), r2(p), T`Tlak si násobil objemom. Podľa $pV=nRT$ sa objemom delí: $p=\\frac{nRT}{V}$.`, 0.01),
         ...mis(Math.round(p * 1000), r2(p), T`Výsledok si dostal v pascaloch, nie v kilopascaloch. Pascal je tisíckrát menšia jednotka.`, 0.01)
+      ],
+      steps: [
+        { q: T`Koľko kubických metrov je $${k}\\,\\text{dm}^3$?`, answer: k / 1000, tol: 1e-6 },
+        { q: T`Aký je súčin $nRT$ v džouloch? (na 2 desatinné miesta)`, answer: r2(n * R * Tk), tol: 0.01 },
+        { q: T`Aký je tlak $p=\\frac{nRT}{V}$ v kilopascaloch? (na 2 desatinné miesta)`, answer: r2(p), tol: 0.01 }
       ]
     };
   });
@@ -112,6 +121,11 @@
       mistakes: [
         ...mis(Q + W, dU, T`Prácu, ktorú plyn vykonal, si pripočítal. Ak ju plyn vykoná, energia odchádza, takže sa odčíta: $\\Delta U=Q-W$.`),
         ...mis(W - Q, dU, T`Odčítal si v opačnom poradí. Dodané teplo zvyšuje vnútornú energiu plynu.`)
+      ],
+      steps: [
+        { q: T`O koľko joulov vnútornú energiu zvýši dodané teplo?`, answer: Q },
+        { q: T`O koľko joulov ju zníži práca, ktorú plyn vykoná?`, answer: W },
+        { q: T`Aká je výsledná zmena $\\Delta U$ v jouloch?`, answer: dU, signed: true }
       ]
     };
   });
@@ -179,6 +193,11 @@
       mistakes: [
         ...mis(Math.round(Tc / Th * 1000) / 10, ans, T`Vypočítal si len pomer teplôt. Účinnosť je $1-\\frac{T_c}{T_h}$, nie samotný pomer.`, 0.1),
         ...mis(Math.round((Th - Tc) / Tc * 1000) / 10, ans, T`Rozdiel teplôt si vydelil chladičom. Správny vzorec je $1-\\frac{T_c}{T_h}$, teda delenie ohrievačom.`, 0.1)
+      ],
+      steps: [
+        { q: T`Koľko je pomer $\\frac{T_c}{T_h}=\\frac{${Tc}}{${Th}}$? (na 3 desatinné miesta)`, answer: r3(Tc / Th), tol: 0.001 },
+        { q: T`Koľko je $1-\\frac{T_c}{T_h}$? (na 3 desatinné miesta)`, answer: r3(1 - Tc / Th), tol: 0.001 },
+        { q: T`Aká je účinnosť v percentách? (na 1 desatinné miesto)`, answer: ans, tol: 0.1 }
       ]
     };
   });
@@ -213,6 +232,10 @@
       mistakes: [
         ...mis(r2(KB * 0.01 * Tk), E, T`Zabudol si faktor $\\frac{3}{2}$. Stredná energia je $\\frac{3}{2}k\\,T$, nie $k\\,T$.`, 0.01),
         ...mis(r2(1.5 * KB * 0.01 * t), E, T`Dosadil si teplotu v stupňoch Celzia. Vzorec potrebuje absolútnu teplotu, teda kelviny.`, 0.01)
+      ],
+      steps: [
+        { q: T`Koľko kelvinov je $${t}\\,{}^\\circ\\text{C}$? (na 2 desatinné miesta)`, answer: Tk, tol: 0.01 },
+        { q: T`Aká je stredná kinetická energia $\\frac{3}{2}k\\,T$ v jednotkách $10^{-21}\\,\\text{J}$? (na 2 desatinné miesta)`, answer: E, tol: 0.01 }
       ]
     };
   });
@@ -247,6 +270,10 @@
       mistakes: [
         ...mis(r3(Math.exp(x)), ans, T`Exponent si dal s opačným znamienkom. Vyššia hladina je menej obsadená, pomer je menší ako jedna.`, 0.001),
         ...mis(x, ans, T`Vypočítal si len exponent, nie exponenciálu. Výsledok je $e^{-${x}}$.`, 0.001)
+      ],
+      steps: [
+        { q: T`Aký je exponent $-\\frac{\\Delta E}{k\\,T}$?`, answer: -x, signed: true },
+        { q: T`Koľko je $e^{-${x}}$? (na 3 desatinné miesta)`, answer: ans, tol: 0.001 }
       ]
     };
   });
@@ -281,6 +308,10 @@
       mistakes: [
         ...mis(r2(Math.log(N)), ans, T`Logaritmoval si počet častíc. Logaritmuje sa počet mikrostavov $W=2^N$, nie $N$.`, 0.01),
         ...mis(r2(N * Math.log10(2)), ans, T`Použil si dekadický logaritmus. Boltzmannov vzťah používa prirodzený logaritmus $\\ln$.`, 0.01)
+      ],
+      steps: [
+        { q: T`Koľko mikrostavov $W=2^{${N}}$ má systém?`, answer: Math.pow(2, N) },
+        { q: T`Koľko je $\\ln ${Math.pow(2, N)}$? (na 2 desatinné miesta)`, answer: ans, tol: 0.01 }
       ]
     };
   });

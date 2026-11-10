@@ -42,7 +42,11 @@
         mistakes: keep([
           { value: a * 100, msg: T`Násobil si číslom 100. Predpona k znamená tisíc, nie sto.` },
           { value: a / 1000, msg: T`Delil si tisíckou. Kilometer je väčšia jednotka než meter, takže metrov bude viac.` }
-        ], a * 1000)
+        ], a * 1000),
+        steps: [
+          { q: T`Koľko metrov má $1\\,\\text{km}$?`, answer: 1000 },
+          { q: T`Koľko metrov je $${a}\\cdot 1000\\,\\text{m}$?`, answer: a * 1000 }
+        ]
       };
     }
     if (t < 0.7) {
@@ -54,7 +58,11 @@
         hint: T`Najprv prepočítaj hodiny na minúty, potom minúty na sekundy.`,
         mistakes: keep([
           { value: h * 60, msg: T`To sú minúty. Na sekundy treba ešte raz násobiť číslom 60.` }
-        ], h * 3600)
+        ], h * 3600),
+        steps: [
+          { q: T`Koľko minút má $${h}\\,\\text{h}$?`, answer: h * 60 },
+          { q: T`Koľko sekúnd má $${h * 60}\\,\\text{min}$?`, answer: h * 3600 }
+        ]
       };
     }
     const g = pick([250, 500, 750, 1250, 40, 80]);
@@ -66,7 +74,11 @@
       mistakes: keep([
         { value: g * 1000, msg: T`Násobil si tisíckou. Gram je menšia jednotka, kilogramov bude menej.` },
         { value: g / 100, msg: T`Delil si stotinou. Kilogram má 1000 gramov, nie 100.` }
-      ], g / 1000)
+      ], g / 1000),
+      steps: [
+        { q: T`Koľko gramov má $1\\,\\text{kg}$?`, answer: 1000 },
+        { q: T`Koľko je $\\frac{${g}}{1000}$ kilogramu?`, answer: g / 1000 }
+      ]
     };
   });
 
@@ -102,7 +114,11 @@
           mistakes: keep([
             { value: v + tm, msg: T`Rýchlosť a čas si sčítal. Dráha vznikne ich násobením.` },
             { value: v / tm, msg: T`Delil si čas rýchlosťou. Dráha je súčin $s=v\\,t$.` }
-          ], s)
+          ], s),
+          steps: [
+            { q: T`Koľko metrov prejde teleso za $1\\,\\text{s}$?`, answer: v },
+            { q: T`Koľko metrov prejde za $${tm}\\,\\text{s}$?`, answer: s }
+          ]
         };
       }
       if (k === 1) {
@@ -138,7 +154,12 @@
       hint: T`Priemerná rýchlosť je celková dráha delená celkovým časom, nie priemer rýchlostí.`,
       mistakes: keep([
         { value: (v1 + v2) / 2, msg: T`Spriemeroval si rýchlosti. Priemerná rýchlosť sa počíta ako celková dráha delená celkovým časom.` }
-      ], avg, 0.05)
+      ], avg, 0.05),
+      steps: [
+        { q: T`Akú dráhu $s_1$ prejde teleso v prvom úseku? (v metroch)`, answer: s1 },
+        { q: T`Akú dráhu $s_2$ prejde teleso v druhom úseku? (v metroch)`, answer: s2 },
+        { q: T`Aká je priemerná rýchlosť $\\frac{s_1+s_2}{t_1+t_2}=\\frac{${s1 + s2}}{${t1 + t2}}$? (v m/s, na 2 desatinné miesta)`, answer: avg, tol: 0.01 }
+      ]
     };
   });
 
@@ -172,7 +193,11 @@
         hint: T`Zrýchlenie je zmena rýchlosti za jednotku času. Od konečnej rýchlosti odčítaj počiatočnú.`,
         mistakes: keep([
           { value: v / tm, msg: T`Počítal si $\\frac{v}{t}$, ale zmena rýchlosti je $v-v_0$. Najprv odčítaj počiatočnú rýchlosť.` }
-        ], a)
+        ], a),
+        steps: [
+          { q: T`O koľko $\\text{m/s}$ sa zmenila rýchlosť, teda koľko je $\\Delta v=v-v_0$?`, answer: v - v0 },
+          { q: T`Aké je zrýchlenie $a=\\frac{\\Delta v}{t}=\\frac{${v - v0}}{${tm}}$ v $\\text{m/s}^2$?`, answer: a }
+        ]
       };
     }
     const a = 2 * rnd(1, 4), tm = rnd(2, 6), v0 = rnd(0, 6), s = v0 * tm + (a / 2) * tm * tm;
@@ -184,7 +209,12 @@
       mistakes: keep([
         { value: v0 * tm + a * tm * tm, msg: T`Zabudol si na $\\frac{1}{2}$ pri člene so zrýchlením.` },
         { value: v0 + a * tm, msg: T`To je rýchlosť po $t$ sekundách, nie dráha.` }
-      ], s)
+      ], s),
+      steps: [
+        { q: T`Koľko metrov je člen $v_0\\,t=${v0}\\cdot ${tm}$?`, answer: v0 * tm },
+        { q: T`Koľko metrov je člen $\\frac{1}{2}a\\,t^2=\\frac{1}{2}\\cdot ${a}\\cdot ${tm}^2$?`, answer: (a / 2) * tm * tm },
+        { q: T`Aká je celková dráha $s$ v metroch?`, answer: s }
+      ]
     };
   });
 
@@ -220,7 +250,11 @@
         mistakes: keep([
           { value: m + a, msg: T`Sčítal si hmotnosť a zrýchlenie. Vzťah je súčin $F=m\\,a$.` },
           { value: a / m, msg: T`Delil si. Sila je súčin hmotnosti a zrýchlenia.` }
-        ], F)
+        ], F),
+        steps: [
+          { q: T`Akú silu treba, aby teleso s hmotnosťou $1\\,\\text{kg}$ získalo zrýchlenie $${a}\\,\\text{m/s}^2$? (v newtonoch)`, answer: a },
+          { q: T`Akú silu treba pre teleso s hmotnosťou $${m}\\,\\text{kg}$? (v newtonoch)`, answer: F }
+        ]
       };
     }
     if (r < 0.7) {
@@ -233,7 +267,11 @@
         mistakes: keep([
           { value: F * m, msg: T`Vynásobil si silu hmotnosťou. Zrýchlenie dostaneš delením.` },
           { value: F - m, msg: T`Odčítal si hmotnosť od sily. Zrýchlenie je podiel sily a hmotnosti.` }
-        ], a)
+        ], a),
+        steps: [
+          { q: T`Aké zrýchlenie by sila $${F}\\,\\text{N}$ udelila telesu s hmotnosťou $1\\,\\text{kg}$? (v $\\text{m/s}^2$)`, answer: F },
+          { q: T`Teleso je $${m}$-krát hmotnejšie. Aké zrýchlenie získa? (v $\\text{m/s}^2$)`, answer: a }
+        ]
       };
     }
     const F1 = rnd(3, 20);
@@ -246,7 +284,11 @@
       hint: T`Sily v opačných smeroch sa odčítavajú, v rovnakom smere sa sčítavajú.`,
       mistakes: keep([
         { value: F1 + F2, msg: T`Sily pôsobia opačne, preto ich nesčítavaj. Menšiu odčítaj od väčšej.` }
-      ], Math.abs(F1 - F2))
+      ], Math.abs(F1 - F2)),
+      steps: [
+        { q: T`Aká je veľkosť väčšej z oboch síl? (v newtonoch)`, answer: Math.max(F1, F2) },
+        { q: T`O koľko newtonov je väčšia sila väčšia ako menšia?`, answer: Math.abs(F1 - F2) }
+      ]
     };
   });
 
@@ -281,7 +323,11 @@
         mistakes: keep([
           { value: m, msg: T`To je hmotnosť, nie tiaž. Hmotnosť je v kilogramoch, tiaž v newtonoch.` },
           { value: m / 9.81, msg: T`Delil si tiažovým zrýchlením. Tiaž dostaneš násobením.` }
-        ], F, 0.05)
+        ], F, 0.05),
+        steps: [
+          { q: T`Akú tiaž má na Zemi teleso s hmotnosťou $1\\,\\text{kg}$? (v newtonoch)`, answer: 9.81, tol: 0.01 },
+          { q: T`Akú tiaž má teleso s hmotnosťou $${m}\\,\\text{kg}$? (v newtonoch, na 2 desatinné miesta)`, answer: F, tol: 0.01 }
+        ]
       };
     }
     const m = rnd(1, 20), F = m * 1.62;
@@ -293,7 +339,11 @@
       mistakes: keep([
         { value: m * 9.81, msg: T`Použil si zrýchlenie Zeme. Na Mesiaci je tiažové zrýchlenie približne $1{,}62\\,\\text{m/s}^2$.` },
         { value: m, msg: T`To je hmotnosť, ktorá sa na Mesiaci nemení. Tiaž je sila v newtonoch.` }
-      ], F, 0.05)
+      ], F, 0.05),
+      steps: [
+        { q: T`Akú hmotnosť má teleso na Mesiaci? (v kilogramoch)`, answer: m },
+        { q: T`Aká je jeho tiaž na Mesiaci $F_g=m\\,g$? (v newtonoch, na 2 desatinné miesta)`, answer: F, tol: 0.01 }
+      ]
     };
   });
 
@@ -329,7 +379,11 @@
         mistakes: keep([
           { value: F + s, msg: T`Sčítal si silu a dráhu. Práca je ich súčin $W=F\\,s$.` },
           { value: F / s, msg: T`Delil si dráhou. Práca je súčin sily a dráhy.` }
-        ], F * s)
+        ], F * s),
+        steps: [
+          { q: T`Akú prácu vykoná sila $${F}\\,\\text{N}$ na dráhe $1\\,\\text{m}$? (v jouloch)`, answer: F },
+          { q: T`Akú prácu vykoná na dráhe $${s}\\,\\text{m}$? (v jouloch)`, answer: F * s }
+        ]
       };
     }
     if (r < 0.65) {
@@ -354,7 +408,11 @@
       mistakes: keep([
         { value: m * v * v, msg: T`Zabudol si na $\\frac{1}{2}$. Vzorec pre kinetickú energiu obsahuje polovicu súčinu $m\\,v^2$.` },
         { value: m * v, msg: T`To je hybnosť $p=m\\,v$, nie energia.` }
-      ], Ek)
+      ], Ek),
+      steps: [
+        { q: T`Koľko je $v^2$ pre $v=${v}\\,\\text{m/s}$?`, answer: v * v },
+        { q: T`Koľko je $\\frac{1}{2}\\cdot ${m}\\cdot ${v * v}$ v džouloch?`, answer: Ek }
+      ]
     };
   });
 
@@ -390,7 +448,11 @@
         mistakes: keep([
           { value: m + v, msg: T`Sčítal si hmotnosť a rýchlosť. Hybnosť je ich súčin.` },
           { value: m * v * v / 2, msg: T`To je kinetická energia $\\frac{1}{2}m\\,v^2$, nie hybnosť.` }
-        ], p)
+        ], p),
+        steps: [
+          { q: T`Akú hybnosť by malo teleso s hmotnosťou $1\\,\\text{kg}$ pri tej istej rýchlosti? (v $\\text{kg\\,m/s}$)`, answer: v },
+          { q: T`Akú hybnosť má teleso s hmotnosťou $${m}\\,\\text{kg}$? (v $\\text{kg\\,m/s}$)`, answer: p }
+        ]
       };
     }
     if (r < 0.7) {
@@ -402,7 +464,12 @@
         hint: T`Hybnosti majú opačné smery, preto sa odčítajú. Kladný smer zvoľ doprava.`,
         mistakes: keep([
           { value: m1 * v1 + m2 * v2, msg: T`Hybnosti majú opačné smery, takže sa odčítajú, nesčítajú.` }
-        ], p)
+        ], p),
+        steps: [
+          { q: T`Aká je hybnosť prvého telesa $m_1v_1$? (v $\\text{kg\\,m/s}$)`, answer: m1 * v1 },
+          { q: T`Aká je veľkosť hybnosti druhého telesa $m_2v_2$? (v $\\text{kg\\,m/s}$)`, answer: m2 * v2 },
+          { q: T`Aká je celková hybnosť $m_1v_1-m_2v_2$? (v $\\text{kg\\,m/s}$)`, answer: p, signed: true }
+        ]
       };
     }
     const k = rnd(1, 4), h = 5 * k * k, v = 10 * k;
@@ -413,7 +480,11 @@
       hint: T`Zo zákona zachovania energie vyjadri $v$ z rovnosti $m\\,g\\,h=\\frac{1}{2}m\\,v^2$. Hmotnosť sa vykráti.`,
       mistakes: keep([
         { value: 2 * 10 * h, msg: T`To je $v^2$, nie $v$. Na konci ešte odmocni.` }
-      ], v)
+      ], v),
+      steps: [
+        { q: T`Koľko je $v^2=2gh=2\\cdot 10\\cdot ${h}$?`, answer: 20 * h },
+        { q: T`Koľko je $v=\\sqrt{${20 * h}}$? (v m/s)`, answer: v }
+      ]
     };
   });
 
@@ -462,7 +533,11 @@
         mistakes: keep([
           { value: 10000 * h, msg: T`Výsledok si dostal v pascaloch. Úloha žiada kilopascaly, vydeľ tisíckou.` },
           { value: h, msg: T`Zabudol si na hustotu a tiažové zrýchlenie. Tlak nie je len hĺbka.` }
-        ], 10 * h)
+        ], 10 * h),
+        steps: [
+          { q: T`Aký je tlak v pascaloch, $p=\\rho\\,g\\,h=1000\\cdot 10\\cdot ${h}$?`, answer: 10000 * h },
+          { q: T`Koľko kilopascalov je to?`, answer: 10 * h }
+        ]
       };
     }
     const S1 = rnd(2, 9), k = rnd(2, 6), F1 = rnd(10, 50);
@@ -474,7 +549,11 @@
       mistakes: keep([
         { value: F1, msg: T`Sila sa nezmení len preto, že je piest väčší. Pascalov zákon hovorí, že tlak je v oboch piestoch rovnaký.` },
         { value: F1 / k, msg: T`Delil si pomerom plôch. Väčší piest dáva väčšiu silu, preto treba násobiť.` }
-      ], F1 * k)
+      ], F1 * k),
+      steps: [
+        { q: T`Koľkokrát je plocha veľkého piesta väčšia ako plocha malého piesta?`, answer: k },
+        { q: T`Akú silu prenesie veľký piest? (v newtonoch)`, answer: F1 * k }
+      ]
     };
   });
 })();

@@ -129,9 +129,15 @@
   }
 
   /* ---------- pracovný list na tlač ---------- */
+  // lekcie zo zadania (súbory ročníkov sa načítajú pred tvorbou úloh)
+  const cfgIds = (cfg) => (cfg && Array.isArray(cfg.l) ? cfg.l.map((x) => x[0]) : []);
+
   function worksheet(code) {
     const cfg = dec(code);
     if (!cfg || !cfg.l) { home(); return; }
+    APP.need(cfgIds(cfg), () => worksheetRun(cfg));
+  }
+  function worksheetRun(cfg) {
     const lang = cfg.lg || I18N.getLang();
     const keyRows = [];
     let pages = '';
@@ -197,6 +203,9 @@
   }
 
   function solve(cfg, code, name) {
+    APP.need(cfgIds(cfg), () => solveRun(cfg, code, name));
+  }
+  function solveRun(cfg, code, name) {
     const list = tasks(cfg, cfg.pv ? `n:${name.toLowerCase()}` : 'all');
     const t0 = Date.now();
     APP.setPage(`<h1>🔗 ${esc(cfg.ti || t('assignDefault'))}</h1><p class="muted">${esc(name)}</p><div id="pw"></div>`);

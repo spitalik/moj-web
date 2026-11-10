@@ -17,10 +17,13 @@
     options: shuffle([o.a, ...o.wrong]),
     answer: o.a,
     q: o.q,
-    choiceHints: Object.fromEntries(o.wrong.map((w) => [w, T.s('Táto možnosť nesedí. Over si, čo presne tento pojem alebo jav znamená.')])),
+    choiceHints: Object.fromEntries(o.wrong.map((w, i) => [w, (o.hints && o.hints[i]) || T.s('Táto možnosť nesedí. Over si, čo presne tento pojem alebo jav znamená.')])),
     solution: o.solution || T.s('Správna odpoveď vyplýva z vlastností tejto látky a z toho, ako sú jej častice usporiadané.'),
     hint: o.hint || T.s('Pozri si v teórii, ako sa jednotlivé skupenstvá správajú.')
   });
+
+  // krok riešenia: výber správneho vzťahu (možnosti sú len vzorce v KaTeX, netreba ich prekladať)
+  const vzorec = (ok, ...bad) => ({ q: T.s('Ktorý vzťah tu použiješ?'), type: 'choice', options: shuffle([ok, ...bad]), answer: ok });
 
   /* ---------- lekcie a generátory ---------- */
 
@@ -63,7 +66,14 @@
         answer: m,
         solution: T`Zo vzorca $m=\\rho\\cdot V$ dostaneme $m=${mf(rho)}\\cdot ${V}=${m}$, teda ${m} g.`,
         hint: T`Hmotnosť dostaneš vynásobením hustoty objemom: $m=\\rho\\cdot V$.`,
-        mistakes: m !== V ? [{ value: V, msg: T`Hmotnosť si rovnal objemu. Hustota hovorí, koľko gramov má každý cm³ látky, preto ju musíš vynásobiť objemom.` }] : []
+        mistakes: m !== V ? [
+          { value: V, msg: T`Hmotnosť si rovnal objemu. Hustota hovorí, koľko gramov má každý cm³ látky, preto ju musíš vynásobiť objemom.` },
+          { value: V / rho, msg: T`Tu sa objem delí hustotou. Hmotnosť je však súčin: $m=\\rho\\cdot V$.` }
+        ] : [],
+        steps: [
+          vzorec('$m=\\rho\\cdot V$', '$m=\\frac{\\rho}{V}$', '$m=\\frac{V}{\\rho}$'),
+          { q: T`Koľko je $${mf(rho)}\\cdot ${V}$?`, answer: m }
+        ]
       };
     }
     if (t === 1) {
@@ -73,7 +83,11 @@
         tol: 0.001,
         solution: T`Hustotu dostaneme zo vzorca $\\rho=\\frac{m}{V}=\\frac{${m}}{${V}}=${mf(rho)}\\,\\text{g/cm}^3$.`,
         hint: T`Hustotu vypočítaš, ak hmotnosť vydelíš objemom: $\\rho=\\frac{m}{V}$.`,
-        mistakes: Math.abs(V / m - rho) > 0.01 ? [{ value: V / m, msg: T`Delil si opačne. Hustota je hmotnosť delená objemom, nie objem delený hmotnosťou.` }] : []
+        mistakes: Math.abs(V / m - rho) > 0.01 ? [{ value: V / m, msg: T`Delil si opačne. Hustota je hmotnosť delená objemom, nie objem delený hmotnosťou.` }] : [],
+        steps: [
+          vzorec('$\\rho=\\frac{m}{V}$', '$\\rho=m\\cdot V$', '$\\rho=\\frac{V}{m}$'),
+          { q: T`Koľko je $\\frac{${m}}{${V}}$?`, answer: rho, tol: 0.001 }
+        ]
       };
     }
     return {
@@ -82,7 +96,11 @@
       tol: 0.01,
       solution: T`Objem dostaneme zo vzorca $V=\\frac{m}{\\rho}=\\frac{${m}}{${mf(rho)}}=${V}\\,\\text{cm}^3$.`,
       hint: T`Objem dostaneš, ak hmotnosť vydelíš hustotou: $V=\\frac{m}{\\rho}$.`,
-      mistakes: Math.abs(m * rho - V) > 0.01 ? [{ value: m * rho, msg: T`Hmotnosť si vynásobil hustotou. Objem dostaneš delením: $V=\\frac{m}{\\rho}$.` }] : []
+      mistakes: Math.abs(m * rho - V) > 0.01 ? [{ value: m * rho, msg: T`Hmotnosť si vynásobil hustotou. Objem dostaneš delením: $V=\\frac{m}{\\rho}$.` }] : [],
+      steps: [
+        vzorec('$V=\\frac{m}{\\rho}$', '$V=m\\cdot\\rho$', '$V=\\frac{\\rho}{m}$'),
+        { q: T`Koľko je $\\frac{${m}}{${mf(rho)}}$?`, answer: V, tol: 0.01 }
+      ]
     };
   });
 
@@ -114,12 +132,16 @@
   gen('r6-vlastnosti', () => {
     const Q = pick([
       { q: T.s('Ktoré skupenstvo má stály objem, ale nemá stály tvar?'), a: T.s('kvapalina'), wrong: [T.s('pevná látka'), T.s('plyn')],
+        hints: [T.s('Pevná látka má stály aj tvar, nielen objem.'), T.s('Plyn nemá stály ani objem, vyplní celú nádobu.')],
         solution: T.s('Kvapalina má stály objem, ale jej tvar sa prispôsobí nádobe, v ktorej je.') },
       { q: T.s('Ktoré skupenstvo sa dá najľahšie stlačiť?'), a: T.s('plyn'), wrong: [T.s('kvapalina'), T.s('pevná látka')],
+        hints: [T.s('Častice kvapaliny sú tesne pri sebe, preto sa kvapalina stláča veľmi ťažko.'), T.s('Pevná látka sa takmer nedá stlačiť, jej častice sú pevne pri sebe.')],
         solution: T.s('Častice plynu sú od seba ďaleko a medzi nimi je voľný priestor, preto sa plyn dá stlačiť.') },
       { q: T.s('Ktoré skupenstvo má stály tvar aj stály objem?'), a: T.s('pevná látka'), wrong: [T.s('kvapalina'), T.s('plyn')],
+        hints: [T.s('Kvapalina mení tvar podľa nádoby.'), T.s('Plyn nemá stály tvar ani objem.')],
         solution: T.s('Pevné telesá si zachovávajú tvar aj objem, lebo ich častice sú pevne na svojich miestach.') },
       { q: T.s('Ktoré skupenstvo vyplní celý objem nádoby, do ktorej ho dáme?'), a: T.s('plyn'), wrong: [T.s('kvapalina'), T.s('pevná látka')],
+        hints: [T.s('Kvapalina zaberie len svoj objem a zostane pri dne nádoby.'), T.s('Pevná látka si zachováva svoj tvar, nádobu nevyplní.')],
         solution: T.s('Plyn sa rozpína a vyplní celú nádobu. Kvapalina zaberá len objem, ktorý má, a pevné telesá si tvar nemenia.') }
     ]);
     return choice(Q);
@@ -153,7 +175,11 @@
         answer: p,
         solution: T`$p=\\frac{F}{S}=\\frac{${F}}{${S}}=${p}\\,\\text{Pa}$.`,
         hint: T`Tlak je sila delená plochou: $p=\\frac{F}{S}$.`,
-        mistakes: [{ value: F * S, msg: T`Silu si vynásobil plochou. Tlak sa počíta delením: $p=\\frac{F}{S}$.` }]
+        mistakes: [{ value: F * S, msg: T`Silu si vynásobil plochou. Tlak sa počíta delením: $p=\\frac{F}{S}$.` }],
+        steps: [
+          vzorec('$p=\\frac{F}{S}$', '$p=F\\cdot S$', '$p=\\frac{S}{F}$'),
+          { q: T`Koľko je $\\frac{${F}}{${S}}$?`, answer: p }
+        ]
       };
     }
     // tlak v kvapaline na dne nádoby, výsledok v kPa (1 kPa = 1000 Pa)
@@ -164,7 +190,14 @@
       answer: kpa,
       solution: T`$p=\\rho\\cdot g\\cdot h=${L.r}\\cdot 10\\cdot ${h}=${L.r * 10 * h}\\,\\text{Pa}=${kpa}\\,\\text{kPa}$.`,
       hint: T`Hydrostatický tlak je $p=\\rho\\cdot g\\cdot h$. Výsledok v pascaloch vydeľ tisíckou.`,
-      mistakes: [{ value: L.r * 10 * h, msg: T`Výsledok si nechal v pascaloch. Úloha žiada kilopascaly, preto vydeľ 1000.` }]
+      mistakes: [
+        { value: L.r * 10 * h, msg: T`Výsledok si nechal v pascaloch. Úloha žiada kilopascaly, preto vydeľ 1000.` },
+        { value: L.r * h / 1000, msg: T`Chýba tu gravitačné zrýchlenie $g=10\\,\\text{N/kg}$. Tlak v kvapaline je $p=\\rho\\cdot g\\cdot h$.` }
+      ],
+      steps: [
+        { q: T`Aký je tlak v pascaloch? Vypočítaj $p=\\rho\\cdot g\\cdot h=${L.r}\\cdot 10\\cdot ${h}$.`, answer: L.r * 10 * h },
+        { q: T`Koľko kilopascalov je $${L.r * 10 * h}\\,\\text{Pa}$?`, answer: kpa }
+      ]
     };
   });
 
@@ -197,13 +230,18 @@
         tol: 0.001,
         solution: T`Keďže $1\\,\\text{kPa}=10\\,\\text{hPa}$, dostaneme $${x} : 10 = ${mf(x / 10)}$, teda ${fmt(x / 10)} kPa.`,
         hint: T`Kilopascal je 10 hektopascalov, preto hodnotu v hPa vydeľ desiatimi.`,
-        mistakes: [{ value: x * 10, msg: T`Číslo si vynásobil desiatimi. Pri prepočte z hPa na kPa delíme desiatimi.` }]
+        mistakes: [{ value: x * 10, msg: T`Číslo si vynásobil desiatimi. Pri prepočte z hPa na kPa delíme desiatimi.` }],
+        steps: [
+          { q: T`Koľko hektopascalov má $1\\,\\text{kPa}$?`, answer: 10 },
+          { q: T`Koľko je $${x} : 10$?`, answer: x / 10, tol: 0.001 }
+        ]
       };
     }
     if (Math.random() < 0.5) {
       return choice({
         q: T.s('Ako sa mení atmosférický tlak, keď vystúpime na vysokú horu?'),
         a: T.s('klesá'), wrong: [T.s('rastie'), T.s('zostáva rovnaký')],
+        hints: [T.s('Vyššie je nad nami menej vzduchu, preto tlak nemôže rásť.'), T.s('Tlak závisí od množstva vzduchu nad nami, a to sa s výškou mení.')],
         solution: T.s('Nad nami je menej vzduchu, takže tlak klesá.'),
         hint: T.s('Pomysli, koľko vzduchu je nad tebou.')
       });
@@ -211,6 +249,7 @@
     return choice({
       q: T.s('Aký prístroj meria atmosférický tlak?'),
       a: T.s('barometer'), wrong: [T.s('teplomer'), T.s('silomer')],
+      hints: [T.s('Teplomer meria teplotu, nie tlak.'), T.s('Silomer meria silu, nie tlak vzduchu.')],
       solution: T.s('Barometer je prístroj na meranie tlaku vzduchu. Teplomer meria teplotu a silomer silu.'),
       hint: T.s('Názov prístroja odvodíš od slova tlak v gréčtine: baros znamená ťažkosť.')
     });
@@ -249,7 +288,14 @@
         answer: F,
         solution: T`$F_{vz}=\\rho\\cdot g\\cdot V=${mf(K.r / 10)}\\cdot 10\\cdot ${V}=${F}\\,\\text{N}$.`,
         hint: T`Vztlak závisí od hustoty kvapaliny a od objemu ponorenej časti telesa.`,
-        mistakes: F !== V * 10 ? [{ value: V * 10, msg: T`Dosadil si hustotu vody. Vztlak závisí od hustoty kvapaliny, v ktorej je teleso ponorené.` }] : []
+        mistakes: [
+          ...(F !== V * 10 ? [{ value: V * 10, msg: T`Dosadil si hustotu vody. Vztlak závisí od hustoty kvapaliny, v ktorej je teleso ponorené.` }] : []),
+          { value: K.r * V / 10, msg: T`Chýba tu gravitačné zrýchlenie $g=10\\,\\text{N/kg}$. Vztlaková sila je $F_{vz}=\\rho\\cdot g\\cdot V$.` }
+        ],
+        steps: [
+          vzorec('$F_{vz}=\\rho\\cdot g\\cdot V$', '$F_{vz}=\\rho\\cdot V$', '$F_{vz}=\\frac{\\rho\\cdot V}{g}$'),
+          { q: T`Koľko je $${mf(K.r / 10)}\\cdot 10\\cdot ${V}$?`, answer: F }
+        ]
       };
     }
     const m = rnd(1, 20);
@@ -258,7 +304,12 @@
       answer: m * 10,
       solution: T`Teleso pláva, takže vztlak sa rovná tiaži: $F_{vz}=F_G=m\\cdot g=${m}\\cdot 10=${m * 10}\\,\\text{N}$.`,
       hint: T`Plávajúce teleso je v rovnováhe: vztlaková sila a tiaž sú rovnaké.`,
-      mistakes: [{ value: m, msg: T`Hmotnosť si nechal bez zmeny. Vztlak sa počíta v newtonoch, preto hmotnosť vynásob gravitačným zrýchlením $g=10\\,\\text{N/kg}$.` }]
+      mistakes: [{ value: m, msg: T`Hmotnosť si nechal bez zmeny. Vztlak sa počíta v newtonoch, preto hmotnosť vynásob gravitačným zrýchlením $g=10\\,\\text{N/kg}$.` }],
+      steps: [
+        { q: T.s('Teleso pláva na hladine. Aký je vzťah medzi vztlakovou silou $F_{vz}$ a tiažou $F_G$?'), type: 'choice',
+          options: shuffle(['$F_{vz}=F_G$', '$F_{vz}\\gt F_G$', '$F_{vz}\\lt F_G$']), answer: '$F_{vz}=F_G$' },
+        { q: T`Aká je tiaž telesa $F_G=m\\cdot g=${m}\\cdot 10$ v newtonoch?`, answer: m * 10 }
+      ]
     };
   });
 
@@ -287,15 +338,19 @@
       return choice(pick([
         { q: T.s('Kam prúdi teplo medzi telesom s teplotou 80 °C a telesom s teplotou 20 °C, ak sa ich dotýkajú?'),
           a: T.s('z telesa s 80 °C do telesa s 20 °C'), wrong: [T.s('z telesa s 20 °C do telesa s 80 °C'), T.s('nikam, teplo sa neprenáša')],
+          hints: [T.s('Teplo samo neprechádza z chladnejšieho telesa na teplejšie.'), T.s('Pri dotyku telies s rôznou teplotou sa teplo prenáša, kým sa teploty nevyrovnajú.')],
           solution: T.s('Teplo prúdi vždy od teplejšieho telesa k chladnejšiemu, kým sa teploty nevyrovnajú.') },
         { q: T.s('Akým spôsobom sa teplo prenáša zo Slnka k Zemi?'),
           a: T.s('sálaním'), wrong: [T.s('vedením'), T.s('prúdením')],
+          hints: [T.s('Vedenie potrebuje látku, ktorej častice si teplo odovzdávajú. Medzi Slnkom a Zemou je takmer prázdny priestor.'), T.s('Prúdenie potrebuje kvapalinu alebo plyn, ktorý sa pohybuje. Vo vesmíre medzi Slnkom a Zemou nie je.')],
           solution: T.s('Teplo zo Slnka cez prázdny priestor prichádza sálaním, pretože medzi nimi nie je látka, ktorou by sa šírilo vedením.') },
         { q: T.s('Akým spôsobom sa teplo prenáša kovovou lyžičkou, ktorú ponoríme do horúceho čaju?'),
           a: T.s('vedením'), wrong: [T.s('prúdením'), T.s('sálaním')],
+          hints: [T.s('Prúdenie nastáva v kvapalinách a plynoch. Lyžička je pevná látka.'), T.s('Sálanie prenáša teplo aj bez látky. Tu sa teplo šíri kovom z častice na časticu.')],
           solution: T.s('Kov vedie teplo: energia sa odovzdáva z častice na časticu.') },
         { q: T.s('Akú jednotku má teplo ako energia?'),
           a: T.s('joule (J)'), wrong: [T.s('stupeň Celzia (°C)'), T.s('newton (N)')],
+          hints: [T.s('Stupeň Celzia je jednotka teploty, nie tepla.'), T.s('Newton je jednotka sily, nie energie.')],
           solution: T.s('Teplo je energia, a tá sa v sústave SI meria v joulech.') }
       ]));
     }
@@ -306,7 +361,14 @@
       answer: (t1 + t2) / 2,
       solution: T`Pri rovnakých množstvách vody je výsledná teplota priemer: $\\frac{${t1}+${t2}}{2}=${(t1 + t2) / 2}$, teda ${(t1 + t2) / 2} °C.`,
       hint: T`Teploty sa nesčítavajú. Pri rovnakých množstvách vody vypočítaj ich priemer.`,
-      mistakes: [{ value: t1 + t2, msg: T`Teploty si sčítal. Výsledná teplota je priemer, nie súčet.` }]
+      mistakes: [
+        { value: t1 + t2, msg: T`Teploty si sčítal. Výsledná teplota je priemer, nie súčet.` },
+        { value: t1 - t2, msg: T`To je rozdiel teplôt. Výsledná teplota leží medzi oboma teplotami, je to ich priemer.` }
+      ].filter((x) => x.value !== (t1 + t2) / 2),
+      steps: [
+        { q: T`Koľko je súčet teplôt $${t1}+${t2}$?`, answer: t1 + t2 },
+        { q: T`Pri rovnakých množstvách vody je výsledná teplota priemer. Koľko je $${t1 + t2} : 2$?`, answer: (t1 + t2) / 2 }
+      ]
     };
   });
 
@@ -352,11 +414,23 @@
       { f: T`pevného`, t: T`plynného`, a: 'sublimacia' },
       { f: T`plynného`, t: T`pevného`, a: 'desublimacia' }
     ]);
-    const wrong = shuffle(Object.keys(names).filter((k) => k !== P.a)).slice(0, 3).map((k) => names[k]);
+    // čo naozaj znamená zle zvolený prechod
+    const desc = {
+      topenie: T`Topenie je prechod z pevného do kvapalného skupenstva.`,
+      tuhnutie: T`Tuhnutie je prechod z kvapalného do pevného skupenstva.`,
+      vyparovanie: T`Vyparovanie je prechod z kvapalného do plynného skupenstva.`,
+      kondenzacia: T`Kondenzácia je prechod z plynného do kvapalného skupenstva.`,
+      sublimacia: T`Sublimácia je prechod z pevného priamo do plynného skupenstva.`,
+      desublimacia: T`Desublimácia je prechod z plynného priamo do pevného skupenstva.`
+    };
+    const keys = shuffle(Object.keys(names).filter((k) => k !== P.a)).slice(0, 3);
+    const wrong = keys.map((k) => names[k]);
+    const hints = keys.map((k) => desc[k]);
     return choice({
       q: T`Ako sa volá prechod látky z ${P.f} do ${P.t} skupenstva?`,
       a: names[P.a],
       wrong,
+      hints,
       solution: T`Prechod z ${P.f} do ${P.t} skupenstva sa volá ${names[P.a]}.`,
       hint: T.s('Urči, z akého skupenstva do akého látka prechádza, a porovnaj to s názvami prechodov v teórii.')
     });
@@ -387,18 +461,22 @@
     return choice(pick([
       { q: T.s('Ktorý faktor urýchli vyparovanie vody?'),
         a: T.s('zvýšenie teploty vody'), wrong: [T.s('zakrytie nádoby s vodou'), T.s('zmenšenie plochy hladiny')],
+        hints: [T.s('Zakrytie nádoby vyparovanie spomalí, para nemôže unikať.'), T.s('Z menšej hladiny sa voda vyparuje pomalšie. Rýchlejšie je to pri väčšej ploche.')],
         solution: T.s('Vyššia teplota dodá časticiam viac energie, a tak viac z nich unikne z hladiny.'),
         hint: T.s('Pomysli, čo sa stane s časticami vody, keď sa zohrejú.') },
       { q: T.s('Pri ktorom deji sa teplo uvoľňuje do okolia?'),
         a: T.s('kondenzácia'), wrong: [T.s('vyparovanie'), T.s('var')],
+        hints: [T.s('Pri vyparovaní kvapalina teplo prijíma, preto nás odparujúci sa pot ochladzuje.'), T.s('Pri vare treba teplo stále dodávať, kvapalina ho prijíma.')],
         solution: T.s('Pri kondenzácii sa para mení na kvapalinu a uvoľnená energia sa odovzdáva okoliu.'),
         hint: T.s('Porovnaj smer prechodu: plyn sa mení na kvapalinu.') },
       { q: T.s('Kde prebieha var kvapaliny?'),
         a: T.s('v celom objeme kvapaliny'), wrong: [T.s('iba na jej povrchu'), T.s('iba na dne nádoby')],
+        hints: [T.s('Iba na povrchu prebieha vyparovanie. Pri vare vznikajú bubliny pary v celej kvapaline.'), T.s('Bubliny vznikajú aj pri dne, ale para sa pri vare tvorí v celom objeme kvapaliny.')],
         solution: T.s('Pri vare sa para tvorí v celom objeme kvapaliny, nielen na hladine.'),
         hint: T.s('Na hladine prebieha vyparovanie. Čo je iné pri vare?') },
       { q: T.s('Pri akej teplote vrie voda za normálneho tlaku?'),
         a: T.s('100 °C'), wrong: [T.s('0 °C'), T.s('50 °C')],
+        hints: [T.s('Pri 0 °C voda zamŕza a ľad sa topí, voda vtedy nevrie.'), T.s('Pri 50 °C je voda teplá, ale ešte nevrie.')],
         solution: T.s('Za normálneho tlaku vrie voda pri 100 °C.'),
         hint: T.s('Ide o teplotu, ktorú poznáš z varenia čaju.') }
     ]));

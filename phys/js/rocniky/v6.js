@@ -41,7 +41,12 @@
         mistakes: keep([
           { value: Math.sqrt(1 - b * b), msg: T`Dosadil si prevrátenú hodnotu. Lorentzov faktor je $\\frac{1}{\\sqrt{1-v^2/c^2}}$, teda väčší ako 1.` },
           { value: 1 + (b * b) / 2, msg: T`Použil si nerelativistickú aproximáciu. Pri veľkých rýchlostiach ju nemožno použiť, treba presný vzorec.` }
-        ], ans, 0.05)
+        ], ans, 0.05),
+        steps: [
+          { q: T`Koľko je $\\frac{v^2}{c^2}$? Zadaj presne.`, answer: Math.round(b * b * 1e4) / 1e4, tol: 1e-4 },
+          { q: T`Koľko je $\\sqrt{1-\\frac{v^2}{c^2}}$? Zaokrúhli na 3 desatinné miesta.`, answer: Math.round(Math.sqrt(1 - b * b) * 1000) / 1000, tol: 0.001 },
+          { q: T`Koľko je $\\gamma$, prevrátená hodnota tohto čísla? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+        ]
       };
     }
     const dt0 = pick([2, 5, 10]);
@@ -55,7 +60,11 @@
       mistakes: keep([
         { value: dt0 / g, msg: T`Čas si skrátil. Pohybujúce sa hodiny idú pomalšie, takže pozorovateľ nameria dlhší interval.` },
         { value: g, msg: T`Zabudol si vynásobiť vlastným časom $\\Delta t_0$.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Aký je Lorentzov faktor $\\gamma=\\frac{1}{\\sqrt{1-v^2/c^2}}$? Zaokrúhli na 4 desatinné miesta.`, answer: Math.round(g * 1e4) / 1e4, tol: 0.0001 },
+        { q: T`Aký je interval $\\Delta t=\\gamma\\,\\Delta t_0$ v sekundách? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -86,7 +95,12 @@
       mistakes: keep([
         { value: x - 0.6 * ct, msg: T`Zabudol si na Lorentzov faktor $\\gamma$ pred zátvorkou.` },
         { value: 5 * b + 3 * a, msg: T`Zamenil si znamienko rýchlosti. Sústava $S'$ sa pohybuje v kladnom smere, odčítame $\\beta\\,ct$.` }
-      ], ans)
+      ], ans),
+      steps: [
+        { q: T`Koľko je $\\beta\\,ct=${M(0.6)}\\cdot ${ct}$ v metroch?`, answer: (12 * a) / 5, tol: 1e-6 },
+        { q: T`Koľko je $x-\\beta\\,ct$ v metroch?`, answer: (20 * b - 12 * a) / 5, tol: 1e-6, signed: true },
+        { q: T`Koľko je $x'=\\gamma\\,(x-\\beta\\,ct)$ v metroch?`, answer: ans, signed: true }
+      ]
     };
   });
 
@@ -118,7 +132,12 @@
       mistakes: keep([
         { value: g * P.m, msg: T`Dostal si celkovú energiu $\\gamma mc^2$. Kinetická energia je len jej časť nad pokojovou energiou.` },
         { value: P.m, msg: T`Dostal si pokojovú energiu $mc^2$. Pýtame sa na kinetickú energiu, ktorá je $(\\gamma-1)\\,mc^2$.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Aký je Lorentzov faktor $\\gamma=\\frac{1}{\\sqrt{1-v^2/c^2}}$? Zaokrúhli na 4 desatinné miesta.`, answer: Math.round(g * 1e4) / 1e4, tol: 0.0001 },
+        { q: T`Koľko je $\\gamma-1$? Zaokrúhli na 4 desatinné miesta.`, answer: Math.round((g - 1) * 1e4) / 1e4, tol: 0.0001 },
+        { q: T`Aká je kinetická energia $E_k=(\\gamma-1)\\,mc^2$ v MeV? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.05 }
+      ]
     };
   });
 
@@ -149,7 +168,12 @@
         mistakes: keep([
           { value: ans * 1000, msg: T`Zabudol si previesť gramy na kilogramy. Výsledok je tisíckrát menší.` },
           { value: ans / 9, msg: T`Zle si umocnil rýchlosť svetla. Počítame $c^2$, nie $c$ (a výsledok sa nemení len o číslo 9).` }
-        ], ans, 0.001)
+        ], ans, 0.001),
+        steps: [
+          { q: T`Koľko je $c^2$ v jednotkách $10^{16}\\,\\text{m}^2/\\text{s}^2$?`, answer: 9 },
+          { q: T`Koľko je energia $E=mc^2$ v jednotkách $10^{13}\\,\\text{J}$ (hmotnosť v kilogramoch)?`, answer: Math.round(9 * m * 1000) / 1000, tol: 0.001 },
+          { q: T`Koľko je to terajoulov?`, answer: ans, tol: 0.001 }
+        ]
       };
     }
     const E = pick([9, 45, 90, 180]);
@@ -163,7 +187,12 @@
       mistakes: keep([
         { value: E * 90, msg: T`Vynásobil si energiou číslom 90, ale hmotnosť dostaneme deľbou: $m=\\frac{E}{c^2}$.` },
         { value: (E / 90) * 1000, msg: T`Výsledok je v gramoch, nie v kilogramoch. Hodnota tisíckrát väčšia je preto nesprávna.` }
-      ], ans, 0.001)
+      ], ans, 0.001),
+      steps: [
+        { q: T`Koľko je $c^2$ v jednotkách $10^{16}\\,\\text{m}^2/\\text{s}^2$?`, answer: 9 },
+        { q: T`Koľko je hmotnosť $m=\\frac{E}{c^2}$ v jednotkách $10^{-4}\\,\\text{kg}$?`, answer: E / 9, tol: 1e-6 },
+        { q: T`Koľko je to gramov?`, answer: ans, tol: 0.001 }
+      ]
     };
   });
 
@@ -194,7 +223,12 @@
       mistakes: keep([
         { value: dt * dt - dx * dx, msg: T`Nezabudol si odmocniť? Vlastný čas je $\\sqrt{\\Delta t^2-\\Delta x^2}$, nie samotný rozdiel štvorcov.` },
         { value: dt - dx, msg: T`Odčítal si časy a priestorové vzdialenosti. Invariantný interval obsahuje štvorce oboch veličín.` }
-      ], ans)
+      ], ans),
+      steps: [
+        { q: T`Koľko je $\\Delta t^2$ (v $\\text{s}^2$)?`, answer: dt * dt },
+        { q: T`Koľko je $\\Delta x^2$ (v $\\text{ls}^2$)?`, answer: dx * dx },
+        { q: T`Koľko je $\\Delta\\tau=\\sqrt{\\Delta t^2-\\Delta x^2}$ v sekundách?`, answer: ans }
+      ]
     };
   });
 
@@ -231,7 +265,12 @@
       mistakes: keep([
         { value: ans / 2, msg: T`Zabudol si na faktor 2 v čitateli. Schwarzschildov polomer je $\\frac{2GM}{c^2}$.` },
         { value: ans * 1000, msg: T`Pomýlil si jednotky. Skontroluj, či je výsledok v požadovaných jednotkách.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Koľko je $2G$ v jednotkách $10^{-11}\\,\\text{m}^3\\,\\text{kg}^{-1}\\,\\text{s}^{-2}$?`, answer: 13.348, tol: 0.001 },
+        { q: T`Koľko je $c^2$ v jednotkách $10^{16}\\,\\text{m}^2/\\text{s}^2$? Zaokrúhli na 3 desatinné miesta.`, answer: 8.988, tol: 0.001 },
+        { q: T`Aký je $r_s=\\frac{2GM}{c^2}$ v jednotkách $\\text{${b.unit}}$? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -282,7 +321,8 @@
 
   gen('v6-gravvlny', () => {
     const k = pick([1, 3, 10, 30]);
-    const rsSunKm = (2 * 6.674e-11 * 1.989e30) / (2.998e8 * 2.998e8) / 1000;
+    // zadanie uvádza r_s Slnka ≈ 2,95 km, výsledok preto počítame s touto hodnotou
+    const rsSunKm = 2.95;
     const ans = Math.round(rsSunKm * k * 100) / 100;
     return {
       q: T`Čierna diera má hmotnosť $M=${k}\\,M_{\\odot}$, kde $M_{\\odot}$ je hmotnosť Slnka. Aký je polomer jej horizontu udalostí v kilometroch? Zaokrúhli na 2 des. miesta. Pre Slnko platí $r_s\\approx ${M(2.95)}\\,\\text{km}$ a polomer je úmerný hmotnosti.`,
@@ -293,7 +333,11 @@
       mistakes: keep([
         { value: ans / 2, msg: T`Zabudol si na faktor 2 vo vzorci $r_s=\\frac{2GM}{c^2}$.` },
         { value: ans * 1000, msg: T`Výsledok je v kilometroch, nie v metroch.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Koľkokrát je čierna diera hmotnejšia ako Slnko?`, answer: k },
+        { q: T`Aký je jej polomer horizontu v km, ak je úmerný hmotnosti? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 })();

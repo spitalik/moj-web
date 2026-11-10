@@ -90,6 +90,11 @@
         { value: sum, msg: T`Vyšiel ti náboj v tretinách elementárneho náboja. Výsledok vydeľ tromi, aby bol v jednotkách $e$.` },
         { value: -ans, msg: T`Pozor na znamienka: kvarky $u$, $c$ majú kladný náboj a $d$, $s$, $b$ záporný.` }
       ], ans),
+      signed: true,
+      steps: [
+        { q: T`Aký je súčet nábojov troch kvarkov v tretinách elementárneho náboja (teda v jednotkách $\\tfrac{1}{3}e$)?`, answer: sum, signed: true },
+        { q: T`Aký je celkový náboj v jednotkách $e$?`, answer: ans, signed: true }
+      ],
       solution: T`Náboje v tretinách $e$ sčítaj: $${sum}\\cdot\\tfrac{1}{3}=${ans}$, teda celkový náboj je $${ans}\\,e$.`,
       hint: T`Kvark $u$ alebo $c$ má $+\\tfrac{2}{3}e$, kvark $d$, $s$ alebo $b$ má $-\\tfrac{1}{3}e$. Sčítaj tri kvarky.`
     };
@@ -164,6 +169,11 @@
         { value: 2 * N, msg: T`Počítaš len kvarky. Leptóny sú tiež fermióny a každá generácia ich má dva.` },
         { value: N, msg: T`Počítaš generácie, nie častice. Každá generácia má štyri fermióny.` }
       ], ans),
+      steps: [
+        { q: T`Koľko kvarkov má jedna generácia?`, answer: 2 },
+        { q: T`Koľko fermiónov (kvarkov a leptónov) má jedna generácia?`, answer: 4 },
+        { q: T`Koľko fermiónov je v ${N} ${N === 1 ? T`generácii` : T`generáciách`}?`, answer: ans }
+      ],
       solution: T`Každá generácia má 2 kvarky a 2 leptóny, teda 4 fermióny. Spolu $4\\cdot ${N} = ${ans}$.`,
       hint: T`Spočítaj kvarky a leptóny jednej generácie a výsledok vynásob počtom generácií.`
     };
@@ -241,6 +251,10 @@
         { value: U, msg: T`Nezohľadnil si náboj častice. Energia je $z\\,e\\,U$, nie len $e\\,U$.` },
         { value: ans * 1000, msg: T`Výsledok je v MeV, nie v keV. Pozor: $1\\,\\text{MeV}=10^{6}\\,\\text{eV}$.` }
       ], ans),
+      steps: [
+        { q: T`Akú energiu v MeV by pri tomto napätí získala častica s nábojom $+e$?`, answer: U },
+        { q: T`Akú energiu v MeV získa častica s nábojom $+${z}e$?`, answer: ans }
+      ],
       solution: T`$E_k = z\\,e\\,U = ${z}\\cdot ${U}\\,\\text{MeV} = ${ans}\\,\\text{MeV}$.`,
       hint: T`Energia v elektrónvoltoch sa rovná nábojovému číslu $z$ krát napätiu v voltoch.`
     };
@@ -275,6 +289,10 @@
         { value: Math.round(125 * m), msg: T`Hmotnosti sa nenásobia. Podiel dostaneš delením: $m_H / m$.` },
         { value: 125, msg: T`To je hmotnosť Higgsovho bozónu v GeV/$c^2$, nie podiel. Podiel dostaneš delením hmotností.` }
       ], ans),
+      steps: [
+        { q: T`Aká je hmotnosť Higgsovho bozónu v GeV/$c^2$?`, answer: 125 },
+        { q: T`Koľko je podiel $m_H/m$? Zaokrúhli na celé číslo.`, answer: ans, tol: 1 }
+      ],
       solution: T`$m_H / m = 125 / ${mn(m)} \\approx ${ans}$, teda približne ${ans}-krát.`,
       hint: T`Koľkokrát je jedna hmotnosť väčšia než druhá? Vydel väčšiu hmotnosť menšou.`
     };

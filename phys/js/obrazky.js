@@ -268,10 +268,7 @@
     'obr-magnet': 'Siločiary tyčového magnetu vychádzajú zo severného pólu N a vstupujú do južného pólu S.'
   };
 
-  LESSONS.forEach((l) => {
-    const fig = ATTACH[l.id];
-    if (fig) l.theory.push({ fig, caption: CAPTIONS[fig] });
-  });
+  FIGURES.attach(ATTACH, CAPTIONS);
 
   /* ---------- atóm ---------- */
 

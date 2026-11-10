@@ -9,6 +9,8 @@
   const gen = EXERCISES.register;
   // vyradí chybné hodnoty, ktoré by vyšli ako správna odpoveď
   const keep = (ms, ans, eps = 1e-6) => ms.filter((m) => Math.abs(m.value - ans) > eps);
+  // desatinné číslo do KaTeX (čiarka ako {,}, aby KaTeX nepridal medzeru)
+  const dm = (x) => fmt(x).replace(',', '{,}');
 
   /* ---------- 1. molekulová stavba látok ---------- */
 
@@ -42,7 +44,11 @@
         mistakes: keep([
           { value: m * M, msg: T`Vynásobil si hmotnosť a molárnu hmotnosť. Látkové množstvo dostaneš delením.` },
           { value: M / m, msg: T`Obrátil si podiel. Látkové množstvo je $\\frac{m}{M}$, nie $\\frac{M}{m}$.` }
-        ], k)
+        ], k),
+        steps: [
+          { q: T`Koľko gramov má $1\\,\\text{mol}$ tejto látky?`, answer: M },
+          { q: T`Koľkokrát sa $${M}\\,\\text{g}$ zmestí do $${m}\\,\\text{g}$? (počet mólov)`, answer: k }
+        ]
       };
     }
     return {
@@ -52,7 +58,11 @@
       hint: T`Jeden mól obsahuje $N_A$ častíc. Počet mólov vynásob Avogadrovou konštantou.`,
       mistakes: keep([
         { value: k, msg: T`Zabudol si vynásobiť Avogadrovou konštantou, ktorá je v násobkoch $10^{23}$.` }
-      ], 6.02 * k, 0.05)
+      ], 6.02 * k, 0.05),
+      steps: [
+        { q: T`Koľko častíc obsahuje $1\\,\\text{mol}$ látky? Zadaj v násobkoch $10^{23}$.`, answer: 6.02, tol: 0.001 },
+        { q: T`Koľko molekúl je v $${k}\\,\\text{mol}$? Zadaj v násobkoch $10^{23}$.`, answer: 6.02 * k, tol: 0.01 }
+      ]
     };
   });
 
@@ -87,7 +97,12 @@
         mistakes: keep([
           { value: m * dt, msg: T`Zabudol si na mernú tepelnú kapacitu $c$. Ukazuje, koľko energie látka potrebuje na ohriatie.` },
           { value: Q / 1000, msg: T`Vydelil si tisíckou. Úloha žiada joule, nie kilojoule.` }
-        ], Q)
+        ], Q),
+        steps: [
+          { q: T`Koľko joulov treba na ohriatie $1\\,\\text{kg}$ tejto látky o $1\\,\\text{K}$?`, answer: c },
+          { q: T`Koľko joulov treba na ohriatie $${m}\\,\\text{kg}$ o $1\\,\\text{K}$?`, answer: m * c },
+          { q: T`Koľko joulov treba na ohriatie o $${dt}\\,\\text{K}$?`, answer: Q }
+        ]
       };
     }
     const t = rnd(-20, 90), tk = t + 273.15;
@@ -99,7 +114,11 @@
       mistakes: keep([
         { value: t + 273, msg: T`Použil si zaokrúhlenú konštantu. Presnejšie je $273{,}15$.` },
         { value: t, msg: T`Kelvin a Celzius sa líšia posunom o $273{,}15$. Teplotu treba prepočítať, nie len prepísať.` }
-      ], tk, 0.01)
+      ], tk, 0.01),
+      steps: [
+        { q: T`Koľko kelvinov je $0\\,{}^\\circ\\text{C}$?`, answer: 273.15, tol: 0.001 },
+        { q: T`Koľko kelvinov je $${t}\\,{}^\\circ\\text{C}$? (na 2 desatinné miesta)`, answer: tk, tol: 0.01 }
+      ]
     };
   });
 
@@ -134,7 +153,11 @@
         mistakes: keep([
           { value: m * 2260, msg: T`To by bolo vyparovanie. Pri topení ľadu použi $334\\,\\text{kJ/kg}$.` },
           { value: m * 0.334, msg: T`Výsledok si dostal v megajouloch. Úloha žiada kilojouly.` }
-        ], m * 334)
+        ], m * 334),
+        steps: [
+          { q: T`Koľko kilojoulov treba na roztopenie $1\\,\\text{kg}$ ľadu?`, answer: 334 },
+          { q: T`Koľko kilojoulov treba na roztopenie $${m}\\,\\text{kg}$ ľadu?`, answer: m * 334 }
+        ]
       };
     }
     return {
@@ -145,7 +168,11 @@
       mistakes: keep([
         { value: m * 334, msg: T`To je teplo topenia ľadu. Pri kondenzácii pary použi $2260\\,\\text{kJ/kg}$.` },
         { value: m * 2.26, msg: T`Výsledok si dostal v megajouloch. Úloha žiada kilojouly.` }
-      ], m * 2260)
+      ], m * 2260),
+      steps: [
+        { q: T`Koľko kilojoulov uvoľní kondenzácia $1\\,\\text{kg}$ pary?`, answer: 2260 },
+        { q: T`Koľko kilojoulov uvoľní kondenzácia $${m}\\,\\text{kg}$ pary?`, answer: m * 2260 }
+      ]
     };
   });
 
@@ -180,7 +207,11 @@
         mistakes: keep([
           { value: (V1 * p2) / 200, msg: T`Pomer si obrátil. Objem klesá, keď tlak rastie: $V_2=\\frac{p_1V_1}{p_2}$.` },
           { value: V1, msg: T`Objem si nechal nezmenený. Pri stálej teplote sa objem mení nepriamo úmerne tlaku.` }
-        ], V2)
+        ], V2),
+        steps: [
+          { q: T`Koľko je súčin $p_1V_1=200\\cdot ${V1}$ v $\\text{kPa}\\cdot\\text{l}$?`, answer: 200 * V1 },
+          { q: T`Aký je objem $V_2=\\frac{p_1V_1}{p_2}$? (v litroch)`, answer: V2 }
+        ]
       };
     }
     const V = pick([0.025, 0.05, 0.1]), n = pick([1, 2]), Tk = 300, p = (n * 8.31 * Tk) / V;
@@ -192,7 +223,11 @@
       mistakes: keep([
         { value: n * 8.31 * Tk * V, msg: T`Objem si dosadil do čitateľa. Vzťah je $p=\\frac{nRT}{V}$, objem je v menovateli.` },
         { value: n * 8.31 * Tk, msg: T`Zabudol si deliť objemom.` }
-      ], p, 1)
+      ], p, 1),
+      steps: [
+        { q: T`Koľko je $nRT=${n}\\cdot 8{,}31\\cdot 300$? (v jouloch)`, answer: n * 8.31 * Tk, tol: 0.5 },
+        { q: T`Aký je tlak $p=\\frac{nRT}{V}$, ak $V=${dm(V)}\\,\\text{m}^3$? (v pascaloch)`, answer: p, tol: 1 }
+      ]
     };
   });
 
@@ -227,7 +262,12 @@
         mistakes: keep([
           { value: Q + A, msg: T`Prácu, ktorú plyn vykoná, odčítaj od tepla, nesčítaj ju.` },
           { value: A - Q, msg: T`Odčítal si v opačnom poradí. Vzorec je $\\Delta U=Q-A$.` }
-        ], dU)
+        ], dU),
+        steps: [
+          { q: T`O koľko joulov vnútornú energiu zvýši dodané teplo?`, answer: Q },
+          { q: T`O koľko joulov ju zníži práca, ktorú plyn vykoná?`, answer: A },
+          { q: T`Aká je výsledná zmena $\\Delta U$ v jouloch?`, answer: dU, signed: true }
+        ]
       };
     }
     const Q1 = pick([500, 800, 1000, 1200, 2000]), eta = pick([10, 20, 25, 30, 40, 50]), A = (Q1 * eta) / 100;
@@ -239,7 +279,11 @@
       mistakes: keep([
         { value: Q1 - A, msg: T`To je teplo odovzdané chladiču, nie účinnosť. Účinnosť je podiel práce a tepla z ohrievača.` },
         { value: A / Q1, msg: T`Výsledok je v desatinnom tvare. Účinnosť v percentách dostaneš vynásobením 100.` }
-      ], eta, 0.01)
+      ], eta, 0.01),
+      steps: [
+        { q: T`Aký je podiel $\\frac{A}{Q_1}=\\frac{${A}}{${Q1}}$ v desatinnom tvare?`, answer: A / Q1, tol: 0.001 },
+        { q: T`Koľko percent je to?`, answer: eta, tol: 0.01 }
+      ]
     };
   });
 
@@ -298,7 +342,12 @@
       hint: T`Perióda kyvadla je $T=2\\pi\\sqrt{\\frac{l}{g}}$. Dĺžku vydeľ tiažovým zrýchlením a odmocni.`,
       mistakes: keep([
         { value: 2 * 3.14 * root * root, msg: T`Zabudol si odmocniť podiel $\\frac{l}{g}$. Vzorec obsahuje $\\sqrt{\\frac{l}{g}}$, nie $\\frac{l}{g}$.` }
-      ], T0, 0.05)
+      ], T0, 0.05),
+      steps: [
+        { q: T`Koľko je $\\frac{l}{g}=\\frac{${dm(l)}}{10}$?`, answer: l / 10, tol: 0.0001 },
+        { q: T`Koľko je $\\sqrt{\\frac{l}{g}}$?`, answer: root, tol: 0.001 },
+        { q: T`Aká je perióda $T=2\\cdot 3{,}14\\cdot\\sqrt{\\frac{l}{g}}$? (v sekundách, na 2 desatinné miesta)`, answer: T0, tol: 0.01 }
+      ]
     };
   });
 
@@ -346,7 +395,11 @@
         hint: T`Zvuk prejde k prekážke a naspäť, celková dráha je $2s$.`,
         mistakes: keep([
           { value: 340 * t, msg: T`To je celá dráha tam a späť. Vzdialenosť prekážky je polovica.` }
-        ], s)
+        ], s),
+        steps: [
+          { q: T`Akú dráhu prejde zvuk za $${t}\\,\\text{s}$? (v metroch)`, answer: 340 * t },
+          { q: T`Zvuk prešiel cestu k prekážke aj späť. Aká je vzdialenosť prekážky? (v metroch)`, answer: s }
+        ]
       };
     }
     const lam = rnd(1, 6), f = pick([20, 50, 80, 100, 200]);
@@ -358,7 +411,11 @@
       mistakes: keep([
         { value: lam + f, msg: T`Sčítal si vlnovú dĺžku a frekvenciu. Rýchlosť je ich súčin.` },
         { value: f / lam, msg: T`Delil si. Rýchlosť vlny je súčin $\\lambda\\,f$.` }
-      ], lam * f)
+      ], lam * f),
+      steps: [
+        { q: T`Koľko vlnových dĺžok prejde daným bodom za $1\\,\\text{s}$?`, answer: f },
+        { q: T`Koľko metrov za sekundu to je, ak má každá vlnová dĺžka $${dm(lam)}\\,\\text{m}$?`, answer: lam * f }
+      ]
     };
   });
 })();

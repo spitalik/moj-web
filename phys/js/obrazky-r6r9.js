@@ -382,8 +382,5 @@
     'r6r9-ucinnost': 'Účinnosť je pomer užitočnej energie k dodanej. Zvyšok energie sa stráca ako teplo.'
   };
 
-  LESSONS.forEach((l) => {
-    const fig = ATTACH[l.id];
-    if (fig) l.theory.push({ fig, caption: CAPTIONS[fig] });
-  });
+  FIGURES.attach(ATTACH, CAPTIONS);
 })();

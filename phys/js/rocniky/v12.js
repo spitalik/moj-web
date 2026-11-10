@@ -35,7 +35,11 @@
       mistakes: [
         { value: N0 / (2 * n), msg: T`Exponent je v mocnine: $\\left(\\frac{1}{2}\\right)^n$, nie $\\frac{1}{2n}$.` },
         { value: N0 / 2, msg: T`Počítal si len prvý polčas. Rozpad pokračuje pri každom ďalšom polčase.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je $2^{${n}}$?`, answer: Math.pow(2, n) },
+        { q: T`Koľko jadier ostane?`, answer: ans }
+      ]
     };
   });
 
@@ -107,7 +111,13 @@
       mistakes: [
         { value: a1 * b1 + a2 * b2, msg: T`Zabudol si tretiu zložku. Skalárny súčin sčítava súčiny všetkých troch dvojíc.` },
         { value: (a1 + b1) + (a2 + b2) + (a3 + b3), msg: T`Zložky si sčítal. Skalárny súčin ich násobí po dvojiciach.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je $a_1b_1$?`, answer: a1 * b1, signed: true },
+        { q: T`Koľko je $a_2b_2$?`, answer: a2 * b2, signed: true },
+        { q: T`Koľko je $a_3b_3$?`, answer: a3 * b3, signed: true },
+        { q: T`Koľko je súčet týchto troch súčinov?`, answer: ans, signed: true }
+      ]
     };
   });
 
@@ -140,7 +150,11 @@
       mistakes: [
         { value: A, msg: T`To je amplitúda celého signálu, nie prvej harmonickej.` },
         { value: 4 * A / (3 * Math.PI), msg: T`Vzal si tretiu harmonickú, ktorá má amplitúdu $\\frac{4A}{3\\pi}$. Pýtali sme sa na základnú.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je $4A$?`, answer: 4 * A },
+        { q: T`Koľko je $\\frac{4A}{\\pi}$? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -174,7 +188,12 @@
       mistakes: [
         { value: y0, msg: T`Zabudol si pridať prírastok $h\\,f(t_0,y_0)$. Bez neho sa hodnota nezmení.` },
         { value: y0 * (1 + k * h), msg: T`Znamienko: pravá strana $-${k}y$ je záporná, prírastok má byť záporný.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je $f(t_0,y_0)=-${k}\\,y_0$?`, answer: -k * y0, signed: true },
+        { q: T`Koľko je prírastok $h\\,f(t_0,y_0)$?`, answer: Math.round(-k * y0 * h * 100) / 100, tol: 0.01, signed: true },
+        { q: T`Koľko je $y_1=y_0+h\\,f(t_0,y_0)$?`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -206,7 +225,11 @@
       mistakes: [
         { value: tt * h, msg: T`Vynásobil si čas a krok. Počet krokov dostaneš delením $t/h$.` },
         { value: ans + 1, msg: T`Pridal si zbytočný krok. Začiatočný stav nie je krok simulácie, počet krokov je $t/h$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko krokov pripadá na jednu sekundu simulácie?`, answer: Math.round(1 / h) },
+        { q: T`Koľko krokov treba na celý čas $${tt}\\,\\text{s}$?`, answer: ans }
+      ]
     };
   });
 
@@ -241,7 +264,12 @@
       mistakes: [
         { value: k1 + k2, msg: T`Sčítal si tuhosti, ako keby boli zapojené paralelne. Pri sérii sa sčítajú prevrátené hodnoty.` },
         { value: k1 * k2, msg: T`Vynásobil si tuhosti. Pri sérii platí $\\frac{1}{k}=\\frac{1}{k_1}+\\frac{1}{k_2}$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je súčin $k_1k_2$?`, answer: k1 * k2 },
+        { q: T`Koľko je súčet $k_1+k_2$?`, answer: k1 + k2 },
+        { q: T`Aká je ekvivalentná tuhosť $k=\\frac{k_1k_2}{k_1+k_2}$ v N/m? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -273,7 +301,11 @@
       mistakes: [
         { value: N * (N - 1), msg: T`Započítal si obe poradia $(i,j)$ aj $(j,i)$. Pri vzájomnej interakcii ide o jednu dvojicu.` },
         { value: N * N, msg: T`Počítal si aj dvojice častice so sebou samou. Každá dvojica $i\\neq j$ sa počíta raz.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je $N(N-1)$ pre $N=${N}$ (usporiadané dvojice)?`, answer: N * (N - 1) },
+        { q: T`Koľko je neusporiadaných dvojíc $\\frac{N(N-1)}{2}$?`, answer: ans }
+      ]
     };
   });
 })();

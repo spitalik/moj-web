@@ -7,6 +7,8 @@
   const { T } = CONTENT_I18N;
   const lesson = (l) => LESSONS.push(Object.assign({ level: 'r8' }, l));
   const gen = EXERCISES.register;
+  // krok riešenia: výber správneho vzťahu (možnosti sú len vzorce v KaTeX, netreba ich prekladať)
+  const vzorec = (ok, ...bad) => ({ q: T.s('Ktorý vzťah tu použiješ?'), type: 'choice', options: shuffle([ok, ...bad]), answer: ok });
 
   // Výber z pevného zoznamu: pool položiek { q, right, why, wrong: [[text, prečo nie], ...] }
   const choiceFrom = (pool, hint) => {
@@ -63,7 +65,11 @@
         mistakes: [
           { value: F + s, msg: T`Sčítal si silu a dráhu. Práca je ich súčin: $W=F\\cdot s$.` },
           { value: F / s, msg: T`Delil si silu dráhou. Práca sa počíta vynásobením.` }
-        ].filter((m) => m.value !== W)
+        ].filter((m) => m.value !== W),
+        steps: [
+          vzorec('$W=F\\cdot s$', '$W=\\frac{F}{s}$', '$W=F+s$'),
+          { q: T`Koľko je $${F}\\cdot ${s}$?`, answer: W }
+        ]
       };
     }
     const P = 10 * rnd(2, 30), t = rnd(2, 20), W = P * t;
@@ -75,7 +81,11 @@
       mistakes: [
         { value: W * t, msg: T`Prácu si vynásobil časom. Výkon sa počíta ako práca delená časom.` },
         { value: W, msg: T`Výsledkom je práca, nie výkon. Ešte ju musíš vydeliť časom.` }
-      ].filter((m) => m.value !== P)
+      ].filter((m) => m.value !== P),
+      steps: [
+        vzorec('$P=\\frac{W}{t}$', '$P=W\\cdot t$', '$P=\\frac{t}{W}$'),
+        { q: T`Koľko je $\\frac{${W}}{${t}}$?`, answer: P }
+      ]
     };
   });
 
@@ -162,7 +172,11 @@
         solution: T`$E_p=m\\,g\\,h=${m}\\cdot 10\\cdot ${h}=${Ep}\\,\\text{J}$.`,
         hint: T.s('Polohová energia je $E_p=m\\,g\\,h$. Nezabudni na gravitačné zrýchlenie $g$.'),
         mistakes: [{ value: m * h, msg: T`Zabudol si vynásobiť gravitačným zrýchlením $g=10\\,\\text{m/s}^2$.` }]
-          .filter((x) => x.value !== Ep)
+          .filter((x) => x.value !== Ep),
+        steps: [
+          { q: T`Aká je tiaž telesa $m\\cdot g=${m}\\cdot 10$ v newtonoch?`, answer: 10 * m },
+          { q: T`Polohová energia je tiaž krát výška. Koľko je $${10 * m}\\cdot ${h}$?`, answer: Ep }
+        ]
       };
     }
     const m = 2 * rnd(1, 10), v = rnd(1, 15), Ek = (m / 2) * v * v;
@@ -264,7 +278,12 @@
       mistakes: [
         { value: m * dt, msg: T`Zabudol si na merné teplo vody $c=4200\\,\\text{J/(kg\\cdot K)}$.` },
         { value: 4200 * dt, msg: T`Zabudol si vynásobiť hmotnosťou $m$.` }
-      ].filter((x) => x.value !== Q)
+      ].filter((x) => x.value !== Q),
+      steps: [
+        vzorec('$Q=m\\cdot c\\cdot \\Delta t$', '$Q=m\\cdot \\Delta t$', '$Q=\\frac{m\\cdot c}{\\Delta t}$'),
+        { q: T`Koľko je $${m}\\cdot 4200$?`, answer: 4200 * m },
+        { q: T`Koľko je $${4200 * m}\\cdot ${dt}$?`, answer: Q }
+      ]
     };
   });
 
@@ -313,7 +332,12 @@
         answer: ans,
         solution: T`${gain ? T`Získanie elektrónov dáva záporný náboj` : T`Strata elektrónov dáva kladný náboj`}: $Q=${ans > 0 ? '+' : ''}${ans}\\,e$.`,
         hint: T.s('Elektrón má záporný náboj. Teleso s nadbytkom elektrónov je záporné, s ich nedostatkom kladné.'),
-        mistakes: [{ value: -ans, msg: T`Znamienko je opačné. Získané elektróny nesú záporný náboj.` }]
+        mistakes: [{ value: -ans, msg: T`Znamienko je opačné. Získané elektróny nesú záporný náboj.` }],
+        steps: [
+          { q: T.s('Aký náboj má jeden elektrón v násobkoch $e$? Zadaj číslo so znamienkom.'), answer: -1, signed: true },
+          { q: T.s('Bude náboj telesa kladný, alebo záporný?'), type: 'choice', options: [T.s('kladný'), T.s('záporný')], answer: gain ? T.s('záporný') : T.s('kladný') },
+          { q: T.s('Zapíš náboj telesa v násobkoch $e$ aj so znamienkom.'), answer: ans, signed: true }
+        ]
       };
     }
     return choiceFrom(CHARGE_CHOICES, 'Pamätaj: rovnaké náboje sa odpudzujú, opačné sa priťahujú.');
@@ -354,7 +378,11 @@
         mistakes: [
           { value: Q * t, msg: T`Náboj si vynásobil časom. Prúd sa počíta ako náboj delený časom.` },
           { value: Q, msg: T`Výsledok si nechal ako náboj. Musíš ho ešte vydeliť časom.` }
-        ].filter((x) => x.value !== I)
+        ].filter((x) => x.value !== I),
+        steps: [
+          vzorec('$I=\\frac{Q}{t}$', '$I=Q\\cdot t$', '$I=\\frac{t}{Q}$'),
+          { q: T`Koľko je $\\frac{${Q}}{${t}}$?`, answer: I }
+        ]
       };
     }
     return {
@@ -365,7 +393,11 @@
       mistakes: [
         { value: I + t, msg: T`Prúd a čas si sčítal. Náboj je ich súčin.` },
         { value: I, msg: T`Výsledok je náboj, nie prúd. Náboj získame vynásobením prúdu a času.` }
-      ].filter((x) => x.value !== Q)
+      ].filter((x) => x.value !== Q),
+      steps: [
+        vzorec('$Q=I\\cdot t$', '$Q=\\frac{I}{t}$', '$Q=I+t$'),
+        { q: T`Koľko je $${I}\\cdot ${t}$?`, answer: Q }
+      ]
     };
   });
 
@@ -403,7 +435,11 @@
       mistakes: [
         { value: U * I, msg: T`Napätie si vynásobil prúdom. Odpor sa počíta ako napätie delené prúdom.` },
         { value: I, msg: T`Odpor si zamenil s prúdom. Prúd je $I$, odpor je $R$.` }
-      ].filter((x) => x.value !== R)
+      ].filter((x) => x.value !== R),
+      steps: [
+        vzorec('$R=\\frac{U}{I}$', '$R=U\\cdot I$', '$R=\\frac{I}{U}$'),
+        { q: T`Koľko je $\\frac{${U}}{${I}}$?`, answer: R }
+      ]
     };
   });
 

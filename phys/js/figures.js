@@ -377,8 +377,27 @@
     DEFS[id] = def;
   }
 
+  // Obrázky k teórii z js/obrazky*.js: lekcia → [{ fig, caption }]. Načítaná lekcia ich dostane hneď,
+  // lekcia, ktorá sa načíta neskôr (js/nacitanie.js), pri doplnení záznamu z indexu (applyAttached).
+  const ATTACHED = {};
+  function applyAttached(L) {
+    if (!L || L.stub || !Array.isArray(L.theory) || L._attached) return;
+    (ATTACHED[L.id] || []).forEach((x) => L.theory.push(x));
+    L._attached = true;
+  }
+  function attach(map, captions) {
+    Object.entries(map).forEach(([id, fig]) => {
+      const item = { fig, caption: captions[fig] };
+      (ATTACHED[id] = ATTACHED[id] || []).push(item);
+      const L = window.LESSONS && LESSONS.find((l) => l.id === id);
+      if (L && !L.stub && Array.isArray(L.theory)) {
+        if (L._attached) L.theory.push(item); else applyAttached(L);
+      }
+    });
+  }
+
   window.FIGURES = {
-    mount, register, subHtml,
+    mount, register, subHtml, attach, applyAttached,
     get: (id) => DEFS[id],
     util: { plane, axes, grid, nice, axisLabels, curvePath, svg, n1, sk, term }
   };

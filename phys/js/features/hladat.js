@@ -24,8 +24,8 @@
     APP.allOrdered().forEach((L0) => {
       const L = APP.tr(L0);
       const body = [
-        ...L.theory.map((x) => (typeof x === 'string' ? x : x.caption || '')),
-        ...L.examples.flatMap((e) => [e.task, ...e.steps])
+        ...(L.theory || []).map((x) => (typeof x === 'string' ? x : x.caption || '')),
+        ...(L.examples || []).flatMap((e) => [e.task, ...e.steps])
       ].map(plain).join(' ');
       index.push({ kind: 'lesson', id: L0.id, title: L.title, summary: L.summary, body, f: { title: fold(L.title), summary: fold(L.summary), body: fold(body) } });
     });
@@ -128,6 +128,15 @@
     const q = decodeURIComponent(p.join('/') || '');
     topQ.value = q;
     page(q);
+    // teória a príklady nenačítaných ročníkov: načítajú sa na pozadí a výsledky sa obnovia
+    if (window.ROCNIKY && ROCNIKY.loaded().length < Object.keys(LESSON_INDEX.files).length) {
+      const hash = location.hash;
+      ROCNIKY.needAll().then(() => {
+        index = null;
+        const inp = document.getElementById('sq');
+        if (q && location.hash === hash && inp && document.activeElement !== inp) page(q);
+      }, () => { /* offline: hľadá sa v tom, čo je načítané */ });
+    }
   });
   APP.addMenu({ href: '#/hladat', icon: '🔎', key: 'menuSearch' });
 

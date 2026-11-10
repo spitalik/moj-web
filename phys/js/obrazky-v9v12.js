@@ -526,8 +526,5 @@
     'v9v12-pruziny': 'Sériovo zapojené pružiny majú menšiu tuhosť, paralelne zapojené pružiny sa tuhosti sčítavajú.'
   };
 
-  LESSONS.forEach((l) => {
-    const fig = ATTACH[l.id];
-    if (fig) l.theory.push({ fig, caption: CAPTIONS[fig] });
-  });
+  FIGURES.attach(ATTACH, CAPTIONS);
 })();

@@ -10,6 +10,8 @@
   // zaokrúhlenie a pomocník pre typické chyby (chyba sa uvedie len vtedy, ak sa líši od správnej odpovede)
   const r2 = (x) => Math.round(x * 100) / 100;
   const r3 = (x) => Math.round(x * 1000) / 1000;
+  // desatinné číslo do KaTeX (čiarka ako {,}, aby KaTeX nepridal medzeru)
+  const dm = (x) => fmt(x).replace(',', '{,}');
   const mis = (value, answer, msg, tol = 1e-9) => (Math.abs(value - answer) > tol ? [{ value, msg }] : []);
 
   const K = 8.99;        // Coulombova konštanta k = 8,99 * 10^9 N m^2/C^2 (v tvare 8,99 * 10^9)
@@ -47,6 +49,10 @@
       mistakes: [
         ...mis(r2(K * Q / r), E, T`Vzdialenosť si nedal na druhú. Intenzita je úmerná $\\frac{1}{r^2}$, nie $\\frac{1}{r}$.`, 0.01),
         ...mis(r2(K * Q * r * r), E, T`Vzdialenosť si dal do čitateľa. Vo vzorci $E=k\\frac{Q}{r^2}$ je v menovateli.`, 0.01)
+      ],
+      steps: [
+        { q: T`Koľko je $r^2$ v $\\text{m}^2$?`, answer: r * r },
+        { q: T`Aká je intenzita $E=8{,}99\\cdot\\frac{${Q}}{${r * r}}$ v $\\text{kV/m}$? (na 2 desatinné miesta)`, answer: E, tol: 0.01 }
       ]
     };
   });
@@ -81,6 +87,10 @@
       mistakes: [
         ...mis(r2(Phi / (4 * Math.PI)), ans, T`Do vzorca si dosadil $4\\pi$. Ten patrí do intenzity bodového náboja, nie do Gaussovho zákona.`, 0.01),
         ...mis(Q, ans, T`Zabudol si prepočítať náboj na tok. Tok je $\\frac{Q}{\\varepsilon_0}$, nie samotný náboj.`, 0.01)
+      ],
+      steps: [
+        { q: T`Koľko je $\\frac{${Q}}{8{,}854}$? (na 3 desatinné miesta)`, answer: r3(Q / 8.854), tol: 0.001 },
+        { q: T`Mocniny desiatky dávajú $\\frac{10^{-6}}{10^{-12}}=10^{6}=10\\cdot 10^{5}$. Aký je tok v jednotkách $10^{5}\\,\\text{N\\,m}^2/\\text{C}$? (na 2 desatinné miesta)`, answer: ans, tol: 0.01 }
       ]
     };
   });
@@ -115,6 +125,10 @@
       mistakes: [
         ...mis(r2(U / (R1 + R2)), ans, T`Rezistory si zapojil do série. Pri paralelnom zapojení odpory nesčítavaš, ale počítaš $\\frac{1}{R}=\\frac{1}{R_1}+\\frac{1}{R_2}$.`, 0.01),
         ...mis(r2(U * Req), ans, T`Výsledok si vynásobil odporom namiesto delenia. Podľa Ohmovho zákona je $I=\\frac{U}{R}$.`, 0.01)
+      ],
+      steps: [
+        { q: T`Aký je ekvivalentný odpor $R=\\frac{R_1R_2}{R_1+R_2}$ v $\\Omega$? (na 2 desatinné miesta)`, answer: r2(Req), tol: 0.01 },
+        { q: T`Aký prúd dodáva zdroj, $I=\\frac{U}{R}$, v amperoch? (na 2 desatinné miesta)`, answer: ans, tol: 0.01 }
       ]
     };
   });
@@ -148,6 +162,10 @@
       mistakes: [
         ...mis(q * v, F, T`Zabudol si magnetickú indukciu. Sila je $F=qvB$, nie $qv$.`),
         ...mis(r2(q * v / B), F, T`Silu si vydelil indukciou. Vo vzorci $F=qvB$ sa násobí.`)
+      ],
+      steps: [
+        { q: T`Koľko je súčin $q\\,v$ v jednotkách $\\mu\\text{C}\\cdot\\text{m/s}$?`, answer: q * v },
+        { q: T`Aká je sila $F=qvB$ v $\\mu\\text{N}$?`, answer: F, tol: 1e-6 }
       ]
     };
   });
@@ -182,6 +200,10 @@
       mistakes: [
         ...mis(r2(dB * S * dt), U, T`Časom si násobil namiesto delenia. Napätie je rýchlosť zmeny toku, $\\frac{\\Delta\\Phi}{\\Delta t}$.`, 0.01),
         ...mis(r2(dB * S), U, T`Zabudol si deliť časom. Napätie závisí od rýchlosti zmeny toku, nie od samotnej zmeny.`, 0.01)
+      ],
+      steps: [
+        { q: T`O koľko weberov sa zmení magnetický tok, $\\Delta\\Phi=S\\,\\Delta B$?`, answer: r2(dB * S), tol: 0.001 },
+        { q: T`Aké je indukované napätie $\\frac{\\Delta\\Phi}{\\Delta t}$ vo voltoch? (na 2 desatinné miesta)`, answer: U, tol: 0.01 }
       ]
     };
   });
@@ -216,6 +238,10 @@
       mistakes: [
         ...mis(r2(MU0 * I / r * 1e6), B, T`Zabudol si deliť $2\\pi$. Pre priamy vodič je $B=\\frac{\\mu_0 I}{2\\pi r}$.`, 0.01),
         ...mis(r2(0.2 * I * r), B, T`Vzdialenosť si násobil namiesto delenia. Indukcia so vzdialenosťou klesá.`, 0.01)
+      ],
+      steps: [
+        { q: T`Koľko je $\\frac{I}{r}=\\frac{${I}}{${dm(r)}}$ v $\\text{A/m}$?`, answer: I / r, tol: 0.01 },
+        { q: T`Aká je indukcia $B=2\\cdot 10^{-7}\\cdot\\frac{I}{r}$ v $\\mu\\text{T}$?`, answer: B, tol: 0.01 }
       ]
     };
   });
@@ -249,6 +275,10 @@
       mistakes: [
         ...mis(f * 300, lam, T`Vlnovú dĺžku si vynásobil frekvenciou. Platí $\\lambda=\\frac{c}{f}$, teda delenie.`),
         ...mis(C / f, lam, T`Frekvenciu si nepremenil na hertze. Pri megahertzoch je $1\\,\\text{MHz}=10^{6}\\,\\text{Hz}$.`)
+      ],
+      steps: [
+        { q: T`Koľko je $\\frac{c}{10^{6}}=\\frac{3\\cdot 10^{8}}{10^{6}}$?`, answer: 300 },
+        { q: T`Aká je vlnová dĺžka $\\lambda=\\frac{300}{${f}}$ v metroch?`, answer: lam, tol: 0.001 }
       ]
     };
   });
@@ -282,6 +312,10 @@
       mistakes: [
         ...mis(3 / er, ans, T`Odmocninu si nevzal. Index lomu je $n=\\sqrt{\\varepsilon_r}$, rýchlosť je $c/n$.`),
         ...mis(3 * n, ans, T`Index lomu si použil v menovateli naopak. Rýchlosť je $c/n$, nie $c\\cdot n$.`)
+      ],
+      steps: [
+        { q: T`Aký je index lomu $n=\\sqrt{\\varepsilon_r}$?`, answer: n },
+        { q: T`Aká je rýchlosť $v=\\frac{c}{n}$ v jednotkách $10^{8}\\,\\text{m/s}$?`, answer: ans, tol: 0.001 }
       ]
     };
   });

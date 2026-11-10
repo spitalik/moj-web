@@ -351,3 +351,286 @@ html.wide-spacing .katex { letter-spacing: normal; word-spacing: normal; }
   .sym-table .sym-tex { grid-row: span 3; align-self: center; }
   .sym-table .sym-ex { white-space: normal; overflow-x: auto; }
 }
+
+/* ---------- mapa ---------- */
+/* ---------- mapa ---------- */
+/* ---------- Mapa učiva (js/features/mapa.js) ---------- */
+.mapa-panel-list { list-style: none; margin: 4px 0; padding: 0; }
+.mapa-panel-list li { margin: 3px 0; font-size: 0.92rem; overflow-wrap: anywhere; }
+.mapa-list { list-style: none; margin: 6px 0 0; padding: 0; }
+.mapa-list li { margin: 5px 0; overflow-wrap: anywhere; }
+.mapa-li.s-learning { border-left: 3px solid var(--warn); padding-left: 8px; }
+
+/* mapa tém: vrstvy pod sebou, šípky v SVG za uzlami */
+.mapa-graph { position: relative; margin: 8px 0 16px; }
+.mapa-arrows { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; z-index: 0; }
+.mapa-edge { fill: none; stroke: var(--muted); stroke-width: 1.4; opacity: 0.45; }
+.mapa-edge.on { stroke: var(--primary); stroke-width: 2.4; opacity: 1; }
+.mapa-head { fill: var(--muted); opacity: 0.6; }
+.mapa-head.on { fill: var(--primary); opacity: 1; }
+.mapa-layers { list-style: none; margin: 0; padding: 0; position: relative; z-index: 1; }
+.mapa-layer { margin: 0 0 34px; }
+.mapa-layer-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); text-align: center; margin-bottom: 6px; }
+.mapa-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.mapa-theme {
+  display: flex; flex-direction: column; gap: 2px;
+  width: 190px; min-width: 0; padding: 10px 12px;
+  font: inherit; text-align: left; color: var(--text);
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  cursor: pointer;
+}
+.mapa-theme:hover, .mapa-theme:focus-visible { border-color: var(--primary); }
+.mapa-theme.active { border: 2px solid var(--primary); padding: 9px 11px; }
+.mapa-theme-head { display: flex; gap: 8px; align-items: center; font-weight: 600; line-height: 1.25; }
+.mapa-theme-icon { font-size: 1.3rem; flex: 0 0 auto; }
+.mapa-theme-name { min-width: 0; overflow-wrap: anywhere; }
+.mapa-theme .bar { margin-top: 4px; }
+/* na širokej mape nadväznosti ukazujú šípky; text ostáva pre čítačky */
+.mapa-deps {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.mapa-narrow .mapa-deps { position: static; width: auto; height: auto; overflow: visible; clip: auto; clip-path: none; white-space: normal; color: var(--muted); margin-top: 4px; }
+/* úzky displej: zoznam vrstiev, uzly na celú šírku */
+.mapa-narrow .mapa-layer { margin-bottom: 18px; }
+.mapa-narrow .mapa-layer-title { text-align: left; }
+.mapa-narrow .mapa-row { flex-direction: column; gap: 8px; }
+.mapa-narrow .mapa-theme { width: 100%; }
+
+/* rozbalená téma */
+.mapa-detail { margin-top: 12px; }
+.mapa-detail h3 { margin-top: 0; }
+.mapa-detail-links { margin: 4px 0 10px; }
+.mapa-chip { font: inherit; font-size: 0.85rem; cursor: pointer; margin: 2px 2px 2px 0; }
+.mapa-chip:hover, .mapa-chip:focus-visible { border-color: var(--primary); }
+.mapa-path .path-step a { padding-bottom: 4px; }
+.mapa-cross { position: relative; z-index: 1; margin: 0 0 8px 50px; color: var(--muted); overflow-wrap: anywhere; }
+.mapa-cross a { color: var(--text); }
+
+/* strom predpokladov */
+.mapa-tree { list-style: none; margin: 4px 0 0; padding: 0 0 0 12px; border-left: 2px solid var(--border); }
+.mapa-tree-root { padding-left: 0; border-left: 0; }
+.mapa-tnode { margin: 6px 0; padding: 4px 0 4px 8px; border-left: 3px solid transparent; min-width: 0; }
+.mapa-tnode.mapa-un { border-left-color: var(--warn); }
+.mapa-tnode.s-mastered > .mapa-trow a { color: var(--muted); }
+.mapa-trow { overflow-wrap: anywhere; }
+.mapa-tnode details { margin-top: 2px; }
+.mapa-tnode summary { cursor: pointer; color: var(--muted); }
+.mapa-more { display: inline-block; margin-top: 2px; }
+.mapa-tree-head p { margin: 0.3em 0; }
+@media (max-width: 480px) {
+  .mapa-tree { padding-left: 8px; }
+  .mapa-tnode { padding-left: 6px; }
+  .mapa-cross { margin-left: 44px; }
+}
+/* farba uzla témy podľa zvládnutia: celá zvládnutá = --ok, rozrobená = ľavý pruh --warn */
+.mapa-theme.mapa-th-done { border-color: var(--ok); }
+.mapa-theme.mapa-th-done .mapa-theme-meta { color: var(--ok); font-weight: 600; }
+.mapa-theme.mapa-th-started { box-shadow: inset 4px 0 0 var(--warn); }
+.mapa-theme.mapa-th-done.active, .mapa-theme.mapa-th-started.active { border-color: var(--primary); }
+.mapa-li.s-mastered a { color: var(--muted); }
+.mapa-tnode.s-mastered { border-left-color: var(--ok); }
+
+/* ---------- graf ---------- */
+/* ---------- Graf meraní (js/features/graf.js) ---------- */
+/* farby len z premenných vzhľadu; 4. krivka navyše prerušovaná (rozlíšenie aj bez farieb) */
+.graf-c1 { --graf-col: var(--primary); }
+.graf-c2 { --graf-col: var(--ok); }
+.graf-c3 { --graf-col: var(--bad); }
+.graf-c4 { --graf-col: var(--warn); }
+
+.graf-tabs { margin: 4px 0 12px; }
+.graf-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+button.graf-chip { cursor: pointer; font: inherit; font-size: 0.9rem; }
+button.graf-chip:hover { border-color: var(--primary); }
+.graf-chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.graf-samples, .graf-presets { margin-bottom: 8px; }
+.graf-sdesc { margin: 0 0 12px; min-height: 1.4em; }
+.graf-warn { color: var(--bad); font-size: 0.92rem; margin: 6px 0; }
+
+/* rozloženie: tabuľka a graf vedľa seba len na širokej obrazovke */
+.graf-m { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (min-width: 900px) {
+  .graf-m { grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); }
+}
+
+/* tabuľka nameraných hodnôt */
+.graf-twrap { max-width: 100%; overflow-x: auto; }
+.graf-dtable { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.graf-dtable caption { text-align: left; font-weight: 600; margin-bottom: 6px; }
+.graf-dtable th, .graf-dtable td { padding: 3px 4px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+.graf-dtable thead th { border-bottom: 2px solid var(--muted); font-weight: 600; vertical-align: bottom; }
+.graf-dtable .graf-no { width: 2.2em; text-align: center; color: var(--muted); font-weight: 400; }
+.graf-axis { display: block; font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+.graf-qu { display: flex; align-items: center; gap: 2px; }
+.graf-hin, .graf-cin {
+  min-width: 0;
+  padding: 5px 6px;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.graf-q { width: 3.2em; font-style: italic; font-family: "Times New Roman", Georgia, serif; font-size: 1.05rem; }
+.graf-u { width: 3.6em; }
+.graf-cin { width: 100%; min-width: 4.5em; text-align: right; }
+.graf-hin:focus, .graf-cin:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.graf-cin[aria-invalid="true"] { border-color: var(--bad); }
+.graf-dtable .graf-del { padding: 4px 9px; }
+
+.graf-actions { margin: 8px 0 12px; }
+.graf-paste { margin: 8px 0; }
+.graf-paste summary { cursor: pointer; font-weight: 600; }
+.graf-paste textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 6px 0 8px;
+  padding: 8px;
+  font: 0.95rem ui-monospace, Consolas, monospace;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+/* volba závislosti a výsledok */
+.graf-model { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 8px; font-weight: 600; }
+.graf-model select {
+  max-width: 100%;
+  padding: 6px 8px;
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.graf-fit h2 { font-size: 1.15rem; margin: 12px 0 4px; }
+.graf-fit h3 { font-size: 1rem; margin: 12px 0 4px; }
+.graf-eq { margin: 6px 0; overflow-x: auto; overflow-y: hidden; font-size: 1.1rem; }
+.graf-plist { margin: 0; padding-left: 0; list-style: none; }
+.graf-plist li { margin: 3px 0; overflow-x: auto; overflow-y: hidden; }
+
+/* plochy grafov */
+.graf-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.graf-fsvg { touch-action: none; cursor: crosshair; }
+.graf-svg:focus { outline: none; }
+.graf-svg:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.graf-bg { fill: var(--card); }
+.graf-frame { fill: none; stroke: var(--muted); stroke-width: 1; }
+.graf-axlab { fill: var(--text); font: italic 15px "Times New Roman", Georgia, serif; }
+.graf-lab { paint-order: stroke; stroke: var(--card); stroke-width: 3px; stroke-linejoin: round; }
+.graf-curve { fill: none; stroke: var(--graf-col, var(--primary)); stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+.graf-curve.graf-c4 { stroke-dasharray: 9 5; }
+.graf-fitline { stroke-width: 2.2; }
+.graf-dot { fill: var(--card); stroke: var(--text); stroke-width: 2; }
+.graf-tdot { fill: var(--graf-col, var(--primary)); stroke: var(--card); stroke-width: 2; }
+
+/* režim Funkcia */
+.graf-rows { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
+.graf-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--graf-col);
+  border-radius: 10px;
+  background: var(--card);
+}
+.graf-swatch { width: 28px; height: 12px; display: block; }
+.graf-lbl { font-family: "Times New Roman", Georgia, serif; font-style: italic; white-space: nowrap; }
+.graf-in {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 1.05rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.graf-in:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.graf-in[aria-invalid="true"] { border-color: var(--bad); }
+.graf-del { padding: 6px 10px; }
+.graf-prev { grid-column: 1 / -1; min-height: 1.6em; overflow-x: auto; overflow-y: hidden; }
+.graf-err { color: var(--bad); font-size: 0.92rem; }
+.graf-params { border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px 12px; margin: 0 0 12px; background: var(--card); }
+.graf-params legend { padding: 0 6px; font-weight: 600; }
+.graf-sliders { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 18px; }
+.graf-slider { display: flex; flex-direction: column; gap: 2px; font-size: 0.95rem; }
+.graf-slider input[type="range"] { width: 100%; accent-color: var(--primary); }
+.graf-slider output { font-weight: 700; font-variant-numeric: tabular-nums; }
+.graf-pname { font-family: "Times New Roman", Georgia, serif; font-size: 1.1rem; }
+.graf-box { margin: 0 0 12px; }
+.graf-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.graf-readout { margin: 8px 0 2px; font-weight: 600; font-variant-numeric: tabular-nums; min-height: 1.4em; }
+
+/* box „Spracuj merania v grafe“ v lekcii */
+.graf-panel {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.graf-panel-h { margin: 0 0 4px; font-size: 1.05rem; }
+.graf-panel-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 2px; }
+
+@media (max-width: 480px) {
+  .graf-row { padding: 6px 8px; gap: 4px 6px; }
+  .graf-dtable th, .graf-dtable td { padding: 3px 2px; }
+  .graf-q { width: 2.6em; }
+  .graf-u { width: 3em; }
+}
+@media print {
+  .graf-tabs, .graf-toolbar, .graf-actions, .graf-samples, .graf-presets, .graf-paste, .graf-del { display: none; }
+}
+
+/* ---------- projekty ---------- */
+/* ---------- projekty ---------- */
+/* Projekty z praxe (js/features/projekty.js): karty, príbeh, prehľad vyriešených krokov a zhrnutie */
+.proj-level h2 { margin-top: 24px; }
+.proj-card h3 { overflow-wrap: anywhere; }
+.proj-done { color: var(--ok); font-weight: 600; }
+.proj-story { border-left: 4px solid var(--primary); }
+.proj-story p { margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+.proj-log { margin: 12px 0; }
+.proj-log-title { font-size: 1rem; margin: 0 0 6px; color: var(--muted); }
+.proj-log-list { margin: 0; padding-left: 1.4em; }
+.proj-log-list li { margin: 4px 0; overflow-wrap: anywhere; }
+.proj-log-q { color: var(--muted); }
+.proj-log-a { white-space: nowrap; }
+.proj-log-a::before { content: '→ '; color: var(--muted); font-weight: normal; }
+.proj-summary { border: 2px solid var(--ok); border-radius: var(--radius); }
+.proj-summary h2 { margin-top: 0; }
+.proj-summary h2:focus { outline: none; }
+.proj-wrap { line-height: 1.6; }
+.proj-link a { overflow-wrap: anywhere; }

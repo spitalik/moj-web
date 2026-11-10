@@ -169,7 +169,11 @@
       q: T`Dva rovnaké rezistory s odporom $${R}\\,\\Omega$ sú zapojené paralelne (vedľa seba). Aký je celkový odpor $R$ v $\\Omega$?`,
       solution: T`$\\frac{1}{R}=\\frac{1}{${R}}+\\frac{1}{${R}}=\\frac{2}{${R}}$, teda $R=\\frac{${R}}{2}=${R / 2}\\,\\Omega$.`,
       hint: T.s('Pri paralelnom zapojení sčítaj prevrátené hodnoty: $\\frac{1}{R}=\\frac{1}{R_1}+\\frac{1}{R_2}$.'),
-      mistakes: [{ value: 2 * R, msg: T`Odpory si sčítal ako v sérii. Pri paralelnom zapojení sa sčítavajú prevrátené hodnoty.` }]
+      mistakes: [{ value: 2 * R, msg: T`Odpory si sčítal ako v sérii. Pri paralelnom zapojení sa sčítavajú prevrátené hodnoty.` }],
+      steps: [
+        { q: T`Koľko je $\\frac{1}{R_1}+\\frac{1}{R_2}=\\frac{2}{${R}}$ v $\\Omega^{-1}$? (na 3 desatinné miesta)`, answer: 2 / R, tol: 0.001 },
+        { q: T`Aký je celkový odpor $R$ ako prevrátená hodnota tohto súčtu? (v $\\Omega$)`, answer: R / 2 }
+      ]
     };
   });
 
@@ -204,7 +208,11 @@
         q: T`Spotrebič je pripojený na napätie $${U}\\,\\text{V}$ a prechádza ním prúd $${I}\\,\\text{A}$. Aký je jeho výkon $P$ vo $\\text{W}$?`,
         solution: T`$P = U\\,I = ${U}\\,\\text{V}\\cdot ${I}\\,\\text{A} = ${P}\\,\\text{W}$.`,
         hint: T.s('Výkon je súčin napätia a prúdu: $P = U\\,I$.'),
-        mistakes: [{ value: U + I, msg: T`Napätie a prúd si sčítal. Výkon je ich súčin $P = U\\,I$.` }]
+        mistakes: [{ value: U + I, msg: T`Napätie a prúd si sčítal. Výkon je ich súčin $P = U\\,I$.` }],
+        steps: [
+          { q: T`Aký výkon by mal spotrebič pri prúde $1\\,\\text{A}$? (vo $\\text{W}$)`, answer: U },
+          { q: T`Aký je výkon pri prúde $${I}\\,\\text{A}$? (vo $\\text{W}$)`, answer: P }
+        ]
       };
     }
     const P = rnd(1, 5), t = rnd(1, 8), E = P * t;
@@ -216,7 +224,11 @@
       mistakes: [
         { value: P / t, msg: T`Výkon a čas si delil. Energia je súčin $W = P\\,t$.` },
         { value: E * 1000, msg: T`Výsledok si vyjadril vo wattohodinách. Úloha chce kilowatthodiny, a $1\\,\\text{kWh} = 1000\\,\\text{Wh}$.` }
-      ].filter((m) => m.value !== E)
+      ].filter((m) => m.value !== E),
+      steps: [
+        { q: T`Koľko kilowatthodín spotrebuje spotrebič za $1\\,\\text{h}$?`, answer: P },
+        { q: T`Koľko kilowatthodín spotrebuje za $${t}\\,\\text{h}$?`, answer: E }
+      ]
     };
   });
 
@@ -260,7 +272,11 @@
         solution: T`$B=\\frac{\\mu_0 I}{2\\pi r}=2\\cdot 10^{-7}\\cdot\\frac{${I}}{${dm(r)}}\\,\\text{T}=${fmt(ans)}\\,\\mu\\text{T}$.`,
         hint: T.s('Pre priamy vodič je $B=\\frac{\\mu_0 I}{2\\pi r}$ a $\\frac{\\mu_0}{2\\pi}=2\\cdot 10^{-7}\\,\\text{T·m/A}$.'),
         mistakes: [{ value: Math.round(0.2 * I * 1e6) / 1e6, msg: T`Zabudol si deliť vzdialenosťou $r$. Indukcia s rastúcou vzdialenosťou klesá, preto je $r$ v menovateli.` }]
-          .filter((m) => m.value !== ans)
+          .filter((m) => m.value !== ans),
+        steps: [
+          { q: T`Koľko je $\\frac{I}{r}=\\frac{${I}}{${dm(r)}}$ v $\\text{A/m}$?`, answer: I / r, tol: 0.01 },
+          { q: T`Aká je indukcia $B=2\\cdot 10^{-7}\\cdot\\frac{I}{r}$ v $\\mu\\text{T}$?`, answer: ans, tol: 0.005 }
+        ]
       };
     }
     const N = pick([100, 200, 300, 500, 1000]), l = pick([0.2, 0.25, 0.4, 0.5]), I = pick([1, 2, 3, 5]);
@@ -271,7 +287,11 @@
       q: T`Cievka má $${N}$ závitov na dĺžke $${dm(l)}\\,\\text{m}$ a prechádza ňou prúd $${I}\\,\\text{A}$. Aká je magnetická indukcia $B$ vo vnútri cievky v teslach? Použi $\\mu_0 \\approx 1{,}26\\cdot 10^{-6}\\,\\text{T·m/A}$.`,
       solution: T`$B=\\mu_0\\frac{N}{l}I=1{,}26\\cdot 10^{-6}\\cdot\\frac{${N}}{${dm(l)}}\\cdot ${I}\\approx ${dm(ans * 1000)}\\,\\text{mT}$.`,
       hint: T.s('Vnútri cievky je pole rovnomerné: $B=\\mu_0\\frac{N}{l}I$.'),
-      mistakes: [{ value: Number((ans * l).toPrecision(3)), msg: T`Zabudol si deliť dĺžkou cievky. Počet závitov na jednotku dĺžky je $\\frac{N}{l}$.` }]
+      mistakes: [{ value: Number((ans * l).toPrecision(3)), msg: T`Zabudol si deliť dĺžkou cievky. Počet závitov na jednotku dĺžky je $\\frac{N}{l}$.` }],
+      steps: [
+        { q: T`Koľko závitov pripadá na jeden meter cievky, teda koľko je $\\frac{N}{l}$?`, answer: N / l, tol: 0.01 },
+        { q: T`Aká je indukcia $B=\\mu_0\\frac{N}{l}I$ v teslach?`, answer: ans, tol: ans * 0.02 }
+      ]
     };
   });
 
@@ -359,6 +379,10 @@
         mistakes: [
           { value: Uef, msg: T`Zabudol si vynásobiť odmocninou z dvoch. Amplitúda je väčšia ako efektívna hodnota.` },
           { value: Uef * 2, msg: T`Vynásobil si dvomi namiesto $\\sqrt{2}$. Správny koeficient je približne $1{,}41$.` }
+        ],
+        steps: [
+          { q: T`Koľko je $\\sqrt{2}$? (na 2 desatinné miesta)`, answer: 1.41, tol: 0.006 },
+          { q: T`Aká je amplitúda $U_{max}=${Uef}\\cdot\\sqrt{2}$ v $\\text{V}$? (na 1 desatinné miesto)`, answer: ans, tol: 0.1 }
         ]
       };
     }
@@ -458,7 +482,11 @@
         mistakes: [
           { value: Math.round((f * a / (a + f)) * 1e6) / 1e6, msg: T`Znamienko si zamenil. Vzťah je $\\frac{1}{b}=\\frac{1}{f}-\\frac{1}{a}$, nie súčet.` },
           { value: a - f, msg: T`Vzdialenosť obrazu nie je rozdiel predmetu a ohniska. Použi zobrazovaciu rovnicu.` }
-        ].filter((m) => m.value !== b)
+        ].filter((m) => m.value !== b),
+        steps: [
+          { q: T`Koľko je $\\frac{1}{f}-\\frac{1}{a}=\\frac{1}{${f}}-\\frac{1}{${a}}$? (na 4 desatinné miesta)`, answer: 1 / f - 1 / a, tol: 0.0001 },
+          { q: T`Aká je vzdialenosť obrazu $b$ ako prevrátená hodnota tohto čísla? (v cm)`, answer: b }
+        ]
       };
     }
     const ans = Math.round((b / a) * 100) / 100;

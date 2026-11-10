@@ -38,7 +38,11 @@
       mistakes: [
         { value: h, msg: T`Zabudol si gravitačné zrýchlenie. Pretlak je $\\rho g h$, nie len hĺbka $h$.` },
         { value: 9.81 * h * 1000, msg: T`Výsledok je v pascaloch. Zadanie chce kilopascaly, vydeľ tisíckami.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Aký je pretlak $p=\\rho g h$ v pascaloch?`, answer: 9810 * h, tol: 0.5 },
+        { q: T`Koľko je to kilopascalov?`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -70,7 +74,11 @@
       mistakes: [
         { value: n, msg: T`Zabudol si gravitačné zrýchlenie. Vztlak je $\\rho g V$.` },
         { value: 1000 * 9.81 * n, msg: T`Objem si nepremenil na metre kubické. Jeden decimeter kubický je $0{,}001\\,\\text{m}^3$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko metrov kubických je objem $${n}\\,\\text{dm}^3$?`, answer: n / 1000, tol: 1e-6 },
+        { q: T`Aká je vztlaková sila $F_{vz}=\\rho\\,g\\,V$ v newtonoch?`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -104,7 +112,11 @@
       mistakes: [
         { value: v1 * a2 / a1, msg: T`Pomer prierezov si obrátil. Užší úsek má väčšiu rýchlosť, preto $v_2$ rastie.` },
         { value: v1, msg: T`Rýchlosť sa nezmenila? Zmenil sa prierez, a preto sa musí zmeniť aj rýchlosť.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľkokrát je prierez $S_1$ väčší ako $S_2$?`, answer: a1 / a2, tol: 1e-6 },
+        { q: T`Aká je rýchlosť $v_2=v_1\\frac{S_1}{S_2}$ v m/s?`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -137,7 +149,12 @@
       mistakes: [
         { value: 0.5 * (v1 * v1 + v2 * v2), msg: T`Rozdiel tlakov vyjadruje rozdiel rýchlostí, nie ich súčet.` },
         { value: 0.5 * (v2 - v1) * (v2 - v1), msg: T`Najprv odčítaj rýchlosti a až potom umocni. Bernoulli používa rozdiel druhých mocnín $v_2^2-v_1^2$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je $v_2^2-v_1^2$ v $\\text{m}^2/\\text{s}^2$?`, answer: v2 * v2 - v1 * v1 },
+        { q: T`Aký je rozdiel tlakov $p_1-p_2=\\frac{1}{2}\\rho\\left(v_2^2-v_1^2\\right)$ v pascaloch?`, answer: 500 * (v2 * v2 - v1 * v1) },
+        { q: T`Koľko je to kilopascalov?`, answer: ans, tol: 0.001 }
+      ]
     };
   });
 
@@ -171,7 +188,11 @@
       mistakes: [
         { value: 2 * ans, msg: T`Dosadil si priemer namiesto polomeru. Vo vzorci je $r$ polomer, priemer je $2r$.` },
         { value: ans / Math.PI, msg: T`Zabudol si násobiť číslom $\\pi$. Vzorec je $F=6\\pi\\eta r v$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je súčin $\\eta\\,r\\,v$ v milinewtonoch?`, answer: Math.round(eta * r * v * 1e6) / 1000, tol: 1e-3 },
+        { q: T`Koľko je $F=6\\pi\\,\\eta\\,r\\,v$ v milinewtonoch? Zaokrúhli na 1 desatinné miesto.`, answer: ans, tol: 0.05 }
+      ]
     };
   });
 
@@ -206,7 +227,11 @@
         // typické chyby: zabudnutá viskozita v menovateli
         mistakes: [
           { value: 1000 * v * d, msg: T`Zabudol si deliť viskozitou $\\eta$. Vzorec je $\\frac{\\rho v d}{\\eta}$.` }
-        ].filter((m) => m.value !== ans)
+        ].filter((m) => m.value !== ans),
+        steps: [
+          { q: T`Koľko je súčin $\\rho\\,v\\,d$ v jednotkách SI?`, answer: Math.round(1000 * v * d * 1000) / 1000, tol: 1e-3 },
+          { q: T`Koľko je $\\text{Re}=\\frac{\\rho v d}{\\eta}$? Zaokrúhli na celé číslo.`, answer: ans }
+        ]
       };
     }
     const re = pick([1200, 1800, 3000, 50000, 120000]);
@@ -255,7 +280,12 @@
       mistakes: [
         { value: 1.2 * v * v, msg: T`Zabudol si polovicu vo vzorci $\\frac{1}{2}$.` },
         { value: 0.3 * v, msg: T`Odpor nerastie lineárne s rýchlosťou, ale s jej druhou mocninou.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je súčin $\\frac{1}{2}c_w\\rho S$ v $\\text{kg/m}$?`, answer: 0.6, tol: 1e-6 },
+        { q: T`Koľko je $v^2$ v $\\text{m}^2/\\text{s}^2$?`, answer: v * v },
+        { q: T`Aký je odpor $F$ v newtonoch?`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 })();

@@ -99,6 +99,9 @@
   }
 
   function start(kind, title, lessons, minutes) {
+    APP.need(lessons.map((l) => l.id), () => startRun(kind, title, lessons, minutes));
+  }
+  function startRun(kind, title, lessons, minutes) {
     const t0 = Date.now();
     APP.setPage(`<nav class="crumbs"><a href="#/testy">${esc(t('testsTitle'))}</a></nav>
       <h1>📝 ${esc(title)}</h1><div id="pw"></div>`);

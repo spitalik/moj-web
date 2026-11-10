@@ -493,8 +493,5 @@
     'v1v4-vlakno': 'Svetlo sa v jadre udržuje úplným odrazom, lebo dopadá pod uhlom väčším než kritický uhol, kde sin α_c = n₂/n₁.'
   };
 
-  LESSONS.forEach((l) => {
-    const fig = ATTACH[l.id];
-    if (fig) l.theory.push({ fig, caption: CAPTIONS[fig] });
-  });
+  FIGURES.attach(ATTACH, CAPTIONS);
 })();

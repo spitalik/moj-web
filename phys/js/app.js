@@ -76,15 +76,22 @@
   };
   const progressMeta = (ls) => t('progressMeta', { m: masteredCount(ls), p: practicedCount(ls) });
 
-  // Predpoklady lekcie: explicitné pole prereq, inak predchádzajúca lekcia v tej istej téme.
+  // Predpoklady lekcie: explicitné pole prereq, inak predchádzajúca lekcia v tej istej téme
+  // a medzitémové nadväznosti z js/nadvaznosti.js (bez duplicít).
   function prereqs(id) {
     const L = lessonById(id);
     if (L && Array.isArray(L.prereq)) return L.prereq.map(lessonById).filter(Boolean);
-    const th = themeOf(id);
-    if (!th) return [];
-    const tl = themeLessons(th), j = tl.findIndex((l) => l.id === id);
-    return j > 0 ? [tl[j - 1]] : [];
+    const th = themeOf(id), out = [];
+    if (th) {
+      const tl = themeLessons(th), j = tl.findIndex((l) => l.id === id);
+      if (j > 0) out.push(tl[j - 1]);
+    }
+    const extra = (window.NADVAZNOSTI && NADVAZNOSTI.lessons && NADVAZNOSTI.lessons[id]) || [];
+    extra.map(lessonById).forEach((p) => { if (p && !out.includes(p)) out.push(p); });
+    return out;
   }
+  // Lekcie, ktoré na danej lekcii priamo stavajú (opak prereqs).
+  const dependents = (id) => LESSONS.filter((l) => prereqs(l.id).some((p) => p.id === id));
 
   // Zvolené zobrazenie hlavnej stránky (len pohodlie, predvolené sú témy).
   const VIEW_KEY = 'fyzika.view';
@@ -113,6 +120,27 @@
     if (window.FIGURES) app.querySelectorAll('[data-fig]').forEach((el) => FIGURES.mount(el));
     renderMath(app);
     window.scrollTo(0, 0);
+  }
+
+  /* ---------- lenivé načítanie ročníkov (js/nacitanie.js) ----------
+     need(ids, render): ak sú lekcie načítané, vykreslí hneď (synchrónne); inak ukáže „Načítavam…“,
+     počká na súbory ročníkov a vykreslí, ak používateľ medzitým neodišiel na inú stránku.
+     ids = pole id lekcií alebo 'all'. */
+  function need(ids, render) {
+    const R = window.ROCNIKY;
+    const all = ids === 'all';
+    if (!R || (!all && R.ready(ids)) || (all && R.loaded().length === Object.keys(LESSON_INDEX.files).length)) return render();
+    const hash = location.hash;
+    setPage(`<p class="muted loading-page" role="status">${esc(t('loading'))}</p>`);
+    (all ? R.needAll() : R.need(ids)).then(() => {
+      if (location.hash === hash) render();
+    }, (e) => {
+      console.error(e);
+      if (location.hash !== hash) return;
+      setPage(`<div class="notice" role="alert"><p>${esc(t('loadFailed'))}</p>
+        <p><button class="btn btn-primary" type="button" id="load-retry">${esc(t('loadRetry'))}</button></p></div>`);
+      document.getElementById('load-retry').addEventListener('click', () => need(ids, render));
+    });
   }
 
   /* ---------- rozšírenia ---------- */
@@ -365,8 +393,8 @@
     }
     if (parts[0] === 'uroven' && levelById(parts[1])) return showLevel(parts[1]);
     if (parts[0] === 'tema' && themeById(parts[1])) return showTheme(parts[1]);
-    if (parts[0] === 'lekcia' && lessonById(parts[1])) return showLesson(parts[1]);
-    if (parts[0] === 'precvicuj' && lessonById(parts[1])) return showPractice(parts[1]);
+    if (parts[0] === 'lekcia' && lessonById(parts[1])) return need([parts[1]], () => showLesson(parts[1]));
+    if (parts[0] === 'precvicuj' && lessonById(parts[1])) return need([parts[1]], () => showPractice(parts[1]));
     return showHome();
   }
 
@@ -449,7 +477,7 @@
     setLangOpen(false);
     langBtn.focus();
     // preklady obsahu sa pre nový jazyk najprv načítajú, potom sa stránka prekreslí
-    CONTENT_I18N.load(opt.dataset.code).then(() => {
+    (window.ROCNIKY ? ROCNIKY.switchLang(opt.dataset.code) : CONTENT_I18N.load(opt.dataset.code)).then(() => {
       applyStatic();
       const y = window.scrollY;
       route();
@@ -510,7 +538,7 @@
     levelById, lessonById, groupById, lessonsOf, allOrdered,
     themeById, themeOf, themeLessons, THEMES: THEME_LIST,
     lvName, thName, grName, shortLevel, tr, lessonTitle, langOf, contentLang, htmlLang, contentNotice,
-    stateBadge, lessonStat, progressBar, progressMeta, prereqs,
+    stateBadge, lessonStat, progressBar, progressMeta, prereqs, dependents, need,
     route: (name, fn) => { routes[name] = fn; },
     addMenu: (item) => { menu.push(item); },
     addHomePanel: (fn) => { homePanels.push(fn); },

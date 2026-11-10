@@ -77,7 +77,11 @@
       answer: v,
       solution: T`$v=\\lambda\\cdot f=${M(lam)}\\cdot ${f}=${v}\\,\\text{m/s}$.`,
       hint: T`Rýchlosť vlny je súčin vlnovej dĺžky a frekvencie: $v=\\lambda\\cdot f$.`,
-      mistakes: keep([{ value: f / lam, msg: T`Delil si frekvenciu vlnovou dĺžkou. Pre rýchlosť platí $v=\\lambda\\cdot f$, teda násobíme.` }], v)
+      mistakes: keep([{ value: f / lam, msg: T`Delil si frekvenciu vlnovou dĺžkou. Pre rýchlosť platí $v=\\lambda\\cdot f$, teda násobíme.` }], v),
+      steps: [
+        { q: T`Koľko vlnových dĺžok prejde daným bodom za $1\\,\\text{s}$?`, answer: f },
+        { q: T`Koľko metrov za sekundu to je, ak má každá vlnová dĺžka $${M(lam)}\\,\\text{m}$?`, answer: v }
+      ]
     };
   });
 
@@ -109,7 +113,11 @@
       choiceHints: { [wrong]: T`Zosilnenie nastáva pri celočíselnom násobku vlnovej dĺžky, zoslabenie pri polovičnom nepárnom násobku.` },
       q: T`Dve koherentné vlny s vlnovou dĺžkou $\\lambda=${M(lam)}\\,\\text{m}$ sa v bode stretnú s dráhovým rozdielom $\\Delta d=${M(dd)}\\,\\text{m}$. Nastane zosilnenie, alebo zoslabenie?`,
       solution: T`$\\frac{\\Delta d}{\\lambda}=${M(dd / lam)}$. ${half === 1 ? T`Ide o nepárny násobok polovice vlnovej dĺžky, nastáva zoslabenie.` : T`Ide o celočíselný násobok vlnovej dĺžky, nastáva zosilnenie.`}`,
-      hint: T`Vydeľ dráhový rozdiel vlnovou dĺžkou. Celé číslo znamená zosilnenie, číslo končiace na $\\frac{1}{2}$ zoslabenie.`
+      hint: T`Vydeľ dráhový rozdiel vlnovou dĺžkou. Celé číslo znamená zosilnenie, číslo končiace na $\\frac{1}{2}$ zoslabenie.`,
+      steps: [
+        { q: T`Koľko je podiel $\\frac{\\Delta d}{\\lambda}$?`, answer: m + 0.5 * half, tol: 0.001 },
+        { q: T`Podiel je celé číslo, alebo celé číslo a polovica? Čo teda nastane?`, type: 'choice', options: [ZOS, ZOL], answer }
+      ]
     };
   });
 
@@ -139,7 +147,12 @@
       mistakes: keep([
         { value: I0 * (1 - c2), msg: T`Použil si $\\sin^2\\varphi$ namiesto $\\cos^2\\varphi$. Malusov zákon používa kosínus.` },
         { value: I0 * Math.sqrt(c2), msg: T`Zabudol si umocniť kosínus na druhú. Platí $I=I_0\\cos^2\\varphi$, nie $I_0\\cos\\varphi$.` }
-      ], I)
+      ], I),
+      steps: [
+        { q: T`Koľko je $\\cos\\varphi$ pre $\\varphi=${deg}^\\circ$? (na 3 desatinné miesta)`, answer: Math.round(Math.cos(deg * Math.PI / 180) * 1000) / 1000, tol: 0.001 },
+        { q: T`Koľko je $\\cos^2\\varphi$?`, answer: c2, tol: 0.01 },
+        { q: T`Aká je intenzita $I=${I0}\\cdot\\cos^2\\varphi$?`, answer: I }
+      ]
     };
   });
 
@@ -169,7 +182,11 @@
       mistakes: keep([
         { value: 3 * n, msg: T`Vynásobil si index lomu. Platí $v=\\frac{c}{n}$, teda deliť.` },
         { value: 3, msg: T`Dosadil si rýchlosť vo vákuu. V látke sa svetlo spomalí o faktor $n$.` }
-      ], ans, 0.05)
+      ], ans, 0.05),
+      steps: [
+        { q: T`Akú rýchlosť má svetlo vo vákuu v jednotkách $10^{8}\\,\\text{m/s}$?`, answer: 3 },
+        { q: T`Aká je rýchlosť v látke $v=\\frac{3}{${M(n)}}$ v jednotkách $10^{8}\\,\\text{m/s}$? (na 2 desatinné miesta)`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -201,7 +218,11 @@
       mistakes: keep([
         { value: (a * f) / (a + f), msg: T`Zamenil si znamienko pri ohnisku: správne je $\\frac{1}{b}=\\frac{1}{f}-\\frac{1}{a}$, nie $\\frac{1}{f}+\\frac{1}{a}$.` },
         { value: f, msg: T`Hodnota $f$ je ohnisková vzdialenosť, nie vzdialenosť obrazu. Obraz dopočítaj zo zobrazovacej rovnice.` }
-      ], b)
+      ], b),
+      steps: [
+        { q: T`Koľko je $\\frac{1}{f}-\\frac{1}{a}=\\frac{1}{${f}}-\\frac{1}{${a}}$? (na 4 desatinné miesta)`, answer: 1 / f - 1 / a, tol: 0.0001 },
+        { q: T`Aká je vzdialenosť obrazu $b$ ako prevrátená hodnota tohto čísla? (v cm)`, answer: b }
+      ]
     };
   });
 
@@ -231,7 +252,11 @@
         hint: T`Pre svetlo platí $c=\\lambda\\cdot f$. Nanometer je $10^{-9}\\,\\text{m}$, takže ho najprv prepíš na metre.`,
         mistakes: keep([
           { value: lam / 1000, msg: T`Pomýlil si prevod jednotiek. Vlnová dĺžka je v nanometroch, $1\\,\\text{nm}=10^{-9}\\,\\text{m}$.` }
-        ], ans, 0.05)
+        ], ans, 0.05),
+        steps: [
+          { q: T`Koľko metrov je $${lam}\\,\\text{nm}$? Zadaj v násobkoch $10^{-7}\\,\\text{m}$.`, answer: lam / 100, tol: 0.001 },
+          { q: T`Aká je frekvencia $f=\\frac{c}{\\lambda}$ v jednotkách $10^{14}\\,\\text{Hz}$? (na 2 desatinné miesta)`, answer: ans, tol: 0.01 }
+        ]
       };
     }
     const f = pick([25, 50, 100, 125, 250]);

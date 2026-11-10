@@ -126,7 +126,11 @@
       mistakes: [
         { value: ans / 2, msg: T`Vo vzorci $r_s=\\frac{2GM}{c^2}$ nesmieš zabudnúť dvojku v čitateli.` },
         { value: 2 * ans, msg: T`Dostal si priemer horizontu. Vzorec dáva polomer $r_s$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Aký je Schwarzschildov polomer Slnka v km? Zaokrúhli na 2 desatinné miesta.`, answer: 2.95, tol: 0.01 },
+        { q: T`Aký je polomer čiernej diery s hmotnosťou $${n}\\,M_\\odot$ v km, ak je úmerný hmotnosti?`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -158,7 +162,11 @@
       // typické chyby: pomer polomerov bez umocnenia na druhú
       mistakes: [
         { value: 100 / k, msg: T`Zabudol si umocniť pomer polomerov na druhú. Jas závisí od plochy, nie od polomeru.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je pomer plôch kotúčov $\\left(\\frac{1}{${k}}\\right)^2$ ako desatinné číslo?`, answer: 1 / (k * k), tol: 1e-6 },
+        { q: T`O koľko percent klesne jas?`, answer: ans, tol: 1e-6 }
+      ]
     };
   });
 
@@ -190,7 +198,11 @@
       mistakes: [
         { value: d / 70, msg: T`Vzdialenosť si vydelil Hubbleovou konštantou. Vzťah je $v=H_0\\,d$, rýchlosť dostaneš vynásobením.` },
         { value: d, msg: T`Zabudol si Hubbleovu konštantu $H_0=70\\,\\text{km/s/Mpc}$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Akou rýchlosťou v km/s by sa vzďaľovala galaxia vzdialená $1\\,\\text{Mpc}$?`, answer: 70 },
+        { q: T`Akou rýchlosťou v km/s sa vzďaľuje galaxia vzdialená $${d}\\,\\text{Mpc}$?`, answer: ans }
+      ]
     };
   });
 
@@ -223,7 +235,11 @@
       mistakes: [
         { value: T0 / (1 + z), msg: T`Obrátil si vzťah. V minulosti bolo žiarenie teplejšie, teplota rástla s $z$.` },
         { value: T0 * z, msg: T`Zabudol si pripočítať 1 v zátvorke: $(1+z)$, nie $z$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko je $1+z$?`, answer: 1 + z },
+        { q: T`Aká je teplota $T(z)=T_0(1+z)$ v kelvinoch?`, answer: ans, tol: 0.001 }
+      ]
     };
   });
 
@@ -255,7 +271,11 @@
       // typické chyby: podiel hmoty namiesto zvyšku; zabudnutá celková hustota
       mistakes: [
         { value: om, msg: T`To je iba hmota $\\Omega_m$. Temná energia je zvyšok do celkovej hustoty $\\Omega=1$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Akú celkovú hustotu $\\Omega$ má plochý vesmír?`, answer: 1 },
+        { q: T`Koľko je $\\Omega_\\Lambda=\\Omega-\\Omega_m$?`, answer: ans, tol: 0.001 }
+      ]
     };
   });
 

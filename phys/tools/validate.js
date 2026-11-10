@@ -19,8 +19,11 @@ const missingFor = (() => { const k = process.argv.indexOf('--missing'); return 
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 // skripty rozhrania (potrebujú prehliadač) – validátor načíta len obsah a logiku úloh
-const UI_SCRIPTS = ['js/app.js', 'js/store.js', 'js/keypad.js', 'js/scratchpad.js', 'js/tts.js', 'js/widget.js'];
+const UI_SCRIPTS = ['js/app.js', 'js/store.js', 'js/keypad.js', 'js/scratchpad.js', 'js/tts.js', 'js/widget.js', 'js/nacitanie.js'];
 const scripts = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map((m) => m[1]).filter((s) => !UI_SCRIPTS.includes(s) && !s.startsWith('js/features/'));
+// ročníky sa v prehliadači načítajú lenivo (js/nacitanie.js); validátor ich načíta všetky na pôvodnom mieste (za js/simulacie.js)
+const INDEX_TOOL = require('./index_build.js');
+scripts.splice(scripts.indexOf('js/simulacie.js') + 1, 0, ...INDEX_TOOL.FILES.map((f) => `js/rocniky/${f}.js`));
 // preklady obsahu sa v prehliadači načítajú len pre zvolený jazyk; validátor načíta všetky (--lang <kód> = len jeden)
 const noStrings = process.argv.includes('--no-strings');
 const onlyLang = (() => { const k = process.argv.indexOf('--lang'); return k > 0 ? process.argv[k + 1] : missingFor; })();
@@ -105,6 +108,8 @@ function checkExtras(ex, gw) {
     }
   }
   if (ex.choiceHints !== undefined) {
+      // vysvetlenia nesprávnych možností sú typické chyby úloh s výberom
+      if (ex.choiceHints && Object.keys(ex.choiceHints).length) stats.withMistakes.add(ex.lesson);
     Object.entries(ex.choiceHints).forEach(([opt, msg]) => {
       if (!(ex.options || []).includes(opt)) err(gw, `choiceHints: možnosť „${opt}“ neexistuje`);
       if (opt === ex.answer) err(gw, 'choiceHints nemá vysvetľovať správnu možnosť');
@@ -208,6 +213,71 @@ if (global.SYMBOLS) {
   }
 }
 
+// Projekty z praxe (js/projekty.js): 200 semienok na projekt – 3–6 krokov, konečné odpovede, ktoré prejdú kontrolou,
+// párne $, existujúce lekcie, rovnaké semienko = rovnaké zadanie, typické chyby nie sú správnou odpoveďou.
+// V jazykoch, ktoré majú balík projekty.js, aj chýbajúce preklady textov (T`…`, T.s) a slovenčina vo výstupe.
+if (global.PROJECTS && global.PROJECTS_API) {
+  const PCI = global.CONTENT_I18N;
+  const RUNS = 200;
+  const pids = new Set();
+  const langs = ['sk', ...(PCI ? PCI.languages().filter((l) => fs.existsSync(path.join(ciDir, l, 'projekty.js'))) : [])];
+  for (const p of PROJECTS) {
+    const w = `projekt ${p.id}`;
+    if (pids.has(p.id)) err(w, 'duplicitné id');
+    pids.add(p.id);
+    if (!['zs', 'ss', 'vs'].includes(p.level)) err(w, `neznáma úroveň ${p.level}`);
+    if (!Array.isArray(p.grades) || p.grades.length !== 2 || !(p.grades[0] <= p.grades[1])) err(w, 'grades musí byť [od, do]');
+    if (!p.title || !p.icon) err(w, 'chýba title alebo icon');
+    if (!Array.isArray(p.lessons) || p.lessons.length < 1 || p.lessons.length > 3) err(w, 'lessons musí mať 1–3 lekcie');
+    (p.lessons || []).forEach((id) => { if (!seen.has(id)) err(w, `neexistujúca lekcia ${id}`); });
+    for (const lang of langs) {
+      const lw = `${w} (${lang})`;
+      const m0 = PCI ? PCI.misses.length : 0;
+      const LEAK = lang === 'en' ? /[áäčďíĺľňôŕšťúýž]/i : /[čďĺľňŕšťž]/i;
+      const leak = (where, s) => {
+        if (lang === 'sk') return;
+        const m = String(s).replace(/<[^>]*>/g, ' ').match(LEAK);
+        if (m) err(where, `slovenský text v preklade („${m[0]}“): ${String(s).slice(0, 120)}`);
+      };
+      for (let r = 1; r <= RUNS; r++) {
+        const before = errors.length;
+        let pr;
+        try { pr = PROJECTS_API.make(p.id, lang, r * 7919); } catch (e) { err(lw, `generovanie spadlo (semienko ${r * 7919}): ${e.message}`); break; }
+        const gw = `${lw} semienko ${r * 7919}`;
+        ['title', 'story', 'wrap'].forEach((k) => { checkText(`${gw} ${k}`, pr[k]); leak(`${gw} ${k}`, pr[k]); });
+        if (!Array.isArray(pr.steps) || pr.steps.length < 3 || pr.steps.length > 6) { err(gw, `projekt má mať 3–6 krokov, má ${(pr.steps || []).length}`); break; }
+        pr.steps.forEach((s, i) => {
+          const sw = `${gw} krok ${i + 1}`;
+          for (const k of ['q', 'hint', 'solution']) {
+            if (!s[k]) err(sw, `chýba ${k}`);
+            else { checkText(`${sw} ${k}`, s[k]); leak(`${sw} ${k}`, s[k]); }
+          }
+          if (s.show !== undefined) checkText(`${sw} show`, String(s.show));
+          if (s.type === 'choice') (s.options || []).forEach((o) => leak(`${sw} možnosť`, o));
+          if (s.type === 'num' && s.answer < 0 && !s.signed) err(sw, 'záporná odpoveď bez signed: true');
+          if (s.lang !== lang) err(sw, `krok nebeží v jazyku ${lang}`);
+          checkAnswer(s, sw);
+          (s.mistakes || []).forEach((m, j) => {
+            const c = EXERCISES.canonical(Object.assign({}, s, { answer: m.value }));
+            if (EXERCISES.check(s, c) === true) err(sw, `typická chyba ${j + 1} („${c}“) je zároveň správna odpoveď`);
+            checkText(`${sw} chyba ${j + 1}`, m.msg); leak(`${sw} chyba ${j + 1}`, m.msg);
+          });
+        });
+        if (errors.length > before) break; // jedna chyba na projekt a jazyk stačí
+      }
+      try {
+        const a = PROJECTS_API.make(p.id, lang, 4242), b = PROJECTS_API.make(p.id, lang, 4242);
+        if (JSON.stringify(a) !== JSON.stringify(b)) err(lw, 'zadanie nie je deterministické pri rovnakom semienku');
+      } catch (e) { /* hlásené vyššie */ }
+      const miss = PCI ? PCI.misses.slice(m0).filter((m) => m.lang === lang) : [];
+      if (lang !== 'sk' && miss.length) {
+        err(lw, `${new Set(miss.map((m) => m.key)).size} textov bez prekladu, napr.: ${miss.slice(0, 3).map((m) => `„${m.key.slice(0, 70)}“`).join(', ')}`);
+      }
+    }
+  }
+  console.log(`Projekty z praxe: ${PROJECTS.length} (jazyky: ${langs.join(', ')})`);
+}
+
 // Témy: každá lekcia práve v jednej téme, žiadne neexistujúce id.
 if (global.THEMES) {
   const owner = new Map();
@@ -221,6 +291,70 @@ if (global.THEMES) {
   for (const L of LESSONS) if (!owner.has(L.id)) err(`lekcia ${L.id}`, 'nie je zaradená do žiadnej témy (js/temy.js)');
 } else {
   warnings.push('chýba js/temy.js');
+}
+
+// Nadväznosti (js/nadvaznosti.js): existujúce id, predpoklad je v učive skôr, graf tém aj lekcií bez cyklov.
+if (global.NADVAZNOSTI && global.THEMES) {
+  const N = NADVAZNOSTI, w = 'nadväznosti';
+  const ordLv = (lv) => LESSONS.filter((l) => l.level === lv).sort((a, b) => (a.order ?? 1000) - (b.order ?? 1000));
+  const pos = new Map(LEVELS.flatMap((lv) => ordLv(lv.id)).map((l, i) => [l.id, i]));
+  const thById = new Map(THEMES.map((th) => [th.id, th]));
+  const span = (th) => { const p = th.lessons.map((id) => pos.get(id)).filter((x) => x !== undefined); return [Math.min(...p), Math.max(...p)]; };
+  // cyklus v orientovanom grafe (uzol → predpoklady); vráti cestu cyklu alebo null
+  const findCycle = (nodes, edges) => {
+    const st = new Map(), stack = [];
+    const dfs = (v) => {
+      st.set(v, 1); stack.push(v);
+      for (const u of edges(v)) {
+        if (st.get(u) === 1) return [...stack.slice(stack.indexOf(u)), u];
+        if (!st.get(u)) { const c = dfs(u); if (c) return c; }
+      }
+      st.set(v, 2); stack.pop();
+      return null;
+    };
+    for (const v of nodes) if (!st.get(v)) { const c = dfs(v); if (c) return c; }
+    return null;
+  };
+  const themes = N.themes || {}, lessons = N.lessons || {};
+  for (const [tid, deps] of Object.entries(themes)) {
+    if (!thById.has(tid)) { err(w, `neexistujúca téma ${tid}`); continue; }
+    if (!Array.isArray(deps)) { err(w, `téma ${tid}: predpoklady nie sú pole`); continue; }
+    if (new Set(deps).size !== deps.length) err(w, `téma ${tid}: opakovaný predpoklad`);
+    for (const d of deps) {
+      if (!thById.has(d)) err(w, `téma ${tid}: neexistujúca téma ${d}`);
+      else if (d === tid) err(w, `téma ${tid} stavia sama na sebe`);
+      // téma-predpoklad musí začínať skôr, než téma skončí
+      else if (span(thById.get(d))[0] >= span(thById.get(tid))[1]) err(w, `téma ${tid}: predpoklad ${d} začína až po jej konci`);
+    }
+  }
+  for (const th of THEMES) if (!themes[th.id]) warnings.push(`nadväznosti: téma ${th.id} nemá uvedené predpoklady`);
+  const cT = findCycle(Object.keys(themes).filter((x) => thById.has(x)), (v) => (themes[v] || []).filter((x) => thById.has(x)));
+  if (cT) err(w, `cyklus tém: ${cT.join(' → ')}`);
+  const thOf = new Map(THEMES.flatMap((th) => th.lessons.map((id) => [id, th])));
+  for (const [id, deps] of Object.entries(lessons)) {
+    if (!pos.has(id)) { err(w, `neexistujúca lekcia ${id}`); continue; }
+    if (!Array.isArray(deps)) { err(w, `lekcia ${id}: predpoklady nie sú pole`); continue; }
+    if (new Set(deps).size !== deps.length) err(w, `lekcia ${id}: opakovaný predpoklad`);
+    for (const d of deps) {
+      if (!pos.has(d)) err(w, `lekcia ${id}: neexistujúci predpoklad ${d}`);
+      else if (pos.get(d) >= pos.get(id)) err(w, `lekcia ${id}: predpoklad ${d} nie je v učive skôr`);
+    }
+  }
+  // celý graf predpokladov tak, ako ho skladá APP.prereqs (L.prereq, inak predchádzajúca v téme + nadväznosti)
+  const pre = (id) => {
+    const L = LESSONS.find((l) => l.id === id);
+    if (L && Array.isArray(L.prereq)) return L.prereq.filter((x) => pos.has(x));
+    const th = thOf.get(id), out = [];
+    if (th) {
+      const tl = th.lessons.filter((x) => pos.has(x)).sort((a, b) => pos.get(a) - pos.get(b)), j = tl.indexOf(id);
+      if (j > 0) out.push(tl[j - 1]);
+    }
+    return out.concat((lessons[id] || []).filter((x) => pos.has(x)));
+  };
+  const cL = findCycle([...pos.keys()], pre);
+  if (cL) err(w, `cyklus predpokladov lekcií: ${cL.join(' → ')}`);
+} else if (!global.NADVAZNOSTI) {
+  warnings.push('chýba js/nadvaznosti.js');
 }
 
 // Preklady obsahu (js/content-i18n/<jazyk>/*.js): rovnaká štruktúra ako zdroj (bloky teórie, obrázky s rovnakým fig
@@ -355,6 +489,12 @@ if (global.I18N) {
     for (const lv of LEVELS) if (!(d.levels && Array.isArray(d.levels[lv.id]) && d.levels[lv.id].length === 2)) warnings.push(`${w}: chýba preklad úrovne ${lv.id} [názov, opis]`);
     for (const th of (global.THEMES || [])) if (!(d.topics && Array.isArray(d.topics[th.id]) && d.topics[th.id].length === 2)) warnings.push(`${w}: chýba preklad témy ${th.id} [názov, opis]`);
   }
+}
+
+// index pre lenivé načítanie ročníkov (js/index-lekcii.js, js/content-i18n/<jazyk>/nazvy.js, files.js)
+{
+  const stale = INDEX_TOOL.check();
+  if (stale.length) err('index lekcií', `zastarané ${stale.join(', ')} → spusti node tools/index_build.js`);
 }
 
 const perLevel = LEVELS.map((lv) => `${lv.id}: ${LESSONS.filter((l) => l.level === lv.id).length}`).join(', ');

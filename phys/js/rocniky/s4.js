@@ -52,7 +52,11 @@
       mistakes: [
         { value: Number((ans / 1000).toPrecision(3)), msg: T`Výsledok je v milimetroch, nie v metroch. Vydelil si 1000 navyše.` },
         { value: Number(((k + 0.5) * L * lam / d * 1e-3).toPrecision(3)), msg: T`Použil si vzorec pre tmavé pruhy. Svetlé pruhy vznikajú pre celé $k$: $y_k = k\\,\\frac{\\lambda L}{d}$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Aká je vzdialenosť susedných svetlých pruhov $\\Delta y=\\frac{\\lambda L}{d}$ v $\\text{mm}$?`, answer: L * lam / d * 1e-3, tol: (L * lam / d * 1e-3) * 0.01 },
+        { q: T`Aká je vzdialenosť pruhu rádu $k=${k}$ od stredu v $\\text{mm}$?`, answer: ans, tol: ans * 0.01 }
+      ]
     };
   });
 
@@ -101,7 +105,11 @@
       solution: T`$f=\\frac{c}{\\lambda}=\\frac{3\\cdot 10^{8}}{${lam}\\cdot 10^{-9}}\\,\\text{Hz}=${fmt(f)}\\cdot 10^{14}\\,\\text{Hz}$.`,
       hint: T.s('Frekvencia je $f=\\frac{c}{\\lambda}$. Nezabudni previesť nm na m.'),
       mistakes: [{ value: Number((lam / 3000).toPrecision(3)), msg: T`Frekvencia je $c$ delené vlnovou dĺžkou, nie naopak.` }]
-        .filter((m) => m.value !== f)
+        .filter((m) => m.value !== f),
+      steps: [
+        { q: T`Koľko metrov je $${lam}\\,\\text{nm}$? Zadaj v násobkoch $10^{-7}\\,\\text{m}$.`, answer: lam / 100, tol: 0.001 },
+        { q: T`Aká je frekvencia $f=\\frac{c}{\\lambda}$ v jednotkách $10^{14}\\,\\text{Hz}$? (na 2 desatinné miesta)`, answer: f, tol: 0.01 }
+      ]
     };
   });
 
@@ -141,7 +149,11 @@
         q: T`Atóm vodíka je v hladine $n=${n}$. Vypočítaj absolútnu hodnotu energie $|E_n|$ v $\\text{eV}$. Výsledok zaokrúhli na dve desatinné miesta.`,
         solution: T`$|E_n|=\\frac{13{,}6}{n^2}=\\frac{13{,}6}{${n * n}}\\approx ${dm(ans)}\\,\\text{eV}$.`,
         hint: T.s('Energia hladiny je $E_n=-\\frac{13{,}6}{n^2}$ eV.'),
-        mistakes: [{ value: Math.round((13.6 / n) * 100) / 100, msg: T`Vo vzorci je $n^2$, nie $n$. Energia klesá s druhou mocninou $n$.` }]
+        mistakes: [{ value: Math.round((13.6 / n) * 100) / 100, msg: T`Vo vzorci je $n^2$, nie $n$. Energia klesá s druhou mocninou $n$.` }],
+        steps: [
+          { q: T`Koľko je $n^2$ pre $n=${n}$?`, answer: n * n },
+          { q: T`Koľko je $\\frac{13{,}6}{${n * n}}$ v $\\text{eV}$? (na 2 desatinné miesta)`, answer: ans, tol: 0.01 }
+        ]
       };
     }
     const nf = pick([1, 2]), ni = nf + rnd(1, 3);
@@ -152,7 +164,12 @@
       q: T`Elektrón v atóme vodíka prejde z hladiny $n=${ni}$ na hladinu $n=${nf}$. Akú energiu vyžiari fotón v $\\text{eV}$? Zaokrúhli na dve desatinné miesta.`,
       solution: T`$\\Delta E=13{,}6\\left(\\frac{1}{${nf}^2}-\\frac{1}{${ni}^2}\\right)\\approx ${dm(ans)}\\,\\text{eV}$.`,
       hint: T.s('Energia fotónu je rozdiel hladín: $\\Delta E=13{,}6\\left(\\frac{1}{n_f^2}-\\frac{1}{n_i^2}\\right)$ eV.'),
-      mistakes: [{ value: Math.round(13.6 * (1 / nf - 1 / ni) * 100) / 100, msg: T`V menovateli sú druhé mocniny $n^2$, nie $n$.` }]
+      mistakes: [{ value: Math.round(13.6 * (1 / nf - 1 / ni) * 100) / 100, msg: T`V menovateli sú druhé mocniny $n^2$, nie $n$.` }],
+      steps: [
+        { q: T`Aká je absolútna hodnota energie hladiny $n=${nf}$ v $\\text{eV}$? (na 2 desatinné miesta)`, answer: Math.round((13.6 / (nf * nf)) * 100) / 100, tol: 0.01 },
+        { q: T`Aká je absolútna hodnota energie hladiny $n=${ni}$ v $\\text{eV}$? (na 2 desatinné miesta)`, answer: Math.round((13.6 / (ni * ni)) * 100) / 100, tol: 0.01 },
+        { q: T`Aký je rozdiel týchto energií, teda energia fotónu v $\\text{eV}$?`, answer: ans, tol: 0.01 }
+      ]
     };
   });
 
@@ -205,7 +222,11 @@
       solution: T`$\\frac{N_0}{N}=2^{${n}}=${ratio}$, teda uplynulo $${n}$ polčasov.`,
       hint: T.s('Každý polčas zmenší množstvo dvakrát: po $n$ polčasoch zostane $\\left(\\frac{1}{2}\\right)^n$.'),
       mistakes: [{ value: ratio, msg: T`Pýtame sa na počet polčasov, nie na počet dielov. Pomer $\\frac{N_0}{N}=2^n$ je len medzivýsledok.` }]
-        .filter((x) => x.value !== n)
+        .filter((x) => x.value !== n),
+      steps: [
+        { q: T`Koľkokrát sa množstvo zmenšilo, teda koľko je $\\frac{N_0}{N}$?`, answer: ratio },
+        { q: T`Pre aké $n$ platí $2^n=${ratio}$?`, answer: n }
+      ]
     };
   });
 
@@ -246,7 +267,11 @@
         mistakes: [
           { value: Math.round(dmv * 0.9315 * 1000) / 1000, msg: T`Výsledok si vyjadril v GeV. Úloha chce MeV, a $1\\,\\text{GeV} = 1000\\,\\text{MeV}$.` },
           { value: dmv, msg: T`Zabudol si prepočítať hmotnostný úbytok na energiu faktorom $931{,}5\\,\\text{MeV/u}$.` }
-        ].filter((m) => m.value !== ans)
+        ].filter((m) => m.value !== ans),
+        steps: [
+          { q: T`Koľko MeV zodpovedá hmotnosti $1\\,\\text{u}$?`, answer: 931.5, tol: 0.05 },
+          { q: T`Koľko MeV sa uvoľní pri úbytku $${dm(dmv)}\\,\\text{u}$? (na 1 desatinné miesto)`, answer: ans, tol: 0.1 }
+        ]
       };
     }
     return {
@@ -255,7 +280,11 @@
       q: T`Pri fúzii deutéria s trícium vznikne hélium a neutrón. Hmotnosti pred reakciou sú spolu $5{,}0301\\,\\text{u}$, po reakcii $5{,}0113\\,\\text{u}$. Koľko MeV energie sa uvoľní? Výsledok zaokrúhli na jedno desatinné miesto.`,
       solution: T`$\\Delta m=5{,}0301-5{,}0113=0{,}0188\\,\\text{u}$, teda $\\Delta E=0{,}0188\\cdot 931{,}5\\approx 17{,}5\\,\\text{MeV}$.`,
       hint: T.s('Najprv odčítaj hmotnosti po reakcii od hmotností pred reakciou, potom prepočítaj úbytok na MeV.'),
-      mistakes: [{ value: 0.0188, msg: T`Hmotnostný úbytok je len začiatok. Treba ho prepočítať na energiu faktorom $931{,}5\\,\\text{MeV/u}$.` }]
+      mistakes: [{ value: 0.0188, msg: T`Hmotnostný úbytok je len začiatok. Treba ho prepočítať na energiu faktorom $931{,}5\\,\\text{MeV/u}$.` }],
+      steps: [
+        { q: T`Aký je hmotnostný úbytok $\\Delta m$ v $\\text{u}$?`, answer: 0.0188, tol: 0.00005 },
+        { q: T`Koľko MeV sa uvoľní, ak $\\Delta E=\\Delta m\\cdot 931{,}5\\,\\text{MeV/u}$? (na 1 desatinné miesto)`, answer: 17.5, tol: 0.1 }
+      ]
     };
   });
 
@@ -314,7 +343,11 @@
       solution: T`$\\lambda_{max}=\\frac{b}{T}=\\frac{2{,}9\\cdot 10^{-3}}{${Tk}}\\,\\text{m}=${fmt(lam)}\\,\\text{nm}$.`,
       hint: T.s('Wienov zákon: $\\lambda_{max}=\\frac{b}{T}$. Nezabudni previesť metre na nanometre.'),
       mistakes: [{ value: Tk, msg: T`Výsledok je vlnová dĺžka, nie teplota. Wienov zákon dáva $\\lambda_{max}=\\frac{b}{T}$.` }]
-        .filter((m) => m.value !== lam)
+        .filter((m) => m.value !== lam),
+      steps: [
+        { q: T`Aká je vlnová dĺžka $\\lambda_{max}=\\frac{b}{T}$ v metroch? Zadaj v násobkoch $10^{-7}\\,\\text{m}$.`, answer: lam / 100, tol: 0.01 },
+        { q: T`Koľko nanometrov je to?`, answer: lam, tol: 0.5 }
+      ]
     };
   });
 
@@ -351,7 +384,11 @@
         q: T`Teleso s hmotnosťou $${m}\\,\\text{kg}$ sa pohybuje rýchlosťou $${v}\\,\\text{m/s}$. Aká je jeho kinetická energia v $\\text{J}$?`,
         solution: T`$E_k=\\frac{1}{2}m v^2=\\frac{1}{2}\\cdot ${m}\\cdot ${v}^2=${Ek}\\,\\text{J}$.`,
         hint: T.s('Kinetická energia je $E_k=\\frac{1}{2}m v^2$.'),
-        mistakes: [{ value: m * v * v, msg: T`Zabudol si na $\\frac{1}{2}$ vo vzorci pre kinetickú energiu.` }]
+        mistakes: [{ value: m * v * v, msg: T`Zabudol si na $\\frac{1}{2}$ vo vzorci pre kinetickú energiu.` }],
+        steps: [
+          { q: T`Koľko je $v^2$ pre $v=${v}\\,\\text{m/s}$?`, answer: v * v },
+          { q: T`Koľko je $\\frac{1}{2}\\cdot ${m}\\cdot ${v * v}$ v džouloch?`, answer: Ek }
+        ]
       };
     }
     if (t < 0.5) {
@@ -362,7 +399,11 @@
         solution: T`$U = R\\,I = ${R}\\,\\Omega\\cdot ${I}\\,\\text{A} = ${U}\\,\\text{V}$.`,
         hint: T.s('Ohmov zákon: $U = R\\,I$.'),
         mistakes: [{ value: I / R, msg: T`Napätie je súčin, nie podiel: $U = R\\,I$.` }]
-          .filter((x) => x.value !== U)
+          .filter((x) => x.value !== U),
+        steps: [
+          { q: T`Aké napätie by bolo na rezistore pri prúde $1\\,\\text{A}$? (v $\\text{V}$)`, answer: R },
+          { q: T`Aké je napätie pri prúde $${I}\\,\\text{A}$? (v $\\text{V}$)`, answer: U }
+        ]
       };
     }
     if (t < 0.75) {
@@ -373,7 +414,11 @@
         solution: T`$F = m\\,a = ${mk}\\cdot ${a} = ${F}\\,\\text{N}$.`,
         hint: T.s('Druhý Newtonov zákon: $F = m\\,a$.'),
         mistakes: [{ value: mk + a, msg: T`Hmotnosť a zrýchlenie sa násobia, nesčítavajú: $F = m\\,a$.` }]
-          .filter((x) => x.value !== F)
+          .filter((x) => x.value !== F),
+        steps: [
+          { q: T`Akú silu treba, aby teleso s hmotnosťou $1\\,\\text{kg}$ získalo zrýchlenie $${a}\\,\\text{m/s}^2$? (v newtonoch)`, answer: a },
+          { q: T`Akú silu treba pre teleso s hmotnosťou $${mk}\\,\\text{kg}$? (v newtonoch)`, answer: F }
+        ]
       };
     }
     const tt = rnd(2, 12), P = 10 * rnd(2, 20), W = P * tt;
@@ -426,7 +471,12 @@
       mistakes: [
         { value: Math.round((F / S) * 10) / 10, msg: T`Plochu si nepremenil na $\\text{m}^2$. Výsledok by vyšiel v zlej jednotke a veľkosti.` },
         { value: Math.round((ans * 1000) * 10) / 10, msg: T`Výsledok si vyjadril v paskaloch, ale úloha chce kilopaskaly: $1\\,\\text{kPa}=1000\\,\\text{Pa}$.` }
-      ].filter((m) => m.value !== ans)
+      ].filter((m) => m.value !== ans),
+      steps: [
+        { q: T`Koľko štvorcových metrov je $${S}\\,\\text{cm}^2$?`, answer: S * 1e-4, tol: 1e-7 },
+        { q: T`Aký je tlak $p=\\frac{F}{S}$ v pascaloch?`, answer: F / (S * 1e-4), tol: 1 },
+        { q: T`Koľko kilopascalov je to? (na 1 desatinné miesto)`, answer: ans, tol: 0.05 }
+      ]
     };
   });
 })();

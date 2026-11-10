@@ -115,6 +115,10 @@
       mistakes: [
         ...mis(F + t, dp, T`Silu a čas si sčítal. Zmena hybnosti je ich súčin: $\\Delta p=F\\,\\Delta t$.`),
         ...mis(F / t, dp, T`Silu si vydelil časom. Čím dlhšie sila pôsobí, tým väčšia je zmena hybnosti.`)
+      ],
+      steps: [
+        { q: T`O koľko $\\text{kg\\,m/s}$ sa zmení hybnosť za $1\\,\\text{s}$?`, answer: F },
+        { q: T`O koľko $\\text{kg\\,m/s}$ sa zmení hybnosť za $${t}\\,\\text{s}$?`, answer: dp }
       ]
     };
   });
@@ -186,6 +190,10 @@
       mistakes: [
         ...mis(r2(g / k), gk, T`Vzdialenosť si len vydelil. Gravitačné zrýchlenie klesá s druhou mocninou vzdialenosti: $g\\sim\\frac{1}{r^2}$.`, 0.01),
         ...mis(g, gk, T`Zabudol si, že vzdialenosť sa od stredu Zeme zväčšila. Zrýchlenie sa zmenilo, nezostalo pri povrchovej hodnote.`, 0.01)
+      ],
+      steps: [
+        { q: T`Koľko je $\\left(\\frac{r}{R}\\right)^2$ pre $r=${k}R$?`, answer: k * k },
+        { q: T`Aké je zrýchlenie $\\frac{9{,}81}{${k * k}}$ v $\\text{m/s}^2$? (na 2 desatinné miesta)`, answer: gk, tol: 0.01 }
       ]
     };
   });
@@ -220,6 +228,10 @@
       mistakes: [
         ...mis(f, w, T`To je frekvencia, nie uhlová rýchlosť. Treba použiť $\\omega=2\\pi f$.`, 0.01),
         ...mis(r2(Math.PI * f), w, T`Zabudol si dvojku pri $2\\pi$. Jeden obrat zodpovedá uhlu $2\\pi$, nie $\\pi$.`, 0.01)
+      ],
+      steps: [
+        { q: T`Aký uhol v radiánoch opíše koleso za jeden obrat? (na 2 desatinné miesta)`, answer: r2(2 * Math.PI), tol: 0.01 },
+        { q: T`Aká je uhlová rýchlosť $\\omega=2\\pi f$ v $\\text{rad/s}$? (na 2 desatinné miesta)`, answer: w, tol: 0.01 }
       ]
     };
   });
@@ -254,6 +266,11 @@
       mistakes: [
         ...mis(r2((x1 + x2) / 2), xt, T`Počítal si obyčajný priemer. Ťažisko zohľadňuje hmotnosti: každú súradnicu váž jej hmotnosťou.`, 0.01),
         ...mis(r2((m1 * x2 + m2 * x1) / (m1 + m2)), xt, T`Hmotnosti si priradil k opačným súradniciam. Hmotnosť patrí k svojej vlastnej častici.`, 0.01)
+      ],
+      steps: [
+        { q: T`Koľko je $m_1x_1+m_2x_2$ v $\\text{kg\\,m}$?`, answer: m1 * x1 + m2 * x2 },
+        { q: T`Aká je celková hmotnosť $m_1+m_2$ v kilogramoch?`, answer: m1 + m2 },
+        { q: T`Kde leží ťažisko $x_T$? (v metroch, na 2 desatinné miesta)`, answer: xt, tol: 0.01 }
       ]
     };
   });
@@ -290,6 +307,11 @@
       mistakes: [
         ...mis(r2(Kin + Pot), L, T`Pri potenciálnej energii si zmenil znamienko. Lagrangián je rozdiel $T-V$, nie súčet.`, 0.01),
         ...mis(r2(Kin), L, T`Zabudol si odpočítať potenciálnu energiu $V=mgh$.`, 0.01)
+      ],
+      steps: [
+        { q: T`Aká je kinetická energia $T=\\frac{1}{2}mv^2$ v džouloch?`, answer: Kin },
+        { q: T`Aká je potenciálna energia $V=mgh$ v džouloch? (na 2 desatinné miesta)`, answer: r2(Pot), tol: 0.01 },
+        { q: T`Aký je Lagrangián $L=T-V$ v džouloch? (na 2 desatinné miesta)`, answer: L, tol: 0.01, signed: true }
       ]
     };
   });

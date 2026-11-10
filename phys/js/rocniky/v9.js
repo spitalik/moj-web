@@ -49,6 +49,11 @@
         { value: 8, msg: T`Započítal si všetkých osem rohových atómov naplno. Každý roh patrí bunke len osminou.` },
         { value: 1, msg: T`Zabudol si na atómy v stenách alebo v strede. Tie patria bunke celé alebo polovicou.` }
       ], ans),
+      steps: [
+        { q: T`Koľko atómov dávajú bunke spolu jej rohy (8 rohov, každý patrí bunke osminou)?`, answer: 1 },
+        { q: T`Koľko atómov dávajú bunke ostatné polohy (stred bunky, stredy stien)?`, answer: ans - 1 },
+        { q: T`Koľko atómov patrí bunke spolu?`, answer: ans }
+      ],
       solution: expl,
       hint: T`Rozmysli si, ktoré atómy sú v rohoch, v stredoch stien a v strede bunky, a koľkému z nich patrí bunka.`
     };
@@ -126,6 +131,10 @@
         { value: Math.round(0.017 * L * S * 100) / 100, msg: T`Prierez sme mali deliť, nie násobiť. Väčší prierez znamená menší odpor.` },
         { value: Math.round((0.017 * L / S) * 1e6 * 100) / 100, msg: T`Prierez treba previesť na m²: $1\\,\\text{mm}^2=10^{-6}\\,\\text{m}^2$. Inak vyjde nezmyselne veľké číslo.` }
       ], ans),
+      steps: [
+        { q: T`Koľko je $\\frac{l}{S}$ v jednotkách $10^{6}\\,\\text{m}^{-1}$ (prierez v $\\text{m}^2$)?`, answer: L / S, tol: 1e-6 },
+        { q: T`Aký je odpor $R=\\rho\\frac{l}{S}$ v ohmoch? Zaokrúhli na 2 desatinné miesta.`, answer: ans, tol: 0.01 }
+      ],
       solution: T`$S=${S}\\,\\text{mm}^2=${S}\\cdot 10^{-6}\\,\\text{m}^2$, teda $R=\\rho\\dfrac{l}{S}\\approx ${mn(ans)}\\,\\Omega$.`,
       hint: T`Dosaď do vzorca $R=\\rho\\dfrac{l}{S}$ s prierezom v m². Pozor na prevod jednotiek.`
     };
@@ -252,6 +261,11 @@
         { value: Tc, msg: T`To je teplota v kelvinoch. Na stupne Celzia prevedieme odčítaním 273,15.` },
         { value: Math.round((Tc + 273.15) * 10) / 10, msg: T`Pri prevode na Celzia sa 273,15 odčítava, nie pripočítava.` }
       ], ans),
+      signed: true,
+      steps: [
+        { q: T`Aké číslo sa pri prevode z kelvinov na stupne Celzia odčítava?`, answer: 273.15, tol: 0.001 },
+        { q: T`Aká je kritická teplota v stupňoch Celzia? Zaokrúhli na 1 desatinné miesto.`, answer: ans, tol: 0.05, signed: true }
+      ],
       solution: T`$t = T_c - 273{,}15 = ${mn(Tc)} - 273{,}15 \\approx ${mn(ans)}\\,{}^{\\circ}\\text{C}$.`,
       hint: T`Prevod z kelvinov na stupne Celzia: $t = T - 273{,}15$.`
     };
@@ -329,6 +343,11 @@
         { value: 6 * a, msg: T`S rastúcou hranou pomer klesá. Hrana je v menovateli: $6/a$, nie $6a$.` },
         { value: 6 / (a * a), msg: T`Vzorec je $S/V=6/a$, nie $6/a^2$. Mocninu hrany nedelíme dvakrát.` }
       ], ans),
+      steps: [
+        { q: T`Aký je povrch kocky $S=6a^2$ v $\\text{nm}^2$?`, answer: 6 * a * a },
+        { q: T`Aký je objem kocky $V=a^3$ v $\\text{nm}^3$?`, answer: a * a * a },
+        { q: T`Koľko je pomer $S/V$ v $\\text{nm}^{-1}$?`, answer: ans, tol: 1e-3 }
+      ],
       solution: T`$\\dfrac{S}{V}=\\dfrac{6a^2}{a^3}=\\dfrac{6}{a}=\\dfrac{6}{${a}}=${mn(ans)}\\,\\text{nm}^{-1}$.`,
       hint: T`Pre kocku je $S=6a^2$ a $V=a^3$. Skráť a dostaneš $S/V$.`
     };

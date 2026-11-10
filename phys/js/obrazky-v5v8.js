@@ -498,8 +498,5 @@
     'v5v8-urychlovac': 'Častica s nábojom ze prejde napätím U a získa energiu zeU; urýchľuje ju elektrické pole.'
   };
 
-  LESSONS.forEach((l) => {
-    const fig = ATTACH[l.id];
-    if (fig) l.theory.push({ fig, caption: CAPTIONS[fig] });
-  });
+  FIGURES.attach(ATTACH, CAPTIONS);
 })();

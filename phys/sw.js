@@ -1,7 +1,7 @@
 /* Service worker: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu.
-   Preklady obsahu (js/content-i18n/<jazyk>/*.js) sa neukladajú vopred: uložia sa pri prvom načítaní jazyka. */
-const CACHE = 'fyzika-v28';
+   Preklady obsahu (js/content-i18n/<jazyk>/*.js) sa neukladajú vopred: stiahne ich na pozadí js/nacitanie.js pre zvolený jazyk. */
+const CACHE = 'fyzika-v30';
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +12,8 @@ const ASSETS = [
   './js/figures.js',
   './js/schemy.js',
   './js/simulacie.js',
+  './js/index-lekcii.js',
+  './js/nacitanie.js',
   './js/rocniky/r1.js',
   './js/rocniky/r2.js',
   './js/rocniky/r3.js',
@@ -46,6 +48,8 @@ const ASSETS = [
   './js/obrazky-v9v12.js',
   './js/vzorce.js',
   './js/symboly.js',
+  './js/nadvaznosti.js',
+  './js/projekty.js',
   './js/temy.js',
   './js/i18n.js',
   './js/lang/sk.js',
@@ -65,6 +69,7 @@ const ASSETS = [
   './js/keypad.js',
   './js/scratchpad.js',
   './js/tts.js',
+  './js/mathexpr.js',
   './js/widget.js',
   './js/app.js',
   './css/features.css',
@@ -72,6 +77,9 @@ const ASSETS = [
   './js/features/simulacie.js',
   './js/features/vzorce.js',
   './js/features/symboly.js',
+  './js/features/graf.js',
+  './js/features/mapa.js',
+  './js/features/projekty.js',
   './js/features/opakovanie.js',
   './js/features/vyzva.js',
   './js/features/testy.js',

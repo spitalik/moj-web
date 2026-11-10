@@ -335,8 +335,5 @@
     'r1r5-teplomer': 'Stupnica Celzia má dva pevné body: topiaci sa ľad 0 °C a vriaca voda 100 °C. Záporné teploty sú pod nulou.'
   };
 
-  LESSONS.forEach((l) => {
-    const fig = ATTACH[l.id];
-    if (fig) l.theory.push({ fig, caption: CAPTIONS[fig] });
-  });
+  FIGURES.attach(ATTACH, CAPTIONS);
 })();

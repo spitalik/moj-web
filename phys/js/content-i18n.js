@@ -40,6 +40,8 @@
       Object.entries(d).forEach(([k, v]) => { own[norm(k)] = v; });
     });
     Object.entries(pack.lessons || {}).forEach(([id, l]) => {
+      // záznam z js/content-i18n/<jazyk>/nazvy.js (len názov a opis) neprepíše už načítanú celú lekciu
+      if (l.stub && p.lessons[id] && !p.lessons[id].stub) return;
       const strings = {};
       Object.entries(l.strings || {}).forEach(([k, v]) => { strings[norm(k)] = v; });
       p.lessons[id] = Object.assign({}, l, { strings });
@@ -160,21 +162,30 @@
   }
 
   // Balíky prekladov sa načítajú len pre zvolený jazyk: pri štarte cez document.write v index.html,
-  // pri zmene jazyka dynamicky (load). Zoznam súborov je v js/content-i18n/files.js (generuje tools/i18n_build.js).
-  const loaded = {};
-  const files = (lang) => ((window.CONTENT_I18N_FILES || {})[lang] || []).map((f) => `js/content-i18n/${lang}/${f}.js`);
-  function load(lang) {
+  // pri zmene jazyka dynamicky (load). Zoznam súborov je v js/content-i18n/files.js (obnovuje tools/index_build.js).
+  // Balíky teórie ročníkov (lekcie-r1r3 …, skupiny v LESSON_INDEX.packs) sa načítajú až s ročníkom
+  // (js/nacitanie.js): files(lang, ročník); bez ročníka files(lang) vráti ostatné balíky, ktoré treba hneď
+  // (texty generátorov, vzorce, názvy lekcií v nazvy.js …).
+  const loaded = {};      // src → Promise
+  const groups = () => (window.LESSON_INDEX && LESSON_INDEX.packs) || {};
+  const files = (lang, base) => ((window.CONTENT_I18N_FILES || {})[lang] || [])
+    .filter((f) => (base ? (groups()[f] || []).includes(base) : !groups()[f]))
+    .map((f) => `js/content-i18n/${lang}/${f}.js`);
+  function load(lang, base) {
     if (lang === SOURCE) return Promise.resolve();
-    if (!loaded[lang]) {
-      loaded[lang] = Promise.all(files(lang).map((src) => (document.querySelector(`script[src="${src}"]`) ? null : new Promise((resolve) => {
-        const s = document.createElement('script');
-        s.src = src;
-        s.onload = resolve;
-        s.onerror = resolve; // bez balíka (offline) zostane slovenčina
-        document.head.appendChild(s);
-      }))));
-    }
-    return loaded[lang];
+    return Promise.all(files(lang, base).map((src) => {
+      if (!loaded[src]) {
+        loaded[src] = document.querySelector(`script[src="${src}"]`) ? Promise.resolve() : new Promise((resolve) => {
+          const s = document.createElement('script');
+          s.src = src;
+          s.async = false;
+          s.onload = resolve;
+          s.onerror = () => { s.remove(); delete loaded[src]; resolve(); }; // bez balíka (offline) zostane slovenčina
+          document.head.appendChild(s);
+        });
+      }
+      return loaded[src];
+    }));
   }
 
   /* ---------- zápis intervalov, bodov a zoznamov podľa jazyka ----------
