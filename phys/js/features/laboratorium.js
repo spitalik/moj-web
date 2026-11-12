@@ -618,7 +618,10 @@
       const side = 12 + Math.cbrt(S.V) * 6;
       let s = '';
       // váhy s telesom
-      s += rect(10, 170, 100, 34, 'f-tri', 4) + rect(28, 178, 64, 20, 'lab-display', 3) + txt(60, 193, `${fixd(v.m, 1)} g`, 'lab-dtext');
+      // displej váh: text sa vždy zmestí do rámčeka (pri dlhom čísle sa zúži cez textLength)
+      const mStr = `${fixd(v.m, 1)} g`, mW = 80, mFit = mStr.length * 0.6 * 15 > mW - 6 ? ` textLength="${mW - 6}" lengthAdjust="spacingAndGlyphs"` : '';
+      s += rect(10, 170, 100, 34, 'f-tri', 4) + rect(60 - mW / 2, 177, mW, 22, 'lab-display', 3);
+      s += `<text class="lab-dtext" style="font-size:15px" x="60" y="193" text-anchor="middle"${mFit}>${esc(mStr)}</text>`;
       s += ln(20, 168, 100, 168, 'f-line');
       s += rect(60 - side / 2, 168 - side, side, side, 'f-fill3') + rect(60 - side / 2, 168 - side, side, side, 'f-outline3');
       s += txt(60, 160 - side, t('labPieceN', { n: S.p }));
