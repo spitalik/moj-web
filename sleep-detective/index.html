@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: intro column beside a phone-frame app; on phones the app fills the width. Deliberately single night theme. */
+/* Layout: na počítači appka v ráme telefónu v strede, na mobile a po inštalácii na celú obrazovku. Zámerne len tmavá nočná téma. */
 :root {
   --ink: #0d1120;
   --night: #141a2d;
@@ -56,16 +56,9 @@ p { margin: 0; }
 .stage { display: flex; gap: 56px; justify-content: center; align-items: flex-start; flex-wrap: wrap; max-width: 1040px; margin: 0 auto; }
 
 /* Intro */
-.intro { flex: 1 1 300px; max-width: 420px; min-width: 0; padding-top: 28px; display: flex; flex-direction: column; gap: 18px; }
-.intro h1 { font-size: 44px; line-height: 1.02; }
-.intro h1 span { color: var(--lamp); }
-.intro .lead { color: var(--muted); font-size: 16px; max-width: 60ch; }
-.try { display: flex; flex-direction: column; gap: 10px; padding: 0; margin: 0; list-style: none; counter-reset: s; }
-.try li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: baseline; counter-increment: s; }
-.try li::before { content: counter(s); font-family: var(--f-mono); font-size: 12px; color: var(--lamp-ink); background: var(--lamp); border-radius: 50%; width: 22px; height: 22px; display: grid; place-items: center; }
-.note { font-size: 13px; color: var(--muted); border-left: 2px solid var(--line); padding-left: 12px; }
-.reset { align-self: flex-start; background: none; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; color: var(--muted); font-size: 13px; }
+.reset { align-self: center; background: none; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; color: var(--muted); font-size: 13px; }
 .reset:hover { color: var(--fg); border-color: var(--muted); }
+.reset.armed { color: var(--bad); border-color: var(--bad); }
 
 /* Phone */
 .phone {
@@ -174,18 +167,11 @@ input[type="range"] { width: 100%; accent-color: var(--lamp); }
 
 .toast { position: absolute; left: 16px; right: 16px; bottom: 84px; background: var(--fg); color: var(--ink); border-radius: 14px; padding: 12px 14px; font-size: 14px; font-weight: 500; z-index: 9; box-shadow: 0 10px 30px -10px #000a; }
 
-@media (max-width: 520px) {
-  body { padding-block: 16px; }
-  .stage { gap: 24px; }
-  .intro { padding-top: 0; }
-  .intro h1 { font-size: 34px; }
-  .phone { width: 100%; border-radius: 26px; box-shadow: none; height: 760px; max-height: none; }
-}
-/* Nainštalovaná appka: bez úvodného textu a rámu telefónu, na celú obrazovku */
-@media (display-mode: standalone) {
+/* Mobil a nainštalovaná appka: bez rámu telefónu, na celú obrazovku */
+@media (max-width: 520px), (display-mode: standalone) {
   html, body { height: 100%; }
   body { padding: 0; overflow: hidden; }
-  .intro, .statusbar { display: none; }
+  .statusbar { display: none; }
   .stage { display: block; max-width: none; height: 100%; }
   .phone { width: 100%; height: 100%; min-height: 0; max-height: none; border: 0; border-radius: 0; box-shadow: none; }
   .scroll { padding-top: calc(env(safe-area-inset-top, 0px) + 12px); padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
@@ -202,20 +188,6 @@ input[type="range"] { width: 100%; accent-color: var(--lamp); }
 <body>
 
 <div class="stage">
-  <section class="intro">
-    <div class="eyebrow">Klikateľný prototyp · ukážkové dáta</div>
-    <h1>Sleep <span>Detective</span></h1>
-    <p class="lead">Appka nezbiera len skóre spánku. Hľadá, čo konkrétne ti kazí spánok, a podozrenia overuje krátkymi experimentmi.</p>
-    <ol class="try">
-      <li>Na obrazovke <b>Dnes</b> sprav ranný check-in. Zaberie 4 ťuknutia.</li>
-      <li>V záložke <b>Spis</b> pozri podozrivých a ťukni na jedného. Uvidíš dôkazy noc po noci.</li>
-      <li>V <b>Experimentoch</b> dokonči bežiaci 7-dňový test a sleduj, ako sa zmení verdikt v spise.</li>
-      <li>V <b>Zázname</b> vyskúšaj večerný zápis cez ikonky.</li>
-    </ol>
-    <p class="note">Dáta simulujú používateľa po 3 týždňoch. Analýza sa naozaj počíta z týchto nocí, takže každý nový check-in ju môže zmeniť. Údaje sa ukladajú len v tomto zariadení, nikam sa neposielajú.</p>
-    <button class="reset" id="reset" type="button">Začať demo odznova</button>
-  </section>
-
   <div class="phone" id="phone">
     <div class="statusbar"><span id="clock">7:12</span><span>Sleep Detective</span></div>
     <main class="scroll" id="view"></main>
@@ -521,6 +493,8 @@ input[type="range"] { width: 100%; accent-color: var(--lamp); }
       h += '<div class="exp-item"><span class="ico" aria-hidden="true">' + c.icon + "</span><div><div>" + c.name + ' <span class="small muted">· ' + c.when + '</span></div><span class="small muted">' + c.text + '</span></div><span class="pill ' + c.tone + '">' + c.label + "</span></div>";
     });
     h += "</div>";
+    h += '<p class="small muted">Ukážkové dáta simulujú 3 týždne používania. Všetko sa ukladá len v tomto zariadení.</p>';
+    h += '<button class="reset" id="reset" type="button">Začať odznova s ukážkovými dátami</button>';
     return h;
   }
 
@@ -675,7 +649,11 @@ input[type="range"] { width: 100%; accent-color: var(--lamp); }
   document.addEventListener("click", e => {
     const b = e.target.closest("button");
     if (!b) return;
-    if (b.id === "reset") { initState(); $("#sheet").hidden = true; render(); toast("Demo začína odznova."); return; }
+    if (b.id === "reset") {
+      // dvojité ťuknutie ako potvrdenie, aby sa záznamy nezmazali omylom
+      if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "Ťukni znova: tvoje záznamy sa vymažú"; return; }
+      initState(); S.tab = "exp"; $("#sheet").hidden = true; render(); toast("Začíname odznova s ukážkovými dátami."); return;
+    }
     if (b.dataset.tab) { S.tab = b.dataset.tab; S.msg = null; render(); return; }
     if (b.dataset.goto) { S.tab = b.dataset.goto; render(); return; }
     if (b.dataset.mode) { S.logMode = b.dataset.mode; render(); return; }
