@@ -169,6 +169,11 @@ p { margin: 0; }
 .chip { border: 1px solid var(--line); background: var(--night); border-radius: 999px; padding: 9px 13px; font-size: 14px; display: inline-flex; gap: 6px; align-items: center; }
 .chip[aria-pressed="true"] { background: var(--lamp); color: var(--lamp-ink); border-color: var(--lamp); font-weight: 600; }
 input[type="range"] { width: 100%; accent-color: var(--lamp); }
+select { width: 100%; font: inherit; color: var(--fg); background: var(--night); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; }
+input[type="text"][aria-invalid="true"] { border-color: var(--bad); }
+.num-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.num-row label { display: grid; gap: 4px; }
+.num-err { color: var(--bad); min-height: 0; }
 input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: var(--night); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; }
 .hist { display: flex; flex-direction: column; }
 .hist-row { display: grid; grid-template-columns: 56px 1fr auto; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); font-size: 13px; }
@@ -338,7 +343,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     sounds: {}       // nočné záznamy zvuku podľa dátumu rána (súhrn; ukážky sú v IndexedDB)
   });
   let D = emptyData();
-  let SET = { theme: "dark", name: "", expLength: 7, installDismissed: false, soundSensitivity: "medium", soundClips: true };
+  let SET = { theme: "dark", name: "", expLength: 7, installDismissed: false, soundSensitivity: "medium",
+    clipSnoreN: 4, clipSnoreSec: 10, clipNoiseN: 8, clipNoiseSec: 10, clipKbps: 32 };   // ukážky: počet za noc a dĺžka v s pre každý druh zvuku
   const UI = { tab: "today", logMode: new Date().getHours() >= 15 ? "evening" : "morning", msg: null };
 
   function save() {
@@ -355,7 +361,12 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     } catch (e) { /* poškodené dáta ignorujeme */ }
     try {
       const s = JSON.parse(localStorage.getItem(SET_KEY));
-      if (s) SET = Object.assign(SET, s);
+      if (s) {
+        // staršie nastavenie „ukladať ukážky: nie“ = žiadne ukážky
+        if (s.soundClips === false && s.clipSnoreN === undefined) { s.clipSnoreN = 0; s.clipNoiseN = 0; }
+        delete s.soundClips;
+        SET = Object.assign(SET, s);
+      }
     } catch (e) { /* predvolené nastavenia */ }
   }
 
@@ -814,6 +825,11 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     const evCount = Object.keys(D.evenings).length;
     const seg = (attr, cur, items) => '<div class="seg" role="group" style="--n:' + items.length + '">' +
       items.map(([v, l]) => '<button type="button" ' + attr + '="' + v + '" aria-pressed="' + (String(cur) === String(v)) + '">' + l + "</button>").join("") + "</div>";
+    const num = (id, label, val) => '<label class="small" for="' + id + '">' + label +
+      '<input id="' + id + '" type="text" inputmode="numeric" autocomplete="off" maxlength="4" value="' + esc(String(val)) + '"></label>';
+    const clipSet = (title, kind, n, sec) => '<span class="small">' + title + "</span>" +
+      '<div class="num-row">' + num("set-clipn-" + kind, "Počet za noc", n) + num("set-clips-" + kind, "Dĺžka (s)", sec) + "</div>" +
+      '<p class="small num-err" id="err-' + kind + '" role="alert" hidden></p>';
     let h = sheetTop("Nastavenia") + '<div class="scroll">';
     h += '<div class="head"><h2>Nastavenia</h2></div>';
     h += '<div class="card"><span class="set-label">Vzhľad</span>' + seg("data-theme-set", SET.theme, [["dark", "Tmavý"], ["light", "Svetlý"], ["system", "Podľa systému"]]) + "</div>";
@@ -822,8 +838,13 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
       '<p class="small muted">Platí pre nové experimenty. Dlhší experiment dá spoľahlivejší verdikt.</p></div>';
     h += '<div class="card"><span class="set-label">Nočný záznam zvuku</span>' +
       '<span class="small">Citlivosť</span>' + seg("data-sens", SET.soundSensitivity, [["low", "Nízka"], ["medium", "Stredná"], ["high", "Vysoká"]]) +
-      '<span class="small">Ukladať krátke ukážky</span>' + seg("data-clips", SET.soundClips ? "1" : "0", [["1", "Áno"], ["0", "Nie"]]) +
-      '<p class="small muted">Celá noc sa nenahráva. Appka uloží najviac ' + MAX_CLIPS + " ukážok po " + CLIP_MS / 1000 + " s za noc, len v tomto zariadení. Ukážky staršie ako " + KEEP_CLIP_DAYS + " dní sa mažú. Vyššia citlivosť zachytí aj tichšie zvuky.</p></div>";
+      '<p class="small muted">Vyššia citlivosť zachytí aj tichšie zvuky.</p>' +
+      clipSet("Ukážky chrápania", "snore", SET.clipSnoreN, SET.clipSnoreSec) +
+      clipSet("Ukážky hluku", "noise", SET.clipNoiseN, SET.clipNoiseSec) +
+      '<label class="small" for="set-kbps">Kvalita ukážok' +
+      '<select id="set-kbps">' + CLIP_KBPS.map(([v, l]) => '<option value="' + v + '"' + (v === SET.clipKbps ? " selected" : "") + ">" + l +
+        (v ? " · 10 s ≈ " + Math.round(v * 10 / 8) + " kB" : "") + "</option>").join("") + "</select></label>" +
+      '<p class="small muted">Počet 0 = žiadne ukážky tohto druhu. Celá noc sa nenahráva, ukladajú sa len krátke ukážky a len v tomto zariadení. Pri viacerých zvukoch si appka nechá tie najhlasnejšie. Ukážky staršie ako ' + KEEP_CLIP_DAYS + " dní sa mažú.</p></div>";
     h += '<div class="card"><span class="set-label">Moje dáta</span><p class="small muted">' + D.nights.length + " " + (D.nights.length === 1 ? "ranný záznam" : D.nights.length >= 2 && D.nights.length <= 4 ? "ranné záznamy" : "ranných záznamov") + ", " +
       evCount + " " + (evCount === 1 ? "večerný" : evCount >= 2 && evCount <= 4 ? "večerné" : "večerných") + ", " +
       Object.keys(D.sounds).length + " " + nightsWord(Object.keys(D.sounds).length) + " so zvukom, " + D.closed.length + " " + (D.closed.length === 1 ? "uzavretý experiment" : D.closed.length >= 2 && D.closed.length <= 4 ? "uzavreté experimenty" : "uzavretých experimentov") +
@@ -888,7 +909,14 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   })();
   const dropClips = clips => (clips || []).forEach(c => IDB.del(c.id).catch(() => {}));
 
-  const CLIP_MS = 8000, CLIP_SPACING = 60000, MAX_SNORE_CLIPS = 4, MAX_CLIPS = 12, KEEP_CLIP_DAYS = 14, MIN_REC_MS = 60000;
+  const CLIP_SPACING = 60000, KEEP_CLIP_DAYS = 14, MIN_REC_MS = 60000;
+  // Kvalita ukážok (kbit/s); 0 = predvolená prehliadača (zvyčajne ~128 kbit/s)
+  const CLIP_KBPS = [[16, "Nízka – 16 kbit/s"], [32, "Stredná – 32 kbit/s"], [64, "Dobrá – 64 kbit/s"], [128, "Vysoká – 128 kbit/s"], [0, "Predvolená prehliadača"]];
+  // Počet a dĺžka ukážok podľa druhu zvuku (z nastavení; neplatná hodnota = predvolená).
+  function clipConf(kind) {
+    const n = kind === "snore" ? SET.clipSnoreN : SET.clipNoiseN, sec = kind === "snore" ? SET.clipSnoreSec : SET.clipNoiseSec;
+    return { n: Number.isInteger(n) && n >= 0 ? n : 4, ms: (Number.isInteger(sec) && sec > 0 ? sec : 10) * 1000 };
+  }
   let rec = null;      // prebiehajúci nočný záznam
   let wake = null;     // zámok obrazovky (Screen Wake Lock)
 
@@ -946,6 +974,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     r.db = db;
     const ev = r.det.feed(Date.now(), db, low);
     if (ev && ev.type === "start") maybeClip(r, ev.t);
+    if (ev && ev.type === "end" && r.clipRec && ev.event.start === r.clipT) clipKnown(r, ev.event.kind);
+    if (r.clipRec && Date.now() - r.clipFrom >= r.clipLen) stopClip(r);
     if (++r.n % 10 === 0) {
       if (r.n % 100 === 0) { const s = r.det.summary(Date.now()); r.live = { snoreMin: s.snoreMin, noise: s.noise }; }
       updateNight();
@@ -956,38 +986,54 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (!window.MediaRecorder) return null;
     return ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg;codecs=opus"].find(m => MediaRecorder.isTypeSupported(m)) || "";
   }
+  // Ukážka sa začne nahrávať so začiatkom zvuku. Druh zvuku ešte nepoznáme, preto beží
+  // najdlhšiu povolenú dĺžku a skráti sa, keď zvuk skončí a vieme, či je to hluk alebo chrápanie.
   function maybeClip(r, t) {
-    const mime = clipMime();
-    if (!SET.soundClips || mime === null || r.clipRec || t - r.lastClipT < CLIP_SPACING) return;
+    const mime = clipMime(), sn = clipConf("snore"), no = clipConf("noise");
+    if (mime === null || (!sn.n && !no.n) || r.clipRec || t - r.lastClipT < CLIP_SPACING) return;
     let mr;
-    try { mr = new MediaRecorder(r.stream, mime ? { mimeType: mime } : undefined); } catch (e) { return; }
+    const opts = {};
+    if (mime) opts.mimeType = mime;
+    if (SET.clipKbps > 0) opts.audioBitsPerSecond = SET.clipKbps * 1000;
+    try { mr = new MediaRecorder(r.stream, opts); } catch (e) { return; }
     r.lastClipT = t;
-    r.clipRec = mr;
+    r.clipRec = mr; r.clipT = t; r.clipFrom = Date.now(); r.clipDrop = false;
+    r.clipLen = Math.max(sn.n ? sn.ms : 0, no.n ? no.ms : 0);
+    // počas chrápania (už rozpoznaná séria) bude aj ďalší zvuk pravdepodobne chrápanie
+    const last = r.det.events[r.det.events.length - 1];
+    if (last && last.kind === "snore" && t - last.end < 15000 && sn.n) r.clipLen = sn.ms;
     const chunks = [];
     mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
     r.clipDone = new Promise(done => {
       mr.onstop = () => {
         r.clipRec = null;
+        if (r.clipDrop) { done(); return; }
         const blob = new Blob(chunks, { type: mr.mimeType || mime || "audio/webm" });
         const id = "clip-" + t;
         IDB.put(id, blob).then(() => { r.clips.push({ id, t }); trimClips(r); }).catch(() => {}).then(done);
       };
     });
     mr.start();
-    setTimeout(() => { if (mr.state !== "inactive") mr.stop(); }, CLIP_MS);
   }
-  // Najviac 4 ukážky chrápania a 12 spolu; pri prebytku zahodíme najtichšiu.
+  // Zvuk s ukážkou skončil: dĺžku ukážky nastavíme podľa jeho druhu.
+  // Kandidát na chrápanie ('cand') sa ešte môže stať chrápaním, preto beží ďalej.
+  function clipKnown(r, kind) {
+    const sn = clipConf("snore"), no = clipConf("noise");
+    if (kind === "snore") r.clipLen = sn.n ? sn.ms : 0;
+    else if (kind === "noise") r.clipLen = no.n ? no.ms : 0;
+    if (!r.clipLen) { r.clipDrop = true; stopClip(r); }
+  }
+  function stopClip(r) {
+    if (r.clipRec && r.clipRec.state !== "inactive") r.clipRec.stop();
+  }
+  // Počet ukážok podľa nastavení; pri prebytku zahodíme najtichšiu.
   function trimClips(r) {
     const info = c => ({ c, kind: r.det.kindAt(c.t) || "noise", peak: r.det.peakAt(c.t) });
-    let all = r.clips.map(info);
-    const drop = list => {
-      const v = list.sort((a, b) => a.peak - b.peak)[0];
-      r.clips = r.clips.filter(c => c !== v.c);
-      IDB.del(v.c.id).catch(() => {});
-      all = r.clips.map(info);
-    };
-    while (all.filter(x => x.kind === "snore").length > MAX_SNORE_CLIPS) drop(all.filter(x => x.kind === "snore"));
-    while (all.length > MAX_CLIPS) drop(all.filter(x => x.kind !== "snore").length ? all.filter(x => x.kind !== "snore") : all);
+    const drop = c => { r.clips = r.clips.filter(x => x !== c); IDB.del(c.id).catch(() => {}); };
+    ["snore", "noise"].forEach(kind => {
+      const list = r.clips.map(info).filter(x => x.kind === kind).sort((a, b) => b.peak - a.peak);
+      list.slice(clipConf(kind).n).forEach(x => drop(x.c));
+    });
   }
 
   // Uloží súhrn noci do D.sounds (počas noci každú minútu ako rozpracovaný).
@@ -995,6 +1041,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (!r) return null;
     const s = r.det.summary(end);
     const key = nightKey(end);
+    trimClips(r);   // druh zvuku sa mohol medzitým zmeniť (z kandidáta je chrápanie)
     const old = D.sounds[key];
     if (old && old.start !== r.start) dropClips(old.clips);   // nový záznam tej istej noci nahradí starý
     D.sounds[key] = Object.assign(s, {
@@ -1122,7 +1169,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
           '<span class="small muted">+' + Math.round(c.peak) + " dB</span></div>";
       });
     } else {
-      h += '<p class="small muted">' + (SET.soundClips ? "Táto noc nemá uložené ukážky." : "Ukladanie ukážok je vypnuté v nastaveniach.") + "</p>";
+      h += '<p class="small muted">' + (SET.clipSnoreN || SET.clipNoiseN ? "Táto noc nemá uložené ukážky." : "Ukladanie ukážok je vypnuté v nastaveniach.") + "</p>";
     }
     h += "</div>";
     h += '<p class="small muted">Chrápanie appka odhaduje podľa hĺbky a rytmu zvuku. Hlasitosť je relatívna k tichu v miestnosti, nie lekárske meranie.</p>';
@@ -1244,7 +1291,6 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (b.dataset.themeSet) { SET.theme = b.dataset.themeSet; saveSet(); applyTheme(); openSettings(); return; }
     if (b.dataset.explen) { SET.expLength = Number(b.dataset.explen); saveSet(); openSettings(); return; }
     if (b.dataset.sens) { SET.soundSensitivity = b.dataset.sens; saveSet(); openSettings(); return; }
-    if (b.dataset.clips) { SET.soundClips = b.dataset.clips === "1"; saveSet(); openSettings(); return; }
     switch (b.dataset.act) {
       case "settings": openSettings(); break;
       case "startNight": startRecording(); break;
@@ -1301,9 +1347,27 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   });
   // klik na tmavé pozadie okna = Zrušiť
   $("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+  // Počet a dĺžka ukážok z textových polí: uloží sa len celé číslo (počet od 0, dĺžka od 1 s).
+  const CLIP_FIELDS = {
+    "set-clipn-snore": ["clipSnoreN", 0], "set-clips-snore": ["clipSnoreSec", 1],
+    "set-clipn-noise": ["clipNoiseN", 0], "set-clips-noise": ["clipNoiseSec", 1]
+  };
+  function setClipNum(input) {
+    const [key, min] = CLIP_FIELDS[input.id];
+    const v = input.value.trim();
+    const ok = /^\d+$/.test(v) && +v >= min;
+    input.setAttribute("aria-invalid", ok ? "false" : "true");
+    if (ok) { SET[key] = +v; saveSet(); }
+    const kind = input.id.slice(-5), err = $("#err-" + kind);
+    const bad = ["n", "s"].filter(x => $("#set-clip" + x + "-" + kind).getAttribute("aria-invalid") === "true");
+    err.textContent = bad.length ? (bad.includes("n") ? "Počet musí byť celé číslo (0 a viac). " : "") + (bad.includes("s") ? "Dĺžka musí byť celé číslo sekúnd (1 a viac)." : "") : "";
+    err.hidden = !bad.length;
+  }
   document.addEventListener("input", e => {
     if (e.target.id === "temp") { const ev = eveningRecord(); ev.temp = Number(e.target.value); $("#tempv").textContent = ev.temp + " °C"; markEveningDirty(); }
     if (e.target.id === "set-name") { SET.name = e.target.value.trim(); saveSet(); }
+    if (/^set-clip[ns]-(snore|noise)$/.test(e.target.id)) setClipNum(e.target);
+    if (e.target.id === "set-kbps") { SET.clipKbps = Number(e.target.value); saveSet(); }
   });
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
