@@ -380,6 +380,7 @@ input[type="range"] { width: 100%; accent-color: var(--lamp); }
     const top = A.find(r => r.status === "confirmed" || r.status === "prime" || r.status === "suspect") || A[0];
     const last = S.nights[S.nights.length - 1];
     let h = '<div class="head"><div class="eyebrow">' + long(S.today) + '</div><h2>Dobré ráno</h2></div>';
+    h += installCard();
 
     if (!S.checkedToday) {
       h += '<div class="card lamp"><div class="eyebrow">Ranný check-in</div><h3>Ako sa ti dnes spalo?</h3><p class="small">4 otázky, 10 sekúnd. Bez toho detektív nemá stopy.</p><button class="btn dark" data-act="checkin" type="button">Začať check-in</button></div>';
@@ -666,6 +667,13 @@ input[type="range"] { width: 100%; accent-color: var(--lamp); }
       case "gotoExp": S.tab = "exp"; closeSheet(); break;
       case "startExp": startExp(b.dataset.k); break;
       case "finishExp": finishExp(); break;
+      case "install":
+        if (installPrompt) {
+          installPrompt.prompt();
+          installPrompt.userChoice.finally(() => { installPrompt = null; render(); });
+        }
+        break;
+      case "installLater": S.installDismissed = true; render(); break;
       case "saveEvening": {
         S.eveningSaved = true;
         const n = FACTORS.filter(F => S.evening[F.k]).length;
@@ -678,6 +686,31 @@ input[type="range"] { width: 100%; accent-color: var(--lamp); }
     if (e.target.id === "temp") { S.temp = Number(e.target.value); $("#tempv").textContent = S.temp + " °C"; S.eveningSaved = false; save(); const sv = document.querySelector('[data-act="saveEvening"]'); if (sv) { sv.disabled = false; sv.textContent = "Uložiť večer"; } }
   });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#sheet").hidden) closeSheet(); });
+
+  // ---------- Inštalácia ----------
+  // Chrome a Edge (desktop aj Android) pošlú beforeinstallprompt, keď sa appka dá nainštalovať.
+  // Safari na iPhone takú udalosť nemá, tam sa dá appka pridať len ručne cez Zdieľať → Pridať na plochu.
+  let installPrompt = null;
+  const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  function installCard() {
+    if (isStandalone() || S.installDismissed) return "";
+    if (installPrompt) {
+      return '<div class="card"><div class="row"><div><h3>Nainštaluj si appku</h3><p class="small muted">Otvoríš ju z plochy jedným ťuknutím a funguje aj bez internetu.</p></div></div>' +
+        '<div class="row"><button class="btn" data-act="install" type="button" style="flex:1">Inštalovať</button><button class="btn ghost" data-act="installLater" type="button">Neskôr</button></div></div>';
+    }
+    if (isIOS) {
+      return '<div class="card"><h3>Pridaj si appku na plochu</h3><p class="small muted">V Safari ťukni na <b>Zdieľať</b> (štvorček so šípkou) a vyber <b>Pridať na plochu</b>.</p>' +
+        '<button class="btn ghost" data-act="installLater" type="button">Rozumiem</button></div>';
+    }
+    return "";
+  }
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    installPrompt = e;
+    if (S && S.tab === "today" && $("#sheet").hidden) render();
+  });
+  window.addEventListener("appinstalled", () => { installPrompt = null; toast("Appka je nainštalovaná."); render(); });
 
   if (!load()) initState();
   render();
