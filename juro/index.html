@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Juro – nástroje pre právnikov</title>
+  <meta name="description" content="Praktické nástroje pre právnikov podľa zaradenia: kalkulačky lehôt, úrokov z omeškania a súdnych poplatkov.">
+  <meta name="theme-color" content="#0d1424">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="vendor/fonts/fonts.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Zvolený vzhľad nastavíme ešte pred vykreslením, aby stránka neblikla inými farbami. Predvolený je tmavý.
+    var t = 'dark';
+    try {
+      var saved = localStorage.getItem('juro.theme');
+      if (/^(light|dark)$/.test(saved)) t = saved;
+    } catch (e) { /* bez úložiska platí predvolený tmavý vzhľad */ }
+    document.documentElement.setAttribute('data-theme', t);
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a href="#/" class="brand"><img class="brand-logo" src="icons/logo.svg" alt="" width="34" height="34"><span>Juro</span><span class="brand-sub hide-narrow">nástroje pre právnikov</span></a>
+    <div class="topbar-actions">
+      <button id="install-btn" class="btn btn-small" type="button" hidden><span aria-hidden="true">⬇</span><span class="hide-narrow"> Nainštalovať</span></button>
+      <button id="theme-btn" class="icon-btn" type="button" aria-label="Prepnúť svetlý a tmavý vzhľad" title="Prepnúť vzhľad"><span aria-hidden="true">◐</span></button>
+    </div>
+  </header>
+
+  <main id="app" class="container">
+    <p class="muted">Načítavam…</p>
+  </main>
+
+  <footer class="footer">
+    Výpočty sú orientačné a nenahrádzajú posúdenie konkrétnej veci. Právne údaje overené k <span id="overene"></span>.
+    Údaje zostávajú len vo vašom prehliadači. Po prvom načítaní funguje aj offline.
+  </footer>
+
+  <script src="js/pravo.js"></script>
+  <script src="js/vypocty.js"></script>
+  <script src="js/zaradenia.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/aplikacie/kalkulacka-vsu.js"></script>
+</body>
+</html>
