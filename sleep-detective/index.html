@@ -1057,9 +1057,11 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     const key = nightKey(end);
     trimClips(r);   // druh zvuku sa mohol medzitým zmeniť (z kandidáta je chrápanie)
     const old = D.sounds[key];
-    if (old && old.start !== r.start) dropClips(old.clips);   // nový záznam tej istej noci nahradí starý
+    // Nový záznam tej istej noci nahradí starý. Porovnávame čas spustenia záznamu (rec), nie s.start –
+    // to je čas prvej snímky zvuku a líši sa. Pre istotu nikdy nemažeme ukážky, ktoré má aktuálny záznam.
+    if (old && old.rec !== r.start) dropClips((old.clips || []).filter(c => !r.clips.some(x => x.id === c.id)));
     D.sounds[key] = Object.assign(s, {
-      partial: !!partial, sensitivity: SET.soundSensitivity,
+      rec: r.start, partial: !!partial, sensitivity: SET.soundSensitivity,
       clips: r.clips.map(c => ({ id: c.id, t: c.t, kind: r.det.kindAt(c.t) || "noise", peak: r.det.peakAt(c.t) }))
     });
     save();
@@ -1085,7 +1087,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (end - r.start < MIN_REC_MS) {
       dropClips(r.clips);
       const old = D.sounds[nightKey(end)];
-      if (old && old.start === r.start) { delete D.sounds[nightKey(end)]; save(); }
+      if (old && old.rec === r.start) { delete D.sounds[nightKey(end)]; save(); }
       render();
       toast("Záznam bol kratší ako minúta, neuložil som ho.");
       return;
