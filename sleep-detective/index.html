@@ -885,24 +885,36 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   function toast(t) { const el = $("#toast"); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2800); }
 
   // ---------- Zvuk v noci ----------
-  // Ukážky zvuku (Blob) sú v IndexedDB, v localStorage je len súhrn noci.
+  // Ukážky zvuku sú v IndexedDB, v localStorage je len súhrn noci.
+  // Ukladáme ich ako ArrayBuffer + typ, nie ako Blob: Safari Blob v IndexedDB nie vždy spoľahlivo načíta.
+  // Spojenie s databázou sa môže cez noc zavrieť (systém, prepnutie appky) – vtedy ho otvoríme znova.
   const IDB = (() => {
     let p = null;
     const open = () => p || (p = new Promise((res, rej) => {
       const r = indexedDB.open("sleep-detective", 1);
       r.onupgradeneeded = () => r.result.createObjectStore("clips");
-      r.onsuccess = () => res(r.result);
-      r.onerror = () => rej(r.error);
+      r.onsuccess = () => {
+        const db = r.result;
+        db.onclose = () => { p = null; };
+        db.onversionchange = () => { db.close(); p = null; };
+        res(db);
+      };
+      r.onerror = () => { p = null; rej(r.error); };
+      r.onblocked = () => { p = null; rej(new Error("blocked")); };
     }));
-    const tx = (mode, fn) => open().then(db => new Promise((res, rej) => {
+    const once = (mode, fn) => open().then(db => new Promise((res, rej) => {
       const t = db.transaction("clips", mode);
       const req = fn(t.objectStore("clips"));
       t.oncomplete = () => res(req ? req.result : undefined);
       t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error || new Error("abort"));
     }));
+    // pri chybe (zavreté spojenie) ešte raz s novým spojením
+    const tx = (mode, fn) => once(mode, fn).catch(() => { p = null; return once(mode, fn); });
     return {
-      put: (id, blob) => tx("readwrite", s => s.put(blob, id)),
-      get: id => tx("readonly", s => s.get(id)),
+      put: (id, blob) => blob.arrayBuffer().then(buf => tx("readwrite", s => s.put({ type: blob.type, buf }, id))),
+      get: id => tx("readonly", s => s.get(id)).then(v => !v ? null : v instanceof Blob ? v : new Blob([v.buf], { type: v.type })),
+      has: ids => tx("readonly", s => s.getAllKeys()).then(keys => ids.filter(id => keys.includes(id))),
       del: id => tx("readwrite", s => s.delete(id)),
       clear: () => tx("readwrite", s => s.clear())
     };
@@ -959,6 +971,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
       det: new SleepSound.Detector({ sensitivity: SET.soundSensitivity }),
       clips: [], clipRec: null, clipDone: null, lastClipT: 0, db: -100, n: 0, live: { snoreMin: 0, noise: 0 }
     };
+    // požiadame, aby prehliadač ukážky nemazal pri nedostatku miesta
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* nič */ }
     rec.timer = setInterval(tick, 100);
     rec.saveTimer = setInterval(() => storeNight(rec, Date.now(), true), 60000);
     showNight();
@@ -1007,7 +1021,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     r.clipDone = new Promise(done => {
       mr.onstop = () => {
         r.clipRec = null;
-        if (r.clipDrop) { done(); return; }
+        if (r.clipDrop || !chunks.length) { done(); return; }
         const blob = new Blob(chunks, { type: mr.mimeType || mime || "audio/webm" });
         const id = "clip-" + t;
         IDB.put(id, blob).then(() => { r.clips.push({ id, t }); trimClips(r); }).catch(() => {}).then(done);
@@ -1164,7 +1178,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     h += '<div class="card"><div class="eyebrow">Ukážky</div>';
     if (s.clips && s.clips.length) {
       s.clips.slice().sort((a, b) => a.t - b.t).forEach(c => {
-        h += '<div class="clip"><button class="icon-btn" data-act="playClip" data-id="' + c.id + '" type="button" aria-label="Prehrať ukážku z ' + clock(c.t) + '">▶</button>' +
+        h += '<div class="clip"><button class="icon-btn" data-act="playClip" data-id="' + esc(c.id) + '" type="button" aria-label="Prehrať ukážku z ' + clock(c.t) + '">▶</button>' +
           "<span>" + clock(c.t) + ' · <span class="' + (c.kind === "snore" ? "t-lamp" : "muted") + '">' + (c.kind === "snore" ? "chrápanie" : "hluk") + "</span></span>" +
           '<span class="small muted">+' + Math.round(c.peak) + " dB</span></div>";
       });
@@ -1176,6 +1190,17 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     h += '<button class="btn danger" data-act="askDelSound" data-key="' + key + '" type="button">Vymazať záznam tejto noci</button>';
     h += "</div>";
     showSheet(h);
+    markMissingClips(s.clips || []);
+  }
+  // Ukážky, ktoré v úložisku chýbajú, označíme hneď, nie až po ťuknutí.
+  function markMissingClips(clips) {
+    if (!clips.length) return;
+    IDB.has(clips.map(c => c.id)).then(found => {
+      clips.filter(c => !found.includes(c.id)).forEach(c => {
+        const b = $("#sheet").querySelector('[data-act="playClip"][data-id="' + c.id + '"]');
+        if (b) { b.disabled = true; b.textContent = "–"; b.setAttribute("aria-label", "Ukážka chýba"); b.title = "Ukážka v úložisku chýba"; }
+      });
+    }).catch(() => {});
   }
 
   let playing = null;
@@ -1192,8 +1217,11 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     stopPlaying();
     if (same) return;
     let blob;
-    try { blob = await IDB.get(id); } catch (e) { blob = null; }
-    if (!blob) { toast("Ukážka sa nenašla."); return; }
+    try { blob = await IDB.get(id); } catch (e) {
+      toast("Ukážku sa nepodarilo načítať z úložiska (" + ((e && (e.name || e.message)) || "chyba") + ")."); return;
+    }
+    if (!blob) { toast("Ukážka v úložisku chýba."); return; }
+    if (!blob.size) { toast("Ukážka je prázdna – mikrofón počas nej nič nenahral."); return; }
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
     playing = { id, audio, url, btn };
@@ -1410,6 +1438,16 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   });
   // pri zatváraní appky počas záznamu uložíme aspoň rozpracovaný súhrn
   window.addEventListener("pagehide", () => { if (rec) storeNight(rec, Date.now(), true); });
+
+  // Appka môže byť otvorená dvakrát (nainštalovaná + karta v Chrome). Keď druhá kópia zmení dáta,
+  // načítame ich znova, aby sme neukazovali staré ukážky ani neprepísali novšie dáta starými.
+  window.addEventListener("storage", e => {
+    if (e.key !== DATA_KEY && e.key !== SET_KEY && e.key !== null) return;
+    if (e.key !== SET_KEY) D = emptyData();   // druhá kópia mohla dáta vymazať
+    load();
+    applyTheme();
+    if ($("#sheet").hidden) render();
+  });
 
   load();
   tidySounds();

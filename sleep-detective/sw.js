@@ -1,6 +1,6 @@
 /* Service worker Sleep Detective: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu. */
-const CACHE = 'sleep-detective-v8';
+const CACHE = 'sleep-detective-v10';
 const ASSETS = [
   './',
   './index.html',
