@@ -349,7 +349,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   let D = emptyData();
   let SET = { theme: "dark", name: "", expLength: 7, installDismissed: false, soundSensitivity: "medium",
     clipSnoreN: 4, clipSnoreSec: 10, clipNoiseN: 8, clipNoiseSec: 10, clipKbps: 32,
-    soundAudio: true, soundFull: false, fullKeepDays: 14 };   // fullKeepDays: koľko dní uchovávať nahrávky celej noci (1–14)   // soundAudio: ukladať nahrávky vôbec; soundFull: aj celú noc, nielen ukážky   // ukážky: počet za noc a dĺžka v s pre každý druh zvuku
+    soundAudio: true, soundFull: false, fullKeepDays: 14,
+    autoOn: false, autoFrom: "22:30", autoTo: "07:00" };   // automatické spustenie a ukončenie nočného záznamu   // fullKeepDays: koľko dní uchovávať nahrávky celej noci (1–14)   // soundAudio: ukladať nahrávky vôbec; soundFull: aj celú noc, nielen ukážky   // ukážky: počet za noc a dĺžka v s pre každý druh zvuku
   const UI = { tab: "today", logMode: new Date().getHours() >= 15 ? "evening" : "morning", msg: null };
 
   function save() {
@@ -518,9 +519,13 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   }
   function stat(v, l) { return '<div class="stat"><b>' + v + "</b><span>" + l + "</span></div>"; }
   function nightCard() {
-    return '<div class="card"><div class="eyebrow">Nočný záznam zvuku</div><h3>Ideš spať?</h3>' +
-      '<p class="small muted">Zapni počúvanie a polož telefón k posteli. Appka rozpozná chrápanie a hluk, celú noc nenahráva.</p>' +
-      '<button class="btn ghost" data-act="startNight" type="button">Spustiť nočný záznam</button></div>';
+    const what = SET.soundAudio ? (SET.soundFull ? " a nahrá celú noc." : " a uloží krátke ukážky.") : ". Nič nenahráva.";
+    let h = '<div class="card"><div class="eyebrow">Nočný záznam zvuku</div><h3>Ideš spať?</h3>' +
+      '<p class="small muted">Zapni počúvanie a polož telefón k posteli. Appka rozpozná chrápanie a hluk' + what + "</p>";
+    if (SET.autoOn) h += '<p class="small">Automaticky ' + esc(SET.autoFrom) + "–" + esc(SET.autoTo) + ', ak bude appka otvorená. Nechaj ju v pohotovosti na nabíjačke.</p>';
+    h += '<button class="btn ghost" data-act="startNight" type="button">Spustiť nočný záznam</button>';
+    if (SET.autoOn && !autoWindow(Date.now())) h += '<button class="btn ghost" data-act="standby" type="button">Pohotovosť – spustiť o ' + esc(SET.autoFrom) + "</button>";
+    return h + "</div>";
   }
 
   function viewToday() {
@@ -537,7 +542,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (hr >= 17 && !D.evenings[t]) {
       h += '<div class="card"><div class="eyebrow">Večerný záznam</div><h3>Čo sa dnes dialo?</h3><p class="small muted">Káva, alkohol, mobil v posteli… Ťukneš na ikonky a hotovo.</p><button class="btn" data-act="gotoEvening" type="button">Zapísať večer</button></div>';
     }
-    if (hr >= 18 || hr < 4) h += nightCard();
+    if (hr >= 18 || hr < 4 || (SET.autoOn && hr >= 15)) h += nightCard();
     if (D.sounds[t]) {
       const s = D.sounds[t];
       h += '<div class="card"><div class="eyebrow">Zvuk dnešnej noci</div><p>' + soundLine(s).replace(/^./, c => c.toUpperCase()) + "</p>" +
@@ -845,6 +850,12 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     h += '<div class="card"><span class="set-label">Nočný záznam zvuku</span>' +
       '<span class="small">Citlivosť</span>' + seg("data-sens", SET.soundSensitivity, [["low", "Nízka"], ["medium", "Stredná"], ["high", "Vysoká"]]) +
       '<p class="small muted">Vyššia citlivosť zachytí aj tichšie zvuky.</p>' +
+      check("set-auto", SET.autoOn, "Spúšťať nočný záznam automaticky", "Funguje len vtedy, keď je appka v tom čase otvorená – napr. v pohotovosti na nabíjačke. Zatvorenú appku telefón spustiť nedovolí.") +
+      (SET.autoOn ? '<div class="num-row">' +
+        '<label class="small" for="set-auto-from">Od (HH:MM)<input id="set-auto-from" type="text" inputmode="numeric" autocomplete="off" maxlength="5" value="' + esc(SET.autoFrom) + '"></label>' +
+        '<label class="small" for="set-auto-to">Do (HH:MM)<input id="set-auto-to" type="text" inputmode="numeric" autocomplete="off" maxlength="5" value="' + esc(SET.autoTo) + '"></label></div>' +
+        '<p class="small num-err" id="err-auto" role="alert" hidden></p>' +
+        '<p class="small muted">V čase „Do“ sa záznam sám ukončí. Ak appku otvoríš neskôr počas tohto času, záznam sa spustí hneď – nie však v poslednej hodine pred koncom.</p>' : "") +
       check("set-audio", SET.soundAudio, "Ukladať zvukové nahrávky", "Bez zaškrtnutia appka len rozpoznáva chrápanie a hluk. Nič sa nenahráva.");
     if (SET.soundAudio) {
       const kb = SET.clipKbps || 128;
@@ -965,14 +976,21 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     try {
       if ("wakeLock" in navigator) {
         wake = await navigator.wakeLock.request("screen");
-        wake.addEventListener("release", () => { wake = null; updateNight(); });
+        wake.addEventListener("release", () => { wake = null; updateNight(); updateStandby(); });
       }
     } catch (e) { wake = null; }
     updateNight();
+    updateStandby();
   }
 
-  async function startRecording() {
+  let startingRec = false;
+  async function startRecording(auto) {
     if (rec) { showNight(); return; }
+    if (startingRec) return;
+    startingRec = true;
+    try { await openRecording(auto); } finally { startingRec = false; }
+  }
+  async function openRecording(auto) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.SleepSound) {
       infoModal("Nahrávanie tu nefunguje", "Tento prehliadač nedovoľuje použiť mikrofón. Skús Chrome alebo Safari a appku otvor cez https.");
       return;
@@ -989,10 +1007,14 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     try { await ctx.resume(); } catch (e) { /* nič */ }
     const an = ctx.createAnalyser();
     an.fftSize = 2048; an.smoothingTimeConstant = 0;
-    ctx.createMediaStreamSource(stream).connect(an);
+    const src = ctx.createMediaStreamSource(stream);
+    src.connect(an);
     const now = Date.now();
+    const w = autoWindow(now);
+    if (w) markAuto(w.key);   // v tomto okne sa už automaticky znova nespustí
+    standby = false;
     rec = {
-      stream, ctx, an, start: now,
+      stream, ctx, an, src, start: now, auto: !!auto, autoEnd: SET.autoOn ? nextAutoEnd(now) : Infinity,
       td: new Float32Array(an.fftSize), fd: new Float32Array(an.frequencyBinCount),
       det: new SleepSound.Detector({ sensitivity: SET.soundSensitivity }),
       clips: [], clipRec: null, clipDone: null, lastClipT: 0, db: -100, n: 0, live: { snoreMin: 0, noise: 0 },
@@ -1001,10 +1023,30 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (rec.full) startSeg(rec);
     // požiadame, aby prehliadač ukážky nemazal pri nedostatku miesta
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* nič */ }
-    rec.timer = setInterval(tick, 100);
-    rec.saveTimer = setInterval(() => storeNight(rec, Date.now(), true), 60000);
+    const r = rec;
     showNight();
     requestWake();
+    // Snímky zvuku poháňa zvukové vlákno (AudioWorklet), nie časovač – časovače Chrome pri zamknutej
+    // obrazovke spomalí, zvuk z mikrofónu beží ďalej. Bez AudioWorklet použijeme časovač.
+    if (!(await startWorklet(r)) && rec === r) r.timer = setInterval(tick, 100);
+  }
+
+  const WORKLET_SRC = 'class SdTick extends AudioWorkletProcessor{constructor(){super();this.n=0;this.every=Math.max(1,Math.round(sampleRate/1280))}' +
+    'process(){if(++this.n>=this.every){this.n=0;this.port.postMessage(0)}return true}}registerProcessor("sd-tick",SdTick)';
+  async function startWorklet(r) {
+    try {
+      if (!r.ctx.audioWorklet || !window.AudioWorkletNode) return false;
+      const url = URL.createObjectURL(new Blob([WORKLET_SRC], { type: "application/javascript" }));
+      try { await r.ctx.audioWorklet.addModule(url); } finally { URL.revokeObjectURL(url); }
+      if (rec !== r) return true;   // medzitým zastavené
+      const node = new AudioWorkletNode(r.ctx, "sd-tick");
+      const mute = r.ctx.createGain();
+      mute.gain.value = 0;
+      r.src.connect(node); node.connect(mute); mute.connect(r.ctx.destination);
+      node.port.onmessage = () => { if (rec === r) tick(); };
+      r.worklet = node;
+      return true;
+    } catch (e) { return false; }
   }
 
   function tick() {
@@ -1019,6 +1061,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (ev && ev.type === "end" && r.clipRec && ev.event.start === r.clipT) clipKnown(r, ev.event.kind);
     if (r.clipRec && Date.now() - r.clipFrom >= r.clipLen) stopClip(r);
     if (r.segRec && Date.now() - r.segFrom >= SEG_MS) { r.segRec.stop(); startSeg(r); }
+    if (r.n > 0 && r.n % 600 === 0) storeNight(r, Date.now(), true);   // každú minútu
     if (++r.n % 10 === 0) {
       if (r.n % 100 === 0) { const s = r.det.summary(Date.now()); r.live = { snoreMin: s.snoreMin, noise: s.noise }; }
       updateNight();
@@ -1124,7 +1167,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   }
 
   function closeAudio(r) {
-    clearInterval(r.timer); clearInterval(r.saveTimer);
+    clearInterval(r.timer);
+    if (r.worklet) { r.worklet.port.onmessage = null; try { r.worklet.disconnect(); } catch (e) { /* nič */ } }
     r.stream.getTracks().forEach(tr => tr.stop());
     r.ctx.close().catch(() => {});
     if (wake) { wake.release().catch(() => {}); wake = null; }
@@ -1132,6 +1176,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
 
   async function stopRecording() {
     const r = rec; if (!r) return;
+    standby = false;
     rec = null;
     const end = Date.now();
     r.det.flush(end);
@@ -1176,6 +1221,87 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     $("#night").hidden = false;
     updateNight();
   }
+
+  // ---------- Automatické spustenie (funguje, len keď je appka otvorená) ----------
+  const AUTO_KEY = "sleepDetective.auto.v1";   // okno (dátum večera), v ktorom už záznam bežal
+  const AUTO_MIN_LEFT = 60 * 60000;            // v poslednej hodine okna sa už automaticky nespúšťa
+  let standby = false;
+  function hmMin(v) {
+    const m = /^(\d{1,2})[:.](\d{2})$/.exec(String(v || "").trim());
+    if (!m || +m[1] > 23 || +m[2] > 59) return null;
+    return +m[1] * 60 + +m[2];
+  }
+  const fmtHm = m => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+  const atMin = (y, mo, d, min) => new Date(y, mo, d, Math.floor(min / 60), min % 60).getTime();
+  // Okno automatického záznamu, do ktorého patrí čas ms: { key, start, end }, inak null.
+  function autoWindow(ms) {
+    const f = hmMin(SET.autoFrom), t = hmMin(SET.autoTo);
+    if (!SET.autoOn || f === null || t === null || f === t) return null;
+    const d = new Date(ms), m = d.getHours() * 60 + d.getMinutes();
+    let back;   // o koľko dní dozadu sa okno začalo
+    if (f < t) { if (m < f || m >= t) return null; back = 0; }
+    else if (m >= f) back = 0;
+    else if (m < t) back = 1;
+    else return null;
+    const s0 = new Date(d.getFullYear(), d.getMonth(), d.getDate() - back);
+    const start = atMin(s0.getFullYear(), s0.getMonth(), s0.getDate(), f);
+    const end = atMin(s0.getFullYear(), s0.getMonth(), s0.getDate() + (f < t ? 0 : 1), t);
+    return { key: iso(s0), start, end };
+  }
+  // Najbližší čas „Do“ po ms (vtedy sa záznam automaticky ukončí).
+  function nextAutoEnd(ms) {
+    const t = hmMin(SET.autoTo);
+    if (t === null) return Infinity;
+    const d = new Date(ms);
+    let e = atMin(d.getFullYear(), d.getMonth(), d.getDate(), t);
+    if (e <= ms) e = atMin(d.getFullYear(), d.getMonth(), d.getDate() + 1, t);
+    return e;
+  }
+  function autoDone() { try { return localStorage.getItem(AUTO_KEY); } catch (e) { return null; } }
+  function markAuto(key) { try { localStorage.setItem(AUTO_KEY, key); } catch (e) { /* nič */ } }
+
+  function autoCheck() {
+    const now = Date.now();
+    if (rec) {
+      if (SET.autoOn && now >= rec.autoEnd) { rec.autoEnd = Infinity; stopRecording(); }
+      return;
+    }
+    if (standby) updateStandby();
+    if (!SET.autoOn || startingRec || document.visibilityState !== "visible") return;
+    const w = autoWindow(now);
+    if (!w || autoDone() === w.key || w.end - now < AUTO_MIN_LEFT) return;
+    markAuto(w.key);
+    startRecording(true);
+  }
+
+  // Pohotovosť: tmavá obrazovka, ktorá drží telefón zapnutý a v čase „Od“ spustí záznam.
+  function showStandby() {
+    standby = true;
+    $("#night").innerHTML =
+      '<div class="night-top"><i></i>Pohotovosť</div>' +
+      '<div class="night-main"><div class="night-clock" id="n-clock"></div><div id="n-sub" class="small"></div>' +
+      '<p class="night-tip" id="n-tip"></p></div>' +
+      '<button class="night-stop" data-act="startNight" type="button">Spustiť hneď</button>' +
+      '<button class="night-stop" data-act="cancelStandby" type="button" style="margin-top:10px">Zrušiť pohotovosť</button>';
+    $("#night").hidden = false;
+    requestWake();
+    updateStandby();
+  }
+  function updateStandby() {
+    if (!standby || rec || $("#night").hidden) return;
+    $("#n-clock").textContent = clock(Date.now());
+    $("#n-sub").textContent = "Nočný záznam sa spustí o " + SET.autoFrom;
+    const tip = $("#n-tip");
+    tip.className = wake ? "night-tip" : "night-tip warn";
+    tip.textContent = wake ? "Nechaj telefón na nabíjačke s appkou otvorenou. Obrazovka zostane zapnutá a tmavá."
+      : "Obrazovka sa môže sama zamknúť a automatické spustenie sa potom nestane. Vypni automatické zamykanie alebo nechaj telefón na nabíjačke.";
+  }
+  function cancelStandby() {
+    standby = false;
+    hideNight();
+    if (wake && !rec) { wake.release().catch(() => {}); wake = null; }
+    render();
+  }
   function hideNight() { $("#night").hidden = true; $("#night").innerHTML = ""; }
   function updateNight() {
     const r = rec;
@@ -1187,7 +1313,13 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     $("#n-snore").textContent = r.live.snoreMin;
     $("#n-noise").textContent = r.live.noise;
     const tip = $("#n-tip");
-    if (!wake) {
+    if (r.ctx.state === "suspended") {
+      tip.className = "night-tip warn";
+      tip.textContent = "Ťukni na obrazovku, aby appka začala počúvať. Prehliadač nedovolil spustiť zvuk bez dotyku.";
+    } else if (!wake && r.worklet) {
+      tip.className = "night-tip warn";
+      tip.textContent = "Obrazovka sa môže zamknúť. Appka sa pokúsi počúvať ďalej, ale niektoré telefóny ju uspia – najistejšie je nechať ju otvorenú na nabíjačke.";
+    } else if (!wake) {
       tip.className = "night-tip warn";
       tip.textContent = "Obrazovka sa môže sama zamknúť a záznam sa tým preruší. Vypni automatické zamykanie alebo nechaj telefón na nabíjačke s appkou otvorenou.";
     } else {
@@ -1402,6 +1534,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   }
 
   document.addEventListener("click", e => {
+    // prehliadač mohol pri automatickom spustení zvuk pozastaviť – dotyk ho spustí
+    if (rec && rec.ctx.state === "suspended") rec.ctx.resume().then(updateNight).catch(() => {});
     const b = e.target.closest("button");
     if (!b) return;
     if (b.dataset.tab) { UI.tab = b.dataset.tab; UI.msg = null; render(); return; }
@@ -1421,6 +1555,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     switch (b.dataset.act) {
       case "settings": openSettings(); break;
       case "startNight": startRecording(); break;
+      case "standby": showStandby(); break;
+      case "cancelStandby": cancelStandby(); break;
       case "askStopNight":
         confirmModal({ title: "Ukončiť nočný záznam?", text: "Appka prestane počúvať a ukáže ti súhrn noci.", ok: "Ukončiť záznam" }, () => { closeModal(); stopRecording(); });
         break;
@@ -1494,12 +1630,26 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   document.addEventListener("change", e => {
     if (e.target.id === "set-audio") { SET.soundAudio = e.target.checked; saveSet(); openSettings(); }
     if (e.target.id === "set-full") { SET.soundFull = e.target.checked; saveSet(); openSettings(); }
+    if (e.target.id === "set-auto") { SET.autoOn = e.target.checked; saveSet(); openSettings(); render(); }
   });
   document.addEventListener("input", e => {
     if (e.target.id === "temp") { const ev = eveningRecord(); ev.temp = Number(e.target.value); $("#tempv").textContent = ev.temp + " °C"; markEveningDirty(); }
     if (e.target.id === "set-name") { SET.name = e.target.value.trim(); saveSet(); }
     if (/^set-clip[ns]-(snore|noise)$/.test(e.target.id)) setClipNum(e.target);
     if (e.target.id === "set-kbps") { SET.clipKbps = Number(e.target.value); saveSet(); }
+    if (e.target.id === "set-auto-from" || e.target.id === "set-auto-to") {
+      const from = $("#set-auto-from"), to = $("#set-auto-to");
+      const f = hmMin(from.value), t = hmMin(to.value);
+      from.setAttribute("aria-invalid", f === null ? "true" : "false");
+      to.setAttribute("aria-invalid", t === null ? "true" : "false");
+      const same = f !== null && f === t;
+      if (f !== null && !same) SET.autoFrom = fmtHm(f);
+      if (t !== null && !same) SET.autoTo = fmtHm(t);
+      saveSet();
+      const err = $("#err-auto");
+      err.textContent = f === null || t === null ? "Zadaj čas v tvare HH:MM, napríklad 22:30." : same ? "Čas „Od“ a „Do“ nemôže byť rovnaký." : "";
+      err.hidden = !err.textContent;
+    }
     if (e.target.id === "set-keep") {
       const v = e.target.value.trim(), ok = /^\d+$/.test(v) && +v >= 1 && +v <= KEEP_CLIP_DAYS;
       e.target.setAttribute("aria-invalid", ok ? "false" : "true");
@@ -1545,7 +1695,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   let shownDay = today();
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") return;
-    if (rec && !wake) requestWake();   // zámok obrazovky sa po prepnutí appky stratí
+    if ((rec || standby) && !wake) requestWake();   // zámok obrazovky sa po prepnutí appky stratí
+    autoCheck();
     if (today() !== shownDay && $("#sheet").hidden && !rec) { shownDay = today(); render(); }
   });
   // pri zatváraní appky počas záznamu uložíme aspoň rozpracovaný súhrn
@@ -1565,6 +1716,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   tidySounds();
   applyTheme();
   render();
+  setInterval(autoCheck, 10000);
+  autoCheck();
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => { /* offline režim nie je dostupný */ });
