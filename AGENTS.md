@@ -1,58 +1,42 @@
 # AGENTS.md — Agent instructions for this repository
 
-Purpose
-- Short, actionable guidance for AI coding agents working on this repository.
+Short, actionable guidance for AI coding agents (Copilot, Codex, Claude and others). The fuller version is in [CLAUDE.md](CLAUDE.md); [jocadium/CLAUDE.md](jocadium/CLAUDE.md) covers the game library in detail.
 
-Quick summary
-- This repo is a collection of static web games and PWAs. There is no single build system; projects are mostly static HTML/CSS/JS.
-- To preview locally, serve the repo over HTTP (examples below). Service workers and PWAs require `http://localhost` or HTTPS to work.
+## What this repo is
 
-Quick start (preview)
-- From the repo root run: `python -m http.server 8000` and open `http://localhost:8000` in a browser.
-- Alternatively use VS Code Live Server or any static file server.
+A collection of **independent, zero-build static PWAs**, one per top-level folder. No package.json, bundler or transpiler: hand-written vanilla HTML/CSS/JS. Published as-is on GitHub Pages at `https://spitalik.github.io/moj-web/<folder>/`.
 
-Key files and example entry points (link, don't embed)
-- Project README: [README.md](README.md)
-- Root index pages: [index.html](index.html), [pexeso.html](pexeso.html), [piskvorky.html](piskvorky.html), [sudoku.html](sudoku.html)
-- PWAs and service workers:
-  - [clickrush-pwa/clickrush/index.html](clickrush-pwa/clickrush/index.html)
-  - [clickrush-pwa/clickrush/manifest.json](clickrush-pwa/clickrush/manifest.json)
-  - [clickrush-pwa/clickrush/sw.js](clickrush-pwa/clickrush/sw.js)
-  - [pexeso-pwa/pexeso/index.html](pexeso-pwa/pexeso/index.html)
-  - [pexeso-pwa/pexeso/manifest.json](pexeso-pwa/pexeso/manifest.json)
-  - [pexeso-pwa/pexeso/sw.js](pexeso-pwa/pexeso/sw.js)
-  - [gamepad/gamepad/index.html](gamepad/gamepad/index.html)
-  - [gamepad/gamepad/manifest.json](gamepad/gamepad/manifest.json)
-  - [gamepad/gamepad/sw.js](gamepad/gamepad/sw.js)
-- Subproject README: [dungeon-miner/README.md](dungeon-miner/README.md)
-- Other notable entry points: [deepseek/index.html](deepseek/index.html)
+| Folder | App |
+|---|---|
+| [jocadium/](jocadium/index.html) | Jocadium: HTML5 game library, 12 languages |
+| [math/](math/index.html) | Matematika krok za krokom: lessons and exercises, 12 languages |
+| [phys/](phys/index.html) | Fyzika krok za krokom: same architecture as `math/` |
+| [juro/](juro/index.html) | Juro: tools for lawyers, Slovak only ([README](juro/README.md)) |
+| [sleep-detective/](sleep-detective/index.html) | Sleep Detective: sleep diary and night sound recording, Slovak only |
 
-Conventions and patterns
-- Projects are self-contained: many nested `games/` folders each with their own `index.html`.
-- PWAs include `manifest.json` + `sw.js` and sometimes `icons/`.
-- No centralized package manager or test runner detected (no `package.json` / `Makefile`).
+The root `index.html` is only a placeholder link page. Root `tools/` holds old scripts for a former layout and is not used by any app.
 
-Agent best-practices
-- Prefer small, focused edits and PRs scoped to a single game or PWA.
-- Always test changes by running a local static server (see Quick start) — service workers require `localhost`/HTTPS.
-- Ignore virtualenv and editor folders when searching (e.g., `.venv/`, workspace settings).
-- When changing a PWA, update its `manifest.json` and `icons/` alongside HTML/JS changes.
+The developer is Slovak-speaking: UI texts, code comments and commit messages are mostly in Slovak.
 
-**Copilot guidance**
-- **Purpose:** Give `copilot` quick, repo-aware instructions for editing and previewing static games and PWAs.
-- **Preview locally:** Run `python -m http.server 8000` from the repo root and open `http://localhost:8000`.
-- **PWA edits:** When modifying a PWA, update the `manifest.json` and `icons/` in the same folder and ensure the service worker `sw.js` path matches the registration in that `index.html`.
-- **Service-worker note:** Service workers cache aggressively; unregister existing SWs in the browser or use an unregistered-dev SW when testing to avoid stale assets.
-- **Folder selection:** There are duplicate/parallel folders (e.g., `gamepad/` vs `gamepad202606/`) — confirm which copy is authoritative before editing.
-- **No build/test runner:** There is no centralized build or test system; validate changes manually in a browser.
+## Preview
 
-Potential pitfalls
-- Multiple files with the same name in different subfolders — always reference full path when editing.
-- Some features (service workers, push) cannot be fully validated without a browser served over HTTP/HTTPS.
+From the repo root run `python -m http.server 8000` and open `http://localhost:8000/<folder>/`. Service workers need `localhost` or HTTPS, not `file://`. They cache aggressively: use DevTools → Application → Service Workers → "Update on reload" (or unregister the worker) so you don't test an old version.
 
-Suggested next agent customizations
-- `create-skill run-static-server` — skill to start a local static server and open a URL for quick preview.
-- `create-instruction gamepad-agent` — per-subproject instructions for `gamepad/` to encode testing and PWA specifics.
-- `create-skill pwa-checker` — automated checks that validate `manifest.json` presence and `sw.js` registration for each PWA.
+## Checks (run inside the app's folder)
 
-If you want, I can now create the `create-skill run-static-server` or add per-project instruction stubs.
+- `math/`: `node tools/validate.js` (also in CI: `.github/workflows/math-validate.yml`); after changing lessons or translations `node tools/index_build.js`.
+- `phys/`: `node tools/validate.js`, `node tools/index_build.js`.
+- `juro/`: `node tools/test.js`.
+- `sleep-detective/`: `node tools/test.js`.
+- `jocadium/`: no tests, verify in a browser.
+
+## Rules
+
+- **Each app is self-contained in its own folder.** Fonts, libraries, icons, sounds, translations and tools live inside it (fonts in `fonts/` or `vendor/fonts/`, libraries in `vendor/`). Never reference a file outside the app's folder (no `../` out of it, no root-absolute `/…` path) and never share files between apps; if two apps need the same font or library, each gets its own copy with its licence.
+- **No runtime requests to third parties**: no Google Fonts, CDNs, analytics or trackers (it would send users' IP addresses to them, which conflicts with GDPR).
+- **Respect licences**: only use assets and libraries whose licence allows it, ship their licence files and record them (`jocadium/NOTICE`, `*/THIRD-PARTY-NOTICES.md`, `sleep-detective/fonts/OFL-*.txt`). Do not copy protected content, names or look of existing games or brands.
+- **Privacy / GDPR**: keep user data on the device (localStorage / IndexedDB), collect only what a feature needs, say what is stored, and let users export and fully delete it.
+- **Bump the `CACHE` version in the app's `sw.js` on any change** to its files, and add new files needed offline to its `ASSETS` list.
+- When changing a PWA, keep its manifest, `icons/` and `sw.js` registration in sync.
+- Keep edits small and scoped to one app. Always use full paths from the repo root, because `index.html`, `sw.js` and `tools/test.js` exist in several apps.
+- Apps are used mainly on Android phones as installed PWAs: support touch, small screens and offline use.

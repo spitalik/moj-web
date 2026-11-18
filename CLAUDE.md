@@ -4,46 +4,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-GamePad is a **zero-build static PWA**: an installable, offline-capable HTML5 game library. There is no package.json, bundler, transpiler, or test suite. Everything is hand-written vanilla HTML/CSS/JS served as static files. Each game is a single self-contained `games/<id>/index.html` (inline `<style>` + `<script>`, no shared CSS/JS files besides `i18n.js`).
+`moj-web` is a collection of **independent, zero-build static PWAs**, each in its own top-level folder. There is no package.json, bundler or transpiler anywhere: everything is hand-written vanilla HTML/CSS/JS served as static files. The repo is published as-is on GitHub Pages, so each app lives at `https://spitalik.github.io/moj-web/<folder>/`.
 
-The developer is Slovak-speaking; git commit messages and code comments are often in Slovak.
+| Folder | App | Notes |
+|---|---|---|
+| `jocadium/` | **Jocadium**: HTML5 game library (formerly GamePad), 12 languages | Has its own detailed [jocadium/CLAUDE.md](jocadium/CLAUDE.md); read it before touching games |
+| `math/` | **Matematika krok za krokom**: lessons and generated exercises, 12 languages | Lazy-loaded grade files + generated index; validator runs in CI |
+| `phys/` | **Fyzika krok za krokom**: same architecture as `math/` | Curriculum outline in `phys/osnova-fyziky.md` |
+| `juro/` | **Juro**: tools for lawyers (Slovak only) | See [juro/README.md](juro/README.md) |
+| `sleep-detective/` | **Sleep Detective**: sleep diary + night sound recording (Slovak only) | Single `index.html` + `sound.js` (snore/noise detector) |
+
+The root `index.html` is only a placeholder link page. Root `tools/` holds old one-off Python scripts for a former `gamepad/` layout that no longer exists; they are not used by any current app.
+
+**Every app is fully self-contained in its own folder** and must stay that way: its fonts, libraries, icons, sounds, translations and tools live inside that folder (fonts in `fonts/` or `vendor/fonts/`, libraries in `vendor/`). Never reference a file outside the app's folder (no `../` out of it, no root-absolute `/…` paths, nothing from the repo root) and never share files between apps. If two apps need the same font or library, each gets its own copy, together with its licence file. Each app has its own `index.html`, `sw.js`, manifest, `icons/` and (where needed) `tools/`. Always reference files by their full path from the repo root, because names like `index.html`, `sw.js` and `tools/test.js` exist in several apps.
+
+The developer is Slovak-speaking: UI texts, code comments and commit messages are mostly in Slovak.
 
 ## Running / developing
 
-Serve the repo root over HTTP (service workers and the manifest require a real origin, not `file://`):
+Serve the repo root over HTTP (service workers and manifests need a real origin, not `file://`):
 
 ```
-python -m http.server 8000     # then open http://localhost:8000
+python -m http.server 8000     # then open http://localhost:8000/<folder>/
 ```
 
-There is nothing to build, lint, or test. To verify a change, open the app (or a specific game at `games/<id>/index.html`) in a browser. **When testing, disable the service worker cache** (DevTools → Application → Service Workers → "Update on reload") or you may keep seeing the old cached version.
+`.claude/launch.json` defines this server as `static` for the Claude browser preview.
 
-## Architecture
+**When testing, bypass the service worker cache** (DevTools → Application → Service Workers → "Update on reload", or unregister the worker), otherwise you may see an old cached version.
 
-Three top-level files coordinate the whole app; understanding how they interlock is the key to working here.
+### Checks per app (run from the app's folder)
 
-- **`index.html`** — the launcher. Holds the `GAMES` array (the single source of truth for which games exist, their id, title/desc translation keys, emoji, tags, hero color, file path, and `isNew` badge). It renders cards, handles search/tag filtering, the language picker, the PWA install banner, and service-worker registration.
-- **`i18n.js`** — one large shared file (~530KB) loaded as a plain global script by the launcher (`i18n.js`) and by every game (`../../i18n.js`). It exports globals: `TRANSLATIONS` (per-language string dictionaries), `t(key, vars)` (lookup with `{var}` interpolation, falls back to English then to the raw key), `getLang()`/`setLang()` (persist to `localStorage['gamepad_lang']`), `currentT()`, and `LANGUAGES` (12 locales: en, sk, es, pt, de, fr, it, ru, tr, ja, ko, zh). Games define a local `applyLang()` that assigns `t('someKey')` into their DOM.
-- **`sw.js`** — service worker. Precaches an `ASSETS` list (must include every game's `index.html`) under a versioned cache name (`gamepad-v85`). Fetch strategy: **network-first for `.html`/`.js`** (so new games/strings appear without a manual reload), **cache-first for other static assets** (icons). On install it `skipWaiting()`s; the launcher reloads once on `controllerchange` to pick up updates.
+- `math/`: `node tools/validate.js` (content, generators, translations; `--lang <code>` for one language). After changing lessons or translations run `node tools/index_build.js` (or `tools/i18n_build.js`, which calls it); `validate.js` fails if the index is stale. CI runs the validator per language: `.github/workflows/math-validate.yml`.
+- `phys/`: `node tools/validate.js` and `node tools/index_build.js`, same as `math/`.
+- `juro/`: `node tools/test.js`.
+- `sleep-detective/`: `node tools/test.js` (detector in `sound.js` on synthetic sound). `tools/zaloha-test-7dni.json` is a sample backup for testing "Obnoviť zo zálohy".
+- `jocadium/`: no tests; verify in the browser (see its CLAUDE.md).
 
-Games do not communicate with the launcher at runtime — the launcher just links to each game's `index.html`. Games are otherwise independent: each stores its own high score under its own ad-hoc `localStorage` key (no shared convention — e.g. `clickrush_best`, `bubbleBurstHighScore`, `BEST_KEY`).
+## Rules that apply to every app
 
-## Adding a new game — three coordinated edits
-
-A game is only fully wired up when **all three** of these are done. Missing any one causes bugs (game not listed, missing offline support, or untranslated labels):
-
-1. **`index.html`** — add an entry to the `GAMES` array (there is a commented template line in the array). Use `titleKey`/`descKey` referencing i18n keys, or a literal `title` for names that aren't translated.
-2. **`sw.js`** — add `'./games/<id>/index.html'` to the `ASSETS` array **and bump the `CACHE` version** (e.g. `gamepad-v85` → `gamepad-v86`). Bumping the version is what forces clients to re-cache; forgetting it means users keep the stale asset list.
-3. **`i18n.js`** — add the title/description keys (and any in-game string keys) **to every language block**, not just `en`. `t()` falls back to English for missing keys, so untranslated locales degrade gracefully but should still be filled in.
-
-**Bump the `sw.js` `CACHE` version on essentially any change** to `index.html`, `i18n.js`, or a game — otherwise returning users may be served the previous cached version.
-
-## Conventions for new games
-
-Match the existing games' structure so the library stays consistent:
-
-- Single self-contained `games/<id>/index.html` with inline styles/scripts. Load i18n with `<script src="../../i18n.js"></script>`.
-- Reuse the shared design tokens (dark theme): CSS vars `--bg`, `--bg1`, `--bg2`, `--text`, `--muted`, `--dim`, `--border`, `--border-h`; fonts **DM Sans** (body) and **Syne** (headings/wordmark) from Google Fonts.
-- Include a back link (uses the shared `back` key `← Back`) to return to the launcher, and support the shared difficulty keys (`diffEasy`/`diffMedium`/`diffHard`) where relevant.
-- Support keyboard **and** touch/swipe input (games are played on mobile as an installed PWA).
-- Tags come from a fixed set: `arcade`, `puzzle`, `action`, `strategy`, `memory` (plus occasional `word`). `TAG_CLASS`/`TAG_FILTER`/`TAG_LABEL` maps in `index.html` drive their colors and labels.
+- **Bump the `CACHE` version in that app's `sw.js` on essentially any change** to its files (for example `sleep-detective-v17` → `-v18`). Without it, returning users keep getting the cached old version. New files the app needs offline must also be added to the `ASSETS` list in `sw.js`.
+- **Licences, GDPR and other law must not be violated.**
+  - Only use libraries, fonts, icons, sounds and images whose licence allows it, and ship the required licence/attribution files. Existing records: `jocadium/NOTICE`, `math/THIRD-PARTY-NOTICES.md`, `phys/THIRD-PARTY-NOTICES.md`, `juro/THIRD-PARTY-NOTICES.md`, `sleep-detective/fonts/OFL-*.txt`. `jocadium/`, `math/`, `phys/` and `juro/` have their own `LICENSE`; `sleep-detective/` does not have one yet.
+  - Do not copy protected content, names or look of existing games or brands.
+  - **Nothing may be loaded from third-party servers at runtime** (no Google Fonts, CDNs, analytics or trackers), because that sends the user's IP address to the third party. Bundle fonts and libraries inside the app (fonts as `fonts/*.woff2` + `fonts/fonts.css`, libraries in `vendor/`).
+  - Keep user data on the device (localStorage / IndexedDB), collect only what the feature needs, tell the user what is stored, and let them export and fully delete it. This matters most for `sleep-detective/`, which records audio in the bedroom and stores health-related data.
+- Apps are used mainly on Android phones as installed PWAs: support touch, small screens and offline use.
