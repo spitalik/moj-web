@@ -27,7 +27,7 @@ From the repo root run `python -m http.server 8000` and open `http://localhost:8
 - `math/`: `node tools/validate.js` (also in CI: `.github/workflows/math-validate.yml`); after changing lessons or translations `node tools/index_build.js`.
 - `phys/`: `node tools/validate.js`, `node tools/index_build.js`.
 - `juro/`: `node tools/test.js`.
-- `sleep-detective/`: `node tools/test.js`.
+- `sleep-detective/`: `node tools/test.js` (sound detector, then the app scenarios in `tools/test-app.js`).
 - `jocadium/`: no tests, verify in a browser.
 
 ## Rules

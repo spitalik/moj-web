@@ -1,5 +1,6 @@
 /* Kontrola rozpoznávania chrápania a hluku (sound.js) na umelých zvukoch.
-   Spustenie (z priečinka sleep-detective):  node tools/test.js */
+   Spustenie (z priečinka sleep-detective):  node tools/test.js
+   Na konci spustí aj scenárový test appky (tools/test-app.js). */
 'use strict';
 const assert = require('assert');
 const S = require('../sound.js');
@@ -102,4 +103,8 @@ t('podiel nízkych frekvencií a hlasitosť', () => {
   assert.strictEqual(S.levelDb(new Float32Array(10)), -100);
 });
 
-console.log(`${ok} testov prešlo`);
+console.log(`Detektor zvuku: ${ok} testov prešlo`);
+
+// scenáre celej appky (index.html) – potrebujú vlastné náhrady Date, DOM a mikrofónu, preto až po detektore
+console.log('Appka:');
+require('./test-app.js');

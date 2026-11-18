@@ -37,15 +37,15 @@ python -m http.server 8000     # then open http://localhost:8000/<folder>/
 - `math/`: `node tools/validate.js` (content, generators, translations; `--lang <code>` for one language). After changing lessons or translations run `node tools/index_build.js` (or `tools/i18n_build.js`, which calls it); `validate.js` fails if the index is stale. CI runs the validator per language: `.github/workflows/math-validate.yml`.
 - `phys/`: `node tools/validate.js` and `node tools/index_build.js`, same as `math/`.
 - `juro/`: `node tools/test.js`.
-- `sleep-detective/`: `node tools/test.js` (detector in `sound.js` on synthetic sound). `tools/zaloha-test-7dni.json` is a sample backup for testing "Obnoviť zo zálohy".
+- `sleep-detective/`: `node tools/test.js` runs the detector tests (`sound.js` on synthetic sound) and then `tools/test-app.js`, a scenario test of the whole `index.html` with a fake DOM, clock, microphone and IndexedDB. Add a scenario there for every new feature. `tools/zaloha-test-7dni.json` is a sample backup for testing "Obnoviť zo zálohy".
 - `jocadium/`: no tests; verify in the browser (see its CLAUDE.md).
 
 ## Rules that apply to every app
 
 - **Bump the `CACHE` version in that app's `sw.js` on essentially any change** to its files (for example `sleep-detective-v17` → `-v18`). Without it, returning users keep getting the cached old version. New files the app needs offline must also be added to the `ASSETS` list in `sw.js`.
 - **Licences, GDPR and other law must not be violated.**
-  - Only use libraries, fonts, icons, sounds and images whose licence allows it, and ship the required licence/attribution files. Existing records: `jocadium/NOTICE`, `math/THIRD-PARTY-NOTICES.md`, `phys/THIRD-PARTY-NOTICES.md`, `juro/THIRD-PARTY-NOTICES.md`, `sleep-detective/fonts/OFL-*.txt`. `jocadium/`, `math/`, `phys/` and `juro/` have their own `LICENSE`; `sleep-detective/` does not have one yet.
+  - Only use libraries, fonts, icons, sounds and images whose licence allows it, and ship the required licence/attribution files. Existing records: `jocadium/NOTICE`, `math/THIRD-PARTY-NOTICES.md`, `phys/THIRD-PARTY-NOTICES.md`, `juro/THIRD-PARTY-NOTICES.md`, `sleep-detective/fonts/OFL-*.txt`. Every app has its own `LICENSE`.
   - Do not copy protected content, names or look of existing games or brands.
   - **Nothing may be loaded from third-party servers at runtime** (no Google Fonts, CDNs, analytics or trackers), because that sends the user's IP address to the third party. Bundle fonts and libraries inside the app (fonts as `fonts/*.woff2` + `fonts/fonts.css`, libraries in `vendor/`).
-  - Keep user data on the device (localStorage / IndexedDB), collect only what the feature needs, tell the user what is stored, and let them export and fully delete it. This matters most for `sleep-detective/`, which records audio in the bedroom and stores health-related data.
+  - Keep user data on the device (localStorage / IndexedDB), collect only what the feature needs, tell the user what is stored, and let them export and fully delete it. This matters most for `sleep-detective/`, which records audio in the bedroom and stores health-related data. Its "Ochrana súkromia" screen (`openPrivacy()` in `sleep-detective/index.html`) lists what is stored and for how long: update it whenever that changes.
 - Apps are used mainly on Android phones as installed PWAs: support touch, small screens and offline use.

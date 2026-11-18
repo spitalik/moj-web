@@ -203,7 +203,28 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
 .q h2 { font-size: 30px; line-height: 1.1; }
 .opts { display: flex; flex-direction: column; gap: 10px; }
 .opt { background: var(--dusk); border: 1px solid transparent; border-radius: 16px; padding: 15px 16px; text-align: left; display: flex; align-items: center; gap: 14px; font-size: 16px; }
-.opt:hover { border-color: var(--lamp); }
+.opt:hover, .opt.sug { border-color: var(--lamp); }
+ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+/* Prehľad pre lekára: na obrazovke v karte, pri tlači sám na bielom papieri */
+.rep { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.rep h1 { font-size: 17px; } .rep h2 { font-size: 14px; margin-top: 6px; }
+.rep ul { margin: 0; padding-left: 18px; }
+.rep table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.rep th, .rep td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.rep th { font-weight: 500; color: var(--muted); }
+.rep-wide { overflow-x: auto; }
+.rep-wide td, .rep-wide th { white-space: nowrap; }
+.rep-note { color: var(--muted); font-size: 12px; }
+@media print {
+  @page { margin: 14mm; }
+  html, body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+  .stage { display: none !important; }
+  #print[hidden] { display: block !important; }
+  .print { --line: #999; --muted: #333; color: #000; font-size: 10.5pt; }
+  .print .rep { font-size: 10.5pt; }
+  .print h1 { font-size: 16pt; } .print h2 { font-size: 12pt; margin-top: 10px; }
+  .print table { page-break-inside: auto; } .print tr { page-break-inside: avoid; }
+}
 .opt .n { font-family: var(--f-mono); font-size: 13px; width: 28px; height: 28px; border-radius: 50%; background: var(--dusk-2); display: grid; place-items: center; flex: none; }
 .set-label { font-weight: 600; font-size: 14px; }
 
@@ -281,13 +302,15 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   </div>
 </div>
 
+<div id="print" class="print" hidden aria-hidden="true"></div>
+
 <script src="sound.js"></script>
 <script>
 (function () {
   "use strict";
 
   // ---------- Číselníky ----------
-  const FACTORS = [
+  const BASE_FACTORS = [
     { k: "coffee",   name: "Káva po 14:00",    icon: "☕", exp: "Bez kávy po 14:00",               expShort: "bez kávy po 14:00" },
     { k: "phone",    name: "Mobil v posteli",  icon: "📱", exp: "Mobil mimo postele",              expShort: "bez mobilu v posteli" },
     { k: "alcohol",  name: "Alkohol",          icon: "🍷", exp: "Bez alkoholu",                    expShort: "bez alkoholu" },
@@ -296,7 +319,18 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     { k: "sportEve", name: "Šport po 19:00",   icon: "🏃", exp: "Tréning pred 18:00",              expShort: "s tréningom pred 18:00" },
     { k: "nap",      name: "Šlofík cez deň",   icon: "💤", exp: "Bez šlofíka po 15:00",            expShort: "bez šlofíka" }
   ];
-  const FMAP = Object.fromEntries(FACTORS.map(f => [f.k, f]));
+  // Vlastné faktory si používateľ pridá v nastaveniach (D.custom). Zoznam FACTORS sa skladá znova po každej zmene.
+  const MAX_CUSTOM = 8;
+  const CUSTOM_ICONS = ["🔹", "🌡️", "🖥️", "🍫", "🍺", "🚬", "💊", "🧘", "🌙", "🩸", "🧳", "🐶"];
+  const cleanName = v => String(v == null ? "" : v).replace(/[<>&"'`\\]/g, "").replace(/\s+/g, " ").trim().slice(0, 30);
+  let FACTORS = BASE_FACTORS, FMAP = {};
+  function refreshFactors() {
+    const custom = Array.isArray(D.custom) ? D.custom.filter(c => c && /^c[a-z0-9]{1,20}$/.test(c.k) && cleanName(c.name)) : [];
+    D.custom = custom.map(c => ({ k: c.k, name: cleanName(c.name), icon: CUSTOM_ICONS.includes(c.icon) ? c.icon : CUSTOM_ICONS[0] }));
+    FACTORS = BASE_FACTORS.concat(D.custom.map(c => ({ k: c.k, name: c.name, icon: c.icon, custom: true,
+      exp: "Bez: " + c.name, expShort: "bez: " + c.name.toLowerCase() })));
+    FMAP = Object.fromEntries(FACTORS.map(f => [f.k, f]));
+  }
   const METRICS = [
     { k: "latency", label: "Zaspávanie", better: "low",  thr: 10,   fmt: v => Math.round(v) + " min" },
     { k: "wakes",   label: "Prebudenia", better: "low",  thr: 0.5,  fmt: v => dec(v) + "×" },
@@ -308,6 +342,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     suspect:   { label: "Podozrivý",        cls: "t-mid" },
     clear:     { label: "Asi nevinný",      cls: "t-good" },
     acquitted: { label: "Oslobodený",       cls: "t-good" },
+    maybe:     { label: "Možno náhoda",     cls: "t-mid" },
     few:       { label: "Málo dôkazov",     cls: "t-few" }
   };
   const MIN_NIGHTS = 7;     // od koľkých nocí so záznamom večera aj rána sa ukáže spis
@@ -320,6 +355,9 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const dec = v => (Math.round(v * 10) / 10).toFixed(1).replace(".", ",");
   const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
+  const variance = a => { if (a.length < 2) return 0; const m = mean(a); return a.reduce((s, x) => s + (x - m) * (x - m), 0) / (a.length - 1); };
+  // Približná neistota rozdielu dvoch priemerov (2 smerodajné chyby ≈ 95 % interval).
+  const diffErr = (a, b) => 2 * Math.sqrt(variance(a) / Math.max(1, a.length) + variance(b) / Math.max(1, b.length));
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const toD = s => new Date(s + "T12:00:00");
   const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -343,14 +381,17 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     exp: null,       // bežiaci experiment: { k, start, length }
     verdicts: {},    // výsledky experimentov podľa faktora
     closed: [],      // uzavreté experimenty
-    sounds: {}       // nočné záznamy zvuku podľa dátumu rána (súhrn; ukážky sú v IndexedDB)
+    sounds: {},      // nočné záznamy zvuku podľa dátumu rána (súhrn; ukážky sú v IndexedDB)
+    custom: []       // vlastné faktory: { k, name, icon }
   });
   let D = emptyData();
   let SET = { theme: "dark", name: "", expLength: 7, installDismissed: false, soundSensitivity: "medium",
     clipSnoreN: 4, clipSnoreSec: 10, clipNoiseN: 8, clipNoiseSec: 10, clipKbps: 32,
     soundAudio: true, soundFull: false, fullKeepDays: 14,
-    autoOn: false, autoFrom: "22:30", autoTo: "07:00" };   // automatické spustenie a ukončenie nočného záznamu   // fullKeepDays: koľko dní uchovávať nahrávky celej noci (1–14)   // soundAudio: ukladať nahrávky vôbec; soundFull: aj celú noc, nielen ukážky   // ukážky: počet za noc a dĺžka v s pre každý druh zvuku
-  const UI = { tab: "today", logMode: new Date().getHours() >= 15 ? "evening" : "morning", msg: null };
+    autoOn: false, autoFrom: "22:30", autoTo: "07:00",
+    recNotice: false,       // používateľ videl upozornenie o ľuďoch v izbe pred prvým nahrávaním
+    lastBackup: null, backupSnooze: null };   // dátum poslednej stiahnutej zálohy a odloženia pripomienky   // automatické spustenie a ukončenie nočného záznamu   // fullKeepDays: koľko dní uchovávať nahrávky celej noci (1–14)   // soundAudio: ukladať nahrávky vôbec; soundFull: aj celú noc, nielen ukážky   // ukážky: počet za noc a dĺžka v s pre každý druh zvuku
+  const UI = { tab: "today", logMode: new Date().getHours() >= 15 ? "evening" : "morning", msg: null, evDate: null };   // evDate: doplňovaný včerajší večer
 
   function save() {
     try { localStorage.setItem(DATA_KEY, JSON.stringify(D)); } catch (e) { /* bez úložiska appka beží len do zatvorenia */ }
@@ -364,6 +405,8 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
       const d = JSON.parse(localStorage.getItem(DATA_KEY));
       if (d && Array.isArray(d.nights)) D = Object.assign(emptyData(), d);
     } catch (e) { /* poškodené dáta ignorujeme */ }
+    D.nights.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    refreshFactors();
     try {
       const s = JSON.parse(localStorage.getItem(SET_KEY));
       if (s) {
@@ -400,10 +443,11 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
       const r = { F, nWith: w.length, nWithout: wo.length, m: {} };
       let best = null;
       for (const M of METRICS) {
-        const a = mean(w.map(n => n[M.k])), b = mean(wo.map(n => n[M.k]));
+        const av = w.map(n => n[M.k]), bv = wo.map(n => n[M.k]);
+        const a = mean(av), b = mean(bv);
         const harm = (M.better === "low" ? a - b : b - a) / M.thr;
-        r.m[M.k] = { a, b, harm };
-        if (!best || harm > best.harm) best = { M, a, b, harm };
+        r.m[M.k] = { a, b, harm, err: diffErr(av, bv) };
+        if (!best || harm > best.harm) best = { M, a, b, harm, err: r.m[M.k].err };
       }
       r.best = best;
       const v = D.verdicts[F.k];
@@ -412,10 +456,23 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
       else if (best.harm >= 2.2) r.status = "prime";
       else if (best.harm >= 1.1) r.status = "suspect";
       else r.status = "clear";
-      const order = { confirmed: 5, prime: 4, suspect: 3, clear: 1, acquitted: 0, few: -1 };
+      // rozdiel menší ako jeho neistota môže byť náhoda (rozptyl nocí je veľký, nocí málo)
+      if ((r.status === "prime" || r.status === "suspect") && Math.abs(best.a - best.b) <= best.err) r.status = "maybe";
+      r.with = companions(F, list);
+      const order = { confirmed: 5, prime: 4, suspect: 3, maybe: 2, clear: 1, acquitted: 0, few: -1 };
       r.rank = order[r.status] * 10 + Math.max(0, best.harm);
       return r;
     }).sort((x, y) => y.rank - x.rank);
+  }
+
+  // Faktory, ktoré prišli väčšinou spolu s F: ich vplyv sa z porovnania nedá oddeliť.
+  function companions(F, list) {
+    const w = list.filter(n => n.f[F.k]);
+    if (w.length < 3) return [];
+    return FACTORS.filter(G => G.k !== F.k).map(G => {
+      const both = w.filter(n => n.f[G.k]).length, g = list.filter(n => n.f[G.k]).length;
+      return { G, both, nF: w.length, nG: g };
+    }).filter(c => c.both / c.nF >= 0.7 && c.both / c.nG >= 0.6);
   }
 
   function sentence(r) {
@@ -426,6 +483,10 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
       return "Zatiaľ len " + r.nWithout + " " + nightsWord(r.nWithout) + " bez neho. Potrebujem aspoň 3 na porovnanie.";
     }
     if (r.status === "clear") return "Zatiaľ žiadny jasný vplyv na tvoj spánok.";
+    if (r.status === "maybe") {
+      const { M, a, b } = r.best;
+      return M.label + " " + M.fmt(a) + " vs. " + M.fmt(b) + ", ale noci sa veľmi líšia – môže to byť náhoda. Treba viac nocí.";
+    }
     const { M, a, b } = r.best;
     if (M.k === "latency") return "Zaspávaš v priemere o " + Math.round(a - b) + " min dlhšie (" + Math.round(a) + " vs. " + Math.round(b) + " min).";
     if (M.k === "wakes") return "Budíš sa v priemere " + dec(a) + "× za noc, inak " + dec(b) + "×.";
@@ -533,6 +594,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     const list = analyzable();
     let h = '<div class="head"><div class="eyebrow">' + long(t) + "</div><h2>" + greeting() + "</h2></div>";
     h += installCard();
+    h += backupCard();
 
     if (!checked) {
       h += '<div class="card lamp"><div class="eyebrow">Ranný check-in</div><h3>Ako sa ti dnes spalo?</h3><p class="small">5 krátkych otázok, zaberie to pár sekúnd.</p><button class="btn dark" data-act="checkin" type="button">Začať check-in</button></div>';
@@ -554,7 +616,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
         "<li>Ráno odpovedz na 5 otázok o spánku.</li>" +
         "<li>Po " + MIN_NIGHTS + " nociach ti ukážem prvých podozrivých, po " + GOOD_NIGHTS + " sú výsledky spoľahlivejšie.</li>" +
         "<li>Podozrenie overíš experimentom.</li></ol>" +
-        '<p class="small muted">Všetko sa ukladá len v tomto zariadení.</p></div>';
+        '<p class="small muted">Všetko sa ukladá len v tomto zariadení.</p><button class="link" data-act="privacy" type="button">Ochrana súkromia →</button></div>';
       return h;
     }
 
@@ -598,22 +660,29 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
       '<button type="button" data-mode="evening" aria-pressed="' + (UI.logMode === "evening") + '">Večer</button>' +
       '<button type="button" data-mode="morning" aria-pressed="' + (UI.logMode === "morning") + '">Ráno</button></div>';
 
+    const y = addDays(t, -1);
     if (UI.logMode === "evening") {
-      const ev = D.evenings[t];
+      const day = UI.evDate || t;
+      const ev = D.evenings[day];
       const f = ev ? ev.f : {};
       const temp = ev && ev.temp ? ev.temp : 20;
-      h += '<div class="card"><h3>Čo sa dnes dialo?</h3><p class="small muted">Ťukni na všetko, čo platí. Zvyšok je „nie“.</p><div class="chips">';
+      h += '<div class="card"><h3>' + (day === t ? "Čo sa dnes dialo?" : "Čo sa dialo včera (" + short(day) + ")?") + '</h3><p class="small muted">Ťukni na všetko, čo platí. Zvyšok je „nie“.</p><div class="chips">';
       FACTORS.forEach(F => {
         h += '<button type="button" class="chip" data-chip="' + F.k + '" aria-pressed="' + !!f[F.k] + '"><span aria-hidden="true">' + F.icon + "</span>" + F.name + "</button>";
       });
       h += '</div><label class="small" for="temp">Teplota v spálni: <b id="tempv">' + temp + ' °C</b></label>' +
         '<input id="temp" type="range" min="16" max="26" step="1" value="' + temp + '">' +
-        '<button class="btn" data-act="saveEvening" type="button"' + (ev && ev.saved ? " disabled" : "") + ">" + (ev && ev.saved ? "Večer je zapísaný" : "Uložiť večer") + "</button></div>";
-      h += nightCard();
+        '<button class="btn" data-act="saveEvening" type="button"' + (ev && ev.saved ? " disabled" : "") + ">" + (ev && ev.saved ? "Večer je zapísaný" : "Uložiť večer") + "</button>";
+      if (day !== t) h += '<button class="link" data-act="evDay" data-date="" type="button">← Späť na dnešný večer</button>';
+      else if (!(D.evenings[y] && D.evenings[y].saved)) h += '<button class="link" data-act="evDay" data-date="' + y + '" type="button">Doplniť včerajší večer (' + short(y) + ") →</button>";
+      h += "</div>";
+      if (day === t) h += nightCard();
     } else {
-      const checked = D.nights.some(n => n.date === t);
+      const checked = D.nights.some(n => n.date === t), yChecked = D.nights.some(n => n.date === y);
       h += '<div class="card"><h3>Ranný check-in</h3><p class="small muted">' + (checked ? "Dnešné ráno už máš zapísané." : "Kvalita, dĺžka spánku, zaspávanie, prebudenia a energia.") + "</p>" +
-        '<button class="btn" data-act="checkin" type="button"' + (checked ? " disabled" : "") + ">" + (checked ? "Hotovo" : "Začať check-in") + "</button></div>";
+        '<button class="btn" data-act="checkin" type="button"' + (checked ? " disabled" : "") + ">" + (checked ? "Hotovo" : "Začať check-in") + "</button>" +
+        (checked ? '<button class="link" data-act="checkinFor" data-date="' + t + '" type="button">Opraviť dnešný záznam →</button>' : "") +
+        '<button class="link" data-act="checkinFor" data-date="' + y + '" type="button">' + (yChecked ? "Opraviť" : "Doplniť") + " včerajšie ráno (" + short(y) + ") →</button></div>";
     }
 
     h += '<div class="card"><div class="eyebrow">Posledné noci</div>';
@@ -661,13 +730,67 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
         h += '<button class="suspect" type="button" data-act="detail" data-k="' + r.F.k + '">' +
           '<span class="ico" aria-hidden="true">' + r.F.icon + "</span>" +
           '<span class="name">' + r.F.name + ' <span class="pill ' + st.cls + '">' + st.label + "</span></span>" +
-          '<span class="small muted">' + sentence(r) + "</span>" +
+          '<span class="small muted">' + sentence(r) + (r.with.length && r.status !== "few" ? " Často spolu s: " + r.with.map(c => c.G.icon + " " + c.G.name.toLowerCase()).join(", ") + "." : "") + "</span>" +
           '<span class="meter ' + st.cls + '"><i style="width:' + (strength * 100) + '%"></i></span></button>';
       });
     }
+    h += trendCard();
+    h += rhythmCard();
     h += snoreCard();
+    h += '<button class="btn ghost" data-act="report" type="button">Prehľad pre lekára</button>';
     h += '<p class="small muted">Sleep Detective nie je zdravotnícka pomôcka. Ak chrápeš s prestávkami v dýchaní alebo ťa cez deň stále premáha únava, zájdi k lekárovi.</p>';
     return h;
+  }
+
+  // Celkový trend: posledných 30 rán bez ohľadu na faktory.
+  function trendChart(nights, key, max, fmt, label) {
+    const W = 340, H = 104, pl = 30, pr = 4, pt = 8, pb = 20, ih = H - pt - pb;
+    const bw = (W - pl - pr) / Math.max(nights.length, 7);
+    const y = v => pt + ih - (v / max) * ih;
+    let s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + label + ' za posledné noci">';
+    [0, max / 2, max].forEach(t => {
+      s += '<line class="grid" x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(t) + '" y2="' + y(t) + '"/>';
+      s += '<text x="' + (pl - 5) + '" y="' + (y(t) + 3) + '" text-anchor="end">' + fmt(t) + "</text>";
+    });
+    nights.forEach((n, i) => {
+      const v = n[key], h = Math.max(1.5, (Math.min(v, max) / max) * ih);
+      s += '<rect class="b-off" x="' + (pl + i * bw + 1.2).toFixed(1) + '" y="' + (pt + ih - h).toFixed(1) + '" width="' + Math.max(2, bw - 2.4).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1.5"><title>' + short(n.date) + ": " + fmt(v) + "</title></rect>";
+    });
+    s += '<text x="' + pl + '" y="' + (H - 4) + '">' + short(nights[0].date) + "</text>";
+    if (nights.length > 1) s += '<text x="' + (pl + nights.length * bw) + '" y="' + (H - 4) + '" text-anchor="end">' + short(nights[nights.length - 1].date) + "</text>";
+    return '<div class="chart">' + s + "</svg></div>";
+  }
+  function trendCard() {
+    const n = D.nights.slice(-30);
+    if (n.length < 3) return "";
+    const last7 = n.slice(-7), prev7 = n.slice(-14, -7);
+    const cmp = (key, f) => f(mean(last7.map(x => x[key]))) + (prev7.length >= 3 ? ' <span class="muted">(predtým ' + f(mean(prev7.map(x => x[key]))) + ")</span>" : "");
+    return '<div class="card"><div class="eyebrow">Trend · ' + n.length + " " + nightsWord(n.length) + "</div>" +
+      '<p class="small">Posledných ' + last7.length + " " + nightsWord(last7.length) + ": kvalita <b>" + cmp("quality", v => dec(v)) + "</b>, spánok <b>" + cmp("duration", hmShort) + "</b>.</p>" +
+      '<span class="small muted">Kvalita spánku (1–5)</span>' + trendChart(n, "quality", 5, v => dec(v).replace(",0", ""), "Kvalita spánku") +
+      '<span class="small muted">Dĺžka spánku (h)</span>' + trendChart(n, "duration", 10, v => String(Math.round(v * 10) / 10).replace(".", ","), "Dĺžka spánku") + "</div>";
+  }
+
+  // Pravidelnosť: kedy sa začína a končí nočný záznam (len noci so zvukom, posledných 30 dní).
+  const dayMin = ms => { const d = new Date(ms); return (d.getHours() * 60 + d.getMinutes() + 720) % 1440; };   // minúty od poludnia
+  const minClock = m => { const t = Math.round(m + 720) % 1440; return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
+  const sd = a => Math.sqrt(variance(a));
+  function rhythmCard() {
+    const from = addDays(today(), -30);
+    const rows = Object.keys(D.sounds).filter(k => k >= from && !D.sounds[k].partial && D.sounds[k].rec && D.sounds[k].end - D.sounds[k].rec >= 3 * 3600000)
+      .map(k => ({ k, bed: dayMin(D.sounds[k].rec), up: dayMin(D.sounds[k].end), wk: [0, 6].includes(toD(k).getDay()) }));
+    if (rows.length < 5) return "";
+    const bed = rows.map(r => r.bed), up = rows.map(r => r.up);
+    let h = '<div class="card"><div class="eyebrow">Pravidelnosť · ' + rows.length + " " + nightsWord(rows.length) + " so záznamom</div>" +
+      "<p>Záznam spúšťaš okolo <b>" + minClock(mean(bed)) + "</b> (± " + Math.round(sd(bed)) + " min) a končíš okolo <b>" + minClock(mean(up)) + "</b> (± " + Math.round(sd(up)) + " min).</p>";
+    const we = rows.filter(r => r.wk), wd = rows.filter(r => !r.wk);
+    if (we.length >= 2 && wd.length >= 3) {
+      const shift = mean(we.map(r => (r.bed + r.up) / 2)) - mean(wd.map(r => (r.bed + r.up) / 2));
+      if (Math.abs(shift) >= 30) h += '<p class="small">Cez víkend máš stred spánku o <b>' + hmShort(Math.abs(shift) / 60) + " h " + (shift > 0 ? "neskôr" : "skôr") + "</b> ako cez týždeň. Väčší posun telo vníma ako malý jet lag.</p>";
+      else h += '<p class="small">Cez víkend a cez týždeň spávaš v podobnom čase. To je dobré.</p>';
+    }
+    if (sd(bed) > 60) h += '<p class="small muted">Čas, kedy ideš spať, sa mení o viac ako hodinu. Pravidelný čas býva jedna z najjednoduchších úprav.</p>';
+    return h + '<p class="small muted">Čas spustenia a ukončenia záznamu len približne zodpovedá času, keď ideš spať a vstávaš.</p></div>';
   }
 
   // Chrápanie a ráno: porovnanie nocí so zvukovým záznamom aj check-inom.
@@ -745,6 +868,11 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     let h = sheetTop("Podozrivý") + '<div class="scroll">';
     h += '<div class="head"><span class="pill ' + st.cls + '" style="align-self:flex-start">' + st.label + "</span><h2>" + F.icon + " " + F.name + '</h2><p class="small muted">' + r.nWith + " " + nightsWord(r.nWith) + " s ním, " + r.nWithout + " bez neho</p></div>";
     h += '<div class="card"><h3>' + sentence(r) + "</h3>";
+    if (r.status !== "few" && !D.verdicts[k]) {
+      const B = r.best, diff = Math.abs(B.a - B.b);
+      h += '<p class="small muted">' + B.M.label + ": rozdiel " + B.M.fmt(diff) + " ± " + B.M.fmt(B.err) + " (približný 95 % interval). " +
+        (diff > B.err ? "Rozdiel je väčší ako neistota, nevyzerá to na náhodu." : "Neistota je väčšia ako rozdiel, môže ísť o náhodu.") + "</p>";
+    }
     METRICS.forEach(M => {
       const m = r.m[M.k];
       const scale = M.k === "quality" ? 5 : Math.max(m.a, m.b, 0.01) * 1.15;
@@ -754,6 +882,11 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
         '<div class="cmp-row"><span class="muted">Bez neho</span><span class="track"><i style="width:' + (m.b / scale * 100) + '%;background:var(--bar)"></i></span><b class="muted">' + (r.nWithout ? M.fmt(m.b) : "–") + "</b></div></div>";
     });
     h += "</div>";
+    if (r.with.length) {
+      h += '<div class="card"><div class="eyebrow">Spolupáchatelia?</div>' +
+        r.with.map(c => "<p>" + c.G.icon + " <b>" + c.G.name + "</b> bol pri " + c.both + " z " + c.nF + " " + nightsWord(c.nF) + " s faktorom " + F.name.toLowerCase() + ".</p>").join("") +
+        '<p class="small muted">Keď prichádzajú spolu, neviem z porovnania povedať, ktorý z nich za to môže. Rozhodne experiment: vynechaj jeden a druhý nechaj tak.</p></div>';
+    }
     h += '<div class="card"><div class="eyebrow">Dôkazy noc po noci · ' + r.best.M.label.toLowerCase() + "</div>" + nightChart(F, r.best.M, list, { expMark: true }) +
       '<div class="legend"><span><i style="background:var(--lamp)"></i>s faktorom</span><span><i style="background:var(--bar)"></i>bez neho</span>' +
       (D.exp && D.exp.k === F.k ? '<span><i style="background:var(--good)"></i>počas experimentu</span>' : "") + "</div></div>";
@@ -780,10 +913,22 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     { key: "energy",   title: "Koľko máš teraz energie?", opts: [[1, "Žiadnu"], [2, "Málo"], [3, "Akurát"], [4, "Dosť"], [5, "Plno"]], num: true }
   ];
   let ci = null;
-  function openCheckin() {
-    const y = addDays(today(), -1);
-    ci = { step: 0, a: {}, needF: !D.evenings[y], f: {} };
+  // date: ráno, ku ktorému check-in patrí (dnes, alebo včera pri doplnení). Oprava prepíše starý záznam.
+  function openCheckin(date) {
+    const d = date || today(), y = addDays(d, -1);
+    const old = D.nights.find(n => n.date === d);
+    ci = { step: 0, a: {}, needF: !D.evenings[y], f: {}, date: d, fix: !!old, sug: sleepGuess(d) };
     renderCheckin();
+  }
+  // Odhad dĺžky spánku z nočného záznamu (čas záznamu bez zaspávania): navrhne najbližšiu možnosť.
+  function sleepGuess(d) {
+    const s = D.sounds[d];
+    if (!s || s.partial || !s.rec || !s.end) return null;
+    const h = (s.end - s.rec) / 3600000;
+    if (h < 3 || h > 14) return null;
+    const opts = QUESTIONS[1].opts.map(o => o[0]);
+    const pick = opts.reduce((best, v) => Math.abs(v - (h - 0.25)) < Math.abs(best - (h - 0.25)) ? v : best, opts[0]);
+    return { h, pick };
   }
   function renderCheckin() {
     const total = QUESTIONS.length + (ci.needF ? 1 : 0);
@@ -791,11 +936,15 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
       Array.from({ length: total }, (_, i) => '<i class="' + (i <= ci.step ? "on" : "") + '"></i>').join("") + '</div><span style="width:38px"></span></div>';
     if (ci.step < QUESTIONS.length) {
       const q = QUESTIONS[ci.step];
-      let h = top + '<div class="q"><div class="eyebrow">Otázka ' + (ci.step + 1) + " z " + total + "</div><h2>" + q.title + '</h2><div class="opts">';
-      q.opts.forEach(([v, l], i) => { h += '<button class="opt" type="button" data-ans="' + v + '"><span class="n">' + (q.num ? v : i + 1) + "</span>" + l + "</button>"; });
+      const when = ci.date !== today() ? " · ráno " + short(ci.date) : "";
+      let h = top + '<div class="q"><div class="eyebrow">Otázka ' + (ci.step + 1) + " z " + total + when + "</div><h2>" + q.title + "</h2>";
+      const sug = q.key === "duration" && ci.sug ? ci.sug.pick : null;
+      if (sug !== null) h += '<p class="small muted">Nočný záznam bežal ' + hmShort(ci.sug.h) + " h. Navrhujem zvýraznenú možnosť, ale vyber, čo naozaj platí.</p>";
+      h += '<div class="opts">';
+      q.opts.forEach(([v, l], i) => { h += '<button class="opt' + (v === sug ? " sug" : "") + '" type="button" data-ans="' + v + '"><span class="n">' + (q.num ? v : i + 1) + "</span>" + l + (v === sug ? ' <span class="small t-lamp">· podľa záznamu</span>' : "") + "</button>"; });
       showSheet(h + "</div></div>");
     } else if (ci.needF && ci.step === QUESTIONS.length) {
-      let h = top + '<div class="q"><div class="eyebrow">Otázka ' + total + " z " + total + '</div><h2>Čo platilo včera?</h2><p class="small muted">Včerajší večer nemáš zapísaný. Ťukni na všetko, čo platilo, alebo rovno ulož.</p><div class="chips">';
+      let h = top + '<div class="q"><div class="eyebrow">Otázka ' + total + " z " + total + '</div><h2>Čo platilo ' + (ci.date === today() ? "včera" : "večer " + short(addDays(ci.date, -1))) + '?</h2><p class="small muted">Ten večer nemáš zapísaný. Ťukni na všetko, čo platilo, alebo rovno ulož.</p><div class="chips">';
       FACTORS.forEach(F => { h += '<button type="button" class="chip" data-cichip="' + F.k + '" aria-pressed="' + !!ci.f[F.k] + '"><span aria-hidden="true">' + F.icon + "</span>" + F.name + "</button>"; });
       h += '</div><button class="btn" data-act="ciFactorsDone" type="button">Uložiť</button></div>';
       showSheet(h);
@@ -804,11 +953,11 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     }
   }
   function finishCheckin() {
-    const t = today(), y = addDays(t, -1);
+    const t = ci.date, y = addDays(t, -1);
     if (ci.needF) D.evenings[y] = { f: ci.f, temp: null, saved: true };
     const night = { date: t, quality: ci.a.quality, duration: ci.a.duration, latency: ci.a.latency, wakes: ci.a.wakes, energy: ci.a.energy };
-    const prev = D.nights.slice(-7);
-    D.nights = D.nights.filter(n => n.date !== t).concat(night);
+    const prev = D.nights.filter(n => n.date !== t).slice(-7);
+    D.nights = D.nights.filter(n => n.date !== t).concat(night).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
     let extra = "";
     if (D.exp) {
       const k = D.exp.k, n = expNights().length;
@@ -822,7 +971,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (D.sounds[t]) extra += '<div class="card"><div class="eyebrow">Zvuk v noci</div><p>' + soundLine(D.sounds[t]).replace(/^./, c => c.toUpperCase()) + "</p></div>";
     const note = prev.length ? "Za posledné " + (prev.length === 1 ? "ráno" : prev.length + " " + recordsWord(prev.length)) + " trvalo zaspávanie v priemere " + Math.round(mean(prev.map(n => n.latency))) + " min." : "Prvá stopa je v spise. Zajtra pribudne ďalšia.";
     const h = sheetTop("Hotovo", "×") +
-      '<div class="q"><div class="eyebrow">Zapísané · ' + short(t) + "</div><h2>Ďakujem, stopa je v spise.</h2>" +
+      '<div class="q"><div class="eyebrow">' + (ci.fix ? "Opravené" : "Zapísané") + " · " + short(t) + "</div><h2>Ďakujem, stopa je v spise.</h2>" +
       '<div class="card"><div class="stats">' + stat(hmShort(night.duration), "spánok") + stat(night.latency + " min", "zaspávanie") + stat(night.wakes + "×", "prebudenia") + stat(night.energy + "/5", "energia") + "</div>" +
       '<p class="small muted">' + note + "</p></div>" + extra + '<button class="btn" data-act="close" type="button">Hotovo</button></div>';
     ci = null;
@@ -846,6 +995,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     h += '<div class="card"><label class="set-label" for="set-name">Oslovenie</label><input id="set-name" type="text" maxlength="30" autocomplete="given-name" placeholder="Napríklad Jana" value="' + esc(SET.name) + '"><p class="small muted">Použije sa v pozdrave na obrazovke Dnes.</p></div>';
     h += '<div class="card"><span class="set-label">Dĺžka experimentu</span>' + seg("data-explen", SET.expLength, [[7, "7 nocí"], [10, "10 nocí"], [14, "14 nocí"]]) +
       '<p class="small muted">Platí pre nové experimenty. Dlhší experiment dá spoľahlivejší verdikt.</p></div>';
+    h += customCard();
     h += '<div class="card"><span class="set-label">Nočný záznam zvuku</span>' +
       '<span class="small">Citlivosť</span>' + seg("data-sens", SET.soundSensitivity, [["low", "Nízka"], ["medium", "Stredná"], ["high", "Vysoká"]]) +
       '<p class="small muted">Vyššia citlivosť zachytí aj tichšie zvuky.</p>' +
@@ -875,15 +1025,19 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     h += '<div class="card"><span class="set-label">Moje dáta</span><p class="small muted">' + D.nights.length + " " + (D.nights.length === 1 ? "ranný záznam" : D.nights.length >= 2 && D.nights.length <= 4 ? "ranné záznamy" : "ranných záznamov") + ", " +
       evCount + " " + (evCount === 1 ? "večerný" : evCount >= 2 && evCount <= 4 ? "večerné" : "večerných") + ", " +
       Object.keys(D.sounds).length + " " + nightsWord(Object.keys(D.sounds).length) + " so zvukom, " + D.closed.length + " " + (D.closed.length === 1 ? "uzavretý experiment" : D.closed.length >= 2 && D.closed.length <= 4 ? "uzavreté experimenty" : "uzavretých experimentov") +
-      '. Všetko je uložené len v tomto zariadení.<span id="store-use"></span></p>' +
+      '. Všetko je uložené len v tomto zariadení.<span id="store-use"></span> ' + lastBackupText() + "</p>" +
       '<button class="btn ghost" data-act="export" type="button">Stiahnuť zálohu (JSON)</button>' +
+      '<button class="btn ghost" data-act="exportCsv" type="button">Stiahnuť tabuľku (CSV)</button>' +
+      '<button class="btn ghost" data-act="report" type="button">Prehľad pre lekára</button>' +
       '<button class="btn ghost" data-act="import" type="button">Obnoviť zo zálohy</button>' +
       '<input id="import-file" type="file" accept=".json,application/json" hidden>' +
       '<p class="small muted">Záloha obsahuje záznamy a nastavenia, nie zvukové nahrávky.</p>' +
-      '<button class="btn danger" data-act="askReset" type="button">Vymazať všetky dáta</button></div>';
+      '<button class="btn danger" data-act="askReset" type="button">Vymazať všetky dáta</button>' +
+      '<button class="link" data-act="privacy" type="button">Ochrana súkromia a licencia →</button></div>';
     h += '<p class="small muted" style="text-align:center">Sleep Detective · nie je zdravotnícka pomôcka</p>';
     h += "</div>";
-    const sc = $("#sheet").querySelector(".scroll");
+    // pri prekreslení nastavení zostane posunutie; z inej obrazovky (Súkromie) začneme hore
+    const sc = $("#sheet").innerHTML.includes('data-act="askReset"') ? $("#sheet").querySelector(".scroll") : null;
     const keep = sc ? sc.scrollTop : 0;
     showSheet(h, !!sc);
     const sc2 = $("#sheet").querySelector(".scroll");
@@ -895,6 +1049,174 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
         if (el && e && e.usage != null) el.textContent = " Zaberá to asi " + (e.usage / 1e6 < 10 ? (e.usage / 1e6).toFixed(1) : Math.round(e.usage / 1e6)) + " MB.";
       }).catch(() => {});
     } catch (e) { /* nič */ }
+  }
+
+  // ---------- Súkromie ----------
+  function openPrivacy() {
+    const keep = Number.isInteger(SET.fullKeepDays) ? SET.fullKeepDays : KEEP_CLIP_DAYS;
+    let h = '<div class="sheet-top"><button class="icon-btn" data-act="settings" type="button" aria-label="Späť">←</button><span class="eyebrow">Súkromie</span><span style="width:38px"></span></div><div class="scroll">';
+    h += '<div class="head"><h2>Ochrana súkromia</h2></div>';
+    h += '<div class="card"><h3>Kto vidí tvoje dáta</h3><p class="small">Len ty. Appka nemá server ani účet. Všetko, čo zapíšeš alebo nahráš, zostáva v úložisku prehliadača v tomto zariadení. ' +
+      "Nič sa neposiela autorovi appky ani tretím stranám: appka nemá analytiku, reklamy ani sledovanie a aj písma má uložené v sebe.</p></div>";
+    h += '<div class="card"><h3>Čo sa ukladá</h3><ul class="small plain">' +
+      "<li>ranné odpovede (kvalita, dĺžka spánku, zaspávanie, prebudenia, energia),</li>" +
+      "<li>večerné faktory a teplota v spálni, tvoje vlastné faktory a oslovenie,</li>" +
+      "<li>súhrn nočného zvuku: minúty chrápania, počet zvukov a ich priebeh v noci,</li>" +
+      "<li>zvukové nahrávky – len ak máš zapnuté „Ukladať zvukové nahrávky“ (teraz " + (SET.soundAudio ? "zapnuté" : "vypnuté") + "),</li>" +
+      "<li>experimenty, verdikty a nastavenia.</li></ul></div>";
+    h += '<div class="card"><h3>Zdravotné údaje</h3><p class="small">Údaje o spánku a chrápaní sú údaje o zdraví. Preto zostávajú len u teba. ' +
+      "Zálohu, tabuľku CSV aj prehľad pre lekára vytvára appka priamo v zariadení – komu ich dáš, rozhoduješ ty.</p></div>";
+    h += '<div class="card"><h3>Mikrofón a ďalší ľudia v izbe</h3><p class="small">Mikrofón je zapnutý len počas nočného záznamu. Ak s tebou v izbe spí niekto ďalší, appka zachytí aj jeho zvuky a hlas. ' +
+      "Povedz mu o tom vopred a nahrávaj len s jeho súhlasom. Bez ukladania nahrávok appka zvuk len vyhodnotí a nič nenahrá.</p></div>";
+    h += '<div class="card"><h3>Ako dlho</h3><ul class="small plain">' +
+      "<li>krátke ukážky zvuku sa mažú po " + KEEP_CLIP_DAYS + " dňoch,</li>" +
+      "<li>nahrávky celej noci po " + keep + " " + (keep === 1 ? "dni" : "dňoch") + " (dá sa zmeniť v nastaveniach),</li>" +
+      "<li>záznamy a súhrny zostanú, kým ich nevymažeš.</li></ul></div>";
+    h += '<div class="card"><h3>Tvoje možnosti</h3><p class="small">Kedykoľvek si môžeš stiahnuť zálohu (JSON) alebo tabuľku (CSV), vymazať zvuk jednej noci, vymazať všetky dáta v nastaveniach, ' +
+      "alebo appku odinštalovať a v prehliadači vymazať údaje stránky.</p></div>";
+    h += '<div class="card"><h3>Licencia</h3><p class="small">Appka je zverejnená pod licenciou MIT (súbor LICENSE). Písma Bricolage Grotesque, Instrument Sans a IBM Plex Mono sú pod licenciou SIL Open Font License 1.1 (priečinok fonts/).</p></div>';
+    h += '<p class="small muted" style="text-align:center">Sleep Detective nie je zdravotnícka pomôcka.</p></div>';
+    showSheet(h);
+  }
+
+  // ---------- Záloha, CSV, prehľad pre lekára ----------
+  const daysBetween = (a, b) => Math.round((toD(b) - toD(a)) / 864e5);
+  const fullDate = s => toD(s).toLocaleDateString("sk-SK");
+  const lastBackupText = () => SET.lastBackup ? "Posledná záloha: " + fullDate(SET.lastBackup) + "." : "Záloha zatiaľ nebola stiahnutá.";
+  function backupDue() {
+    if (D.nights.length < 3) return false;
+    if (SET.lastBackup && daysBetween(SET.lastBackup, today()) < 14) return false;
+    if (SET.backupSnooze && daysBetween(SET.backupSnooze, today()) < 7) return false;
+    return true;
+  }
+  function backupCard() {
+    if (!backupDue()) return "";
+    return '<div class="card"><div class="eyebrow">Záloha</div><h3>Stiahni si zálohu</h3><p class="small muted">' + lastBackupText() +
+      " Dáta sú len v tomto zariadení. Keď sa stratí alebo sa vymažú údaje prehliadača, záloha je jediná cesta späť.</p>" +
+      '<div class="row"><button class="btn" data-act="export" type="button" style="flex:1">Stiahnuť zálohu</button><button class="btn ghost" data-act="backupLater" type="button">Neskôr</button></div></div>';
+  }
+  function download(blob, name) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  // Tabuľka pre Excel: jeden riadok na ráno, oddeľovač „;“ a desatinná čiarka (slovenské nastavenie).
+  function csvText() {
+    const dates = new Set(D.nights.map(n => n.date).concat(Object.keys(D.sounds), Object.keys(D.evenings).map(d => addDays(d, 1))));
+    const num = v => v == null || v === "" ? "" : String(v).replace(".", ",");
+    const cell = v => { v = String(v); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    const rows = [["Ráno", "Kvalita (1-5)", "Spánok (h)", "Zaspávanie (min)", "Prebudenia", "Energia (1-5)", "Večer pred tým", "Teplota v spálni (°C)", "Chrápanie (min)", "Zvuky (počet)"]];
+    [...dates].sort().forEach(d => {
+      const n = D.nights.find(x => x.date === d) || {}, ev = D.evenings[addDays(d, -1)], s = D.sounds[d];
+      rows.push([d, num(n.quality), num(n.duration), num(n.latency), num(n.wakes), num(n.energy),
+        ev ? FACTORS.filter(F => ev.f[F.k]).map(F => F.name).join(", ") || "nič zvláštne" : "",
+        ev && ev.temp ? num(ev.temp) : "", s ? num(s.snoreMin) : "", s ? num(s.noise) : ""]);
+    });
+    return String.fromCharCode(0xfeff) + rows.map(r => r.map(cell).join(";")).join("\r\n") + "\r\n";
+  }
+  function exportCsv() {
+    download(new Blob([csvText()], { type: "text/csv;charset=utf-8" }), "sleep-detective-" + today() + ".csv");
+    toast("Tabuľka CSV je stiahnutá.");
+  }
+
+  const repDays = () => [14, 30, 90].includes(UI.repDays) ? UI.repDays : 30;
+  function reportHtml(days) {
+    const to = today(), from = addDays(to, -days + 1);
+    const nights = D.nights.filter(n => n.date >= from && n.date <= to);
+    const sk = Object.keys(D.sounds).filter(k => k >= from && k <= to && !D.sounds[k].partial).sort();
+    const evs = Object.keys(D.evenings).filter(d => d >= addDays(from, -1) && d < to && D.evenings[d].saved);
+    const avg = (key, f) => nights.length ? f(mean(nights.map(n => n[key]))) : "–";
+    let h = '<div class="rep"><h1>Sleep Detective – prehľad spánku</h1>' +
+      "<p>Obdobie: " + fullDate(from) + " – " + fullDate(to) + " (" + days + " dní). Vytvorené " + fullDate(to) + ".</p>";
+    if (!nights.length && !sk.length) return h + "<p>V tomto období nie sú žiadne záznamy.</p></div>";
+    h += "<h2>Spánok podľa ranných záznamov</h2><table><tbody>" +
+      "<tr><th>Počet rán so záznamom</th><td>" + nights.length + "</td></tr>" +
+      "<tr><th>Kvalita spánku (1–5)</th><td>" + avg("quality", dec) + "</td></tr>" +
+      "<tr><th>Dĺžka spánku</th><td>" + avg("duration", v => hmShort(v) + " h") + "</td></tr>" +
+      "<tr><th>Zaspávanie</th><td>" + avg("latency", v => Math.round(v) + " min") + "</td></tr>" +
+      "<tr><th>Prebudenia za noc</th><td>" + avg("wakes", dec) + "</td></tr>" +
+      "<tr><th>Energia ráno (1–5)</th><td>" + avg("energy", dec) + "</td></tr></tbody></table>";
+    if (sk.length) {
+      const sn = sk.map(k => D.sounds[k].snoreMin || 0);
+      h += "<h2>Chrápanie podľa nočného záznamu</h2><table><tbody>" +
+        "<tr><th>Nocí so záznamom zvuku</th><td>" + sk.length + "</td></tr>" +
+        "<tr><th>Chrápanie priemerne za noc</th><td>" + Math.round(mean(sn)) + " min</td></tr>" +
+        "<tr><th>Nocí s chrápaním 30 min a viac</th><td>" + sn.filter(v => v >= 30).length + "</td></tr>" +
+        "<tr><th>Najviac za jednu noc</th><td>" + Math.max(...sn) + " min</td></tr>" +
+        "<tr><th>Iné zvuky priemerne za noc</th><td>" + dec(mean(sk.map(k => D.sounds[k].noise || 0))) + "</td></tr></tbody></table>";
+    }
+    if (evs.length) {
+      const counts = FACTORS.map(F => ({ F, n: evs.filter(d => D.evenings[d].f[F.k]).length })).filter(c => c.n);
+      h += "<h2>Večerné faktory (" + evs.length + " " + (evs.length === 1 ? "večer" : evs.length <= 4 ? "večery" : "večerov") + ")</h2>" +
+        (counts.length ? "<p>" + counts.map(c => c.F.name + ": " + c.n + "×").join(", ") + ".</p>" : "<p>Žiadny zo sledovaných faktorov.</p>");
+    }
+    if (D.closed.length) h += "<h2>Uzavreté experimenty</h2><ul>" + D.closed.slice(0, 8).map(c => "<li>" + c.name + " (" + c.when + "): " + c.label + ".</li>").join("") + "</ul>";
+    const dates = [...new Set(nights.map(n => n.date).concat(sk))].sort();
+    h += '<h2>Noc po noci</h2><div class="rep-wide"><table><thead><tr><th>Ráno</th><th>Kvalita</th><th>Spánok</th><th>Zaspávanie</th><th>Prebudenia</th><th>Energia</th><th>Chrápanie</th><th>Zvuky</th></tr></thead><tbody>' +
+      dates.map(d => {
+        const n = D.nights.find(x => x.date === d), s = D.sounds[d];
+        return "<tr><td>" + short(d) + "</td><td>" + (n ? n.quality : "") + "</td><td>" + (n ? hmShort(n.duration) : "") + "</td><td>" + (n ? n.latency + " min" : "") +
+          "</td><td>" + (n ? n.wakes : "") + "</td><td>" + (n ? n.energy : "") + "</td><td>" + (s ? s.snoreMin + " min" : "") + "</td><td>" + (s ? s.noise : "") + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+    return h + '<p class="rep-note">Ranné údaje zadával používateľ sám a sú približné (dĺžka spánku a zaspávanie v rozpätiach). Chrápanie odhaduje telefón podľa hĺbky a rytmu zvuku. ' +
+      "Nejde o lekárske meranie ani diagnózu. Sleep Detective nie je zdravotnícka pomôcka.</p></div>";
+  }
+  function openReport() {
+    const days = repDays();
+    let h = sheetTop("Pre lekára", "×") + '<div class="scroll">';
+    h += '<div class="head"><h2>Prehľad pre lekára</h2><p class="small muted">Zhrnutie spánku a chrápania na vytlačenie alebo uloženie ako PDF. Vytvorí sa v zariadení, nikam sa neposiela.</p></div>';
+    h += '<div class="seg" role="group" aria-label="Obdobie" style="--n:3">' + [14, 30, 90].map(d => '<button type="button" data-repdays="' + d + '" aria-pressed="' + (d === days) + '">' + d + " dní</button>").join("") + "</div>";
+    h += '<div class="card">' + reportHtml(days) + "</div>";
+    h += '<button class="btn" data-act="printReport" type="button">Vytlačiť / uložiť PDF</button>';
+    h += '<button class="btn ghost" data-act="exportCsv" type="button">Stiahnuť tabuľku (CSV)</button></div>';
+    showSheet(h);
+  }
+  function printReport() {
+    const el = $("#print");
+    if (!el) return;
+    el.innerHTML = reportHtml(repDays());
+    if (typeof window.print === "function") window.print();
+  }
+
+  // ---------- Vlastné faktory ----------
+  function customCard() {
+    let h = '<div class="card"><span class="set-label">Vlastné faktory</span><p class="small muted">Pridaj si vlastné stopy, napríklad obrazovka pred spaním, teplo v izbe alebo nočná zmena. Objavia sa vo večernom zázname, v spise aj v experimentoch.</p>';
+    D.custom.forEach(c => {
+      h += '<div class="exp-item"><span class="ico" aria-hidden="true">' + c.icon + "</span><div>" + c.name + "</div>" +
+        '<button class="btn ghost" data-act="askDelFactor" data-k="' + c.k + '" type="button">Odstrániť</button></div>';
+    });
+    if (D.custom.length < MAX_CUSTOM) {
+      const icon = CUSTOM_ICONS.includes(UI.cfIcon) ? UI.cfIcon : CUSTOM_ICONS[0];
+      h += '<label class="small" for="cf-name">Názov nového faktora<input id="cf-name" type="text" maxlength="30" autocomplete="off" placeholder="Napríklad Obrazovka po 22:00" value="' + esc(UI.cfName || "") + '"></label>' +
+        '<div class="chips" role="group" aria-label="Ikona">' + CUSTOM_ICONS.map(i => '<button type="button" class="chip" data-cficon="' + i + '" aria-pressed="' + (i === icon) + '" aria-label="Ikona ' + i + '">' + i + "</button>").join("") + "</div>" +
+        '<button class="btn ghost" data-act="addFactor" type="button">Pridať faktor</button>';
+    } else {
+      h += '<p class="small muted">Viac ako ' + MAX_CUSTOM + " vlastných faktorov sa nedá pridať.</p>";
+    }
+    return h + "</div>";
+  }
+  function addFactor() {
+    const name = cleanName(UI.cfName);
+    if (!name) { toast("Napíš názov faktora."); return; }
+    if (FACTORS.some(F => F.name.toLowerCase() === name.toLowerCase())) { toast("Taký faktor už existuje."); return; }
+    if (D.custom.length >= MAX_CUSTOM) return;
+    let k = "c" + Date.now().toString(36);
+    while (FMAP[k]) k += "x";
+    D.custom.push({ k, name, icon: CUSTOM_ICONS.includes(UI.cfIcon) ? UI.cfIcon : CUSTOM_ICONS[0] });
+    refreshFactors(); save();
+    UI.cfName = ""; UI.cfIcon = null;
+    openSettings();
+    toast("Faktor „" + name + "“ je pridaný.");
+  }
+  function delFactor(k) {
+    D.custom = D.custom.filter(c => c.k !== k);
+    Object.keys(D.evenings).forEach(d => { if (D.evenings[d].f) delete D.evenings[d].f[k]; });
+    delete D.verdicts[k];
+    if (D.exp && D.exp.k === k) D.exp = null;
+    refreshFactors(); save();
   }
 
   function showSheet(h, keepFocus) {
@@ -1492,6 +1814,17 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     }).catch(() => {});
   }
 
+  // Pred prvým nahrávaním: v izbe môžu byť aj iní ľudia a ich hlas je tiež osobný údaj.
+  const REC_NOTICE = {
+    title: "Skôr než začneš nahrávať",
+    text: "Mikrofón počúva celú noc. Ak s tebou v izbe spí niekto ďalší, appka zachytí aj jeho chrápanie a hlas. Povedz mu o tom vopred a nahrávaj len s jeho súhlasom. " +
+      "Ak nechceš ukladať žiadny zvuk, vypni v nastaveniach „Ukladať zvukové nahrávky“ – appka potom len rozpozná chrápanie a hluk. Všetko zostáva len v tomto zariadení."
+  };
+  function withRecNotice(go) {
+    if (SET.recNotice) { go(); return; }
+    confirmModal({ title: REC_NOTICE.title, text: REC_NOTICE.text, ok: "Rozumiem, pokračovať" }, () => { SET.recNotice = true; saveSet(); closeModal(); go(); });
+  }
+
   function infoModal(title, text) {
     confirmModal({ title, text, ok: "Rozumiem" }, closeModal);
     $("#modal").querySelector('[data-act="modalCancel"]').hidden = true;
@@ -1514,11 +1847,10 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   function exportData() {
     // zvukové ukážky sa do zálohy nedávajú (sú veľké a citlivé), len súhrny nocí
     const blob = new Blob([JSON.stringify({ app: "sleep-detective", exported: new Date().toISOString(), note: "Bez zvukových ukážok.", data: D, settings: SET }, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "sleep-detective-" + today() + ".json";
-    document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    download(blob, "sleep-detective-" + today() + ".json");
+    SET.lastBackup = today(); SET.backupSnooze = null; saveSet();
+    if (!$("#sheet").hidden && $("#sheet").innerHTML.includes('data-act="askReset"')) openSettings(); else if ($("#sheet").hidden) render();
+    toast("Záloha je stiahnutá.");
   }
 
   // Obnovenie zo zálohy: nahradí všetky dáta. Nahrávky v zálohe nie sú – ponecháme tie, ktoré
@@ -1545,14 +1877,16 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
         stopPlaying();
         if (standby) cancelStandby();
         D = nd;
+        D.nights.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
         if (b.settings && typeof b.settings === "object") {
-          const keepInstall = SET.installDismissed;
+          const keep = { installDismissed: SET.installDismissed, recNotice: SET.recNotice, lastBackup: SET.lastBackup, backupSnooze: SET.backupSnooze };
           try { localStorage.setItem(SET_KEY, JSON.stringify(b.settings)); } catch (e) { /* nič */ }
           load();   // rovnaká kontrola a prevod starších nastavení ako pri spustení
           D = nd;
-          SET.installDismissed = keepInstall;
+          Object.assign(SET, keep, { recNotice: keep.recNotice || SET.recNotice });
           saveSet(); applyTheme();
         }
+        refreshFactors();   // load() v bloku nastavení pracoval so starými dátami
         save();
         // odkazy na nahrávky, ktoré v tomto zariadení nie sú, odstránime
         const ids = [];
@@ -1580,6 +1914,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     abortRecording();
     stopPlaying();
     D = emptyData();
+    refreshFactors();
     try { localStorage.removeItem(DATA_KEY); } catch (e) { /* nič */ }
     IDB.clear().catch(() => {});
     UI.tab = "today"; UI.msg = null;
@@ -1597,7 +1932,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
   }
 
   function eveningRecord() {
-    const t = today();
+    const t = UI.evDate || today();
     if (!D.evenings[t]) D.evenings[t] = { f: {}, temp: 20, saved: false };
     return D.evenings[t];
   }
@@ -1612,9 +1947,9 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (rec && rec.ctx.state === "suspended") rec.ctx.resume().then(updateNight).catch(() => {});
     const b = e.target.closest("button");
     if (!b) return;
-    if (b.dataset.tab) { UI.tab = b.dataset.tab; UI.msg = null; render(); return; }
+    if (b.dataset.tab) { UI.tab = b.dataset.tab; UI.msg = null; UI.evDate = null; render(); return; }
     if (b.dataset.goto) { UI.tab = b.dataset.goto; render(); return; }
-    if (b.dataset.mode) { UI.logMode = b.dataset.mode; render(); return; }
+    if (b.dataset.mode) { UI.logMode = b.dataset.mode; UI.evDate = null; render(); return; }
     if (b.dataset.chip) {
       const ev = eveningRecord(), k = b.dataset.chip;
       ev.f[k] = !ev.f[k]; if (!ev.f[k]) delete ev.f[k];
@@ -1626,10 +1961,12 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (b.dataset.themeSet) { SET.theme = b.dataset.themeSet; saveSet(); applyTheme(); openSettings(); return; }
     if (b.dataset.explen) { SET.expLength = Number(b.dataset.explen); saveSet(); openSettings(); return; }
     if (b.dataset.sens) { SET.soundSensitivity = b.dataset.sens; saveSet(); openSettings(); return; }
+    if (b.dataset.cficon) { UI.cfIcon = b.dataset.cficon; document.querySelectorAll("[data-cficon]").forEach(x => x.setAttribute("aria-pressed", String(x === b))); return; }
+    if (b.dataset.repdays) { UI.repDays = Number(b.dataset.repdays); openReport(); return; }
     switch (b.dataset.act) {
       case "settings": openSettings(); break;
-      case "startNight": startRecording(); break;
-      case "standby": showStandby(); break;
+      case "startNight": withRecNotice(() => startRecording()); break;
+      case "standby": withRecNotice(showStandby); break;
       case "cancelStandby": cancelStandby(); break;
       case "askStopNight":
         confirmModal({ title: "Ukončiť nočný záznam?", text: "Appka prestane počúvať a ukáže ti súhrn noci.", ok: "Ukončiť záznam" }, () => { closeModal(); stopRecording(); });
@@ -1647,8 +1984,18 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
         break;
       }
       case "checkin": if (!D.nights.some(n => n.date === today())) openCheckin(); break;
+      case "checkinFor": {
+        const d = b.dataset.date;
+        if (d === today() || d === addDays(today(), -1)) openCheckin(d);
+        break;
+      }
+      case "evDay": {
+        const d = b.dataset.date;
+        UI.evDate = d === addDays(today(), -1) ? d : null;
+        render(); break;
+      }
       case "ciFactorsDone": if (ci) { ci.step++; renderCheckin(); } break;
-      case "gotoEvening": UI.tab = "log"; UI.logMode = "evening"; render(); break;
+      case "gotoEvening": UI.tab = "log"; UI.logMode = "evening"; UI.evDate = null; render(); break;
       case "detail": openDetail(b.dataset.k); break;
       case "close": closeSheet(); break;
       case "gotoExp": UI.tab = "exp"; closeSheet(); break;
@@ -1659,11 +2006,25 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
         });
         break;
       case "export": exportData(); break;
+      case "exportCsv": exportCsv(); break;
+      case "backupLater": SET.backupSnooze = today(); saveSet(); render(); break;
+      case "privacy": openPrivacy(); break;
+      case "report": openReport(); break;
+      case "printReport": printReport(); break;
+      case "addFactor": addFactor(); break;
+      case "askDelFactor": {
+        const k = b.dataset.k, F = FMAP[k];
+        if (!F || !F.custom) break;
+        confirmModal({ title: "Odstrániť faktor „" + F.name + "“?", text: "Zmizne z večerných záznamov, zo spisu aj z experimentov" + (D.exp && D.exp.k === k ? " a bežiaci experiment sa zruší" : "") + ". Ranné záznamy a ostatné faktory zostanú.", ok: "Odstrániť", danger: true }, () => {
+          delFactor(k); closeModal(); openSettings(); toast("Faktor je odstránený.");
+        });
+        break;
+      }
       case "import": { const f = $("#import-file"); if (f) { f.value = ""; f.click(); } break; }
       case "askReset":
         confirmModal({
           title: "Vymazať všetky dáta?",
-          text: "Vymažú sa všetky zozbierané informácie: ranné a večerné záznamy, nočné záznamy zvuku so všetkými nahrávkami (ukážky aj celé noci), experimenty aj verdikty. Appka začne od začiatku. Ak nemáš aktuálnu zálohu dát, túto akciu nie je možné vrátiť späť. Zvukové nahrávky sa nedajú obnoviť ani zo zálohy. Nastavenia vzhľadu zostanú.",
+          text: "Vymažú sa všetky zozbierané informácie: ranné a večerné záznamy, nočné záznamy zvuku so všetkými nahrávkami (ukážky aj celé noci), experimenty aj verdikty. Appka začne od začiatku. Ak nemáš aktuálnu zálohu dát, túto akciu nie je možné vrátiť späť. " + lastBackupText() + " Zvukové nahrávky sa nedajú obnoviť ani zo zálohy. Nastavenia vzhľadu zostanú.",
           ok: "Vymazať všetko", danger: true
         }, resetAll);
         break;
@@ -1679,6 +2040,7 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
       case "saveEvening": {
         const ev = eveningRecord(); ev.saved = true; save();
         const n = Object.keys(ev.f).length;
+        if (UI.evDate) { UI.evDate = null; toast("Včerajší večer je doplnený."); render(); break; }
         toast(n ? "Večer uložený (" + n + " " + (n === 1 ? "stopa" : n < 5 ? "stopy" : "stôp") + "). Ráno sa spýtam, ako sa ti spalo." : "Večer uložený. Pokojný deň, uvidíme ráno.");
         render(); break;
       }
@@ -1706,11 +2068,15 @@ input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: v
     if (e.target.id === "set-audio") { SET.soundAudio = e.target.checked; saveSet(); openSettings(); }
     if (e.target.id === "import-file") { importFile(e.target.files && e.target.files[0]); return; }
     if (e.target.id === "set-full") { SET.soundFull = e.target.checked; saveSet(); openSettings(); }
-    if (e.target.id === "set-auto") { SET.autoOn = e.target.checked; saveSet(); openSettings(); render(); }
+    if (e.target.id === "set-auto") {
+      SET.autoOn = e.target.checked; saveSet(); openSettings(); render();
+      if (SET.autoOn && !SET.recNotice) { SET.recNotice = true; saveSet(); infoModal(REC_NOTICE.title, REC_NOTICE.text); }
+    }
   });
   document.addEventListener("input", e => {
     if (e.target.id === "temp") { const ev = eveningRecord(); ev.temp = Number(e.target.value); $("#tempv").textContent = ev.temp + " °C"; markEveningDirty(); }
     if (e.target.id === "set-name") { SET.name = e.target.value.trim(); saveSet(); }
+    if (e.target.id === "cf-name") UI.cfName = e.target.value;
     if (/^set-clip[ns]-(snore|noise)$/.test(e.target.id)) setClipNum(e.target);
     if (e.target.id === "set-kbps") { SET.clipKbps = Number(e.target.value); saveSet(); }
     if (e.target.id === "set-auto-from" || e.target.id === "set-auto-to") {
