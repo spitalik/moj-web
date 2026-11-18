@@ -1,6 +1,6 @@
 /* Service worker Sleep Detective: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu. */
-const CACHE = 'sleep-detective-v16';
+const CACHE = 'sleep-detective-v17';
 const ASSETS = [
   './',
   './index.html',
@@ -10,9 +10,18 @@ const ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+  // písma sú v appke (bez Google Fonts), aby sa nič neposielalo tretím stranám
+  './fonts/fonts.css',
+  './fonts/bricolage-grotesque-500-latin.woff2',
+  './fonts/bricolage-grotesque-500-latin-ext.woff2',
+  './fonts/ibm-plex-mono-400-latin.woff2',
+  './fonts/ibm-plex-mono-400-latin-ext.woff2',
+  './fonts/ibm-plex-mono-500-latin.woff2',
+  './fonts/ibm-plex-mono-500-latin-ext.woff2',
+  './fonts/instrument-sans-400-latin.woff2',
+  './fonts/instrument-sans-400-latin-ext.woff2'
 ];
-const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
@@ -31,17 +40,6 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // Písma z Google Fonts: z cache, na pozadí sa uložia pri prvom načítaní
-  if (FONT_HOSTS.includes(url.hostname)) {
-    e.respondWith(
-      caches.match(req).then(hit => hit || fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(req, copy));
-        return res;
-      }).catch(() => hit))
-    );
-    return;
-  }
   if (url.origin !== location.origin) return;
 
   // HTML: najprv sieť (nová verzia sa ukáže hneď), bez signálu z cache
@@ -56,6 +54,6 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Ostatné (ikony, manifest): najprv cache
+  // Ostatné (ikony, písma, manifest): najprv cache
   e.respondWith(caches.match(req).then(hit => hit || fetch(req)));
 });
