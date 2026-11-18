@@ -1,0 +1,2512 @@
+{
+  "app": "sleep-detective",
+  "exported": "2026-11-18T07:30:00.000Z",
+  "note": "Testovacie dáta (7 dní), bez zvukových ukážok.",
+  "data": {
+    "nights": [
+      {
+        "date": "2026-11-12",
+        "quality": 2,
+        "duration": 5.5,
+        "latency": 45,
+        "wakes": 2,
+        "energy": 2
+      },
+      {
+        "date": "2026-11-13",
+        "quality": 4,
+        "duration": 7.5,
+        "latency": 10,
+        "wakes": 0,
+        "energy": 4
+      },
+      {
+        "date": "2026-11-14",
+        "quality": 2,
+        "duration": 6.5,
+        "latency": 45,
+        "wakes": 3,
+        "energy": 2
+      },
+      {
+        "date": "2026-11-15",
+        "quality": 3,
+        "duration": 6.5,
+        "latency": 22,
+        "wakes": 1,
+        "energy": 3
+      },
+      {
+        "date": "2026-11-16",
+        "quality": 5,
+        "duration": 8.5,
+        "latency": 10,
+        "wakes": 0,
+        "energy": 5
+      },
+      {
+        "date": "2026-11-17",
+        "quality": 1,
+        "duration": 4.5,
+        "latency": 75,
+        "wakes": 3,
+        "energy": 1
+      },
+      {
+        "date": "2026-11-18",
+        "quality": 4,
+        "duration": 7.5,
+        "latency": 22,
+        "wakes": 1,
+        "energy": 4
+      }
+    ],
+    "evenings": {
+      "2026-11-11": {
+        "f": {
+          "coffee": true,
+          "phone": true
+        },
+        "temp": 19,
+        "saved": true
+      },
+      "2026-11-12": {
+        "f": {
+          "sportEve": true
+        },
+        "temp": 20,
+        "saved": true
+      },
+      "2026-11-13": {
+        "f": {
+          "coffee": true,
+          "stress": true
+        },
+        "temp": 21,
+        "saved": true
+      },
+      "2026-11-14": {
+        "f": {
+          "phone": true,
+          "lateMeal": true
+        },
+        "temp": 19,
+        "saved": true
+      },
+      "2026-11-15": {
+        "f": {},
+        "temp": 20,
+        "saved": true
+      },
+      "2026-11-16": {
+        "f": {
+          "coffee": true,
+          "phone": true,
+          "alcohol": true
+        },
+        "temp": 21,
+        "saved": true
+      },
+      "2026-11-17": {
+        "f": {
+          "nap": true
+        },
+        "temp": 19,
+        "saved": true
+      }
+    },
+    "exp": null,
+    "verdicts": {},
+    "closed": [],
+    "sounds": {
+      "2026-11-12": {
+        "start": 1794434700000,
+        "end": 1794462000000,
+        "snoreMin": 38,
+        "episodes": 19,
+        "noise": 17,
+        "loudest": {
+          "t": 1794441060000,
+          "peak": 23.1,
+          "kind": "snore"
+        },
+        "gapMin": 0,
+        "timeline": [
+          {
+            "peak": 14,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 16.6,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.5,
+            "snore": 127,
+            "noise": 0
+          },
+          {
+            "peak": 19.6,
+            "snore": 146,
+            "noise": 0
+          },
+          {
+            "peak": 0.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.9,
+            "snore": 172,
+            "noise": 0
+          },
+          {
+            "peak": 14.8,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 2.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 18.2,
+            "snore": 141,
+            "noise": 0
+          },
+          {
+            "peak": 23.1,
+            "snore": 166,
+            "noise": 0
+          },
+          {
+            "peak": 3.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 22.8,
+            "snore": 126,
+            "noise": 0
+          },
+          {
+            "peak": 15.5,
+            "snore": 224,
+            "noise": 0
+          },
+          {
+            "peak": 15.4,
+            "snore": 259,
+            "noise": 0
+          },
+          {
+            "peak": 0.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 20.2,
+            "snore": 62,
+            "noise": 1
+          },
+          {
+            "peak": 16.4,
+            "snore": 208,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 10,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 4.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 19.7,
+            "snore": 240,
+            "noise": 0
+          },
+          {
+            "peak": 1.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 21,
+            "snore": 173,
+            "noise": 0
+          },
+          {
+            "peak": 0.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 22.9,
+            "snore": 236,
+            "noise": 0
+          },
+          {
+            "peak": 22.1,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 21.5,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 18.4,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 11.1,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 10.1,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 4.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 21.3,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 0.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 19.1,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 2.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.4,
+            "snore": 0,
+            "noise": 0
+          }
+        ],
+        "rec": 1794434700000,
+        "partial": false,
+        "sensitivity": "medium",
+        "clips": [],
+        "segs": []
+      },
+      "2026-11-13": {
+        "start": 1794521280000,
+        "end": 1794548520000,
+        "snoreMin": 12,
+        "episodes": 7,
+        "noise": 18,
+        "loudest": {
+          "t": 1794537540000,
+          "peak": 23.2,
+          "kind": "noise"
+        },
+        "gapMin": 0,
+        "timeline": [
+          {
+            "peak": 1.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.8,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 22.9,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 3.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 21.4,
+            "snore": 129,
+            "noise": 0
+          },
+          {
+            "peak": 1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 22,
+            "snore": 220,
+            "noise": 0
+          },
+          {
+            "peak": 2.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 16.7,
+            "snore": 234,
+            "noise": 0
+          },
+          {
+            "peak": 2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 22.2,
+            "snore": 137,
+            "noise": 0
+          },
+          {
+            "peak": 3.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.6,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 22.6,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 1.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 13.1,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 1.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.7,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 3.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 23.2,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 4.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 17.8,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 1.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 11.3,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 2.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 14.8,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 3.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 22.2,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 14.5,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 20.6,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 1.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.8,
+            "snore": 0,
+            "noise": 0
+          }
+        ],
+        "rec": 1794521280000,
+        "partial": false,
+        "sensitivity": "medium",
+        "clips": [],
+        "segs": []
+      },
+      "2026-11-15": {
+        "start": 1794694440000,
+        "end": 1794721560000,
+        "snoreMin": 25,
+        "episodes": 17,
+        "noise": 13,
+        "loudest": {
+          "t": 1794707400000,
+          "peak": 21.8,
+          "kind": "snore"
+        },
+        "gapMin": 12,
+        "timeline": [
+          {
+            "peak": 3.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 21.4,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 16.5,
+            "snore": 201,
+            "noise": 0
+          },
+          {
+            "peak": 4.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 20.3,
+            "snore": 102,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 14.5,
+            "snore": 140,
+            "noise": 0
+          },
+          {
+            "peak": 0.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.2,
+            "snore": 228,
+            "noise": 0
+          },
+          {
+            "peak": 19.8,
+            "snore": 147,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 14.3,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 20.1,
+            "snore": 66,
+            "noise": 0
+          },
+          {
+            "peak": 0.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 17.1,
+            "snore": 233,
+            "noise": 0
+          },
+          {
+            "peak": 2.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 21.8,
+            "snore": 146,
+            "noise": 0
+          },
+          {
+            "peak": 18.6,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 18.3,
+            "snore": 123,
+            "noise": 1
+          },
+          {
+            "peak": 2.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 18.6,
+            "snore": 114,
+            "noise": 0
+          },
+          {
+            "peak": 4.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 10.5,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 2.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 20.5,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 15.7,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 3.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 16.1,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 20.1,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 3.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0,
+            "snore": 0,
+            "noise": 0
+          }
+        ],
+        "rec": 1794694440000,
+        "partial": false,
+        "sensitivity": "medium",
+        "clips": [],
+        "segs": []
+      },
+      "2026-11-16": {
+        "start": 1794781020000,
+        "end": 1794808080000,
+        "snoreMin": 4,
+        "episodes": 4,
+        "noise": 23,
+        "loudest": {
+          "t": 1794804780000,
+          "peak": 23.5,
+          "kind": "noise"
+        },
+        "gapMin": 0,
+        "timeline": [
+          {
+            "peak": 0.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 11.7,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 1.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 21.5,
+            "snore": 156,
+            "noise": 0
+          },
+          {
+            "peak": 0,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 23.3,
+            "snore": 84,
+            "noise": 2
+          },
+          {
+            "peak": 19.3,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.1,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 0.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.8,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 18,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 0.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 10.6,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 3.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 18.7,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 0.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 19.6,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 2.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 23.4,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 3.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 17.9,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 10.4,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 3.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 23.5,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 16.6,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 2.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 19.4,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 10.5,
+            "snore": 0,
+            "noise": 1
+          }
+        ],
+        "rec": 1794781020000,
+        "partial": false,
+        "sensitivity": "medium",
+        "clips": [],
+        "segs": []
+      },
+      "2026-11-17": {
+        "start": 1794867600000,
+        "end": 1794894600000,
+        "snoreMin": 61,
+        "episodes": 43,
+        "noise": 21,
+        "loudest": {
+          "t": 1794869760000,
+          "peak": 23,
+          "kind": "noise"
+        },
+        "gapMin": 0,
+        "timeline": [
+          {
+            "peak": 3.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 19.3,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 23,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 13.4,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 0.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.3,
+            "snore": 114,
+            "noise": 0
+          },
+          {
+            "peak": 2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 21.3,
+            "snore": 94,
+            "noise": 2
+          },
+          {
+            "peak": 0.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.1,
+            "snore": 232,
+            "noise": 0
+          },
+          {
+            "peak": 3.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 22.2,
+            "snore": 145,
+            "noise": 0
+          },
+          {
+            "peak": 3.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 19.1,
+            "snore": 197,
+            "noise": 0
+          },
+          {
+            "peak": 3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 17.7,
+            "snore": 236,
+            "noise": 0
+          },
+          {
+            "peak": 22.7,
+            "snore": 230,
+            "noise": 0
+          },
+          {
+            "peak": 0.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 20,
+            "snore": 105,
+            "noise": 0
+          },
+          {
+            "peak": 13,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 19,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 22.4,
+            "snore": 249,
+            "noise": 0
+          },
+          {
+            "peak": 18.2,
+            "snore": 257,
+            "noise": 2
+          },
+          {
+            "peak": 20.7,
+            "snore": 241,
+            "noise": 0
+          },
+          {
+            "peak": 14.5,
+            "snore": 238,
+            "noise": 2
+          },
+          {
+            "peak": 3.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 22.6,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 21.4,
+            "snore": 196,
+            "noise": 0
+          },
+          {
+            "peak": 4.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.6,
+            "snore": 167,
+            "noise": 0
+          },
+          {
+            "peak": 2.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 10.9,
+            "snore": 0,
+            "noise": 2
+          },
+          {
+            "peak": 12.6,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 4.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 22.4,
+            "snore": 71,
+            "noise": 2
+          },
+          {
+            "peak": 4.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 19.1,
+            "snore": 159,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 22,
+            "snore": 159,
+            "noise": 0
+          },
+          {
+            "peak": 0.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 18.2,
+            "snore": 220,
+            "noise": 0
+          },
+          {
+            "peak": 1.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 15.1,
+            "snore": 140,
+            "noise": 0
+          },
+          {
+            "peak": 4.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 19.6,
+            "snore": 179,
+            "noise": 0
+          },
+          {
+            "peak": 21.2,
+            "snore": 31,
+            "noise": 0
+          },
+          {
+            "peak": 0.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 20.7,
+            "snore": 0,
+            "noise": 1
+          },
+          {
+            "peak": 4.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4.2,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.1,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.5,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.7,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.9,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 2.8,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 0.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3.3,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 1.6,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 4,
+            "snore": 0,
+            "noise": 0
+          },
+          {
+            "peak": 3,
+            "snore": 0,
+            "noise": 0
+          }
+        ],
+        "rec": 1794867600000,
+        "partial": false,
+        "sensitivity": "medium",
+        "clips": [],
+        "segs": []
+      }
+    }
+  },
+  "settings": {
+    "theme": "light",
+    "name": "Tester",
+    "expLength": 7,
+    "installDismissed": false,
+    "soundSensitivity": "medium",
+    "clipSnoreN": 3,
+    "clipSnoreSec": 8,
+    "clipNoiseN": 5,
+    "clipNoiseSec": 8,
+    "clipKbps": 32,
+    "soundAudio": true,
+    "soundFull": false,
+    "fullKeepDays": 7,
+    "autoOn": true,
+    "autoFrom": "23:00",
+    "autoTo": "06:45"
+  }
+}
