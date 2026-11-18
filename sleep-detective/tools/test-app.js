@@ -750,8 +750,8 @@ async function asyncTests() {
     assert.deepStrictEqual([...bytes.slice(0, 3)], [0xef, 0xbb, 0xbf], 'CSV bez BOM (Excel zle zobrazí diakritiku)');
     const lines = (await blobs[0].text()).trim().split(/\r\n/);
     assert.ok(lines[0].startsWith('Ráno;Kvalita'));
-    assert.ok(lines.includes('2027-01-06;3;6,5;22;1;3;Káva po 14:00;21;;'), 'riadok s faktorom: ' + lines.join(' | '));
-    assert.ok(lines.includes('2027-01-07;3;6,5;22;1;3;;;12;3'), 'riadok so zvukom');
+    assert.ok(lines.includes('2027-01-06;3;6,5;22;1;3;Káva po 14:00;21;;;'), 'riadok s faktorom: ' + lines.join(' | '));
+    assert.ok(lines.includes('2027-01-07;3;6,5;22;1;3;;;12;3;'), 'riadok so zvukom');
     click({ act: 'close' });
   });
 
@@ -801,6 +801,59 @@ async function asyncTests() {
     assert.ok(sheet().includes('Spolupáchatelia?') && sheet().includes('Alkohol'));
     assert.ok(sheet().includes('približný 95 % interval'));
     click({ act: 'close' });
+  });
+
+  await at('výška a hmotnosť: optimálna hmotnosť, hodnotenie a odporúčania', async () => {
+    const field = (id, value) => listeners.change({ target: { id, value, setAttribute() {} } });
+    const sounds = {};
+    [5, 6, 7, 8].forEach(d => { sounds[iso2(d)] = { rec: day(d - 1, 23), end: day(d, 7), snoreMin: 45, noise: 2, partial: false }; });
+    setData({ sounds, nights: [5, 6, 7, 8].map(d => ({ date: iso2(d), quality: 3, duration: 7.5, latency: 22, wakes: 1, energy: 3 })) });
+    fakeNow = day(10, 9);
+    click({ tab: 'case' });
+    assert.ok(view().includes('Zadať výšku a hmotnosť'), 'bez údajov chýba výzva na zadanie');
+    click({ act: 'settings' });
+    assert.ok(sheet().includes('Výška a hmotnosť'));
+    field('set-height', '180');
+    field('set-weight', '20');
+    assert.strictEqual(data().body.weights.length, 0, 'neplatná hmotnosť sa uložila');
+    field('set-weight', '95,5');
+    assert.deepStrictEqual(data().body, { height: 180, weights: [{ date: iso2(10), kg: 95.5 }] });
+    click({ act: 'settings' });
+    assert.ok(sheet().includes('BMI 29,5 – nadváha. Optimálna hmotnosť pre výšku 180 cm je 60–81 kg, teraz máš o 14,8 kg viac.'), 'zlý výpočet: ' + sheet().match(/BMI[^<]*/));
+    click({ act: 'close' });
+    click({ tab: 'case' });
+    assert.ok(view().includes('Hmotnosť a spánok') && view().includes('Chrápeš pravidelne (4 noci'), 'chýba hodnotenie chrápania pri nadváhe');
+    assert.ok(view().includes('(5–10 kg)'), 'chýba odporúčaný úbytok');
+    assert.ok(view().includes('môže pomôcť aj jej zníženie'), 'karta chrápania nespomína hmotnosť');
+    assert.ok(!view().includes('spánkové apnoe. Ukáž'), 'pri BMI pod 30 netreba posielať k lekárovi');
+    // ďalší deň vyššia hmotnosť: obezita + chrápanie = odporúčanie lekára, história hmotnosti
+    fakeNow = day(11, 9);
+    click({ act: 'settings' }); field('set-weight', '100'); click({ act: 'close' });
+    assert.strictEqual(data().body.weights.length, 2);
+    click({ tab: 'case' });
+    assert.ok(view().includes('obezita') && view().includes('spánkové apnoe'), 'chýba odporúčanie lekára pri obezite');
+    click({ act: 'report' });
+    assert.ok(sheet().includes('Optimálna hmotnosť (BMI 18,5–24,9)') && sheet().includes('+4,5 kg'), 'prehľad pre lekára bez hmotnosti');
+    click({ act: 'close' });
+    blobs = [];
+    click({ act: 'exportCsv' });
+    assert.ok((await blobs[0].text()).includes('2027-01-11;;;;;;;;;;100'), 'CSV bez hmotnosti');
+    click({ act: 'settings' }); click({ act: 'privacy' });
+    assert.ok(sheet().includes('výška a vývoj hmotnosti'));
+    click({ act: 'settings' }); click({ act: 'askDelBody' }); click({ act: 'modalOk' });
+    assert.deepStrictEqual(data().body, { height: null, weights: [] });
+    click({ act: 'close' });
+  });
+
+  await at('vývoj hmotnosti a chrápania; optimálna hmotnosť', async () => {
+    const sounds = {};
+    [2, 3, 4].forEach(d => { sounds[iso2(d)] = { rec: day(d - 1, 23), end: day(d, 7), snoreMin: 50, noise: 1, partial: false }; });
+    [11, 12, 13].forEach(d => { sounds[iso2(d)] = { rec: day(d - 1, 23), end: day(d, 7), snoreMin: 10, noise: 1, partial: false }; });
+    setData({ sounds, body: { height: 175, weights: [{ date: iso2(1), kg: 80 }, { date: iso2(10), kg: 75 }, { date: 'zlý', kg: 5 }] } });
+    fakeNow = day(14, 9);
+    click({ tab: 'case' });
+    assert.ok(view().includes('Od 1. 1. máš o 5 kg menej. Chrápanie predtým 50 min za noc, odvtedy 10 min.'), 'chýba vývoj: ' + (view().match(/Od 1\. 1\.[^<]*/) || [''])[0]);
+    assert.ok(view().includes('v optimálnom rozmedzí'), '75 kg pri 175 cm je optimálna hmotnosť');
   });
   URL.createObjectURL = realCreate;
   console.log(ok + ' testov prešlo');

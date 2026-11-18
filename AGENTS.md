@@ -13,6 +13,7 @@ A collection of **independent, zero-build static PWAs**, one per top-level folde
 | [phys/](phys/index.html) | Fyzika krok za krokom: same architecture as `math/` |
 | [juro/](juro/index.html) | Juro: tools for lawyers, Slovak only ([README](juro/README.md)) |
 | [sleep-detective/](sleep-detective/index.html) | Sleep Detective: sleep diary and night sound recording, Slovak only |
+| [blood-pressure/](blood-pressure/index.html) | Blood Pressure: blood pressure diary and 7-day home measurement, Slovak only |
 
 The root `index.html` is only a placeholder link page. Root `tools/` holds old scripts for a former layout and is not used by any app.
 
@@ -28,13 +29,14 @@ From the repo root run `python -m http.server 8000` and open `http://localhost:8
 - `phys/`: `node tools/validate.js`, `node tools/index_build.js`.
 - `juro/`: `node tools/test.js`.
 - `sleep-detective/`: `node tools/test.js` (sound detector, then the app scenarios in `tools/test-app.js`).
+- `blood-pressure/`: `node tools/test.js` (app scenarios with a fake DOM).
 - `jocadium/`: no tests, verify in a browser.
 
 ## Rules
 
 - **Each app is self-contained in its own folder.** Fonts, libraries, icons, sounds, translations and tools live inside it (fonts in `fonts/` or `vendor/fonts/`, libraries in `vendor/`). Never reference a file outside the app's folder (no `../` out of it, no root-absolute `/…` path) and never share files between apps; if two apps need the same font or library, each gets its own copy with its licence.
 - **No runtime requests to third parties**: no Google Fonts, CDNs, analytics or trackers (it would send users' IP addresses to them, which conflicts with GDPR).
-- **Respect licences**: only use assets and libraries whose licence allows it, ship their licence files and record them (`jocadium/NOTICE`, `*/THIRD-PARTY-NOTICES.md`, `sleep-detective/fonts/OFL-*.txt`). Do not copy protected content, names or look of existing games or brands.
+- **Respect licences**: only use assets and libraries whose licence allows it, ship their licence files and record them (`jocadium/NOTICE`, `*/THIRD-PARTY-NOTICES.md`, `sleep-detective/fonts/OFL-*.txt`, `blood-pressure/fonts/OFL-*.txt`). Do not copy protected content, names or look of existing games or brands.
 - **Privacy / GDPR**: keep user data on the device (localStorage / IndexedDB), collect only what a feature needs, say what is stored, and let users export and fully delete it.
 - **Bump the `CACHE` version in the app's `sw.js` on any change** to its files, and add new files needed offline to its `ASSETS` list.
 - When changing a PWA, keep its manifest, `icons/` and `sw.js` registration in sync.
