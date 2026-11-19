@@ -258,10 +258,10 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
   // Appka si pamätá len nastavenia a vlastné ladenia (localStorage). Zvuk z mikrofónu sa nikde neukladá.
   const SET_KEY = "universalTuner.settings.v1";
   const MAX_CUSTOM = 12, MAX_STRINGS = 12, MIN_NOTE = 21, MAX_NOTE = 96;   // A0 až C7
-  const TOLS = [3, 5, 10];
+  const TOLS = [3, 5, 10, 15, 20];
   const GATE = { low: -42, medium: -52, high: -62 };   // od akej hlasitosti (dBFS) appka tón hľadá
   const defaults = () => ({ theme: "dark", inst: "guitar", tuning: "std", a4: 440, notation: "sk", accidental: "sharp",
-    tol: 5, gate: "medium", transpose: "c", custom: [], installDismissed: false });
+    tol: 10, gate: "medium", transpose: "c", custom: [], installDismissed: false });
   let SET = defaults();
 
   // Každé nastavenie (z úložiska aj zo zálohy) prejde touto kontrolou: neplatná hodnota = predvolená.

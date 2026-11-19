@@ -280,6 +280,11 @@ t('anglické názvy a béčka', () => {
   click({ set: 'notation', v: 'sk' }); click({ set: 'accidental', v: 'sharp' });
   click({ set: 'notation', v: 'zle' });              // neplatná hodnota sa neuloží
   assert.strictEqual(settings().notation, 'sk');
+  assert.ok(sheet().includes('data-set="tol" data-v="20"'), 'päť možností tolerancie');
+  click({ set: 'tol', v: '20' });
+  assert.strictEqual(settings().tol, 20);
+  click({ set: 'tol', v: '7' });                     // neplatná hodnota sa neuloží
+  assert.strictEqual(settings().tol, 20);
   click({ set: 'tol', v: '10' });
   assert.strictEqual(settings().tol, 10);
   click({ set: 'theme', v: 'light' });
@@ -378,7 +383,9 @@ t('poškodené nastavenia sa opravia na predvolené', () => {
   store['universalTuner.settings.v1'] = JSON.stringify({ inst: 'nic', a4: 9999, tol: 7, custom: [{ id: 'x', notes: [1] }, { id: 'cok', name: 'OK', notes: [40, 45] }], theme: 'ruzova' });
   winListeners.storage({ key: 'universalTuner.settings.v1' });
   // storage udalosť načíta a opraví nastavenia
-  click({ act: 'settings' }); click({ act: 'closeSheet' });
+  click({ act: 'settings' });
+  assert.ok(sheet().includes('data-v="10" type="button" aria-pressed="true"'), 'neplatná tolerancia → predvolených ±10 ¢');
+  click({ act: 'closeSheet' });
   click({ tab: 'tune' });
   assert.ok(view().includes('Gitara'));
   click({ tab: 'inst' }); click({ open: 'custom' });
