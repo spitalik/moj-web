@@ -810,14 +810,14 @@ async function asyncTests() {
     setData({ sounds, nights: [5, 6, 7, 8].map(d => ({ date: iso2(d), quality: 3, duration: 7.5, latency: 22, wakes: 1, energy: 3 })) });
     fakeNow = day(10, 9);
     click({ tab: 'case' });
-    assert.ok(view().includes('Zadať výšku a hmotnosť'), 'bez údajov chýba výzva na zadanie');
+    assert.ok(view().includes('Zadať telesné údaje'), 'bez údajov chýba výzva na zadanie');
     click({ act: 'settings' });
-    assert.ok(sheet().includes('Výška a hmotnosť'));
+    assert.ok(sheet().includes('Telesné údaje'));
     field('set-height', '180');
     field('set-weight', '20');
     assert.strictEqual(data().body.weights.length, 0, 'neplatná hmotnosť sa uložila');
     field('set-weight', '95,5');
-    assert.deepStrictEqual(data().body, { height: 180, weights: [{ date: iso2(10), kg: 95.5 }] });
+    assert.deepStrictEqual(data().body, { height: 180, weights: [{ date: iso2(10), kg: 95.5 }], birthYear: null, sex: null });
     click({ act: 'settings' });
     assert.ok(sheet().includes('BMI 29,5 – nadváha. Optimálna hmotnosť pre výšku 180 cm je 60–81 kg, teraz máš o 14,8 kg viac.'), 'zlý výpočet: ' + sheet().match(/BMI[^<]*/));
     click({ act: 'close' });
@@ -825,13 +825,13 @@ async function asyncTests() {
     assert.ok(view().includes('Hmotnosť a spánok') && view().includes('Chrápeš pravidelne (4 noci'), 'chýba hodnotenie chrápania pri nadváhe');
     assert.ok(view().includes('(5–10 kg)'), 'chýba odporúčaný úbytok');
     assert.ok(view().includes('môže pomôcť aj jej zníženie'), 'karta chrápania nespomína hmotnosť');
-    assert.ok(!view().includes('spánkové apnoe. Ukáž'), 'pri BMI pod 30 netreba posielať k lekárovi');
+    assert.ok(!view().includes('Ukáž mu Prehľad'), 'pri BMI pod 30 netreba posielať k lekárovi');
     // ďalší deň vyššia hmotnosť: obezita + chrápanie = odporúčanie lekára, história hmotnosti
     fakeNow = day(11, 9);
     click({ act: 'settings' }); field('set-weight', '100'); click({ act: 'close' });
     assert.strictEqual(data().body.weights.length, 2);
     click({ tab: 'case' });
-    assert.ok(view().includes('obezita') && view().includes('spánkové apnoe'), 'chýba odporúčanie lekára pri obezite');
+    assert.ok(view().includes('obezita') && view().includes('rizikových faktorov spánkového apnoe (obezita, pravidelné chrápanie)'), 'chýba odporúčanie lekára pri obezite');
     click({ act: 'report' });
     assert.ok(sheet().includes('Optimálna hmotnosť (BMI 18,5–24,9)') && sheet().includes('+4,5 kg'), 'prehľad pre lekára bez hmotnosti');
     click({ act: 'close' });
@@ -839,9 +839,9 @@ async function asyncTests() {
     click({ act: 'exportCsv' });
     assert.ok((await blobs[0].text()).includes('2027-01-11;;;;;;;;;;100'), 'CSV bez hmotnosti');
     click({ act: 'settings' }); click({ act: 'privacy' });
-    assert.ok(sheet().includes('výška a vývoj hmotnosti'));
+    assert.ok(sheet().includes('výška, vývoj hmotnosti, rok narodenia a pohlavie'));
     click({ act: 'settings' }); click({ act: 'askDelBody' }); click({ act: 'modalOk' });
-    assert.deepStrictEqual(data().body, { height: null, weights: [] });
+    assert.deepStrictEqual(data().body, { height: null, weights: [], birthYear: null, sex: null });
     click({ act: 'close' });
   });
 
@@ -854,6 +854,42 @@ async function asyncTests() {
     click({ tab: 'case' });
     assert.ok(view().includes('Od 1. 1. máš o 5 kg menej. Chrápanie predtým 50 min za noc, odvtedy 10 min.'), 'chýba vývoj: ' + (view().match(/Od 1\. 1\.[^<]*/) || [''])[0]);
     assert.ok(view().includes('v optimálnom rozmedzí'), '75 kg pri 175 cm je optimálna hmotnosť');
+  });
+
+  await at('vek a pohlavie: rozmedzie od 65 rokov, cieľ podľa pohlavia, apnoe, do 18 rokov', async () => {
+    const field = (id, value) => listeners.change({ target: { id, value, setAttribute() {} } });
+    const sounds = {};
+    [5, 6, 7, 8].forEach(d => { sounds[iso2(d)] = { rec: day(d - 1, 23), end: day(d, 7), snoreMin: 45, noise: 2, partial: false }; });
+    setData({ sounds, body: { height: 180, weights: [{ date: iso2(9), kg: 90 }] } });
+    fakeNow = day(10, 9);
+    click({ tab: 'case' });
+    assert.ok(view().includes('Zadaj v nastaveniach aj rok narodenia a pohlavie'), 'chýba výzva na vek a pohlavie');
+    assert.ok(!view().includes('Ukáž mu Prehľad'), 'nadváha bez ďalších rizík nemá posielať k lekárovi');
+    click({ act: 'settings' });
+    field('set-birth', '19');
+    assert.ok(!data().body.birthYear, 'neplatný rok sa uložil');
+    field('set-birth', '1965');
+    click({ sex: 'm' });
+    assert.strictEqual(data().body.sex, 'm');
+    assert.ok(sheet().includes('pre výšku 180 cm (muž, 62 r.) je 60–81 kg') && sheet().includes('Orientačný cieľ: 75 kg.'), sheet().match(/BMI[^<]*/)[0]);
+    click({ act: 'close' }); click({ tab: 'case' });
+    assert.ok(view().includes('spánkového apnoe (nadváha, mužské pohlavie, vek nad 50 rokov, pravidelné chrápanie)'), 'nadváha + muž + vek nad 50 + chrápanie = lekár');
+    assert.ok(view().includes('dlhodobý cieľ je okolo 75 kg'));
+    click({ act: 'report' });
+    assert.ok(sheet().includes('62 rokov') && sheet().includes('muž') && sheet().includes('mužské pohlavie, vek nad 50 rokov'));
+    click({ act: 'close' });
+    // žena 72 rokov: vyššie rozmedzie BMI 22–27, cieľ nikdy pod rozmedzím
+    setData({ sounds: {}, body: { height: 165, weights: [{ date: iso2(9), kg: 58 }], birthYear: 1955, sex: 'f' } });
+    click({ tab: 'case' });
+    assert.ok(view().includes('BMI 21,3 – nízka hmotnosť. Optimálna hmotnosť pre výšku 165 cm (žena, 72 r.) je 60–74 kg, teraz máš o 1,9 kg menej. Orientačný cieľ: 60 kg.'), view().match(/BMI 21[^<]*/));
+    assert.ok(view().includes('BMI 22–27') && view().includes('V tvojom veku je hmotnosť pod BMI 22'));
+    click({ act: 'settings' }); click({ sex: '' });
+    assert.strictEqual(data().body.sex, null, 'Neuvádzam nezmazalo pohlavie');
+    click({ act: 'close' });
+    // 15 rokov: BMI dospelých sa nepoužije
+    setData({ body: { height: 165, weights: [{ date: iso2(9), kg: 70 }], birthYear: 2012, sex: 'f' } });
+    click({ tab: 'case' });
+    assert.ok(view().includes('rastových grafov') && !view().includes('nadváha'), 'u mladistvých sa nemá hodnotiť podľa BMI dospelých');
   });
   URL.createObjectURL = realCreate;
   console.log(ok + ' testov prešlo');
