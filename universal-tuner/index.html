@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="sk" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Universal Tuner</title>
+<meta name="description" content="Ladička pre gitaru, basu, ukulele, husle a ďalšie nástroje. Funguje aj bez internetu.">
+<meta name="theme-color" content="#141a2d" id="theme-color">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Universal Tuner">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/logo.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<!-- Písma sú súčasťou appky, nič sa nenačítava od tretích strán (GDPR). Licencia: fonts/OFL-*.txt -->
+<link rel="stylesheet" href="fonts/fonts.css">
+<script>
+  // Zvolený vzhľad nastavíme ešte pred vykreslením, aby stránka neblikla inými farbami.
+  try {
+    var st = JSON.parse(localStorage.getItem('universalTuner.settings.v1') || '{}');
+    if (/^(dark|light|system)$/.test(st.theme)) document.documentElement.setAttribute('data-theme', st.theme);
+  } catch (e) { /* bez úložiska platí tmavý vzhľad */ }
+</script>
+<style>
+/* Layout: na počítači appka v ráme telefónu v strede, na mobile a po inštalácii na celú obrazovku.
+   Vzhľad: tmavý (predvolený), svetlý alebo podľa systému – prepína sa atribútom data-theme na <html>. */
+:root, :root[data-theme="dark"] {
+  --ink: #0d1120;
+  --night: #141a2d;
+  --dusk: #1c2340;
+  --dusk-2: #252e52;
+  --line: #2d375e;
+  --fg: #e9ebf5;
+  --muted: #99a2c4;
+  --lamp: #6cc4f2;
+  --lamp-ink: #04202e;
+  --lamp-text: #6cc4f2;
+  --good: #72d6ab;
+  --warn: #f3b35b;
+  --bad: #f2877d;
+  --bad-ink: #2a0c08;
+  --frame: #0a0d19;
+  --scrim: rgba(5, 7, 15, 0.62);
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --ink: #dfe3ee; --night: #f3f5fa; --dusk: #ffffff; --dusk-2: #e6eaf3; --line: #d6dcea;
+  --fg: #161d36; --muted: #5a6382; --lamp: #3aa6e0; --lamp-ink: #04202e; --lamp-text: #0d6694;
+  --good: #1d8f62; --warn: #b36b00; --bad: #c8463a; --bad-ink: #ffffff;
+  --frame: #c9d0e0; --scrim: rgba(20, 26, 45, 0.35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    --ink: #dfe3ee; --night: #f3f5fa; --dusk: #ffffff; --dusk-2: #e6eaf3; --line: #d6dcea;
+    --fg: #161d36; --muted: #5a6382; --lamp: #3aa6e0; --lamp-ink: #04202e; --lamp-text: #0d6694;
+    --good: #1d8f62; --warn: #b36b00; --bad: #c8463a; --bad-ink: #ffffff;
+    --frame: #c9d0e0; --scrim: rgba(20, 26, 45, 0.35);
+    color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+html, body { background: var(--ink); color: var(--fg); }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  font-family: var(--f-body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+p { margin: 0; }
+
+.stage { display: flex; justify-content: center; align-items: flex-start; max-width: 1040px; margin: 0 auto; }
+
+/* Phone */
+.phone {
+  flex: 0 0 auto; width: 390px; max-width: 100%;
+  height: min(820px, calc(100dvh - 64px)); min-height: 640px;
+  background: var(--night); border: 1px solid var(--line); border-radius: 38px;
+  box-shadow: 0 30px 80px -30px #000a, 0 0 0 8px var(--frame);
+  overflow: hidden; display: flex; flex-direction: column; position: relative;
+}
+.appbar { flex: none; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; padding: 12px 14px 4px; }
+.appbar .brand { text-align: center; font-family: var(--f-display); font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+.appbar .brand span { color: var(--lamp-text); }
+.icon-btn { background: var(--dusk); border: 0; border-radius: 50%; width: 38px; height: 38px; display: grid; place-items: center; font-size: 18px; color: var(--fg); }
+.icon-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn:hover { background: var(--dusk-2); }
+.scroll { flex: 1; overflow-y: auto; padding: 4px 18px 24px; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin; }
+.tabbar { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); background: var(--night); padding: 6px 6px 12px; }
+.tab { background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; font-size: 11px; color: var(--muted); border-radius: 12px; }
+.tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab[aria-current="page"] { color: var(--lamp-text); }
+
+/* Shared app parts */
+.eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.head { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; }
+.head h2 { font-size: 28px; line-height: 1.1; }
+.card { background: var(--dusk); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.card h3 { font-size: 17px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.btn { border: 0; border-radius: 14px; padding: 13px 16px; font-weight: 600; background: var(--lamp); color: var(--lamp-ink); text-align: center; }
+.btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--fg); font-weight: 500; }
+.btn.danger { background: transparent; border: 1px solid var(--bad); color: var(--bad); }
+.btn.danger-fill { background: var(--bad); color: var(--bad-ink); }
+.btn.big { padding: 16px; font-size: 16px; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.link { background: none; border: 0; padding: 0; color: var(--lamp-text); font-weight: 500; text-align: left; }
+.seg { display: grid; grid-template-columns: repeat(var(--n, 2), 1fr); background: var(--night); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.seg button { border: 0; background: none; padding: 9px 6px; border-radius: 9px; color: var(--muted); font-weight: 500; font-size: 14px; }
+.seg button[aria-pressed="true"] { background: var(--dusk-2); color: var(--fg); }
+select, input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: var(--night); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; }
+.set-label { font-weight: 600; font-size: 14px; }
+ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+
+/* Ladička */
+.inst-btn { display: flex; align-items: center; gap: 12px; background: var(--dusk); border: 1px solid transparent; border-radius: 16px; padding: 12px 14px; text-align: left; width: 100%; }
+.inst-btn:hover { border-color: var(--line); }
+.inst-btn .ico { font-size: 24px; line-height: 1; }
+.inst-btn .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.inst-btn b { font-family: var(--f-display); font-size: 17px; }
+.inst-btn .chev { color: var(--muted); font-size: 18px; }
+
+.gauge { align-items: center; gap: 4px; padding-top: 26px; padding-bottom: 18px; }
+.gauge svg { width: 100%; max-width: 320px; height: auto; display: block; overflow: visible; }
+.gauge .tick { stroke: var(--line); stroke-width: 2; stroke-linecap: round; }
+.gauge .tick.major { stroke: var(--muted); stroke-width: 3; }
+.gauge .zone { stroke: var(--good); stroke-width: 10; fill: none; stroke-linecap: round; opacity: 0.35; }
+.gauge .lbl { fill: var(--muted); font-family: var(--f-mono); font-size: 11px; text-anchor: middle; }
+.needle { transform-origin: 160px 170px; transform-box: view-box; }
+@media (prefers-reduced-motion: no-preference) { .needle { transition: transform .12s linear; } }
+.needle line { stroke: var(--fg); stroke-width: 5; stroke-linecap: round; }
+.needle circle { fill: var(--fg); }
+.gauge[data-state="idle"] .needle, .gauge[data-state="listen"] .needle { opacity: 0.25; }
+.gauge[data-state="ok"] .needle line { stroke: var(--good); } .gauge[data-state="ok"] .needle circle { fill: var(--good); }
+.gauge[data-state="low"] .needle line, .gauge[data-state="high"] .needle line { stroke: var(--warn); }
+.gauge[data-state="low"] .needle circle, .gauge[data-state="high"] .needle circle { fill: var(--warn); }
+.note { font-family: var(--f-display); font-weight: 700; font-size: 64px; line-height: 1; margin-top: -96px; font-variant-numeric: tabular-nums; min-height: 64px; }
+.note sub { font-size: 24px; vertical-align: baseline; margin-left: 2px; color: var(--muted); font-weight: 500; }
+.gauge[data-state="ok"] .note { color: var(--good); }
+.gauge[data-state="idle"] .note, .gauge[data-state="listen"] .note { color: var(--dusk-2); }
+.readout { display: flex; gap: 16px; font-family: var(--f-mono); font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 20px; }
+.status { font-weight: 600; font-size: 16px; min-height: 24px; text-align: center; }
+.gauge[data-state="ok"] .status { color: var(--good); }
+.gauge[data-state="low"] .status, .gauge[data-state="high"] .status { color: var(--warn); }
+.heard { font-size: 12px; color: var(--muted); min-height: 18px; }
+.level { width: 140px; height: 4px; border-radius: 2px; background: var(--dusk-2); overflow: hidden; margin-top: 6px; }
+.level i { display: block; height: 100%; width: 0; background: var(--lamp); transition: width .08s linear; }
+
+.strings { display: grid; grid-template-columns: repeat(var(--n, 6), minmax(0, 1fr)); gap: 6px; }
+.str { position: relative; border: 1px solid var(--line); background: var(--night); border-radius: 14px; padding: 8px 2px 7px; display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; }
+.str .num { font-family: var(--f-mono); font-size: 10px; color: var(--muted); }
+.str b { font-family: var(--f-display); font-size: 19px; line-height: 1.1; }
+.str b sub { font-size: 11px; color: var(--muted); font-weight: 500; vertical-align: baseline; }
+.str.on { border-color: var(--lamp); box-shadow: 0 0 0 1px var(--lamp) inset; }
+.str.lock { background: var(--lamp); color: var(--lamp-ink); border-color: var(--lamp); }
+.str.lock .num, .str.lock b sub { color: var(--lamp-ink); opacity: .75; }
+.str.ok::after { content: "✓"; position: absolute; top: 3px; right: 6px; font-size: 11px; font-weight: 700; color: var(--good); }
+.str.lock.ok::after { color: var(--lamp-ink); }
+.strings.many { grid-template-columns: repeat(var(--n2, 4), minmax(0, 1fr)); }
+
+/* Nástroje */
+.opt { background: var(--night); border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px; text-align: left; display: flex; flex-direction: column; gap: 2px; width: 100%; }
+.opt[aria-pressed="true"] { border-color: var(--lamp); box-shadow: 0 0 0 1px var(--lamp) inset; }
+.opt .nm { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+.opt .nt { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.opt .acts { display: flex; gap: 14px; margin-top: 4px; }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.pick { color: var(--lamp-text); font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.edit-row { display: grid; grid-template-columns: 64px 1fr 40px; gap: 8px; align-items: center; }
+.edit-row .icon-btn { width: 36px; height: 36px; font-size: 15px; }
+
+/* Tóny */
+.tone-grid { display: grid; grid-template-columns: repeat(var(--n, 6), minmax(0, 1fr)); gap: 6px; }
+.tone-grid.keys { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.tone { border: 1px solid var(--line); background: var(--night); border-radius: 14px; padding: 12px 2px; font-family: var(--f-display); font-weight: 700; font-size: 18px; min-width: 0; }
+.tone sub { font-size: 11px; color: var(--muted); font-weight: 500; vertical-align: baseline; }
+.tone[aria-pressed="true"] { background: var(--lamp); color: var(--lamp-ink); border-color: var(--lamp); }
+.tone[aria-pressed="true"] sub { color: var(--lamp-ink); }
+
+/* Sheet a okná */
+.sheet { position: absolute; inset: 0; background: var(--night); z-index: 5; display: flex; flex-direction: column; }
+.sheet-top { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 6px; flex: none; }
+.modal { position: absolute; inset: 0; z-index: 8; background: var(--scrim); display: grid; place-items: center; padding: 20px; }
+.modal-card { background: var(--dusk); border: 1px solid var(--line); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 340px; box-shadow: 0 20px 60px -20px #000a; }
+.modal-card h3 { font-size: 20px; }
+.modal-card .row .btn { flex: 1; }
+.toast { position: absolute; left: 16px; right: 16px; bottom: 84px; background: var(--fg); color: var(--night); border-radius: 14px; padding: 12px 14px; font-size: 14px; font-weight: 500; z-index: 9; box-shadow: 0 10px 30px -10px #000a; }
+.a4 { display: grid; grid-template-columns: 48px 1fr 48px; gap: 8px; align-items: center; }
+.a4 b { text-align: center; font-family: var(--f-display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.a4 .btn { padding: 10px 0; font-size: 18px; }
+
+/* Mobil a nainštalovaná appka: bez rámu telefónu, na celú obrazovku */
+@media (max-width: 520px), (display-mode: standalone) {
+  html, body { height: 100%; }
+  body { padding: 0; overflow: hidden; }
+  .stage { display: block; max-width: none; height: 100%; }
+  .phone { width: 100%; height: 100%; min-height: 0; max-height: none; border: 0; border-radius: 0; box-shadow: none; }
+  .appbar { padding-top: calc(env(safe-area-inset-top, 0px) + 10px); padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+  .scroll { padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+  .sheet-top { padding-top: calc(env(safe-area-inset-top, 0px) + 14px); }
+  .tabbar { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); }
+  .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sheet { animation: up .22s ease-out; }
+  .modal-card { animation: up .18s ease-out; }
+  @keyframes up { from { transform: translateY(24px); opacity: .6; } }
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="phone" id="phone">
+    <header class="appbar">
+      <button class="icon-btn" data-act="settings" type="button" aria-label="Nastavenia" title="Nastavenia">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <div class="brand">Universal <span>Tuner</span></div>
+      <span></span>
+    </header>
+    <main class="scroll" id="view"></main>
+    <nav class="tabbar" id="tabbar">
+      <button class="tab" data-tab="tune" type="button"><svg viewBox="0 0 24 24"><path d="M4 17a8 8 0 0 1 16 0"/><path d="M12 17l4-6"/><circle cx="12" cy="17" r="1.2"/></svg>Ladiť</button>
+      <button class="tab" data-tab="inst" type="button"><svg viewBox="0 0 24 24"><path d="M19 5l-6.5 6.5"/><path d="M17 3l4 4"/><path d="M12 10.5c-1.8-1-4.4-.6-5.8.8-1 1-1 2.2-1.6 2.8C3.3 15.4 3 17 4.2 18.8 6 20.9 8.6 20.7 9.9 19.4c.6-.6 1.8-.6 2.8-1.6 1.4-1.4 1.8-4 .8-5.8"/><circle cx="9.5" cy="14.5" r="1.3"/></svg>Nástroj</button>
+      <button class="tab" data-tab="tones" type="button"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>Tóny</button>
+    </nav>
+    <div id="sheet" class="sheet" hidden></div>
+    <div id="modal" class="modal" hidden></div>
+    <div id="toast" class="toast" hidden role="status"></div>
+  </div>
+</div>
+
+<script src="pitch.js"></script>
+<script>
+(function () {
+  "use strict";
+  const P = window.TunerPitch;
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const cleanName = v => String(v == null ? "" : v).replace(/[<>&"'`\\]/g, "").replace(/\s+/g, " ").trim().slice(0, 30);
+
+  // ---------- Nastavenia ----------
+  // Appka si pamätá len nastavenia a vlastné ladenia (localStorage). Zvuk z mikrofónu sa nikde neukladá.
+  const SET_KEY = "universalTuner.settings.v1";
+  const MAX_CUSTOM = 12, MAX_STRINGS = 12, MIN_NOTE = 21, MAX_NOTE = 96;   // A0 až C7
+  const TOLS = [3, 5, 10];
+  const GATE = { low: -42, medium: -52, high: -62 };   // od akej hlasitosti (dBFS) appka tón hľadá
+  const defaults = () => ({ theme: "dark", inst: "guitar", tuning: "std", a4: 440, notation: "sk", accidental: "sharp",
+    tol: 5, gate: "medium", transpose: "c", custom: [], installDismissed: false });
+  let SET = defaults();
+
+  // Každé nastavenie (z úložiska aj zo zálohy) prejde touto kontrolou: neplatná hodnota = predvolená.
+  function cleanSettings(s) {
+    const d = defaults();
+    if (!s || typeof s !== "object") return d;
+    const pick = (k, ok) => { if (ok(s[k])) d[k] = s[k]; };
+    pick("theme", v => /^(dark|light|system)$/.test(v));
+    pick("a4", v => Number.isInteger(v) && v >= 415 && v <= 466);
+    pick("notation", v => v === "sk" || v === "en");
+    pick("accidental", v => v === "sharp" || v === "flat");
+    pick("tol", v => TOLS.includes(v));
+    pick("gate", v => v in GATE);
+    pick("transpose", v => P.TRANSPOSE.some(t => t.id === v));
+    pick("installDismissed", v => typeof v === "boolean");
+    if (Array.isArray(s.custom)) {
+      const ids = {};
+      d.custom = s.custom.filter(c => c && /^c[a-z0-9]{1,12}$/.test(c.id) && !ids[c.id] && (ids[c.id] = true) &&
+        Array.isArray(c.notes) && c.notes.length >= 1 && c.notes.length <= MAX_STRINGS &&
+        c.notes.every(n => Number.isInteger(n) && n >= MIN_NOTE && n <= MAX_NOTE))
+        .slice(0, MAX_CUSTOM)
+        .map(c => ({ id: c.id, name: cleanName(c.name) || "Vlastné ladenie", notes: c.notes.slice() }));
+    }
+    d.inst = s.inst; d.tuning = s.tuning;
+    if (!instById(d.inst, d)) { d.inst = "guitar"; d.tuning = "std"; }
+    const ins = instById(d.inst, d);
+    if (ins.tunings.length && !ins.tunings.some(t => t.id === d.tuning)) d.tuning = ins.tunings[0].id;
+    if (d.inst === "custom" && !d.custom.length) { d.inst = "guitar"; d.tuning = "std"; }
+    return d;
+  }
+  function saveSet() {
+    try { localStorage.setItem(SET_KEY, JSON.stringify(SET)); } catch (e) { /* nastavenie sa len nezapamätá */ }
+  }
+  function load() {
+    let s = null;
+    try { s = JSON.parse(localStorage.getItem(SET_KEY)); } catch (e) { /* poškodené = predvolené */ }
+    SET = cleanSettings(s);
+  }
+
+  // ---------- Nástroje ----------
+  const CHROMATIC = { id: "chromatic", name: "Chromatická ladička", icon: "🎼", tunings: [] };
+  function instruments(set) {
+    set = set || SET;
+    return P.INSTRUMENTS.concat([
+      { id: "custom", name: "Vlastné ladenia", icon: "✏️", tunings: set.custom },
+      CHROMATIC
+    ]);
+  }
+  function instById(id, set) { return instruments(set).find(i => i.id === id) || null; }
+  const curInst = () => instById(SET.inst) || P.INSTRUMENTS[0];
+  function curTuning() {
+    const ins = curInst();
+    return ins.tunings.find(t => t.id === SET.tuning) || ins.tunings[0] || null;   // null = chromatická
+  }
+  const nopts = () => ({ notation: SET.notation, accidental: SET.accidental });
+  function noteHtml(midi, tag) {
+    const n = P.noteName(midi, nopts());
+    return esc(n.letter) + "<" + (tag || "sub") + ">" + n.octave + "</" + (tag || "sub") + ">";
+  }
+  const noteText = midi => P.label(midi, nopts());
+  const notesText = notes => notes.map(noteText).join(" ");
+  const transpose = () => P.TRANSPOSE.find(t => t.id === SET.transpose) || P.TRANSPOSE[0];
+  const fmtHz = hz => hz.toFixed(1).replace(".", ",") + " Hz";
+  const fmtCents = c => { const r = Math.round(c); return (r > 0 ? "+" : r < 0 ? "−" : "±") + Math.abs(r) + " ¢"; };
+
+  // ---------- Vzhľad ----------
+  const lightQuery = matchMedia("(prefers-color-scheme: light)");
+  function applyTheme() {
+    document.documentElement.setAttribute("data-theme", SET.theme);
+    const light = SET.theme === "light" || (SET.theme === "system" && lightQuery.matches);
+    $("#theme-color").setAttribute("content", light ? "#f3f5fa" : "#141a2d");
+  }
+  lightQuery.addEventListener("change", applyTheme);
+
+  // ---------- Stav obrazovky ----------
+  const UI = { tab: "tune", lock: null, tuned: {}, open: null, octave: 4, edit: null };
+  //   lock: index struny zvolenej ručne (null = rozpozná sa sama), tuned: struny naladené v tejto relácii,
+  //   open: rozbalený nástroj v zozname, octave: oktáva klávesov v Tónoch, edit: rozpracované vlastné ladenie
+  function resetTuned() { UI.tuned = {}; UI.lock = null; if (L) { L.tracker.reset(); L.inTune = null; } }
+
+  // ---------- Ladiť ----------
+  // Ručička: ±50 centov = ±60°. Stred kruhu (160, 170), polomer 140.
+  const CX = 160, CY = 170, R = 140, DEG = 1.2;
+  const pt = (deg, r) => { const a = deg * Math.PI / 180; return [(CX + r * Math.sin(a)).toFixed(1), (CY - r * Math.cos(a)).toFixed(1)]; };
+  function gaugeSvg() {
+    let h = '<svg viewBox="0 0 320 180" aria-hidden="true">';
+    const z = SET.tol * DEG, [x1, y1] = pt(-z, R), [x2, y2] = pt(z, R);
+    h += '<path class="zone" d="M' + x1 + " " + y1 + " A" + R + " " + R + " 0 0 1 " + x2 + " " + y2 + '"/>';
+    for (let c = -50; c <= 50; c += 5) {
+      const major = c % 25 === 0, [a, b] = pt(c * DEG, R - (major ? 22 : 12)), [e, f] = pt(c * DEG, R - 4);
+      h += '<line class="tick' + (major ? " major" : "") + '" x1="' + a + '" y1="' + b + '" x2="' + e + '" y2="' + f + '"/>';
+      if (major) { const [lx, ly] = pt(c * DEG, R + 14); h += '<text class="lbl" x="' + lx + '" y="' + ly + '">' + (c > 0 ? "+" + c : c < 0 ? "−" + -c : "0") + "</text>"; }
+    }
+    // ručička je len pri stupnici, stred ostáva pre veľký názov tónu
+    h += '<g class="needle" id="t-needle"><line x1="' + CX + '" y1="' + (CY - R + 48) + '" x2="' + CX + '" y2="' + (CY - R - 4) + '"/><circle cx="' + CX + '" cy="' + (CY - R - 4) + '" r="5"/></g>';
+    return h + "</svg>";
+  }
+  function stringsHtml(active) {
+    const tu = curTuning();
+    if (!tu) return "";
+    const n = tu.notes.length, many = n > 7;
+    let h = '<div class="strings' + (many ? " many" : "") + '" style="--n:' + n + ";--n2:" + Math.ceil(n / 2) + '">';
+    tu.notes.forEach((m, i) => {
+      const cls = ["str"];
+      if (i === active) cls.push("on");
+      if (UI.lock === i) cls.push("lock");
+      if (UI.tuned[i]) cls.push("ok");
+      h += '<button class="' + cls.join(" ") + '" data-str="' + i + '" type="button" aria-pressed="' + (UI.lock === i) + '" aria-label="' +
+        (n - i) + ". struna " + esc(noteText(m)) + (UI.tuned[i] ? ", naladená" : "") + '"><span class="num">' + (n - i) + ".</span><b>" + noteHtml(m) + "</b></button>";
+    });
+    return h + "</div>";
+  }
+  function stringsHint() {
+    const tu = curTuning();
+    if (!tu) return "";
+    if (UI.lock !== null) return "Ladíš ručne " + (tu.notes.length - UI.lock) + ". strunu. Ťukni na ňu znova a appka bude struny rozpoznávať sama.";
+    return "Appka rozpozná strunu sama. Ak je struna veľmi rozladená, ťukni na ňu a ladí sa len ona.";
+  }
+  function viewTune() {
+    const ins = curInst(), tu = curTuning();
+    let h = '<button class="inst-btn" data-goto="inst" type="button"><span class="ico">' + ins.icon + '</span><span class="txt"><span class="eyebrow">Nástroj</span><b>' +
+      esc(ins.name) + '</b><span class="small muted">' + (tu ? esc(tu.name) + " · " + esc(notesText(tu.notes)) : "Transpozícia " + esc(transpose().name.split(" – ")[0]) + " · A4 = " + SET.a4 + " Hz") +
+      '</span></span><span class="chev">›</span></button>';
+    h += '<div class="card gauge" id="t-gauge" data-state="' + (L ? "listen" : "idle") + '">' + gaugeSvg() +
+      '<div class="note" id="t-note">–</div>' +
+      '<div class="readout"><span id="t-cents"></span><span id="t-hz"></span></div>' +
+      '<p class="status" id="t-status" aria-live="polite">' + (L ? (tu ? "Zahraj strunu" : "Zahraj tón") : "Ťukni na Spustiť ladenie") + "</p>" +
+      '<p class="heard" id="t-heard"></p>' +
+      '<div class="level" aria-hidden="true"><i id="t-level"></i></div></div>';
+    if (tu) h += '<div id="t-strings">' + stringsHtml(-1) + '</div><p class="small muted" id="t-hint">' + stringsHint() + "</p>";
+    h += '<button class="btn big" data-act="listen" type="button" id="t-listen">' + (L ? "Zastaviť" : "Spustiť ladenie") + "</button>";
+    if (!L) h += installCard();
+    return h;
+  }
+
+  // ---------- Mikrofón ----------
+  let L = null;          // bežiace počúvanie: { ctx, stream, an, buf, tracker, range, timer, inTune }
+  let starting = false;
+  let wake = null;
+  async function requestWake() {
+    try { if ("wakeLock" in navigator) { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => { wake = null; }); } } catch (e) { wake = null; }
+  }
+  function analysisRange() {
+    const tu = curTuning();
+    return P.rangeFor(tu ? tu.notes : null, SET.a4);
+  }
+  async function startListening() {
+    if (L || starting) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !P) {
+      infoModal("Mikrofón tu nefunguje", "Tento prehliadač nedovoľuje použiť mikrofón. Skús Chrome alebo Safari a appku otvor cez https.");
+      return;
+    }
+    starting = true;
+    let stream;
+    try {
+      // bez potlačenia šumu a automatickej hlasitosti: tie by tón struny skresľovali
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    } catch (e) {
+      starting = false;
+      infoModal("Mikrofón nie je povolený", "Ladička potrebuje počuť tvoj nástroj. Povoľ mikrofón pre túto stránku v nastaveniach prehliadača a skús to znova. Zvuk sa nikde neukladá ani neposiela.");
+      return;
+    }
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AC();
+      try { await ctx.resume(); } catch (e) { /* nič */ }
+      const an = ctx.createAnalyser();
+      const range = analysisRange();
+      an.fftSize = range.minHz < 45 ? 8192 : 4096;   // basy potrebujú dlhší úsek zvuku
+      an.smoothingTimeConstant = 0;
+      const src = ctx.createMediaStreamSource(stream);
+      src.connect(an);
+      L = { ctx, stream, an, src, buf: new Float32Array(an.fftSize), tracker: new P.Tracker(), range, inTune: null, timer: null };
+      L.timer = setInterval(tick, 70);
+      requestWake();
+    } catch (e) {
+      stream.getTracks().forEach(t => t.stop());
+      infoModal("Ladenie sa nespustilo", "Prehliadač nedovolil spracovať zvuk. Skús appku zavrieť a otvoriť znova.");
+    } finally {
+      starting = false;
+    }
+    if (UI.tab === "tune" && $("#sheet").hidden) render();
+  }
+  function stopListening() {
+    if (!L) return;
+    clearInterval(L.timer);
+    try { L.src.disconnect(); } catch (e) { /* nič */ }
+    L.stream.getTracks().forEach(t => t.stop());   // mikrofón sa hneď vypne (zhasne aj indikátor v systéme)
+    L.ctx.close().catch(() => {});
+    L = null;
+    if (wake) { wake.release().catch(() => {}); wake = null; }
+    if (UI.tab === "tune" && $("#sheet").hidden) render();
+  }
+  // Po zmene nástroja treba iný rozsah a dĺžku úseku – počúvanie reštartujeme.
+  function restartListening() {
+    if (!L) return;
+    const range = analysisRange();
+    L.range = range;
+    const size = range.minHz < 45 ? 8192 : 4096;
+    if (L.an.fftSize !== size) { L.an.fftSize = size; L.buf = new Float32Array(size); }
+    L.tracker.reset(); L.inTune = null;
+  }
+
+  const IN_TUNE_MS = 800;   // tak dlho musí struna znieť naladená, kým ju označíme ✓
+  function tick() {
+    if (!L) return;
+    const now = Date.now();
+    L.an.getFloatTimeDomainData(L.buf);
+    const db = P.levelDb(L.buf);
+    let r = null;
+    if (db > GATE[SET.gate]) {
+      r = P.detect(L.buf, L.ctx.sampleRate, L.range);
+      if (r && r.clarity < 0.6) r = null;      // šum, viac tónov naraz
+    }
+    const s = L.tracker.feed(now, r);
+    show(s, db, now);
+  }
+
+  const setTxt = (sel, t) => { const e = $(sel); if (e && e.textContent !== t) e.textContent = t; };
+  let lastStrKey = "";
+  function show(s, db, now) {
+    const g = $("#t-gauge");
+    if (!g || !L) return;
+    const lvl = $("#t-level");
+    if (lvl) lvl.style.width = Math.max(0, Math.min(100, (db + 70) * 2)) + "%";
+    const tu = curTuning();
+    let state = "listen", note = "–", centsTxt = "", hzTxt = "", status = tu ? "Zahraj strunu" : "Zahraj tón", heard = "", active = -1, c = 0;
+    if (s) {
+      const n = P.noteOf(s.hz, SET.a4);
+      hzTxt = fmtHz(s.hz);
+      if (tu) {
+        active = UI.lock !== null ? UI.lock : P.nearestString(s.hz, tu.notes, SET.a4).index;
+        c = P.cents(s.hz, P.midiToHz(tu.notes[active], SET.a4));
+        note = noteHtml(tu.notes[active]);
+        heard = "Počujem " + noteText(n.midi);
+      } else {
+        c = n.cents;
+        note = noteHtml(n.midi + transpose().shift);
+        if (transpose().shift) heard = "Znie " + noteText(n.midi) + " (koncertné ladenie)";
+      }
+      centsTxt = Math.abs(c) >= 100 ? (c > 0 ? "+" : "−") + (Math.abs(c) / 100).toFixed(1).replace(".", ",") + " poltóna" : fmtCents(c);
+      const ok = Math.abs(c) <= SET.tol;
+      state = ok ? "ok" : c < 0 ? "low" : "high";
+      status = ok ? "Naladené" : tu ? (c < 0 ? "Nízko – pritiahni strunu" : "Vysoko – povoľ strunu") : (c < 0 ? "Nízko" : "Vysoko");
+      if (!s.live) heard = heard ? heard + " · doznelo" : "Doznelo";
+      // struna naladená dostatočne dlho
+      if (tu && ok && s.live) {
+        if (!L.inTune || L.inTune.idx !== active) L.inTune = { idx: active, since: now };
+        else if (now - L.inTune.since >= IN_TUNE_MS && !UI.tuned[active]) markTuned(active, tu);
+      } else if (s.live) L.inTune = null;
+    } else L.inTune = null;
+    g.setAttribute("data-state", state);
+    const nd = $("#t-needle");
+    if (nd) nd.style.transform = "rotate(" + (s ? Math.max(-50, Math.min(50, c)) * DEG : 0).toFixed(1) + "deg)";
+    const ne = $("#t-note");
+    if (ne && ne.innerHTML !== note) ne.innerHTML = note;
+    setTxt("#t-cents", centsTxt); setTxt("#t-hz", hzTxt); setTxt("#t-status", status); setTxt("#t-heard", heard);
+    const key = active + "|" + UI.lock + "|" + Object.keys(UI.tuned).join(",");
+    if (tu && key !== lastStrKey) { lastStrKey = key; const st = $("#t-strings"); if (st) st.innerHTML = stringsHtml(active); }
+  }
+  function markTuned(i, tu) {
+    UI.tuned[i] = true;
+    try { if (navigator.vibrate) navigator.vibrate(40); } catch (e) { /* nič */ }
+    const same = tu.notes.map((m, j) => m === tu.notes[i] ? j : -1).filter(j => j >= 0);
+    same.forEach(j => { UI.tuned[j] = true; });   // rovnaké struny (napr. balalajka) naraz
+    if (tu.notes.every((m, j) => UI.tuned[j])) toast("Všetky struny sú naladené.");
+  }
+
+  // ---------- Nástroj ----------
+  function viewInst() {
+    let h = '<div class="head"><span class="eyebrow">Výber</span><h2>Čo ladíš?</h2></div>';
+    instruments().forEach(ins => {
+      const sel = SET.inst === ins.id, open = UI.open === ins.id || (UI.open === null && sel);
+      h += '<div class="card"><button class="inst-btn" style="padding:0;background:none;border:0" data-open="' + ins.id + '" type="button" aria-expanded="' + open + '">' +
+        '<span class="ico">' + ins.icon + '</span><span class="txt"><b>' + esc(ins.name) + "</b>" +
+        '<span class="small muted">' + instSummary(ins) + "</span></span>" + (sel ? '<span class="pick">Zvolené</span>' : '<span class="chev">' + (open ? "⌄" : "›") + "</span>") + "</button>";
+      if (open) h += instBody(ins);
+      h += "</div>";
+    });
+    h += '<p class="small muted">Klavír, dychové nástroje a spev: zvoľ Chromatickú ladičku. Ladenie A4 a názvy tónov (H alebo B) zmeníš v nastaveniach.</p>';
+    return h;
+  }
+  function instSummary(ins) {
+    if (ins.id === "chromatic") return "Akýkoľvek tón · " + esc(transpose().name.split(" – ")[0]);
+    if (ins.id === "custom") return ins.tunings.length ? ins.tunings.length + " " + (ins.tunings.length === 1 ? "ladenie" : ins.tunings.length < 5 ? "ladenia" : "ladení") : "Vytvor si vlastné struny";
+    const t = ins.tunings.length;
+    return t === 1 ? esc(notesText(ins.tunings[0].notes)) : t + " " + (t < 5 ? "ladenia" : "ladení");
+  }
+  function instBody(ins) {
+    let h = "";
+    if (ins.id === "chromatic") {
+      h += '<p class="small">Ukáže najbližší tón a odchýlku. Pri transponujúcich nástrojoch ukáže zapísaný tón.</p><div class="opts">';
+      P.TRANSPOSE.forEach(t => {
+        const on = SET.inst === "chromatic" && SET.transpose === t.id;
+        h += '<button class="opt" data-chroma="' + t.id + '" type="button" aria-pressed="' + on + '"><span class="nm">' + esc(t.name) + "</span></button>";
+      });
+      return h + "</div>";
+    }
+    h += '<div class="opts">';
+    ins.tunings.forEach(t => {
+      const on = SET.inst === ins.id && SET.tuning === t.id;
+      h += '<button class="opt" data-inst="' + ins.id + '" data-tuning="' + esc(t.id) + '" type="button" aria-pressed="' + on + '"><span class="nm">' + esc(t.name) +
+        (on ? '<span class="pick">Ladíš</span>' : "") + '</span><span class="nt">' + esc(notesText(t.notes)) + "</span></button>";
+      if (ins.id === "custom") h += '<div class="row small" style="justify-content:flex-start;gap:18px;margin:-2px 0 4px 4px"><button class="link" data-act="editCustom" data-id="' + t.id + '" type="button">Upraviť</button><button class="link" style="color:var(--bad)" data-act="askDelCustom" data-id="' + t.id + '" type="button">Odstrániť</button></div>';
+    });
+    h += "</div>";
+    if (ins.id === "custom") {
+      h += SET.custom.length < MAX_CUSTOM ? '<button class="btn ghost" data-act="newCustom" type="button">+ Nové vlastné ladenie</button>' : '<p class="small muted">Viac ako ' + MAX_CUSTOM + " vlastných ladení sa nedá uložiť.</p>";
+    }
+    return h;
+  }
+  function selectTuning(instId, tuningId) {
+    const ins = instById(instId);
+    if (!ins || !ins.tunings.some(t => t.id === tuningId)) return;
+    const changed = SET.inst !== instId || SET.tuning !== tuningId;
+    SET.inst = instId; SET.tuning = tuningId; saveSet();
+    if (changed) { resetTuned(); restartListening(); }
+    UI.tab = "tune"; UI.open = null; render();
+  }
+
+  // Vlastné ladenie: editor v samostatnom okne
+  function openEditor(id) {
+    const c = SET.custom.find(x => x.id === id);
+    UI.edit = c ? { id: c.id, name: c.name, notes: c.notes.slice() } : { id: null, name: "", notes: curTuning() ? curTuning().notes.slice() : [40, 45, 50, 55, 59, 64] };
+    renderEditor();
+  }
+  function noteSelect(i, val) {
+    let h = '<select id="ed-n' + i + '" data-ed="' + i + '" aria-label="Tón ' + (UI.edit.notes.length - i) + '. struny">';
+    for (let m = MAX_NOTE; m >= MIN_NOTE; m--) h += '<option value="' + m + '"' + (m === val ? " selected" : "") + ">" + esc(noteText(m)) + " · " + fmtHz(P.midiToHz(m, SET.a4)) + "</option>";
+    return h + "</select>";
+  }
+  function renderEditor() {
+    const e = UI.edit, n = e.notes.length;
+    let h = '<div class="sheet-top"><button class="icon-btn" data-act="closeEditor" type="button" aria-label="Zavrieť">✕</button><span class="eyebrow">' + (e.id ? "Upraviť ladenie" : "Nové ladenie") + '</span><span style="width:38px"></span></div><div class="scroll">';
+    h += '<div class="card"><label class="set-label" for="ed-name">Názov</label><input id="ed-name" type="text" maxlength="30" autocomplete="off" placeholder="Napríklad Citera" value="' + esc(e.name) + '"></div>';
+    h += '<div class="card"><h3>Struny</h3><p class="small muted">Prvá v zozname je struna, ktorá je na ladičke vľavo (pri gitare najhrubšia).</p>';
+    e.notes.forEach((m, i) => {
+      h += '<div class="edit-row"><span class="small">' + (n - i) + ". struna</span>" + noteSelect(i, m) +
+        '<button class="icon-btn" data-act="edDel" data-i="' + i + '" type="button" aria-label="Odstrániť ' + (n - i) + '. strunu"' + (n <= 1 ? " disabled" : "") + ">✕</button></div>";
+    });
+    h += n < MAX_STRINGS ? '<button class="btn ghost" data-act="edAdd" type="button">+ Pridať strunu</button>' : "";
+    h += "</div>";
+    h += '<button class="btn big" data-act="edSave" type="button">Uložiť a ladiť</button></div>';
+    showSheet(h, true);
+  }
+  function saveEditor() {
+    const e = UI.edit;
+    const name = cleanName(e.name) || "Vlastné ladenie " + (SET.custom.length + (e.id ? 0 : 1));
+    let id = e.id;
+    if (id) { const c = SET.custom.find(x => x.id === id); if (c) { c.name = name; c.notes = e.notes.slice(); } }
+    else {
+      if (SET.custom.length >= MAX_CUSTOM) return;
+      do { id = "c" + Math.random().toString(36).slice(2, 10); } while (SET.custom.some(x => x.id === id));
+      SET.custom.push({ id, name, notes: e.notes.slice() });
+    }
+    UI.edit = null;
+    closeSheet();
+    if (SET.inst === "custom" && SET.tuning === id) { resetTuned(); restartListening(); }
+    selectTuning("custom", id);
+    toast("Ladenie „" + name + "“ je uložené.");
+  }
+  function deleteCustom(id) {
+    SET.custom = SET.custom.filter(c => c.id !== id);
+    if (SET.inst === "custom" && SET.tuning === id) {
+      if (SET.custom.length) SET.tuning = SET.custom[0].id; else { SET.inst = "guitar"; SET.tuning = "std"; }
+      resetTuned(); restartListening();
+    }
+    saveSet();
+  }
+
+  // ---------- Tóny (referenčný tón z reproduktora) ----------
+  let toneCtx = null, playing = null;   // playing: { midi, osc, gain, timer }
+  const TONE_MAX_MS = 60000;            // tón sa sám vypne po minúte
+  function playTone(midi) {
+    const was = playing && playing.midi;
+    stopTone();
+    if (was === midi) { renderTones(); return; }
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!toneCtx) toneCtx = new AC();
+      if (toneCtx.state === "suspended") toneCtx.resume().catch(() => {});
+      const osc = toneCtx.createOscillator(), gain = toneCtx.createGain(), t0 = toneCtx.currentTime;
+      // vyššie harmonické, aby bolo počuť aj nízke tóny v malom reproduktore telefónu
+      const real = new Float32Array([0, 0, 0, 0, 0, 0, 0]), imag = new Float32Array([0, 1, 0.55, 0.35, 0.22, 0.12, 0.07]);
+      osc.setPeriodicWave(toneCtx.createPeriodicWave(real, imag));
+      osc.frequency.value = P.midiToHz(midi, SET.a4);
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.28, t0 + 0.04);
+      osc.connect(gain); gain.connect(toneCtx.destination);
+      osc.start();
+      playing = { midi, osc, gain, timer: setTimeout(() => { stopTone(); renderTones(); }, TONE_MAX_MS) };
+    } catch (e) { playing = null; toast("Tón sa nedá prehrať."); }
+    renderTones();
+  }
+  function stopTone() {
+    if (!playing) return;
+    const p = playing;
+    playing = null;
+    clearTimeout(p.timer);
+    try {
+      const t = toneCtx.currentTime;
+      p.gain.gain.cancelScheduledValues(t);
+      p.gain.gain.setValueAtTime(p.gain.gain.value, t);
+      p.gain.gain.linearRampToValueAtTime(0, t + 0.08);
+      p.osc.stop(t + 0.1);
+    } catch (e) { /* nič */ }
+  }
+  function toneBtn(midi) {
+    return '<button class="tone" data-tone="' + midi + '" type="button" aria-pressed="' + (playing && playing.midi === midi ? "true" : "false") + '" aria-label="Tón ' + esc(noteText(midi)) + '">' + noteHtml(midi) + "</button>";
+  }
+  function viewTones() {
+    const tu = curTuning(), ins = curInst();
+    let h = '<div class="head"><span class="eyebrow">Ladenie podľa sluchu</span><h2>Referenčné tóny</h2></div>';
+    if (tu) {
+      h += '<div class="card"><h3>' + esc(ins.name) + " · " + esc(tu.name) + '</h3><div class="tone-grid" style="--n:' + Math.min(tu.notes.length, 6) + '">' +
+        tu.notes.map(toneBtn).join("") + '</div><p class="small muted">Ťukni na strunu, zahrá jej tón. Ďalším ťuknutím ho vypneš.</p></div>';
+    }
+    h += '<div class="card"><h3>Všetky tóny</h3><span class="small muted">Oktáva</span><div class="seg" style="--n:6">';
+    for (let o = 1; o <= 6; o++) h += '<button data-oct="' + o + '" type="button" aria-pressed="' + (UI.octave === o) + '" aria-label="' + o + '. oktáva">' + o + "</button>";
+    h += '</div><div class="tone-grid keys">';
+    for (let p = 0; p < 12; p++) h += toneBtn((UI.octave + 1) * 12 + p);
+    h += '</div><p class="small muted">A4 = ' + SET.a4 + " Hz. Hlasitosť nastavíš tlačidlami telefónu.</p></div>";
+    if (playing) h += '<button class="btn ghost" data-act="stopTone" type="button">Vypnúť tón</button>';
+    return h;
+  }
+  function renderTones() { if (UI.tab === "tones" && $("#sheet").hidden) render(); }
+
+  // ---------- Nastavenia ----------
+  function seg(act, list, cur) {
+    return '<div class="seg" style="--n:' + list.length + '">' + list.map(([v, l]) => '<button data-set="' + act + '" data-v="' + v + '" type="button" aria-pressed="' + (String(cur) === String(v)) + '">' + l + "</button>").join("") + "</div>";
+  }
+  function openSettings() {
+    let h = '<div class="sheet-top"><button class="icon-btn" data-act="closeSheet" type="button" aria-label="Zavrieť">✕</button><span class="eyebrow">Nastavenia</span><span style="width:38px"></span></div><div class="scroll">';
+    h += '<div class="card"><span class="set-label">Vzhľad</span>' + seg("theme", [["dark", "Tmavý"], ["light", "Svetlý"], ["system", "Podľa systému"]], SET.theme) + "</div>";
+    h += '<div class="card"><span class="set-label">Ladenie A4</span><div class="a4"><button class="btn ghost" data-act="a4" data-d="-1" type="button" aria-label="O 1 Hz nižšie">−</button><b id="a4v">' + SET.a4 +
+      ' Hz</b><button class="btn ghost" data-act="a4" data-d="1" type="button" aria-label="O 1 Hz vyššie">+</button></div>' +
+      '<p class="small muted">Štandard je 440 Hz. Niektoré orchestre ladia na 442 Hz, staršia hudba na 415 Hz.' + (SET.a4 !== 440 ? ' <button class="link" data-act="a4reset" type="button">Späť na 440 Hz</button>' : "") + "</p></div>";
+    h += '<div class="card"><span class="set-label">Názvy tónov</span>' + seg("notation", [["sk", "C D E F G A H"], ["en", "C D E F G A B"]], SET.notation) +
+      '<p class="small muted">Slovenské názvy: H a B (= A♯/B♭). Anglické: B a B♭.</p>' +
+      '<span class="set-label">Posuvky</span>' + seg("accidental", [["sharp", "Krížiky ♯"], ["flat", "Béčka ♭"]], SET.accidental) + "</div>";
+    h += '<div class="card"><span class="set-label">Kedy je struna naladená</span>' + seg("tol", TOLS.map(t => [t, "±" + t + " ¢"]), SET.tol) +
+      '<p class="small muted">Tolerancia v centoch (100 centov = poltón). ±5 ¢ ucho takmer nepočuje.</p></div>';
+    h += '<div class="card"><span class="set-label">Citlivosť mikrofónu</span>' + seg("gate", [["low", "Nízka"], ["medium", "Stredná"], ["high", "Vysoká"]], SET.gate) +
+      '<p class="small muted">V hlučnom prostredí zvoľ nízku, pri tichom nástroji (husle, ukulele) vysokú.</p></div>';
+    h += '<div class="card"><h3>Dáta</h3><p class="small muted">Appka si pamätá len nastavenia a tvoje vlastné ladenia, a to len v tomto zariadení.</p>' +
+      '<div class="row"><button class="btn ghost" data-act="export" type="button" style="flex:1">Stiahnuť zálohu</button><button class="btn ghost" data-act="import" type="button" style="flex:1">Obnoviť</button></div>' +
+      '<input id="import-file" type="file" accept=".json,application/json" hidden>' +
+      '<button class="btn danger" data-act="askReset" type="button">Vymazať všetko</button>' +
+      '<button class="link" data-act="privacy" type="button">Ochrana súkromia a licencie</button></div>';
+    h += '<p class="small muted" style="text-align:center">Universal Tuner · funguje aj bez internetu</p></div>';
+    showSheet(h);
+  }
+  function openPrivacy() {
+    let h = '<div class="sheet-top"><button class="icon-btn" data-act="settings" type="button" aria-label="Späť">←</button><span class="eyebrow">Súkromie</span><span style="width:38px"></span></div><div class="scroll">';
+    h += '<div class="head"><h2>Ochrana súkromia</h2></div>';
+    h += '<div class="card"><h3>Mikrofón</h3><p class="small">Mikrofón je zapnutý len počas ladenia, kým nestlačíš Zastaviť alebo neodídeš z appky. ' +
+      "Zvuk sa spracúva priebežne v pamäti telefónu, len aby sa zistila výška tónu. Nikdy sa nenahráva, neukladá ani neposiela.</p></div>";
+    h += '<div class="card"><h3>Čo sa ukladá</h3><ul class="small plain"><li>nastavenia (vzhľad, zvolený nástroj a ladenie, A4, názvy tónov, tolerancia, citlivosť),</li>' +
+      "<li>tvoje vlastné ladenia (názov a tóny strún).</li></ul>" +
+      '<p class="small">Všetko je len v úložisku prehliadača v tomto zariadení, kým to nevymažeš. Appka nemá server, účet, analytiku ani reklamy a písma má uložené v sebe – nič sa neposiela tretím stranám.</p></div>';
+    h += '<div class="card"><h3>Tvoje možnosti</h3><p class="small">V nastaveniach si môžeš stiahnuť zálohu (JSON), obnoviť ju alebo všetko vymazať. Prípadne appku odinštaluj a v prehliadači vymaž údaje stránky.</p></div>';
+    h += '<div class="card"><h3>Licencie</h3><p class="small">Appka je zverejnená pod licenciou MIT (súbor LICENSE). Písma Bricolage Grotesque, Instrument Sans a IBM Plex Mono sú pod licenciou SIL Open Font License 1.1 (priečinok fonts/).</p></div></div>';
+    showSheet(h);
+  }
+
+  // Záloha: len nastavenia a vlastné ladenia
+  function download(blob, name) {
+    const url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function exportData() {
+    const d = new Date(), iso = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    const out = Object.assign({}, SET); delete out.installDismissed;
+    download(new Blob([JSON.stringify({ app: "universal-tuner", version: 1, exported: iso, settings: out }, null, 2)], { type: "application/json" }), "universal-tuner-zaloha-" + iso + ".json");
+    toast("Záloha je stiahnutá.");
+  }
+  async function importFile(file) {
+    if (!file) return;
+    let j = null;
+    try { j = JSON.parse(await file.text()); } catch (e) { j = null; }
+    if (!j || j.app !== "universal-tuner" || !j.settings || typeof j.settings !== "object") {
+      infoModal("Toto nie je záloha", "Súbor nie je záloha z Universal Tuner. Vyber súbor universal-tuner-zaloha-….json.");
+      return;
+    }
+    const keep = SET.installDismissed;
+    SET = cleanSettings(j.settings); SET.installDismissed = keep;
+    saveSet(); applyTheme(); resetTuned(); restartListening();
+    openSettings();
+    toast("Nastavenia a vlastné ladenia sú obnovené.");
+  }
+  function resetAll() {
+    try { localStorage.removeItem(SET_KEY); } catch (e) { /* nič */ }
+    SET = defaults();
+    applyTheme(); resetTuned(); restartListening();
+    closeModal(); closeSheet();
+    toast("Všetko je vymazané.");
+  }
+
+  // ---------- Okná ----------
+  function showSheet(h, keepFocus) {
+    const el = $("#sheet");
+    el.innerHTML = h; el.hidden = false;
+    if (!keepFocus) { const f = el.querySelector("button"); if (f) f.focus({ preventScroll: true }); }
+  }
+  function closeSheet() { $("#sheet").hidden = true; $("#sheet").innerHTML = ""; UI.edit = null; render(); }
+  let modalOk = null;
+  function confirmModal(o, onOk) {
+    const m = $("#modal");
+    m.innerHTML = '<div class="modal-card" role="alertdialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-text">' +
+      '<h3 id="modal-title">' + o.title + '</h3><p id="modal-text" class="small">' + o.text + "</p>" +
+      '<div class="row">' + (o.ok ? '<button class="btn ghost" data-act="modalCancel" type="button">Zrušiť</button>' : "") +
+      '<button class="btn ' + (o.danger ? "danger-fill" : "") + '" data-act="' + (o.ok ? "modalOk" : "modalCancel") + '" type="button">' + (o.ok || "Rozumiem") + "</button></div></div>";
+    m.hidden = false;
+    modalOk = onOk || null;
+    m.querySelector('[data-act="modalCancel"]').focus();
+  }
+  const infoModal = (title, text) => confirmModal({ title, text });
+  function closeModal() { $("#modal").hidden = true; $("#modal").innerHTML = ""; modalOk = null; }
+  let toastT;
+  function toast(t) { const el = $("#toast"); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2800); }
+
+  // ---------- Vykreslenie a udalosti ----------
+  function render() {
+    const v = { tune: viewTune, inst: viewInst, tones: viewTones }[UI.tab];
+    $("#view").innerHTML = v();
+    lastStrKey = "";
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-current", t.dataset.tab === UI.tab ? "page" : "false"));
+  }
+  function goTab(tab) {
+    if (tab !== UI.tab) $("#view").scrollTop = 0;
+    UI.tab = tab;
+    if (tab !== "tones") stopTone();
+    render();
+  }
+
+  document.addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const ds = b.dataset;
+    if (ds.tab) { goTab(ds.tab); return; }
+    if (ds.goto) { UI.open = null; goTab(ds.goto); return; }
+    if (ds.str !== undefined) {
+      const i = Number(ds.str);
+      UI.lock = UI.lock === i ? null : i;
+      if (L) { L.tracker.reset(); L.inTune = null; }
+      render(); return;
+    }
+    if (ds.open) { UI.open = UI.open === ds.open ? "" : ds.open; render(); return; }
+    if (ds.tuning !== undefined && ds.inst) { selectTuning(ds.inst, ds.tuning); return; }
+    if (ds.chroma) {
+      SET.transpose = ds.chroma;
+      if (SET.inst !== "chromatic") { SET.inst = "chromatic"; SET.tuning = ""; resetTuned(); restartListening(); }
+      saveSet(); UI.tab = "tune"; UI.open = null; render(); return;
+    }
+    if (ds.tone) { playTone(Number(ds.tone)); return; }
+    if (ds.oct) { UI.octave = Number(ds.oct); render(); return; }
+    if (ds.set) {
+      const k = ds.set, v = k === "tol" ? Number(ds.v) : ds.v;
+      const next = cleanSettings(Object.assign({}, SET, { [k]: v }));
+      if (next[k] !== v) return;
+      SET[k] = v; saveSet();
+      if (k === "theme") applyTheme();
+      openSettings(); return;
+    }
+    switch (ds.act) {
+      case "listen": if (L) stopListening(); else startListening(); break;
+      case "settings": openSettings(); break;
+      case "closeSheet": closeSheet(); break;
+      case "privacy": openPrivacy(); break;
+      case "a4": {
+        const v = SET.a4 + Number(ds.d);
+        if (v < 415 || v > 466) break;
+        SET.a4 = v; saveSet(); restartListening(); openSettings(); break;
+      }
+      case "a4reset": SET.a4 = 440; saveSet(); restartListening(); openSettings(); break;
+      case "export": exportData(); break;
+      case "import": { const f = $("#import-file"); if (f) { f.value = ""; f.click(); } break; }
+      case "askReset":
+        confirmModal({ title: "Vymazať všetko?", text: "Vymažú sa všetky nastavenia a vlastné ladenia. Ak nemáš zálohu, nedá sa to vrátiť späť.", ok: "Vymazať", danger: true }, resetAll);
+        break;
+      case "newCustom": openEditor(null); break;
+      case "editCustom": openEditor(ds.id); break;
+      case "askDelCustom": {
+        const c = SET.custom.find(x => x.id === ds.id);
+        if (!c) break;
+        confirmModal({ title: "Odstrániť „" + esc(c.name) + "“?", text: "Vlastné ladenie sa vymaže z tohto zariadenia.", ok: "Odstrániť", danger: true }, () => {
+          deleteCustom(c.id); closeModal(); render(); toast("Ladenie je odstránené.");
+        });
+        break;
+      }
+      case "closeEditor": UI.edit = null; closeSheet(); break;
+      case "edAdd": if (UI.edit && UI.edit.notes.length < MAX_STRINGS) { UI.edit.notes.push(UI.edit.notes[UI.edit.notes.length - 1] || 64); renderEditor(); } break;
+      case "edDel": if (UI.edit && UI.edit.notes.length > 1) { UI.edit.notes.splice(Number(ds.i), 1); renderEditor(); } break;
+      case "edSave": if (UI.edit) saveEditor(); break;
+      case "stopTone": stopTone(); renderTones(); break;
+      case "modalOk": if (modalOk) modalOk(); break;
+      case "modalCancel": closeModal(); break;
+      case "install":
+        if (installPrompt) { installPrompt.prompt(); installPrompt.userChoice.finally(() => { installPrompt = null; render(); }); }
+        break;
+      case "installLater": SET.installDismissed = true; saveSet(); render(); break;
+    }
+  });
+  $("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+  document.addEventListener("change", e => {
+    const t = e.target;
+    if (t.id === "import-file") { importFile(t.files && t.files[0]); return; }
+    if (t.dataset && t.dataset.ed !== undefined && UI.edit) {
+      const v = Number(t.value), i = Number(t.dataset.ed);
+      if (Number.isInteger(v) && v >= MIN_NOTE && v <= MAX_NOTE && i >= 0 && i < UI.edit.notes.length) UI.edit.notes[i] = v;
+    }
+  });
+  document.addEventListener("input", e => {
+    if (e.target.id === "ed-name" && UI.edit) UI.edit.name = e.target.value;
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (!$("#modal").hidden) closeModal();
+    else if (!$("#sheet").hidden) closeSheet();
+  });
+
+  // ---------- Inštalácia ----------
+  let installPrompt = null;
+  const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  function installCard() {
+    if (isStandalone() || SET.installDismissed) return "";
+    if (installPrompt) {
+      return '<div class="card"><h3>Nainštaluj si appku</h3><p class="small muted">Otvoríš ju z plochy jedným ťuknutím a funguje aj bez internetu.</p>' +
+        '<div class="row"><button class="btn" data-act="install" type="button" style="flex:1">Inštalovať</button><button class="btn ghost" data-act="installLater" type="button">Neskôr</button></div></div>';
+    }
+    if (isIOS) {
+      return '<div class="card"><h3>Pridaj si appku na plochu</h3><p class="small muted">V Safari ťukni na <b>Zdieľať</b> (štvorček so šípkou) a vyber <b>Pridať na plochu</b>.</p>' +
+        '<button class="btn ghost" data-act="installLater" type="button">Rozumiem</button></div>';
+    }
+    return "";
+  }
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    installPrompt = e;
+    if (UI.tab === "tune" && !L && $("#sheet").hidden) render();
+  });
+  window.addEventListener("appinstalled", () => { installPrompt = null; toast("Appka je nainštalovaná."); render(); });
+
+  // Keď používateľ odíde z appky, mikrofón a tón hneď vypneme (súkromie aj batéria).
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") return;
+    stopListening();
+    stopTone();
+    if (UI.tab === "tones") render();
+  });
+  window.addEventListener("pagehide", () => { stopListening(); stopTone(); });
+  // Appka môže byť otvorená dvakrát (nainštalovaná + karta) – nastavenia z druhej kópie načítame.
+  window.addEventListener("storage", e => {
+    if (e.key !== SET_KEY && e.key !== null) return;
+    load(); applyTheme(); restartListening();
+    if ($("#sheet").hidden) render();
+  });
+
+  load();
+  applyTheme();
+  render();
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js").catch(() => { /* offline režim nie je dostupný */ });
+  }
+})();
+</script>
+</body>
+</html>

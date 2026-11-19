@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `juro/` | **Juro**: tools for lawyers (Slovak only) | See [juro/README.md](juro/README.md) |
 | `sleep-detective/` | **Sleep Detective**: sleep diary + night sound recording (Slovak only) | Single `index.html` + `sound.js` (snore/noise detector) |
 | `blood-pressure/` | **Blood Pressure**: blood pressure diary, 7-day home measurement, report for the doctor (Slovak only) | Single `index.html`; same tech and design as Sleep Detective (lavender accent) |
+| `universal-tuner/` | **Universal Tuner**: instrument tuner (guitar, bass, ukulele, strings, banjo…, chromatic with transposition, custom tunings) + reference tones (Slovak only) | Single `index.html` + `pitch.js` (YIN pitch detector, instrument tunings); same tech and design as Sleep Detective (sky-blue accent). Microphone audio is never stored |
 
 The root `index.html` is only a placeholder link page. Root `tools/` holds old one-off Python scripts for a former `gamepad/` layout that no longer exists; they are not used by any current app.
 
@@ -40,13 +41,14 @@ python -m http.server 8000     # then open http://localhost:8000/<folder>/
 - `juro/`: `node tools/test.js`.
 - `sleep-detective/`: `node tools/test.js` runs the detector tests (`sound.js` on synthetic sound) and then `tools/test-app.js`, a scenario test of the whole `index.html` with a fake DOM, clock, microphone and IndexedDB. Add a scenario there for every new feature. `tools/zaloha-test-7dni.json` is a sample backup for testing "Obnoviť zo zálohy".
 - `blood-pressure/`: `node tools/test.js`, a scenario test of the whole `index.html` with a fake DOM, clock and localStorage. Add a scenario there for every new feature. Icons: `python tools/make_icons.py`.
+- `universal-tuner/`: `node tools/test.js` runs the pitch detector tests (`pitch.js` on synthetic tones) and then `tools/test-app.js`, a scenario test of the whole `index.html` with a fake DOM, clock, microphone and speaker. Add a scenario there for every new feature. Icons: `python tools/make_icons.py`.
 - `jocadium/`: no tests; verify in the browser (see its CLAUDE.md).
 
 ## Rules that apply to every app
 
 - **Bump the `CACHE` version in that app's `sw.js` on essentially any change** to its files (for example `sleep-detective-v17` → `-v18`). Without it, returning users keep getting the cached old version. New files the app needs offline must also be added to the `ASSETS` list in `sw.js`.
 - **Licences, GDPR and other law must not be violated.**
-  - Only use libraries, fonts, icons, sounds and images whose licence allows it, and ship the required licence/attribution files. Existing records: `jocadium/NOTICE`, `math/THIRD-PARTY-NOTICES.md`, `phys/THIRD-PARTY-NOTICES.md`, `juro/THIRD-PARTY-NOTICES.md`, `sleep-detective/fonts/OFL-*.txt`, `blood-pressure/fonts/OFL-*.txt`. Every app has its own `LICENSE`.
+  - Only use libraries, fonts, icons, sounds and images whose licence allows it, and ship the required licence/attribution files. Existing records: `jocadium/NOTICE`, `math/THIRD-PARTY-NOTICES.md`, `phys/THIRD-PARTY-NOTICES.md`, `juro/THIRD-PARTY-NOTICES.md`, `sleep-detective/fonts/OFL-*.txt`, `blood-pressure/fonts/OFL-*.txt`, `universal-tuner/fonts/OFL-*.txt`. Every app has its own `LICENSE`.
   - Do not copy protected content, names or look of existing games or brands.
   - **Nothing may be loaded from third-party servers at runtime** (no Google Fonts, CDNs, analytics or trackers), because that sends the user's IP address to the third party. Bundle fonts and libraries inside the app (fonts as `fonts/*.woff2` + `fonts/fonts.css`, libraries in `vendor/`).
   - Keep user data on the device (localStorage / IndexedDB), collect only what the feature needs, tell the user what is stored, and let them export and fully delete it. This matters most for `sleep-detective/`, which records audio in the bedroom and stores health-related data. Its "Ochrana súkromia" screen (`openPrivacy()` in `sleep-detective/index.html`) lists what is stored and for how long: update it whenever that changes.
