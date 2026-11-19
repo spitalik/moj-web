@@ -1,6 +1,6 @@
 /* Service worker Universal Tuner: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu. */
-const CACHE = 'universal-tuner-v1';
+const CACHE = 'universal-tuner-v2';
 const ASSETS = [
   './',
   './index.html',

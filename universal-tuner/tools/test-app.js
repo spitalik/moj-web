@@ -35,7 +35,7 @@ function el(name) {
   return { name, innerHTML: '', hidden: true, textContent: '', scrollTop: 0, attrs: {}, style: {}, dataset: {},
     setAttribute(k, v) { this.attrs[k] = String(v); }, getAttribute(k) { return this.attrs[k]; },
     addEventListener(t, f) { this['on' + t] = f; },
-    querySelector() { return { focus() {} }; } };
+    querySelector(q) { return /button|data-act/.test(q) ? { focus() {} } : null; } };
 }
 const els = {};
 ['#view', '#sheet', '#modal', '#toast', '#theme-color', '#t-gauge', '#t-level', '#t-needle', '#t-note', '#t-cents', '#t-hz',
@@ -216,6 +216,21 @@ t('výber huslí zmení struny, zruší ✓ a zapamätá sa', () => {
   play(76, 0, 1200);                                 // E5
   assert.strictEqual(live().status, 'Naladené');
   assert.ok(live().note.startsWith('E<sub>5'));
+});
+
+t('cimbal: 51 tónov D2–E6 v mriežke, ladenie tón po tóne', () => {
+  click({ tab: 'inst' }); click({ open: 'cimbal' });
+  assert.ok(view().includes('Koncertný') && view().includes('D2 – E6 · 51 tónov'));
+  click({ inst: 'cimbal', tuning: 'concert' });
+  assert.ok(view().includes('class="strings grid"'));
+  assert.ok(!view().includes('class="num"'), 'bez čísel strún');
+  assert.ok(view().includes('naladených je 0 z 51'));
+  play(66, 2, 1500);                                 // F#4
+  assert.ok(live().note.startsWith('F♯<sub>4'), live().note);
+  assert.strictEqual(live().status, 'Naladené');
+  assert.ok(/aria-label="Tón F♯4, naladený"/.test(live().strings));
+  play(38, -30, 1500);                               // D2 nízko
+  assert.ok(live().note.startsWith('D<sub>2') && live().state === 'low', live().note);
 });
 
 t('basgitara 5 strún: najnižšia struna H0 (30,9 Hz)', () => {

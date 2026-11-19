@@ -230,11 +230,15 @@
       ['gmod', 'G modálne (Sawmill)', 'G4 D3 G3 C4 D4']
     ] },
     { id: 'balalaika', name: 'Balalajka', icon: '🪕', tunings: [['prima', 'Prímová', 'E4 E4 A4']] },
-    { id: 'bouzouki', name: 'Buzuki (írske)', icon: '🪕', tunings: [['gdad', 'GDAD', 'G2 D3 A3 D4']] }
+    { id: 'bouzouki', name: 'Buzuki (írske)', icon: '🪕', tunings: [['gdad', 'GDAD', 'G2 D3 A3 D4']] },
+    // Cimbal má zbory 3–5 strún na jeden tón a chromatický rozsah, ladí sa tón po tóne (od najnižšieho).
+    { id: 'cimbal', name: 'Cimbal', icon: '🎶', tunings: [['concert', 'Koncertný', 38, 88]] }
   ];
+  // tóny ladenia: text 'E2 A2 …' alebo rozsah midi od–do (všetky poltóny)
+  const notesOf = (a, b) => typeof a === 'number' ? Array.from({ length: b - a + 1 }, (_, i) => a + i) : a.split(' ').map(parseNote);
   const INSTRUMENTS = RAW.map(i => ({
     id: i.id, name: i.name, icon: i.icon,
-    tunings: i.tunings.map(([id, name, notes]) => ({ id, name, notes: notes.split(' ').map(parseNote) }))
+    tunings: i.tunings.map(([id, name, a, b]) => ({ id, name, notes: notesOf(a, b) }))
   }));
 
   // Transpozícia chromatickej ladičky: koľko poltónov pripočítať k znejúcemu tónu, aby vyšiel zapísaný.

@@ -169,6 +169,8 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
 .str.ok::after { content: "✓"; position: absolute; top: 3px; right: 6px; font-size: 11px; font-weight: 700; color: var(--good); }
 .str.lock.ok::after { color: var(--lamp-ink); }
 .strings.many { grid-template-columns: repeat(var(--n2, 4), minmax(0, 1fr)); }
+.strings.grid { position: relative; grid-template-columns: repeat(6, minmax(0, 1fr)); max-height: 236px; overflow-y: auto; padding: 2px; }
+.strings.grid .str { padding: 9px 2px; }
 
 /* Nástroje */
 .opt { background: var(--night); border: 1px solid var(--line); border-radius: 14px; padding: 11px 13px; text-align: left; display: flex; flex-direction: column; gap: 2px; width: 100%; }
@@ -320,7 +322,8 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     return esc(n.letter) + "<" + (tag || "sub") + ">" + n.octave + "</" + (tag || "sub") + ">";
   }
   const noteText = midi => P.label(midi, nopts());
-  const notesText = notes => notes.map(noteText).join(" ");
+  // dlhé ladenie (cimbal) skrátene: „D2 – E6 · 51 tónov“
+  const notesText = notes => notes.length > MAX_STRINGS ? noteText(notes[0]) + " – " + noteText(notes[notes.length - 1]) + " · " + notes.length + " tónov" : notes.map(noteText).join(" ");
   const transpose = () => P.TRANSPOSE.find(t => t.id === SET.transpose) || P.TRANSPOSE[0];
   const fmtHz = hz => hz.toFixed(1).replace(".", ",") + " Hz";
   const fmtCents = c => { const r = Math.round(c); return (r > 0 ? "+" : r < 0 ? "−" : "±") + Math.abs(r) + " ¢"; };
@@ -360,21 +363,28 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
   function stringsHtml(active) {
     const tu = curTuning();
     if (!tu) return "";
-    const n = tu.notes.length, many = n > 7;
-    let h = '<div class="strings' + (many ? " many" : "") + '" style="--n:' + n + ";--n2:" + Math.ceil(n / 2) + '">';
+    // veľa strún (cimbal): mriežka po 6 tónoch, bez čísel strún (tóny sú zoradené od najnižšieho)
+    const n = tu.notes.length, many = n > 7, grid = n > MAX_STRINGS;
+    let h = '<div class="strings' + (grid ? " grid" : many ? " many" : "") + '" style="--n:' + n + ";--n2:" + Math.ceil(n / 2) + '">';
     tu.notes.forEach((m, i) => {
       const cls = ["str"];
       if (i === active) cls.push("on");
       if (UI.lock === i) cls.push("lock");
       if (UI.tuned[i]) cls.push("ok");
       h += '<button class="' + cls.join(" ") + '" data-str="' + i + '" type="button" aria-pressed="' + (UI.lock === i) + '" aria-label="' +
-        (n - i) + ". struna " + esc(noteText(m)) + (UI.tuned[i] ? ", naladená" : "") + '"><span class="num">' + (n - i) + ".</span><b>" + noteHtml(m) + "</b></button>";
+        (grid ? "Tón " : (n - i) + ". struna ") + esc(noteText(m)) + (UI.tuned[i] ? ", naladený" + (grid ? "" : "á") : "") + '">' +
+        (grid ? "" : '<span class="num">' + (n - i) + ".</span>") + "<b>" + noteHtml(m) + "</b></button>";
     });
     return h + "</div>";
   }
   function stringsHint() {
     const tu = curTuning();
     if (!tu) return "";
+    if (tu.notes.length > MAX_STRINGS) {
+      const done = tu.notes.filter((m, i) => UI.tuned[i]).length;
+      if (UI.lock !== null) return "Ladíš ručne tón " + noteText(tu.notes[UI.lock]) + ". Ťukni naň znova a appka bude tóny rozpoznávať sama.";
+      return "Udri na zbor strún, appka rozpozná tón sama. Ladí sa tón po tóne; naladených je " + done + " z " + tu.notes.length + ". Ak je zbor veľmi rozladený, ťukni na jeho tón.";
+    }
     if (UI.lock !== null) return "Ladíš ručne " + (tu.notes.length - UI.lock) + ". strunu. Ťukni na ňu znova a appka bude struny rozpoznávať sama.";
     return "Appka rozpozná strunu sama. Ak je struna veľmi rozladená, ťukni na ňu a ladí sa len ona.";
   }
@@ -518,7 +528,21 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     if (ne && ne.innerHTML !== note) ne.innerHTML = note;
     setTxt("#t-cents", centsTxt); setTxt("#t-hz", hzTxt); setTxt("#t-status", status); setTxt("#t-heard", heard);
     const key = active + "|" + UI.lock + "|" + Object.keys(UI.tuned).join(",");
-    if (tu && key !== lastStrKey) { lastStrKey = key; const st = $("#t-strings"); if (st) st.innerHTML = stringsHtml(active); }
+    if (tu && key !== lastStrKey) {
+      lastStrKey = key;
+      const st = $("#t-strings");
+      if (st) {
+        const old = st.querySelector(".strings"), top = old ? old.scrollTop : 0;
+        st.innerHTML = stringsHtml(active);
+        // cimbal: mriežka tónov sa posúva, posun zachováme a znejúci tón ukážeme
+        const g = st.querySelector(".strings.grid"), on = g && g.querySelector(".str.on");
+        if (g) {
+          g.scrollTop = top;
+          if (on && (on.offsetTop < g.scrollTop || on.offsetTop + on.offsetHeight > g.scrollTop + g.clientHeight)) g.scrollTop = on.offsetTop - g.clientHeight / 2;
+        }
+      }
+      setTxt("#t-hint", stringsHint());
+    }
   }
   function markTuned(i, tu) {
     UI.tuned[i] = true;

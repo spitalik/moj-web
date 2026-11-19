@@ -57,6 +57,9 @@ t('každý nástroj má platné struny', () => {
     assert.ok(tu.notes.length >= 3, i.id + '/' + tu.id);
     tu.notes.forEach(m => assert.ok(Number.isInteger(m) && m >= 20 && m <= 90, i.id + '/' + tu.id + ' ' + m));
   }));
+  const cim = P.INSTRUMENTS.find(i => i.id === 'cimbal').tunings[0].notes;
+  assert.strictEqual(cim.length, 51);
+  assert.strictEqual(P.label(cim[0]) + '–' + P.label(cim[50]), 'D2–E6');
   const g = P.INSTRUMENTS.find(i => i.id === 'guitar').tunings[0].notes;
   assert.deepStrictEqual(g, [40, 45, 50, 55, 59, 64]);
 });
@@ -69,7 +72,7 @@ t('čistý sínus 440 Hz', () => {
 
 t('všetky struny gitary, basy, huslí a ukulele do 1 centu (48 aj 44,1 kHz)', () => {
   [48000, 44100].forEach(sr => {
-    ['guitar', 'bass', 'violin', 'ukulele', 'cello', 'banjo'].forEach(id => {
+    ['guitar', 'bass', 'violin', 'ukulele', 'cello', 'banjo', 'cimbal'].forEach(id => {
       const ins = P.INSTRUMENTS.find(i => i.id === id);
       ins.tunings.forEach(tu => {
         const range = P.rangeFor(tu.notes);
