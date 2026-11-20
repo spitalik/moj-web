@@ -43,6 +43,8 @@ HCI18N.add('es', {
   notifyBtn: 'Permitir',
   notifyOk: 'Los recordatorios están permitidos (mientras la aplicación esté abierta).',
   notifyNo: 'Los recordatorios no se han permitido.',
+  notifyNotGuaranteed: "No se garantizan los recordatorios. Pueden llegar tarde o no mostrarse, así que no dependa solo de ellos.",
+  notifyDenied: "Las notificaciones están bloqueadas en el navegador. Permítalas en la configuración del sitio si desea recordatorios.",
   backupTitle: 'Recomendamos una copia de seguridad',
   backupLast: 'Última copia: {date}',
   backupNone: 'Todavía no ha creado ninguna copia de seguridad.',

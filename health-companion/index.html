@@ -420,6 +420,8 @@ textarea { min-height: 70px; resize: vertical; }
     // Pripomienky
     if ('Notification' in window && Notification.permission === 'default') {
       html += '<section class="card"><div class="row"><div><strong>' + t('notifyTitle') + '</strong><div class="muted">' + t('notifyText') + '</div></div><button class="btn small primary" data-act="notify">' + t('notifyBtn') + '</button></div></section>';
+    } else if ('Notification' in window && Notification.permission === 'denied') {
+      html += '<section class="banner"><div class="muted">' + t('notifyDenied') + '</div></section>';
     }
 
     // Záloha
@@ -430,6 +432,7 @@ textarea { min-height: 70px; resize: vertical; }
     }
 
     html += '<section class="card"><div class="section-head"><h2>' + t('todayMeds') + '</h2><span class="muted">' + fmtDate(tod) + '</span></div>';
+    html += '<p class="muted">' + t('notifyNotGuaranteed') + '</p>';
     if (!state.meds.length) {
       html += '<div class="empty">' + t('noMedsYet') + '</div>';
     } else if (!doses.length) {
@@ -1056,19 +1059,37 @@ textarea { min-height: 70px; resize: vertical; }
   });
 
   // ---------- Pripomienky (kým je appka otvorená) ----------
+  // Notifikácie sú len pomocné: prehliadač ich môže zahodiť alebo oneskoriť (uspané zariadenie, šetrenie batérie).
   var notified = {};
-  function checkReminders() {
+  var lastCheckDate = today(), lastCheckTime = nowTime();
+  function showReminder(title, opts) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if ('serviceWorker' in navigator) {
+      // Na Androide Chrome konštruktor Notification nefunguje, preto ide cez service worker.
+      navigator.serviceWorker.ready
+        .then(function (reg) { return reg.showNotification(title, opts); })
+        .catch(function () { try { new Notification(title, opts); } catch (e) { /* bez notifikácií */ } });
+      return;
+    }
+    try { new Notification(title, opts); } catch (e) { /* bez notifikácií */ }
+  }
+  // Kontroluje dávky od poslednej kontroly (nie len presnú minútu), aby sa tik časovača nedal preskočiť.
+  function checkReminders() {
     var tod = today(), now = nowTime();
-    HC.medDosesOn(state.meds, state.taken, tod).forEach(function (d) {
+    if (tod !== lastCheckDate) { lastCheckDate = tod; lastCheckTime = '00:00'; }
+    var due = HC.medDosesOn(state.meds, state.taken, tod).filter(function (d) {
+      return !d.status && d.time > lastCheckTime && d.time <= now;
+    });
+    lastCheckTime = now;
+    due.forEach(function (d) {
       var k = tod + '|' + d.key;
-      if (!d.status && d.time === now && !notified[k]) {
-        notified[k] = true;
-        try { new Notification(t('reminderTitle'), { body: d.name + (d.dose ? ' – ' + d.dose : '') + ' (' + d.time + ')', tag: k }); } catch (e) { /* bez notifikácií */ }
-      }
+      if (notified[k]) return;
+      notified[k] = true;
+      showReminder(t('reminderTitle'), { body: d.name + (d.dose ? ' – ' + d.dose : '') + ' (' + d.time + ')', tag: k, icon: 'icons/icon-192.png' });
     });
   }
   setInterval(function () { checkReminders(); if (view === 'today') render(); }, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) checkReminders(); });
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });

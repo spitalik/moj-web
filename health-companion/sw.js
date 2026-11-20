@@ -1,6 +1,6 @@
 /* Service worker Health Companion: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu. */
-const CACHE = 'health-companion-eeb61b9c';
+const CACHE = 'health-companion-8d267651';
 const ASSETS = [
   './',
   './index.html',
@@ -34,6 +34,17 @@ self.addEventListener('activate', e => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k.startsWith('health-companion-') && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+  );
+});
+
+// Klik na upozornenie otvorí appku (alebo ju zaostrí, ak už beží).
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const win = list.find(w => 'focus' in w);
+      return win ? win.focus() : self.clients.openWindow('./');
+    })
   );
 });
 

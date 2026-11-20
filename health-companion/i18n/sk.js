@@ -43,6 +43,8 @@ HCI18N.add('sk', {
   notifyBtn: 'Povoliť',
   notifyOk: 'Pripomienky sú povolené (kým je appka otvorená).',
   notifyNo: 'Pripomienky neboli povolené.',
+  notifyNotGuaranteed: "Upozornenia nie sú zaručené. Môžu sa oneskoriť alebo sa nezobraziť, preto sa na ne nespoliehajte samy.",
+  notifyDenied: "Upozornenia sú v prehliadači zablokované. Ak ich chcete, povoľte ich v nastaveniach stránky.",
   backupTitle: 'Odporúčame zálohu',
   backupLast: 'Posledná záloha: {date}',
   backupNone: 'Zatiaľ ste nevytvorili žiadnu zálohu.',

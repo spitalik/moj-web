@@ -43,6 +43,8 @@ HCI18N.add('it', {
   notifyBtn: 'Consenti',
   notifyOk: 'I promemoria sono attivi (finché l\'app è aperta).',
   notifyNo: 'I promemoria non sono stati consentiti.',
+  notifyNotGuaranteed: "I promemoria non sono garantiti. Possono arrivare in ritardo o non essere mostrati, quindi non faccia affidamento solo su di essi.",
+  notifyDenied: "Le notifiche sono bloccate nel browser. Consenta le notifiche nelle impostazioni del sito se desidera i promemoria.",
   backupTitle: 'Consigliamo un backup',
   backupLast: 'Ultimo backup: {date}',
   backupNone: 'Non ha ancora creato alcun backup.',

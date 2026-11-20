@@ -43,6 +43,8 @@ HCI18N.add('zh', {
   notifyBtn: '允许',
   notifyOk: '已允许提醒（仅在应用打开期间有效）。',
   notifyNo: '未允许提醒。',
+  notifyNotGuaranteed: "提醒不作保证，可能延迟或不显示，请不要只依赖提醒。",
+  notifyDenied: "浏览器已阻止通知。如需提醒，请在网站设置中允许。",
   backupTitle: '建议备份',
   backupLast: '上次备份：{date}',
   backupNone: '您还没有创建过备份。',

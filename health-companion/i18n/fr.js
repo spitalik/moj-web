@@ -43,6 +43,8 @@ HCI18N.add('fr', {
   notifyBtn: 'Autoriser',
   notifyOk: 'Les rappels sont autorisés (tant que l\'application est ouverte).',
   notifyNo: 'Les rappels n\'ont pas été autorisés.',
+  notifyNotGuaranteed: "Les rappels ne sont pas garantis. Ils peuvent arriver en retard ou ne pas s'afficher, ne vous y fiez donc pas seul.",
+  notifyDenied: "Les notifications sont bloquées dans le navigateur. Autorisez-les dans les paramètres du site si vous voulez des rappels.",
   backupTitle: 'Une sauvegarde est recommandée',
   backupLast: 'Dernière sauvegarde : {date}',
   backupNone: 'Vous n\'avez encore créé aucune sauvegarde.',

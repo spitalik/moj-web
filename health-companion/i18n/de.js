@@ -43,6 +43,8 @@ HCI18N.add('de', {
   notifyBtn: 'Erlauben',
   notifyOk: 'Erinnerungen sind erlaubt (solange die App geöffnet ist).',
   notifyNo: 'Erinnerungen wurden nicht erlaubt.',
+  notifyNotGuaranteed: "Erinnerungen sind nicht garantiert. Sie können verspätet kommen oder ausbleiben, verlassen Sie sich daher nicht allein darauf.",
+  notifyDenied: "Benachrichtigungen sind im Browser blockiert. Erlauben Sie sie in den Seiteneinstellungen, wenn Sie Erinnerungen möchten.",
   backupTitle: 'Sicherung empfohlen',
   backupLast: 'Letzte Sicherung: {date}',
   backupNone: 'Sie haben noch keine Sicherung erstellt.',

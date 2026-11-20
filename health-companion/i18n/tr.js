@@ -43,6 +43,8 @@ HCI18N.add('tr', {
   notifyBtn: 'İzin ver',
   notifyOk: 'Hatırlatmalara izin verildi (uygulama açık olduğu sürece).',
   notifyNo: 'Hatırlatmalara izin verilmedi.',
+  notifyNotGuaranteed: "Hatırlatmalar garanti edilmez. Gecikebilir veya hiç görünmeyebilir, bu yüzden yalnızca bunlara güvenmeyin.",
+  notifyDenied: "Bildirimler tarayıcıda engellenmiş. Hatırlatma istiyorsanız site ayarlarında izin verin.",
   backupTitle: 'Yedekleme önerilir',
   backupLast: 'Son yedek: {date}',
   backupNone: 'Henüz hiç yedek oluşturmadınız.',
