@@ -46,12 +46,12 @@ test('medDosesOn vracia len aktívne dávky v daný deň, zoradené podľa času
 
 test('setDoseTaken nemení pôvodný objekt a čistí prázdne dni', () => {
   const t1 = HC.setDoseTaken({}, '2026-11-20', 'a|08:00', true);
-  assert.strictEqual(t1['2026-11-20']['a|08:00'], true);
+  assert.strictEqual(t1['2026-11-20']['a|08:00'], 'taken');
   const doses = HC.medDosesOn(meds, t1, '2026-11-20');
   assert.strictEqual(doses[0].taken, true);
   const t2 = HC.setDoseTaken(t1, '2026-11-20', 'a|08:00', false);
   assert.strictEqual(t2['2026-11-20'], undefined);
-  assert.strictEqual(t1['2026-11-20']['a|08:00'], true);
+  assert.strictEqual(t1['2026-11-20']['a|08:00'], 'taken');
 });
 
 test('missedDoses: včerajšie nesplnené a dnešné po čase', () => {
@@ -82,6 +82,96 @@ test('export a import sa zhodujú; cudzí súbor sa odmietne', () => {
   assert.throws(() => HC.importJSON('{"foo":1}'), /nie je zálohou/);
   assert.throws(() => HC.importJSON('nie json'), /platný JSON/);
   assert.throws(() => HC.importJSON(JSON.stringify({ schema: 'health-companion', version: 9, data: {} })), /verzia/);
+});
+
+test('stavy dávok: užité, vynechané a zrušenie', () => {
+  let t = HC.setDoseStatus({}, '2026-11-20', 'a|08:00', 'skipped');
+  let d = HC.medDosesOn(meds, t, '2026-11-20')[0];
+  assert.strictEqual(d.status, 'skipped');
+  assert.strictEqual(d.taken, false);
+  t = HC.setDoseStatus(t, '2026-11-20', 'a|08:00', 'taken');
+  assert.strictEqual(HC.medDosesOn(meds, t, '2026-11-20')[0].status, 'taken');
+  // stará hodnota true sa berie ako užité
+  assert.strictEqual(HC.medDosesOn(meds, { '2026-11-20': { 'a|08:00': true } }, '2026-11-20')[0].status, 'taken');
+  t = HC.setDoseStatus(t, '2026-11-20', 'a|08:00', null);
+  assert.strictEqual(t['2026-11-20'], undefined);
+});
+
+test('vynechaná dávka sa nepovažuje za nesplnenú', () => {
+  const doses = HC.medDosesOn(meds, { '2026-11-19': { 'a|08:00': 'skipped' } }, '2026-11-19');
+  assert.strictEqual(HC.missedDoses(doses, '2026-11-19', '2026-11-20', '10:00').length, 1); // len 20:00
+});
+
+test('zásoby: dni a nízky stav', () => {
+  assert.strictEqual(HC.daysOfSupply({ times: ['08:00', '20:00'], stock: 20 }), 10);
+  assert.strictEqual(HC.daysOfSupply({ times: ['08:00'] }), null);
+  assert.strictEqual(HC.lowStock({ times: ['08:00'], stock: 5 }), true);
+  assert.strictEqual(HC.lowStock({ times: ['08:00'], stock: 30 }), false);
+  assert.ok(HC.validateMed({ name: 'X', times: ['08:00'], stock: -1 }));
+});
+
+test('lieky užité pred príznakom (3 dni)', () => {
+  const state = HC.normalizeState({
+    meds: [{ id: 'a', name: 'Metformín', times: ['08:00'] }, { id: 'b', name: 'Ibuprofén', times: ['08:00'] }],
+    taken: { '2026-11-17': { 'a|08:00': 'taken' }, '2026-11-19': { 'b|08:00': 'taken', 'a|08:00': 'skipped' }, '2026-11-10': { 'a|08:00': 'taken' } }
+  });
+  const names = HC.medsBeforeSymptom(state, { date: '2026-11-20' }, 3);
+  assert.deepStrictEqual(names.sort(), ['Ibuprofén', 'Metformín']);
+  assert.deepStrictEqual(HC.medsBeforeSymptom(state, { date: '2026-11-25' }, 3), []);
+});
+
+test('severityByDay berie najvyššiu hodnotu za deň', () => {
+  const s = HC.severityByDay([{ date: '2026-11-01', severity: 3 }, { date: '2026-11-01', severity: 7 }, { date: '2026-12-01', severity: 9 }], '2026-11-01', '2026-11-30');
+  assert.deepStrictEqual(s, [{ date: '2026-11-01', max: 7 }]);
+});
+
+test('otázky: patria k návšteve alebo sú nepriradené, vyriešené sa vynechajú', () => {
+  const qs = [
+    { id: '1', text: 'A', visitId: 'v1' },
+    { id: '2', text: 'B', visitId: 'v2' },
+    { id: '3', text: 'C', visitId: null },
+    { id: '4', text: 'D', visitId: 'v1', done: true }
+  ];
+  assert.deepStrictEqual(HC.openQuestionsFor(qs, 'v1').map(q => q.id), ['1', '3']);
+  assert.strictEqual(HC.openQuestionsFor(qs, null).length, 3);
+});
+
+test('prepSummary obsahuje lieky, problémy, príznaky a otázky', () => {
+  const state = HC.normalizeState({
+    meds: [{ id: 'a', name: 'Metformín', dose: '500 mg', times: ['08:00'] }],
+    problems: [{ name: 'Astma', status: 'aktívny' }],
+    symptoms: [{ date: '2026-11-18', name: 'Kašeľ', severity: 4 }],
+    questions: [{ id: 'q', text: 'Môžem športovať?', visitId: 'v1' }]
+  });
+  const txt = HC.prepSummary(state, { id: 'v1' }, '2026-11-20');
+  assert.ok(txt.includes('Metformín (500 mg)') && txt.includes('Astma') && txt.includes('Kašeľ (4/10)') && txt.includes('1. Môžem športovať?'));
+});
+
+test('štandardné prehliadky sa nepridajú dvakrát', () => {
+  const missing = HC.missingStandardCheckups([{ name: 'kontrola zubov' }, { name: 'Očný lekár' }]);
+  assert.ok(!missing.some(s => s.name === 'Očný lekár'));
+  assert.strictEqual(HC.missingStandardCheckups(HC.STANDARD_CHECKUPS).length, 0);
+});
+
+test('zlúčenie záloh: rovnaké id sa nahradí, nové sa pridajú', () => {
+  const a = HC.normalizeState({ meds: [{ id: 'x', name: 'Starý' }], taken: { '2026-11-20': { 'x|08:00': 'taken' } } });
+  const b = HC.normalizeState({ meds: [{ id: 'x', name: 'Nový' }, { id: 'y', name: 'Iný' }], taken: { '2026-11-20': { 'y|09:00': 'skipped' } } });
+  const m = HC.mergeState(a, b);
+  assert.deepStrictEqual(m.meds.map(x => x.name), ['Nový', 'Iný']);
+  assert.deepStrictEqual(m.taken['2026-11-20'], { 'x|08:00': 'taken', 'y|09:00': 'skipped' });
+});
+
+test('pripomienka zálohy: bez údajov nie, nikdy exportované áno, po 30 dňoch áno', () => {
+  const full = HC.normalizeState({ meds: [{ id: 'x', name: 'L' }] });
+  assert.strictEqual(HC.backupDue(HC.emptyState(), null, '2026-11-20'), false);
+  assert.strictEqual(HC.backupDue(full, null, '2026-11-20'), true);
+  assert.strictEqual(HC.backupDue(full, '2026-11-01', '2026-11-20'), false);
+  assert.strictEqual(HC.backupDue(full, '2026-10-01', '2026-11-20'), true);
+});
+
+test('cache verzia v sw.js zodpovedá obsahu appky (inak spustiť node tools/bump_cache.js)', () => {
+  const cache = require(path.join(__dirname, 'bump_cache.js'));
+  assert.strictEqual(cache.currentCache(), cache.expectedCache());
 });
 
 test('normalizeState zahodí neplatné polia', () => {

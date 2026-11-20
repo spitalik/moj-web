@@ -5,6 +5,17 @@
 
   var SCHEMA = 'health-companion';
   var VERSION = 1;
+  var LOW_STOCK_DAYS = 7;
+  var BACKUP_EVERY_DAYS = 30;
+
+  // Orientačné štandardné prehliadky. Intervaly musí potvrdiť lekár.
+  var STANDARD_CHECKUPS = [
+    { name: 'Preventívna prehliadka u všeobecného lekára', intervalMonths: 12 },
+    { name: 'Kontrola krvného tlaku', intervalMonths: 6 },
+    { name: 'Krvné testy (glukóza, cholesterol)', intervalMonths: 12 },
+    { name: 'Zubár – kontrola a čistenie', intervalMonths: 6 },
+    { name: 'Očný lekár', intervalMonths: 24 }
+  ];
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
@@ -34,6 +45,13 @@
     return isoDate(d);
   }
 
+  function addDays(iso, n) {
+    var d = parseISO(iso);
+    if (!d) return null;
+    d.setDate(d.getDate() + n);
+    return isoDate(d);
+  }
+
   function daysBetween(fromIso, toIso) {
     var a = parseISO(fromIso), b = parseISO(toIso);
     return Math.round((b - a) / 86400000);
@@ -48,21 +66,30 @@
     return true;
   }
 
-  // Vráti zoznam dávok na daný deň, zoradený podľa času.
-  // taken = { "YYYY-MM-DD": { "medId|HH:MM": true } }
+  // Stav dávky z uloženej hodnoty: true (stará verzia) alebo 'taken' = užité, 'skipped' = vynechané.
+  function doseStatus(value) {
+    if (value === true || value === 'taken') return 'taken';
+    if (value === 'skipped') return 'skipped';
+    return null;
+  }
+
+  // taken = { "YYYY-MM-DD": { "medId|HH:MM": 'taken' | 'skipped' } }
   function medDosesOn(meds, taken, dateIso) {
     var doses = [];
     (meds || []).forEach(function (med) {
       if (!medActiveOn(med, dateIso)) return;
       (med.times || []).forEach(function (time) {
         var key = med.id + '|' + time;
+        var status = doseStatus(taken && taken[dateIso] ? taken[dateIso][key] : null);
         doses.push({
           key: key,
           medId: med.id,
           name: med.name,
           dose: med.dose || '',
           time: time,
-          taken: !!(taken && taken[dateIso] && taken[dateIso][key])
+          status: status,
+          taken: status === 'taken',
+          skipped: status === 'skipped'
         });
       });
     });
@@ -72,22 +99,75 @@
     return doses;
   }
 
-  function setDoseTaken(taken, dateIso, key, value) {
+  // status: 'taken', 'skipped' alebo null (zrušenie označenia)
+  function setDoseStatus(taken, dateIso, key, status) {
     var next = JSON.parse(JSON.stringify(taken || {}));
     if (!next[dateIso]) next[dateIso] = {};
-    if (value) next[dateIso][key] = true;
+    if (status) next[dateIso][key] = status;
     else delete next[dateIso][key];
     if (Object.keys(next[dateIso]).length === 0) delete next[dateIso];
     return next;
   }
 
-  // Dávky, ktoré mali byť užité pred "nowTime" dnes a nie sú označené.
+  function setDoseTaken(taken, dateIso, key, value) {
+    return setDoseStatus(taken, dateIso, key, value ? 'taken' : null);
+  }
+
+  // Dávky, ktoré mali byť užité alebo vynechané (označené) pred "nowTime" a nemajú stav.
   function missedDoses(doses, dateIso, todayIso, nowTime) {
     return doses.filter(function (dose) {
-      if (dose.taken) return false;
+      if (dose.status) return false;
       if (dateIso < todayIso) return true;
       return dateIso === todayIso && dose.time < nowTime;
     });
+  }
+
+  // Zásoby: koľko dní vystačí, ak je zadaný počet kusov (stock).
+  function daysOfSupply(med) {
+    if (!med || typeof med.stock !== 'number') return null;
+    var perDay = (med.times || []).length || 1;
+    return Math.floor(med.stock / perDay);
+  }
+
+  function lowStock(med, thresholdDays) {
+    var days = daysOfSupply(med);
+    return days !== null && days <= (thresholdDays == null ? LOW_STOCK_DAYS : thresholdDays);
+  }
+
+  // Zoznam dávok označených ako užité v intervale [fromIso, toIso] (vrátane).
+  function medsTakenBetween(state, fromIso, toIso) {
+    var out = [];
+    var byId = {};
+    (state.meds || []).forEach(function (m) { byId[m.id] = m; });
+    Object.keys(state.taken || {}).forEach(function (date) {
+      if (date < fromIso || date > toIso) return;
+      Object.keys(state.taken[date]).forEach(function (key) {
+        if (doseStatus(state.taken[date][key]) !== 'taken') return;
+        var medId = key.split('|')[0];
+        if (byId[medId]) out.push({ date: date, name: byId[medId].name });
+      });
+    });
+    return out.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  }
+
+  // Lieky užité v dňoch pred príznakom (vrátane dňa príznaku). Vráti unikátne názvy.
+  function medsBeforeSymptom(state, symptom, days) {
+    var from = addDays(symptom.date, -(days == null ? 3 : days));
+    var names = [];
+    medsTakenBetween(state, from, symptom.date).forEach(function (x) {
+      if (names.indexOf(x.name) === -1) names.push(x.name);
+    });
+    return names;
+  }
+
+  // Najvyššia intenzita pre každý deň, v intervale.
+  function severityByDay(symptoms, fromIso, toIso) {
+    var byDay = {};
+    (symptoms || []).forEach(function (s) {
+      if (s.date < fromIso || s.date > toIso) return;
+      byDay[s.date] = Math.max(byDay[s.date] || 0, Number(s.severity) || 0);
+    });
+    return Object.keys(byDay).sort().map(function (d) { return { date: d, max: byDay[d] }; });
   }
 
   // ---- Preventívne prehliadky ----
@@ -99,6 +179,14 @@
     var days = daysBetween(todayIso, due);
     var status = days < 0 ? 'overdue' : days <= 30 ? 'soon' : 'ok';
     return { status: status, dueDate: due, days: days };
+  }
+
+  // Štandardné prehliadky, ktoré ešte používateľ nemá (podľa názvu, bez ohľadu na veľkosť písmen).
+  function missingStandardCheckups(checkups) {
+    var have = (checkups || []).map(function (c) { return String(c.name || '').toLowerCase(); });
+    return STANDARD_CHECKUPS.filter(function (s) {
+      return have.indexOf(s.name.toLowerCase()) === -1;
+    });
   }
 
   // ---- Validácia ----
@@ -113,7 +201,8 @@
       (m.times && m.times.length ? (m.times.every(isValidTime) ? null : 'Čas užitia musí byť vo formáte HH:MM.') : 'Zadajte aspoň jeden čas užitia.') ||
       (m.startDate && !parseISO(m.startDate) ? 'Neplatný dátum začiatku.' : null) ||
       (m.endDate && !parseISO(m.endDate) ? 'Neplatný dátum konca.' : null) ||
-      (m.startDate && m.endDate && m.endDate < m.startDate ? 'Koniec liečby nemôže byť pred začiatkom.' : null);
+      (m.startDate && m.endDate && m.endDate < m.startDate ? 'Koniec liečby nemôže byť pred začiatkom.' : null) ||
+      (m.stock != null && !(Number.isInteger(m.stock) && m.stock >= 0) ? 'Počet kusov musí byť celé nezáporné číslo.' : null);
   }
 
   function validateSymptom(s) {
@@ -135,7 +224,15 @@
       (c.lastDate && !parseISO(c.lastDate) ? 'Neplatný dátum poslednej prehliadky.' : null);
   }
 
-  // ---- Otázky pre lekára ----
+  // ---- Otázky a príprava na návštevu ----
+
+  // Otázky, ktoré patria k návšteve (alebo nie sú priradené k žiadnej) a nie sú vyriešené.
+  function openQuestionsFor(questions, visitId) {
+    return (questions || []).filter(function (q) {
+      if (q.done) return false;
+      return !visitId || !q.visitId || q.visitId === visitId;
+    });
+  }
 
   function questionsText(questions, visitLabel) {
     var lines = ['Otázky pre lekára' + (visitLabel ? ' (' + visitLabel + ')' : '') + ':', ''];
@@ -146,7 +243,30 @@
     return lines.join('\n');
   }
 
-  // ---- Údaje: export / import ----
+  // Zhrnutie pre lekára pred návštevou: lieky, problémy, príznaky za 28 dní a otázky.
+  function prepSummary(state, visit, todayIso) {
+    var lines = [];
+    var from = addDays(todayIso, -28);
+    var meds = (state.meds || []).filter(function (m) { return medActiveOn(m, todayIso); });
+    lines.push('Aktuálne lieky:');
+    lines.push(meds.length ? meds.map(function (m) {
+      return '- ' + m.name + (m.dose ? ' (' + m.dose + ')' : '') + ', ' + (m.times || []).join(', ');
+    }).join('\n') : '- žiadne');
+    var problems = (state.problems || []).filter(function (p) { return p.status === 'aktívny'; });
+    lines.push('', 'Aktívne zdravotné problémy:');
+    lines.push(problems.length ? problems.map(function (p) { return '- ' + p.name; }).join('\n') : '- žiadne');
+    var symptoms = (state.symptoms || []).filter(function (s) { return s.date >= from && s.date <= todayIso; });
+    lines.push('', 'Príznaky za posledných 28 dní:');
+    lines.push(symptoms.length ? symptoms.sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (s) {
+      return '- ' + s.date + ' ' + s.name + ' (' + s.severity + '/10)';
+    }).join('\n') : '- žiadne');
+    var questions = openQuestionsFor(state.questions, visit ? visit.id : null);
+    lines.push('', 'Otázky:');
+    lines.push(questions.length ? questions.map(function (q, i) { return (i + 1) + '. ' + q.text; }).join('\n') : '- žiadne');
+    return lines.join('\n');
+  }
+
+  // ---- Údaje: export / import / zlúčenie / zálohovanie ----
 
   function emptyState() {
     return { meds: [], taken: {}, symptoms: [], problems: [], visits: [], checkups: [], questions: [], settings: {} };
@@ -161,6 +281,38 @@
     if (raw.taken && typeof raw.taken === 'object') s.taken = raw.taken;
     if (raw.settings && typeof raw.settings === 'object') s.settings = raw.settings;
     return s;
+  }
+
+  function dataCount(state) {
+    return ['meds', 'symptoms', 'problems', 'visits', 'checkups', 'questions'].reduce(function (n, k) {
+      return n + (state[k] ? state[k].length : 0);
+    }, 0);
+  }
+
+  // Zlúči dve stavy: záznamy s rovnakým id nahradí záznam z incoming, ostatné sa pridajú.
+  function mergeState(current, incoming) {
+    var a = normalizeState(current), b = normalizeState(incoming);
+    var out = emptyState();
+    ['meds', 'symptoms', 'problems', 'visits', 'checkups', 'questions'].forEach(function (k) {
+      var byId = {}, order = [];
+      a[k].concat(b[k]).forEach(function (item) {
+        if (!(item.id in byId)) order.push(item.id);
+        byId[item.id] = item;
+      });
+      out[k] = order.map(function (id) { return byId[id]; });
+    });
+    Object.keys(a.taken).concat(Object.keys(b.taken)).forEach(function (date) {
+      out.taken[date] = Object.assign({}, a.taken[date], b.taken[date]);
+    });
+    out.settings = Object.assign({}, b.settings, a.settings);
+    return out;
+  }
+
+  // Záloha je potrebná, ak existujú údaje a posledný export bol pred aspoň 30 dňami (alebo nikdy).
+  function backupDue(state, lastExportIso, todayIso) {
+    if (dataCount(state) === 0) return false;
+    if (!lastExportIso) return true;
+    return daysBetween(lastExportIso, todayIso) >= BACKUP_EVERY_DAYS;
   }
 
   function exportJSON(state) {
@@ -181,12 +333,15 @@
   }
 
   var api = {
-    isoDate: isoDate, parseISO: parseISO, isValidTime: isValidTime, addMonths: addMonths, daysBetween: daysBetween,
-    medActiveOn: medActiveOn, medDosesOn: medDosesOn, setDoseTaken: setDoseTaken, missedDoses: missedDoses,
-    checkupStatus: checkupStatus,
+    isoDate: isoDate, parseISO: parseISO, isValidTime: isValidTime, addMonths: addMonths, addDays: addDays, daysBetween: daysBetween,
+    medActiveOn: medActiveOn, medDosesOn: medDosesOn, setDoseStatus: setDoseStatus, setDoseTaken: setDoseTaken, missedDoses: missedDoses,
+    daysOfSupply: daysOfSupply, lowStock: lowStock, medsTakenBetween: medsTakenBetween, medsBeforeSymptom: medsBeforeSymptom,
+    severityByDay: severityByDay,
+    checkupStatus: checkupStatus, missingStandardCheckups: missingStandardCheckups, STANDARD_CHECKUPS: STANDARD_CHECKUPS,
     validateMed: validateMed, validateSymptom: validateSymptom, validateVisit: validateVisit, validateCheckup: validateCheckup,
-    questionsText: questionsText,
-    emptyState: emptyState, normalizeState: normalizeState, exportJSON: exportJSON, importJSON: importJSON,
+    openQuestionsFor: openQuestionsFor, questionsText: questionsText, prepSummary: prepSummary,
+    emptyState: emptyState, normalizeState: normalizeState, dataCount: dataCount, mergeState: mergeState, backupDue: backupDue,
+    exportJSON: exportJSON, importJSON: importJSON,
     newId: newId
   };
 

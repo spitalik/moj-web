@@ -67,8 +67,8 @@ header.top {
 }
 header.top .brand { font-weight: 700; font-size: 17px; background: none; border: 0; color: var(--fg); padding: 6px 4px; border-radius: 10px; }
 header.top .brand:hover { background: var(--card-2); }
-header.top .top-actions { display: flex; align-items: center; gap: 8px; }
 header.top .brand span { color: var(--accent); }
+header.top .top-actions { display: flex; align-items: center; gap: 8px; }
 .btn {
   border: 1px solid var(--line); background: var(--card); color: var(--fg);
   border-radius: 12px; padding: 9px 14px; min-height: 40px; font-weight: 600;
@@ -78,33 +78,40 @@ header.top .brand span { color: var(--accent); }
 .btn.danger { color: var(--danger); }
 .btn.small { padding: 5px 10px; min-height: 32px; font-size: 13px; font-weight: 600; }
 .btn.icon { width: 40px; padding: 0; display: grid; place-items: center; font-size: 18px; }
+.btn.block { width: 100%; text-align: center; }
 
 main { flex: 1; padding: 14px 16px 96px; display: flex; flex-direction: column; gap: 14px; max-width: 640px; width: 100%; margin: 0 auto; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
 .card.flag-warn { border-color: var(--warn); }
 .card.flag-danger { border-color: var(--danger); }
+.card.ice { border-color: var(--danger); }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .stack { display: flex; flex-direction: column; gap: 8px; }
+.stack.inline { flex-direction: row; gap: 6px; flex-wrap: wrap; }
 .muted { color: var(--muted); font-size: 13px; }
 .badge { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; background: var(--card-2); color: var(--muted); }
 .badge.warn { color: var(--warn); }
 .badge.danger { color: var(--danger); }
 .badge.ok { color: var(--ok); }
 .empty { color: var(--muted); text-align: center; padding: 18px 8px; border: 1px dashed var(--line); border-radius: 14px; }
-.section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
 
-.dose { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.dose { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
 .dose:first-of-type { border-top: 0; }
 .dose .time { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 52px; }
 .dose .info { flex: 1; min-width: 0; }
 .dose .name { font-weight: 600; }
-.check {
+.dose.missed .time { color: var(--danger); }
+.dose.skipped .name { text-decoration: line-through; color: var(--muted); }
+.dose-btns { display: flex; gap: 6px; flex: none; }
+.check, .skip {
   width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--accent);
   background: transparent; display: grid; place-items: center; flex: none; color: var(--accent-ink);
 }
 .check.on { background: var(--accent); }
+.skip { border-color: var(--line); color: var(--muted); font-weight: 700; }
+.skip.on { background: var(--danger); border-color: var(--danger); color: var(--accent-ink); }
 .check svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 3; }
-.dose.missed .time { color: var(--danger); }
 
 nav.tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
@@ -137,7 +144,6 @@ textarea { min-height: 70px; resize: vertical; }
 .problem-line, .question-line { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); }
 .problem-line:first-child, .question-line:first-child { border-top: 0; }
 .problem-line .info, .question-line .info { flex: 1; min-width: 0; }
-.visit-next { margin-top: 6px; }
 .pre { white-space: pre-wrap; word-break: break-word; background: var(--card-2); border-radius: 12px; padding: 12px; font-size: 14px; }
 .banner { background: var(--card-2); border: 1px solid var(--warn); border-radius: 14px; padding: 12px; }
 .disclaimer { font-size: 12px; color: var(--muted); }
@@ -146,15 +152,25 @@ textarea { min-height: 70px; resize: vertical; }
   background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; font-weight: 600;
   z-index: 10; max-width: calc(100vw - 32px); box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
+.chart { width: 100%; height: auto; display: block; }
+#print-root { display: none; }
 @media (min-width: 720px) { main { padding-bottom: 110px; } }
+
+/* Tlač: zobrazí sa len prehľad pre lekára */
+@media print {
+  body > *:not(#print-root) { display: none !important; }
+  #print-root { display: block !important; color: #000; background: #fff; font-size: 12pt; }
+  #print-root h1 { font-size: 18pt; margin-bottom: 4pt; }
+  #print-root h2 { font-size: 13pt; margin: 12pt 0 4pt; border-bottom: 1px solid #999; }
+  #print-root table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  #print-root th, #print-root td { border-bottom: 1px solid #ccc; text-align: left; padding: 3pt 4pt; vertical-align: top; }
+  #print-root .muted { color: #444; }
+}
 </style>
 </head>
 <body>
 <header class="top">
   <button class="brand" id="btn-home" aria-label="Späť na hlavnú záložku Dnes">Health <span>Companion</span></button>
-  <button class="btn icon" id="btn-data" aria-label="Údaje a ochrana súkromia" title="Údaje a ochrana súkromia">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-  </button>
   <div class="top-actions">
     <button class="btn small" id="btn-install" hidden>Nainštalovať</button>
     <button class="btn icon" id="btn-data" aria-label="Údaje a ochrana súkromia" title="Údaje a ochrana súkromia">
@@ -186,6 +202,7 @@ textarea { min-height: 70px; resize: vertical; }
 </dialog>
 
 <div class="toast" id="toast" role="status" hidden></div>
+<div id="print-root" aria-hidden="true"></div>
 
 <script src="logic.js"></script>
 <script>
@@ -196,6 +213,7 @@ textarea { min-height: 70px; resize: vertical; }
   var state = loadState();
   var view = 'today';
   var toastTimer = null;
+  var persistGranted = null;
 
   // ---------- Úložisko (len v tomto zariadení) ----------
   function loadState() {
@@ -207,6 +225,13 @@ textarea { min-height: 70px; resize: vertical; }
     catch (e) { toast('Údaje sa nepodarilo uložiť (plné úložisko alebo blokované).'); return false; }
   }
   function commit(fn) { fn(); save(); render(); }
+
+  // Žiadosť o trvalé úložisko: prehliadač potom nemá údaje mazať pri nedostatku miesta.
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().then(function (ok) { persistGranted = !!ok; }, function () { persistGranted = false; });
+    }
+  } catch (e) { persistGranted = false; }
 
   // ---------- Pomocné ----------
   function esc(s) {
@@ -237,7 +262,16 @@ textarea { min-height: 70px; resize: vertical; }
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { t.hidden = true; }, 2600);
   }
+  function findBy(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function removeBy(list, id) { return list.filter(function (x) { return x.id !== id; }); }
+  function confirmDelete(msg) { return window.confirm(msg); }
+  function visitLabel(v) { return v ? fmtDate(v.date) + ' – ' + (v.doctor || v.specialty || '') : ''; }
   var CHECK_SVG = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
+  var ICE_FIELDS = ['blood', 'allergies', 'conditions', 'contact'];
+  function hasICE() {
+    var ice = state.settings.ice || {};
+    return ICE_FIELDS.some(function (k) { return !!ice[k]; });
+  }
 
   // ---------- Dialóg ----------
   var dlg = document.getElementById('dlg');
@@ -245,6 +279,7 @@ textarea { min-height: 70px; resize: vertical; }
   var dlgFields = document.getElementById('dlg-fields');
   var dlgErr = document.getElementById('dlg-error');
   var dlgState = null;
+  var pendingImport = null;
 
   // Režim formulára: true = ukladací formulár, false = len zobrazenie obsahu (Zavrieť).
   // Obsah je vnútri formulára, preto sa neskrýva celý formulár, len tlačidlá.
@@ -254,12 +289,12 @@ textarea { min-height: 70px; resize: vertical; }
     if (!isForm) dlgState = null;
   }
 
-  // spec: [{name, label, type, options?, required?, placeholder?, value?}]
+  // spec: [{name, label, type, options?, required?, placeholder?, min?, max?}]
   function openForm(title, spec, values, onSave) {
     dlgState = { spec: spec, onSave: onSave };
     document.getElementById('dlg-title').textContent = title;
     dlgFields.innerHTML = spec.map(function (f) {
-      var v = values && values[f.name] != null ? values[f.name] : (f.value != null ? f.value : '');
+      var v = values && values[f.name] != null ? values[f.name] : '';
       var req = f.required ? ' required' : '';
       var ph = f.placeholder ? ' placeholder="' + esc(f.placeholder) + '"' : '';
       var input;
@@ -294,48 +329,91 @@ textarea { min-height: 70px; resize: vertical; }
     dlg.close();
   });
 
+  // Zobrazenie textu (otázky, príprava na návštevu, postup) s tlačidlom Kopírovať.
+  function showText(title, text) {
+    document.getElementById('dlg-title').textContent = title;
+    dlgFields.innerHTML = '<div class="pre">' + esc(text) + '</div>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    var copyBtn = document.createElement('button');
+    copyBtn.type = 'button'; copyBtn.className = 'btn primary'; copyBtn.textContent = 'Kopírovať';
+    copyBtn.addEventListener('click', function () {
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast('Skopírované.'); }, function () { toast('Kopírovanie zlyhalo.'); });
+      else toast('Schránka nie je dostupná.');
+    });
+    dlgFields.appendChild(copyBtn);
+    dlg.showModal();
+  }
+
   // ---------- Pohľady ----------
   var views = {};
 
-  // Dnes: dávky + upozornenia
+  // Dnes: dávky, núdzová karta, upozornenia
   views.today = function () {
     var t = today(), now = nowTime();
     var doses = HC.medDosesOn(state.meds, state.taken, t);
-    var missedPrev = [];
-    // včerajšie a staršie nesplnené dávky (posledných 7 dní)
-    for (var i = 1; i <= 7; i++) {
-      var d = new Date(); d.setDate(d.getDate() - i);
-      var iso = HC.isoDate(d);
-      missedPrev = missedPrev.concat(HC.missedDoses(HC.medDosesOn(state.meds, state.taken, iso), iso, t, now)
-        .map(function (dose) { return Object.assign({ date: iso }, dose); }));
-    }
+    var yesterday = HC.addDays(t, -1);
+    var missedYesterday = HC.missedDoses(HC.medDosesOn(state.meds, state.taken, yesterday), yesterday, t, now)
+      .map(function (d) { return Object.assign({ date: yesterday }, d); });
     var missedToday = HC.missedDoses(doses, t, t, now);
     var checkups = state.checkups.map(function (c) { return { c: c, s: HC.checkupStatus(c, t) }; })
       .filter(function (x) { return x.s.status === 'overdue' || x.s.status === 'soon'; });
-    var upcomingVisits = state.visits.filter(function (v) { return v.nextVisit && v.nextVisit >= t; });
-    upcomingVisits.sort(function (a, b) { return a.nextVisit < b.nextVisit ? -1 : 1; });
+    var upcomingVisits = state.visits.filter(function (v) { return v.nextVisit && v.nextVisit >= t; })
+      .sort(function (a, b) { return a.nextVisit < b.nextVisit ? -1 : 1; });
+    var html = '';
 
-    var html = '<section class="card"><div class="section-head"><h2>Dnešné lieky</h2><span class="muted">' + fmtDate(t) + '</span></div>';
+    // Núdzová karta
+    var ice = state.settings.ice || {};
+    if (hasICE()) {
+      html += '<section class="card ice"><div class="row"><h2>Núdzové údaje</h2><button class="btn small" data-act="edit-ice">Upraviť</button></div><div class="stack">' +
+        (ice.blood ? '<div><strong>Krvná skupina:</strong> ' + esc(ice.blood) + '</div>' : '') +
+        (ice.allergies ? '<div><strong>Alergie:</strong> ' + esc(ice.allergies) + '</div>' : '') +
+        (ice.conditions ? '<div><strong>Závažné ochorenia:</strong> ' + esc(ice.conditions) + '</div>' : '') +
+        (ice.contact ? '<div><strong>Kontakt v núdzi:</strong> ' + esc(ice.contact) + '</div>' : '') +
+        '</div></section>';
+    } else {
+      html += '<section class="banner"><div class="row"><div><strong>Doplňte núdzové údaje</strong><div class="muted">Krvná skupina, alergie a kontakt na blízku osobu.</div></div><button class="btn small" data-act="edit-ice">Doplniť</button></div></section>';
+    }
+
+    // Pripomienky
+    if ('Notification' in window && Notification.permission === 'default') {
+      html += '<section class="card"><div class="row"><div><strong>Pripomienky liekov</strong><div class="muted">Upozorním vás na čas užitia, kým je appka otvorená.</div></div><button class="btn small primary" data-act="notify">Povoliť</button></div></section>';
+    }
+
+    // Záloha
+    if (HC.backupDue(state, state.settings.lastExport, t)) {
+      html += '<section class="banner"><div class="row"><div><strong>Odporúčame zálohu</strong><div class="muted">' +
+        (state.settings.lastExport ? 'Posledná záloha: ' + fmtDate(state.settings.lastExport) : 'Zatiaľ ste nevytvorili žiadnu zálohu.') +
+        '</div></div><button class="btn small" data-act="export-backup">Exportovať</button></div></section>';
+    }
+
+    html += '<section class="card"><div class="section-head"><h2>Dnešné lieky</h2><span class="muted">' + fmtDate(t) + '</span></div>';
     if (!state.meds.length) {
       html += '<div class="empty">Zatiaľ nemáte žiadne lieky. Pridajte ich v záložke Lieky.</div>';
     } else if (!doses.length) {
       html += '<p class="muted">Dnes nemáte naplánované žiadne dávky.</p>';
     } else {
       html += doses.map(function (d) {
-        var missed = !d.taken && d.time < now;
-        return '<div class="dose' + (missed ? ' missed' : '') + '">' +
+        var med = findBy(state.meds, d.medId);
+        var missed = !d.status && d.time < now;
+        var cls = 'dose' + (missed ? ' missed' : '') + (d.skipped ? ' skipped' : '');
+        var sub = esc(d.dose) + (missed ? (d.dose ? ' · ' : '') + 'čas prešiel' : '') + (d.skipped ? (d.dose ? ' · ' : '') + 'vynechané' : '') +
+          (med && HC.lowStock(med) ? ' · <span class="badge warn">málo kusov</span>' : '');
+        return '<div class="' + cls + '">' +
           '<div class="time">' + d.time + '</div>' +
-          '<div class="info"><div class="name">' + esc(d.name) + '</div><div class="muted">' + esc(d.dose) + (missed ? ' · čas prešiel' : '') + '</div></div>' +
-          '<button class="check' + (d.taken ? ' on' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + t + '" aria-pressed="' + d.taken + '" aria-label="' + (d.taken ? 'Označiť ako nevzatý' : 'Označiť ako užitý') + ' ' + esc(d.name) + ' ' + d.time + '">' + (d.taken ? CHECK_SVG : '') + '</button>' +
-          '</div>';
+          '<div class="info"><div class="name">' + esc(d.name) + '</div><div class="muted">' + sub + '</div></div>' +
+          '<div class="dose-btns">' +
+          '<button class="check' + (d.taken ? ' on' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + t + '" data-mode="taken" aria-pressed="' + d.taken + '" aria-label="Označiť ako užité: ' + esc(d.name) + ' ' + d.time + '">' + (d.taken ? CHECK_SVG : '') + '</button>' +
+          '<button class="skip' + (d.skipped ? ' on' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + t + '" data-mode="skipped" aria-pressed="' + d.skipped + '" aria-label="Označiť ako vynechané: ' + esc(d.name) + ' ' + d.time + '">×</button>' +
+          '</div></div>';
       }).join('');
     }
     html += '</section>';
 
-    if (missedToday.length || missedPrev.length) {
-      html += '<section class="banner"><h3>Nesplnené dávky</h3><p class="muted" style="margin:4px 0 8px">Ak ste liek už užili, označte ho v zozname. Ak nie, doplňte to podľa pokynov lekára.</p>' +
+    if (missedToday.length || missedYesterday.length) {
+      html += '<section class="banner"><h3>Nesplnené dávky</h3><p class="muted" style="margin:4px 0 8px">Ak ste liek užili alebo vynechali, označte ho. Ak nie, doplňte to podľa pokynov lekára.</p>' +
         missedToday.map(function (d) { return '<div>Dnes ' + d.time + ' – ' + esc(d.name) + '</div>'; }).join('') +
-        missedPrev.slice(0, 10).map(function (d) { return '<div>' + fmtDate(d.date || '') + ' – ' + esc(d.name) + ' ' + d.time + '</div>'; }).join('') +
+        missedYesterday.map(function (d) { return '<div>Včera ' + d.time + ' – ' + esc(d.name) + '</div>'; }).join('') +
         '</section>';
     }
 
@@ -371,9 +449,12 @@ textarea { min-height: 70px; resize: vertical; }
     html += state.meds.map(function (m) {
       var active = HC.medActiveOn(m, t);
       var badge = m.active === false ? '<span class="badge">pozastavené</span>' : active ? '<span class="badge ok">aktívne</span>' : (m.startDate > t ? '<span class="badge">plánované</span>' : '<span class="badge">ukončené</span>');
+      var days = HC.daysOfSupply(m);
+      var stock = days === null ? '' : '<div class="' + (HC.lowStock(m) ? 'badge warn' : 'muted') + '" style="margin-top:6px;display:inline-block">Zostáva: ' + m.stock + ' ks (~' + days + ' dní)' + (HC.lowStock(m) ? ' – doplňte' : '') + '</div>';
       return '<section class="card"><div class="row"><div><h3>' + esc(m.name) + '</h3><div class="muted">' + esc(m.dose || 'bez dávky') + '</div></div>' + badge + '</div>' +
         '<div class="muted" style="margin-top:8px">Čas: ' + (m.times || []).map(esc).join(', ') + '</div>' +
         '<div class="muted">Od: ' + (m.startDate ? fmtDate(m.startDate) : 'neurčené') + (m.endDate ? ' · do: ' + fmtDate(m.endDate) : ' · bez konca') + '</div>' +
+        stock +
         (m.notes ? '<p style="margin-top:6px">' + esc(m.notes) + '</p>' : '') +
         '<div class="form-actions" style="margin-top:10px"><button class="btn small" data-act="toggle-med" data-id="' + esc(m.id) + '">' + (m.active === false ? 'Obnoviť' : 'Pozastaviť') + '</button>' +
         '<button class="btn small" data-act="edit-med" data-id="' + esc(m.id) + '">Upraviť</button>' +
@@ -399,21 +480,26 @@ textarea { min-height: 70px; resize: vertical; }
     if (!list.length) html += '<div class="empty">Zaznamenajte, čo cítite, kedy to začalo a aká je to intenzita.</div>';
     html += list.map(function (s) {
       var cls = s.severity >= 8 ? 'danger' : s.severity >= 5 ? 'warn' : 'ok';
+      var meds = HC.medsBeforeSymptom(state, s, 3);
       return '<section class="card"><div class="row"><div><strong>' + esc(s.name) + '</strong><div class="muted">' + fmtDate(s.date) + (s.time ? ' · ' + esc(s.time) : '') + (s.duration ? ' · trvá: ' + esc(s.duration) : '') + '</div></div><span class="badge ' + cls + '">' + s.severity + '/10</span></div>' +
+        (meds.length ? '<div class="muted" style="margin-top:6px">Lieky užité v posledných 3 dňoch: ' + meds.map(esc).join(', ') + '</div>' : '') +
         (s.notes ? '<p style="margin-top:6px">' + esc(s.notes) + '</p>' : '') +
         '<div class="form-actions" style="margin-top:8px"><button class="btn small" data-act="edit-symptom" data-id="' + esc(s.id) + '">Upraviť</button><button class="btn small danger" data-act="del-symptom" data-id="' + esc(s.id) + '">Zmazať</button></div></section>';
     }).join('');
     return html;
   };
 
-  // Lekár: návštevy + otázky
+  // Lekár: otázky, návštevy, prehľad
   views.doctor = function () {
-    var html = '<div class="section-head"><h1>Lekár</h1></div>';
-    html += '<div class="section-head"><h2>Otázky pre lekára</h2><div class="stack" style="flex-direction:row;gap:6px"><button class="btn small" data-act="copy-questions">Kopírovať</button><button class="btn small primary" data-act="add-question">+ Otázka</button></div></div><section class="card">';
+    var html = '<div class="section-head"><h1>Lekár</h1><button class="btn small" data-act="report">Prehľad pre lekára</button></div>';
+    html += '<div class="section-head"><h2>Otázky pre lekára</h2><div class="stack inline"><button class="btn small" data-act="copy-questions">Kopírovať</button><button class="btn small primary" data-act="add-question">+ Otázka</button></div></div><section class="card">';
     if (!state.questions.length) html += '<p class="muted">Pridajte otázky priebežne, nech na návšteve nič nezabudnete.</p>';
     html += state.questions.map(function (q) {
+      var v = findBy(state.visits, q.visitId);
       return '<div class="question-line"><button class="check' + (q.done ? ' on' : '') + '" data-act="toggle-question" data-id="' + esc(q.id) + '" aria-pressed="' + !!q.done + '" aria-label="Označiť otázku ako vyriešenú">' + (q.done ? CHECK_SVG : '') + '</button>' +
-        '<div class="info" style="' + (q.done ? 'color:var(--muted);text-decoration:line-through' : '') + '">' + esc(q.text) + (q.answer ? '<div class="muted">Odpoveď: ' + esc(q.answer) + '</div>' : '') + '</div>' +
+        '<div class="info" style="' + (q.done ? 'color:var(--muted);text-decoration:line-through' : '') + '">' + esc(q.text) +
+        (v ? '<div class="muted">Návšteva: ' + esc(visitLabel(v)) + '</div>' : '') +
+        (q.answer ? '<div class="muted">Odpoveď: ' + esc(q.answer) + '</div>' : '') + '</div>' +
         '<div class="stack"><button class="btn small" data-act="edit-question" data-id="' + esc(q.id) + '">Upraviť</button><button class="btn small danger" data-act="del-question" data-id="' + esc(q.id) + '">Zmazať</button></div></div>';
     }).join('');
     html += '</section>';
@@ -426,9 +512,9 @@ textarea { min-height: 70px; resize: vertical; }
         (v.reason ? '<p style="margin-top:6px"><strong>Dôvod:</strong> ' + esc(v.reason) + '</p>' : '') +
         (v.diagnosis ? '<p><strong>Záver:</strong> ' + esc(v.diagnosis) + '</p>' : '') +
         (v.prescriptions ? '<p><strong>Predpísané:</strong> ' + esc(v.prescriptions) + '</p>' : '') +
-        (v.nextVisit ? '<p class="visit-next"><span class="badge">Ďalšia návšteva: ' + fmtDate(v.nextVisit) + '</span></p>' : '') +
+        (v.nextVisit ? '<p style="margin-top:6px"><span class="badge">Ďalšia návšteva: ' + fmtDate(v.nextVisit) + '</span></p>' : '') +
         (v.notes ? '<p class="muted" style="margin-top:6px">' + esc(v.notes) + '</p>' : '') +
-        '<div class="form-actions" style="margin-top:8px"><button class="btn small" data-act="prep-visit" data-id="' + esc(v.id) + '">Otázky k tejto návšteve</button><button class="btn small" data-act="edit-visit" data-id="' + esc(v.id) + '">Upraviť</button><button class="btn small danger" data-act="del-visit" data-id="' + esc(v.id) + '">Zmazať</button></div></section>';
+        '<div class="form-actions" style="margin-top:8px"><button class="btn small" data-act="prep-visit" data-id="' + esc(v.id) + '">Príprava na návštevu</button><button class="btn small" data-act="edit-visit" data-id="' + esc(v.id) + '">Upraviť</button><button class="btn small danger" data-act="del-visit" data-id="' + esc(v.id) + '">Zmazať</button></div></section>';
     }).join('');
     return html;
   };
@@ -436,9 +522,9 @@ textarea { min-height: 70px; resize: vertical; }
   // Prehliadky
   views.checkups = function () {
     var t = today();
-    var html = '<div class="section-head"><h1>Preventívne prehliadky</h1><button class="btn primary" data-act="add-checkup">+ Pridať</button></div>';
-    html += '<p class="muted">Intervaly nastavte podľa odporúčania svojho lekára. Aplikácia len pripomína termíny.</p>';
-    if (!state.checkups.length) return html + '<div class="empty">Pridajte prehliadky, ktoré chcete sledovať (napr. zubár, očný lekár, krvný tlak, krvné testy).</div>';
+    var html = '<div class="section-head"><h1>Preventívne prehliadky</h1><div class="stack inline"><button class="btn small" data-act="add-standard-checkups">Pridať štandardné</button><button class="btn primary" data-act="add-checkup">+ Pridať</button></div></div>';
+    html += '<p class="muted">Intervaly nastavte podľa odporúčania svojho lekára. Štandardné sú len orientačné. Aplikácia len pripomína termíny.</p>';
+    if (!state.checkups.length) return html + '<div class="empty">Pridajte prehliadky, ktoré chcete sledovať, alebo použite „Pridať štandardné“.</div>';
     var rank = { overdue: 0, soon: 1, unknown: 2, ok: 3 };
     var items = state.checkups.map(function (c) { return { c: c, s: HC.checkupStatus(c, t) }; })
       .sort(function (a, b) { return rank[a.s.status] - rank[b.s.status]; });
@@ -455,11 +541,7 @@ textarea { min-height: 70px; resize: vertical; }
     return html;
   };
 
-  // ---------- Formuláre a akcie ----------
-  function findBy(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
-  function removeBy(list, id) { return list.filter(function (x) { return x.id !== id; }); }
-  function confirmDelete(msg) { return window.confirm(msg); }
-
+  // ---------- Formuláre ----------
   var forms = {
     med: function (m) {
       var isEdit = !!m;
@@ -467,14 +549,16 @@ textarea { min-height: 70px; resize: vertical; }
         { name: 'name', label: 'Názov lieku', required: true, placeholder: 'napr. Metformín' },
         { name: 'dose', label: 'Dávka', placeholder: 'napr. 500 mg, 1 tableta' },
         { name: 'times', label: 'Časy užitia (oddelené čiarkou)', required: true, placeholder: '08:00, 20:00' },
+        { name: 'stock', label: 'Počet kusov na sklade (nepovinné)', type: 'number', min: 0 },
         { name: 'startDate', label: 'Začiatok liečby', type: 'date' },
         { name: 'endDate', label: 'Koniec liečby (nechajte prázdne, ak trvá)', type: 'date' },
         { name: 'notes', label: 'Poznámka (napr. užívať s jedlom)', type: 'textarea' }
-      ], isEdit ? { name: m.name, dose: m.dose, times: (m.times || []).join(', '), startDate: m.startDate, endDate: m.endDate, notes: m.notes } : { startDate: today() },
+      ], isEdit ? { name: m.name, dose: m.dose, times: (m.times || []).join(', '), stock: m.stock, startDate: m.startDate, endDate: m.endDate, notes: m.notes } : { startDate: today() },
       function (v) {
         var obj = {
           name: v.name, dose: v.dose, notes: v.notes,
           times: v.times.split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+          stock: v.stock === '' || v.stock == null ? null : Number(v.stock),
           startDate: v.startDate || null, endDate: v.endDate || null
         };
         var err = HC.validateMed(obj);
@@ -553,14 +637,18 @@ textarea { min-height: 70px; resize: vertical; }
     },
     question: function (q) {
       var isEdit = !!q;
+      var visitOptions = [{ value: '', label: '— bez návštevy —' }].concat(sortBy(state.visits, 'date', true).map(function (v) {
+        return { value: v.id, label: visitLabel(v) };
+      }));
       openForm(isEdit ? 'Upraviť otázku' : 'Nová otázka pre lekára', [
         { name: 'text', label: 'Otázka', type: 'textarea', required: true, placeholder: 'napr. Môžem s týmto liekom šoférovať?' },
+        { name: 'visitId', label: 'Patrí k návšteve', type: 'select', options: visitOptions },
         { name: 'answer', label: 'Odpoveď lekára (po návšteve)', type: 'textarea' },
         { name: 'done', label: 'Vyriešené', type: 'checkbox' }
       ], isEdit ? q : {},
       function (v) {
         if (!v.text) return 'Otázka nesmie byť prázdna.';
-        var obj = { text: v.text, answer: v.answer, done: !!v.done };
+        var obj = { text: v.text, visitId: v.visitId || null, answer: v.answer, done: !!v.done };
         commit(function () {
           if (isEdit) Object.assign(q, obj);
           else state.questions.push(Object.assign({ id: HC.newId() }, obj));
@@ -586,17 +674,39 @@ textarea { min-height: 70px; resize: vertical; }
         });
         return null;
       });
+    },
+    ice: function () {
+      var ice = state.settings.ice || {};
+      openForm('Núdzové údaje', [
+        { name: 'blood', label: 'Krvná skupina', placeholder: 'napr. A RhD+' },
+        { name: 'allergies', label: 'Alergie (lieky, potraviny, látky)', type: 'textarea' },
+        { name: 'conditions', label: 'Závažné ochorenia', type: 'textarea' },
+        { name: 'contact', label: 'Kontakt v núdzi (meno a telefón)', placeholder: 'napr. Anna Nováková, 0900 000 000' }
+      ], ice,
+      function (v) {
+        commit(function () {
+          state.settings.ice = { blood: v.blood, allergies: v.allergies, conditions: v.conditions, contact: v.contact };
+        });
+        toast('Núdzové údaje uložené.');
+        return null;
+      });
     }
   };
 
   // ---------- Údaje: export, import, mazanie, ochrana ----------
   function openData() {
-    var count = state.meds.length + state.symptoms.length + state.visits.length + state.problems.length + state.checkups.length + state.questions.length;
+    var count = HC.dataCount(state);
+    var persistText = persistGranted === true ? 'Úložisko je trvalé: prehliadač údaje nemá mazať automaticky.'
+      : persistGranted === false ? 'Prehliadač nepovolil trvalé úložisko. Pravidelne exportujte zálohu.'
+      : 'Stav trvalého úložiska sa zisťuje.';
     document.getElementById('dlg-title').textContent = 'Údaje a ochrana súkromia';
     dlgFields.innerHTML =
       '<p>Všetky údaje sú uložené <strong>len v tomto zariadení</strong> (localStorage prehliadača). Nikam sa neodosielajú a aplikácia nepoužíva žiadne služby tretích strán.</p>' +
-      '<p class="muted">Uložené položky: ' + count + ' (lieky, príznaky, problémy, návštevy, prehliadky, otázky). Údaje môžu obsahovať citlivé zdravotné informácie – zálohy držte v bezpečí.</p>' +
-      '<div class="stack"><button type="button" class="btn" id="d-export">Exportovať zálohu (JSON)</button>' +
+      '<p class="muted">Uložené položky: ' + count + '. Údaje môžu obsahovať citlivé zdravotné informácie, zálohy držte v bezpečí.</p>' +
+      '<p class="muted">' + persistText + '</p>' +
+      '<p class="muted">' + (state.settings.lastExport ? 'Posledný export: ' + fmtDate(state.settings.lastExport) : 'Zálohu ste zatiaľ nevytvorili.') + '</p>' +
+      '<div class="stack"><button type="button" class="btn" id="d-ice">Núdzové údaje</button>' +
+      '<button type="button" class="btn" id="d-export">Exportovať zálohu (JSON)</button>' +
       '<label class="btn" style="text-align:center;cursor:pointer;color:var(--fg)">Importovať zálohu (JSON)<input type="file" accept="application/json,.json" id="d-import" hidden></label>' +
       '<button type="button" class="btn danger" id="d-wipe">Vymazať všetky údaje</button></div>' +
       '<p class="disclaimer">Health Companion je osobný záznamník. Neposkytuje lekársku diagnózu ani liečbu a nenahrádza konzultáciu s lekárom. Pri náhlych alebo vážnych ťažkostiach volajte 112.</p>';
@@ -604,39 +714,164 @@ textarea { min-height: 70px; resize: vertical; }
     setDlgMode(false);
     dlg.showModal();
   }
+
   // Udalosti dialógu údajov sú zavesené raz (kliknutia a výber súboru sa delegujú cez dlgFields).
   dlgFields.addEventListener('click', onDataClick);
   dlgFields.addEventListener('change', onImportChange);
+
+  function doExport() {
+    var blob = new Blob([HC.exportJSON(state)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'health-companion-zaloha-' + today() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    commit(function () { state.settings.lastExport = today(); });
+  }
+
   function onDataClick(e) {
     var id = e.target.id;
-    if (id === 'd-export') {
-      var blob = new Blob([HC.exportJSON(state)], { type: 'application/json' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'health-companion-zaloha-' + today() + '.json';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
-    } else if (id === 'd-wipe') {
+    if (id === 'd-export') doExport();
+    else if (id === 'd-ice') forms.ice();
+    else if (id === 'd-wipe') {
       if (confirmDelete('Naozaj vymazať všetky zdravotné údaje v tomto zariadení? Túto akciu nie je možné vrátiť. Odporúčame najprv exportovať zálohu.')) {
         state = HC.emptyState();
         save(); dlg.close(); render();
         toast('Všetky údaje boli vymazané.');
       }
+    } else if (id === 'd-merge' || id === 'd-replace') {
+      if (!pendingImport) return;
+      if (id === 'd-merge') state = HC.mergeState(state, pendingImport);
+      else {
+        if (!confirmDelete('Nahradiť všetky údaje v tomto zariadení zálohou? Pôvodné údaje sa stratia.')) return;
+        state = pendingImport;
+      }
+      pendingImport = null;
+      save(); dlg.close(); render();
+      toast(id === 'd-merge' ? 'Záloha bola zlúčená s údajmi.' : 'Záloha bola obnovená.');
+    } else if (id === 'd-cancel-import') {
+      pendingImport = null;
+      openData();
     }
   }
+
   function onImportChange(e) {
     if (e.target.id !== 'd-import' || !e.target.files[0]) return;
     var reader = new FileReader();
     reader.onload = function () {
       try {
-        var imported = HC.importJSON(String(reader.result));
-        if (!confirmDelete('Import nahradí všetky údaje v tomto zariadení zálohou zo súboru. Pokračovať?')) return;
-        state = imported;
-        save(); dlg.close(); render();
-        toast('Záloha bola obnovená.');
+        pendingImport = HC.importJSON(String(reader.result));
+        var n = HC.dataCount(pendingImport);
+        document.getElementById('dlg-title').textContent = 'Obnoviť zálohu';
+        dlgFields.innerHTML =
+          '<p>Záloha obsahuje <strong>' + n + '</strong> položiek. Ako ju chcete použiť?</p>' +
+          '<div class="stack"><button type="button" class="btn primary" id="d-merge">Zlúčiť so súčasnými údajmi</button>' +
+          '<button type="button" class="btn danger" id="d-replace">Nahradiť všetky údaje</button>' +
+          '<button type="button" class="btn" id="d-cancel-import">Zrušiť</button></div>' +
+          '<p class="muted">Pri zlúčení sa záznamy s rovnakým identifikátorom nahradia zálohou.</p>';
       } catch (err) { toast(err.message); }
     };
     reader.readAsText(e.target.files[0]);
+    e.target.value = '';
+  }
+
+  // ---------- Tlačová správa pre lekára ----------
+  function buildReport(days) {
+    var t = today();
+    var from = HC.addDays(t, -days);
+    var ice = state.settings.ice || {};
+    var symptoms = sortBy(state.symptoms.filter(function (s) { return s.date >= from && s.date <= t; }), 'date', true);
+    var visits = sortBy(state.visits.filter(function (v) { return v.date >= from && v.date <= t; }), 'date', true);
+    var taken = HC.medsTakenBetween(state, from, t);
+    var counts = {};
+    Object.keys(state.taken || {}).forEach(function (date) {
+      if (date < from || date > t) return;
+      Object.keys(state.taken[date]).forEach(function (key) {
+        var id = key.split('|')[0];
+        counts[id] = counts[id] || { taken: 0, skipped: 0 };
+        var v = state.taken[date][key];
+        if (v === 'skipped') counts[id].skipped++;
+        else if (v === true || v === 'taken') counts[id].taken++;
+      });
+    });
+    var activeMeds = state.meds.filter(function (m) { return HC.medActiveOn(m, t); });
+    var problems = state.problems.filter(function (p) { return p.status === 'aktívny'; });
+    var checkups = state.checkups.map(function (c) { return { c: c, s: HC.checkupStatus(c, t) }; });
+    var openQ = HC.openQuestionsFor(state.questions, null);
+
+    var h = '<h1>Prehľad zdravotného stavu</h1>' +
+      '<p class="muted">Obdobie: ' + fmtDate(from) + ' – ' + fmtDate(t) + ' (' + days + ' dní). Vytvorené: ' + fmtDate(t) + '.</p>';
+
+    h += '<h2>Núdzové údaje</h2>' + (hasICE()
+      ? '<p>Krvná skupina: ' + esc(ice.blood || '—') + '</p><p>Alergie: ' + esc(ice.allergies || '—') + '</p><p>Závažné ochorenia: ' + esc(ice.conditions || '—') + '</p><p>Kontakt: ' + esc(ice.contact || '—') + '</p>'
+      : '<p class="muted">Nie sú vyplnené.</p>');
+
+    h += '<h2>Aktuálne lieky</h2>' + (activeMeds.length
+      ? '<table><tr><th>Liek</th><th>Dávka</th><th>Časy</th><th>Užité / vynechané v období</th></tr>' + activeMeds.map(function (m) {
+          var c = counts[m.id] || { taken: 0, skipped: 0 };
+          return '<tr><td>' + esc(m.name) + '</td><td>' + esc(m.dose || '—') + '</td><td>' + esc((m.times || []).join(', ')) + '</td><td>' + c.taken + ' / ' + c.skipped + '</td></tr>';
+        }).join('') + '</table>'
+      : '<p class="muted">Žiadne aktívne lieky.</p>');
+
+    h += '<h2>Zdravotné problémy</h2>' + (problems.length
+      ? '<ul>' + problems.map(function (p) { return '<li>' + esc(p.name) + (p.since ? ' (od ' + fmtDate(p.since) + ')' : '') + (p.notes ? ' – ' + esc(p.notes) : '') + '</li>'; }).join('') + '</ul>'
+      : '<p class="muted">Žiadne aktívne problémy.</p>');
+
+    h += '<h2>Príznaky v období</h2>';
+    var series = HC.severityByDay(state.symptoms, from, t);
+    if (series.length) {
+      var W = 600, H = 160, n = Math.max(days, 1);
+      var pts = series.map(function (p) {
+        var x = (HC.daysBetween(from, p.date) / n) * W;
+        var y = H - (p.max / 10) * H;
+        return { x: x, y: y, p: p };
+      });
+      h += '<svg class="chart" viewBox="0 0 ' + W + ' ' + (H + 24) + '" role="img" aria-label="Najvyššia intenzita príznakov v čase">' +
+        '<line x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '" stroke="#999"/>' +
+        '<line x1="0" y1="' + (H / 2) + '" x2="' + W + '" y2="' + (H / 2) + '" stroke="#ddd" stroke-dasharray="4 4"/>' +
+        '<polyline fill="none" stroke="#b3261e" stroke-width="2" points="' + pts.map(function (q) { return q.x.toFixed(1) + ',' + q.y.toFixed(1); }).join(' ') + '"/>' +
+        pts.map(function (q) { return '<circle cx="' + q.x.toFixed(1) + '" cy="' + q.y.toFixed(1) + '" r="3" fill="#b3261e"/>'; }).join('') +
+        '<text x="0" y="' + (H + 18) + '" font-size="12">' + fmtDate(from) + '</text>' +
+        '<text x="' + W + '" y="' + (H + 18) + '" font-size="12" text-anchor="end">' + fmtDate(t) + '</text>' +
+        '<text x="4" y="12" font-size="11">10</text><text x="4" y="' + (H - 2) + '" font-size="11">0</text>' +
+        '</svg><p class="muted">Graf: najvyššia zaznamenaná intenzita (1 – 10) za deň.</p>';
+    }
+    h += symptoms.length ? '<table><tr><th>Dátum</th><th>Príznak</th><th>Intenzita</th><th>Trvanie</th><th>Lieky za 3 dni pred</th></tr>' + symptoms.map(function (s) {
+      var meds = HC.medsBeforeSymptom(state, s, 3);
+      return '<tr><td>' + fmtDate(s.date) + (s.time ? ' ' + esc(s.time) : '') + '</td><td>' + esc(s.name) + '</td><td>' + s.severity + '/10</td><td>' + esc(s.duration || '—') + '</td><td>' + esc(meds.join(', ') || '—') + '</td></tr>';
+    }).join('') + '</table>' : '<p class="muted">Žiadne záznamy príznakov v období.</p>';
+
+    h += '<h2>Návštevy lekára v období</h2>' + (visits.length
+      ? '<ul>' + visits.map(function (v) { return '<li>' + fmtDate(v.date) + ' – ' + esc(v.doctor || v.specialty) + (v.reason ? ': ' + esc(v.reason) : '') + (v.diagnosis ? '. Záver: ' + esc(v.diagnosis) : '') + '</li>'; }).join('') + '</ul>'
+      : '<p class="muted">Žiadne návštevy v období.</p>');
+
+    h += '<h2>Preventívne prehliadky</h2>' + (checkups.length
+      ? '<ul>' + checkups.map(function (x) {
+          var st = { overdue: 'po termíne', soon: 'čoskoro', unknown: 'nevyplnené', ok: 'v poriadku' }[x.s.status];
+          return '<li>' + esc(x.c.name) + ' – ' + st + (x.s.dueDate ? ' (termín ' + fmtDate(x.s.dueDate) + ')' : '') + '</li>';
+        }).join('') + '</ul>'
+      : '<p class="muted">Žiadne sledované prehliadky.</p>');
+
+    h += '<h2>Otázky na lekára</h2>' + (openQ.length
+      ? '<ol>' + openQ.map(function (q) { return '<li>' + esc(q.text) + '</li>'; }).join('') + '</ol>'
+      : '<p class="muted">Žiadne otvorené otázky.</p>');
+
+    h += '<p class="disclaimer" style="margin-top:14px">Vygenerované aplikáciou Health Companion z údajov zadaných používateľom. Nenahrádza lekárske vyšetrenie ani odbornú diagnózu.</p>';
+    return h;
+  }
+
+  function openReport() {
+    openForm('Prehľad pre lekára', [
+      { name: 'days', label: 'Obdobie', type: 'select', options: [
+        { value: '30', label: 'posledných 30 dní' }, { value: '90', label: 'posledných 90 dní' }, { value: '180', label: 'posledných 180 dní' }
+      ] }
+    ], { days: '90' }, function (v) {
+      var days = Number(v.days) || 90;
+      document.getElementById('print-root').innerHTML = buildReport(days);
+      dlg.close();
+      setTimeout(function () { window.print(); }, 150);
+      return null;
+    });
   }
 
   // ---------- Hlavné ovládanie ----------
@@ -660,13 +895,33 @@ textarea { min-height: 70px; resize: vertical; }
     var el = e.target.closest('[data-act]');
     if (!el) return;
     var act = el.dataset.act, id = el.dataset.id;
-    var m, s, p, v, q, c;
+    var m, s, p, v, q, c, added;
     switch (act) {
       case 'toggle-dose':
-        var key = el.dataset.key, date = el.dataset.date;
-        var isTaken = !!(state.taken[date] && state.taken[date][key]);
-        commit(function () { state.taken = HC.setDoseTaken(state.taken, date, key, !isTaken); });
+        var key = el.dataset.key, date = el.dataset.date, mode = el.dataset.mode;
+        var cur = (state.taken[date] && state.taken[date][key]) || null;
+        var curStatus = cur === true || cur === 'taken' ? 'taken' : cur === 'skipped' ? 'skipped' : null;
+        var next = curStatus === mode ? null : mode;
+        commit(function () {
+          state.taken = HC.setDoseStatus(state.taken, date, key, next);
+          // Zásoby: označenie ako užité odpočíta kus, zrušenie ho vráti.
+          var med = findBy(state.meds, key.split('|')[0]);
+          if (med && typeof med.stock === 'number') {
+            if (curStatus !== 'taken' && next === 'taken') med.stock = Math.max(0, med.stock - 1);
+            if (curStatus === 'taken' && next !== 'taken') med.stock = med.stock + 1;
+          }
+        });
         break;
+      case 'notify':
+        if ('Notification' in window) {
+          Notification.requestPermission().then(function (perm) {
+            toast(perm === 'granted' ? 'Pripomienky sú povolené (kým je appka otvorená).' : 'Pripomienky neboli povolené.');
+            render();
+          });
+        }
+        break;
+      case 'export-backup': doExport(); break;
+      case 'edit-ice': forms.ice(); break;
       case 'add-med': forms.med(null); break;
       case 'edit-med': forms.med(findBy(state.meds, id)); break;
       case 'toggle-med':
@@ -684,13 +939,16 @@ textarea { min-height: 70px; resize: vertical; }
       case 'add-visit': forms.visit(null); break;
       case 'edit-visit': forms.visit(findBy(state.visits, id)); break;
       case 'del-visit':
-        if (confirmDelete('Zmazať túto návštevu?')) commit(function () { state.visits = removeBy(state.visits, id); }); break;
+        if (confirmDelete('Zmazať túto návštevu?')) commit(function () {
+          state.visits = removeBy(state.visits, id);
+          // otázky, ktoré patrili k zmazanej návšteve, zostanú ako nepriradené
+          state.questions.forEach(function (x) { if (x.visitId === id) x.visitId = null; });
+        }); break;
       case 'prep-visit':
         v = findBy(state.visits, id);
-        var label = fmtDate(v.date) + ' – ' + (v.doctor || v.specialty || '');
-        var txt = HC.questionsText(state.questions.filter(function (x) { return !x.done; }), label);
-        showText('Otázky k návšteve', txt);
+        showText('Príprava na návštevu', HC.prepSummary(state, v, today()));
         break;
+      case 'report': openReport(); break;
       case 'add-question': forms.question(null); break;
       case 'edit-question': forms.question(findBy(state.questions, id)); break;
       case 'toggle-question':
@@ -698,34 +956,26 @@ textarea { min-height: 70px; resize: vertical; }
       case 'del-question':
         if (confirmDelete('Zmazať otázku?')) commit(function () { state.questions = removeBy(state.questions, id); }); break;
       case 'copy-questions':
-        var open = state.questions.filter(function (x) { return !x.done; });
-        showText('Otázky pre lekára', HC.questionsText(open, ''));
+        showText('Otázky pre lekára', HC.questionsText(HC.openQuestionsFor(state.questions, null), ''));
         break;
       case 'add-checkup': forms.checkup(null); break;
       case 'edit-checkup': forms.checkup(findBy(state.checkups, id)); break;
+      case 'add-standard-checkups':
+        added = HC.missingStandardCheckups(state.checkups);
+        if (!added.length) { toast('Všetky štandardné prehliadky už máte.'); break; }
+        commit(function () {
+          added.forEach(function (s) {
+            state.checkups.push({ id: HC.newId(), name: s.name, intervalMonths: s.intervalMonths, lastDate: null, notes: 'Orientačný interval – potvrďte s lekárom.' });
+          });
+        });
+        toast('Pridané prehliadky: ' + added.length + '.');
+        break;
       case 'done-checkup':
         c = findBy(state.checkups, id); commit(function () { c.lastDate = today(); }); toast('Zapísané ako absolvované dnes.'); break;
       case 'del-checkup':
         if (confirmDelete('Zmazať túto prehliadku?')) commit(function () { state.checkups = removeBy(state.checkups, id); }); break;
     }
   });
-
-  // Zobrazenie textu (napr. otázky) s tlačidlom na kopírovanie.
-  function showText(title, text) {
-    document.getElementById('dlg-title').textContent = title;
-    dlgFields.innerHTML = '<div class="pre">' + esc(text) + '</div>';
-    dlgErr.hidden = true;
-    setDlgMode(false);
-    var copyBtn = document.createElement('button');
-    copyBtn.type = 'button'; copyBtn.className = 'btn primary'; copyBtn.textContent = 'Kopírovať';
-    copyBtn.addEventListener('click', function () {
-      if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast('Skopírované.'); }, function () { toast('Kopírovanie zlyhalo.'); });
-      else toast('Schránka nie je dostupná.');
-    });
-    dlgFields.appendChild(copyBtn);
-    dlg.showModal();
-  }
-
 
   // ---------- Pripomienky (kým je appka otvorená) ----------
   var notified = {};
@@ -734,7 +984,7 @@ textarea { min-height: 70px; resize: vertical; }
     var t = today(), now = nowTime();
     HC.medDosesOn(state.meds, state.taken, t).forEach(function (d) {
       var k = t + '|' + d.key;
-      if (!d.taken && d.time === now && !notified[k]) {
+      if (!d.status && d.time === now && !notified[k]) {
         notified[k] = true;
         try { new Notification('Čas užiť liek', { body: d.name + (d.dose ? ' – ' + d.dose : '') + ' (' + d.time + ')', tag: k }); } catch (e) { /* bez notifikácií */ }
       }
