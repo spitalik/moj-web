@@ -677,8 +677,14 @@ textarea { min-height: 70px; resize: vertical; }
     },
     ice: function () {
       var ice = state.settings.ice || {};
+      var bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', '0+', '0-', 'Neviem'];
+      // Stará hodnota zapísaná voľným textom sa zachová ako možnosť, aby sa nestratila.
+      if (ice.blood && bloodGroups.indexOf(ice.blood) === -1) bloodGroups.unshift(ice.blood);
+      var bloodOptions = [{ value: '', label: '— nevybraté —' }].concat(bloodGroups.map(function (g) {
+        return { value: g, label: g };
+      }));
       openForm('Núdzové údaje', [
-        { name: 'blood', label: 'Krvná skupina', placeholder: 'napr. A RhD+' },
+        { name: 'blood', label: 'Krvná skupina', type: 'select', options: bloodOptions },
         { name: 'allergies', label: 'Alergie (lieky, potraviny, látky)', type: 'textarea' },
         { name: 'conditions', label: 'Závažné ochorenia', type: 'textarea' },
         { name: 'contact', label: 'Kontakt v núdzi (meno a telefón)', placeholder: 'napr. Anna Nováková, 0900 000 000' }
