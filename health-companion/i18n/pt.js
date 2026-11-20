@@ -43,7 +43,6 @@ HCI18N.add('pt', {
   notifyBtn: 'Permitir',
   notifyOk: 'Lembretes ativados (enquanto o app estiver aberto).',
   notifyNo: 'Os lembretes não foram permitidos.',
-  notifyNotGuaranteed: "Os lembretes não são garantidos. Podem atrasar ou não aparecer, então não dependa apenas deles.",
   notifyDenied: "As notificações estão bloqueadas no navegador. Permita-as nas configurações do site se quiser lembretes.",
   backupTitle: 'Recomendamos fazer um backup',
   backupLast: 'Último backup: {date}',
@@ -64,6 +63,8 @@ HCI18N.add('pt', {
   checkupsTitle: 'Check-ups preventivos',
   dueWord: 'vencimento: {date}',
   inDays: 'em {days} dias',
+  todayVisits: "Consulta de hoje",
+  dueToday: "hoje",
   upcomingVisits: 'Próximas consultas',
   recentSymptoms: 'Sintomas recentes',
 

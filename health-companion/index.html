@@ -399,8 +399,10 @@ textarea { min-height: 70px; resize: vertical; }
       .map(function (d) { return Object.assign({ date: yesterday }, d); });
     var missedToday = HC.missedDoses(doses, tod, tod, now);
     var checkups = state.checkups.map(function (c) { return { c: c, s: HC.checkupStatus(c, tod) }; })
-      .filter(function (x) { return x.s.status === 'overdue' || x.s.status === 'soon'; });
-    var upcomingVisits = state.visits.filter(function (v) { return v.nextVisit && v.nextVisit >= tod; })
+      .filter(function (x) { return x.s.status === 'overdue' || (x.s.days !== null && x.s.days <= 5); });
+    var todayVisits = state.visits.filter(function (v) { return v.date === tod; });
+    var horizon = HC.addDays(tod, 5);
+    var upcomingVisits = state.visits.filter(function (v) { return v.nextVisit && v.nextVisit >= tod && v.nextVisit <= horizon; })
       .sort(function (a, b) { return a.nextVisit < b.nextVisit ? -1 : 1; });
     var html = '';
 
@@ -432,7 +434,6 @@ textarea { min-height: 70px; resize: vertical; }
     }
 
     html += '<section class="card"><div class="section-head"><h2>' + t('todayMeds') + '</h2><span class="muted">' + fmtDate(tod) + '</span></div>';
-    html += '<p class="muted">' + t('notifyNotGuaranteed') + '</p>';
     if (!state.meds.length) {
       html += '<div class="empty">' + t('noMedsYet') + '</div>';
     } else if (!doses.length) {
@@ -462,9 +463,16 @@ textarea { min-height: 70px; resize: vertical; }
         '</section>';
     }
 
+    if (todayVisits.length) {
+      html += '<section class="card"><h2>' + t('todayVisits') + '</h2><div class="stack">' + todayVisits.map(function (v) {
+        return '<div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(v.reason || '') + '</div></div><span class="badge">' + fmtDate(v.date) + '</span></div>';
+      }).join('') + '</div></section>';
+    }
+
     if (checkups.length) {
       html += '<section class="card flag-warn"><h2>' + t('checkupsTitle') + '</h2><div class="stack">' + checkups.map(function (x) {
-        var label = x.s.status === 'overdue' ? '<span class="badge danger">' + t('statusOverdue') + '</span>' : '<span class="badge warn">' + t('inDays', { days: x.s.days }) + '</span>';
+        var label = x.s.status === 'overdue' ? '<span class="badge danger">' + t('statusOverdue') + '</span>' :
+          '<span class="badge warn">' + (x.s.days === 0 ? t('dueToday') : t('inDays', { days: x.s.days })) + '</span>';
         return '<div class="row"><div><strong>' + esc(x.c.name) + '</strong><div class="muted">' + t('dueWord', { date: fmtDate(x.s.dueDate) }) + '</div></div>' + label + '</div>';
       }).join('') + '</div></section>';
     }

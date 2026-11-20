@@ -43,7 +43,6 @@ HCI18N.add('tr', {
   notifyBtn: 'İzin ver',
   notifyOk: 'Hatırlatmalara izin verildi (uygulama açık olduğu sürece).',
   notifyNo: 'Hatırlatmalara izin verilmedi.',
-  notifyNotGuaranteed: "Hatırlatmalar garanti edilmez. Gecikebilir veya hiç görünmeyebilir, bu yüzden yalnızca bunlara güvenmeyin.",
   notifyDenied: "Bildirimler tarayıcıda engellenmiş. Hatırlatma istiyorsanız site ayarlarında izin verin.",
   backupTitle: 'Yedekleme önerilir',
   backupLast: 'Son yedek: {date}',
@@ -64,6 +63,8 @@ HCI18N.add('tr', {
   checkupsTitle: 'Koruyucu muayeneler',
   dueWord: 'tarih: {date}',
   inDays: '{days} gün sonra',
+  todayVisits: "Bugünkü ziyaret",
+  dueToday: "bugün",
   upcomingVisits: 'Yaklaşan randevular',
   recentSymptoms: 'Son belirtiler',
 

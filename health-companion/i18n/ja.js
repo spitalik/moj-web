@@ -43,7 +43,6 @@ HCI18N.add('ja', {
   notifyBtn: '許可する',
   notifyOk: 'リマインダーが許可されました（アプリを開いている間）。',
   notifyNo: 'リマインダーは許可されませんでした。',
-  notifyNotGuaranteed: "リマインダーは保証されません。遅れたり表示されなかったりする場合があるため、これだけに頼らないでください。",
   notifyDenied: "通知がブラウザでブロックされています。リマインダーを受け取るには、サイトの設定で許可してください。",
   backupTitle: 'バックアップをおすすめします',
   backupLast: '最終バックアップ：{date}',
@@ -64,6 +63,8 @@ HCI18N.add('ja', {
   checkupsTitle: '定期健診',
   dueWord: '予定日：{date}',
   inDays: '{days}日後',
+  todayVisits: "本日の受診",
+  dueToday: "本日",
   upcomingVisits: '次回の診察',
   recentSymptoms: '最近の症状',
 

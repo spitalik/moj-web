@@ -43,7 +43,6 @@ HCI18N.add('en', {
   notifyBtn: 'Allow',
   notifyOk: 'Reminders are allowed (while the app is open).',
   notifyNo: 'Reminders were not allowed.',
-  notifyNotGuaranteed: "Reminders are not guaranteed. They may be late or not shown, so do not rely on them alone.",
   notifyDenied: "Notifications are blocked in your browser. Allow them in the site settings if you want reminders.",
   backupTitle: 'We recommend a backup',
   backupLast: 'Last backup: {date}',
@@ -64,6 +63,8 @@ HCI18N.add('en', {
   checkupsTitle: 'Preventive check-ups',
   dueWord: 'due: {date}',
   inDays: 'in {days} days',
+  todayVisits: "Today's visit",
+  dueToday: "today",
   upcomingVisits: 'Upcoming visits',
   recentSymptoms: 'Recent symptoms',
 

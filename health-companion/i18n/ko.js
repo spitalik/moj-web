@@ -43,7 +43,6 @@ HCI18N.add('ko', {
   notifyBtn: '허용',
   notifyOk: '알림이 허용되었습니다 (앱이 열려 있는 동안).',
   notifyNo: '알림이 허용되지 않았습니다.',
-  notifyNotGuaranteed: "알림은 보장되지 않습니다. 늦게 오거나 표시되지 않을 수 있으니 알림에만 의존하지 마세요.",
   notifyDenied: "브라우저에서 알림이 차단되었습니다. 알림을 받으려면 사이트 설정에서 허용하세요.",
   backupTitle: '백업을 권장합니다',
   backupLast: '마지막 백업: {date}',
@@ -64,6 +63,8 @@ HCI18N.add('ko', {
   checkupsTitle: '정기 검진',
   dueWord: '예정일: {date}',
   inDays: '{days}일 후',
+  todayVisits: "오늘 방문",
+  dueToday: "오늘",
   upcomingVisits: '다가오는 방문',
   recentSymptoms: '최근 증상',
 
