@@ -14,6 +14,7 @@ A collection of **independent, zero-build static PWAs**, one per top-level folde
 | [juro/](juro/index.html) | Juro: tools for lawyers, Slovak only ([README](juro/README.md)) |
 | [sleep-detective/](sleep-detective/index.html) | Sleep Detective: sleep diary and night sound recording, Slovak only |
 | [blood-pressure/](blood-pressure/index.html) | Blood Pressure: blood pressure diary and 7-day home measurement, Slovak only |
+| [health-companion/](health-companion/index.html) | Health Companion: medications, symptoms, doctor visits, check-ups, questions for the doctor, Slovak only |
 
 The root `index.html` is only a placeholder link page. Root `tools/` holds old scripts for a former layout and is not used by any app.
 
@@ -30,6 +31,7 @@ From the repo root run `python -m http.server 8000` and open `http://localhost:8
 - `juro/`: `node tools/test.js`.
 - `sleep-detective/`: `node tools/test.js` (sound detector, then the app scenarios in `tools/test-app.js`).
 - `blood-pressure/`: `node tools/test.js` (app scenarios with a fake DOM).
+- `health-companion/`: `node tools/test.js` (logic in `logic.js`).
 - `jocadium/`: no tests, verify in a browser.
 
 ## Rules
