@@ -1,5 +1,6 @@
 /* Health Companion – čistá logika (bez DOM), testovateľná v Node.js.
-   Dátumy sú reťazce YYYY-MM-DD v lokálnom čase, časy HH:MM. */
+   Dátumy sú reťazce YYYY-MM-DD v lokálnom čase, časy HH:MM.
+   Texty (chyby, popisky) idú cez prekladové jadro i18n/core.js (HCI18N). */
 (function (root) {
   'use strict';
 
@@ -8,14 +9,26 @@
   var LOW_STOCK_DAYS = 7;
   var BACKUP_EVERY_DAYS = 30;
 
+  var I18N = (typeof HCI18N !== 'undefined') ? HCI18N
+    : (typeof require === 'function' ? require('./i18n/core.js') : null);
+  function T(key, vars) { return I18N ? I18N.t(key, vars) : key; }
+
   // Orientačné štandardné prehliadky. Intervaly musí potvrdiť lekár.
   var STANDARD_CHECKUPS = [
-    { name: 'Preventívna prehliadka u všeobecného lekára', intervalMonths: 12 },
-    { name: 'Kontrola krvného tlaku', intervalMonths: 6 },
-    { name: 'Krvné testy (glukóza, cholesterol)', intervalMonths: 12 },
-    { name: 'Zubár – kontrola a čistenie', intervalMonths: 6 },
-    { name: 'Očný lekár', intervalMonths: 24 }
+    { key: 'std1', intervalMonths: 12 },
+    { key: 'std2', intervalMonths: 6 },
+    { key: 'std3', intervalMonths: 12 },
+    { key: 'std4', intervalMonths: 6 },
+    { key: 'std5', intervalMonths: 24 }
   ];
+  // Názvy z predchádzajúcich verzií (bez stdKey), aby sa štandardné prehliadky nepridali dvakrát.
+  var LEGACY_STD_NAMES = {
+    std1: 'Preventívna prehliadka u všeobecného lekára',
+    std2: 'Kontrola krvného tlaku',
+    std3: 'Krvné testy (glukóza, cholesterol)',
+    std4: 'Zubár – kontrola a čistenie',
+    std5: 'Očný lekár'
+  };
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
@@ -181,47 +194,51 @@
     return { status: status, dueDate: due, days: days };
   }
 
-  // Štandardné prehliadky, ktoré ešte používateľ nemá (podľa názvu, bez ohľadu na veľkosť písmen).
+  // Štandardné prehliadky, ktoré ešte používateľ nemá. Vracia názov v aktuálnom jazyku.
   function missingStandardCheckups(checkups) {
-    var have = (checkups || []).map(function (c) { return String(c.name || '').toLowerCase(); });
+    var list = checkups || [];
     return STANDARD_CHECKUPS.filter(function (s) {
-      return have.indexOf(s.name.toLowerCase()) === -1;
+      return !list.some(function (c) {
+        return c.stdKey === s.key || (!c.stdKey && c.name === LEGACY_STD_NAMES[s.key]);
+      });
+    }).map(function (s) {
+      return { key: s.key, name: T(s.key), intervalMonths: s.intervalMonths };
     });
   }
 
   // ---- Validácia ----
 
   function requireText(value, label) {
-    if (!value || !String(value).trim()) return label + ' je povinné.';
+    if (!value || !String(value).trim()) return T('errRequired', { label: label });
     return null;
   }
 
   function validateMed(m) {
-    return requireText(m.name, 'Názov lieku') ||
-      (m.times && m.times.length ? (m.times.every(isValidTime) ? null : 'Čas užitia musí byť vo formáte HH:MM.') : 'Zadajte aspoň jeden čas užitia.') ||
-      (m.startDate && !parseISO(m.startDate) ? 'Neplatný dátum začiatku.' : null) ||
-      (m.endDate && !parseISO(m.endDate) ? 'Neplatný dátum konca.' : null) ||
-      (m.startDate && m.endDate && m.endDate < m.startDate ? 'Koniec liečby nemôže byť pred začiatkom.' : null) ||
-      (m.stock != null && !(Number.isInteger(m.stock) && m.stock >= 0) ? 'Počet kusov musí byť celé nezáporné číslo.' : null);
+    return requireText(m.name, T('labelMedName')) ||
+      (m.times && m.times.length ? (m.times.every(isValidTime) ? null : T('errTimeFormat')) : T('errNeedTime')) ||
+      (m.startDate && !parseISO(m.startDate) ? T('errStartDate') : null) ||
+      (m.endDate && !parseISO(m.endDate) ? T('errEndDate') : null) ||
+      (m.startDate && m.endDate && m.endDate < m.startDate ? T('errEndBeforeStart') : null) ||
+      (m.stock != null && !(Number.isInteger(m.stock) && m.stock >= 0) ? T('errStock') : null);
   }
 
   function validateSymptom(s) {
-    return requireText(s.name, 'Názov príznaku') ||
-      (parseISO(s.date) ? null : 'Neplatný dátum.') ||
-      (s.time && !isValidTime(s.time) ? 'Neplatný čas.' : null) ||
-      (s.severity >= 1 && s.severity <= 10 ? null : 'Intenzita musí byť od 1 do 10.');
+    return requireText(s.name, T('labelSymptomName')) ||
+      (parseISO(s.date) ? null : T('errDate')) ||
+      (s.time && !isValidTime(s.time) ? T('errTime') : null) ||
+      (s.severity >= 1 && s.severity <= 10 ? null : T('errSeverity'));
   }
 
   function validateVisit(v) {
-    return (parseISO(v.date) ? null : 'Zadajte dátum návštevy.') ||
-      (v.nextVisit && !parseISO(v.nextVisit) ? 'Neplatný dátum ďalšej návštevy.' : null) ||
-      (requireText(v.doctor || v.specialty, 'Lekár alebo odbor'));
+    return (parseISO(v.date) ? null : T('errVisitDate')) ||
+      (v.nextVisit && !parseISO(v.nextVisit) ? T('errNextVisit') : null) ||
+      (requireText(v.doctor || v.specialty, T('labelDoctorOrSpecialty')));
   }
 
   function validateCheckup(c) {
-    return requireText(c.name, 'Názov prehliadky') ||
-      (c.intervalMonths >= 1 && c.intervalMonths <= 120 ? null : 'Interval musí byť 1 až 120 mesiacov.') ||
-      (c.lastDate && !parseISO(c.lastDate) ? 'Neplatný dátum poslednej prehliadky.' : null);
+    return requireText(c.name, T('labelCheckupName')) ||
+      (c.intervalMonths >= 1 && c.intervalMonths <= 120 ? null : T('errInterval')) ||
+      (c.lastDate && !parseISO(c.lastDate) ? T('errLastCheckup') : null);
   }
 
   // ---- Otázky a príprava na návštevu ----
@@ -235,34 +252,35 @@
   }
 
   function questionsText(questions, visitLabel) {
-    var lines = ['Otázky pre lekára' + (visitLabel ? ' (' + visitLabel + ')' : '') + ':', ''];
+    var lines = [T('questionsHeader') + (visitLabel ? ' (' + visitLabel + ')' : '') + ':', ''];
     (questions || []).forEach(function (q, i) {
       lines.push((i + 1) + '. ' + q.text);
     });
-    if (!questions || !questions.length) lines.push('(zatiaľ žiadne otázky)');
+    if (!questions || !questions.length) lines.push(T('noQuestionsYet'));
     return lines.join('\n');
   }
 
   // Zhrnutie pre lekára pred návštevou: lieky, problémy, príznaky za 28 dní a otázky.
+  // Stav problému sa ukladá ako 'aktívny' (filter je podľa uloženej hodnoty, nie podľa jazyka).
   function prepSummary(state, visit, todayIso) {
     var lines = [];
     var from = addDays(todayIso, -28);
     var meds = (state.meds || []).filter(function (m) { return medActiveOn(m, todayIso); });
-    lines.push('Aktuálne lieky:');
+    lines.push(T('prepCurrentMeds'));
     lines.push(meds.length ? meds.map(function (m) {
       return '- ' + m.name + (m.dose ? ' (' + m.dose + ')' : '') + ', ' + (m.times || []).join(', ');
-    }).join('\n') : '- žiadne');
+    }).join('\n') : '- ' + T('none'));
     var problems = (state.problems || []).filter(function (p) { return p.status === 'aktívny'; });
-    lines.push('', 'Aktívne zdravotné problémy:');
-    lines.push(problems.length ? problems.map(function (p) { return '- ' + p.name; }).join('\n') : '- žiadne');
+    lines.push('', T('prepProblems'));
+    lines.push(problems.length ? problems.map(function (p) { return '- ' + p.name; }).join('\n') : '- ' + T('none'));
     var symptoms = (state.symptoms || []).filter(function (s) { return s.date >= from && s.date <= todayIso; });
-    lines.push('', 'Príznaky za posledných 28 dní:');
+    lines.push('', T('prepSymptoms'));
     lines.push(symptoms.length ? symptoms.sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (s) {
       return '- ' + s.date + ' ' + s.name + ' (' + s.severity + '/10)';
-    }).join('\n') : '- žiadne');
+    }).join('\n') : '- ' + T('none'));
     var questions = openQuestionsFor(state.questions, visit ? visit.id : null);
-    lines.push('', 'Otázky:');
-    lines.push(questions.length ? questions.map(function (q, i) { return (i + 1) + '. ' + q.text; }).join('\n') : '- žiadne');
+    lines.push('', T('prepQuestions'));
+    lines.push(questions.length ? questions.map(function (q, i) { return (i + 1) + '. ' + q.text; }).join('\n') : '- ' + T('none'));
     return lines.join('\n');
   }
 
@@ -322,9 +340,9 @@
   // Vyhodí chybu, ak súbor nie je zálohou tejto appky.
   function importJSON(text) {
     var obj;
-    try { obj = JSON.parse(text); } catch (e) { throw new Error('Súbor nie je platný JSON.'); }
-    if (!obj || obj.schema !== SCHEMA || !obj.data) throw new Error('Súbor nie je zálohou Health Companion.');
-    if (obj.version !== VERSION) throw new Error('Nepodporovaná verzia zálohy: ' + obj.version + '.');
+    try { obj = JSON.parse(text); } catch (e) { throw new Error(T('errImportJson')); }
+    if (!obj || obj.schema !== SCHEMA || !obj.data) throw new Error(T('errImportNotBackup'));
+    if (obj.version !== VERSION) throw new Error(T('errImportVersion', { v: obj.version }));
     return normalizeState(obj.data);
   }
 
@@ -334,7 +352,7 @@
 
   var api = {
     isoDate: isoDate, parseISO: parseISO, isValidTime: isValidTime, addMonths: addMonths, addDays: addDays, daysBetween: daysBetween,
-    medActiveOn: medActiveOn, medDosesOn: medDosesOn, setDoseStatus: setDoseStatus, setDoseTaken: setDoseTaken, missedDoses: missedDoses,
+    medActiveOn: medActiveOn, medDosesOn: medDosesOn, doseStatus: doseStatus, setDoseStatus: setDoseStatus, setDoseTaken: setDoseTaken, missedDoses: missedDoses,
     daysOfSupply: daysOfSupply, lowStock: lowStock, medsTakenBetween: medsTakenBetween, medsBeforeSymptom: medsBeforeSymptom,
     severityByDay: severityByDay,
     checkupStatus: checkupStatus, missingStandardCheckups: missingStandardCheckups, STANDARD_CHECKUPS: STANDARD_CHECKUPS,

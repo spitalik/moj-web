@@ -2,6 +2,10 @@
 'use strict';
 const assert = require('assert');
 const path = require('path');
+// Prekladové jadro a všetky jazykové slovníky (logic.js číta texty cez globálne HCI18N)
+global.HCI18N = require(path.join(__dirname, '..', 'i18n', 'core.js'));
+const LANGS = ['sk', 'en', 'es', 'pt', 'de', 'fr', 'it', 'ru', 'tr', 'ja', 'ko', 'zh'];
+LANGS.forEach(c => require(path.join(__dirname, '..', 'i18n', c + '.js')));
 const HC = require(path.join(__dirname, '..', 'logic.js'));
 
 let passed = 0;
@@ -150,7 +154,7 @@ test('prepSummary obsahuje lieky, problémy, príznaky a otázky', () => {
 test('štandardné prehliadky sa nepridajú dvakrát', () => {
   const missing = HC.missingStandardCheckups([{ name: 'kontrola zubov' }, { name: 'Očný lekár' }]);
   assert.ok(!missing.some(s => s.name === 'Očný lekár'));
-  assert.strictEqual(HC.missingStandardCheckups(HC.STANDARD_CHECKUPS).length, 0);
+  assert.strictEqual(HC.missingStandardCheckups(HC.STANDARD_CHECKUPS.map(s => ({ stdKey: s.key }))).length, 0);
 });
 
 test('zlúčenie záloh: rovnaké id sa nahradí, nové sa pridajú', () => {
@@ -167,6 +171,33 @@ test('pripomienka zálohy: bez údajov nie, nikdy exportované áno, po 30 dňoc
   assert.strictEqual(HC.backupDue(full, null, '2026-11-20'), true);
   assert.strictEqual(HC.backupDue(full, '2026-11-01', '2026-11-20'), false);
   assert.strictEqual(HC.backupDue(full, '2026-10-01', '2026-11-20'), true);
+});
+
+test('všetkých 12 jazykov má rovnaké kľúče ako slovenčina', () => {
+  // každý jazyk musí vrátiť preklad (nie samotný kľúč) pre reprezentatívne kľúče
+  const probe = ['appName', 'tabToday', 'errNameRequired', 'reminderTitle', 'dateUnknown', 'iosSteps', 'rptDisclaimer', 'stockLeft'];
+  LANGS.forEach(lang => {
+    global.HCI18N.setLang(lang);
+    probe.forEach(k => assert.notStrictEqual(global.HCI18N.t(k), k, lang + ': chýba ' + k));
+  });
+  global.HCI18N.setLang('sk');
+});
+
+test('prepínanie jazyka mení texty a neznáme kľúče sa vracajú so zálohou v slovenčine', () => {
+  const I = global.HCI18N;
+  I.setLang('en');
+  assert.strictEqual(I.t('tabMeds'), 'Medications');
+  assert.strictEqual(I.t('neexistujuci'), 'neexistujuci');
+  assert.strictEqual(I.t('stockLeft', { n: 5, days: 2 }), 'Remaining: 5 pcs (~2 days)');
+  I.setLang('sk');
+  assert.strictEqual(I.t('tabMeds'), 'Lieky');
+});
+
+test('chybové hlášky logiky idú v zvolenom jazyku', () => {
+  global.HCI18N.setLang('en');
+  assert.ok(HC.validateMed({ name: '', times: ['08:00'] }).includes('required'));
+  global.HCI18N.setLang('sk');
+  assert.ok(HC.validateMed({ name: '', times: ['08:00'] }).includes('povinné'));
 });
 
 test('cache verzia v sw.js zodpovedá obsahu appky (inak spustiť node tools/bump_cache.js)', () => {
