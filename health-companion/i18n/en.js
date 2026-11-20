@@ -1,6 +1,9 @@
 /* English – translation of the Slovak source (keys are identical in all languages). */
 HCI18N.add('en', {
   _flag: '🇬🇧', _name: 'English', _htmlLang: 'en',
+  emergencyLine: 'Emergency number: {number}',
+  emergencyCountryLabel: 'Country (emergency number)',
+  emergencyDefault: '112 (EU – default)',
   dateUnknown: '—',
   errNameRequired: 'Name is required.',
   reminderTitle: 'Time to take your medicine',

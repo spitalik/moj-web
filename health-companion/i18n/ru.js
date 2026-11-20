@@ -1,6 +1,9 @@
 /* Русский – перевод с словацкого (ключи совпадают с sk.js). */
 HCI18N.add('ru', {
   _flag: '🇷🇺', _name: 'Русский', _htmlLang: 'ru',
+  emergencyLine: 'Экстренный номер: {number}',
+  emergencyCountryLabel: 'Страна (экстренный номер)',
+  emergencyDefault: '112 (ЕС – по умолчанию)',
   dateUnknown: '—',
   errNameRequired: 'Укажите название.',
   reminderTitle: 'Время принять лекарство',

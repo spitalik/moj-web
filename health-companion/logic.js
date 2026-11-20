@@ -350,7 +350,24 @@
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
 
+  // ---- Tiesňové čísla podľa krajiny (ISO kód). Predvolené je 112 (EÚ). ----
+  // Overte pred vydaním; ide o všeobecné tiesňové číslo krajiny.
+  var EMERGENCY_DEFAULT = '112';
+  var EMERGENCY_NUMBERS = {
+    AT: '112', BE: '112', BG: '112', CH: '112', CY: '112', CZ: '112', DE: '112', DK: '112', EE: '112',
+    ES: '112', FI: '112', FR: '112', GR: '112', HR: '112', HU: '112', IE: '112', IT: '112', LT: '112',
+    LU: '112', LV: '112', MT: '112', NL: '112', NO: '112', PL: '112', PT: '112', RO: '112', SE: '112',
+    SI: '112', SK: '112', IN: '112', RU: '112', UA: '112', TR: '112',
+    GB: '999', AU: '000', NZ: '111', US: '911', CA: '911', MX: '911', JP: '119', KR: '119', CN: '120', BR: '192'
+  };
+
+  // Číslo pre zvolenú krajinu; bez voľby alebo neznámy kód -> 112.
+  function emergencyNumber(code) {
+    return (code && EMERGENCY_NUMBERS[code]) || EMERGENCY_DEFAULT;
+  }
+
   var api = {
+    emergencyNumber: emergencyNumber, EMERGENCY_NUMBERS: EMERGENCY_NUMBERS, EMERGENCY_DEFAULT: EMERGENCY_DEFAULT,
     isoDate: isoDate, parseISO: parseISO, isValidTime: isValidTime, addMonths: addMonths, addDays: addDays, daysBetween: daysBetween,
     medActiveOn: medActiveOn, medDosesOn: medDosesOn, doseStatus: doseStatus, setDoseStatus: setDoseStatus, setDoseTaken: setDoseTaken, missedDoses: missedDoses,
     daysOfSupply: daysOfSupply, lowStock: lowStock, medsTakenBetween: medsTakenBetween, medsBeforeSymptom: medsBeforeSymptom,

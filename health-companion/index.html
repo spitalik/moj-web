@@ -479,6 +479,7 @@ textarea { min-height: 70px; resize: vertical; }
       }).join('') + '</div></section>';
     }
 
+    html += '<p class="muted">' + t('emergencyLine', { number: HC.emergencyNumber(state.settings.emergency) }) + '</p>';
     html += '<p class="disclaimer">' + t('disclaimer') + '</p>';
     return html;
   };
@@ -742,6 +743,22 @@ textarea { min-height: 70px; resize: vertical; }
   };
 
   // ---------- Nastavenia, jazyk a údaje ----------
+  // Zoznam krajín s tiesňovým číslom; názvy krajín podľa jazyka prehliadača (Intl.DisplayNames).
+  function emergencyOptions() {
+    var htmlLang = I18N.info(I18N.lang()).htmlLang;
+    var dn = null;
+    try { dn = new Intl.DisplayNames([htmlLang], { type: 'region' }); } catch (e) { dn = null; }
+    var cur = state.settings.emergency || '';
+    var opts = Object.keys(HC.EMERGENCY_NUMBERS).map(function (code) {
+      var name = dn ? (dn.of(code) || code) : code;
+      return { value: code, label: name + ' – ' + HC.EMERGENCY_NUMBERS[code] };
+    }).sort(function (a, b) { return a.label.localeCompare(b.label, htmlLang); });
+    opts.unshift({ value: '', label: t('emergencyDefault') });
+    return opts.map(function (o) {
+      return '<option value="' + esc(o.value) + '"' + (o.value === cur ? ' selected' : '') + '>' + esc(o.label) + '</option>';
+    }).join('');
+  }
+
   function openData() {
     var count = HC.dataCount(state);
     var persistText = persistGranted === true ? t('persistYes')
@@ -753,6 +770,7 @@ textarea { min-height: 70px; resize: vertical; }
     document.getElementById('dlg-title').textContent = t('settingsTitle');
     dlgFields.innerHTML =
       '<label>' + t('langLabel') + '<select id="d-lang">' + langOptions + '</select></label>' +
+      '<label>' + t('emergencyCountryLabel') + '<select id="d-emergency">' + emergencyOptions() + '</select></label>' +
       '<h3 style="margin-top:6px">' + t('privacyTitle') + '</h3>' +
       '<p>' + t('dataLocal') + '</p>' +
       '<p class="muted">' + t('itemsStored', { n: count }) + '</p>' +
@@ -812,6 +830,11 @@ textarea { min-height: 70px; resize: vertical; }
 
   function onDataChange(e) {
     if (e.target.id === 'd-lang') { setLanguage(e.target.value); openData(); return; }
+    if (e.target.id === 'd-emergency') {
+      commit(function () { state.settings.emergency = e.target.value || null; });
+      openData();
+      return;
+    }
     if (e.target.id !== 'd-import' || !e.target.files[0]) return;
     var reader = new FileReader();
     reader.onload = function () {

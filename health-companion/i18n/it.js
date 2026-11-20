@@ -1,6 +1,9 @@
 /* Italiano – traduzione dal slovenčiny (kľúče sú rovnaké vo všetkých jazykoch). */
 HCI18N.add('it', {
   _flag: '🇮🇹', _name: 'Italiano', _htmlLang: 'it',
+  emergencyLine: 'Numero di emergenza: {number}',
+  emergencyCountryLabel: 'Paese (numero di emergenza)',
+  emergencyDefault: '112 (UE – predefinito)',
   dateUnknown: '—',
   errNameRequired: 'Il nome è obbligatorio.',
   reminderTitle: 'È ora di prendere il farmaco',

@@ -1,6 +1,9 @@
 /* Slovenčina – zdrojový jazyk (kľúče sú rovnaké vo všetkých jazykoch). */
 HCI18N.add('sk', {
   _flag: '🇸🇰', _name: 'Slovenčina', _htmlLang: 'sk',
+  emergencyLine: 'Tiesňová linka: {number}',
+  emergencyCountryLabel: 'Krajina (tiesňová linka)',
+  emergencyDefault: '112 (EÚ – predvolené)',
   dateUnknown: '—',
   errNameRequired: 'Názov je povinný.',
   reminderTitle: 'Čas užiť liek',

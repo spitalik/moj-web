@@ -1,6 +1,9 @@
 /* 한국어 – 번역 (키는 sk.js와 동일). */
 HCI18N.add('ko', {
   _flag: '🇰🇷', _name: '한국어', _htmlLang: 'ko',
+  emergencyLine: '긴급 전화번호: {number}',
+  emergencyCountryLabel: '국가 (긴급 전화번호)',
+  emergencyDefault: '112 (EU – 기본값)',
   dateUnknown: '—',
   errNameRequired: '이름은 필수입니다.',
   reminderTitle: '약을 복용할 시간입니다',

@@ -1,6 +1,9 @@
 /* Türkçe – çeviri z slovenčiny (kľúče sú rovnaké vo všetkých jazykoch). */
 HCI18N.add('tr', {
   _flag: '🇹🇷', _name: 'Türkçe', _htmlLang: 'tr',
+  emergencyLine: 'Acil çağrı numarası: {number}',
+  emergencyCountryLabel: 'Ülke (acil numara)',
+  emergencyDefault: '112 (AB – varsayılan)',
   dateUnknown: '—',
   errNameRequired: 'Ad zorunludur.',
   reminderTitle: 'İlacınızı alma zamanı',

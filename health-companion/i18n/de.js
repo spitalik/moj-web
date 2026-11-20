@@ -1,6 +1,9 @@
 /* Deutsch – Übersetzung aus sk.js (kľúče sú rovnaké vo všetkých jazykoch). */
 HCI18N.add('de', {
   _flag: '🇩🇪', _name: 'Deutsch', _htmlLang: 'de',
+  emergencyLine: 'Notruf: {number}',
+  emergencyCountryLabel: 'Land (Notrufnummer)',
+  emergencyDefault: '112 (EU – Standard)',
   dateUnknown: '—',
   errNameRequired: 'Der Name ist erforderlich.',
   reminderTitle: 'Zeit für Ihr Medikament',

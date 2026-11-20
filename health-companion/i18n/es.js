@@ -1,6 +1,9 @@
 /* Español – traducción desde sk.js (las claves son las mismas en todos los idiomas). */
 HCI18N.add('es', {
   _flag: '🇪🇸', _name: 'Español', _htmlLang: 'es',
+  emergencyLine: 'Número de emergencias: {number}',
+  emergencyCountryLabel: 'País (número de emergencias)',
+  emergencyDefault: '112 (UE – predeterminado)',
   dateUnknown: '—',
   errNameRequired: 'El nombre es obligatorio.',
   reminderTitle: 'Hora de tomar el medicamento',

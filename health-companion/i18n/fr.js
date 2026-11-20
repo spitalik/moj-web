@@ -1,6 +1,9 @@
 /* Français – traduction depuis sk.js (kľúče sú rovnaké vo všetkých jazykoch). */
 HCI18N.add('fr', {
   _flag: '🇫🇷', _name: 'Français', _htmlLang: 'fr',
+  emergencyLine: 'Numéro d’urgence : {number}',
+  emergencyCountryLabel: 'Pays (numéro d’urgence)',
+  emergencyDefault: '112 (UE – par défaut)',
   dateUnknown: '—',
   errNameRequired: 'Le nom est obligatoire.',
   reminderTitle: 'Il est temps de prendre votre médicament',

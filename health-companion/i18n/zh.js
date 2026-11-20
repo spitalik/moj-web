@@ -1,6 +1,9 @@
 /* 简体中文 – 翻译自斯洛伐克语源文件（键名与 sk.js 相同）。 */
 HCI18N.add('zh', {
   _flag: '🇨🇳', _name: '中文', _htmlLang: 'zh-CN',
+  emergencyLine: '紧急电话：{number}',
+  emergencyCountryLabel: '国家（紧急号码）',
+  emergencyDefault: '112（欧盟 – 默认）',
   dateUnknown: '—',
   errNameRequired: '名称为必填项。',
   reminderTitle: '该服药了',

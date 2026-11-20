@@ -200,6 +200,15 @@ test('chybové hlášky logiky idú v zvolenom jazyku', () => {
   assert.ok(HC.validateMed({ name: '', times: ['08:00'] }).includes('povinné'));
 });
 
+test('tiesňové číslo: predvolené 112, krajiny podľa zoznamu, neznáma krajina -> 112', () => {
+  assert.strictEqual(HC.emergencyNumber(undefined), '112');
+  assert.strictEqual(HC.emergencyNumber(null), '112');
+  assert.strictEqual(HC.emergencyNumber('SK'), '112');
+  assert.strictEqual(HC.emergencyNumber('US'), '911');
+  assert.strictEqual(HC.emergencyNumber('GB'), '999');
+  assert.strictEqual(HC.emergencyNumber('XX'), '112');
+});
+
 test('cache verzia v sw.js zodpovedá obsahu appky (inak spustiť node tools/bump_cache.js)', () => {
   const cache = require(path.join(__dirname, 'bump_cache.js'));
   assert.strictEqual(cache.currentCache(), cache.expectedCache());

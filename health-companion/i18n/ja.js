@@ -1,6 +1,9 @@
 /* 日本語 – 翻訳（キーはsk.jsと同じ）。 */
 HCI18N.add('ja', {
   _flag: '🇯🇵', _name: '日本語', _htmlLang: 'ja',
+  emergencyLine: '緊急通報番号: {number}',
+  emergencyCountryLabel: '国（緊急通報番号）',
+  emergencyDefault: '112（EU・既定）',
   dateUnknown: '—',
   errNameRequired: '名前は必須です。',
   reminderTitle: '薬を飲む時間です',
