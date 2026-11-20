@@ -67,6 +67,7 @@ header.top {
 }
 header.top .brand { font-weight: 700; font-size: 17px; background: none; border: 0; color: var(--fg); padding: 6px 4px; border-radius: 10px; }
 header.top .brand:hover { background: var(--card-2); }
+header.top .top-actions { display: flex; align-items: center; gap: 8px; }
 header.top .brand span { color: var(--accent); }
 .btn {
   border: 1px solid var(--line); background: var(--card); color: var(--fg);
@@ -154,6 +155,12 @@ textarea { min-height: 70px; resize: vertical; }
   <button class="btn icon" id="btn-data" aria-label="Údaje a ochrana súkromia" title="Údaje a ochrana súkromia">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
   </button>
+  <div class="top-actions">
+    <button class="btn small" id="btn-install" hidden>Nainštalovať</button>
+    <button class="btn icon" id="btn-data" aria-label="Údaje a ochrana súkromia" title="Údaje a ochrana súkromia">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </div>
 </header>
 
 <main id="view" aria-live="polite"></main>
@@ -239,6 +246,14 @@ textarea { min-height: 70px; resize: vertical; }
   var dlgErr = document.getElementById('dlg-error');
   var dlgState = null;
 
+  // Režim formulára: true = ukladací formulár, false = len zobrazenie obsahu (Zavrieť).
+  // Obsah je vnútri formulára, preto sa neskrýva celý formulár, len tlačidlá.
+  function setDlgMode(isForm) {
+    document.getElementById('dlg-save').hidden = !isForm;
+    document.getElementById('dlg-cancel').textContent = isForm ? 'Zrušiť' : 'Zavrieť';
+    if (!isForm) dlgState = null;
+  }
+
   // spec: [{name, label, type, options?, required?, placeholder?, value?}]
   function openForm(title, spec, values, onSave) {
     dlgState = { spec: spec, onSave: onSave };
@@ -257,6 +272,7 @@ textarea { min-height: 70px; resize: vertical; }
       return '<label>' + esc(f.label) + input + '</label>';
     }).join('');
     dlgErr.hidden = true;
+    setDlgMode(true);
     dlg.showModal();
   }
   function readForm() {
@@ -271,6 +287,7 @@ textarea { min-height: 70px; resize: vertical; }
   document.getElementById('dlg-cancel').addEventListener('click', function () { dlg.close(); });
   dlgForm.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (!dlgState) { dlg.close(); return; }
     var values = readForm();
     var err = dlgState.onSave(values);
     if (err) { dlgErr.textContent = err; dlgErr.hidden = false; return; }
@@ -584,7 +601,7 @@ textarea { min-height: 70px; resize: vertical; }
       '<button type="button" class="btn danger" id="d-wipe">Vymazať všetky údaje</button></div>' +
       '<p class="disclaimer">Health Companion je osobný záznamník. Neposkytuje lekársku diagnózu ani liečbu a nenahrádza konzultáciu s lekárom. Pri náhlych alebo vážnych ťažkostiach volajte 112.</p>';
     dlgErr.hidden = true;
-    dlgForm.style.display = 'none';
+    setDlgMode(false);
     dlg.showModal();
   }
   // Udalosti dialógu údajov sú zavesené raz (kliknutia a výber súboru sa delegujú cez dlgFields).
@@ -698,7 +715,7 @@ textarea { min-height: 70px; resize: vertical; }
     document.getElementById('dlg-title').textContent = title;
     dlgFields.innerHTML = '<div class="pre">' + esc(text) + '</div>';
     dlgErr.hidden = true;
-    dlgForm.style.display = 'none';
+    setDlgMode(false);
     var copyBtn = document.createElement('button');
     copyBtn.type = 'button'; copyBtn.className = 'btn primary'; copyBtn.textContent = 'Kopírovať';
     copyBtn.addEventListener('click', function () {
@@ -709,8 +726,6 @@ textarea { min-height: 70px; resize: vertical; }
     dlg.showModal();
   }
 
-  // Zrušenie úprav dialógu "zobraziť text / údaje" obnoví formulár
-  dlg.addEventListener('close', function () { dlgForm.style.display = ''; });
 
   // ---------- Pripomienky (kým je appka otvorená) ----------
   var notified = {};
@@ -730,6 +745,36 @@ textarea { min-height: 70px; resize: vertical; }
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
   }
+
+  // ---------- Inštalácia na zariadenie ----------
+  var installBtn = document.getElementById('btn-install');
+  var deferredPrompt = null;
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+
+  if (!isStandalone) {
+    // Chrome, Edge a Android: prehliadač pošle udalosť, keď je appka inštalovateľná
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.hidden = false;
+    });
+    // iPhone/iPad nemajú inštalačné API: ukážeme postup cez Zdieľať
+    if (isIOS) installBtn.hidden = false;
+  }
+  window.addEventListener('appinstalled', function () { installBtn.hidden = true; deferredPrompt = null; });
+
+  installBtn.addEventListener('click', function () {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function () { deferredPrompt = null; installBtn.hidden = true; });
+    } else if (isIOS) {
+      showText('Inštalácia na iPhone / iPad',
+        '1. Otvorte túto stránku v Safari.\n2. Klepnite na tlačidlo Zdieľať (štvorec so šípkou).\n3. Vyberte „Pridať na plochu“.\n4. Potvrďte „Pridať“.');
+    } else {
+      toast('V menu prehliadača vyberte „Nainštalovať aplikáciu“ alebo „Pridať na plochu“.');
+    }
+  });
 
   render();
 })();
