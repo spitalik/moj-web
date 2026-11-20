@@ -26,7 +26,7 @@ HCI18N.add('tr', {
   add: '+ Ekle',
   edit: 'Düzenle',
   remove: 'Sil',
-  disclaimer: 'Health Companion doktorun veya eczacının yerini tutmaz. Ani veya ciddi rahatsızlıklarda yerel acil durum numarasını arayın (AB\'de 112, Slovakya\'da ise ambulans için ayrıca 155).',
+  disclaimer: 'Health Companion doktorun veya eczacının yerini tutmaz. Ani veya ciddi rahatsızlıklarda yerel acil durum numarasını arayın.',
   saveFail: 'Veriler kaydedilemedi (depolama dolu veya engellenmiş).',
 
   // Bugün

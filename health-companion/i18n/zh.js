@@ -26,7 +26,7 @@ HCI18N.add('zh', {
   add: '+ 添加',
   edit: '编辑',
   remove: '删除',
-  disclaimer: 'Health Companion 不能替代医生或药剂师。遇到突发或严重的不适时，请拨打当地紧急号码（欧盟为 112，斯洛伐克还可拨打 155 联系救护服务）。',
+  disclaimer: 'Health Companion 不能替代医生或药剂师。遇到突发或严重的不适时，请拨打当地紧急号码。',
   saveFail: '无法保存数据（存储空间已满或被阻止）。',
 
   // 今天

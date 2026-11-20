@@ -479,8 +479,8 @@ textarea { min-height: 70px; resize: vertical; }
       }).join('') + '</div></section>';
     }
 
-    html += '<p class="muted">' + t('emergencyLine', { number: HC.emergencyNumber(state.settings.emergency) }) + '</p>';
     html += '<p class="disclaimer">' + t('disclaimer') + '</p>';
+    html += '<p class="muted">' + t('emergencyLine', { number: HC.emergencyNumber(state.settings.emergency) }) + '</p>';
     return html;
   };
 

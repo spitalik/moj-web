@@ -26,7 +26,7 @@ HCI18N.add('it', {
   add: '+ Aggiungi',
   edit: 'Modifica',
   remove: 'Elimina',
-  disclaimer: 'Health Companion non sostituisce il medico né il farmacista. In caso di disturbi improvvisi o gravi, chiami il numero di emergenza locale (nell\'UE il 112; in Slovacchia anche il 155 per il servizio ambulanza).',
+  disclaimer: 'Health Companion non sostituisce il medico né il farmacista. In caso di disturbi improvvisi o gravi, chiami il numero di emergenza locale.',
   saveFail: 'Impossibile salvare i dati (memoria piena o bloccata).',
 
   // Dnes

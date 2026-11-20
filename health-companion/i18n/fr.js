@@ -26,7 +26,7 @@ HCI18N.add('fr', {
   add: '+ Ajouter',
   edit: 'Modifier',
   remove: 'Supprimer',
-  disclaimer: 'Health Companion ne remplace ni un médecin ni un pharmacien. En cas de malaise soudain ou grave, appelez le numéro d\'urgence local (dans l\'UE le 112, en Slovaquie aussi le 155 pour le service d\'ambulance).',
+  disclaimer: 'Health Companion ne remplace ni un médecin ni un pharmacien. En cas de malaise soudain ou grave, appelez le numéro d\'urgence local.',
   saveFail: 'Les données n\'ont pas pu être enregistrées (stockage plein ou bloqué).',
 
   // Dnes

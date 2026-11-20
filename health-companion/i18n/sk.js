@@ -26,7 +26,7 @@ HCI18N.add('sk', {
   add: '+ Pridať',
   edit: 'Upraviť',
   remove: 'Zmazať',
-  disclaimer: 'Health Companion nenahrádza lekára ani lekárnika. Pri náhlych alebo vážnych ťažkostiach volajte miestne tiesňové číslo (v EÚ 112, na Slovensku aj 155 pre záchrannú službu).',
+  disclaimer: 'Health Companion nenahrádza lekára ani lekárnika. Pri náhlych alebo vážnych ťažkostiach volajte miestne tiesňové číslo.',
   saveFail: 'Údaje sa nepodarilo uložiť (plné úložisko alebo blokované).',
 
   // Dnes

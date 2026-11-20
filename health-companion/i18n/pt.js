@@ -26,7 +26,7 @@ HCI18N.add('pt', {
   add: '+ Adicionar',
   edit: 'Editar',
   remove: 'Excluir',
-  disclaimer: 'O Health Companion não substitui um médico nem um farmacêutico. Em caso de sintomas súbitos ou graves, ligue para o número de emergência local (na UE 112; na Eslováquia também 155 para o serviço de ambulância).',
+  disclaimer: 'O Health Companion não substitui um médico nem um farmacêutico. Em caso de sintomas súbitos ou graves, ligue para o número de emergência local.',
   saveFail: 'Não foi possível salvar os dados (armazenamento cheio ou bloqueado).',
 
   // Dnes

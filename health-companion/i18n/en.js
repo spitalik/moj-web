@@ -26,7 +26,7 @@ HCI18N.add('en', {
   add: '+ Add',
   edit: 'Edit',
   remove: 'Delete',
-  disclaimer: 'Health Companion does not replace a doctor or pharmacist. For sudden or serious problems, call your local emergency number (in the EU 112; in Slovakia also 155 for the ambulance service).',
+  disclaimer: 'Health Companion does not replace a doctor or pharmacist. For sudden or serious problems, call your local emergency number.',
   saveFail: 'The data could not be saved (storage is full or blocked).',
 
   // Today

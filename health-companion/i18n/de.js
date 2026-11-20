@@ -26,7 +26,7 @@ HCI18N.add('de', {
   add: '+ Hinzufügen',
   edit: 'Bearbeiten',
   remove: 'Löschen',
-  disclaimer: 'Health Companion ersetzt keinen Arzt und keine Apotheke. Bei plötzlichen oder schweren Beschwerden rufen Sie die lokale Notrufnummer an (in der EU 112, in der Slowakei zusätzlich 155 für den Rettungsdienst).',
+  disclaimer: 'Health Companion ersetzt keinen Arzt und keine Apotheke. Bei plötzlichen oder schweren Beschwerden rufen Sie die lokale Notrufnummer an.',
   saveFail: 'Die Daten konnten nicht gespeichert werden (Speicher voll oder blockiert).',
 
   // Heute
