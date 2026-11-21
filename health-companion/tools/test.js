@@ -80,7 +80,7 @@ test('export a import sa zhodujú; cudzí súbor sa odmietne', () => {
   const state = HC.emptyState();
   state.meds = meds;
   state.taken = { '2026-11-20': { 'a|08:00': true } };
-  const back = HC.importJSON(HC.exportJSON(state));
+  const back = HC.importJSON(HC.exportJSON(state)).state;
   assert.deepStrictEqual(back.meds, meds);
   assert.deepStrictEqual(back.taken, state.taken);
   assert.throws(() => HC.importJSON('{"foo":1}'), /nie je zálohou/);
@@ -225,4 +225,119 @@ test('questionsText vypíše očíslované otázky', () => {
   assert.ok(txt.includes('1. Môžem športovať?') && txt.includes('2. Aký liek?'));
 });
 
-console.log('\n' + passed + ' testov prešlo' + (process.exitCode ? ' (niektoré zlyhali)' : ''));
+test('adherencia: splatné dávky, užité, vynechané a nesplnené', () => {
+  const state = HC.normalizeState({
+    meds: [{ id: 'a', name: 'Metformín', times: ['08:00', '20:00'], startDate: '2026-11-18' }],
+    taken: { '2026-11-18': { 'a|08:00': 'taken', 'a|20:00': 'skipped' }, '2026-11-19': { 'a|08:00': 'taken' } }
+  });
+  // 18.11. dve dávky (1 užitá, 1 vynechaná), 19.11. 08:00 užitá a 20:00 nesplnená, 20.11. do 10:00 len 08:00 (nesplnená)
+  const r = HC.adherence(state, '2026-11-18', '2026-11-20', '2026-11-20', '10:00');
+  assert.strictEqual(r.due, 5);
+  assert.strictEqual(r.taken, 2);
+  assert.strictEqual(r.skipped, 1);
+  assert.strictEqual(r.missed, 2);
+  assert.strictEqual(r.percent, 40);
+  assert.strictEqual(HC.adherence(state, '2026-11-25', '2026-11-30', '2026-11-20', '10:00').percent, null);
+});
+
+test('odloženie pripomienky: čas + 10 min a obaľovanie cez polnoc', () => {
+  assert.strictEqual(HC.addMinutes('08:00', 10), '08:10');
+  assert.strictEqual(HC.addMinutes('23:55', 10), '00:05');
+  const snoozes = HC.setSnooze({}, '2026-11-20', 'a|08:00', '08:10');
+  const dose = HC.medDosesOn(meds, {}, '2026-11-20')[0];
+  assert.strictEqual(HC.reminderTime(dose, snoozes, '2026-11-20'), '08:10');
+  assert.strictEqual(HC.reminderTime(dose, HC.setSnooze(snoozes, '2026-11-20', 'a|08:00', null), '2026-11-20'), '08:00');
+});
+
+test('merania: validácia, rozsahy a séria podľa typu', () => {
+  assert.strictEqual(HC.validateMeasurement({ type: 'bp', date: '2026-11-20', value: 120, value2: 80 }), null);
+  assert.ok(HC.validateMeasurement({ type: 'bp', date: '2026-11-20', value: 120 }));
+  assert.ok(HC.validateMeasurement({ type: 'pulse', date: '2026-11-20', value: 900 }));
+  assert.ok(HC.validateMeasurement({ type: 'xxx', date: '2026-11-20', value: 1 }));
+  const list = [
+    { id: '1', type: 'bp', date: '2026-11-20', time: '09:00', value: 130, value2: 85 },
+    { id: '2', type: 'pulse', date: '2026-11-20', value: 70 },
+    { id: '3', type: 'bp', date: '2026-10-01', value: 110, value2: 70 }
+  ];
+  const s = HC.measurementSeries(list, 'bp', '2026-11-01', '2026-11-30');
+  assert.deepStrictEqual(s.map(x => x.value), [130]);
+  assert.strictEqual(s[0].value2, 85);
+});
+
+test('výsledky vyšetrení: stav voči referencii a história podľa názvu', () => {
+  assert.strictEqual(HC.labStatus({ value: 6.5, refLow: 3.9, refHigh: 5.6 }), 'high');
+  assert.strictEqual(HC.labStatus({ value: 3.0, refLow: 3.9, refHigh: 5.6 }), 'low');
+  assert.strictEqual(HC.labStatus({ value: 4.5, refLow: 3.9, refHigh: 5.6 }), 'ok');
+  assert.strictEqual(HC.labStatus({ value: 4.5 }), null);
+  assert.ok(HC.validateLab({ name: 'Glukóza', date: '2026-11-20', value: 'x' }));
+  assert.ok(HC.validateLab({ name: 'Glukóza', date: '2026-11-20', value: 5, refLow: 9, refHigh: 2 }));
+  const labs = [
+    { name: 'Glukóza', date: '2026-11-01', value: 5 },
+    { name: 'glukóza', date: '2026-10-01', value: 4.8 },
+    { name: 'LDL', date: '2026-11-01', value: 3 }
+  ];
+  assert.deepStrictEqual(HC.labNames(labs), ['Glukóza', 'LDL']);
+  assert.deepStrictEqual(HC.labSeries(labs, 'GLUKÓZA').map(x => x.value), [4.8, 5]);
+});
+
+test('očkovania: stav podľa ďalšej dávky', () => {
+  assert.strictEqual(HC.vaccinationStatus({ nextDate: null }, '2026-11-20').status, null);
+  assert.strictEqual(HC.vaccinationStatus({ nextDate: '2026-11-10' }, '2026-11-20').status, 'overdue');
+  assert.strictEqual(HC.vaccinationStatus({ nextDate: '2026-12-05' }, '2026-11-20').status, 'soon');
+  assert.strictEqual(HC.vaccinationStatus({ nextDate: '2027-06-05' }, '2026-11-20').status, 'ok');
+});
+
+test('CSV merania: úvodzovky a jednotky', () => {
+  const csv = HC.measurementsCSV([{ type: 'bp', date: '2026-11-20', time: '08:00', value: 120, value2: 80, notes: 'po \"káve\"' }]);
+  const lines = csv.split('\n');
+  assert.strictEqual(lines[0], 'date,time,type,value,value2,unit,notes');
+  assert.strictEqual(lines[1], '"2026-11-20","08:00","bp","120","80","mmHg","po ""káve"""');
+});
+
+test('prílohy: len fotky a PDF do 5 MB', () => {
+  assert.ok(HC.validateFile('text/plain', 100));
+  assert.ok(HC.validateFile('image/png', HC.MAX_ATTACHMENT_BYTES + 1));
+  assert.ok(HC.validateFile('image/png', 0));
+  assert.strictEqual(HC.validateFile('application/pdf', 1000), null);
+  assert.strictEqual(HC.validateFile('image/jpeg', 1000), null);
+});
+
+test('export obsahuje prílohy a import ich vráti oddelene; zašifrovaná záloha sa rozpozná', () => {
+  const st = HC.emptyState();
+  const text = HC.exportJSON(st, { abc: 'QUJD' });
+  const imp = HC.importJSON(text);
+  assert.deepStrictEqual(imp.attachmentData, { abc: 'QUJD' });
+  assert.strictEqual(HC.isEncryptedBackup(text), false);
+  assert.strictEqual(HC.isEncryptedBackup('{"encrypted":true,"salt":"x"}'), true);
+});
+
+// Šifrovanie (WebCrypto) – asynchrónne testy na konci.
+const SB = require(path.join(__dirname, '..', 'securebox.js'));
+const pending = [];
+function atest(name, fn) {
+  pending.push(fn().then(() => { passed++; console.log('ok   ' + name); },
+    e => { console.error('FAIL ' + name + '\n  ' + e.message); process.exitCode = 1; }));
+}
+
+atest('šifrovanie: text sa dá rozšifrovať len správnym heslom', async () => {
+  const salt = SB.newSalt();
+  const key = await SB.deriveKey('dlhe-heslo-123', salt);
+  const r = await SB.encryptText(key, '{"meds":[]}');
+  assert.notStrictEqual(r.ct, SB.toB64(new TextEncoder().encode('{"meds":[]}').buffer));
+  assert.strictEqual(await SB.decryptText(key, r.iv, r.ct), '{"meds":[]}');
+  const wrong = await SB.deriveKey('zle-heslo-123', salt);
+  await assert.rejects(SB.decryptText(wrong, r.iv, r.ct));
+});
+
+atest('šifrovanie: záloha sa otvorí heslom z obálky, zlé heslo zlyhá', async () => {
+  const salt = SB.newSalt();
+  const key = await SB.deriveKey('dlhe-heslo-123', salt);
+  const env = await SB.seal(key, salt, '{"schema":"health-companion"}');
+  assert.strictEqual(env.encrypted, true);
+  assert.strictEqual(await SB.open('dlhe-heslo-123', env), '{"schema":"health-companion"}');
+  await assert.rejects(SB.open('zle-heslo-123', env));
+});
+
+Promise.all(pending).then(() => {
+  console.log('\n' + passed + ' testov prešlo' + (process.exitCode ? ' (niektoré zlyhali)' : ''));
+});

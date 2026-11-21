@@ -7,7 +7,7 @@ const path = require('path');
 
 const APP_DIR = path.join(__dirname, '..');
 const LANGS = ['sk', 'en', 'es', 'pt', 'de', 'fr', 'it', 'ru', 'tr', 'ja', 'ko', 'zh'];
-const FILES = ['index.html', 'logic.js', 'manifest.webmanifest', 'i18n/core.js']
+const FILES = ['index.html', 'logic.js', 'securebox.js', 'store.js', 'manifest.webmanifest', 'i18n/core.js']
   .concat(LANGS.map(c => 'i18n/' + c + '.js'));
 const CACHE_LINE = /const CACHE = '[^']*';/;
 

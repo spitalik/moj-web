@@ -8,6 +8,10 @@
   var VERSION = 1;
   var LOW_STOCK_DAYS = 7;
   var BACKUP_EVERY_DAYS = 30;
+  var SNOOZE_MINUTES = 10;
+  var MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+  // Všetky zoznamy záznamov v stave (poradie nie je dôležité).
+  var COLLECTIONS = ['meds', 'symptoms', 'problems', 'visits', 'checkups', 'questions', 'measurements', 'labs', 'vaccinations', 'contacts', 'attachments'];
 
   var I18N = (typeof HCI18N !== 'undefined') ? HCI18N
     : (typeof require === 'function' ? require('./i18n/core.js') : null);
@@ -28,6 +32,15 @@
     std3: 'Krvné testy (glukóza, cholesterol)',
     std4: 'Zubár – kontrola a čistenie',
     std5: 'Očný lekár'
+  };
+
+  // Typy meraní: jednotka, rozsah platných hodnôt; krvný tlak má aj druhú hodnotu (diastolický).
+  var MEASURE_TYPES = {
+    bp: { unit: 'mmHg', min: 40, max: 300, two: true },
+    pulse: { unit: '/min', min: 20, max: 250 },
+    weight: { unit: 'kg', min: 1, max: 500 },
+    glucose: { unit: 'mmol/L', min: 0.5, max: 50 },
+    temp: { unit: '°C', min: 30, max: 45 }
   };
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -70,6 +83,13 @@
     return Math.round((b - a) / 86400000);
   }
 
+  // Pripočíta minúty k času HH:MM (cez polnoc sa obalí).
+  function addMinutes(time, mins) {
+    var p = time.split(':');
+    var tot = ((+p[0] * 60 + +p[1] + mins) % 1440 + 1440) % 1440;
+    return pad(Math.floor(tot / 60)) + ':' + pad(tot % 60);
+  }
+
   // ---- Lieky ----
 
   function medActiveOn(med, dateIso) {
@@ -102,7 +122,8 @@
           time: time,
           status: status,
           taken: status === 'taken',
-          skipped: status === 'skipped'
+          skipped: status === 'skipped',
+          remindersOff: med.remindersOff === true
         });
       });
     });
@@ -135,6 +156,22 @@
     });
   }
 
+  // Odloženie pripomienky: snoozes = { "YYYY-MM-DD": { "medId|HH:MM": "HH:MM" } }
+  function setSnooze(snoozes, dateIso, key, time) {
+    var next = JSON.parse(JSON.stringify(snoozes || {}));
+    if (!next[dateIso]) next[dateIso] = {};
+    if (time) next[dateIso][key] = time;
+    else delete next[dateIso][key];
+    if (Object.keys(next[dateIso]).length === 0) delete next[dateIso];
+    return next;
+  }
+
+  // Čas, kedy sa má dávka pripomenúť (pôvodný alebo odložený).
+  function reminderTime(dose, snoozes, dateIso) {
+    var s = snoozes && snoozes[dateIso] && snoozes[dateIso][dose.key];
+    return s || dose.time;
+  }
+
   // Zásoby: koľko dní vystačí, ak je zadaný počet kusov (stock).
   function daysOfSupply(med) {
     if (!med || typeof med.stock !== 'number') return null;
@@ -145,6 +182,26 @@
   function lowStock(med, thresholdDays) {
     var days = daysOfSupply(med);
     return days !== null && days <= (thresholdDays == null ? LOW_STOCK_DAYS : thresholdDays);
+  }
+
+  // Adherencia: z dávok, ktoré už mali byť (dátum < dnes, alebo dnes a čas <= teraz),
+  // koľko je užitých, vynechaných a nesplnených. Voliteľne len pre jeden liek (medId).
+  function adherence(state, fromIso, toIso, todayIso, nowTime, medId) {
+    var r = { due: 0, taken: 0, skipped: 0, missed: 0, percent: null };
+    var day = fromIso, guard = 0;
+    while (day && day <= toIso && guard++ < 400) {
+      medDosesOn(state.meds, state.taken, day).forEach(function (d) {
+        if (medId && d.medId !== medId) return;
+        if (day > todayIso || (day === todayIso && d.time > nowTime)) return;
+        r.due++;
+        if (d.status === 'taken') r.taken++;
+        else if (d.status === 'skipped') r.skipped++;
+        else r.missed++;
+      });
+      day = addDays(day, 1);
+    }
+    if (r.due) r.percent = Math.round(r.taken / r.due * 100);
+    return r;
   }
 
   // Zoznam dávok označených ako užité v intervale [fromIso, toIso] (vrátane).
@@ -206,11 +263,78 @@
     });
   }
 
+  // Očkovanie: stav podľa termínu ďalšej dávky. Bez termínu -> status null.
+  function vaccinationStatus(vacc, todayIso) {
+    if (!vacc.nextDate) return { status: null, days: null };
+    var days = daysBetween(todayIso, vacc.nextDate);
+    return { status: days < 0 ? 'overdue' : days <= 30 ? 'soon' : 'ok', days: days };
+  }
+
+  // ---- Merania a výsledky ----
+
+  // Merania daného typu v intervale, zoradené podľa dátumu a času.
+  function measurementSeries(list, type, fromIso, toIso) {
+    return (list || []).filter(function (m) {
+      return m.type === type && m.date >= fromIso && m.date <= toIso;
+    }).map(function (m) {
+      return { id: m.id, date: m.date, time: m.time || '', value: Number(m.value), value2: m.value2 == null ? null : Number(m.value2), notes: m.notes || '' };
+    }).sort(function (a, b) {
+      return a.date + a.time < b.date + b.time ? -1 : a.date + a.time > b.date + b.time ? 1 : 0;
+    });
+  }
+
+  // Stav výsledku voči referenčnému rozsahu: 'low', 'high', 'ok' alebo null (bez rozsahu).
+  function labStatus(lab) {
+    var hasLow = lab.refLow != null && lab.refLow !== '';
+    var hasHigh = lab.refHigh != null && lab.refHigh !== '';
+    if (!hasLow && !hasHigh) return null;
+    var v = Number(lab.value);
+    if (hasLow && v < Number(lab.refLow)) return 'low';
+    if (hasHigh && v > Number(lab.refHigh)) return 'high';
+    return 'ok';
+  }
+
+  // Názvy vyšetrení (bez duplicít, bez ohľadu na veľkosť písmen), so zachovaním prvého zápisu.
+  function labNames(labs) {
+    var seen = {}, out = [];
+    (labs || []).forEach(function (l) {
+      var k = String(l.name || '').trim().toLowerCase();
+      if (k && !seen[k]) { seen[k] = true; out.push(String(l.name).trim()); }
+    });
+    return out;
+  }
+
+  // Výsledky jedného vyšetrenia, zoradené podľa dátumu.
+  function labSeries(labs, name) {
+    var key = String(name || '').trim().toLowerCase();
+    return (labs || []).filter(function (l) {
+      return String(l.name || '').trim().toLowerCase() === key;
+    }).sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  }
+
+  // CSV: hodnoty v úvodzovkách, dvojité úvodzovky sa zdvojujú.
+  function csvCell(v) {
+    return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  }
+
+  function measurementsCSV(list) {
+    var lines = ['date,time,type,value,value2,unit,notes'];
+    (list || []).slice().sort(function (a, b) { return a.date + (a.time || '') < b.date + (b.time || '') ? -1 : 1; }).forEach(function (m) {
+      var unit = MEASURE_TYPES[m.type] ? MEASURE_TYPES[m.type].unit : '';
+      lines.push([m.date, m.time || '', m.type, m.value, m.value2 == null ? '' : m.value2, unit, m.notes || ''].map(csvCell).join(','));
+    });
+    return lines.join('\n');
+  }
+
   // ---- Validácia ----
 
   function requireText(value, label) {
     if (!value || !String(value).trim()) return T('errRequired', { label: label });
     return null;
+  }
+
+  function isNumber(v) {
+    return v !== '' && v != null && isFinite(Number(v));
   }
 
   function validateMed(m) {
@@ -239,6 +363,43 @@
     return requireText(c.name, T('labelCheckupName')) ||
       (c.intervalMonths >= 1 && c.intervalMonths <= 120 ? null : T('errInterval')) ||
       (c.lastDate && !parseISO(c.lastDate) ? T('errLastCheckup') : null);
+  }
+
+  function validateMeasurement(m) {
+    var type = MEASURE_TYPES[m.type];
+    if (!type) return T('errMeasureType');
+    if (!parseISO(m.date)) return T('errDate');
+    if (m.time && !isValidTime(m.time)) return T('errTime');
+    if (!isNumber(m.value) || Number(m.value) < type.min || Number(m.value) > type.max) return T('errMeasureValue');
+    if (type.two && (!isNumber(m.value2) || Number(m.value2) < 20 || Number(m.value2) > 200)) return T('errMeasureValue2');
+    return null;
+  }
+
+  function validateLab(l) {
+    return requireText(l.name, T('labelLabName')) ||
+      (parseISO(l.date) ? null : T('errDate')) ||
+      (isNumber(l.value) ? null : T('errLabValue')) ||
+      (l.refLow !== '' && l.refLow != null && !isNumber(l.refLow) ? T('errLabValue') : null) ||
+      (l.refHigh !== '' && l.refHigh != null && !isNumber(l.refHigh) ? T('errLabValue') : null) ||
+      (isNumber(l.refLow) && isNumber(l.refHigh) && Number(l.refLow) > Number(l.refHigh) ? T('errLabValue') : null);
+  }
+
+  function validateVaccination(v) {
+    return requireText(v.name, T('labelVaccName')) ||
+      (parseISO(v.date) ? null : T('errVaccDate')) ||
+      (v.nextDate && !parseISO(v.nextDate) ? T('errVaccNext') : null);
+  }
+
+  function validateContact(c) {
+    return requireText(c.name, T('labelContactName'));
+  }
+
+  // Príloha: len fotky a PDF, najviac 5 MB.
+  function validateFile(mime, size) {
+    if (!size) return T('errAttFile');
+    if (!(String(mime || '').indexOf('image/') === 0 || mime === 'application/pdf')) return T('errAttType');
+    if (size > MAX_ATTACHMENT_BYTES) return T('errAttSize');
+    return null;
   }
 
   // ---- Otázky a príprava na návštevu ----
@@ -287,22 +448,25 @@
   // ---- Údaje: export / import / zlúčenie / zálohovanie ----
 
   function emptyState() {
-    return { meds: [], taken: {}, symptoms: [], problems: [], visits: [], checkups: [], questions: [], settings: {} };
+    var s = { taken: {}, snoozes: {}, settings: {} };
+    COLLECTIONS.forEach(function (k) { s[k] = []; });
+    return s;
   }
 
   function normalizeState(raw) {
     var s = emptyState();
     if (!raw || typeof raw !== 'object') return s;
-    ['meds', 'symptoms', 'problems', 'visits', 'checkups', 'questions'].forEach(function (k) {
+    COLLECTIONS.forEach(function (k) {
       if (Array.isArray(raw[k])) s[k] = raw[k].filter(function (x) { return x && typeof x === 'object'; });
     });
     if (raw.taken && typeof raw.taken === 'object') s.taken = raw.taken;
+    if (raw.snoozes && typeof raw.snoozes === 'object') s.snoozes = raw.snoozes;
     if (raw.settings && typeof raw.settings === 'object') s.settings = raw.settings;
     return s;
   }
 
   function dataCount(state) {
-    return ['meds', 'symptoms', 'problems', 'visits', 'checkups', 'questions'].reduce(function (n, k) {
+    return COLLECTIONS.reduce(function (n, k) {
       return n + (state[k] ? state[k].length : 0);
     }, 0);
   }
@@ -311,7 +475,7 @@
   function mergeState(current, incoming) {
     var a = normalizeState(current), b = normalizeState(incoming);
     var out = emptyState();
-    ['meds', 'symptoms', 'problems', 'visits', 'checkups', 'questions'].forEach(function (k) {
+    COLLECTIONS.forEach(function (k) {
       var byId = {}, order = [];
       a[k].concat(b[k]).forEach(function (item) {
         if (!(item.id in byId)) order.push(item.id);
@@ -321,6 +485,9 @@
     });
     Object.keys(a.taken).concat(Object.keys(b.taken)).forEach(function (date) {
       out.taken[date] = Object.assign({}, a.taken[date], b.taken[date]);
+    });
+    Object.keys(a.snoozes).concat(Object.keys(b.snoozes)).forEach(function (date) {
+      out.snoozes[date] = Object.assign({}, a.snoozes[date], b.snoozes[date]);
     });
     out.settings = Object.assign({}, b.settings, a.settings);
     return out;
@@ -333,17 +500,25 @@
     return daysBetween(lastExportIso, todayIso) >= BACKUP_EVERY_DAYS;
   }
 
-  function exportJSON(state) {
-    return JSON.stringify({ schema: SCHEMA, version: VERSION, exportedAt: new Date().toISOString(), data: normalizeState(state) }, null, 2);
+  // attachmentData: { idPrílohy: base64 } – obsah príloh (voliteľné).
+  function exportJSON(state, attachmentData) {
+    var out = { schema: SCHEMA, version: VERSION, exportedAt: new Date().toISOString(), data: normalizeState(state) };
+    if (attachmentData && Object.keys(attachmentData).length) out.attachmentData = attachmentData;
+    return JSON.stringify(out, null, 2);
   }
 
-  // Vyhodí chybu, ak súbor nie je zálohou tejto appky.
+  // Zašifrovaná záloha (obálka z securebox.js) sa najprv musí rozšifrovať.
+  function isEncryptedBackup(text) {
+    try { var o = JSON.parse(text); return !!(o && o.encrypted === true); } catch (e) { return false; }
+  }
+
+  // Vyhodí chybu, ak súbor nie je zálohou tejto appky. Vracia { state, attachmentData }.
   function importJSON(text) {
     var obj;
     try { obj = JSON.parse(text); } catch (e) { throw new Error(T('errImportJson')); }
     if (!obj || obj.schema !== SCHEMA || !obj.data) throw new Error(T('errImportNotBackup'));
     if (obj.version !== VERSION) throw new Error(T('errImportVersion', { v: obj.version }));
-    return normalizeState(obj.data);
+    return { state: normalizeState(obj.data), attachmentData: obj.attachmentData || {} };
   }
 
   function newId() {
@@ -368,15 +543,23 @@
 
   var api = {
     emergencyNumber: emergencyNumber, EMERGENCY_NUMBERS: EMERGENCY_NUMBERS, EMERGENCY_DEFAULT: EMERGENCY_DEFAULT,
-    isoDate: isoDate, parseISO: parseISO, isValidTime: isValidTime, addMonths: addMonths, addDays: addDays, daysBetween: daysBetween,
+    isoDate: isoDate, parseISO: parseISO, isValidTime: isValidTime, addMonths: addMonths, addDays: addDays, daysBetween: daysBetween, addMinutes: addMinutes,
     medActiveOn: medActiveOn, medDosesOn: medDosesOn, doseStatus: doseStatus, setDoseStatus: setDoseStatus, setDoseTaken: setDoseTaken, missedDoses: missedDoses,
-    daysOfSupply: daysOfSupply, lowStock: lowStock, medsTakenBetween: medsTakenBetween, medsBeforeSymptom: medsBeforeSymptom,
+    setSnooze: setSnooze, reminderTime: reminderTime, SNOOZE_MINUTES: SNOOZE_MINUTES,
+    daysOfSupply: daysOfSupply, lowStock: lowStock, adherence: adherence,
+    medsTakenBetween: medsTakenBetween, medsBeforeSymptom: medsBeforeSymptom,
     severityByDay: severityByDay,
     checkupStatus: checkupStatus, missingStandardCheckups: missingStandardCheckups, STANDARD_CHECKUPS: STANDARD_CHECKUPS,
+    vaccinationStatus: vaccinationStatus,
+    MEASURE_TYPES: MEASURE_TYPES, measurementSeries: measurementSeries, measurementsCSV: measurementsCSV,
+    labStatus: labStatus, labNames: labNames, labSeries: labSeries,
     validateMed: validateMed, validateSymptom: validateSymptom, validateVisit: validateVisit, validateCheckup: validateCheckup,
+    validateMeasurement: validateMeasurement, validateLab: validateLab, validateVaccination: validateVaccination,
+    validateContact: validateContact, validateFile: validateFile, MAX_ATTACHMENT_BYTES: MAX_ATTACHMENT_BYTES,
     openQuestionsFor: openQuestionsFor, questionsText: questionsText, prepSummary: prepSummary,
     emptyState: emptyState, normalizeState: normalizeState, dataCount: dataCount, mergeState: mergeState, backupDue: backupDue,
-    exportJSON: exportJSON, importJSON: importJSON,
+    exportJSON: exportJSON, importJSON: importJSON, isEncryptedBackup: isEncryptedBackup,
+    COLLECTIONS: COLLECTIONS,
     newId: newId
   };
 
