@@ -173,6 +173,9 @@ textarea { min-height: 70px; resize: vertical; }
   <button class="brand" id="btn-home" data-i18n-aria="homeAria"><span data-i18n="appName">Health Companion</span></button>
   <div class="top-actions">
     <button class="btn small" id="btn-install" hidden data-i18n="install">Nainštalovať</button>
+    <button class="btn icon" id="btn-info" data-i18n-aria="infoAria" data-i18n-title="infoAria">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.5" r="0.6" fill="currentColor"/></svg>
+    </button>
     <button class="btn icon" id="btn-data" data-i18n-aria="settingsAria" data-i18n-title="settingsAria">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     </button>
@@ -770,6 +773,20 @@ textarea { min-height: 70px; resize: vertical; }
     }).join('');
   }
 
+  // Info: stručný popis aplikácie a jednotlivých záložiek.
+  function openInfo() {
+    var tabs = [['tabToday', 'infoToday'], ['tabMeds', 'infoMeds'], ['tabSymptoms', 'infoSymptoms'], ['tabDoctor', 'infoDoctor'], ['tabCheckups', 'infoCheckups']];
+    document.getElementById('dlg-title').textContent = t('appName');
+    dlgFields.innerHTML = '<p>' + t('appDesc') + '</p>' +
+      '<h3 style="margin-top:6px">' + t('infoTabsTitle') + '</h3>' +
+      tabs.map(function (p) {
+        return '<div class="problem-line"><div class="info"><strong>' + t(p[0]) + '</strong><div class="muted">' + t(p[1]) + '</div></div></div>';
+      }).join('');
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    dlg.showModal();
+  }
+
   function openData() {
     var count = HC.dataCount(state);
     var persistText = persistGranted === true ? t('persistYes')
@@ -977,6 +994,7 @@ textarea { min-height: 70px; resize: vertical; }
     var b = e.target.closest('button[data-tab]');
     if (b) setView(b.dataset.tab);
   });
+  document.getElementById('btn-info').addEventListener('click', openInfo);
   document.getElementById('btn-data').addEventListener('click', openData);
   document.getElementById('btn-home').addEventListener('click', function () { setView('today'); });
 
