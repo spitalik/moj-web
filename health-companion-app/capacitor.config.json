@@ -1,0 +1,6 @@
+{
+  "appId": "sk.healthcompanion.app",
+  "appName": "Health Companion",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
