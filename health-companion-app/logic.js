@@ -349,10 +349,10 @@
     }).sort(byTime);
   }
 
-  // Pulz z oboch zdrojov: samostatné meranie tepu aj pulz zapísaný pri krvnom tlaku.
-  function pulseSeries(list, fromIso, toIso) {
+  // Pulz: samostatné meranie tepu aj pulz zapísaný pri krvnom tlaku. bpOnly = len pulz z merania tlaku.
+  function pulseSeries(list, fromIso, toIso, bpOnly) {
     return (list || []).filter(function (m) {
-      return m.date >= fromIso && m.date <= toIso && (m.type === 'pulse' || (m.type === 'bp' && hasPulse(m)));
+      return m.date >= fromIso && m.date <= toIso && ((m.type === 'pulse' && !bpOnly) || (m.type === 'bp' && hasPulse(m)));
     }).map(function (m) {
       return { date: m.date, time: m.time || '', value: Number(m.type === 'pulse' ? m.value : m.pulse), value2: null };
     }).sort(byTime);

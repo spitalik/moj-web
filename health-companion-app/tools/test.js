@@ -313,6 +313,7 @@ test('graf: priemer pri rovnakom čase, zoradenie, pulz z oboch zdrojov', () => 
     { type: 'bp', date: '2026-11-20', time: '09:00', value: 120, value2: 80, pulse: null }
   ];
   assert.deepStrictEqual(HC.pulseSeries(list, '2026-11-01', '2026-11-30').map(p => p.value), [64, 70]);
+  assert.deepStrictEqual(HC.pulseSeries(list, '2026-11-01', '2026-11-30', true).map(p => p.value), [64]);
   assert.deepStrictEqual(HC.measureDates(list, 'pulse'), ['2026-11-20', '2026-11-21']);
 });
 
