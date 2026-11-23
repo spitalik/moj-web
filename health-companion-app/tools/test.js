@@ -356,6 +356,14 @@ test('jednotky a BMI', () => {
   assert.strictEqual(HC.bmi(80, null), null);
 });
 
+test('kontakt v núdzi: rozdelenie mena a telefónu, odkaz tel:', () => {
+  assert.deepStrictEqual(HC.splitContact('Anna Nováková, 0900 000 000'), { name: 'Anna Nováková', phone: '0900 000 000' });
+  assert.deepStrictEqual(HC.splitContact('Иван +7 900 000 00 00'), { name: 'Иван', phone: '+7 900 000 00 00' });
+  assert.deepStrictEqual(HC.splitContact('mama'), { name: 'mama', phone: '' });
+  assert.deepStrictEqual(HC.splitContact('0905123456'), { name: '', phone: '0905123456' });
+  assert.strictEqual(HC.telHref('+421 (905) 123-456'), 'tel:+421905123456');
+});
+
 test('pripomienka merania: vynechá čas, ak už bolo meranie do 2 hodín pred ním', () => {
   const cfg = { on: true, type: 'bp', times: ['19:00', '07:00', 'zle'] };
   assert.deepStrictEqual(HC.measureRemindersFor(cfg, [], '2026-11-23'), ['07:00', '19:00']);

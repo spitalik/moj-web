@@ -191,6 +191,7 @@ textarea { min-height: 70px; resize: vertical; }
 .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .chip.on { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
 .chip.small { padding: 3px 10px; font-size: 12px; }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 .period-chips { margin-top: -2px; }
 .stats { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .stats strong { color: var(--fg); }
@@ -655,7 +656,13 @@ textarea { min-height: 70px; resize: vertical; }
     toast(err && err.message ? err.message : t('dbError'));
   }
   var CHECK_SVG = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
-  var ICE_FIELDS = ['blood', 'allergies', 'conditions', 'contact'];
+  var ICE_FIELDS = ['blood', 'allergies', 'conditions', 'contact', 'phone'];
+  // Kontakt v núdzi: meno a telefón. Starý zápis „meno, telefón“ v jednom poli sa rozdelí.
+  function iceContact() {
+    var ice = state.settings.ice || {};
+    if (ice.phone) return { name: ice.contact || '', phone: ice.phone };
+    return HC.splitContact(ice.contact);
+  }
   function hasICE() {
     var ice = state.settings.ice || {};
     return ICE_FIELDS.some(function (k) { return !!ice[k]; });
@@ -897,13 +904,14 @@ textarea { min-height: 70px; resize: vertical; }
     }
 
     // Núdzová karta
-    var ice = state.settings.ice || {};
+    var ice = state.settings.ice || {}, ic = iceContact();
     if (hasICE()) {
       html += '<section class="card ice"><div class="row"><h2>' + t('iceTitle') + '</h2><button class="btn small" data-act="edit-ice">' + t('edit') + '</button></div><div class="stack">' +
         (ice.blood ? '<div><strong>' + t('iceBlood') + '</strong> ' + esc(bloodLabel(ice.blood)) + '</div>' : '') +
         (ice.allergies ? '<div><strong>' + t('iceAllergies') + '</strong> ' + esc(ice.allergies) + '</div>' : '') +
         (ice.conditions ? '<div><strong>' + t('iceConditions') + '</strong> ' + esc(ice.conditions) + '</div>' : '') +
-        (ice.contact ? '<div><strong>' + t('iceContact') + '</strong> ' + esc(ice.contact) + '</div>' : '') +
+        (ic.name || ic.phone ? '<div class="row"><div><strong>' + t('iceContact') + '</strong> ' + esc(ic.name) + (ic.name && ic.phone ? ' · ' : '') + esc(ic.phone) + '</div>' +
+          (ic.phone ? '<a class="btn small primary" href="' + esc(HC.telHref(ic.phone)) + '">' + t('callBtn') + '</a>' : '') + '</div>' : '') +
         '</div></section>';
     } else {
       html += '<section class="banner"><div class="row"><div><strong>' + t('iceFillTitle') + '</strong><div class="muted">' + t('iceFillText') + '</div></div><button class="btn small" data-act="edit-ice">' + t('iceFillBtn') + '</button></div></section>';
@@ -1519,11 +1527,12 @@ textarea { min-height: 70px; resize: vertical; }
         { name: 'blood', label: t('fBlood'), type: 'select', options: bloodOptions },
         { name: 'allergies', label: t('fAllergies'), type: 'textarea' },
         { name: 'conditions', label: t('fConditions'), type: 'textarea' },
-        { name: 'contact', label: t('fContact'), placeholder: t('phContact') }
-      ], ice,
+        { name: 'contact', label: t('fContact'), placeholder: t('phContact') },
+        { name: 'phone', label: t('fPhone'), type: 'tel', placeholder: t('phPhone') }
+      ], Object.assign({}, ice, { contact: iceContact().name, phone: iceContact().phone }),
       function (v) {
         commit(function () {
-          state.settings.ice = { blood: v.blood, allergies: v.allergies, conditions: v.conditions, contact: v.contact };
+          state.settings.ice = { blood: v.blood, allergies: v.allergies, conditions: v.conditions, contact: v.contact, phone: v.phone };
         });
         toast(t('iceSaved'));
         return null;
@@ -1829,7 +1838,7 @@ textarea { min-height: 70px; resize: vertical; }
       '<p class="muted">' + t('rptPeriod', { from: fmtDate(from), to: fmtDate(tod), days: days }) + '</p>';
 
     h += '<h2>' + t('rptIce') + '</h2>' + (hasICE()
-      ? '<p>' + t('rptBlood', { v: esc(bloodLabel(ice.blood) || '—') }) + '</p><p>' + t('rptAllergies', { v: esc(ice.allergies || '—') }) + '</p><p>' + t('rptConditions', { v: esc(ice.conditions || '—') }) + '</p><p>' + t('rptContact', { v: esc(ice.contact || '—') }) + '</p>'
+      ? '<p>' + t('rptBlood', { v: esc(bloodLabel(ice.blood) || '—') }) + '</p><p>' + t('rptAllergies', { v: esc(ice.allergies || '—') }) + '</p><p>' + t('rptConditions', { v: esc(ice.conditions || '—') }) + '</p><p>' + t('rptContact', { v: esc([iceContact().name, iceContact().phone].filter(Boolean).join(', ') || '—') }) + '</p>'
       : '<p class="muted">' + t('rptNoIce') + '</p>');
 
     h += '<h2>' + t('rptMeds') + '</h2>' + (activeMeds.length

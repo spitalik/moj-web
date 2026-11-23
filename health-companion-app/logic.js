@@ -327,6 +327,18 @@
     return lines.join('\n');
   }
 
+  // Starý kontakt v núdzi „meno, telefón“ v jednom poli rozdelí na meno a telefón.
+  function splitContact(text) {
+    var s = String(text || '').trim();
+    var m = s.match(/\+?\(?\d[\d\s()\/.-]{5,}\d/g);
+    if (!m) return { name: s, phone: '' };
+    var phone = m[m.length - 1].trim();
+    var name = s.replace(phone, '').replace(/^[\s,;:、，–-]+|[\s,;:、，–-]+$/g, '').trim();
+    return { name: name, phone: phone };
+  }
+  // Číslo pre odkaz tel: (bez medzier, zátvoriek a pomlčiek).
+  function telHref(phone) { return 'tel:' + String(phone || '').replace(/[^\d+]/g, ''); }
+
   // ---- Grafy a štatistika meraní ----
 
   function hasPulse(m) { return m && m.pulse != null && m.pulse !== '' && isFinite(Number(m.pulse)); }
@@ -684,6 +696,7 @@
     checkupStatus: checkupStatus, missingStandardCheckups: missingStandardCheckups, STANDARD_CHECKUPS: STANDARD_CHECKUPS,
     vaccinationStatus: vaccinationStatus,
     MEASURE_TYPES: MEASURE_TYPES, measurementSeries: measurementSeries, measurementsCSV: measurementsCSV,
+    splitContact: splitContact, telHref: telHref,
     averageSameTime: averageSameTime, pulseSeries: pulseSeries, measureDates: measureDates, chartRange: chartRange,
     measureStats: measureStats, BP_CLASSES: BP_CLASSES, bpClass: bpClass, bpHighCount: bpHighCount, outsideCount: outsideCount,
     displayUnit: displayUnit, toDisplay: toDisplay, fromDisplay: fromDisplay, bmi: bmi, measureRemindersFor: measureRemindersFor,
