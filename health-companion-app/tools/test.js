@@ -253,6 +253,8 @@ test('merania: validácia, rozsahy a séria podľa typu', () => {
   assert.strictEqual(HC.validateMeasurement({ type: 'bp', date: '2026-11-20', value: 120, value2: 80 }), null);
   assert.ok(HC.validateMeasurement({ type: 'bp', date: '2026-11-20', value: 120 }));
   assert.ok(HC.validateMeasurement({ type: 'pulse', date: '2026-11-20', value: 900 }));
+  assert.strictEqual(HC.validateMeasurement({ type: 'bp', date: '2026-11-20', value: 120, value2: 80, pulse: 72 }), null);
+  assert.ok(HC.validateMeasurement({ type: 'bp', date: '2026-11-20', value: 120, value2: 80, pulse: 500 }));
   assert.ok(HC.validateMeasurement({ type: 'xxx', date: '2026-11-20', value: 1 }));
   const list = [
     { id: '1', type: 'bp', date: '2026-11-20', time: '09:00', value: 130, value2: 85 },
@@ -287,11 +289,79 @@ test('očkovania: stav podľa ďalšej dávky', () => {
   assert.strictEqual(HC.vaccinationStatus({ nextDate: '2027-06-05' }, '2026-11-20').status, 'ok');
 });
 
-test('CSV merania: úvodzovky a jednotky', () => {
-  const csv = HC.measurementsCSV([{ type: 'bp', date: '2026-11-20', time: '08:00', value: 120, value2: 80, notes: 'po \"káve\"' }]);
+test('CSV merania: úvodzovky, jednotky a pulz', () => {
+  const csv = HC.measurementsCSV([
+    { type: 'bp', date: '2026-11-20', time: '08:00', value: 120, value2: 80, pulse: 66, notes: 'po \"káve\"' },
+    { type: 'weight', date: '2026-11-21', time: '', value: 80, value2: null }
+  ]);
   const lines = csv.split('\n');
-  assert.strictEqual(lines[0], 'date,time,type,value,value2,unit,notes');
-  assert.strictEqual(lines[1], '"2026-11-20","08:00","bp","120","80","mmHg","po ""káve"""');
+  assert.strictEqual(lines[0], 'date,time,type,value,value2,pulse,unit,notes');
+  assert.strictEqual(lines[1], '"2026-11-20","08:00","bp","120","80","66","mmHg","po ""káve"""');
+  assert.strictEqual(lines[2], '"2026-11-21","","weight","80","","","kg",""');
+});
+
+test('graf: priemer pri rovnakom čase, zoradenie, pulz z oboch zdrojov', () => {
+  const avg = HC.averageSameTime([
+    { date: '2026-11-20', time: '20:00', value: 130, value2: 85 },
+    { date: '2026-11-20', time: '08:00', value: 120, value2: 80 },
+    { date: '2026-11-20', time: '08:00', value: 140, value2: 90 }
+  ]);
+  assert.deepStrictEqual(avg.map(p => [p.time, p.value, p.value2]), [['08:00', 130, 85], ['20:00', 130, 85]]);
+  const list = [
+    { type: 'pulse', date: '2026-11-21', time: '09:00', value: 70 },
+    { type: 'bp', date: '2026-11-20', time: '08:00', value: 120, value2: 80, pulse: 64 },
+    { type: 'bp', date: '2026-11-20', time: '09:00', value: 120, value2: 80, pulse: null }
+  ];
+  assert.deepStrictEqual(HC.pulseSeries(list, '2026-11-01', '2026-11-30').map(p => p.value), [64, 70]);
+  assert.deepStrictEqual(HC.measureDates(list, 'pulse'), ['2026-11-20', '2026-11-21']);
+});
+
+test('rozsah grafu: podľa meraní, pevné obdobie, všetko', () => {
+  assert.deepStrictEqual(HC.chartRange(['2026-11-20'], '2026-11-23', 'auto'), { from: '2026-11-20', to: '2026-11-26' });
+  assert.deepStrictEqual(HC.chartRange(['2026-01-01', '2026-11-20'], '2026-11-23', 'auto'), { from: '2026-01-01', to: '2026-11-20' });
+  assert.deepStrictEqual(HC.chartRange(['2024-01-01', '2026-11-20'], '2026-11-23', 'auto').from, '2025-11-20');
+  assert.deepStrictEqual(HC.chartRange(['2024-01-01', '2026-11-20'], '2026-11-23', 'all').from, '2024-01-01');
+  assert.deepStrictEqual(HC.chartRange([], '2026-11-23', '7'), { from: '2026-11-17', to: '2026-11-23' });
+  assert.deepStrictEqual(HC.chartRange([], '2026-11-23', '30').from, '2026-10-25');
+});
+
+test('štatistika meraní a kategória tlaku', () => {
+  const st = HC.measureStats([{ value: 120, value2: 80 }, { value: 140, value2: 90 }]);
+  assert.strictEqual(st.n, 2);
+  assert.deepStrictEqual(st.main, { avg: 130, min: 120, max: 140 });
+  assert.deepStrictEqual(st.second, { avg: 85, min: 80, max: 90 });
+  assert.strictEqual(HC.measureStats([]).main, null);
+  assert.strictEqual(HC.bpClass(115, 75), 'optimal');
+  assert.strictEqual(HC.bpClass(125, 75), 'normal');
+  assert.strictEqual(HC.bpClass(118, 87), 'highNormal');
+  assert.strictEqual(HC.bpClass(145, 80), 'h1');
+  assert.strictEqual(HC.bpClass(150, 105), 'h2');
+  assert.strictEqual(HC.bpClass(185, 70), 'h3');
+  assert.strictEqual(HC.bpHighCount([{ value: 136, value2: 70 }, { value: 120, value2: 85 }, { value: 120, value2: 80 }], 135, 85), 2);
+  assert.strictEqual(HC.outsideCount([{ value: 55 }, { value: 70 }, { value: 101 }], 60, 100), 2);
+});
+
+test('jednotky a BMI', () => {
+  const u = { glucose: 'mgdl', temp: 'f' };
+  assert.strictEqual(HC.displayUnit('glucose', u), 'mg/dL');
+  assert.strictEqual(HC.displayUnit('glucose', {}), 'mmol/L');
+  assert.strictEqual(HC.displayUnit('temp', u), '°F');
+  assert.strictEqual(Math.round(HC.toDisplay('glucose', 5.5, u)), 99);
+  assert.strictEqual(Math.round(HC.toDisplay('glucose', HC.fromDisplay('glucose', 100, u), u)), 100);
+  assert.strictEqual(Math.round(HC.toDisplay('temp', 37, u) * 10) / 10, 98.6);
+  assert.strictEqual(HC.fromDisplay('temp', 98.6, u), 37);
+  assert.strictEqual(HC.toDisplay('weight', 80, u), 80);
+  assert.strictEqual(HC.bmi(80, 180), 24.7);
+  assert.strictEqual(HC.bmi(80, null), null);
+});
+
+test('pripomienka merania: vynechá čas, ak už bolo meranie do 2 hodín pred ním', () => {
+  const cfg = { on: true, type: 'bp', times: ['19:00', '07:00', 'zle'] };
+  assert.deepStrictEqual(HC.measureRemindersFor(cfg, [], '2026-11-23'), ['07:00', '19:00']);
+  const list = [{ type: 'bp', date: '2026-11-23', time: '06:10', value: 120, value2: 80 }];
+  assert.deepStrictEqual(HC.measureRemindersFor(cfg, list, '2026-11-23'), ['19:00']);
+  assert.deepStrictEqual(HC.measureRemindersFor(cfg, list, '2026-11-24'), ['07:00', '19:00']);
+  assert.deepStrictEqual(HC.measureRemindersFor({ on: false, type: 'bp', times: ['07:00'] }, [], '2026-11-23'), []);
 });
 
 test('prílohy: len fotky a PDF do 5 MB', () => {

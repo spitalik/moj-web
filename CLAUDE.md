@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `juro/` | **Juro**: tools for lawyers (Slovak only) | See [juro/README.md](juro/README.md) |
 | `sleep-detective/` | **Sleep Detective**: sleep diary + night sound recording (Slovak only) | Single `index.html` + `sound.js` (snore/noise detector) |
 | `blood-pressure/` | **Blood Pressure**: blood pressure diary, 7-day home measurement, report for the doctor (Slovak only) | Single `index.html`; same tech and design as Sleep Detective (lavender accent) |
-| `health-companion/` | **Health Companion**: osobný zdravotný asistent – lieky a pripomienky, príznaky a problémy, návštevy lekára, preventívne prehliadky, otázky pre lekára (Slovak only) | Vanilla JS: `index.html` + `logic.js` (čistá logika, testy v `tools/test.js`); dáta len v localStorage, export/import/vymazanie v "Údaje" |
+| `health-companion-app/` | **Health Companion**: osobný zdravotný asistent – lieky a pripomienky, príznaky a problémy, merania, návštevy lekára, preventívne prehliadky, otázky pre lekára (12 jazykov) | Vanilla JS: `index.html` + `logic.js` (čistá logika, testy v `tools/test.js`); dáta v IndexedDB; PWA aj Android (Capacitor, `tools/build_www.js` → `www/`) |
 | `universal-tuner/` | **Universal Tuner**: instrument tuner (guitar, bass, ukulele, strings, banjo…, chromatic with transposition, custom tunings) + reference tones (Slovak only) | Single `index.html` + `pitch.js` (YIN pitch detector, instrument tunings); same tech and design as Sleep Detective (sky-blue accent). Microphone audio is never stored |
 
 The root `index.html` is only a placeholder link page. Root `tools/` holds old one-off Python scripts for a former `gamepad/` layout that no longer exists; they are not used by any current app.

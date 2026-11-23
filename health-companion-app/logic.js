@@ -317,14 +317,145 @@
     return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   }
 
+  // CSV meraní. Hodnoty sú v základných jednotkách (mmHg, /min, kg, mmol/L, °C).
   function measurementsCSV(list) {
-    var lines = ['date,time,type,value,value2,unit,notes'];
+    var lines = ['date,time,type,value,value2,pulse,unit,notes'];
     (list || []).slice().sort(function (a, b) { return a.date + (a.time || '') < b.date + (b.time || '') ? -1 : 1; }).forEach(function (m) {
       var unit = MEASURE_TYPES[m.type] ? MEASURE_TYPES[m.type].unit : '';
-      lines.push([m.date, m.time || '', m.type, m.value, m.value2 == null ? '' : m.value2, unit, m.notes || ''].map(csvCell).join(','));
+      lines.push([m.date, m.time || '', m.type, m.value, m.value2 == null ? '' : m.value2, hasPulse(m) ? m.pulse : '', unit, m.notes || ''].map(csvCell).join(','));
     });
     return lines.join('\n');
   }
+
+  // ---- Grafy a štatistika meraní ----
+
+  function hasPulse(m) { return m && m.pulse != null && m.pulse !== '' && isFinite(Number(m.pulse)); }
+  function timeKey(p) { return p.date + ' ' + (p.time || ''); }
+  function byTime(a, b) { var x = timeKey(a), y = timeKey(b); return x < y ? -1 : x > y ? 1 : 0; }
+
+  // Merania s rovnakým dátumom a časom sa spoja do jedného bodu s priemernou hodnotou. Výsledok je zoradený.
+  function averageSameTime(list) {
+    var groups = {}, order = [];
+    (list || []).forEach(function (p) {
+      var k = timeKey(p);
+      if (!groups[k]) { groups[k] = { date: p.date, time: p.time || '', sum: 0, n: 0, sum2: 0, n2: 0 }; order.push(k); }
+      var g = groups[k];
+      g.sum += Number(p.value); g.n++;
+      if (p.value2 != null && p.value2 !== '' && !isNaN(p.value2)) { g.sum2 += Number(p.value2); g.n2++; }
+    });
+    return order.map(function (k) {
+      var g = groups[k];
+      return { date: g.date, time: g.time, value: g.sum / g.n, value2: g.n2 ? g.sum2 / g.n2 : null };
+    }).sort(byTime);
+  }
+
+  // Pulz z oboch zdrojov: samostatné meranie tepu aj pulz zapísaný pri krvnom tlaku.
+  function pulseSeries(list, fromIso, toIso) {
+    return (list || []).filter(function (m) {
+      return m.date >= fromIso && m.date <= toIso && (m.type === 'pulse' || (m.type === 'bp' && hasPulse(m)));
+    }).map(function (m) {
+      return { date: m.date, time: m.time || '', value: Number(m.type === 'pulse' ? m.value : m.pulse), value2: null };
+    }).sort(byTime);
+  }
+
+  // Dátumy, ktoré patria do grafu daného typu (pri tepe aj pulz z merania tlaku).
+  function measureDates(list, type) {
+    return (list || []).filter(function (m) {
+      return m.type === type || (type === 'pulse' && m.type === 'bp' && hasPulse(m));
+    }).map(function (m) { return m.date; }).sort();
+  }
+
+  // Rozsah grafu. period: 'auto' (podľa meraní, max. 365 dní), '7', '30', '90' (dní do dnes), 'all'. Vždy aspoň 7 dní.
+  function chartRange(dates, todayIso, period) {
+    var from, to;
+    if (period === '7' || period === '30' || period === '90') {
+      to = todayIso; from = addDays(todayIso, -(Number(period) - 1));
+      return { from: from, to: to };
+    }
+    to = dates.length ? dates[dates.length - 1] : todayIso;
+    from = dates.length ? dates[0] : addDays(todayIso, -6);
+    if (period !== 'all' && from < addDays(to, -365)) from = addDays(to, -365);
+    if (daysBetween(from, to) < 6) to = addDays(from, 6);
+    return { from: from, to: to };
+  }
+
+  // Priemer, minimum a maximum (pri tlaku aj pre dolnú hodnotu).
+  function measureStats(points) {
+    var v = [], v2 = [];
+    (points || []).forEach(function (p) {
+      if (isNumber(p.value)) v.push(Number(p.value));
+      if (p.value2 != null && isNumber(p.value2)) v2.push(Number(p.value2));
+    });
+    function agg(a) {
+      if (!a.length) return null;
+      var s = 0; a.forEach(function (x) { s += x; });
+      return { avg: s / a.length, min: Math.min.apply(null, a), max: Math.max.apply(null, a) };
+    }
+    return { n: v.length, main: agg(v), second: agg(v2) };
+  }
+
+  // Kategória tlaku podľa ESC (ambulantné hranice). Rozhoduje vyššia z kategórií horného a dolného tlaku.
+  var BP_CLASSES = ['optimal', 'normal', 'highNormal', 'h1', 'h2', 'h3'];
+  function bpClass(sys, dia) {
+    sys = Number(sys); dia = Number(dia);
+    if (!isFinite(sys) || !isFinite(dia)) return null;
+    function lvl(v, limits) { var i = 0; while (i < limits.length && v >= limits[i]) i++; return i; }
+    var a = lvl(sys, [120, 130, 140, 160, 180]), b = lvl(dia, [80, 85, 90, 100, 110]);
+    return BP_CLASSES[Math.max(a, b)];
+  }
+
+  // Počet meraní tlaku od hranice vyššie (doma podľa ESC 135/85).
+  function bpHighCount(points, sysLimit, diaLimit) {
+    return (points || []).filter(function (p) { return Number(p.value) >= sysLimit || (p.value2 != null && Number(p.value2) >= diaLimit); }).length;
+  }
+  // Počet hodnôt mimo rozsahu (napr. tep mimo 60–100).
+  function outsideCount(points, lo, hi) {
+    return (points || []).filter(function (p) { return Number(p.value) < lo || Number(p.value) > hi; }).length;
+  }
+
+  // ---- Jednotky (údaje sa ukladajú v základných jednotkách mmol/L a °C) ----
+  var GLUCOSE_MGDL = 18.016;
+  function displayUnit(type, units) {
+    units = units || {};
+    if (type === 'glucose' && units.glucose === 'mgdl') return 'mg/dL';
+    if (type === 'temp' && units.temp === 'f') return '°F';
+    return MEASURE_TYPES[type] ? MEASURE_TYPES[type].unit : '';
+  }
+  function toDisplay(type, v, units) {
+    if (v == null || v === '' || !isFinite(Number(v))) return v;
+    v = Number(v); units = units || {};
+    if (type === 'glucose' && units.glucose === 'mgdl') return v * GLUCOSE_MGDL;
+    if (type === 'temp' && units.temp === 'f') return v * 9 / 5 + 32;
+    return v;
+  }
+  function fromDisplay(type, v, units) {
+    if (v == null || v === '' || !isFinite(Number(v))) return v;
+    v = Number(v); units = units || {};
+    if (type === 'glucose' && units.glucose === 'mgdl') return Math.round(v / GLUCOSE_MGDL * 1000) / 1000;
+    if (type === 'temp' && units.temp === 'f') return Math.round((v - 32) * 5 / 9 * 100) / 100;
+    return v;
+  }
+
+  // BMI z hmotnosti (kg) a výšky (cm), zaokrúhlené na desatiny; bez výšky null.
+  function bmi(weightKg, heightCm) {
+    var w = Number(weightKg), h = Number(heightCm) / 100;
+    if (!(w > 0) || !(h > 0)) return null;
+    return Math.round(w / (h * h) * 10) / 10;
+  }
+
+  // Pripomienka merania: časy, ktoré v daný deň ešte čakajú.
+  // Čas sa vynechá, ak už existuje meranie daného typu do 2 hodín pred ním.
+  function measureRemindersFor(cfg, list, day) {
+    if (!cfg || !cfg.on || !MEASURE_TYPES[cfg.type]) return [];
+    var done = (list || []).filter(function (m) {
+      return m.date === day && m.time && (m.type === cfg.type || (cfg.type === 'pulse' && m.type === 'bp' && hasPulse(m)));
+    }).map(function (m) { return toMinutes(m.time); });
+    return (cfg.times || []).filter(isValidTime).slice().sort().filter(function (rt) {
+      var r = toMinutes(rt);
+      return !done.some(function (x) { return x >= r - 120 && x <= r; });
+    });
+  }
+  function toMinutes(tm) { var p = String(tm).split(':'); return Number(p[0]) * 60 + Number(p[1]); }
 
   // ---- Validácia ----
 
@@ -372,6 +503,7 @@
     if (m.time && !isValidTime(m.time)) return T('errTime');
     if (!isNumber(m.value) || Number(m.value) < type.min || Number(m.value) > type.max) return T('errMeasureValue');
     if (type.two && (!isNumber(m.value2) || Number(m.value2) < 20 || Number(m.value2) > 200)) return T('errMeasureValue2');
+    if (type.two && m.pulse != null && m.pulse !== '' && (!isNumber(m.pulse) || Number(m.pulse) < 20 || Number(m.pulse) > 250)) return T('errMeasurePulse');
     return null;
   }
 
@@ -552,6 +684,9 @@
     checkupStatus: checkupStatus, missingStandardCheckups: missingStandardCheckups, STANDARD_CHECKUPS: STANDARD_CHECKUPS,
     vaccinationStatus: vaccinationStatus,
     MEASURE_TYPES: MEASURE_TYPES, measurementSeries: measurementSeries, measurementsCSV: measurementsCSV,
+    averageSameTime: averageSameTime, pulseSeries: pulseSeries, measureDates: measureDates, chartRange: chartRange,
+    measureStats: measureStats, BP_CLASSES: BP_CLASSES, bpClass: bpClass, bpHighCount: bpHighCount, outsideCount: outsideCount,
+    displayUnit: displayUnit, toDisplay: toDisplay, fromDisplay: fromDisplay, bmi: bmi, measureRemindersFor: measureRemindersFor,
     labStatus: labStatus, labNames: labNames, labSeries: labSeries,
     validateMed: validateMed, validateSymptom: validateSymptom, validateVisit: validateVisit, validateCheckup: validateCheckup,
     validateMeasurement: validateMeasurement, validateLab: validateLab, validateVaccination: validateVaccination,
