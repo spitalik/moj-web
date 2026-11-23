@@ -25,6 +25,8 @@
   --warn: #f5c26b;
   --danger: #f08a80;
   --ok: #7fe0a8;
+  --c-meds: #8ab4ff; --c-health: #ff9fb0; --c-measure: #c9a6ff; --c-doctor: #7fd6e8; --c-checkups: #9be5b5;
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
   color-scheme: dark;
 }
 :root[data-theme="light"] {
@@ -39,6 +41,8 @@
   --warn: #9a6400;
   --danger: #b3261e;
   --ok: #1d7a4b;
+  --c-meds: #2f5fb3; --c-health: #b03a5b; --c-measure: #7a4fb0; --c-doctor: #1a7f96; --c-checkups: #1d7a4b;
+  --shadow: 0 6px 16px rgba(18, 48, 42, 0.08);
   color-scheme: light;
 }
 * { box-sizing: border-box; }
@@ -81,10 +85,23 @@ header.top .top-actions { display: flex; align-items: center; gap: 8px; }
 .btn.block { width: 100%; text-align: center; }
 
 main { flex: 1; padding: 14px 16px 96px; display: flex; flex-direction: column; gap: 14px; max-width: 640px; width: 100%; margin: 0 auto; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+/* Farba sekcie: farebný pruh vľavo na kartách (premenná --sec nastavená podľa záložky) */
+main { --sec: var(--accent); }
+main[data-tab="meds"] { --sec: var(--c-meds); }
+main[data-tab="symptoms"] { --sec: var(--c-health); }
+main[data-tab="measure"] { --sec: var(--c-measure); }
+main[data-tab="doctor"] { --sec: var(--c-doctor); }
+main[data-tab="checkups"] { --sec: var(--c-checkups); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: var(--shadow), inset 3px 0 0 var(--sec); }
 .card.flag-warn { border-color: var(--warn); }
 .card.flag-danger { border-color: var(--danger); }
-.card.ice { border-color: var(--danger); }
+.card.ice { border-color: var(--danger); box-shadow: var(--shadow), inset 3px 0 0 var(--danger); }
+.card.hero { background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 24%, var(--card)), var(--card) 70%); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); box-shadow: var(--shadow); }
+.hero strong { font-size: 17px; }
+.progress { height: 8px; border-radius: 999px; background: var(--card-2); overflow: hidden; }
+.progress i { display: block; height: 100%; width: var(--p, 0%); background: var(--accent); border-radius: inherit; transition: width .4s ease; }
+.hero .meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.big-val { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .stack { display: flex; flex-direction: column; gap: 8px; }
 .stack.inline { flex-direction: row; gap: 6px; flex-wrap: wrap; }
@@ -93,7 +110,7 @@ main { flex: 1; padding: 14px 16px 96px; display: flex; flex-direction: column; 
 .badge.warn { color: var(--warn); }
 .badge.danger { color: var(--danger); }
 .badge.ok { color: var(--ok); }
-.empty { color: var(--muted); text-align: center; padding: 18px 8px; border: 1px dashed var(--line); border-radius: 14px; }
+.empty { color: var(--muted); text-align: center; padding: 22px 14px; background: var(--card-2); border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
 
 .dose { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
@@ -114,6 +131,8 @@ main { flex: 1; padding: 14px 16px 96px; display: flex; flex-direction: column; 
 .snooze { border-color: var(--line); color: var(--muted); }
 .snooze svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; }
 .check svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 3; }
+.check.fresh { animation: pop .32s ease; }
+@keyframes pop { 0% { transform: scale(.7); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
 
 nav.tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
@@ -126,7 +145,10 @@ nav.tabs button {
   display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; border-radius: 12px;
 }
 nav.tabs button svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-nav.tabs button[aria-current="page"] { color: var(--accent); }
+nav.tabs button[aria-current="page"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+nav.tabs button { transition: background .2s ease, color .2s ease; }
+.chart polyline.ln { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1s ease forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
 
 /* Dialóg (formulár) */
 dialog { border: 1px solid var(--line); border-radius: 18px; background: var(--card); color: var(--fg); padding: 0; width: min(440px, calc(100vw - 32px)); max-height: 90dvh; }
@@ -148,7 +170,7 @@ textarea { min-height: 70px; resize: vertical; }
 .problem-line:first-child, .question-line:first-child { border-top: 0; }
 .problem-line .info, .question-line .info { flex: 1; min-width: 0; }
 .pre { white-space: pre-wrap; word-break: break-word; background: var(--card-2); border-radius: 12px; padding: 12px; font-size: 14px; }
-.banner { background: var(--card-2); border: 1px solid var(--warn); border-radius: 14px; padding: 12px; }
+.banner { background: var(--card-2); border-left: 4px solid var(--warn); border-radius: 14px; padding: 12px 14px; }
 .disclaimer { font-size: 12px; color: var(--muted); }
 .toast {
   position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
@@ -163,6 +185,10 @@ textarea { min-height: 70px; resize: vertical; }
 .pulse-line { font-size: 22px; font-weight: 700; }
 #print-root { display: none; }
 @media (min-width: 720px) { main { padding-bottom: 110px; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .chart polyline.ln { stroke-dashoffset: 0; }
+}
 
 /* Tlač: zobrazí sa len prehľad pre lekára */
 @media print {
@@ -598,7 +624,7 @@ textarea { min-height: 70px; resize: vertical; }
       '<text x="' + (W - P) + '" y="' + (H + 16) + '" font-size="11" text-anchor="end" style="fill:var(--muted)">' + esc(fmtDate(toIso)) + '</text>';
     series.forEach(function (s) {
       var pts = s.points.map(function (p) { return X(p.x).toFixed(1) + ',' + Y(p.y).toFixed(1); });
-      if (pts.length > 1) svg += '<polyline fill="none" stroke-width="2" style="stroke:' + s.color + '" points="' + pts.join(' ') + '"/>';
+      if (pts.length > 1) svg += '<polyline class="ln" pathLength="1" fill="none" stroke-width="2" style="stroke:' + s.color + '" points="' + pts.join(' ') + '"/>';
       s.points.forEach(function (p) {
         svg += '<circle cx="' + X(p.x).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="3.5" style="fill:' + s.color + '"/>';
       });
@@ -704,6 +730,7 @@ textarea { min-height: 70px; resize: vertical; }
 
   // ---------- Pohľady ----------
   var views = {};
+  var justTaken = null;
 
   // Dnes: dávky, núdzová karta, upozornenia
   views.today = function () {
@@ -722,6 +749,24 @@ textarea { min-height: 70px; resize: vertical; }
     var upcomingVisits = state.visits.filter(function (v) { return v.nextVisit && v.nextVisit >= tod && v.nextVisit <= horizon; })
       .sort(function (a, b) { return a.nextVisit < b.nextVisit ? -1 : 1; });
     var html = '';
+
+    // Súhrn dňa: hotové dávky, ďalšia dávka a séria bez vynechania
+    if (state.meds.length && doses.length) {
+      var doneN = doses.filter(function (d) { return d.taken; }).length;
+      var nextDose = doses.filter(function (d) { return !d.status && d.time >= now; })[0];
+      var streak = 0, startDay = doneN === doses.length ? tod : HC.addDays(tod, -1);
+      for (var si = 0; si < 365; si++) {
+        var sds = HC.medDosesOn(state.meds, state.taken, HC.addDays(startDay, -si));
+        if (!sds.length || !sds.every(function (d) { return d.taken; })) break;
+        streak++;
+      }
+      html += '<section class="card hero"><div class="stack">' +
+        '<strong>' + (doneN === doses.length ? t('sumAllDone') : esc(t('sumDoses', { done: doneN, total: doses.length }))) + '</strong>' +
+        '<div class="progress" style="--p:' + Math.round(doneN / doses.length * 100) + '%"><i></i></div>' +
+        '<div class="meta muted"><span>' + (nextDose ? esc(t('sumNext', { time: nextDose.time, name: nextDose.name })) : '') + '</span>' +
+        (streak ? '<span>' + esc(t('sumStreak', { n: streak })) + '</span>' : '') + '</div>' +
+        '</div></section>';
+    }
 
     // Núdzová karta
     var ice = state.settings.ice || {};
@@ -752,7 +797,7 @@ textarea { min-height: 70px; resize: vertical; }
 
     html += '<section class="card"><div class="section-head"><h2>' + t('todayMeds') + '</h2><span class="muted">' + fmtDate(tod) + '</span></div>';
     if (!state.meds.length) {
-      html += '<div class="empty">' + t('noMedsYet') + '</div>';
+      html += '<div class="empty"><span>' + t('noMedsYet') + '</span><button class="btn primary small" data-act="add-med">' + t('add') + '</button></div>';
     } else if (!doses.length) {
       html += '<p class="muted">' + t('noDosesToday') + '</p>';
     } else {
@@ -770,7 +815,7 @@ textarea { min-height: 70px; resize: vertical; }
           '<div class="time">' + d.time + '</div>' +
           '<div class="info"><div class="name">' + esc(d.name) + '</div><div class="muted">' + sub + '</div></div>' +
           '<div class="dose-btns">' +
-          '<button class="check' + (d.taken ? ' on' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + tod + '" data-mode="taken" aria-pressed="' + d.taken + '" aria-label="' + esc(t('markTaken', { name: d.name, time: d.time })) + '">' + (d.taken ? CHECK_SVG : '') + '</button>' +
+          '<button class="check' + (d.taken ? ' on' : '') + (justTaken === d.key + '|' + tod ? ' fresh' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + tod + '" data-mode="taken" aria-pressed="' + d.taken + '" aria-label="' + esc(t('markTaken', { name: d.name, time: d.time })) + '">' + (d.taken ? CHECK_SVG : '') + '</button>' +
           '<button class="skip' + (d.skipped ? ' on' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + tod + '" data-mode="skipped" aria-pressed="' + d.skipped + '" aria-label="' + esc(t('markSkipped', { name: d.name, time: d.time })) + '">×</button>' +
           snooze +
           '</div></div>';
@@ -894,8 +939,8 @@ textarea { min-height: 70px; resize: vertical; }
 
     var entries = sortBy(state.measurements.filter(function (m) { return m.type === measureType; }), 'date', true).slice(0, 30);
     if (!entries.length) html += '<div class="empty">' + t('measureEmpty') + '</div>';
-    html += entries.map(function (m) {
-      return '<section class="card"><div class="row"><div><strong>' + esc(measureText(m)) + '</strong><div class="muted">' + fmtDate(m.date) + (m.time ? ' · ' + esc(m.time) : '') + (m.notes ? ' · ' + esc(m.notes) : '') + '</div></div>' +
+    html += entries.map(function (m, i) {
+      return '<section class="card"><div class="row"><div><strong class="' + (i ? '' : 'big-val') + '">' + esc(measureText(m)) + '</strong><div class="muted">' + fmtDate(m.date) + (m.time ? ' · ' + esc(m.time) : '') + (m.notes ? ' · ' + esc(m.notes) : '') + '</div></div>' +
         '<div class="stack inline"><button class="btn small" data-act="edit-measure" data-id="' + esc(m.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-measure" data-id="' + esc(m.id) + '">' + t('remove') + '</button></div></div></section>';
     }).join('');
 
@@ -1690,7 +1735,11 @@ textarea { min-height: 70px; resize: vertical; }
 
   // ---------- Hlavné ovládanie ----------
   function render() {
-    document.getElementById('view').innerHTML = views[view]();
+    var html = views[view]();
+    var main = document.getElementById('view');
+    main.innerHTML = html;
+    main.dataset.tab = view;
+    justTaken = null; // animácia „fajky“ sa spustí len raz, po zmene
     document.querySelectorAll('#tabs button').forEach(function (b) {
       if (b.dataset.tab === view) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
@@ -1717,6 +1766,8 @@ textarea { min-height: 70px; resize: vertical; }
         var cur = (state.taken[date] && state.taken[date][key]) || null;
         var curStatus = HC.doseStatus(cur);
         var next = curStatus === mode ? null : mode;
+        justTaken = next === 'taken' ? key + '|' + date : null;
+        if (next === 'taken' && navigator.vibrate) navigator.vibrate(12);
         commit(function () {
           state.taken = HC.setDoseStatus(state.taken, date, key, next);
           // Zásoby: označenie ako užité odpočíta kus, zrušenie ho vráti.
