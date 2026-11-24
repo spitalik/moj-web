@@ -93,6 +93,7 @@ p { margin: 0; }
 .appbar { flex: none; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; padding: 12px 14px 4px; }
 .appbar .brand { text-align: center; font-family: var(--f-display); font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
 .appbar .brand span { color: var(--lamp-text); }
+.appbar .icon-btn { justify-self: end; }
 .icon-btn { background: var(--dusk); border: 0; border-radius: 50%; width: 38px; height: 38px; display: grid; place-items: center; font-size: 18px; color: var(--fg); }
 .icon-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .icon-btn:hover { background: var(--dusk-2); }
@@ -282,11 +283,11 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
 <div class="stage">
   <div class="phone" id="phone">
     <header class="appbar">
+      <span></span>
+      <div class="brand">Sleep <span>Detective</span></div>
       <button class="icon-btn" data-act="settings" type="button" aria-label="Nastavenia" title="Nastavenia">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
-      <div class="brand">Sleep <span>Detective</span></div>
-      <span></span>
     </header>
     <main class="scroll" id="view"></main>
     <nav class="tabbar" id="tabbar">
@@ -1038,12 +1039,12 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
       evCount + " " + (evCount === 1 ? "večerný" : evCount >= 2 && evCount <= 4 ? "večerné" : "večerných") + ", " +
       Object.keys(D.sounds).length + " " + nightsWord(Object.keys(D.sounds).length) + " so zvukom, " + D.closed.length + " " + (D.closed.length === 1 ? "uzavretý experiment" : D.closed.length >= 2 && D.closed.length <= 4 ? "uzavreté experimenty" : "uzavretých experimentov") +
       '. Všetko je uložené len v tomto zariadení.<span id="store-use"></span> ' + lastBackupText() + "</p>" +
-      '<button class="btn ghost" data-act="export" type="button">Stiahnuť zálohu (JSON)</button>' +
+      '<button class="btn ghost" data-act="export" type="button">Stiahnuť zálohu</button>' +
       '<button class="btn ghost" data-act="exportCsv" type="button">Stiahnuť tabuľku (CSV)</button>' +
       '<button class="btn ghost" data-act="report" type="button">Prehľad pre lekára</button>' +
       '<button class="btn ghost" data-act="import" type="button">Obnoviť zo zálohy</button>' +
-      '<input id="import-file" type="file" accept=".json,application/json" hidden>' +
-      '<p class="small muted">Záloha obsahuje záznamy a nastavenia, nie zvukové nahrávky.' +
+      '<input id="import-file" type="file" accept=".zip,.json,application/zip,application/json" hidden>' +
+      '<p class="small muted">Záloha (súbor ZIP) obsahuje záznamy, nastavenia aj zvukové nahrávky, ktoré sú v zariadení. S nahrávkami celej noci môže mať aj stovky MB.' +
         (plugin("Filesystem") ? " Zálohy sa ukladajú do priečinka " + esc(backupPlace()) + " a odtiaľ ich appka aj obnovuje." : "") + "</p>" +
       '<button class="btn danger" data-act="askReset" type="button">Vymazať všetky dáta</button>' +
       '<button class="link" data-act="privacy" type="button">Ochrana súkromia a licencia →</button></div>';
@@ -1089,7 +1090,7 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
       "<li>krátke ukážky zvuku sa mažú po " + KEEP_CLIP_DAYS + " dňoch,</li>" +
       "<li>nahrávky celej noci po " + keep + " " + (keep === 1 ? "dni" : "dňoch") + " (dá sa zmeniť v nastaveniach),</li>" +
       "<li>záznamy a súhrny zostanú, kým ich nevymažeš.</li></ul></div>";
-    h += '<div class="card"><h3>Tvoje možnosti</h3><p class="small">Kedykoľvek si môžeš stiahnuť zálohu (JSON) alebo tabuľku (CSV), vymazať zvuk jednej noci, vymazať všetky dáta v nastaveniach, ' +
+    h += '<div class="card"><h3>Tvoje možnosti</h3><p class="small">Kedykoľvek si môžeš stiahnuť zálohu (ZIP so záznamami aj nahrávkami) alebo tabuľku (CSV), vymazať zvuk jednej noci, vymazať všetky dáta v nastaveniach, ' +
       "alebo appku odinštalovať a v prehliadači vymazať údaje stránky.</p></div>";
     h += '<div class="card"><h3>Licencia</h3><p class="small">Appka je zverejnená pod licenciou MIT (súbor LICENSE). Písma Bricolage Grotesque, Instrument Sans a IBM Plex Mono sú pod licenciou SIL Open Font License 1.1 (priečinok fonts/).</p></div>';
     h += '<p class="small muted" style="text-align:center">Sleep Detective nie je zdravotnícka pomôcka.</p></div>';
@@ -1122,15 +1123,22 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
   // V natívnej appke sa <a download> nedá použiť: súbor sa zapíše do súkromnej cache appky
   // a otvorí sa systémové Zdieľať (uložiť do Súborov, poslať lekárovi...). Cache sa maže pri štarte.
   const EXPORT_DIR = "export";
+  // Filesystem chce base64; po kúskoch, aby veľký súbor nepretiekol zásobník
+  function toB64(bytes) {
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  function fromB64(b64, type) {
+    const bin = atob(b64), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: type || "" });
+  }
   async function saveFile(blob, name) {
     const FS = plugin("Filesystem"), SH = plugin("Share");
     if (!FS || !SH) { download(blob, name); return true; }
     try {
-      // Filesystem chce base64; po kúskoch, aby veľká nahrávka nepretiekla zásobník
-      const bytes = new Uint8Array(await blob.arrayBuffer());
-      let bin = "";
-      for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-      const data = btoa(bin);
+      const data = toB64(new Uint8Array(await blob.arrayBuffer()));
       const f = await FS.writeFile({ path: EXPORT_DIR + "/" + name, data, directory: "CACHE", recursive: true });
       await SH.share({ title: name, files: [f.uri] });
       return true;
@@ -2040,12 +2048,13 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
   // Nahrávky, ku ktorým nepatrí žiadna noc (appku zabil systém počas záznamu, zlyhalo uloženie...).
   // Počas záznamu nemažeme nič a čerstvé súbory (do 15 min) necháme – môže ich práve zapisovať iná karta.
   const ORPHAN_AGE = 15 * 60000;
+  let restoring = false;   // počas obnovy zo zálohy sa ešte zapisujú nahrávky
   function dropOrphans() {
-    if (rec || startingRec) return;
+    if (rec || startingRec || restoring) return;
     const used = new Set();
     Object.keys(D.sounds).forEach(k => nightFiles(D.sounds[k]).forEach(c => used.add(c.id)));
     return IDB.keys().then(keys => {
-      if (rec || startingRec) return;
+      if (rec || startingRec || restoring) return;
       keys.forEach(id => {
         const t = Number(String(id).split("-")[1]);
         if (!used.has(id) && !(t > Date.now() - ORPHAN_AGE)) IDB.del(id).catch(() => {});
@@ -2094,28 +2103,152 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     try { if (FS.requestPermissions) await FS.requestPermissions(); } catch (e) { /* skúsime aj tak */ }
   }
 
-  async function exportData() {
-    // zvukové ukážky sa do zálohy nedávajú (sú veľké a citlivé), len súhrny nocí
-    const text = JSON.stringify({ app: "sleep-detective", exported: new Date().toISOString(), note: "Bez zvukových ukážok.", data: D, settings: SET }, null, 2);
-    const name = "sleep-detective-" + today() + ".json";
-    const FS = plugin("Filesystem");
-    let ok = true;
-    if (FS) {
-      try {
-        await fsReady(FS);
-        await FS.writeFile({ path: BACKUP_DIR + "/" + name, data: text, directory: "DOCUMENTS", encoding: "utf8", recursive: true });
-        toast("Záloha je uložená: " + backupPlace() + "/" + name);
-      } catch (e) {
-        // priečinok nie je dostupný (napr. zakázané povolenie): ponúkneme aspoň zdieľanie
-        ok = await saveFile(new Blob([text], { type: "application/json" }), name);
-      }
-    } else {
-      download(new Blob([text], { type: "application/json" }), name);
-      toast("Záloha je stiahnutá.");
+  // ---------- ZIP bez kompresie ----------
+  // Záloha je ZIP: sleep-detective.json (záznamy a nastavenia) + nahrávky v priečinku nahravky/<ráno>/.
+  // Zvuk je už skomprimovaný, preto stačí metóda „store“ a nepotrebujeme knižnicu. Súbor otvorí každý
+  // program na ZIP a nahrávky sa dajú prehrať aj mimo appky. Staršie zálohy (.json) sa dajú obnoviť ďalej.
+  const BACKUP_JSON = "sleep-detective.json", AUDIO_DIR = "nahravky", ZIP_MAX = 0xfff00000;
+  const CRC_T = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+    return t;
+  })();
+  function crc32(b) { let c = 0xffffffff; for (let i = 0; i < b.length; i++) c = CRC_T[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+  // files: [{ name, blob }] → časti ZIP súboru (Uint8Array a Blob), ktoré stačí zapísať za sebou
+  async function zipParts(files) {
+    const enc = new TextEncoder(), now = new Date();
+    const time = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+    const date = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    const parts = [], cd = [];
+    let off = 0;
+    for (const f of files) {
+      const name = enc.encode(f.name), size = f.blob.size;
+      const crc = crc32(new Uint8Array(await f.blob.arrayBuffer()));
+      const h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);   // 0x0800 = názvy v UTF-8
+      h.setUint16(10, time, true); h.setUint16(12, date, true); h.setUint32(14, crc, true);
+      h.setUint32(18, size, true); h.setUint32(22, size, true); h.setUint16(26, name.length, true);
+      parts.push(new Uint8Array(h.buffer), name, f.blob);
+      const c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
+      c.setUint16(12, time, true); c.setUint16(14, date, true); c.setUint32(16, crc, true);
+      c.setUint32(20, size, true); c.setUint32(24, size, true); c.setUint16(28, name.length, true); c.setUint32(42, off, true);
+      cd.push(new Uint8Array(c.buffer), name);
+      off += 30 + name.length + size;
+      if (off > ZIP_MAX) throw new Error("too-big");
     }
-    if (!ok) return;
-    SET.lastBackup = today(); SET.backupSnooze = null; saveSet();
-    if (!$("#sheet").hidden && $("#sheet").innerHTML.includes('data-act="askReset"')) openSettings(); else if ($("#sheet").hidden) render();
+    const cdSize = cd.reduce((n, x) => n + x.length, 0);
+    const e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+    e.setUint32(12, cdSize, true); e.setUint32(16, off, true);
+    return parts.concat(cd, [new Uint8Array(e.buffer)]);
+  }
+  // ZIP → { názov: { blob } }; číta len hlavičky, dáta zostanú ako výrezy súboru (nič veľké v pamäti)
+  async function unzip(blob) {
+    const tailLen = Math.min(blob.size, 22 + 65535);
+    const tail = new DataView(await blob.slice(blob.size - tailLen).arrayBuffer());
+    let e = -1;
+    for (let i = tail.byteLength - 22; i >= 0; i--) if (tail.getUint32(i, true) === 0x06054b50) { e = i; break; }
+    if (e < 0) throw new Error("zip");
+    const n = tail.getUint16(e + 10, true), cdSize = tail.getUint32(e + 12, true), cdOff = tail.getUint32(e + 16, true);
+    const cdBuf = await blob.slice(cdOff, cdOff + cdSize).arrayBuffer(), cd = new DataView(cdBuf), dec = new TextDecoder();
+    const out = {};
+    for (let i = 0, p = 0; i < n; i++) {
+      if (p + 46 > cdSize || cd.getUint32(p, true) !== 0x02014b50) throw new Error("zip");
+      const method = cd.getUint16(p + 10, true), size = cd.getUint32(p + 20, true);
+      const nl = cd.getUint16(p + 28, true), xl = cd.getUint16(p + 30, true), cl = cd.getUint16(p + 32, true), lo = cd.getUint32(p + 42, true);
+      const name = dec.decode(new Uint8Array(cdBuf, p + 46, nl));
+      const lh = new DataView(await blob.slice(lo, lo + 30).arrayBuffer());
+      if (method !== 0 || lh.byteLength < 30 || lh.getUint32(0, true) !== 0x04034b50) throw new Error("zip");
+      const start = lo + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+      out[name] = { blob: blob.slice(start, start + size) };
+      p += 46 + nl + xl + cl;
+    }
+    return out;
+  }
+  const recWord = n => n === 1 ? "nahrávku" : n >= 2 && n <= 4 ? "nahrávky" : "nahrávok";
+  const mb = bytes => bytes < 1e6 ? Math.max(1, Math.round(bytes / 1e3)) + " kB" : dec(bytes / 1e6).replace(",0", "") + " MB";
+
+  // Obsah zálohy: JSON so záznamami a všetky nahrávky, ktoré sú v zariadení (ukážky aj celé noci).
+  async function backupFiles() {
+    const files = [], audio = [];
+    for (const k of Object.keys(D.sounds).sort()) {
+      for (const c of nightFiles(D.sounds[k])) {
+        let blob = null;
+        try { blob = await IDB.get(c.id); } catch (e) { /* nahrávka chýba */ }
+        if (!blob || !blob.size) continue;
+        const ext = /mp4/.test(blob.type) ? "m4a" : /ogg/.test(blob.type) ? "ogg" : "webm";
+        const file = AUDIO_DIR + "/" + k + "/" + c.id + "." + ext;
+        audio.push({ id: c.id, file, type: blob.type, night: k });
+        files.push({ name: file, blob });
+      }
+    }
+    const json = JSON.stringify({ app: "sleep-detective", exported: new Date().toISOString(),
+      note: "Záznamy a nastavenia; zvukové nahrávky sú v priečinku " + AUDIO_DIR + "/.", data: D, settings: SET, audio }, null, 2);
+    files.unshift({ name: BACKUP_JSON, blob: new Blob([json], { type: "application/json" }) });
+    return { files, count: audio.length, bytes: files.reduce((n, f) => n + f.blob.size, 0) };
+  }
+  // Zápis veľkého súboru v natívnej appke po 3 MB (násobok 3 → kúsky base64 sa dajú spájať)
+  async function writeParts(FS, path, parts) {
+    const CH = 3 * 1024 * 1024;
+    let first = true, pend = [], pendLen = 0;
+    const flush = async () => {
+      const buf = new Uint8Array(pendLen);
+      let o = 0;
+      pend.forEach(x => { buf.set(x, o); o += x.length; });
+      pend = []; pendLen = 0;
+      const data = toB64(buf);
+      if (first) { await FS.writeFile({ path, data, directory: "DOCUMENTS", recursive: true }); first = false; }
+      else await FS.appendFile({ path, data, directory: "DOCUMENTS" });
+    };
+    for (const part of parts) {
+      const blob = part instanceof Blob ? part : null;
+      const size = blob ? blob.size : part.length;
+      for (let o = 0; o < size; ) {
+        const take = Math.min(CH - pendLen, size - o);
+        const bytes = blob ? new Uint8Array(await blob.slice(o, o + take).arrayBuffer()) : part.subarray(o, o + take);
+        pend.push(bytes); pendLen += bytes.length; o += take;
+        if (pendLen >= CH) await flush();
+      }
+    }
+    if (pendLen || first) await flush();
+  }
+
+  let backupBusy = false;
+  async function exportData() {
+    if (backupBusy) return;
+    backupBusy = true;
+    try {
+      toast("Pripravujem zálohu…");
+      const { files, count, bytes } = await backupFiles();
+      const parts = await zipParts(files);
+      const name = "sleep-detective-" + today() + ".zip";
+      const what = count ? " Obsahuje " + count + " " + recWord(count) + " (" + mb(bytes) + ")." : "";
+      const FS = plugin("Filesystem");
+      let ok = true;
+      if (FS) {
+        try {
+          await fsReady(FS);
+          await writeParts(FS, BACKUP_DIR + "/" + name, parts);
+          toast("Záloha je uložená: " + backupPlace() + "/" + name + "." + what);
+        } catch (e) {
+          // priečinok nie je dostupný (napr. zakázané povolenie): ponúkneme aspoň zdieľanie
+          ok = await saveFile(new Blob(parts, { type: "application/zip" }), name);
+        }
+      } else {
+        download(new Blob(parts, { type: "application/zip" }), name);
+        toast("Záloha je stiahnutá." + what);
+      }
+      if (!ok) return;
+      SET.lastBackup = today(); SET.backupSnooze = null; saveSet();
+      if (!$("#sheet").hidden && $("#sheet").innerHTML.includes('data-act="askReset"')) openSettings(); else if ($("#sheet").hidden) render();
+    } catch (e) {
+      infoModal("Zálohu sa nepodarilo vytvoriť", e && e.message === "too-big"
+        ? "Nahrávky majú spolu viac ako 4 GB a do jednej zálohy sa nezmestia. V nastaveniach skráť uchovávanie nahrávok celej noci alebo vymaž staršie noci a skús to znova."
+        : "Pri vytváraní zálohy nastala chyba. Tvoje dáta v appke ostali bez zmeny.");
+    } finally {
+      backupBusy = false;
+    }
   }
 
   // Zoznam záloh v priečinku BACKUP_DIR (najnovšie hore). Zálohu z iného miesta otvorí systémový výber súboru.
@@ -2126,7 +2259,7 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
       await fsReady(FS);
       const r = await FS.readdir({ path: BACKUP_DIR, directory: "DOCUMENTS" });
       files = (r.files || []).map(f => typeof f === "string" ? { name: f } : f)
-        .filter(f => /\.json$/i.test(f.name) && f.type !== "directory")
+        .filter(f => /\.(zip|json)$/i.test(f.name) && f.type !== "directory")
         .sort((a, b) => (b.mtime || 0) - (a.mtime || 0) || (a.name < b.name ? 1 : -1));
     } catch (e) { /* priečinok ešte neexistuje */ }
     let h = '<div class="sheet-top"><button class="icon-btn" data-act="settings" type="button" aria-label="Späť">←</button><span class="eyebrow">Záloha</span><span style="width:38px"></span></div><div class="scroll">';
@@ -2136,35 +2269,55 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     files.forEach(f => {
       const when = f.mtime ? new Date(Number(f.mtime)).toLocaleString("sk-SK", { day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
       h += '<button class="sound-row" data-act="importNative" data-name="' + esc(f.name) + '" type="button"><span class="muted">' + esc(when) + "</span><span>" + esc(f.name) +
-        (f.size ? ' <span class="muted">· ' + Math.max(1, Math.round(f.size / 1024)) + " kB</span>" : "") + '</span><span class="t-lamp">→</span></button>';
+        (f.size ? ' <span class="muted">· ' + mb(f.size) + (/\.json$/i.test(f.name) ? ", bez nahrávok" : "") + "</span>" : "") + '</span><span class="t-lamp">→</span></button>';
     });
     h += "</div>";
     h += '<button class="btn ghost" data-act="importPick" type="button">Vybrať súbor z iného miesta</button>' +
-      '<input id="import-file" type="file" accept=".json,application/json" hidden>' +
+      '<input id="import-file" type="file" accept=".zip,.json,application/zip,application/json" hidden>' +
       '<p class="small muted">Napríklad zálohu z iného telefónu, z e-mailu alebo z cloudu. ' +
       (isIOSApp() ? "" : "Zálohu, ktorú uložila predchádzajúca inštalácia appky, Android niekedy v zozname neukáže – vtedy ju vyber týmto tlačidlom.") + "</p></div>";
     showSheet(h);
   }
+  // Veľký ZIP sa číta cez lokálnu adresu súboru (po častiach); keď to nejde, celý cez readFile (base64).
+  async function nativeBlob(FS, path) {
+    try {
+      const { uri } = await FS.getUri({ path, directory: "DOCUMENTS" });
+      const r = await fetch(window.Capacitor.convertFileSrc(uri));
+      if (r.ok) return await r.blob();
+    } catch (e) { /* skúsime readFile */ }
+    const r = await FS.readFile({ path, directory: "DOCUMENTS" });
+    return typeof r.data === "string" ? fromB64(r.data) : r.data;
+  }
   async function importNative(name) {
     const FS = plugin("Filesystem");
-    if (!FS || !/^[\w.\-]+\.json$/i.test(name)) return;
-    try {
-      const r = await FS.readFile({ path: BACKUP_DIR + "/" + name, directory: "DOCUMENTS", encoding: "utf8" });
-      importText(typeof r.data === "string" ? r.data : await r.data.text());
-    } catch (e) {
+    if (!FS || !/^[\w.\-]+\.(zip|json)$/i.test(name)) return;
+    let blob;
+    try { blob = await nativeBlob(FS, BACKUP_DIR + "/" + name); } catch (e) {
       infoModal("Zálohu sa nepodarilo otvoriť", "Súbor sa nedá prečítať. Skús ho vybrať tlačidlom Vybrať súbor z iného miesta.");
+      return;
     }
+    importBlob(blob).catch(importFail);
   }
 
-  // Obnovenie zo zálohy: nahradí všetky dáta. Nahrávky v zálohe nie sú – ponecháme tie, ktoré
-  // v tomto zariadení ešte sú a záloha ich pozná; ostatné sa zmažú ako osirelé.
+  // Obnovenie zo zálohy: nahradí všetky dáta. Nahrávky zo ZIP zálohy sa vrátia do zariadenia; z nahrávok,
+  // ktoré v zálohe nie sú (staršia záloha .json), ponecháme tie, ktoré tu ešte sú a záloha ich pozná.
+  // Ostatné sa zmažú ako osirelé.
   const importFail = () => infoModal("Zálohu sa nepodarilo načítať", "Súbor nie je záloha zo Sleep Detective alebo je poškodený. Tvoje dáta ostali bez zmeny.");
   function importFile(file) {
     if (!file) return;
     if (rec || startingRec) { toast("Najprv ukonči nočný záznam."); return; }
-    file.text().then(importText).catch(importFail);
+    importBlob(file).catch(importFail);
   }
-  function importText(txt) {
+  async function importBlob(blob) {
+    let head = "";
+    try { if (blob.slice) head = await blob.slice(0, 2).text(); } catch (e) { /* nie je Blob */ }
+    if (head !== "PK") { importText(await blob.text()); return; }   // staršia záloha .json
+    let z;
+    try { z = await unzip(blob); } catch (e) { importFail(); return; }
+    if (!z[BACKUP_JSON]) { importFail(); return; }
+    importText(await z[BACKUP_JSON].blob.text(), z);
+  }
+  function importText(txt, zip) {
     if (rec || startingRec) { toast("Najprv ukonči nočný záznam."); return; }
     const fail = importFail;
     {
@@ -2173,12 +2326,19 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
       const d = b && b.data;
       if (!b || b.app !== "sleep-detective" || !d || !Array.isArray(d.nights) || (d.sounds && typeof d.sounds !== "object")) { fail(); return; }
       const nd = Object.assign(emptyData(), d);
+      const aud = zip && Array.isArray(b.audio) ? b.audio.filter(a => a && /^(clip|full)-\d+$/.test(a.id) && typeof a.file === "string" && zip[a.file]) : [];
+      const audBytes = aud.reduce((n, a) => n + zip[a.file].blob.size, 0);
+      // nahrávky staršie ako doba uchovávania by pruneFiles po obnove hneď zmazal – povieme to vopred
+      const keepFull = Number.isInteger(SET.fullKeepDays) ? Math.min(KEEP_CLIP_DAYS, Math.max(1, SET.fullKeepDays)) : KEEP_CLIP_DAYS;
+      const expired = aud.filter(a => String(a.night || "") < addDays(today(), /^full-/.test(a.id) ? -keepFull : -KEEP_CLIP_DAYS)).length;
       const when = b.exported ? new Date(b.exported) : null;
       const date = when && !isNaN(when) ? when.toLocaleDateString("sk-SK") : "neznámeho dátumu";
       confirmModal({
         title: "Obnoviť zo zálohy?",
         text: "Záloha z " + date + ": " + nd.nights.length + " ranných záznamov, " + Object.keys(nd.evenings || {}).length + " večerných, " +
-          Object.keys(nd.sounds || {}).length + " nocí so zvukom. Všetky súčasné dáta v appke sa nahradia zálohou a nahrávky, ktoré záloha nepozná, sa zmažú. Túto akciu nie je možné vrátiť späť.",
+          Object.keys(nd.sounds || {}).length + " " + nightsWord(Object.keys(nd.sounds || {}).length) + " so zvukom, " + (aud.length ? aud.length + " " + recWord(aud.length).replace(/^nahrávku$/, "nahrávka") + " (" + mb(audBytes) + ")" : "bez zvukových nahrávok") +
+          ". Všetky súčasné dáta v appke sa nahradia zálohou a nahrávky, ktoré záloha nepozná, sa zmažú. Túto akciu nie je možné vrátiť späť." +
+          (expired ? " " + expired + " " + recWord(expired).replace(/^nahrávku$/, "nahrávka") + " zo zálohy " + (expired === 1 ? "je staršia" : "sú staršie") + " ako doba uchovávania v nastaveniach, preto sa po obnovení hneď zmažú." : ""),
         ok: "Obnoviť", danger: true
       }, () => {
         if (rec || startingRec) { closeModal(); toast("Najprv ukonči nočný záznam."); return; }
@@ -2196,10 +2356,22 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
         }
         refreshFactors();   // load() v bloku nastavení pracoval so starými dátami
         save();
-        // odkazy na nahrávky, ktoré v tomto zariadení nie sú, odstránime
+        // nahrávky zo zálohy vrátime do zariadenia (po jednej, aby sa veľké noci nenačítali naraz),
+        // potom odkazy na nahrávky, ktoré v tomto zariadení nie sú, odstránime
         const ids = [];
         Object.keys(D.sounds).forEach(k => nightFiles(D.sounds[k]).forEach(c => ids.push(c.id)));
-        IDB.has(ids).catch(() => null).then(have => {
+        restoring = true;
+        (async () => {
+          let put = 0;
+          for (const a of aud) {
+            try { await IDB.put(a.id, new Blob([zip[a.file].blob], { type: a.type || "audio/webm" })); put++; } catch (e) { /* ďalšia */ }
+          }
+          return put;
+        })().then(put => {
+          restoring = false;
+          if (aud.length) toast(put === aud.length ? "Dáta sú obnovené zo zálohy, nahrávky: " + put + "." : "Dáta sú obnovené, nahrávky len čiastočne (" + put + " z " + aud.length + ").");
+          return IDB.has(ids).catch(() => null);
+        }).then(have => {
           if (have) {
             const ok = new Set(have);
             Object.keys(D.sounds).forEach(k => {
@@ -2213,7 +2385,7 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
         });
         UI.tab = "today"; UI.msg = null;
         closeModal(); closeSheet();
-        toast("Dáta sú obnovené zo zálohy.");
+        toast(aud.length ? "Obnovujem nahrávky…" : "Dáta sú obnovené zo zálohy.");
       });
     }
   }
@@ -2348,7 +2520,7 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
       case "askReset":
         confirmModal({
           title: "Vymazať všetky dáta?",
-          text: "Vymažú sa všetky zozbierané informácie: ranné a večerné záznamy, nočné záznamy zvuku so všetkými nahrávkami (ukážky aj celé noci), experimenty aj verdikty. Appka začne od začiatku. Ak nemáš aktuálnu zálohu dát, túto akciu nie je možné vrátiť späť. " + lastBackupText() + " Zvukové nahrávky sa nedajú obnoviť ani zo zálohy. Nastavenia vzhľadu zostanú.",
+          text: "Vymažú sa všetky zozbierané informácie: ranné a večerné záznamy, nočné záznamy zvuku so všetkými nahrávkami (ukážky aj celé noci), experimenty aj verdikty. Appka začne od začiatku. Ak nemáš aktuálnu zálohu dát, túto akciu nie je možné vrátiť späť. " + lastBackupText() + " Zvukové nahrávky obnovíš len zo zálohy ZIP, ktorá ich obsahuje. Nastavenia vzhľadu zostanú.",
           ok: "Vymazať všetko", danger: true
         }, resetAll);
         break;

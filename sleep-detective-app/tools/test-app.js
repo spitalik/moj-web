@@ -737,7 +737,7 @@ async function asyncTests() {
     fakeNow = day(18, 9); click({ tab: 'today' });
     assert.ok(view().includes('Stiahni si zálohu'), 'po 7 dňoch sa pripomienka nevrátila');
     blobs = [];
-    click({ act: 'export' });
+    click({ act: 'export' }); await settle();
     assert.ok(!view().includes('Stiahni si zálohu'), 'po stiahnutí zálohy pripomienka zostala');
     click({ act: 'settings' });
     assert.ok(sheet().includes('Posledná záloha: 18. 1. 2027'), 'nastavenia neukazujú poslednú zálohu');
@@ -891,6 +891,60 @@ async function asyncTests() {
     click({ tab: 'case' });
     assert.ok(view().includes('rastových grafov') && !view().includes('nadváha'), 'u mladistvých sa nemá hodnotiť podľa BMI dospelých');
   });
+
+  await at('záloha ZIP: stiahne aj nahrávky a obnoví ich; staršia záloha .json ide ďalej', async () => {
+    // dve noci s ukážkou a časťou celej noci; nahrávky sú v IndexedDB
+    const t1 = day(9, 2), t2 = day(10, 3);
+    idbStore.clear();
+    idbStore.set('clip-' + t1, { type: 'audio/webm', buf: new Uint8Array([1, 2, 3, 4, 5]).buffer });
+    idbStore.set('full-' + t2, { type: 'audio/webm', buf: new Uint8Array(70000).fill(7).buffer });
+    const sounds = {
+      [iso2(9)]: { rec: day(8, 23), start: day(8, 23), end: day(9, 7), snoreMin: 12, noise: 3, partial: false, clips: [{ id: 'clip-' + t1, t: t1, kind: 'snore', peak: 20 }], segs: [], timeline: [] },
+      [iso2(10)]: { rec: day(9, 23), start: day(9, 23), end: day(10, 7), snoreMin: 0, noise: 1, partial: false, clips: [], segs: [{ id: 'full-' + t2, t: t2, end: t2 + 600000 }], timeline: [] }
+    };
+    setData({ nights: [{ date: iso2(10), quality: 4, duration: 7.5, latency: 10, wakes: 0, energy: 4 }], sounds });
+    fakeNow = day(11, 9);
+    blobs = [];
+    click({ act: 'settings' }); click({ act: 'export' }); await settle();
+    const zip = blobs.find(b => b.type === 'application/zip');
+    assert.ok(zip, 'záloha nie je ZIP');
+    assert.ok(els['#toast'].textContent.includes('Obsahuje 2 nahrávky'), els['#toast'].textContent);
+    const raw = Buffer.from(await zip.arrayBuffer());
+    assert.strictEqual(raw.readUInt32LE(0), 0x04034b50, 'chýba hlavička ZIP');
+    assert.ok(raw.includes('sleep-detective.json') && raw.includes('nahravky/' + iso2(9) + '/clip-' + t1 + '.webm') && raw.includes('nahravky/' + iso2(10) + '/full-' + t2 + '.webm'), 'v ZIP chýbajú súbory');
+    // ZIP overíme aj nezávislým čítačom: CRC32 súborov musí sedieť (inak by ho iné programy odmietli)
+    const zlib = require('zlib');
+    let p = raw.length - 22; while (raw.readUInt32LE(p) !== 0x06054b50) p--;
+    const n = raw.readUInt16LE(p + 10); let c = raw.readUInt32LE(p + 16);
+    for (let i = 0; i < n; i++) {
+      const crc = raw.readUInt32LE(c + 16), size = raw.readUInt32LE(c + 20), nl = raw.readUInt16LE(c + 28), lo = raw.readUInt32LE(c + 42);
+      const start = lo + 30 + raw.readUInt16LE(lo + 26) + raw.readUInt16LE(lo + 28);
+      if (zlib.crc32) assert.strictEqual(zlib.crc32(raw.subarray(start, start + size)), crc, 'zlá CRC32 pre ' + raw.toString('utf8', c + 46, c + 46 + nl));
+      c += 46 + nl;
+    }
+    click({ act: 'close' });
+    // dáta aj nahrávky zmizli (napr. nový telefón), obnova zo ZIP ich vráti
+    setData({});
+    idbStore.clear();
+    listeners.change({ target: { id: 'import-file', files: [zip] } }); await settle();
+    assert.ok(modal().innerHTML.includes('2 nahrávky'), 'potvrdenie neuvádza nahrávky: ' + modal().innerHTML);
+    click({ act: 'modalOk' }); await settle(); await settle();
+    assert.deepStrictEqual([...new Uint8Array(idbStore.get('clip-' + t1).buf)], [1, 2, 3, 4, 5], 'ukážka sa neobnovila');
+    assert.strictEqual(idbStore.get('full-' + t2).buf.byteLength, 70000, 'časť celej noci sa neobnovila');
+    assert.strictEqual(data().sounds[iso2(9)].clips.length, 1, 'odkaz na ukážku sa stratil');
+    assert.strictEqual(data().sounds[iso2(10)].segs.length, 1, 'odkaz na časť noci sa stratil');
+    assert.ok(els['#toast'].textContent.includes('Dáta sú obnovené zo zálohy, nahrávky: 2.'), els['#toast'].textContent);
+    // staršia záloha .json (bez nahrávok) sa dá obnoviť ďalej
+    const old = JSON.parse(fs.readFileSync(path.join(__dirname, 'zaloha-test-7dni.json'), 'utf8'));
+    listeners.change({ target: { id: 'import-file', files: [new Blob([JSON.stringify(old)], { type: 'application/json' })] } }); await settle();
+    assert.ok(modal().innerHTML.includes('bez zvukových nahrávok'), 'staršia záloha sa neotvorila');
+    click({ act: 'modalCancel' });
+    // poškodený ZIP nič nezmení
+    listeners.change({ target: { id: 'import-file', files: [new Blob(['PK-nie-je-zip'])] } }); await settle();
+    assert.ok(modal().innerHTML.includes('nepodarilo načítať'), 'poškodený ZIP nevypísal chybu');
+    click({ act: 'modalOk' });
+    assert.strictEqual(data().sounds[iso2(9)].clips.length, 1);
+  });
   URL.createObjectURL = realCreate;
 
   await at('natívna appka (Capacitor): zdieľanie súborov, zapnutá obrazovka, tlačidlo Späť', async () => {
@@ -911,6 +965,7 @@ async function asyncTests() {
           if (!files.length) throw new Error('Directory does not exist');
           return { files };
         },
+        appendFile: async o => { const f = docs.get(o.directory + ':' + o.path); f.data += o.data; f.mtime = Date.now(); },
         readFile: async o => { const f = docs.get(o.directory + ':' + o.path); if (!f) throw new Error('File does not exist'); return { data: f.data }; },
         rmdir: async o => { calls.push(['rmdir', o.path]); }
       },
@@ -938,7 +993,7 @@ async function asyncTests() {
     assert.ok(sheet().includes('V priečinku zatiaľ nie je žiadna záloha'), 'prázdny priečinok záloh');
     click({ act: 'settings' }); click({ act: 'export' }); await settle();
     const w = calls.find(c => c[0] === 'write');
-    assert.ok(w && /^SleepDetective\/sleep-detective-\d{4}-\d\d-\d\d\.json$/.test(w[1]) && w[2] === 'DOCUMENTS' && w[3], 'záloha sa nezapísala: ' + JSON.stringify(calls));
+    assert.ok(w && /^SleepDetective\/sleep-detective-\d{4}-\d\d-\d\d\.zip$/.test(w[1]) && w[2] === 'DOCUMENTS' && w[3], 'záloha sa nezapísala: ' + JSON.stringify(calls));
     assert.ok(!calls.some(c => c[0] === 'share'), 'záloha sa má uložiť do priečinka, nie zdieľať');
     assert.ok(els['#toast'].textContent.includes('Dokumenty/SleepDetective/sleep-detective-'), 'toast neuvádza, kam sa záloha uložila');
     const name = w[1].split('/')[1];
