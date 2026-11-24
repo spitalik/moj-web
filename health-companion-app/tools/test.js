@@ -356,6 +356,12 @@ test('jednotky a BMI', () => {
   assert.strictEqual(HC.bmi(80, null), null);
 });
 
+test('os grafu: okrúhle hodnoty', () => {
+  assert.deepStrictEqual(HC.niceTicks(71.6, 136.4, 4), [60, 80, 100, 120, 140]);
+  assert.deepStrictEqual(HC.niceTicks(36.4, 37.9, 4), [36, 36.5, 37, 37.5, 38]);
+  assert.deepStrictEqual(HC.niceTicks(80, 80, 4), [79, 79.5, 80, 80.5, 81]);
+});
+
 test('kontakt v núdzi: rozdelenie mena a telefónu, odkaz tel:', () => {
   assert.deepStrictEqual(HC.splitContact('Anna Nováková, 0900 000 000'), { name: 'Anna Nováková', phone: '0900 000 000' });
   assert.deepStrictEqual(HC.splitContact('Иван +7 900 000 00 00'), { name: 'Иван', phone: '+7 900 000 00 00' });

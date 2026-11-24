@@ -98,6 +98,8 @@ main[data-tab="checkups"] { --sec: var(--c-checkups); }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: var(--shadow), inset 3px 0 0 var(--sec); }
 .card.flag-warn { border-color: var(--warn); }
 .card.flag-danger { border-color: var(--danger); }
+.ice-btn { display: flex; align-items: center; justify-content: center; width: 100%; border-color: var(--danger); color: var(--danger); font-weight: 700; gap: 8px; }
+.ice-detail { gap: 10px; margin-bottom: 12px; }
 .card.ice { border-color: var(--danger); box-shadow: var(--shadow), inset 3px 0 0 var(--danger); }
 .card.hero { background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 24%, var(--card)), var(--card) 70%); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); box-shadow: var(--shadow); }
 .hero strong { font-size: 17px; }
@@ -114,6 +116,9 @@ main[data-tab="checkups"] { --sec: var(--c-checkups); }
 .badge.danger { color: var(--danger); }
 .badge.ok { color: var(--ok); }
 .empty { color: var(--muted); text-align: center; padding: 22px 14px; background: var(--card-2); border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.empty::before { content: ""; width: 40px; height: 40px; border-radius: 14px; background: var(--sec, var(--accent)); opacity: .9;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='3' width='16' height='18' rx='3'/%3E%3Cpath d='M8 8h8M8 12h8M8 16h5'/%3E%3C/svg%3E") center / 30px no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='3' width='16' height='18' rx='3'/%3E%3Cpath d='M8 8h8M8 12h8M8 16h5'/%3E%3C/svg%3E") center / 30px no-repeat; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
 
 .dose { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
@@ -158,9 +163,9 @@ dialog { border: 1px solid var(--line); border-radius: 18px; background: var(--c
 dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
 dialog form { position: relative; padding: 18px; display: flex; flex-direction: column; gap: 12px; max-height: 90dvh; overflow-y: auto; }
 dialog form h2 { padding-right: 44px; }
-.dlg-x { position: absolute; top: 10px; right: 10px; z-index: 1; width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--card-2); color: var(--fg); font-size: 22px; line-height: 1; padding: 0 0 2px; display: grid; place-items: center; }
+.dlg-x { position: absolute; top: 10px; right: 10px; z-index: 1; width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--card-2); color: var(--fg); line-height: 1; padding: 0; display: grid; place-items: center; }
 .dlg-x:hover { background: var(--line); }
-.btn-round { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); font-size: 28px; font-weight: 500; line-height: 1; padding: 0 0 3px; display: grid; place-items: center; box-shadow: var(--shadow); }
+.btn-round { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); line-height: 1; padding: 0; display: grid; place-items: center; box-shadow: var(--shadow); }
 .btn-round:hover { filter: brightness(1.08); }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
 input, select, textarea {
@@ -191,6 +196,29 @@ textarea { min-height: 70px; resize: vertical; }
 .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .chip.on { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
 .chip.small { padding: 3px 10px; font-size: 12px; }
+.ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
+.btn-round svg { width: 22px; height: 22px; }
+dialog.confirm { max-width: 360px; }
+dialog.confirm p { margin: 4px 0 16px; font-size: 15px; line-height: 1.45; }
+.btn.danger-fill { background: var(--danger); border-color: var(--danger); color: #fff; }
+.mini-select { width: auto; padding: 4px 8px; font-size: 12px; border-radius: 999px; background: var(--card-2); }
+.chart-sub { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: -4px 0 8px; font-size: 13px; }
+.chart .grid { stroke-width: 1; }
+.remind-line { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); background: none; border: 0; padding: 2px 0; }
+.sheet-list { display: flex; flex-direction: column; gap: 8px; }
+.sheet-list .btn { display: flex; align-items: center; justify-content: flex-start; gap: 10px; text-align: left; }
+a.btn, .ice-btn, .remind-line { gap: 6px; }
+.setup .setup-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.setup .setup-item:first-of-type { border-top: 0; }
+.setup .setup-item .info { flex: 1; min-width: 0; }
+.setup .x { border: 0; background: none; color: var(--muted); padding: 6px; border-radius: 50%; }
+.about-ver { font-variant-numeric: tabular-nums; }
+.onb-step { text-align: center; }
+.onb-step .onb-ico { width: 56px; height: 56px; margin: 4px auto 10px; border-radius: 18px; display: grid; place-items: center; background: var(--card-2); color: var(--accent); }
+.onb-step .onb-ico svg { width: 30px; height: 30px; }
+.onb-dots { display: flex; justify-content: center; gap: 6px; margin: 12px 0 2px; }
+.onb-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.onb-dots i.on { background: var(--accent); }
 a.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 .period-chips { margin-top: -2px; }
 .stats { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -253,7 +281,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
 
 <dialog id="dlg">
   <form id="dlg-form" method="dialog">
-    <button type="button" class="dlg-x" id="dlg-x" data-i18n-aria="close" aria-label="Zavrieť">×</button>
+    <button type="button" class="dlg-x" id="dlg-x" data-i18n-aria="close" aria-label="Zavrieť"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <h2 id="dlg-title"></h2>
     <div id="dlg-fields" class="stack"></div>
     <p class="form-error" id="dlg-error" hidden></p>
@@ -262,6 +290,14 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       <button type="submit" class="btn primary" id="dlg-save" data-i18n="save">Uložiť</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="cdlg" class="confirm" aria-labelledby="cdlg-msg">
+  <p id="cdlg-msg"></p>
+  <div class="form-actions">
+    <button type="button" class="btn" id="cdlg-no">Zrušiť</button>
+    <button type="button" class="btn danger-fill" id="cdlg-yes">Zmazať</button>
+  </div>
 </dialog>
 
 <div class="toast" id="toast" role="status" hidden></div>
@@ -533,7 +569,9 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
   }
 
   function disableEncryption() {
-    if (!confirmDelete(t('confirmDecrypt'))) return;
+    confirmDelete(t('confirmDecrypt'), t('confirmContinue')).then(function (ok) { if (ok) doDisableEncryption(); });
+  }
+  function doDisableEncryption() {
     var oldKey = encKey;
     rekeyFiles(oldKey, null).then(function () {
       encKey = null; encSalt = null; profile.encrypted = false;
@@ -579,6 +617,11 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     var bg = getComputedStyle(root).getPropertyValue('--bg').trim();
     var meta = document.getElementById('theme-color');
     if (meta && bg) meta.setAttribute('content', bg);
+    var SB_ = capPlugin('StatusBar');
+    if (SB_ && bg) {
+      SB_.setBackgroundColor({ color: bg }).catch(function () {});
+      SB_.setStyle({ style: root.dataset.theme === 'light' ? 'LIGHT' : 'DARK' }).catch(function () {});
+    }
   }
   function setPalette(name) { setPref('palette', name); applyPalette(); }
   function setMode(mode) { setPref('mode', mode); applyPalette(); }
@@ -596,6 +639,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       var rec = list.filter(function (p) { return p.id === pref; })[0] || list[0];
       activate(rec);
       if (migrated) toast(t('migrated'));
+      if (!getPref('onboarded') && !rec.encrypted && !HC.dataCount(state)) openOnboarding(0);
+      else if (!getPref('onboarded')) setPref('onboarded', '1');
     }).catch(function (err) {
       console.error('boot', err);
       document.getElementById('view').innerHTML = '<div class="empty">' + t('dbError') + '</div>';
@@ -620,8 +665,22 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     if (!d) return t('dateUnknown');
     return d.toLocaleDateString(I18N.info(I18N.lang()).htmlLang, { day: 'numeric', month: 'short', year: 'numeric' });
   }
+  // Čísla podľa jazyka (sk/de: 36,6; en: 36.6), najviac jedno desatinné miesto, bez oddeľovača tisícov.
+  var numFmt = null, numFmtLang = null;
   function fmtNum(n) {
-    return String(Math.round(Number(n) * 10) / 10);
+    var lang = I18N.info(I18N.lang()).htmlLang;
+    if (numFmtLang !== lang) {
+      numFmtLang = lang;
+      try { numFmt = new Intl.NumberFormat(lang, { maximumFractionDigits: 1, useGrouping: false }); } catch (e) { numFmt = null; }
+    }
+    var v = Math.round(Number(n) * 10) / 10;
+    return numFmt ? numFmt.format(v) : String(v);
+  }
+  // Číslo do vstupného poľa (vždy s bodkou, inak ho input type=number neprijme).
+  function inputNum(n) { return Math.round(Number(n) * 10) / 10; }
+  function fmtShortDate(iso) {
+    var d = HC.parseISO(iso);
+    return d ? d.toLocaleDateString(I18N.info(I18N.lang()).htmlLang, { day: 'numeric', month: 'numeric' }) : '';
   }
   function nowTime() {
     var d = new Date();
@@ -642,7 +701,58 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
   }
   function findBy(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
   function removeBy(list, id) { return list.filter(function (x) { return x.id !== id; }); }
-  function confirmDelete(msg) { return window.confirm(msg); }
+  // Jednotná sada ikon (SVG, farba podľa textu).
+  var ICON_PATHS = {
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    close: '<path d="M6 6l12 12M18 6L6 18"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+    more: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+    download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+    medical: '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
+    phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/>',
+    pill: '<rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="M8.5 8.5l7 7"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    backup: '<path d="M4 7v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7"/><path d="M12 3v10M8 9l4 4 4-4"/>'
+  };
+  function icon(name) { return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + (ICON_PATHS[name] || '') + '</svg>'; }
+
+  // Natívne pluginy Capacitoru (len v appke na telefóne; v prehliadači null).
+  function capPlugin(name) {
+    var C = window.Capacitor;
+    return C && typeof C.isNativePlatform === 'function' && C.isNativePlatform() && C.Plugins ? C.Plugins[name] || null : null;
+  }
+  // Jemná vibrácia (užitá dávka, potvrdenie mazania).
+  function haptic(kind) {
+    var H = capPlugin('Haptics');
+    if (H) { H.impact({ style: kind === 'medium' ? 'MEDIUM' : 'LIGHT' }).catch(function () {}); return; }
+    if (navigator.vibrate) try { navigator.vibrate(kind === 'medium' ? 20 : 12); } catch (e) { /* bez vibrácie */ }
+  }
+
+  // Potvrdenie vo vlastnom okne (namiesto systémového window.confirm). Vráti Promise<boolean>.
+  var cdlg = document.getElementById('cdlg');
+  function confirmDelete(msg, yesText) {
+    return new Promise(function (resolve) {
+      var yes = document.getElementById('cdlg-yes'), no = document.getElementById('cdlg-no');
+      document.getElementById('cdlg-msg').textContent = msg;
+      yes.textContent = yesText || t('remove');
+      no.textContent = t('cancel');
+      var settled = false;
+      function done(v) {
+        if (settled) return;
+        settled = true;
+        yes.onclick = no.onclick = null; cdlg.onclose = null;
+        if (cdlg.open) cdlg.close();
+        resolve(v);
+      }
+      yes.onclick = function () { haptic('medium'); done(true); };
+      no.onclick = function () { done(false); };
+      cdlg.onclose = function () { done(false); }; // ESC alebo tlačidlo Späť
+      cdlg.showModal();
+      no.focus();
+    });
+  }
   function visitLabel(v) { return v ? fmtDate(v.date) + ' – ' + (v.doctor || v.specialty || '') : ''; }
   function downloadBlob(name, type, data) {
     var blob = data instanceof Blob ? data : new Blob([data], { type: type });
@@ -662,6 +772,24 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     var ice = state.settings.ice || {};
     if (ice.phone) return { name: ice.contact || '', phone: ice.phone };
     return HC.splitContact(ice.contact);
+  }
+  // Obsah okna Núdzové údaje (krvná skupina, alergie, ochorenia, kontakt so Zavolať).
+  function iceHtml() {
+    var ice = state.settings.ice || {}, ic = iceContact();
+    return '<div class="stack ice-detail">' +
+      (ice.blood ? '<div><strong>' + t('iceBlood') + '</strong> ' + esc(bloodLabel(ice.blood)) + '</div>' : '') +
+      (ice.allergies ? '<div><strong>' + t('iceAllergies') + '</strong> ' + esc(ice.allergies) + '</div>' : '') +
+      (ice.conditions ? '<div><strong>' + t('iceConditions') + '</strong> ' + esc(ice.conditions) + '</div>' : '') +
+      (ic.name || ic.phone ? '<div class="row"><div><strong>' + t('iceContact') + '</strong> ' + esc(ic.name) + (ic.name && ic.phone ? ' · ' : '') + esc(ic.phone) + '</div>' +
+        (ic.phone ? '<a class="btn small primary" href="' + esc(HC.telHref(ic.phone)) + '">' + icon('phone') + ' ' + t('callBtn') + '</a>' : '') + '</div>' : '') +
+      '</div><button type="button" class="btn block" data-act="edit-ice">' + t('edit') + '</button>';
+  }
+  function showIce() {
+    document.getElementById('dlg-title').textContent = t('iceTitle');
+    dlgFields.innerHTML = iceHtml();
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    if (!dlg.open) dlg.showModal();
   }
   function hasICE() {
     var ice = state.settings.ice || {};
@@ -691,7 +819,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     if (!st.n) return '';
     var two = type === 'bp' && st.second;
     var whole = type === 'bp' || type === 'pulse'; // tlak a tep v celých číslach
-    function f(k) { return (whole ? String(Math.round(st.main[k])) : dispVal(type, st.main[k])) + (two ? '/' + Math.round(st.second[k]) : ''); }
+    function f(k) { return (whole ? fmtNum(Math.round(st.main[k])) : dispVal(type, st.main[k])) + (two ? '/' + fmtNum(Math.round(st.second[k])) : ''); }
     var parts = [t('statAvg') + ' <strong>' + esc(f('avg')) + '</strong>' + (two ? ' ' + bpPill(st.main.avg, st.second.avg) : ''),
       t('statMin') + ' ' + esc(f('min')), t('statMax') + ' ' + esc(f('max')), esc(t('statCount', { n: st.n }))];
     if (type === 'bp') parts.push(esc(t('statHigh', { n: HC.bpHighCount(pts, 135, 85) })));
@@ -716,39 +844,44 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
   // refs (nepovinné): vodorovné prerušované čiary, napr. ideálne hodnoty [{y, color, label}].
   function lineChart(series, fromIso, toIso, refs) {
     var all = [];
-    series.forEach(function (s) { s.points.forEach(function (p) { all.push(p.y); }); });
+    series.forEach(function (s) { s.points.forEach(function (p) { if (p.y != null && isFinite(p.y)) all.push(Number(p.y)); }); });
     if (!all.length) return '<p class="muted">' + t('chartNoData') + '</p>';
-    var W = 600, H = 160, P = 30;
-    var n = Math.max(1, HC.daysBetween(fromIso, toIso));
     (refs || []).forEach(function (r) { all.push(r.y); });
-    var min = Math.min.apply(null, all), max = Math.max.apply(null, all);
-    if (min === max) { min -= 1; max += 1; }
-    var span = max - min; min -= span * 0.1; max += span * 0.1;
+    var W = 600, H = 180, L = 40, R = 12, T = 10, B = 28;
+    var n = Math.max(1, HC.daysBetween(fromIso, toIso));
+    var ticks = HC.niceTicks(Math.min.apply(null, all), Math.max.apply(null, all), 4);
+    var min = ticks[0], max = ticks[ticks.length - 1];
     // Poloha bodu: deň + čas v dni (bez času = poludnie). Os má o deň viac, aby posledný deň bol celý.
-    function X(d, tm) { var m = /^(\d{1,2}):(\d{2})/.exec(tm || ''); var frac = m ? (Number(m[1]) * 60 + Number(m[2])) / 1440 : 0.5; return P + Math.min(1, Math.max(0, (HC.daysBetween(fromIso, d) + frac) / (n + 1))) * (W - 2 * P); }
-    function Y(v) { return H - P - ((v - min) / (max - min)) * (H - 2 * P); }
-    var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + (H + 22) + '" role="img">' +
-      '<line x1="' + P + '" y1="' + (H - P) + '" x2="' + (W - P) + '" y2="' + (H - P) + '" style="stroke:var(--line)"/>' +
-      '<text x="2" y="' + (P + 4) + '" font-size="11" style="fill:var(--muted)">' + fmtNum(max) + '</text>' +
-      '<text x="2" y="' + (H - P) + '" font-size="11" style="fill:var(--muted)">' + fmtNum(min) + '</text>' +
-      '<text x="' + P + '" y="' + (H + 16) + '" font-size="11" style="fill:var(--muted)">' + esc(fmtDate(fromIso)) + '</text>' +
-      '<text x="' + (W - P) + '" y="' + (H + 16) + '" font-size="11" text-anchor="end" style="fill:var(--muted)">' + esc(fmtDate(toIso)) + '</text>';
+    function X(d, tm) { var m = /^(\d{1,2}):(\d{2})/.exec(tm || ''); var frac = m ? (Number(m[1]) * 60 + Number(m[2])) / 1440 : 0.5; return L + Math.min(1, Math.max(0, (HC.daysBetween(fromIso, d) + frac) / (n + 1))) * (W - L - R); }
+    function Y(v) { return T + (1 - (v - min) / (max - min)) * (H - T - B); }
+    var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img">';
+    ticks.forEach(function (v) {
+      svg += '<line class="grid" x1="' + L + '" y1="' + Y(v).toFixed(1) + '" x2="' + (W - R) + '" y2="' + Y(v).toFixed(1) + '" style="stroke:var(--line,#ddd)"/>' +
+        '<text x="' + (L - 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" text-anchor="end" style="fill:var(--muted,#666)">' + fmtNum(v) + '</text>';
+    });
+    var mid = HC.addDays(fromIso, Math.round(n / 2));
+    [[fromIso, '00:00', 'start'], [mid, '12:00', 'middle'], [toIso, '23:59', 'end']].forEach(function (d) {
+      if (d[0] === mid && n < 2) return;
+      svg += '<text x="' + X(d[0], d[1]).toFixed(1) + '" y="' + (H - 8) + '" font-size="11" text-anchor="' + d[2] + '" style="fill:var(--muted,#666)">' + esc(fmtShortDate(d[0])) + '</text>';
+    });
     (refs || []).forEach(function (r) {
-      svg += '<line x1="' + P + '" y1="' + Y(r.y).toFixed(1) + '" x2="' + (W - P) + '" y2="' + Y(r.y).toFixed(1) + '" stroke-dasharray="6 5" stroke-width="1.5" style="stroke:' + r.color + '"/>' +
-        '<text x="' + (W - P - 4) + '" y="' + (Y(r.y) - 5).toFixed(1) + '" font-size="11" font-weight="700" text-anchor="end" style="fill:' + r.color + '">' + esc(r.label) + '</text>';
+      svg += '<line x1="' + L + '" y1="' + Y(r.y).toFixed(1) + '" x2="' + (W - R) + '" y2="' + Y(r.y).toFixed(1) + '" stroke-dasharray="6 5" stroke-width="1.5" style="stroke:' + r.color + '"/>' +
+        '<text x="' + (W - R - 4) + '" y="' + (Y(r.y) - 5).toFixed(1) + '" font-size="11" font-weight="700" text-anchor="end" style="fill:' + r.color + '">' + esc(r.label) + '</text>';
     });
     series.forEach(function (s) {
-      var pts = s.points.slice().sort(function (a, b) {
+      var sorted = s.points.filter(function (p) { return p.y != null && isFinite(p.y); }).sort(function (a, b) {
         var ka = a.x + ' ' + (a.t || ''), kb = b.x + ' ' + (b.t || '');
         return ka < kb ? -1 : ka > kb ? 1 : 0;
-      }).map(function (p) { return X(p.x, p.t).toFixed(1) + ',' + Y(p.y).toFixed(1); });
-      if (pts.length > 1) svg += '<polyline class="ln" pathLength="1" fill="none" stroke-width="2" style="stroke:' + s.color + '" points="' + pts.join(' ') + '"/>';
-      s.points.forEach(function (p) {
-        svg += '<circle cx="' + X(p.x, p.t).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="3.5" style="fill:' + s.color + '"><title>' + esc(fmtDate(p.x) + (p.t ? ' ' + p.t : '') + ' · ' + fmtNum(p.y)) + '</title></circle>';
+      });
+      var pts = sorted.map(function (p) { return X(p.x, p.t).toFixed(1) + ',' + Y(p.y).toFixed(1); });
+      if (pts.length > 1) svg += '<polyline class="ln" pathLength="1" fill="none" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="stroke:' + s.color + '" points="' + pts.join(' ') + '"/>';
+      sorted.forEach(function (p) {
+        svg += '<circle cx="' + X(p.x, p.t).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="4.5" stroke-width="2" style="fill:' + s.color + ';stroke:var(--card,#fff)"><title>' + esc(fmtDate(p.x) + (p.t ? ' ' + p.t : '') + ' · ' + fmtNum(p.y)) + '</title></circle>';
       });
     });
     return svg + '</svg>';
   }
+
 
   // ---------- Dialóg ----------
   var dlg = document.getElementById('dlg');
@@ -862,9 +995,9 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
   var views = {};
   var justTaken = null;
   // Okrúhle tlačidlo + na pridanie položky v hlavičke sekcie.
-  function roundAdd(act) {
-    var label = String(t('add')).replace(/^\+\s*/, '');
-    return '<button type="button" class="btn-round" data-act="' + act + '" aria-label="' + esc(label) + '" title="' + esc(label) + '">+</button>';
+  function roundAdd(act, text) {
+    var label = String(text || t('add')).replace(/^\+\s*/, '');
+    return '<button type="button" class="btn-round" data-act="' + act + '" aria-label="' + esc(label) + '" title="' + esc(label) + '">' + icon('plus') + '</button>';
   }
 
   // Dnes: dávky, núdzová karta, upozornenia
@@ -903,32 +1036,24 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         '</div></section>';
     }
 
-    // Núdzová karta
-    var ice = state.settings.ice || {}, ic = iceContact();
-    if (hasICE()) {
-      html += '<section class="card ice"><div class="row"><h2>' + t('iceTitle') + '</h2><button class="btn small" data-act="edit-ice">' + t('edit') + '</button></div><div class="stack">' +
-        (ice.blood ? '<div><strong>' + t('iceBlood') + '</strong> ' + esc(bloodLabel(ice.blood)) + '</div>' : '') +
-        (ice.allergies ? '<div><strong>' + t('iceAllergies') + '</strong> ' + esc(ice.allergies) + '</div>' : '') +
-        (ice.conditions ? '<div><strong>' + t('iceConditions') + '</strong> ' + esc(ice.conditions) + '</div>' : '') +
-        (ic.name || ic.phone ? '<div class="row"><div><strong>' + t('iceContact') + '</strong> ' + esc(ic.name) + (ic.name && ic.phone ? ' · ' : '') + esc(ic.phone) + '</div>' +
-          (ic.phone ? '<a class="btn small primary" href="' + esc(HC.telHref(ic.phone)) + '">' + t('callBtn') + '</a>' : '') + '</div>' : '') +
-        '</div></section>';
-    } else {
-      html += '<section class="banner"><div class="row"><div><strong>' + t('iceFillTitle') + '</strong><div class="muted">' + t('iceFillText') + '</div></div><button class="btn small" data-act="edit-ice">' + t('iceFillBtn') + '</button></div></section>';
-    }
+    // Núdzové údaje: na Dnes len tlačidlo, údaje sa ukážu v samostatnom okne
+    if (hasICE()) html += '<button type="button" class="btn ice-btn" data-act="show-ice">' + icon('medical') + ' ' + t('iceTitle') + '</button>';
 
-    // Pripomienky
-    if ('Notification' in window && Notification.permission === 'default') {
-      html += '<section class="card"><div class="row"><div><strong>' + t('notifyTitle') + '</strong><div class="muted">' + t('notifyText') + '</div></div><button class="btn small primary" data-act="notify">' + t('notifyBtn') + '</button></div></section>';
-    } else if ('Notification' in window && Notification.permission === 'denied') {
-      html += '<section class="banner"><div class="muted">' + t('notifyDenied') + '</div></section>';
-    }
-
-    // Záloha
-    if (HC.backupDue(state, state.settings.lastExport, tod)) {
-      html += '<section class="banner"><div class="row"><div><strong>' + t('backupTitle') + '</strong><div class="muted">' +
-        (state.settings.lastExport ? t('backupLast', { date: fmtDate(state.settings.lastExport) }) : t('backupNone')) +
-        '</div></div><button class="btn small" data-act="export-backup">' + t('backupBtn') + '</button></div></section>';
+    // Dokončite nastavenie: núdzové údaje, upozornenia a záloha v jednej karte; položky sa dajú skryť.
+    var dis = state.settings.dismissed || {};
+    function hiddenFor(k, days) { return !!dis[k] && (days == null || HC.daysBetween(dis[k], tod) < days); }
+    var setup = [];
+    if (!hasICE() && !hiddenFor('ice')) setup.push({ k: 'ice', ico: 'medical', title: t('iceFillTitle'), text: t('iceFillText'), act: 'edit-ice', btn: t('iceFillBtn') });
+    if ('Notification' in window && Notification.permission === 'default' && !hiddenFor('notify')) setup.push({ k: 'notify', ico: 'bell', title: t('notifyTitle'), text: t('notifyText'), act: 'notify', btn: t('notifyBtn') });
+    else if ('Notification' in window && Notification.permission === 'denied' && !hiddenFor('notify')) setup.push({ k: 'notify', ico: 'bell', title: t('notifyTitle'), text: t('notifyDenied') });
+    if (HC.backupDue(state, state.settings.lastExport, tod) && !hiddenFor('backup', 7)) setup.push({ k: 'backup', ico: 'backup', title: t('backupTitle'),
+      text: state.settings.lastExport ? t('backupLast', { date: fmtDate(state.settings.lastExport) }) : t('backupNone'), act: 'export-backup', btn: t('backupBtn') });
+    if (setup.length) {
+      html += '<section class="card setup"><h2>' + t('setupTitle') + '</h2>' + setup.map(function (it) {
+        return '<div class="setup-item">' + icon(it.ico) + '<div class="info"><strong>' + esc(it.title) + '</strong><div class="muted">' + esc(it.text) + '</div></div>' +
+          (it.act ? '<button class="btn small" data-act="' + it.act + '">' + esc(it.btn) + '</button>' : '') +
+          '<button class="x" data-act="dismiss" data-key="' + it.k + '" aria-label="' + esc(t('setupHide')) + '" title="' + esc(t('setupHide')) + '">' + icon('close') + '</button></div>';
+      }).join('') + '</section>';
     }
 
     html += '<section class="card"><div class="section-head"><h2>' + t('todayMeds') + '</h2><span class="muted">' + fmtDate(tod) + '</span></div>';
@@ -952,7 +1077,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
           '<div class="info"><div class="name">' + esc(d.name) + '</div><div class="muted">' + sub + '</div></div>' +
           '<div class="dose-btns">' +
           '<button class="check' + (d.taken ? ' on' : '') + (justTaken === d.key + '|' + tod ? ' fresh' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + tod + '" data-mode="taken" aria-pressed="' + d.taken + '" aria-label="' + esc(t('markTaken', { name: d.name, time: d.time })) + '">' + (d.taken ? CHECK_SVG : '') + '</button>' +
-          '<button class="skip' + (d.skipped ? ' on' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + tod + '" data-mode="skipped" aria-pressed="' + d.skipped + '" aria-label="' + esc(t('markSkipped', { name: d.name, time: d.time })) + '">×</button>' +
+          '<button class="skip' + (d.skipped ? ' on' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + tod + '" data-mode="skipped" aria-pressed="' + d.skipped + '" aria-label="' + esc(t('markSkipped', { name: d.name, time: d.time })) + '">' + icon('close') + '</button>' +
           snooze +
           '</div></div>';
       }).join('');
@@ -997,7 +1122,6 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       }).join('') + '</div></section>';
     }
 
-    html += '<p class="disclaimer">' + t('disclaimer') + '</p>';
     html += '<p class="muted">' + t('emergencyLine', { number: HC.emergencyNumber(state.settings.emergency) }) + '</p>';
     return html;
   };
@@ -1041,7 +1165,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     }).join('');
     html += '</section>';
 
-    html += '<div class="section-head"><h2>' + t('symptomsLog') + '</h2><button class="btn small primary" data-act="add-symptom">' + t('logSymptom') + '</button></div>';
+    html += '<div class="section-head"><h2>' + t('symptomsLog') + '</h2>' + roundAdd('add-symptom', t('logSymptom')) + '</div>';
     var list = sortBy(state.symptoms, 'date', true);
     if (!list.length) html += '<div class="empty">' + t('symptomsEmpty') + '</div>';
     html += list.map(function (s) {
@@ -1067,18 +1191,22 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     // Rozsah grafu: podľa meraní (max. 365 dní, min. 7 dní) alebo zvolené obdobie.
     var rng = HC.chartRange(HC.measureDates(state.measurements, measureType), tod, measurePeriod);
     var from = rng.from, to = rng.to;
-    var rangeP = '<p class="muted" style="margin:-4px 0 8px">' + fmtDate(from) + ' – ' + fmtDate(to) + '</p>';
-    var html = '<div class="section-head"><h1>' + t('measureTitle') + '</h1></div>';
+    var rangeText = fmtDate(from) + ' – ' + fmtDate(to);
+    var periodSel = '<select class="mini-select" data-change="mperiod" aria-label="' + esc(t('fPeriod')) + '">' + MEASURE_PERIODS.map(function (p) {
+      return '<option value="' + p + '"' + (p === measurePeriod ? ' selected' : '') + '>' + esc(periodLabel(p)) + '</option>';
+    }).join('') + '</select>';
+    var rangeP = '<div class="chart-sub"><span class="muted">' + rangeText + '</span>' + periodSel + '</div>';
+    var rangeOnly = '<div class="chart-sub"><span class="muted">' + rangeText + '</span></div>';
+    var html = '<div class="section-head"><h1>' + t('measureTitle') + '</h1><div class="stack inline">' +
+      '<button type="button" class="btn icon" data-act="measure-menu" aria-label="' + esc(t('moreActions')) + '" title="' + esc(t('moreActions')) + '">' + icon('more') + '</button>' +
+      roundAdd('add-measure', t('addMeasure')) + '</div></div>';
     html += '<div class="stack inline">' + Object.keys(HC.MEASURE_TYPES).map(function (k) {
       return '<button class="chip' + (k === measureType ? ' on' : '') + '" data-act="set-mtype" data-type="' + k + '">' + esc(measureLabel(k)) + '</button>';
     }).join('') + '</div>';
-    html += '<div class="stack inline period-chips" role="group" aria-label="' + esc(t('fPeriod')) + '">' + MEASURE_PERIODS.map(function (p) {
-      return '<button class="chip small' + (p === measurePeriod ? ' on' : '') + '" data-act="set-mperiod" data-period="' + p + '" aria-pressed="' + (p === measurePeriod) + '">' + esc(periodLabel(p)) + '</button>';
-    }).join('') + '</div>';
     var mr = state.settings.measureRemind;
-    var mrText = mr && mr.on && (mr.times || []).length ? mr.times.join(', ') + ' · ' + measureLabel(mr.type) : t('mRemindOffWord');
-    html += '<div class="stack inline" style="justify-content:flex-end"><button class="btn small" data-act="measure-remind" title="' + esc(t('mRemindTitle')) + '">🔔 ' + esc(mrText) + '</button>' +
-      '<button class="btn small" data-act="csv-measure">' + t('csvBtn') + '</button><button class="btn small primary" data-act="add-measure">' + t('addMeasure') + '</button></div>';
+    if (mr && mr.on && (mr.times || []).length) {
+      html += '<button type="button" class="remind-line" data-act="measure-remind">' + icon('bell') + esc(t('mRemindTitle') + ': ' + mr.times.join(', ') + ' · ' + measureLabel(mr.type)) + '</button>';
+    }
     var ty = HC.MEASURE_TYPES[measureType];
     var unit = HC.displayUnit(measureType, units());
     var pulseIdeal = [
@@ -1107,7 +1235,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       if (ty.two) {
         // Graf pulzu pri tlaku: len pulz zapísaný pri meraní tlaku (samostatný tep sem nepatrí).
         var pr = HC.pulseSeries(state.measurements, from, to, true);
-        html += '<section class="card"><h2>' + esc(t('fPulse')) + ' (/min)</h2>' + rangeP +
+        html += '<section class="card"><h2>' + esc(t('fPulse')) + ' (/min)</h2>' + rangeOnly +
           lineChart([{ color: 'var(--c-health)', points: toPts(averageSameTime(pr), 'pulse') }], from, to, pulseIdeal) +
           statsHtml('pulse', pr) + '</section>';
       }
@@ -1130,7 +1258,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     }).join('');
 
     // Výsledky vyšetrení
-    html += '<div class="section-head" style="margin-top:10px"><h2>' + t('labsTitle') + '</h2><button class="btn small primary" data-act="add-lab">' + t('addLab') + '</button></div>';
+    html += '<div class="section-head" style="margin-top:10px"><h2>' + t('labsTitle') + '</h2>' + roundAdd('add-lab', t('addLab')) + '</div>';
     if (!state.labs.length) html += '<div class="empty">' + t('labsEmpty') + '</div>';
     html += HC.labNames(state.labs).map(function (name) {
       var list = HC.labSeries(state.labs, name);
@@ -1152,7 +1280,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
   // Lekár: otázky, návštevy, kontakty, prílohy, prehľad
   views.doctor = function () {
     var html = '<div class="section-head"><h1>' + t('tabDoctor') + '</h1><button class="btn small" data-act="report">' + t('report') + '</button></div>';
-    html += '<div class="section-head"><h2>' + t('questionsTitle') + '</h2><div class="stack inline"><button class="btn small" data-act="copy-questions">' + t('copy') + '</button><button class="btn small primary" data-act="add-question">' + t('addQuestion') + '</button></div></div><section class="card">';
+    html += '<div class="section-head"><h2>' + t('questionsTitle') + '</h2><div class="stack inline"><button class="btn small" data-act="copy-questions">' + t('copy') + '</button>' + roundAdd('add-question', t('addQuestion')) + '</div></div><section class="card">';
     if (!state.questions.length) html += '<p class="muted">' + t('questionsEmpty') + '</p>';
     html += state.questions.map(function (q) {
       var v = findBy(state.visits, q.visitId);
@@ -1164,7 +1292,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     }).join('');
     html += '</section>';
 
-    html += '<div class="section-head"><h2>' + t('visitsTitle') + '</h2><button class="btn small primary" data-act="add-visit">' + t('addVisit') + '</button></div>';
+    html += '<div class="section-head"><h2>' + t('visitsTitle') + '</h2>' + roundAdd('add-visit', t('addVisit')) + '</div>';
     var visits = sortBy(state.visits, 'date', true);
     if (!visits.length) html += '<div class="empty">' + t('visitsEmpty') + '</div>';
     html += visits.map(function (v) {
@@ -1178,7 +1306,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     }).join('');
 
     // Kontakty
-    html += '<div class="section-head"><h2>' + t('contactsTitle') + '</h2><button class="btn small primary" data-act="add-contact">' + t('addContact') + '</button></div>';
+    html += '<div class="section-head"><h2>' + t('contactsTitle') + '</h2>' + roundAdd('add-contact', t('addContact')) + '</div>';
     if (!state.contacts.length) html += '<div class="empty">' + t('contactsEmpty') + '</div>';
     html += state.contacts.map(function (c) {
       return '<section class="card"><div class="row"><div><strong>' + esc(c.name) + '</strong>' + (c.specialty ? ' <span class="muted">(' + esc(c.specialty) + ')</span>' : '') + '</div>' +
@@ -1191,7 +1319,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     }).join('');
 
     // Prílohy
-    html += '<div class="section-head"><h2>' + t('attTitle') + '</h2><button class="btn small primary" data-act="add-att">' + t('addAtt') + '</button></div>';
+    html += '<div class="section-head"><h2>' + t('attTitle') + '</h2>' + roundAdd('add-att', t('addAtt')) + '</div>';
     var atts = sortBy(state.attachments, 'date', true);
     if (!atts.length) html += '<div class="empty">' + t('attEmpty') + '</div>';
     html += atts.map(function (a) {
@@ -1222,7 +1350,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         '<div class="form-actions" style="margin-top:8px"><button class="btn small primary" data-act="done-checkup" data-id="' + esc(x.c.id) + '">' + t('doneToday') + '</button><button class="btn small" data-act="edit-checkup" data-id="' + esc(x.c.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-checkup" data-id="' + esc(x.c.id) + '">' + t('remove') + '</button></div></section>';
     }).join('');
 
-    html += '<div class="section-head" style="margin-top:10px"><h2>' + t('vaccTitle') + '</h2><button class="btn small primary" data-act="add-vacc">' + t('addVacc') + '</button></div>';
+    html += '<div class="section-head" style="margin-top:10px"><h2>' + t('vaccTitle') + '</h2>' + roundAdd('add-vacc', t('addVacc')) + '</div>';
     if (!state.vaccinations.length) html += '<div class="empty">' + t('vaccEmpty') + '</div>';
     html += sortBy(state.vaccinations, 'date', true).map(function (v) {
       var s = HC.vaccinationStatus(v, tod);
@@ -1380,7 +1508,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         { name: 'value2', label: t('fValue2'), type: 'number', step: 'any' },
         { name: 'pulse', label: t('fPulse'), type: 'number', step: 'any' },
         { name: 'notes', label: t('fNotesGeneric'), type: 'textarea' }
-      ], isEdit ? Object.assign({}, m, { value: Number(dispVal(m.type, m.value)) }) : { type: measureType, date: today(), time: nowTime() },
+      ], isEdit ? Object.assign({}, m, { value: inputNum(HC.toDisplay(m.type, m.value, units())) }) : { type: measureType, date: today(), time: nowTime() },
       function (v) {
         var two = !!(HC.MEASURE_TYPES[v.type] && HC.MEASURE_TYPES[v.type].two);
         var obj = {
@@ -1590,10 +1718,71 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       '<h3 style="margin-top:6px">' + t('infoTabsTitle') + '</h3>' +
       tabs.map(function (p) {
         return '<div class="problem-line"><div class="info"><strong>' + t(p[0]) + '</strong><div class="muted">' + t(p[1]) + '</div></div></div>';
-      }).join('');
+      }).join('') +
+      '<button type="button" class="btn block" id="d-about" style="margin-top:8px">' + t('aboutTitle') + '</button>';
     dlgErr.hidden = true;
     setDlgMode(false);
     dlg.showModal();
+  }
+
+  var APP_VERSION = '1.1.0';
+  // O aplikácii: verzia, súkromie, upozornenie, licencie.
+  function openAbout() {
+    document.getElementById('dlg-title').textContent = t('aboutTitle');
+    dlgFields.innerHTML =
+      '<div class="row"><strong>' + t('appName') + '</strong><span class="muted about-ver">' + esc(t('aboutVersion', { v: APP_VERSION })) + '</span></div>' +
+      '<p class="muted">' + t('appDesc') + '</p>' +
+      '<h3>' + icon('shield') + ' ' + t('aboutPrivacyTitle') + '</h3><p>' + t('aboutPrivacy') + '</p>' +
+      '<h3>' + icon('medical') + ' ' + t('aboutMedicalTitle') + '</h3><p class="disclaimer">' + t('disclaimer') + '</p>' +
+      '<h3>' + t('aboutLicensesTitle') + '</h3><p class="muted">' + t('aboutLicenses') + '</p>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    if (!dlg.open) dlg.showModal();
+  }
+
+  // Úvodný sprievodca pri prvom spustení: 1) jazyk a vzhľad, 2) núdzové údaje, 3) prvý liek. Upozornenie je v kroku 1.
+  var ONB_STEPS = 3;
+  function openOnboarding(step) {
+    var dots = '<div class="onb-dots">' + [0, 1, 2].map(function (i) { return '<i class="' + (i === step ? 'on' : '') + '"></i>'; }).join('') + '</div>';
+    var body;
+    if (step === 0) {
+      var langOptions = I18N.languages().map(function (l) {
+        return '<option value="' + esc(l.code) + '"' + (l.code === I18N.lang() ? ' selected' : '') + '>' + esc(l.flag + ' ' + l.name) + '</option>';
+      }).join('');
+      var curPal = PALETTES[getPref('palette')] ? getPref('palette') : 'lamp';
+      body = '<div class="onb-step"><div class="onb-ico">' + icon('heart') + '</div><p>' + t('onbWelcome') + '</p></div>' +
+        '<label>' + t('langLabel') + '<select id="d-lang">' + langOptions + '</select></label>' +
+        '<div class="swatches">' + PALETTE_KEYS.map(function (k) {
+          return '<button type="button" data-pal="' + k + '" aria-label="' + PALETTES[k].label + '" title="' + PALETTES[k].label + '" aria-pressed="' + (k === curPal) + '" style="background:' + PALETTES[k].swatch + '"></button>';
+        }).join('') + '</div>' +
+        '<p class="disclaimer">' + t('disclaimer') + '</p>';
+    } else if (step === 1) {
+      body = '<div class="onb-step"><div class="onb-ico">' + icon('medical') + '</div><h3>' + t('iceFillTitle') + '</h3><p class="muted">' + t('onbIce') + '</p></div>' +
+        '<button type="button" class="btn primary block" data-onb="ice">' + t('iceFillBtn') + '</button>';
+    } else {
+      body = '<div class="onb-step"><div class="onb-ico">' + icon('pill') + '</div><h3>' + t('onbMedTitle') + '</h3><p class="muted">' + t('onbMed') + '</p></div>' +
+        '<button type="button" class="btn primary block" data-onb="med">' + t('addMed') + '</button>';
+    }
+    document.getElementById('dlg-title').textContent = step === 0 ? t('onbTitle') : t('onbStep', { n: step + 1, total: ONB_STEPS });
+    dlgFields.innerHTML = body + dots +
+      '<div class="form-actions" style="margin-top:6px">' +
+      '<button type="button" class="btn" data-onb="skip">' + t('onbSkip') + '</button>' +
+      '<button type="button" class="btn primary" data-onb="next">' + (step === ONB_STEPS - 1 ? t('onbDone') : t('onbNext')) + '</button></div>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    document.getElementById('dlg-cancel').hidden = true;
+    onbStep = step;
+    if (!dlg.open) dlg.showModal();
+  }
+  var onbStep = 0;
+  function finishOnboarding() { setPref('onboarded', '1'); dlg.close(); render(); }
+  function onbAction(a) {
+    if (a === 'skip') { finishOnboarding(); return; }
+    if (a === 'next') { if (onbStep >= ONB_STEPS - 1) finishOnboarding(); else openOnboarding(onbStep + 1); return; }
+    // Formulár sa otvorí v tom istom okne; sprievodca sa tým ukončí.
+    setPref('onboarded', '1');
+    if (a === 'ice') forms.ice();
+    if (a === 'med') forms.med(null);
   }
 
   function openData() {
@@ -1653,7 +1842,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         '<button type="button" class="btn" id="d-export">' + t('btnExport') + '</button>' +
         '<label class="btn" style="text-align:center;cursor:pointer;color:var(--fg)">' + t('btnImport') + '<input type="file" accept="application/json,.json" id="d-import" hidden></label>' +
         '<button type="button" class="btn danger" id="d-wipe">' + t('eraseProfile') + '</button></div>' +
-        '<p class="disclaimer">' + t('disclaimer') + '</p>';
+        '<div class="stack inline" style="margin-top:6px"><button type="button" class="btn small" id="d-about">' + t('aboutTitle') + '</button>' +
+        '<button type="button" class="btn small" id="d-onb">' + t('onbRestart') + '</button></div>';
       dlgErr.hidden = true;
       setDlgMode(false);
       if (!dlg.open) dlg.showModal();
@@ -1704,7 +1894,13 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     var imp = pendingImport;
     pendingImport = null;
     if (!imp) return;
-    if (replace && !confirmDelete(t('confirmReplace'))) return;
+    if (replace) {
+      confirmDelete(t('confirmReplace'), t('confirmContinue')).then(function (ok) { if (ok) runImport(imp, true); });
+      return;
+    }
+    runImport(imp, false);
+  }
+  function runImport(imp, replace) {
     var pid = profile.id;
     var keepFiles = replace ? Promise.resolve(HCStore.listFiles(pid).then(function (files) {
       return Promise.all(files.map(function (f) { return HCStore.deleteFile(f.id); }));
@@ -1726,7 +1922,14 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
 
   function onDataClick(e) {
     var pal = e.target.closest && e.target.closest('[data-pal]');
-    if (pal) { setPalette(pal.dataset.pal); openData(); return; }
+    if (pal) { setPalette(pal.dataset.pal); if (dlgFields.querySelector('[data-onb]')) openOnboarding(onbStep); else openData(); return; }
+    if (e.target.closest && e.target.closest('[data-act="edit-ice"]')) { forms.ice(); return; }
+    var sh = e.target.closest && e.target.closest('[data-sheet]');
+    if (sh) { var it = sheetItems[Number(sh.dataset.sheet)]; if (it) it.run(); return; }
+    if (e.target.closest && e.target.closest('#d-about')) { openAbout(); return; }
+    if (e.target.closest && e.target.closest('#d-onb')) { openOnboarding(0); return; }
+    var ob = e.target.closest && e.target.closest('[data-onb]');
+    if (ob) { onbAction(ob.dataset.onb); return; }
     var id = e.target.id;
     if (id === 'd-export') doExport();
     else if (id === 'd-ice') forms.ice();
@@ -1735,10 +1938,12 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     else if (id === 'd-prof-del') {
       HCStore.listProfiles().then(function (list) {
         if (list.length <= 1) { toast(t('cannotDeleteLast')); return; }
-        if (!confirmDelete(t('confirmDeleteProfile'))) return;
-        var del = profile.id;
-        var other = list.filter(function (p) { return p.id !== del; })[0];
-        return flush().then(function () { return HCStore.deleteProfile(del); }).then(function () { activate(other); });
+        return confirmDelete(t('confirmDeleteProfile')).then(function (ok) {
+          if (!ok) return;
+          var del = profile.id;
+          var other = list.filter(function (p) { return p.id !== del; })[0];
+          return flush().then(function () { return HCStore.deleteProfile(del); }).then(function () { activate(other); });
+        });
       }).catch(showError);
     }
     else if (id === 'd-enc-on') enableEncryption(false);
@@ -1746,7 +1951,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     else if (id === 'd-enc-off') disableEncryption();
     else if (id === 'd-lock') lockNow();
     else if (id === 'd-wipe') {
-      if (confirmDelete(t('confirmWipe'))) {
+      confirmDelete(t('confirmWipe')).then(function (ok) {
+        if (!ok) return;
         var lang = state.settings.lang;
         HCStore.listFiles(profile.id).then(function (files) {
           return Promise.all(files.map(function (f) { return HCStore.deleteFile(f.id); }));
@@ -1756,7 +1962,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
           save(); dlg.close(); render();
           toast(t('wipeDone'));
         }).catch(showError);
-      }
+      });
     } else if (id === 'd-merge' || id === 'd-replace') {
       applyImport(id === 'd-replace');
     } else if (id === 'd-cancel-import') {
@@ -1769,8 +1975,9 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     var target = e.target;
     if (target.id === 'd-prof') { switchProfile(target.value); return; }
     if (target.id === 'd-lang') {
+      var inOnb = !!dlgFields.querySelector('[data-onb]');
       setLanguage(target.value);
-      openData();
+      if (inOnb) openOnboarding(onbStep); else openData();
       return;
     }
     if (target.id === 'd-pal') { setPalette(target.value); openData(); return; }
@@ -2015,6 +2222,28 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     });
   }
 
+  function exportMeasureCsv() {
+    downloadBlob('health-companion-merania-' + today() + '.csv', 'text/csv', '\ufeff' + HC.measurementsCSV(state.measurements));
+  }
+  // Ponuka akcií v okne (napr. menu ⋯ na záložke Merania).
+  var sheetItems = [];
+  function openSheet(title, items) {
+    sheetItems = items;
+    document.getElementById('dlg-title').textContent = title;
+    dlgFields.innerHTML = '<div class="sheet-list">' + items.map(function (it, i) {
+      return '<button type="button" class="btn block" data-sheet="' + i + '">' + icon(it.ico) + esc(it.label) + '</button>';
+    }).join('') + '</div>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    if (!dlg.open) dlg.showModal();
+  }
+  // Zmena výberu v obsahu záložky (obdobie grafu).
+  document.getElementById('view').addEventListener('change', function (e) {
+    if (e.target.dataset && e.target.dataset.change === 'mperiod') {
+      measurePeriod = e.target.value; setPref('mPeriod', measurePeriod); render();
+    }
+  });
+
   function setView(v) { view = v; render(); window.scrollTo(0, 0); }
 
   document.getElementById('tabs').addEventListener('click', function (e) {
@@ -2037,7 +2266,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         var curStatus = HC.doseStatus(cur);
         var next = curStatus === mode ? null : mode;
         justTaken = next === 'taken' ? key + '|' + date : null;
-        if (next === 'taken' && navigator.vibrate) navigator.vibrate(12);
+        if (next === 'taken') haptic('light');
         commit(function () {
           state.taken = HC.setDoseStatus(state.taken, date, key, next);
           // Zásoby: označenie ako užité odpočíta kus, zrušenie ho vráti.
@@ -2064,6 +2293,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         break;
       case 'export-backup': doExport(); break;
       case 'edit-ice': forms.ice(); break;
+      case 'show-ice': showIce(); break;
       case 'add-med': forms.med(null); break;
       case 'edit-med': forms.med(findBy(state.meds, id)); break;
       case 'toggle-med':
@@ -2071,56 +2301,64 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       case 'toggle-reminders':
         m = findBy(state.meds, id); commit(function () { m.remindersOff = !m.remindersOff; }); break;
       case 'del-med':
-        if (confirmDelete(t('confirmDeleteMed'))) commit(function () { state.meds = removeBy(state.meds, id); }); break;
+        confirmDelete(t('confirmDeleteMed')).then(function (ok) { if (ok) commit(function () { state.meds = removeBy(state.meds, id); }); }); break;
       case 'add-symptom': forms.symptom(null); break;
       case 'edit-symptom': forms.symptom(findBy(state.symptoms, id)); break;
       case 'del-symptom':
-        if (confirmDelete(t('confirmDeleteSymptom'))) commit(function () { state.symptoms = removeBy(state.symptoms, id); }); break;
+        confirmDelete(t('confirmDeleteSymptom')).then(function (ok) { if (ok) commit(function () { state.symptoms = removeBy(state.symptoms, id); }); }); break;
       case 'add-problem': forms.problem(null); break;
       case 'edit-problem': forms.problem(findBy(state.problems, id)); break;
       case 'del-problem':
-        if (confirmDelete(t('confirmDeleteProblem'))) commit(function () { state.problems = removeBy(state.problems, id); }); break;
+        confirmDelete(t('confirmDeleteProblem')).then(function (ok) { if (ok) commit(function () { state.problems = removeBy(state.problems, id); }); }); break;
       case 'set-mtype':
         measureType = el.dataset.type; render(); break;
-      case 'set-mperiod':
-        measurePeriod = el.dataset.period; setPref('mPeriod', measurePeriod); render(); break;
+      case 'measure-menu':
+        openSheet(t('measureTitle'), [
+          { ico: 'bell', label: t('mRemindTitle'), run: function () { forms.measureRemind(); } },
+          { ico: 'download', label: t('csvBtn'), run: function () { dlg.close(); exportMeasureCsv(); } }
+        ]);
+        break;
+      case 'dismiss':
+        commit(function () { var d = Object.assign({}, state.settings.dismissed || {}); d[el.dataset.key] = today(); state.settings.dismissed = d; });
+        break;
       case 'measure-remind': forms.measureRemind(); break;
       case 'add-measure': forms.measure(null); break;
       case 'edit-measure': forms.measure(findBy(state.measurements, id)); break;
       case 'del-measure':
-        if (confirmDelete(t('confirmDeleteMeasure'))) commit(function () { state.measurements = removeBy(state.measurements, id); }); break;
-      case 'csv-measure':
-        downloadBlob('health-companion-merania-' + today() + '.csv', 'text/csv', '﻿' + HC.measurementsCSV(state.measurements));
-        break;
+        confirmDelete(t('confirmDeleteMeasure')).then(function (ok) { if (ok) commit(function () { state.measurements = removeBy(state.measurements, id); }); }); break;
+      case 'csv-measure': exportMeasureCsv(); break;
       case 'add-lab': forms.lab(null); break;
       case 'edit-lab': forms.lab(findBy(state.labs, id)); break;
       case 'del-lab':
-        if (confirmDelete(t('confirmDeleteLab'))) commit(function () { state.labs = removeBy(state.labs, id); }); break;
+        confirmDelete(t('confirmDeleteLab')).then(function (ok) { if (ok) commit(function () { state.labs = removeBy(state.labs, id); }); }); break;
       case 'add-vacc': forms.vacc(null); break;
       case 'edit-vacc': forms.vacc(findBy(state.vaccinations, id)); break;
       case 'del-vacc':
-        if (confirmDelete(t('confirmDeleteVacc'))) commit(function () { state.vaccinations = removeBy(state.vaccinations, id); }); break;
+        confirmDelete(t('confirmDeleteVacc')).then(function (ok) { if (ok) commit(function () { state.vaccinations = removeBy(state.vaccinations, id); }); }); break;
       case 'add-contact': forms.contact(null); break;
       case 'edit-contact': forms.contact(findBy(state.contacts, id)); break;
       case 'del-contact':
-        if (confirmDelete(t('confirmDeleteContact'))) commit(function () { state.contacts = removeBy(state.contacts, id); }); break;
+        confirmDelete(t('confirmDeleteContact')).then(function (ok) { if (ok) commit(function () { state.contacts = removeBy(state.contacts, id); }); }); break;
       case 'add-att': forms.attachment(); break;
       case 'open-att': openAttachment(id); break;
       case 'del-att':
-        if (confirmDelete(t('confirmDeleteAtt'))) {
+        confirmDelete(t('confirmDeleteAtt')).then(function (ok) {
+          if (!ok) return;
           HCStore.deleteFile(id).then(function () {
             commit(function () { state.attachments = removeBy(state.attachments, id); });
           }).catch(showError);
-        }
+        });
         break;
       case 'add-visit': forms.visit(null); break;
       case 'edit-visit': forms.visit(findBy(state.visits, id)); break;
       case 'del-visit':
-        if (confirmDelete(t('confirmDeleteVisit'))) commit(function () {
-          state.visits = removeBy(state.visits, id);
-          // otázky, ktoré patrili k zmazanej návšteve, zostanú ako nepriradené
-          state.questions.forEach(function (x) { if (x.visitId === id) x.visitId = null; });
-          state.attachments.forEach(function (x) { if (x.visitId === id) x.visitId = null; });
+        confirmDelete(t('confirmDeleteVisit')).then(function (ok) {
+          if (ok) commit(function () {
+            state.visits = removeBy(state.visits, id);
+            // otázky, ktoré patrili k zmazanej návšteve, zostanú ako nepriradené
+            state.questions.forEach(function (x) { if (x.visitId === id) x.visitId = null; });
+            state.attachments.forEach(function (x) { if (x.visitId === id) x.visitId = null; });
+          });
         }); break;
       case 'prep-visit':
         v = findBy(state.visits, id);
@@ -2132,7 +2370,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       case 'toggle-question':
         q = findBy(state.questions, id); commit(function () { q.done = !q.done; }); break;
       case 'del-question':
-        if (confirmDelete(t('confirmDeleteQuestion'))) commit(function () { state.questions = removeBy(state.questions, id); }); break;
+        confirmDelete(t('confirmDeleteQuestion')).then(function (ok) { if (ok) commit(function () { state.questions = removeBy(state.questions, id); }); }); break;
       case 'copy-questions':
         showText(t('questionsTitle'), HC.questionsText(HC.openQuestionsFor(state.questions, null), ''));
         break;
@@ -2151,7 +2389,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       case 'done-checkup':
         c = findBy(state.checkups, id); commit(function () { c.lastDate = today(); }); toast(t('doneToast')); break;
       case 'del-checkup':
-        if (confirmDelete(t('confirmDeleteCheckup'))) commit(function () { state.checkups = removeBy(state.checkups, id); }); break;
+        confirmDelete(t('confirmDeleteCheckup')).then(function (ok) { if (ok) commit(function () { state.checkups = removeBy(state.checkups, id); }); }); break;
     }
   });
 
@@ -2232,6 +2470,18 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       });
     }).catch(function () { /* bez oprávnenia sa nič neplánuje */ });
   }
+
+  // Tlačidlo Späť na Androide: zatvorí okno, potom sa vráti na Dnes, až potom ukončí appku.
+  (function () {
+    var AppP = capPlugin('App');
+    if (!AppP) return;
+    AppP.addListener('backButton', function () {
+      if (cdlg.open) { cdlg.close(); return; }
+      if (dlg.open) { if (!mustUnlock) dlg.close(); return; }
+      if (view !== 'today') { setView('today'); return; }
+      AppP.exitApp();
+    });
+  })();
 
   // ---------- Pripomienky (kým je appka otvorená) ----------
   // Notifikácie sú len pomocné: prehliadač ich môže zahodiť alebo oneskoriť (uspané zariadenie, šetrenie batérie).

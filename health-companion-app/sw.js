@@ -1,6 +1,6 @@
 /* Service worker Health Companion: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu. */
-const CACHE = 'health-companion-1ece2c4e';
+const CACHE = 'health-companion-4437f57d';
 const ASSETS = [
   './',
   './index.html',

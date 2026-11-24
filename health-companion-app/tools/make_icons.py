@@ -38,3 +38,17 @@ if __name__ == '__main__':
     draw(512, maskable=True).convert('RGB').save(os.path.join(HERE, 'icon-maskable-512.png'))
     draw(180).convert('RGB').save(os.path.join(HERE, 'apple-touch-icon.png'))
     print('Ikony vygenerované v', os.path.abspath(HERE))
+
+
+def make_splash(res_dir):
+    """Úvodné obrazovky Androidu: srdce s plusom na farbe ikony (nahrádza logo Capacitoru)."""
+    import glob
+    for f in glob.glob(os.path.join(res_dir, 'drawable*', 'splash.png')):
+        w, h = Image.open(f).size
+        img = Image.new('RGB', (w, h), BG[:3])
+        s = int(min(w, h) * 0.42)
+        logo = draw(s).convert('RGBA')
+        # okraj ikony má rovnakú farbu ako pozadie, preto sa vloží celá
+        img.paste(logo, ((w - s) // 2, (h - s) // 2), logo)
+        img.save(f)
+    print('Úvodné obrazovky v', res_dir)

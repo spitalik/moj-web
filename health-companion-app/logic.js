@@ -341,6 +341,18 @@
 
   // ---- Grafy a štatistika meraní ----
 
+  // Okrúhle hodnoty osi grafu (napr. 60, 80, 100…): krok 1, 2, 2,5 alebo 5 × 10^n, približne count intervalov.
+  function niceTicks(min, max, count) {
+    min = Number(min); max = Number(max); count = count || 4;
+    if (!isFinite(min) || !isFinite(max)) return [0, 1];
+    if (min === max) { min -= 1; max += 1; }
+    var raw = (max - min) / count, mag = Math.pow(10, Math.floor(Math.log10(raw))), r = raw / mag;
+    var step = (r <= 1 ? 1 : r <= 2 ? 2 : r <= 2.5 ? 2.5 : r <= 5 ? 5 : 10) * mag;
+    var lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, out = [];
+    for (var v = lo; v <= hi + step / 2; v += step) out.push(Math.round(v * 1e6) / 1e6);
+    return out;
+  }
+
   function hasPulse(m) { return m && m.pulse != null && m.pulse !== '' && isFinite(Number(m.pulse)); }
   function timeKey(p) { return p.date + ' ' + (p.time || ''); }
   function byTime(a, b) { var x = timeKey(a), y = timeKey(b); return x < y ? -1 : x > y ? 1 : 0; }
@@ -696,7 +708,7 @@
     checkupStatus: checkupStatus, missingStandardCheckups: missingStandardCheckups, STANDARD_CHECKUPS: STANDARD_CHECKUPS,
     vaccinationStatus: vaccinationStatus,
     MEASURE_TYPES: MEASURE_TYPES, measurementSeries: measurementSeries, measurementsCSV: measurementsCSV,
-    splitContact: splitContact, telHref: telHref,
+    splitContact: splitContact, telHref: telHref, niceTicks: niceTicks,
     averageSameTime: averageSameTime, pulseSeries: pulseSeries, measureDates: measureDates, chartRange: chartRange,
     measureStats: measureStats, BP_CLASSES: BP_CLASSES, bpClass: bpClass, bpHighCount: bpHighCount, outsideCount: outsideCount,
     displayUnit: displayUnit, toDisplay: toDisplay, fromDisplay: fromDisplay, bmi: bmi, measureRemindersFor: measureRemindersFor,
