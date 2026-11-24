@@ -1,0 +1,2577 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Health Companion</title>
+<meta name="description" content="Osobný zdravotný asistent: lieky, príznaky, návštevy lekára, preventívne prehliadky a otázky pre lekára. Dáta zostávajú v zariadení.">
+<meta name="theme-color" content="#0f1f1c" id="theme-color">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zdravie">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* Žiadne písma ani skripty z tretích strán (GDPR). Používa sa systémové písmo. */
+:root, :root[data-theme="dark"] {
+  --bg: #0f1f1c;
+  --card: #163029;
+  --card-2: #1d3d35;
+  --line: #2b5147;
+  --fg: #e7f3ef;
+  --muted: #9bbcb3;
+  --accent: #5fd3b0;
+  --accent-ink: #062018;
+  --warn: #f5c26b;
+  --danger: #f08a80;
+  --ok: #7fe0a8;
+  --c-meds: #8ab4ff; --c-health: #ff9fb0; --c-measure: #c9a6ff; --c-doctor: #7fd6e8; --c-checkups: #9be5b5;
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #eef5f2;
+  --card: #ffffff;
+  --card-2: #e2efea;
+  --line: #c7dbd3;
+  --fg: #12302a;
+  --muted: #4f6e66;
+  --accent: #14806a;
+  --accent-ink: #ffffff;
+  --warn: #9a6400;
+  --danger: #b3261e;
+  --ok: #1d7a4b;
+  --c-meds: #2f5fb3; --c-health: #b03a5b; --c-measure: #7a4fb0; --c-doctor: #1a7f96; --c-checkups: #1d7a4b;
+  --shadow: 0 6px 16px rgba(18, 48, 42, 0.08);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+/* Písma profilu Lamp (lokálne, z appky blood-pressure). Ostatné profily používajú systémové písmo. */
+html[data-palette="lamp"] { --f-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif; --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif; }
+body {
+  font-family: var(--f-body, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  font-size: 15px; line-height: 1.45;
+  min-height: 100dvh; display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { margin: 0; line-height: 1.2; font-family: var(--f-display, inherit); }
+h1 { font-size: 20px; }
+h2 { font-size: 17px; margin-bottom: 8px; }
+h3 { font-size: 15px; }
+p { margin: 0; }
+
+header.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 14px 16px 10px; position: sticky; top: 0; z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+header.top .brand { font-weight: 700; font-size: 17px; background: none; border: 0; color: var(--fg); padding: 6px 4px; border-radius: 10px; }
+header.top .brand:hover { background: var(--card-2); }
+header.top .brand span { color: var(--accent); }
+header.top .top-actions { display: flex; align-items: center; gap: 8px; }
+.btn {
+  border: 1px solid var(--line); background: var(--card); color: var(--fg);
+  border-radius: 12px; padding: 9px 14px; min-height: 40px; font-weight: 600;
+}
+.btn:hover { background: var(--card-2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.danger { color: var(--danger); }
+.btn.small { padding: 5px 10px; min-height: 32px; font-size: 13px; font-weight: 600; }
+.btn.icon { width: 40px; padding: 0; display: grid; place-items: center; font-size: 18px; }
+.btn.block { width: 100%; text-align: center; }
+
+main { flex: 1; padding: 14px 16px 96px; display: flex; flex-direction: column; gap: 14px; max-width: 640px; width: 100%; margin: 0 auto; }
+/* Farba sekcie: farebný pruh vľavo na kartách (premenná --sec nastavená podľa záložky) */
+main { --sec: var(--accent); }
+main[data-tab="meds"] { --sec: var(--c-meds); }
+main[data-tab="symptoms"] { --sec: var(--c-health); }
+main[data-tab="measure"] { --sec: var(--c-measure); }
+main[data-tab="doctor"] { --sec: var(--c-doctor); }
+main[data-tab="checkups"] { --sec: var(--c-checkups); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: var(--shadow), inset 3px 0 0 var(--sec); }
+.card.flag-warn { border-color: var(--warn); }
+.card.flag-danger { border-color: var(--danger); }
+.ice-btn { display: flex; align-items: center; justify-content: center; width: 100%; border-color: var(--danger); color: var(--danger); font-weight: 700; gap: 8px; }
+.ice-detail { gap: 10px; margin-bottom: 12px; }
+.card.ice { border-color: var(--danger); box-shadow: var(--shadow), inset 3px 0 0 var(--danger); }
+.card.hero { background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 24%, var(--card)), var(--card) 70%); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); box-shadow: var(--shadow); }
+.hero strong { font-size: 17px; }
+.progress { height: 8px; border-radius: 999px; background: var(--card-2); overflow: hidden; }
+.progress i { display: block; height: 100%; width: var(--p, 0%); background: var(--accent); border-radius: inherit; transition: width .4s ease; }
+.hero .meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.big-val { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.stack.inline { flex-direction: row; gap: 6px; flex-wrap: wrap; }
+.muted { color: var(--muted); font-size: 13px; }
+.badge { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; background: var(--card-2); color: var(--muted); }
+.badge.warn { color: var(--warn); }
+.badge.danger { color: var(--danger); }
+.badge.ok { color: var(--ok); }
+.empty { color: var(--muted); text-align: center; padding: 22px 14px; background: var(--card-2); border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.empty::before { content: ""; width: 40px; height: 40px; border-radius: 14px; background: var(--sec, var(--accent)); opacity: .9;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='3' width='16' height='18' rx='3'/%3E%3Cpath d='M8 8h8M8 12h8M8 16h5'/%3E%3C/svg%3E") center / 30px no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='3' width='16' height='18' rx='3'/%3E%3Cpath d='M8 8h8M8 12h8M8 16h5'/%3E%3C/svg%3E") center / 30px no-repeat; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+
+.dose { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.dose:first-of-type { border-top: 0; }
+.dose .time { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 52px; }
+.dose .info { flex: 1; min-width: 0; }
+.dose .name { font-weight: 600; }
+.dose.missed .time { color: var(--danger); }
+.dose.skipped .name { text-decoration: line-through; color: var(--muted); }
+.dose-btns { display: flex; gap: 6px; flex: none; }
+.check, .skip, .snooze {
+  width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--accent);
+  background: transparent; display: grid; place-items: center; flex: none; color: var(--accent-ink);
+}
+.check.on { background: var(--accent); }
+.skip { border-color: var(--line); color: var(--muted); font-weight: 700; }
+.skip.on { background: var(--danger); border-color: var(--danger); color: var(--accent-ink); }
+.snooze { border-color: var(--line); color: var(--muted); }
+.snooze svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; }
+.check svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 3; }
+.check.fresh { animation: pop .32s ease; }
+@keyframes pop { 0% { transform: scale(.7); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+nav.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  background: var(--card); border-top: 1px solid var(--line);
+  padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+}
+nav.tabs button {
+  background: none; border: 0; color: var(--muted); font-size: 10.5px; font-weight: 600;
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; border-radius: 12px;
+}
+nav.tabs button svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+nav.tabs button[aria-current="page"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+nav.tabs button { transition: background .2s ease, color .2s ease; }
+.chart polyline.ln { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1s ease forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+/* Dialóg (formulár) */
+dialog { border: 1px solid var(--line); border-radius: 18px; background: var(--card); color: var(--fg); padding: 0; width: min(440px, calc(100vw - 32px)); max-height: 90dvh; }
+dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
+dialog form { position: relative; padding: 18px; display: flex; flex-direction: column; gap: 12px; max-height: 90dvh; overflow-y: auto; }
+dialog form h2 { padding-right: 44px; }
+.dlg-x { position: absolute; top: 10px; right: 10px; z-index: 1; width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--card-2); color: var(--fg); line-height: 1; padding: 0; display: grid; place-items: center; }
+.dlg-x:hover { background: var(--line); }
+.btn-round { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); line-height: 1; padding: 0; display: grid; place-items: center; box-shadow: var(--shadow); }
+.btn-round:hover { filter: brightness(1.08); }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+input, select, textarea {
+  background: var(--card-2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 10px; color: var(--fg); font-size: 16px; width: 100%;
+}
+input[type="file"] { padding: 7px; }
+textarea { min-height: 70px; resize: vertical; }
+.form-error { color: var(--danger); font-weight: 600; font-size: 14px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.check-row { display: flex; align-items: center; gap: 8px; color: var(--fg); font-weight: 500; font-size: 15px; }
+.check-row input { width: 18px; height: 18px; padding: 0; }
+
+.problem-line, .question-line { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); }
+.problem-line:first-child, .question-line:first-child { border-top: 0; }
+.problem-line .info, .question-line .info { flex: 1; min-width: 0; }
+.pre { white-space: pre-wrap; word-break: break-word; background: var(--card-2); border-radius: 12px; padding: 12px; font-size: 14px; }
+.banner { background: var(--card-2); border-left: 4px solid var(--warn); border-radius: 14px; padding: 12px 14px; }
+.disclaimer { font-size: 12px; color: var(--muted); }
+.toast {
+  position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; font-weight: 600;
+  z-index: 10; max-width: calc(100vw - 32px); box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.chart { width: 100%; height: auto; display: block; }
+.chart-legend { display: flex; gap: 12px; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.chart-legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; background: currentColor; }
+.chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.chip.on { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.chip.small { padding: 3px 10px; font-size: 12px; }
+.ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
+.btn-round svg { width: 22px; height: 22px; }
+dialog.confirm { max-width: 360px; }
+dialog.confirm p { margin: 4px 0 16px; font-size: 15px; line-height: 1.45; }
+.btn.danger-fill { background: var(--danger); border-color: var(--danger); color: #fff; }
+.mini-select { width: auto; padding: 4px 8px; font-size: 12px; border-radius: 999px; background: var(--card-2); }
+.chart-sub { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: -4px 0 8px; font-size: 13px; }
+.chart .grid { stroke-width: 1; }
+.remind-line { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); background: none; border: 0; padding: 2px 0; }
+.sheet-list { display: flex; flex-direction: column; gap: 8px; }
+.sheet-list .btn { display: flex; align-items: center; justify-content: flex-start; gap: 10px; text-align: left; }
+a.btn, .ice-btn, .remind-line { gap: 6px; }
+.setup .setup-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.setup .setup-item:first-of-type { border-top: 0; }
+.setup .setup-item .info { flex: 1; min-width: 0; }
+.setup .x { border: 0; background: none; color: var(--muted); padding: 6px; border-radius: 50%; }
+.about-ver { font-variant-numeric: tabular-nums; }
+.onb-step { text-align: center; }
+.onb-step .onb-ico { width: 56px; height: 56px; margin: 4px auto 10px; border-radius: 18px; display: grid; place-items: center; background: var(--card-2); color: var(--accent); }
+.onb-step .onb-ico svg { width: 30px; height: 30px; }
+.onb-dots { display: flex; justify-content: center; gap: 6px; margin: 12px 0 2px; }
+.onb-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.onb-dots i.on { background: var(--accent); }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.period-chips { margin-top: -2px; }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stats strong { color: var(--fg); }
+.small-note { font-size: 12px; margin-top: 6px; }
+.bp-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.bp-pill::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.bp-optimal, .bp-normal { color: var(--ok); }
+.bp-highNormal { color: var(--warn); }
+.bp-h1, .bp-h2, .bp-h3 { color: var(--danger); }
+.pulse-line { font-size: 22px; font-weight: 700; }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; margin-top: -4px; }
+.swatches button { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); padding: 0; cursor: pointer; }
+.swatches button:hover { transform: scale(1.08); }
+.swatches button[aria-pressed="true"] { outline: 2px solid var(--fg); outline-offset: 2px; }
+#print-root { display: none; }
+@media (min-width: 720px) { main { padding-bottom: 110px; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .chart polyline.ln { stroke-dashoffset: 0; }
+}
+
+/* Tlač: zobrazí sa len prehľad pre lekára */
+@media print {
+  body > *:not(#print-root) { display: none !important; }
+  #print-root { display: block !important; color: #000; background: #fff; font-size: 12pt; }
+  #print-root h1 { font-size: 18pt; margin-bottom: 4pt; }
+  #print-root h2 { font-size: 13pt; margin: 12pt 0 4pt; border-bottom: 1px solid #999; }
+  #print-root table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  #print-root th, #print-root td { border-bottom: 1px solid #ccc; text-align: left; padding: 3pt 4pt; vertical-align: top; }
+  #print-root .muted { color: #444; }
+  #print-root .chart polyline.ln { animation: none; stroke-dashoffset: 0; stroke-dasharray: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="brand" id="btn-home" data-i18n-aria="homeAria"><span data-i18n="appName">Health Companion</span></button>
+  <div class="top-actions">
+    <button class="btn small" id="btn-install" hidden data-i18n="install">Nainštalovať</button>
+    <button class="btn icon" id="btn-info" data-i18n-aria="infoAria" data-i18n-title="infoAria">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.5" r="0.6" fill="currentColor"/></svg>
+    </button>
+    <button class="btn icon" id="btn-data" data-i18n-aria="settingsAria" data-i18n-title="settingsAria">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="view" aria-live="polite"></main>
+
+<nav class="tabs" id="tabs" data-i18n-aria="navAria">
+  <button data-tab="today"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="tabToday">Dnes</span></button>
+  <button data-tab="meds"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="M8.5 8.5l7 7"/></svg><span data-i18n="tabMeds">Lieky</span></button>
+  <button data-tab="symptoms"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg><span data-i18n="tabSymptoms">Zdravie</span></button>
+  <button data-tab="measure"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg><span data-i18n="tabMeasure">Merania</span></button>
+  <button data-tab="doctor"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span data-i18n="tabDoctor">Lekár</span></button>
+  <button data-tab="checkups"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/></svg><span data-i18n="tabCheckups">Prehliadky</span></button>
+</nav>
+
+<dialog id="dlg">
+  <form id="dlg-form" method="dialog">
+    <button type="button" class="dlg-x" id="dlg-x" data-i18n-aria="close" aria-label="Zavrieť"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h2 id="dlg-title"></h2>
+    <div id="dlg-fields" class="stack"></div>
+    <p class="form-error" id="dlg-error" hidden></p>
+    <div class="form-actions">
+      <button type="button" class="btn" id="dlg-cancel">Zrušiť</button>
+      <button type="submit" class="btn primary" id="dlg-save" data-i18n="save">Uložiť</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="cdlg" class="confirm" aria-labelledby="cdlg-msg">
+  <p id="cdlg-msg"></p>
+  <div class="form-actions">
+    <button type="button" class="btn" id="cdlg-no">Zrušiť</button>
+    <button type="button" class="btn danger-fill" id="cdlg-yes">Zmazať</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div id="print-root" aria-hidden="true"></div>
+
+<script src="i18n/core.js"></script>
+<script src="i18n/sk.js"></script>
+<script src="i18n/en.js"></script>
+<script src="i18n/es.js"></script>
+<script src="i18n/pt.js"></script>
+<script src="i18n/de.js"></script>
+<script src="i18n/fr.js"></script>
+<script src="i18n/it.js"></script>
+<script src="i18n/ru.js"></script>
+<script src="i18n/tr.js"></script>
+<script src="i18n/ja.js"></script>
+<script src="i18n/ko.js"></script>
+<script src="i18n/zh.js"></script>
+<script src="logic.js"></script>
+<script src="securebox.js"></script>
+<script src="store.js"></script>
+<script>
+(function () {
+  'use strict';
+  var HC = window.HC;
+  var SB = window.SB;
+  var I18N = window.HCI18N;
+  var t = I18N.t;
+  var PREF_KEY = 'healthCompanion.pref';   // predvoľby zariadenia: aktívny profil, jazyk
+  var LEGACY_KEY = 'healthCompanion.v1';   // staré údaje (pred IndexedDB), presunú sa pri prvom spustení
+
+  // Stav aktívneho profilu. Pri zašifrovanom profile je encKey len v pamäti (po odomknutí).
+  var state = HC.emptyState();
+  var profile = null;        // { id, name, encrypted }
+  var encKey = null;         // CryptoKey zašifrovaného profilu
+  var encSalt = null;        // soľ kľúča (uložená aj v profile)
+  var mustUnlock = false;
+  var dlgCancelAction = null;
+  var pendingImport = null;
+  var migrated = false;
+  var view = 'today';
+  var measureType = 'bp';
+  var measurePeriod = getPref('mPeriod') || 'auto';   // obdobie grafu meraní (predvoľba zariadenia mPeriod)
+  var hiddenAt = null;          // kedy appka odišla do pozadia (automatické zamknutie)
+  var autoLocked = false;       // zamknuté automaticky: naplánované pripomienky ostávajú
+  var toastTimer = null;
+  var persistGranted = null;
+  var saveChain = Promise.resolve();
+
+  // ---------- Predvoľby zariadenia ----------
+  function getPref(k) {
+    try { return (JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {})[k] || null; } catch (e) { return null; }
+  }
+  function setPref(k, v) {
+    try {
+      var p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {};
+      p[k] = v;
+      localStorage.setItem(PREF_KEY, JSON.stringify(p));
+    } catch (e) { /* bez predvolieb */ }
+  }
+
+  // ---------- Jazyk ----------
+  function detectLang() {
+    var supported = I18N.languages().map(function (l) { return l.code; });
+    var nav = (navigator.language || 'sk').toLowerCase();
+    var pick = supported.filter(function (c) { return nav === c || nav.indexOf(c + '-') === 0; })[0];
+    return pick || (nav.indexOf('zh') === 0 ? 'zh' : 'sk');
+  }
+  function applyLang(code) {
+    I18N.setLang(code);
+    document.documentElement.lang = I18N.info(I18N.lang()).htmlLang;
+    applyStatic();
+    document.title = t('appName');
+  }
+  // Texty v statickej časti stránky (data-i18n atribúty).
+  function applyStatic() {
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+    document.querySelectorAll('[data-i18n-title]').forEach(function (el) { el.setAttribute('title', t(el.dataset.i18nTitle)); });
+    document.querySelector('meta[name="description"]').setAttribute('content', t('appDesc'));
+  }
+  function setLanguage(code) {
+    state.settings.lang = code;
+    setPref('lang', code);
+    save();
+    applyLang(code);
+    render();
+  }
+
+  // ---------- Úložisko: profily v IndexedDB ----------
+  function newProfileRecord(name, data) {
+    return { id: HC.newId(), name: name || t('profileNameDefault'), createdAt: new Date().toISOString(), encrypted: false, enc: null, data: HC.normalizeState(data) };
+  }
+  function createProfile(name, data) {
+    var rec = newProfileRecord(name, data);
+    return HCStore.putProfile(rec).then(function () { return rec; });
+  }
+
+  // Zápis je radený do fronty, aby sa neprekrývali. Snímok stavu sa berie hneď pri volaní.
+  function save() {
+    if (!profile) return false;
+    var pid = profile.id, json = JSON.stringify(state), key = encKey, salt = encSalt;
+    saveChain = saveChain.then(function () { return writeProfile(pid, json, key, salt); })
+      .catch(function () { toast(t('saveFail')); });
+    scheduleNative();
+    return true;
+  }
+  function flush() { return saveChain; }
+
+  function writeProfile(pid, json, key, salt) {
+    return HCStore.getProfile(pid).then(function (rec) {
+      if (!rec) return null;
+      if (key) {
+        return SB.encryptText(key, json).then(function (r) {
+          rec.encrypted = true;
+          rec.enc = { salt: salt, iv: r.iv, ct: r.ct };
+          rec.data = null;
+          return HCStore.putProfile(rec);
+        });
+      }
+      rec.encrypted = false;
+      rec.enc = null;
+      rec.data = JSON.parse(json);
+      return HCStore.putProfile(rec);
+    });
+  }
+
+  // Prílohy: pri zašifrovanom profile sú šifrované kľúčom profilu.
+  function blobToBuf(b) { return b instanceof Blob ? b.arrayBuffer() : Promise.resolve(b); }
+  function saveAttachmentFile(id, mime, buf) {
+    var pid = profile.id;
+    if (encKey) {
+      return SB.encryptBytes(encKey, buf).then(function (r) {
+        return HCStore.putFile({ id: id, profileId: pid, mime: mime, iv: r.iv, data: r.ct });
+      });
+    }
+    return HCStore.putFile({ id: id, profileId: pid, mime: mime, iv: null, data: new Blob([buf], { type: mime }) });
+  }
+  // Obsah prílohy ako ArrayBuffer (rozšifrovaný).
+  function attachmentBytes(id) {
+    return HCStore.getFile(id).then(function (rec) {
+      if (!rec) throw new Error(t('attNotFound'));
+      if (rec.iv) return SB.decryptBytes(encKey, rec.iv, rec.data);
+      return blobToBuf(rec.data);
+    });
+  }
+  // Prepíše všetky prílohy profilu novým kľúčom (alebo bez kľúča = nešifrované).
+  function rekeyFiles(fromKey, toKey) {
+    return HCStore.listFiles(profile.id).then(function (files) {
+      return files.reduce(function (p, rec) {
+        return p.then(function () {
+          var plain = rec.iv ? SB.decryptBytes(fromKey, rec.iv, rec.data) : blobToBuf(rec.data);
+          return plain.then(function (buf) {
+            if (toKey) return SB.encryptBytes(toKey, buf).then(function (r) { rec.iv = r.iv; rec.data = r.ct; return HCStore.putFile(rec); });
+            rec.iv = null;
+            rec.data = new Blob([buf], { type: rec.mime });
+            return HCStore.putFile(rec);
+          });
+        });
+      }, Promise.resolve());
+    });
+  }
+
+  // Prvé spustenie po update: staré údaje z localStorage presunie do profilu.
+  function migrateLegacy() {
+    var raw = null;
+    try { raw = localStorage.getItem(LEGACY_KEY); } catch (e) { raw = null; }
+    if (!raw) return Promise.resolve();
+    return HCStore.listProfiles().then(function (list) {
+      if (list.length) return null;
+      var data;
+      try { data = HC.normalizeState(JSON.parse(raw)); } catch (e) { data = HC.emptyState(); }
+      return createProfile(t('profileNameDefault'), data).then(function () {
+        try { localStorage.removeItem(LEGACY_KEY); } catch (e) { /* ponechá sa */ }
+        migrated = true;
+      });
+    });
+  }
+
+  // Aktivuje profil: nezašifrovaný sa načíta hneď, zašifrovaný sa najprv odomkne heslom.
+  function activate(rec) {
+    if (dlg.open && !rec.encrypted) dlg.close();
+    encKey = null; encSalt = null; mustUnlock = false; autoLocked = false;
+    profile = { id: rec.id, name: rec.name, encrypted: !!rec.encrypted };
+    setPref('profile', rec.id);
+    if (rec.encrypted) {
+      state = HC.emptyState();
+      render();
+      askUnlock(rec);
+      return;
+    }
+    state = HC.normalizeState(rec.data);
+    applyLang(state.settings.lang || getPref('lang') || detectLang());
+    render();
+    scheduleNative();
+  }
+
+  function switchProfile(id) {
+    return flush().then(function () { return HCStore.getProfile(id); }).then(function (rec) {
+      if (rec) activate(rec);
+    });
+  }
+
+  function askUnlock(rec) {
+    mustUnlock = true;
+    openForm(t('unlockTitle'), [
+      { name: '_note', type: 'note', label: t('unlockText', { name: rec.name }) },
+      { name: 'pass', label: t('fPass'), type: 'password', required: true }
+    ], {}, function (v) {
+      return HCStore.getProfile(rec.id).then(function (fresh) {
+        if (!fresh || !fresh.enc) return t('dbError');
+        return SB.deriveKey(v.pass, fresh.enc.salt).then(function (key) {
+          return SB.decryptText(key, fresh.enc.iv, fresh.enc.ct).then(function (json) {
+            encKey = key;
+            encSalt = fresh.enc.salt;
+            autoLocked = false;
+            state = HC.normalizeState(JSON.parse(json));
+            mustUnlock = false;
+            dlgCancelAction = null;
+            applyLang(state.settings.lang || getPref('lang') || detectLang());
+            render();
+            scheduleNative();
+            return null;
+          }, function () { return t('passWrong'); });
+        });
+      });
+    });
+    // Ak heslo nepamätáte, dá sa vytvoriť nový profil (zašifrovaný zostáva nedotknutý).
+    var cancel = document.getElementById('dlg-cancel');
+    cancel.textContent = t('profileNew');
+    dlgCancelAction = function () {
+      mustUnlock = false;
+      dlgCancelAction = null;
+      createProfile(t('profileNameDefault'), null).then(function (r) { dlg.close(); activate(r); });
+    };
+  }
+
+  function lockNow(auto) {
+    flush().then(function () { return HCStore.getProfile(profile.id); }).then(function (rec) {
+      autoLocked = !!auto;
+      encKey = null; encSalt = null;
+      state = HC.emptyState();
+      profile.encrypted = true;
+      render();
+      scheduleNative(); // zamknutý profil: naplánované pripomienky sa zrušia
+      askUnlock(rec);
+    });
+  }
+
+  function enableEncryption(change) {
+    openForm(t(change ? 'profileChangePass' : 'profileEncrypt'), [
+      { name: '_note', type: 'note', label: t('passWarn') },
+      { name: 'pass', label: t('fPass'), type: 'password', required: true },
+      { name: 'pass2', label: t('fPass2'), type: 'password', required: true }
+    ], {}, function (v) {
+      if (v.pass.length < 8) return t('passShort');
+      if (v.pass !== v.pass2) return t('passMismatch');
+      var salt = SB.newSalt(), oldKey = encKey;
+      return SB.deriveKey(v.pass, salt).then(function (key) {
+        return rekeyFiles(oldKey, key).then(function () {
+          encKey = key; encSalt = salt; profile.encrypted = true;
+          save();
+          render();
+          toast(change ? t('profileSaved') : t('profileEncOn'));
+          return null;
+        });
+      });
+    });
+  }
+
+  function disableEncryption() {
+    confirmDelete(t('confirmDecrypt'), t('confirmContinue')).then(function (ok) { if (ok) doDisableEncryption(); });
+  }
+  function doDisableEncryption() {
+    var oldKey = encKey;
+    rekeyFiles(oldKey, null).then(function () {
+      encKey = null; encSalt = null; profile.encrypted = false;
+      save();
+      toast(t('profileEncOff'));
+      openData();
+    }).catch(function () { toast(t('dbError')); });
+  }
+
+  // Úložisko sa otvorí hneď pri štarte; ak sa nepodarí, appka ukáže chybu.
+  // ---------- Farebné profily (šablóny) ----------
+  // mint = pôvodný vzhľad (farby sú v CSS). Ostatné prepíšu premenné na <html>.
+  var PALETTE_VARS = { bg: '--bg', card: '--card', card2: '--card-2', line: '--line', fg: '--fg', muted: '--muted',
+    accent: '--accent', accentInk: '--accent-ink', warn: '--warn', danger: '--danger', ok: '--ok',
+    meds: '--c-meds', health: '--c-health', measure: '--c-measure', doctor: '--c-doctor', checkups: '--c-checkups', shadow: '--shadow' };
+  var PALETTES = {
+    mint: { label: 'Mint', swatch: '#5fd3b0' },
+    lamp: { label: 'Lamp', swatch: '#b9a4ff',
+      dark: { bg: '#0d1120', card: '#1c2340', card2: '#252e52', line: '#2d375e', fg: '#e9ebf5', muted: '#99a2c4', accent: '#b9a4ff', accentInk: '#1a1033', warn: '#f0d36b', danger: '#f2877d', ok: '#72d6ab', meds: '#7fb8f0', health: '#f2807a', measure: '#b9a4ff', doctor: '#7fd6e8', checkups: '#a9d67a', shadow: '0 6px 18px rgba(0,0,0,.35)' },
+      light: { bg: '#dfe3ee', card: '#ffffff', card2: '#e6eaf3', line: '#d6dcea', fg: '#161d36', muted: '#5a6382', accent: '#5b3cc4', accentInk: '#ffffff', warn: '#a07a00', danger: '#c8463a', ok: '#1d8f62', meds: '#2f78c4', health: '#b0123e', measure: '#7a4fb0', doctor: '#1a7f96', checkups: '#5d8f1f', shadow: '0 6px 16px rgba(20,26,45,.10)' } },
+    ocean: { label: 'Ocean', swatch: '#5ab8ff',
+      dark: { bg: '#0b1a2a', card: '#132a40', card2: '#1b3a55', line: '#2a4c68', fg: '#e6f2fb', muted: '#95b6cc', accent: '#5ab8ff', accentInk: '#04203a', warn: '#f5c26b', danger: '#ff8a80', ok: '#7fe0b0', meds: '#7fb6ff', health: '#ff9fb0', measure: '#9ae6ff', doctor: '#c3b1ff', checkups: '#7fe0b0', shadow: '0 6px 18px rgba(0,0,0,.3)' },
+      light: { bg: '#e9f2f9', card: '#ffffff', card2: '#dceaf5', line: '#c5d9e8', fg: '#10283d', muted: '#4e6b82', accent: '#1666a8', accentInk: '#ffffff', warn: '#9a6400', danger: '#b3261e', ok: '#1d7a4b', meds: '#1666a8', health: '#b03a5b', measure: '#1a8fb0', doctor: '#6a4cc0', checkups: '#1d7a4b', shadow: '0 6px 16px rgba(16,40,61,.08)' } },
+    sunset: { label: 'Sunset', swatch: '#ffa96b',
+      dark: { bg: '#1f1412', card: '#2d1d1a', card2: '#3d2722', line: '#5a3a33', fg: '#fbeee9', muted: '#c9a79c', accent: '#ffa96b', accentInk: '#2a1000', warn: '#ffd166', danger: '#ff7a6b', ok: '#9fe3a0', meds: '#8ab4ff', health: '#ff8fa3', measure: '#ffc078', doctor: '#7fd6e8', checkups: '#b5e48c', shadow: '0 6px 18px rgba(0,0,0,.3)' },
+      light: { bg: '#fbf1ec', card: '#ffffff', card2: '#f6e3da', line: '#ebd0c4', fg: '#3a1d14', muted: '#7a5346', accent: '#c8561e', accentInk: '#ffffff', warn: '#9a6400', danger: '#b3261e', ok: '#1d7a4b', meds: '#2f5fb3', health: '#b03a5b', measure: '#b8601a', doctor: '#1a7f96', checkups: '#1d7a4b', shadow: '0 6px 16px rgba(58,29,20,.08)' } },
+    rose: { label: 'Rose', swatch: '#ff8fb8',
+      dark: { bg: '#1d1218', card: '#2a1a23', card2: '#382330', line: '#5a3347', fg: '#f7e9f0', muted: '#c7a2b4', accent: '#ff8fb8', accentInk: '#3b0a1f', warn: '#f5c26b', danger: '#ff7a8a', ok: '#8fe3b5', meds: '#8ab4ff', health: '#ff8fb8', measure: '#d7b4ff', doctor: '#7fd6e8', checkups: '#8fe3b5', shadow: '0 6px 18px rgba(0,0,0,.3)' },
+      light: { bg: '#fbf0f5', card: '#ffffff', card2: '#f5e1ea', line: '#ecc9d8', fg: '#3b1427', muted: '#7d4b62', accent: '#b8336a', accentInk: '#ffffff', warn: '#9a6400', danger: '#b3261e', ok: '#1d7a4b', meds: '#2f5fb3', health: '#b8336a', measure: '#7a4fb0', doctor: '#1a7f96', checkups: '#1d7a4b', shadow: '0 6px 16px rgba(59,20,39,.08)' } }
+  };
+  var PALETTE_KEYS = ['lamp', 'ocean', 'mint', 'sunset', 'rose'];
+  // Uplatní farebný profil a režim (tmavý/svetlý) na celú stránku.
+  function applyPalette() {
+    var name = PALETTES[getPref('palette')] ? getPref('palette') : 'lamp';
+    var light = getPref('mode') === 'light';
+    var root = document.documentElement;
+    root.dataset.theme = light ? 'light' : 'dark';
+    root.dataset.palette = name;
+    var p = PALETTES[name], tokens = p.dark && (light ? p.light : p.dark);
+    Object.keys(PALETTE_VARS).forEach(function (k) {
+      if (tokens) root.style.setProperty(PALETTE_VARS[k], tokens[k]); else root.style.removeProperty(PALETTE_VARS[k]);
+    });
+    var bg = getComputedStyle(root).getPropertyValue('--bg').trim();
+    var meta = document.getElementById('theme-color');
+    if (meta && bg) meta.setAttribute('content', bg);
+    var SB_ = capPlugin('StatusBar');
+    if (SB_ && bg) {
+      SB_.setBackgroundColor({ color: bg }).catch(function () {});
+      SB_.setStyle({ style: root.dataset.theme === 'light' ? 'LIGHT' : 'DARK' }).catch(function () {});
+    }
+  }
+  function setPalette(name) { setPref('palette', name); applyPalette(); }
+  function setMode(mode) { setPref('mode', mode); applyPalette(); }
+
+  function boot() {
+    applyPalette();
+    applyLang(getPref('lang') || detectLang());
+    HCStore.open().then(migrateLegacy).then(function () {
+      return HCStore.listProfiles();
+    }).then(function (list) {
+      if (list.length) return list;
+      return createProfile(t('profileNameDefault'), null).then(function () { return HCStore.listProfiles(); });
+    }).then(function (list) {
+      var pref = getPref('profile');
+      var rec = list.filter(function (p) { return p.id === pref; })[0] || list[0];
+      activate(rec);
+      if (migrated) toast(t('migrated'));
+      if (!getPref('onboarded') && !rec.encrypted && !HC.dataCount(state)) openOnboarding(0);
+      else if (!getPref('onboarded')) setPref('onboarded', '1');
+    }).catch(function (err) {
+      console.error('boot', err);
+      document.getElementById('view').innerHTML = '<div class="empty">' + t('dbError') + '</div>';
+    });
+  }
+
+  // Žiadosť o trvalé úložisko: prehliadač potom nemá údaje mazať pri nedostatku miesta.
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().then(function (ok) { persistGranted = !!ok; }, function () { persistGranted = false; });
+    }
+  } catch (e) { persistGranted = false; }
+
+  // ---------- Pomocné ----------
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmtDate(iso) {
+    var d = HC.parseISO(iso);
+    if (!d) return t('dateUnknown');
+    return d.toLocaleDateString(I18N.info(I18N.lang()).htmlLang, { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  // Čísla podľa jazyka (sk/de: 36,6; en: 36.6), najviac jedno desatinné miesto, bez oddeľovača tisícov.
+  var numFmt = null, numFmtLang = null;
+  function fmtNum(n) {
+    var lang = I18N.info(I18N.lang()).htmlLang;
+    if (numFmtLang !== lang) {
+      numFmtLang = lang;
+      try { numFmt = new Intl.NumberFormat(lang, { maximumFractionDigits: 1, useGrouping: false }); } catch (e) { numFmt = null; }
+    }
+    var v = Math.round(Number(n) * 10) / 10;
+    return numFmt ? numFmt.format(v) : String(v);
+  }
+  // Číslo do vstupného poľa (vždy s bodkou, inak ho input type=number neprijme).
+  function inputNum(n) { return Math.round(Number(n) * 10) / 10; }
+  function fmtShortDate(iso) {
+    var d = HC.parseISO(iso);
+    return d ? d.toLocaleDateString(I18N.info(I18N.lang()).htmlLang, { day: 'numeric', month: 'numeric' }) : '';
+  }
+  function nowTime() {
+    var d = new Date();
+    return (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+  }
+  function today() { return HC.isoDate(new Date()); }
+  function sortBy(list, key, desc) {
+    return list.slice().sort(function (a, b) {
+      var x = a[key] || '', y = b[key] || '';
+      return x < y ? (desc ? 1 : -1) : x > y ? (desc ? -1 : 1) : 0;
+    });
+  }
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.hidden = true; }, 2600);
+  }
+  function findBy(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function removeBy(list, id) { return list.filter(function (x) { return x.id !== id; }); }
+  // Jednotná sada ikon (SVG, farba podľa textu).
+  var ICON_PATHS = {
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    close: '<path d="M6 6l12 12M18 6L6 18"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+    more: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+    download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+    medical: '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
+    phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/>',
+    pill: '<rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="M8.5 8.5l7 7"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    backup: '<path d="M4 7v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7"/><path d="M12 3v10M8 9l4 4 4-4"/>'
+  };
+  function icon(name) { return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + (ICON_PATHS[name] || '') + '</svg>'; }
+
+  // Natívne pluginy Capacitoru (len v appke na telefóne; v prehliadači null).
+  function capPlugin(name) {
+    var C = window.Capacitor;
+    return C && typeof C.isNativePlatform === 'function' && C.isNativePlatform() && C.Plugins ? C.Plugins[name] || null : null;
+  }
+  // Jemná vibrácia (užitá dávka, potvrdenie mazania).
+  function haptic(kind) {
+    var H = capPlugin('Haptics');
+    if (H) { H.impact({ style: kind === 'medium' ? 'MEDIUM' : 'LIGHT' }).catch(function () {}); return; }
+    if (navigator.vibrate) try { navigator.vibrate(kind === 'medium' ? 20 : 12); } catch (e) { /* bez vibrácie */ }
+  }
+
+  // Potvrdenie vo vlastnom okne (namiesto systémového window.confirm). Vráti Promise<boolean>.
+  var cdlg = document.getElementById('cdlg');
+  function confirmDelete(msg, yesText) {
+    return new Promise(function (resolve) {
+      var yes = document.getElementById('cdlg-yes'), no = document.getElementById('cdlg-no');
+      document.getElementById('cdlg-msg').textContent = msg;
+      yes.textContent = yesText || t('remove');
+      no.textContent = t('cancel');
+      var settled = false;
+      function done(v) {
+        if (settled) return;
+        settled = true;
+        yes.onclick = no.onclick = null; cdlg.onclose = null;
+        if (cdlg.open) cdlg.close();
+        resolve(v);
+      }
+      yes.onclick = function () { haptic('medium'); done(true); };
+      no.onclick = function () { done(false); };
+      cdlg.onclose = function () { done(false); }; // ESC alebo tlačidlo Späť
+      cdlg.showModal();
+      no.focus();
+    });
+  }
+  function visitLabel(v) { return v ? fmtDate(v.date) + ' – ' + (v.doctor || v.specialty || '') : ''; }
+  function downloadBlob(name, type, data) {
+    var blob = data instanceof Blob ? data : new Blob([data], { type: type });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function showError(err) {
+    toast(err && err.message ? err.message : t('dbError'));
+  }
+  var CHECK_SVG = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
+  var ICE_FIELDS = ['blood', 'allergies', 'conditions', 'contact', 'phone'];
+  // Kontakt v núdzi: meno a telefón. Starý zápis „meno, telefón“ v jednom poli sa rozdelí.
+  function iceContact() {
+    var ice = state.settings.ice || {};
+    if (ice.phone) return { name: ice.contact || '', phone: ice.phone };
+    return HC.splitContact(ice.contact);
+  }
+  // Obsah okna Núdzové údaje (krvná skupina, alergie, ochorenia, kontakt so Zavolať).
+  function iceHtml() {
+    var ice = state.settings.ice || {}, ic = iceContact();
+    return '<div class="stack ice-detail">' +
+      (ice.blood ? '<div><strong>' + t('iceBlood') + '</strong> ' + esc(bloodLabel(ice.blood)) + '</div>' : '') +
+      (ice.allergies ? '<div><strong>' + t('iceAllergies') + '</strong> ' + esc(ice.allergies) + '</div>' : '') +
+      (ice.conditions ? '<div><strong>' + t('iceConditions') + '</strong> ' + esc(ice.conditions) + '</div>' : '') +
+      (ic.name || ic.phone ? '<div class="row"><div><strong>' + t('iceContact') + '</strong> ' + esc(ic.name) + (ic.name && ic.phone ? ' · ' : '') + esc(ic.phone) + '</div>' +
+        (ic.phone ? '<a class="btn small primary" href="' + esc(HC.telHref(ic.phone)) + '">' + icon('phone') + ' ' + t('callBtn') + '</a>' : '') + '</div>' : '') +
+      '</div><button type="button" class="btn block" data-act="edit-ice">' + t('edit') + '</button>';
+  }
+  function showIce() {
+    document.getElementById('dlg-title').textContent = t('iceTitle');
+    dlgFields.innerHTML = iceHtml();
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    if (!dlg.open) dlg.showModal();
+  }
+  function hasICE() {
+    var ice = state.settings.ice || {};
+    return ICE_FIELDS.some(function (k) { return !!ice[k]; });
+  }
+  function problemStatusLabel(s) { return s === 'aktívny' ? t('problemActive') : t('problemResolved'); }
+  function bloodLabel(v) { return v === 'Neviem' ? t('bloodUnknown') : v; }
+  function measureLabel(type) { return t('mType_' + type); }
+  // Jednotky zobrazenia (glykémia, teplota) a výška pre BMI sú v nastaveniach profilu.
+  function units() { return state.settings.units || {}; }
+  function dispVal(type, v) { return fmtNum(HC.toDisplay(type, v, units())); }
+  function measureText(m) {
+    var ty = HC.MEASURE_TYPES[m.type] || {};
+    var bmi = m.type === 'weight' ? HC.bmi(m.value, state.settings.heightCm) : null;
+    return dispVal(m.type, m.value) + (ty.two && m.value2 != null && m.value2 !== '' ? '/' + fmtNum(m.value2) : '') + ' ' + HC.displayUnit(m.type, units()) +
+      (ty.two && m.pulse != null && m.pulse !== '' ? ' · ' + t('fPulse') + ' ' + fmtNum(m.pulse) : '') +
+      (bmi ? ' · ' + t('bmiLabel') + ' ' + fmtNum(bmi) : '');
+  }
+  // Kategória tlaku (ESC) ako farebný štítok.
+  function bpPill(sys, dia) {
+    var c = HC.bpClass(sys, dia);
+    return c ? '<span class="bp-pill bp-' + c + '">' + esc(t('bp_' + c)) + '</span>' : '';
+  }
+  // Riadok štatistiky pod grafom: priemer, min, max, počet a počet mimo hraníc.
+  function statsHtml(type, pts) {
+    var st = HC.measureStats(pts);
+    if (!st.n) return '';
+    var two = type === 'bp' && st.second;
+    var whole = type === 'bp' || type === 'pulse'; // tlak a tep v celých číslach
+    function f(k) { return (whole ? fmtNum(Math.round(st.main[k])) : dispVal(type, st.main[k])) + (two ? '/' + fmtNum(Math.round(st.second[k])) : ''); }
+    var parts = [t('statAvg') + ' <strong>' + esc(f('avg')) + '</strong>' + (two ? ' ' + bpPill(st.main.avg, st.second.avg) : ''),
+      t('statMin') + ' ' + esc(f('min')), t('statMax') + ' ' + esc(f('max')), esc(t('statCount', { n: st.n }))];
+    if (type === 'bp') parts.push(esc(t('statHigh', { n: HC.bpHighCount(pts, 135, 85) })));
+    if (type === 'pulse') parts.push(esc(t('statOutPulse', { n: HC.outsideCount(pts, IDEAL_PULSE.min, IDEAL_PULSE.max) })));
+    var bmi = type === 'weight' ? HC.bmi(st.main.avg, state.settings.heightCm) : null;
+    if (bmi) parts.push(t('bmiLabel') + ' ' + fmtNum(bmi));
+    return '<div class="stats">' + parts.map(function (p) { return '<span>' + p + '</span>'; }).join('') + '</div>';
+  }
+  var MEASURE_PERIODS = ['auto', '7', '30', '90', 'all'];
+  function periodLabel(p) { return p === 'auto' ? t('periodAuto') : p === 'all' ? t('periodAll') : t('periodDays', { n: p }); }
+  function statusBadge(s) {
+    if (!s) return '';
+    var map = { overdue: [t('statusOverdue'), 'danger'], soon: [t('statusSoon'), 'warn'], ok: [t('statusOk'), 'ok'] };
+    return '<span class="badge ' + map[s][1] + '">' + map[s][0] + '</span>';
+  }
+
+  // Čiarový graf. series = [{ points: [{ x: 'YYYY-MM-DD', y: číslo }], color: 'var(--accent)' }]
+  // Ideálne hodnoty tlaku (mmHg), zobrazia sa v grafe krvného tlaku.
+  var IDEAL_BP = { sys: 120, dia: 80 };
+  // Ideálny rozsah tepu v kľude (úder/min).
+  var IDEAL_PULSE = { min: 60, max: 100 };
+  // refs (nepovinné): vodorovné prerušované čiary, napr. ideálne hodnoty [{y, color, label}].
+  function lineChart(series, fromIso, toIso, refs) {
+    var all = [];
+    series.forEach(function (s) { s.points.forEach(function (p) { if (p.y != null && isFinite(p.y)) all.push(Number(p.y)); }); });
+    if (!all.length) return '<p class="muted">' + t('chartNoData') + '</p>';
+    (refs || []).forEach(function (r) { all.push(r.y); });
+    var W = 600, H = 180, L = 40, R = 12, T = 10, B = 28;
+    var n = Math.max(1, HC.daysBetween(fromIso, toIso));
+    var ticks = HC.niceTicks(Math.min.apply(null, all), Math.max.apply(null, all), 4);
+    var min = ticks[0], max = ticks[ticks.length - 1];
+    // Poloha bodu: deň + čas v dni (bez času = poludnie). Os má o deň viac, aby posledný deň bol celý.
+    function X(d, tm) { var m = /^(\d{1,2}):(\d{2})/.exec(tm || ''); var frac = m ? (Number(m[1]) * 60 + Number(m[2])) / 1440 : 0.5; return L + Math.min(1, Math.max(0, (HC.daysBetween(fromIso, d) + frac) / (n + 1))) * (W - L - R); }
+    function Y(v) { return T + (1 - (v - min) / (max - min)) * (H - T - B); }
+    var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img">';
+    ticks.forEach(function (v) {
+      svg += '<line class="grid" x1="' + L + '" y1="' + Y(v).toFixed(1) + '" x2="' + (W - R) + '" y2="' + Y(v).toFixed(1) + '" style="stroke:var(--line,#ddd)"/>' +
+        '<text x="' + (L - 6) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" text-anchor="end" style="fill:var(--muted,#666)">' + fmtNum(v) + '</text>';
+    });
+    var mid = HC.addDays(fromIso, Math.round(n / 2));
+    [[fromIso, '00:00', 'start'], [mid, '12:00', 'middle'], [toIso, '23:59', 'end']].forEach(function (d) {
+      if (d[0] === mid && n < 2) return;
+      svg += '<text x="' + X(d[0], d[1]).toFixed(1) + '" y="' + (H - 8) + '" font-size="11" text-anchor="' + d[2] + '" style="fill:var(--muted,#666)">' + esc(fmtShortDate(d[0])) + '</text>';
+    });
+    (refs || []).forEach(function (r) {
+      svg += '<line x1="' + L + '" y1="' + Y(r.y).toFixed(1) + '" x2="' + (W - R) + '" y2="' + Y(r.y).toFixed(1) + '" stroke-dasharray="6 5" stroke-width="1.5" style="stroke:' + r.color + '"/>' +
+        '<text x="' + (W - R - 4) + '" y="' + (Y(r.y) - 5).toFixed(1) + '" font-size="11" font-weight="700" text-anchor="end" style="fill:' + r.color + '">' + esc(r.label) + '</text>';
+    });
+    series.forEach(function (s) {
+      var sorted = s.points.filter(function (p) { return p.y != null && isFinite(p.y); }).sort(function (a, b) {
+        var ka = a.x + ' ' + (a.t || ''), kb = b.x + ' ' + (b.t || '');
+        return ka < kb ? -1 : ka > kb ? 1 : 0;
+      });
+      var pts = sorted.map(function (p) { return X(p.x, p.t).toFixed(1) + ',' + Y(p.y).toFixed(1); });
+      if (pts.length > 1) svg += '<polyline class="ln" pathLength="1" fill="none" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="stroke:' + s.color + '" points="' + pts.join(' ') + '"/>';
+      sorted.forEach(function (p) {
+        svg += '<circle cx="' + X(p.x, p.t).toFixed(1) + '" cy="' + Y(p.y).toFixed(1) + '" r="4.5" stroke-width="2" style="fill:' + s.color + ';stroke:var(--card,#fff)"><title>' + esc(fmtDate(p.x) + (p.t ? ' ' + p.t : '') + ' · ' + fmtNum(p.y)) + '</title></circle>';
+      });
+    });
+    return svg + '</svg>';
+  }
+
+
+  // ---------- Dialóg ----------
+  var dlg = document.getElementById('dlg');
+  var dlgForm = document.getElementById('dlg-form');
+  var dlgFields = document.getElementById('dlg-fields');
+  var dlgErr = document.getElementById('dlg-error');
+  var dlgCancel = document.getElementById('dlg-cancel');
+  var dlgState = null;
+
+  // Režim formulára: true = ukladací formulár, false = len zobrazenie obsahu (Zavrieť).
+  function setDlgMode(isForm) {
+    document.getElementById('dlg-save').hidden = !isForm;
+    dlgCancel.hidden = false;
+    dlgCancel.textContent = isForm ? t('cancel') : t('close');
+    dlgCancelAction = null;
+    if (!isForm) dlgState = null;
+  }
+
+  // spec: [{name, label, type, options?, required?, placeholder?, min?, max?, step?, accept?}]
+  // type 'note' = len text, 'file' = výber súboru. onSave môže vrátiť text chyby alebo Promise s takou hodnotou.
+  function openForm(title, spec, values, onSave) {
+    dlgState = { spec: spec, onSave: onSave };
+    var old = document.getElementById('dlg-share');
+    if (old) old.remove();
+    document.getElementById('dlg-title').textContent = title;
+    dlgFields.innerHTML = spec.map(function (f) {
+      if (f.type === 'note') return '<p class="muted">' + esc(f.label) + '</p>';
+      var v = values && values[f.name] != null ? values[f.name] : '';
+      var req = f.required ? ' required' : '';
+      var ph = f.placeholder ? ' placeholder="' + esc(f.placeholder) + '"' : '';
+      var input;
+      if (f.type === 'textarea') input = '<textarea name="' + f.name + '"' + ph + '>' + esc(v) + '</textarea>';
+      else if (f.type === 'select') input = '<select name="' + f.name + '">' + f.options.map(function (o) {
+        return '<option value="' + esc(o.value) + '"' + (String(v) === String(o.value) ? ' selected' : '') + '>' + esc(o.label) + '</option>';
+      }).join('') + '</select>';
+      else if (f.type === 'checkbox') return '<label class="check-row"><input type="checkbox" name="' + f.name + '"' + (v ? ' checked' : '') + '> ' + esc(f.label) + '</label>';
+      else if (f.type === 'file') input = '<input name="' + f.name + '" type="file"' + (f.accept ? ' accept="' + esc(f.accept) + '"' : '') + req + '>';
+      else input = '<input name="' + f.name + '" type="' + (f.type || 'text') + '" value="' + esc(v) + '"' + ph + req +
+        (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') + (f.step ? ' step="' + f.step + '"' : '') + '>';
+      return '<label>' + esc(f.label) + input + '</label>';
+    }).join('');
+    dlgErr.hidden = true;
+    setDlgMode(true);
+    dlg.showModal();
+    if (spec.some(function (f) { return f.name === 'pulse'; })) syncMeasureForm();
+  }
+  // Formulár merania: pri krvnom tlaku sa ukazuje „Horný“, dolný tlak a pulz; pri ostatných len „Hodnota“.
+  function syncMeasureForm() {
+    var typeEl = dlgForm.elements['type'];
+    var two = !!(typeEl && HC.MEASURE_TYPES[typeEl.value] && HC.MEASURE_TYPES[typeEl.value].two);
+    var unit = typeEl ? HC.displayUnit(typeEl.value, units()) : '';
+    dlgForm.elements['value'].closest('label').firstChild.textContent = (two ? t('fValueSys') : t('fValue')) + (unit ? ' (' + unit + ')' : '');
+    dlgForm.elements['value2'].closest('label').hidden = !two;
+    dlgForm.elements['pulse'].closest('label').hidden = !two;
+  }
+  function readForm() {
+    var out = {};
+    dlgState.spec.forEach(function (f) {
+      if (f.type === 'note') return;
+      var el = dlgForm.elements[f.name];
+      if (!el) return;
+      if (f.type === 'file') out[f.name] = el.files && el.files[0] ? el.files[0] : null;
+      else out[f.name] = f.type === 'checkbox' ? el.checked : (typeof el.value === 'string' ? el.value.trim() : el.value);
+    });
+    return out;
+  }
+  dlgCancel.addEventListener('click', function () {
+    if (dlgCancelAction) dlgCancelAction();
+    else dlg.close();
+  });
+  // Krížik vpravo hore robí to isté ako Zrušiť/Zavrieť.
+  document.getElementById('dlg-x').addEventListener('click', function () { dlgCancel.click(); });
+  // Pri odomykaní profilu sa dialóg nedá zavrieť bez odomknutia (ESC).
+  dlg.addEventListener('cancel', function (e) { if (mustUnlock) e.preventDefault(); });
+  function showErr(msg) { dlgErr.textContent = msg; dlgErr.hidden = false; }
+  dlgForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!dlgState) { dlg.close(); return; }
+    var current = dlgState;
+    var res = current.onSave(readForm());
+    if (res && typeof res.then === 'function') {
+      res.then(function (err) {
+        if (dlgState !== current) return; // dialóg sa medzitým zmenil (napr. import)
+        if (err) showErr(err); else dlg.close();
+      }, function (ex) {
+        if (dlgState === current) showErr(ex && ex.message ? ex.message : t('dbError'));
+      });
+      return;
+    }
+    if (res) { showErr(res); return; }
+    dlg.close();
+  });
+
+  // Zobrazenie textu (otázky, príprava na návštevu, postup) s tlačidlom Kopírovať.
+  function showText(title, text) {
+    document.getElementById('dlg-title').textContent = title;
+    dlgFields.innerHTML = '<div class="pre">' + esc(text) + '</div>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    var copyBtn = document.createElement('button');
+    copyBtn.type = 'button'; copyBtn.className = 'btn primary'; copyBtn.textContent = t('copy');
+    copyBtn.addEventListener('click', function () {
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast(t('copied')); }, function () { toast(t('copyFailed')); });
+      else toast(t('noClipboard'));
+    });
+    dlgFields.appendChild(copyBtn);
+    dlg.showModal();
+  }
+
+  // ---------- Pohľady ----------
+  var views = {};
+  var justTaken = null;
+  // Okrúhle tlačidlo + na pridanie položky v hlavičke sekcie.
+  function roundAdd(act, text) {
+    var label = String(text || t('add')).replace(/^\+\s*/, '');
+    return '<button type="button" class="btn-round" data-act="' + act + '" aria-label="' + esc(label) + '" title="' + esc(label) + '">' + icon('plus') + '</button>';
+  }
+
+  // Dnes: dávky, núdzová karta, upozornenia
+  views.today = function () {
+    var tod = today(), now = nowTime();
+    var doses = HC.medDosesOn(state.meds, state.taken, tod);
+    var yesterday = HC.addDays(tod, -1);
+    var missedYesterday = HC.missedDoses(HC.medDosesOn(state.meds, state.taken, yesterday), yesterday, tod, now)
+      .map(function (d) { return Object.assign({ date: yesterday }, d); });
+    var missedToday = HC.missedDoses(doses, tod, tod, now);
+    var checkups = state.checkups.map(function (c) { return { c: c, s: HC.checkupStatus(c, tod) }; })
+      .filter(function (x) { return x.s.status === 'overdue' || (x.s.days !== null && x.s.days <= 5); });
+    var vaccs = state.vaccinations.map(function (v) { return { v: v, s: HC.vaccinationStatus(v, tod) }; })
+      .filter(function (x) { return x.s.status === 'overdue' || (x.s.days !== null && x.s.days <= 5); });
+    var todayVisits = state.visits.filter(function (v) { return v.date === tod; });
+    var horizon = HC.addDays(tod, 5);
+    var upcomingVisits = state.visits.filter(function (v) { return v.nextVisit && v.nextVisit >= tod && v.nextVisit <= horizon; })
+      .sort(function (a, b) { return a.nextVisit < b.nextVisit ? -1 : 1; });
+    var html = '';
+
+    // Súhrn dňa: hotové dávky, ďalšia dávka a séria bez vynechania
+    if (state.meds.length && doses.length) {
+      var doneN = doses.filter(function (d) { return d.taken; }).length;
+      var nextDose = doses.filter(function (d) { return !d.status && d.time >= now; })[0];
+      var streak = 0, startDay = doneN === doses.length ? tod : HC.addDays(tod, -1);
+      for (var si = 0; si < 365; si++) {
+        var sds = HC.medDosesOn(state.meds, state.taken, HC.addDays(startDay, -si));
+        if (!sds.length || !sds.every(function (d) { return d.taken; })) break;
+        streak++;
+      }
+      html += '<section class="card hero"><div class="stack">' +
+        '<strong>' + (doneN === doses.length ? t('sumAllDone') : esc(t('sumDoses', { done: doneN, total: doses.length }))) + '</strong>' +
+        '<div class="progress" style="--p:' + Math.round(doneN / doses.length * 100) + '%"><i></i></div>' +
+        '<div class="meta muted"><span>' + (nextDose ? esc(t('sumNext', { time: nextDose.time, name: nextDose.name })) : '') + '</span>' +
+        (streak ? '<span>' + esc(t('sumStreak', { n: streak })) + '</span>' : '') + '</div>' +
+        '</div></section>';
+    }
+
+    // Núdzové údaje: na Dnes len tlačidlo, údaje sa ukážu v samostatnom okne
+    if (hasICE()) html += '<button type="button" class="btn ice-btn" data-act="show-ice">' + icon('medical') + ' ' + t('iceTitle') + '</button>';
+
+    // Dokončite nastavenie: núdzové údaje, upozornenia a záloha v jednej karte; položky sa dajú skryť.
+    var dis = state.settings.dismissed || {};
+    function hiddenFor(k, days) { return !!dis[k] && (days == null || HC.daysBetween(dis[k], tod) < days); }
+    var setup = [];
+    if (!hasICE() && !hiddenFor('ice')) setup.push({ k: 'ice', ico: 'medical', title: t('iceFillTitle'), text: t('iceFillText'), act: 'edit-ice', btn: t('iceFillBtn') });
+    if ('Notification' in window && Notification.permission === 'default' && !hiddenFor('notify')) setup.push({ k: 'notify', ico: 'bell', title: t('notifyTitle'), text: t('notifyText'), act: 'notify', btn: t('notifyBtn') });
+    else if ('Notification' in window && Notification.permission === 'denied' && !hiddenFor('notify')) setup.push({ k: 'notify', ico: 'bell', title: t('notifyTitle'), text: t('notifyDenied') });
+    if (HC.backupDue(state, state.settings.lastExport, tod) && !hiddenFor('backup', 7)) setup.push({ k: 'backup', ico: 'backup', title: t('backupTitle'),
+      text: state.settings.lastExport ? t('backupLast', { date: fmtDate(state.settings.lastExport) }) : t('backupNone'), act: 'export-backup', btn: t('backupBtn') });
+    if (setup.length) {
+      html += '<section class="card setup"><h2>' + t('setupTitle') + '</h2>' + setup.map(function (it) {
+        return '<div class="setup-item">' + icon(it.ico) + '<div class="info"><strong>' + esc(it.title) + '</strong><div class="muted">' + esc(it.text) + '</div></div>' +
+          (it.act ? '<button class="btn small" data-act="' + it.act + '">' + esc(it.btn) + '</button>' : '') +
+          '<button class="x" data-act="dismiss" data-key="' + it.k + '" aria-label="' + esc(t('setupHide')) + '" title="' + esc(t('setupHide')) + '">' + icon('close') + '</button></div>';
+      }).join('') + '</section>';
+    }
+
+    html += '<section class="card"><div class="section-head"><h2>' + t('todayMeds') + '</h2><span class="muted">' + fmtDate(tod) + '</span></div>';
+    if (!state.meds.length) {
+      html += '<div class="empty"><span>' + t('noMedsYet') + '</span><button class="btn primary small" data-act="add-med">' + t('add') + '</button></div>';
+    } else if (!doses.length) {
+      html += '<p class="muted">' + t('noDosesToday') + '</p>';
+    } else {
+      html += doses.map(function (d) {
+        var med = findBy(state.meds, d.medId);
+        var missed = !d.status && d.time < now;
+        var rt = HC.reminderTime(d, state.snoozes, tod);
+        var cls = 'dose' + (missed ? ' missed' : '') + (d.skipped ? ' skipped' : '');
+        var sub = esc(d.dose) + (missed ? (d.dose ? ' · ' : '') + t('timePassed') : '') + (d.skipped ? (d.dose ? ' · ' : '') + t('skippedWord') : '') +
+          (!d.status && rt !== d.time ? (d.dose || missed || d.skipped ? ' · ' : '') + esc(t('snoozedTo', { time: rt })) : '') +
+          (med && HC.lowStock(med) ? ' · <span class="badge warn">' + t('lowStockBadge') + '</span>' : '');
+        var snooze = d.status ? '' : '<button class="snooze" data-act="snooze-dose" data-key="' + esc(d.key) + '" data-date="' + tod + '" aria-label="' + esc(t('snoozeBtn')) + '" title="' + esc(t('snoozeBtn')) + '">' +
+          '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></button>';
+        return '<div class="' + cls + '">' +
+          '<div class="time">' + d.time + '</div>' +
+          '<div class="info"><div class="name">' + esc(d.name) + '</div><div class="muted">' + sub + '</div></div>' +
+          '<div class="dose-btns">' +
+          '<button class="check' + (d.taken ? ' on' : '') + (justTaken === d.key + '|' + tod ? ' fresh' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + tod + '" data-mode="taken" aria-pressed="' + d.taken + '" aria-label="' + esc(t('markTaken', { name: d.name, time: d.time })) + '">' + (d.taken ? CHECK_SVG : '') + '</button>' +
+          '<button class="skip' + (d.skipped ? ' on' : '') + '" data-act="toggle-dose" data-key="' + esc(d.key) + '" data-date="' + tod + '" data-mode="skipped" aria-pressed="' + d.skipped + '" aria-label="' + esc(t('markSkipped', { name: d.name, time: d.time })) + '">' + icon('close') + '</button>' +
+          snooze +
+          '</div></div>';
+      }).join('');
+    }
+    html += '</section>';
+
+    if (missedToday.length || missedYesterday.length) {
+      html += '<section class="banner"><h3>' + t('missedTitle') + '</h3><p class="muted" style="margin:4px 0 8px">' + t('missedText') + '</p>' +
+        missedToday.map(function (d) { return '<div>' + t('todayWord') + ' ' + d.time + ' – ' + esc(d.name) + '</div>'; }).join('') +
+        missedYesterday.map(function (d) { return '<div>' + t('yesterdayWord') + ' ' + d.time + ' – ' + esc(d.name) + '</div>'; }).join('') +
+        '</section>';
+    }
+
+    if (todayVisits.length) {
+      html += '<section class="card"><h2>' + t('todayVisits') + '</h2><div class="stack">' + todayVisits.map(function (v) {
+        return '<div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(v.reason || '') + '</div></div><span class="badge">' + fmtDate(v.date) + '</span></div>';
+      }).join('') + '</div></section>';
+    }
+
+    if (checkups.length || vaccs.length) {
+      html += '<section class="card flag-warn"><h2>' + t('checkupsTitle') + '</h2><div class="stack">' + checkups.map(function (x) {
+        var label = x.s.status === 'overdue' ? '<span class="badge danger">' + t('statusOverdue') + '</span>' :
+          '<span class="badge warn">' + (x.s.days === 0 ? t('dueToday') : t('inDays', { days: x.s.days })) + '</span>';
+        return '<div class="row"><div><strong>' + esc(x.c.name) + '</strong><div class="muted">' + t('dueWord', { date: fmtDate(x.s.dueDate) }) + '</div></div>' + label + '</div>';
+      }).join('') + vaccs.map(function (x) {
+        var label = x.s.status === 'overdue' ? '<span class="badge danger">' + t('statusOverdue') + '</span>' :
+          '<span class="badge warn">' + (x.s.days === 0 ? t('dueToday') : t('inDays', { days: x.s.days })) + '</span>';
+        return '<div class="row"><div><strong>' + esc(t('dueVacc', { name: x.v.name })) + '</strong><div class="muted">' + t('dueWord', { date: fmtDate(x.v.nextDate) }) + '</div></div>' + label + '</div>';
+      }).join('') + '</div></section>';
+    }
+
+    if (upcomingVisits.length) {
+      html += '<section class="card"><h2>' + t('upcomingVisits') + '</h2><div class="stack">' + upcomingVisits.slice(0, 3).map(function (v) {
+        return '<div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(v.reason || '') + '</div></div><span class="badge">' + fmtDate(v.nextVisit) + '</span></div>';
+      }).join('') + '</div></section>';
+    }
+
+    var recent = sortBy(state.symptoms, 'date', true).slice(0, 3);
+    if (recent.length) {
+      html += '<section class="card"><h2>' + t('recentSymptoms') + '</h2><div class="stack">' + recent.map(function (s) {
+        return '<div class="row"><div><strong>' + esc(s.name) + '</strong><div class="muted">' + fmtDate(s.date) + (s.time ? ' ' + esc(s.time) : '') + '</div></div><span class="badge">' + s.severity + '/10</span></div>';
+      }).join('') + '</div></section>';
+    }
+
+    html += '<p class="muted">' + t('emergencyLine', { number: HC.emergencyNumber(state.settings.emergency) }) + '</p>';
+    return html;
+  };
+
+  // Lieky
+  views.meds = function () {
+    var tod = today(), now = nowTime();
+    var html = '<div class="section-head"><h1>' + t('tabMeds') + '</h1>' + roundAdd('add-med') + '</div>';
+    if (!state.meds.length) return html + '<div class="empty">' + t('medsEmptyHint') + '</div>';
+    html += state.meds.map(function (m) {
+      var active = HC.medActiveOn(m, tod);
+      var badge = m.active === false ? '<span class="badge">' + t('badgePaused') + '</span>' : active ? '<span class="badge ok">' + t('badgeActive') + '</span>' : (m.startDate > tod ? '<span class="badge">' + t('badgePlanned') + '</span>' : '<span class="badge">' + t('badgeEnded') + '</span>');
+      var days = HC.daysOfSupply(m);
+      var stock = days === null ? '' : '<div class="' + (HC.lowStock(m) ? 'badge warn' : 'muted') + '" style="margin-top:6px;display:inline-block">' + t('stockLeft', { n: m.stock, days: days }) + (HC.lowStock(m) ? ' – ' + t('refillHint') : '') + '</div>';
+      var adh = HC.adherence(state, HC.addDays(tod, -29), tod, tod, now, m.id);
+      var adhLine = '<div class="muted" style="margin-top:6px">' + t('adherenceLabel') + ' ' +
+        (adh.percent === null ? t('adherenceNone') : '<strong>' + adh.percent + ' %</strong> · ' + t('adherenceDetail', { taken: adh.taken, skipped: adh.skipped, missed: adh.missed })) + '</div>';
+      return '<section class="card"><div class="row"><div><h3>' + esc(m.name) + '</h3><div class="muted">' + esc(m.dose || t('noDose')) + '</div></div>' + badge + '</div>' +
+        '<div class="muted" style="margin-top:8px">' + t('timeLabel') + ' ' + (m.times || []).map(esc).join(', ') + '</div>' +
+        '<div class="muted">' + t('fromLabel') + ' ' + (m.startDate ? fmtDate(m.startDate) : t('notSpecified')) + (m.endDate ? ' · ' + t('toLabel') + ' ' + fmtDate(m.endDate) : ' · ' + t('noEnd')) + '</div>' +
+        stock + adhLine +
+        (m.remindersOff ? '<div class="muted" style="margin-top:4px">' + t('remindersOffBadge') + '</div>' : '') +
+        (m.notes ? '<p style="margin-top:6px">' + esc(m.notes) + '</p>' : '') +
+        '<div class="form-actions" style="margin-top:10px"><button class="btn small" data-act="toggle-med" data-id="' + esc(m.id) + '">' + (m.active === false ? t('resume') : t('pause')) + '</button>' +
+        '<button class="btn small" data-act="toggle-reminders" data-id="' + esc(m.id) + '">' + (m.remindersOff ? t('remindersOn') : t('remindersOff')) + '</button>' +
+        '<button class="btn small" data-act="edit-med" data-id="' + esc(m.id) + '">' + t('edit') + '</button>' +
+        '<button class="btn small danger" data-act="del-med" data-id="' + esc(m.id) + '">' + t('remove') + '</button></div></section>';
+    }).join('');
+    return html;
+  };
+
+  // Zdravie: príznaky + problémy
+  views.symptoms = function () {
+    var html = '<div class="section-head"><h1>' + t('symptomsTitle') + '</h1></div>';
+    html += '<div class="section-head"><h2>' + t('problemsTitle') + '</h2>' + roundAdd('add-problem') + '</div><section class="card">';
+    if (!state.problems.length) html += '<p class="muted">' + t('problemsHint') + '</p>';
+    html += state.problems.map(function (p) {
+      return '<div class="problem-line"><div class="info"><strong>' + esc(p.name) + '</strong> <span class="badge ' + (p.status === 'aktívny' ? 'warn' : 'ok') + '">' + esc(problemStatusLabel(p.status)) + '</span>' +
+        '<div class="muted">' + t('sinceLabel') + ' ' + (p.since ? fmtDate(p.since) : t('notStated')) + '</div>' + (p.notes ? '<div>' + esc(p.notes) + '</div>' : '') + '</div>' +
+        '<div class="stack"><button class="btn small" data-act="edit-problem" data-id="' + esc(p.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-problem" data-id="' + esc(p.id) + '">' + t('remove') + '</button></div></div>';
+    }).join('');
+    html += '</section>';
+
+    html += '<div class="section-head"><h2>' + t('symptomsLog') + '</h2>' + roundAdd('add-symptom', t('logSymptom')) + '</div>';
+    var list = sortBy(state.symptoms, 'date', true);
+    if (!list.length) html += '<div class="empty">' + t('symptomsEmpty') + '</div>';
+    html += list.map(function (s) {
+      var cls = s.severity >= 8 ? 'danger' : s.severity >= 5 ? 'warn' : 'ok';
+      var meds = HC.medsBeforeSymptom(state, s, 3);
+      var med = s.medId ? findBy(state.meds, s.medId) : null;
+      return '<section class="card"><div class="row"><div><strong>' + esc(s.name) + '</strong><div class="muted">' + fmtDate(s.date) + (s.time ? ' · ' + esc(s.time) : '') + (s.duration ? ' · ' + t('lastsLabel') + ' ' + esc(s.duration) : '') + '</div></div><span class="badge ' + cls + '">' + s.severity + '/10</span></div>' +
+        (med ? '<div class="badge warn" style="margin-top:6px">' + esc(t('sideEffectOf', { name: med.name })) + '</div>' : '') +
+        (meds.length ? '<div class="muted" style="margin-top:6px">' + t('medsLast3') + ' ' + meds.map(esc).join(', ') + '</div>' : '') +
+        (s.notes ? '<p style="margin-top:6px">' + esc(s.notes) + '</p>' : '') +
+        '<div class="form-actions" style="margin-top:8px"><button class="btn small" data-act="edit-symptom" data-id="' + esc(s.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-symptom" data-id="' + esc(s.id) + '">' + t('remove') + '</button></div></section>';
+    }).join('');
+    return html;
+  };
+
+  // Merania: krvný tlak, tep, hmotnosť, glykémia, teplota a výsledky vyšetrení s trendom
+  // Merania s rovnakým dátumom a časom sa v grafe zobrazia ako jeden bod s priemernou hodnotou.
+  var averageSameTime = HC.averageSameTime; // logika v logic.js (testovaná)
+  function toPts(list, type) { return list.map(function (p) { return { x: p.date, t: p.time, y: Number(HC.toDisplay(type, p.value, units())) }; }); }
+
+  views.measure = function () {
+    var tod = today();
+    // Rozsah grafu: podľa meraní (max. 365 dní, min. 7 dní) alebo zvolené obdobie.
+    var rng = HC.chartRange(HC.measureDates(state.measurements, measureType), tod, measurePeriod);
+    var from = rng.from, to = rng.to;
+    var rangeText = fmtDate(from) + ' – ' + fmtDate(to);
+    var periodSel = '<select class="mini-select" data-change="mperiod" aria-label="' + esc(t('fPeriod')) + '">' + MEASURE_PERIODS.map(function (p) {
+      return '<option value="' + p + '"' + (p === measurePeriod ? ' selected' : '') + '>' + esc(periodLabel(p)) + '</option>';
+    }).join('') + '</select>';
+    var rangeP = '<div class="chart-sub"><span class="muted">' + rangeText + '</span>' + periodSel + '</div>';
+    var rangeOnly = '<div class="chart-sub"><span class="muted">' + rangeText + '</span></div>';
+    var html = '<div class="section-head"><h1>' + t('measureTitle') + '</h1><div class="stack inline">' +
+      '<button type="button" class="btn icon" data-act="measure-menu" aria-label="' + esc(t('moreActions')) + '" title="' + esc(t('moreActions')) + '">' + icon('more') + '</button>' +
+      roundAdd('add-measure', t('addMeasure')) + '</div></div>';
+    html += '<div class="stack inline">' + Object.keys(HC.MEASURE_TYPES).map(function (k) {
+      return '<button class="chip' + (k === measureType ? ' on' : '') + '" data-act="set-mtype" data-type="' + k + '">' + esc(measureLabel(k)) + '</button>';
+    }).join('') + '</div>';
+    var mr = state.settings.measureRemind;
+    if (mr && mr.on && (mr.times || []).length) {
+      html += '<button type="button" class="remind-line" data-act="measure-remind">' + icon('bell') + esc(t('mRemindTitle') + ': ' + mr.times.join(', ') + ' · ' + measureLabel(mr.type)) + '</button>';
+    }
+    var ty = HC.MEASURE_TYPES[measureType];
+    var unit = HC.displayUnit(measureType, units());
+    var pulseIdeal = [
+      { y: IDEAL_PULSE.max, color: 'var(--ok)', label: String(IDEAL_PULSE.max) },
+      { y: IDEAL_PULSE.min, color: 'var(--ok)', label: String(IDEAL_PULSE.min) }
+    ];
+    if (measureType === 'pulse') {
+      // Tep: samostatné merania aj pulz zapísaný pri krvnom tlaku.
+      var praw = HC.pulseSeries(state.measurements, from, to);
+      html += '<section class="card"><h2>' + esc(t('fPulse')) + ' (' + unit + ')</h2>' + rangeP +
+        lineChart([{ color: 'var(--c-health)', points: toPts(averageSameTime(praw), 'pulse') }], from, to, pulseIdeal) +
+        statsHtml('pulse', praw) + '<p class="muted small-note">' + t('pulseFromBp') + '</p></section>';
+    } else {
+      var raw = HC.measurementSeries(state.measurements, measureType, from, to);
+      var series = averageSameTime(raw);
+      var chartSeries = [{ color: 'var(--accent)', points: toPts(series, measureType) }];
+      if (ty.two) chartSeries.push({ color: 'var(--danger)', points: series.map(function (p) { return { x: p.date, t: p.time, y: p.value2 }; }) });
+      html += '<section class="card"><h2>' + esc(measureLabel(measureType)) + ' (' + unit + ')</h2>' + rangeP +
+        lineChart(chartSeries, from, to, ty.two ? [
+          { y: IDEAL_BP.sys, color: 'var(--accent)', label: String(IDEAL_BP.sys) },
+          { y: IDEAL_BP.dia, color: 'var(--danger)', label: String(IDEAL_BP.dia) }
+        ] : null) +
+        (ty.two ? '<div class="chart-legend"><span style="color:var(--accent)">' + t('fValueSys') + '</span><span style="color:var(--danger)">' + t('fValue2') + '</span></div>' : '') +
+        statsHtml(measureType, raw) +
+        (ty.two ? '<p class="muted small-note">' + t('bpClassNote') + '</p>' : '') + '</section>';
+      if (ty.two) {
+        // Graf pulzu pri tlaku: len pulz zapísaný pri meraní tlaku (samostatný tep sem nepatrí).
+        var pr = HC.pulseSeries(state.measurements, from, to, true);
+        html += '<section class="card"><h2>' + esc(t('fPulse')) + ' (/min)</h2>' + rangeOnly +
+          lineChart([{ color: 'var(--c-health)', points: toPts(averageSameTime(pr), 'pulse') }], from, to, pulseIdeal) +
+          statsHtml('pulse', pr) + '</section>';
+      }
+    }
+
+    // Na záložke Tep sú aj pulzy z merania tlaku (upravujú sa vo formulári tlaku, nemažú sa odtiaľto).
+    var entries = state.measurements.filter(function (m) {
+      return m.type === measureType || (measureType === 'pulse' && m.type === 'bp' && m.pulse != null && m.pulse !== '');
+    }).sort(function (x, y) { var kx = x.date + ' ' + (x.time || ''), ky = y.date + ' ' + (y.time || ''); return kx < ky ? 1 : kx > ky ? -1 : 0; }).slice(0, 30);
+    if (!entries.length) html += '<div class="empty">' + t('measureEmpty') + '</div>';
+    html += entries.map(function (m, i) {
+      var fromBp = measureType === 'pulse' && m.type === 'bp';
+      var main = fromBp ? fmtNum(m.pulse) + ' ' + HC.MEASURE_TYPES.pulse.unit : measureText(m);
+      return '<section class="card"><div class="row"><div><strong class="' + (i ? '' : 'big-val') + '">' + esc(main) + '</strong>' +
+        (m.type === 'bp' && !fromBp ? '<div>' + bpPill(m.value, m.value2) + '</div>' : '') +
+        (fromBp ? '<div class="muted">' + esc(t('pulseWithBp', { bp: fmtNum(m.value) + '/' + fmtNum(m.value2) + ' mmHg' })) + '</div>' : '') +
+        '<div class="muted">' + fmtDate(m.date) + (m.time ? ' · ' + esc(m.time) : '') + (m.notes ? ' · ' + esc(m.notes) : '') + '</div></div>' +
+        '<div class="stack inline"><button class="btn small" data-act="edit-measure" data-id="' + esc(m.id) + '">' + t('edit') + '</button>' +
+        (fromBp ? '' : '<button class="btn small danger" data-act="del-measure" data-id="' + esc(m.id) + '">' + t('remove') + '</button>') + '</div></div></section>';
+    }).join('');
+
+    // Výsledky vyšetrení
+    html += '<div class="section-head" style="margin-top:10px"><h2>' + t('labsTitle') + '</h2>' + roundAdd('add-lab', t('addLab')) + '</div>';
+    if (!state.labs.length) html += '<div class="empty">' + t('labsEmpty') + '</div>';
+    html += HC.labNames(state.labs).map(function (name) {
+      var list = HC.labSeries(state.labs, name);
+      var last = list[list.length - 1];
+      var st = HC.labStatus(last);
+      var stBadge = st === 'low' ? '<span class="badge warn">' + t('labLow') + '</span>' : st === 'high' ? '<span class="badge danger">' + t('labHigh') + '</span>' : st === 'ok' ? '<span class="badge ok">' + t('labOk') + '</span>' : '';
+      var chart = list.length > 1 ? '<h3 style="margin-top:8px">' + t('trendTitle') + '</h3>' + lineChart([{ color: 'var(--accent)', points: list.map(function (l) { return { x: l.date, y: Number(l.value) }; }) }], list[0].date, tod) : '';
+      return '<section class="card"><div class="row"><div><h3>' + esc(name) + '</h3><div class="muted">' + t('latestWord') + ': ' + esc(fmtNum(last.value)) + ' ' + esc(last.unit || '') + ' · ' + fmtDate(last.date) + '</div></div>' + stBadge + '</div>' +
+        chart +
+        '<div class="stack" style="margin-top:8px">' + list.slice().reverse().map(function (l) {
+          return '<div class="row muted"><span>' + fmtDate(l.date) + ' – ' + esc(fmtNum(l.value)) + ' ' + esc(l.unit || '') +
+            (l.refLow != null || l.refHigh != null ? ' (' + esc(l.refLow != null ? fmtNum(l.refLow) : '') + '–' + esc(l.refHigh != null ? fmtNum(l.refHigh) : '') + ')' : '') + '</span>' +
+            '<span class="stack inline"><button class="btn small" data-act="edit-lab" data-id="' + esc(l.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-lab" data-id="' + esc(l.id) + '">' + t('remove') + '</button></span></div>';
+        }).join('') + '</div></section>';
+    }).join('');
+    return html;
+  };
+
+  // Lekár: otázky, návštevy, kontakty, prílohy, prehľad
+  views.doctor = function () {
+    var html = '<div class="section-head"><h1>' + t('tabDoctor') + '</h1><button class="btn small" data-act="report">' + t('report') + '</button></div>';
+    html += '<div class="section-head"><h2>' + t('questionsTitle') + '</h2><div class="stack inline"><button class="btn small" data-act="copy-questions">' + t('copy') + '</button>' + roundAdd('add-question', t('addQuestion')) + '</div></div><section class="card">';
+    if (!state.questions.length) html += '<p class="muted">' + t('questionsEmpty') + '</p>';
+    html += state.questions.map(function (q) {
+      var v = findBy(state.visits, q.visitId);
+      return '<div class="question-line"><button class="check' + (q.done ? ' on' : '') + '" data-act="toggle-question" data-id="' + esc(q.id) + '" aria-pressed="' + !!q.done + '" aria-label="' + t('markQuestionDone') + '">' + (q.done ? CHECK_SVG : '') + '</button>' +
+        '<div class="info" style="' + (q.done ? 'color:var(--muted);text-decoration:line-through' : '') + '">' + esc(q.text) +
+        (v ? '<div class="muted">' + t('visitWord') + ' ' + esc(visitLabel(v)) + '</div>' : '') +
+        (q.answer ? '<div class="muted">' + t('answerWord') + ' ' + esc(q.answer) + '</div>' : '') + '</div>' +
+        '<div class="stack"><button class="btn small" data-act="edit-question" data-id="' + esc(q.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-question" data-id="' + esc(q.id) + '">' + t('remove') + '</button></div></div>';
+    }).join('');
+    html += '</section>';
+
+    html += '<div class="section-head"><h2>' + t('visitsTitle') + '</h2>' + roundAdd('add-visit', t('addVisit')) + '</div>';
+    var visits = sortBy(state.visits, 'date', true);
+    if (!visits.length) html += '<div class="empty">' + t('visitsEmpty') + '</div>';
+    html += visits.map(function (v) {
+      return '<section class="card"><div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong>' + (v.specialty && v.doctor ? ' <span class="muted">(' + esc(v.specialty) + ')</span>' : '') + '<div class="muted">' + fmtDate(v.date) + '</div></div></div>' +
+        (v.reason ? '<p style="margin-top:6px"><strong>' + t('reasonLabel') + '</strong> ' + esc(v.reason) + '</p>' : '') +
+        (v.diagnosis ? '<p><strong>' + t('diagnosisLabel') + '</strong> ' + esc(v.diagnosis) + '</p>' : '') +
+        (v.prescriptions ? '<p><strong>' + t('prescribedLabel') + '</strong> ' + esc(v.prescriptions) + '</p>' : '') +
+        (v.nextVisit ? '<p style="margin-top:6px"><span class="badge">' + t('nextVisitBadge', { date: fmtDate(v.nextVisit) }) + '</span></p>' : '') +
+        (v.notes ? '<p class="muted" style="margin-top:6px">' + esc(v.notes) + '</p>' : '') +
+        '<div class="form-actions" style="margin-top:8px"><button class="btn small" data-act="prep-visit" data-id="' + esc(v.id) + '">' + t('prepVisit') + '</button><button class="btn small" data-act="edit-visit" data-id="' + esc(v.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-visit" data-id="' + esc(v.id) + '">' + t('remove') + '</button></div></section>';
+    }).join('');
+
+    // Kontakty
+    html += '<div class="section-head"><h2>' + t('contactsTitle') + '</h2>' + roundAdd('add-contact', t('addContact')) + '</div>';
+    if (!state.contacts.length) html += '<div class="empty">' + t('contactsEmpty') + '</div>';
+    html += state.contacts.map(function (c) {
+      return '<section class="card"><div class="row"><div><strong>' + esc(c.name) + '</strong>' + (c.specialty ? ' <span class="muted">(' + esc(c.specialty) + ')</span>' : '') + '</div>' +
+        (c.phone ? '<a class="btn small primary" href="tel:' + esc(String(c.phone).replace(/\s+/g, '')) + '">' + t('callBtn') + '</a>' : '') + '</div>' +
+        (c.phone ? '<div class="muted" style="margin-top:4px">' + esc(c.phone) + '</div>' : '') +
+        (c.address ? '<div class="muted">' + esc(c.address) + '</div>' : '') +
+        (c.hours ? '<div class="muted">' + t('fHours') + ': ' + esc(c.hours) + '</div>' : '') +
+        (c.notes ? '<p style="margin-top:6px">' + esc(c.notes) + '</p>' : '') +
+        '<div class="form-actions" style="margin-top:8px"><button class="btn small" data-act="edit-contact" data-id="' + esc(c.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-contact" data-id="' + esc(c.id) + '">' + t('remove') + '</button></div></section>';
+    }).join('');
+
+    // Prílohy
+    html += '<div class="section-head"><h2>' + t('attTitle') + '</h2>' + roundAdd('add-att', t('addAtt')) + '</div>';
+    var atts = sortBy(state.attachments, 'date', true);
+    if (!atts.length) html += '<div class="empty">' + t('attEmpty') + '</div>';
+    html += atts.map(function (a) {
+      var v = findBy(state.visits, a.visitId);
+      return '<section class="card"><div class="row"><div><strong>' + esc(a.name) + '</strong><div class="muted">' + fmtDate(a.date) + (v ? ' · ' + esc(visitLabel(v)) : '') + ' · ' + Math.round((a.size || 0) / 1024) + ' kB</div></div>' +
+        '<div class="stack inline"><button class="btn small" data-act="open-att" data-id="' + esc(a.id) + '">' + t('attOpen') + '</button><button class="btn small danger" data-act="del-att" data-id="' + esc(a.id) + '">' + t('remove') + '</button></div></div></section>';
+    }).join('');
+    return html;
+  };
+
+  // Prehliadky a očkovania
+  views.checkups = function () {
+    var tod = today();
+    var html = '<div class="section-head"><h1>' + t('checkupsTitle') + '</h1><div class="stack inline"><button class="btn small" data-act="add-standard-checkups">' + t('addStandard') + '</button>' + roundAdd('add-checkup') + '</div></div>';
+    html += '<p class="muted">' + t('checkupsNote') + '</p>';
+    if (!state.checkups.length) html += '<div class="empty">' + t('checkupsEmpty') + '</div>';
+    var rank = { overdue: 0, soon: 1, unknown: 2, ok: 3 };
+    var items = state.checkups.map(function (c) { return { c: c, s: HC.checkupStatus(c, tod) }; })
+      .sort(function (a, b) { return rank[a.s.status] - rank[b.s.status]; });
+    html += items.map(function (x) {
+      var labels = { overdue: [t('statusOverdue'), 'danger'], soon: [t('statusSoon'), 'warn'], unknown: [t('statusUnknown'), ''], ok: [t('statusOk'), 'ok'] };
+      var lab = labels[x.s.status];
+      return '<section class="card' + (x.s.status === 'overdue' ? ' flag-danger' : x.s.status === 'soon' ? ' flag-warn' : '') + '"><div class="row"><h3>' + esc(x.c.name) + '</h3><span class="badge ' + lab[1] + '">' + lab[0] + '</span></div>' +
+        '<div class="muted" style="margin-top:6px">' + t('intervalLabel', { n: x.c.intervalMonths }) +
+        (x.c.lastDate ? ' · ' + t('lastLabel', { date: fmtDate(x.c.lastDate) }) : '') + '</div>' +
+        (x.s.dueDate ? '<div>' + t('nextDue') + ' <strong>' + fmtDate(x.s.dueDate) + '</strong></div>' : '<div class="muted">' + t('enterLastDate') + '</div>') +
+        (x.c.notes ? '<p class="muted" style="margin-top:4px">' + esc(x.c.notes) + '</p>' : '') +
+        '<div class="form-actions" style="margin-top:8px"><button class="btn small primary" data-act="done-checkup" data-id="' + esc(x.c.id) + '">' + t('doneToday') + '</button><button class="btn small" data-act="edit-checkup" data-id="' + esc(x.c.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-checkup" data-id="' + esc(x.c.id) + '">' + t('remove') + '</button></div></section>';
+    }).join('');
+
+    html += '<div class="section-head" style="margin-top:10px"><h2>' + t('vaccTitle') + '</h2>' + roundAdd('add-vacc', t('addVacc')) + '</div>';
+    if (!state.vaccinations.length) html += '<div class="empty">' + t('vaccEmpty') + '</div>';
+    html += sortBy(state.vaccinations, 'date', true).map(function (v) {
+      var s = HC.vaccinationStatus(v, tod);
+      return '<section class="card"><div class="row"><div><strong>' + esc(v.name) + '</strong><div class="muted">' + t('fVaccDate') + ' ' + fmtDate(v.date) + (v.nextDate ? ' · ' + t('nextDue') + ' ' + fmtDate(v.nextDate) : ' · ' + t('vaccNoNext')) + '</div></div>' + statusBadge(s.status) + '</div>' +
+        (v.notes ? '<p class="muted" style="margin-top:4px">' + esc(v.notes) + '</p>' : '') +
+        '<div class="form-actions" style="margin-top:8px"><button class="btn small" data-act="edit-vacc" data-id="' + esc(v.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-vacc" data-id="' + esc(v.id) + '">' + t('remove') + '</button></div></section>';
+    }).join('');
+    return html;
+  };
+
+  // ---------- Formuláre ----------
+  var forms = {
+    med: function (m) {
+      var isEdit = !!m;
+      openForm(isEdit ? t('formMedEdit') : t('formMedNew'), [
+        { name: 'name', label: t('fMedName'), required: true, placeholder: t('phMed') },
+        { name: 'dose', label: t('fDose'), placeholder: t('phDose') },
+        { name: 'times', label: t('fTimes'), required: true, placeholder: t('phTimes') },
+        { name: 'stock', label: t('fStock'), type: 'number', min: 0 },
+        { name: 'startDate', label: t('fStart'), type: 'date' },
+        { name: 'endDate', label: t('fEnd'), type: 'date' },
+        { name: 'notes', label: t('fNotes'), type: 'textarea' }
+      ], isEdit ? { name: m.name, dose: m.dose, times: (m.times || []).join(', '), stock: m.stock, startDate: m.startDate, endDate: m.endDate, notes: m.notes } : { startDate: today() },
+      function (v) {
+        var obj = {
+          name: v.name, dose: v.dose, notes: v.notes,
+          times: v.times.split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+          stock: v.stock === '' || v.stock == null ? null : Number(v.stock),
+          startDate: v.startDate || null, endDate: v.endDate || null
+        };
+        var err = HC.validateMed(obj);
+        if (err) return err;
+        commit(function () {
+          if (isEdit) Object.assign(m, obj);
+          else state.meds.push(Object.assign({ id: HC.newId(), active: true }, obj));
+        });
+        toast(isEdit ? t('medUpdated') : t('medAdded'));
+        return null;
+      });
+    },
+    symptom: function (s) {
+      var isEdit = !!s;
+      var medOptions = [{ value: '', label: t('noMedLink') }].concat(state.meds.map(function (m) { return { value: m.id, label: m.name }; }));
+      openForm(isEdit ? t('formSymEdit') : t('formSymNew'), [
+        { name: 'name', label: t('fWhat'), required: true, placeholder: t('phSymptom') },
+        { name: 'date', label: t('fDate'), type: 'date', required: true },
+        { name: 'time', label: t('fTime'), type: 'time' },
+        { name: 'severity', label: t('fSeverity'), type: 'number', min: 1, max: 10, required: true },
+        { name: 'duration', label: t('fDuration'), placeholder: t('phDuration') },
+        { name: 'medId', label: t('fSideEffectMed'), type: 'select', options: medOptions },
+        { name: 'notes', label: t('fSymNotes'), type: 'textarea' }
+      ], isEdit ? s : { date: today(), time: nowTime(), severity: 5, medId: '' },
+      function (v) {
+        var obj = { name: v.name, date: v.date, time: v.time || '', severity: Number(v.severity), duration: v.duration, notes: v.notes, medId: v.medId || null };
+        var err = HC.validateSymptom(obj);
+        if (err) return err;
+        commit(function () {
+          if (isEdit) Object.assign(s, obj);
+          else state.symptoms.push(Object.assign({ id: HC.newId() }, obj));
+        });
+        toast(t('symptomSaved'));
+        return null;
+      });
+    },
+    problem: function (p) {
+      var isEdit = !!p;
+      openForm(isEdit ? t('formProbEdit') : t('formProbNew'), [
+        { name: 'name', label: t('fProbName'), required: true, placeholder: t('phProb') },
+        { name: 'status', label: t('fStatus'), type: 'select', options: [{ value: 'aktívny', label: t('problemActive') }, { value: 'vyriešený', label: t('problemResolved') }] },
+        { name: 'since', label: t('fSince'), type: 'date' },
+        { name: 'notes', label: t('fNotesGeneric'), type: 'textarea' }
+      ], isEdit ? p : { status: 'aktívny' },
+      function (v) {
+        if (!v.name) return t('errNameRequired');
+        if (v.since && !HC.parseISO(v.since)) return t('errSince');
+        var obj = { name: v.name, status: v.status, since: v.since || null, notes: v.notes };
+        commit(function () {
+          if (isEdit) Object.assign(p, obj);
+          else state.problems.push(Object.assign({ id: HC.newId() }, obj));
+        });
+        return null;
+      });
+    },
+    visit: function (v0) {
+      var isEdit = !!v0;
+      openForm(isEdit ? t('formVisitEdit') : t('formVisitNew'), [
+        { name: 'date', label: t('fVisitDate'), type: 'date', required: true },
+        { name: 'doctor', label: t('fDoctor'), placeholder: t('phDoctor') },
+        { name: 'specialty', label: t('fSpecialty'), placeholder: t('phSpecialty') },
+        { name: 'reason', label: t('fReason'), type: 'textarea' },
+        { name: 'diagnosis', label: t('fDiagnosis'), type: 'textarea' },
+        { name: 'prescriptions', label: t('fPrescriptions'), type: 'textarea' },
+        { name: 'nextVisit', label: t('fNextVisit'), type: 'date' },
+        { name: 'notes', label: t('fNotesGeneric'), type: 'textarea' }
+      ], isEdit ? v0 : { date: today() },
+      function (v) {
+        var obj = { date: v.date, doctor: v.doctor, specialty: v.specialty, reason: v.reason, diagnosis: v.diagnosis, prescriptions: v.prescriptions, nextVisit: v.nextVisit || null, notes: v.notes };
+        var err = HC.validateVisit(obj);
+        if (err) return err;
+        commit(function () {
+          if (isEdit) Object.assign(v0, obj);
+          else state.visits.push(Object.assign({ id: HC.newId() }, obj));
+        });
+        return null;
+      });
+    },
+    question: function (q) {
+      var isEdit = !!q;
+      var visitOptions = [{ value: '', label: t('noVisit') }].concat(sortBy(state.visits, 'date', true).map(function (v) {
+        return { value: v.id, label: visitLabel(v) };
+      }));
+      openForm(isEdit ? t('formQEdit') : t('formQNew'), [
+        { name: 'text', label: t('fQuestion'), type: 'textarea', required: true, placeholder: t('phQuestion') },
+        { name: 'visitId', label: t('fQVisit'), type: 'select', options: visitOptions },
+        { name: 'answer', label: t('fAnswer'), type: 'textarea' },
+        { name: 'done', label: t('fDoneQ'), type: 'checkbox' }
+      ], isEdit ? q : {},
+      function (v) {
+        if (!v.text) return t('errQuestionEmpty');
+        var obj = { text: v.text, visitId: v.visitId || null, answer: v.answer, done: !!v.done };
+        commit(function () {
+          if (isEdit) Object.assign(q, obj);
+          else state.questions.push(Object.assign({ id: HC.newId() }, obj));
+        });
+        return null;
+      });
+    },
+    checkup: function (c) {
+      var isEdit = !!c;
+      openForm(isEdit ? t('formCheckEdit') : t('formCheckNew'), [
+        { name: 'name', label: t('fCheckName'), required: true, placeholder: t('phCheck') },
+        { name: 'intervalMonths', label: t('fInterval'), type: 'number', min: 1, max: 120, required: true },
+        { name: 'lastDate', label: t('fLastDone'), type: 'date' },
+        { name: 'notes', label: t('fNotesGeneric'), type: 'textarea' }
+      ], isEdit ? c : { intervalMonths: 12 },
+      function (v) {
+        var obj = { name: v.name, intervalMonths: Number(v.intervalMonths), lastDate: v.lastDate || null, notes: v.notes };
+        var err = HC.validateCheckup(obj);
+        if (err) return err;
+        commit(function () {
+          if (isEdit) Object.assign(c, obj);
+          else state.checkups.push(Object.assign({ id: HC.newId() }, obj));
+        });
+        return null;
+      });
+    },
+    measure: function (m) {
+      var isEdit = !!m;
+      var typeOptions = Object.keys(HC.MEASURE_TYPES).map(function (k) { return { value: k, label: measureLabel(k) }; });
+      openForm(isEdit ? t('formMeasureEdit') : t('formMeasureNew'), [
+        { name: 'type', label: t('fMType'), type: 'select', options: typeOptions },
+        { name: 'date', label: t('fDate'), type: 'date', required: true },
+        { name: 'time', label: t('fTime'), type: 'time' },
+        { name: 'value', label: t('fValue'), type: 'number', step: 'any', required: true },
+        { name: 'value2', label: t('fValue2'), type: 'number', step: 'any' },
+        { name: 'pulse', label: t('fPulse'), type: 'number', step: 'any' },
+        { name: 'notes', label: t('fNotesGeneric'), type: 'textarea' }
+      ], isEdit ? Object.assign({}, m, { value: inputNum(HC.toDisplay(m.type, m.value, units())) }) : { type: measureType, date: today(), time: nowTime() },
+      function (v) {
+        var two = !!(HC.MEASURE_TYPES[v.type] && HC.MEASURE_TYPES[v.type].two);
+        var obj = {
+          type: v.type, date: v.date, time: v.time || '',
+          value: v.value === '' ? '' : HC.fromDisplay(v.type, Number(v.value), units()),
+          value2: two && v.value2 !== '' ? Number(v.value2) : (two ? '' : null),
+          pulse: two && v.pulse !== '' && v.pulse != null ? Number(v.pulse) : null,
+          notes: v.notes || ''
+        };
+        if (two && obj.value2 === '') obj.value2 = '';
+        var err = HC.validateMeasurement(obj);
+        if (err) return err;
+        if (!two) obj.value2 = null;
+        commit(function () {
+          measureType = v.type;
+          if (isEdit) Object.assign(m, obj);
+          else state.measurements.push(Object.assign({ id: HC.newId() }, obj));
+        });
+        toast(t('measureSaved'));
+        return null;
+      });
+    },
+    // Pripomienka merania: typ a časy; vynechá sa, ak už bolo meranie do 2 hodín pred ňou.
+    measureRemind: function () {
+      var cfg = state.settings.measureRemind || { on: false, type: 'bp', times: ['07:00', '19:00'] };
+      var typeOptions = Object.keys(HC.MEASURE_TYPES).map(function (k) { return { value: k, label: measureLabel(k) }; });
+      openForm(t('mRemindTitle'), [
+        { name: '_note', type: 'note', label: t('mRemindNote') },
+        { name: 'on', label: t('mRemindOn'), type: 'checkbox' },
+        { name: 'mtype', label: t('fMType'), type: 'select', options: typeOptions },
+        { name: 'times', label: t('fRemindTimes'), placeholder: '07:00, 19:00' }
+      ], { on: cfg.on, mtype: cfg.type, times: (cfg.times || []).join(', ') }, function (v) {
+        var times = String(v.times || '').split(/[,;\s]+/).filter(Boolean).map(function (x) { return /^\d:\d\d$/.test(x) ? '0' + x : x; });
+        if (v.on && !times.length) return t('errNeedTime');
+        if (!times.every(HC.isValidTime)) return t('errTimeFormat');
+        times = times.filter(function (x, i) { return times.indexOf(x) === i; }).sort();
+        commit(function () { state.settings.measureRemind = { on: !!v.on, type: v.mtype, times: times }; });
+        if (v.on && !NATIVE && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+        toast(t('mRemindSaved'));
+        return null;
+      });
+    },
+    lab: function (l) {
+      var isEdit = !!l;
+      openForm(isEdit ? t('formLabEdit') : t('formLabNew'), [
+        { name: 'name', label: t('fLabName'), required: true, placeholder: t('phLab') },
+        { name: 'date', label: t('fDate'), type: 'date', required: true },
+        { name: 'value', label: t('fLabValue'), type: 'number', step: 'any', required: true },
+        { name: 'unit', label: t('fLabUnit') },
+        { name: 'refLow', label: t('fRefLow'), type: 'number', step: 'any' },
+        { name: 'refHigh', label: t('fRefHigh'), type: 'number', step: 'any' }
+      ], isEdit ? { name: l.name, date: l.date, value: l.value, unit: l.unit, refLow: l.refLow, refHigh: l.refHigh } : { date: today() },
+      function (v) {
+        var obj = {
+          name: v.name, date: v.date, value: v.value === '' ? '' : Number(v.value), unit: v.unit || '',
+          refLow: v.refLow === '' || v.refLow == null ? null : Number(v.refLow),
+          refHigh: v.refHigh === '' || v.refHigh == null ? null : Number(v.refHigh)
+        };
+        var err = HC.validateLab(obj);
+        if (err) return err;
+        commit(function () {
+          if (isEdit) Object.assign(l, obj);
+          else state.labs.push(Object.assign({ id: HC.newId() }, obj));
+        });
+        toast(t('labSaved'));
+        return null;
+      });
+    },
+    vacc: function (x) {
+      var isEdit = !!x;
+      openForm(isEdit ? t('formVaccEdit') : t('formVaccNew'), [
+        { name: 'name', label: t('fVaccName'), required: true, placeholder: t('phVacc') },
+        { name: 'date', label: t('fVaccDate'), type: 'date', required: true },
+        { name: 'nextDate', label: t('fVaccNext'), type: 'date' },
+        { name: 'notes', label: t('fNotesGeneric'), type: 'textarea' }
+      ], isEdit ? x : { date: today() },
+      function (v) {
+        var obj = { name: v.name, date: v.date, nextDate: v.nextDate || null, notes: v.notes };
+        var err = HC.validateVaccination(obj);
+        if (err) return err;
+        commit(function () {
+          if (isEdit) Object.assign(x, obj);
+          else state.vaccinations.push(Object.assign({ id: HC.newId() }, obj));
+        });
+        toast(t('vaccSaved'));
+        return null;
+      });
+    },
+    contact: function (c) {
+      var isEdit = !!c;
+      openForm(isEdit ? t('formContactEdit') : t('formContactNew'), [
+        { name: 'name', label: t('fCName'), required: true, placeholder: t('phCName') },
+        { name: 'specialty', label: t('fSpecialty'), placeholder: t('phSpecialty') },
+        { name: 'phone', label: t('fPhone'), type: 'tel' },
+        { name: 'address', label: t('fAddress') },
+        { name: 'hours', label: t('fHours') },
+        { name: 'notes', label: t('fNotesGeneric'), type: 'textarea' }
+      ], isEdit ? c : {},
+      function (v) {
+        var obj = { name: v.name, specialty: v.specialty, phone: v.phone, address: v.address, hours: v.hours, notes: v.notes };
+        var err = HC.validateContact(obj);
+        if (err) return err;
+        commit(function () {
+          if (isEdit) Object.assign(c, obj);
+          else state.contacts.push(Object.assign({ id: HC.newId() }, obj));
+        });
+        toast(t('contactSaved'));
+        return null;
+      });
+    },
+    attachment: function () {
+      var visitOptions = [{ value: '', label: t('noVisit') }].concat(sortBy(state.visits, 'date', true).map(function (v) {
+        return { value: v.id, label: visitLabel(v) };
+      }));
+      openForm(t('attTitle'), [
+        { name: 'file', label: t('fAttFile'), type: 'file', accept: 'image/*,application/pdf', required: true },
+        { name: 'name', label: t('fAttName') },
+        { name: 'visitId', label: t('fQVisit'), type: 'select', options: visitOptions }
+      ], {}, function (v) {
+        if (!v.file) return t('errAttFile');
+        var err = HC.validateFile(v.file.type, v.file.size);
+        if (err) return err;
+        var id = HC.newId();
+        return v.file.arrayBuffer().then(function (buf) {
+          return saveAttachmentFile(id, v.file.type, buf);
+        }).then(function () {
+          commit(function () {
+            state.attachments.push({ id: id, name: v.name || v.file.name, mime: v.file.type, size: v.file.size, date: today(), visitId: v.visitId || null });
+          });
+          toast(t('attSaved'));
+          return null;
+        }, function () { return t('errAttStore'); });
+      });
+    },
+    ice: function () {
+      var ice = state.settings.ice || {};
+      var bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', '0+', '0-', 'Neviem'];
+      // Stará hodnota zapísaná voľným textom sa zachová ako možnosť, aby sa nestratila.
+      if (ice.blood && bloodGroups.indexOf(ice.blood) === -1) bloodGroups.unshift(ice.blood);
+      var bloodOptions = [{ value: '', label: t('bloodNone') }].concat(bloodGroups.map(function (g) {
+        return { value: g, label: bloodLabel(g) };
+      }));
+      openForm(t('formIce'), [
+        { name: 'blood', label: t('fBlood'), type: 'select', options: bloodOptions },
+        { name: 'allergies', label: t('fAllergies'), type: 'textarea' },
+        { name: 'conditions', label: t('fConditions'), type: 'textarea' },
+        { name: 'contact', label: t('fContact'), placeholder: t('phContact') },
+        { name: 'phone', label: t('fPhone'), type: 'tel', placeholder: t('phPhone') }
+      ], Object.assign({}, ice, { contact: iceContact().name, phone: iceContact().phone }),
+      function (v) {
+        commit(function () {
+          state.settings.ice = { blood: v.blood, allergies: v.allergies, conditions: v.conditions, contact: v.contact, phone: v.phone };
+        });
+        toast(t('iceSaved'));
+        return null;
+      });
+    },
+    profileNew: function () {
+      openForm(t('formProfileNew'), [
+        { name: 'name', label: t('profileNameLabel'), required: true }
+      ], {}, function (v) {
+        return createProfile(v.name, null).then(function (rec) {
+          activate(rec);
+          return null;
+        }, function () { return t('dbError'); });
+      });
+    },
+    profileRename: function () {
+      openForm(t('formProfileRename'), [
+        { name: 'name', label: t('profileNameLabel'), required: true }
+      ], { name: profile.name }, function (v) {
+        return HCStore.getProfile(profile.id).then(function (rec) {
+          if (!rec) return t('dbError');
+          rec.name = v.name;
+          profile.name = v.name;
+          return HCStore.putProfile(rec).then(function () { render(); return null; });
+        }, function () { return t('dbError'); });
+      });
+    }
+  };
+
+  // Zmena stavu z formulára: uloží a prekreslí.
+  function commit(fn) { fn(); save(); render(); }
+
+  // ---------- Nastavenia, profily, jazyk a údaje ----------
+  // Zoznam krajín s tiesňovým číslom; názvy krajín podľa jazyka prehliadača (Intl.DisplayNames).
+  function emergencyOptions() {
+    var htmlLang = I18N.info(I18N.lang()).htmlLang;
+    var dn = null;
+    try { dn = new Intl.DisplayNames([htmlLang], { type: 'region' }); } catch (e) { dn = null; }
+    var cur = state.settings.emergency || '';
+    var opts = Object.keys(HC.EMERGENCY_NUMBERS).map(function (code) {
+      var name = dn ? (dn.of(code) || code) : code;
+      return { value: code, label: name + ' – ' + HC.EMERGENCY_NUMBERS[code] };
+    }).sort(function (a, b) { return a.label.localeCompare(b.label, htmlLang); });
+    opts.unshift({ value: '', label: t('emergencyDefault') });
+    return opts.map(function (o) {
+      return '<option value="' + esc(o.value) + '"' + (o.value === cur ? ' selected' : '') + '>' + esc(o.label) + '</option>';
+    }).join('');
+  }
+
+  // Info: stručný popis aplikácie a jednotlivých záložiek.
+  function openInfo() {
+    var tabs = [['tabToday', 'infoToday'], ['tabMeds', 'infoMeds'], ['tabSymptoms', 'infoSymptoms'], ['tabMeasure', 'infoMeasure'], ['tabDoctor', 'infoDoctor'], ['tabCheckups', 'infoCheckups']];
+    document.getElementById('dlg-title').textContent = t('appName');
+    dlgFields.innerHTML = '<p>' + t('appDesc') + '</p>' +
+      '<h3 style="margin-top:6px">' + t('infoTabsTitle') + '</h3>' +
+      tabs.map(function (p) {
+        return '<div class="problem-line"><div class="info"><strong>' + t(p[0]) + '</strong><div class="muted">' + t(p[1]) + '</div></div></div>';
+      }).join('') +
+      '<button type="button" class="btn block" id="d-about" style="margin-top:8px">' + t('aboutTitle') + '</button>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    dlg.showModal();
+  }
+
+  var APP_VERSION = '1.1.0';
+  // O aplikácii: verzia, súkromie, upozornenie, licencie.
+  function openAbout() {
+    document.getElementById('dlg-title').textContent = t('aboutTitle');
+    dlgFields.innerHTML =
+      '<div class="row"><strong>' + t('appName') + '</strong><span class="muted about-ver">' + esc(t('aboutVersion', { v: APP_VERSION })) + '</span></div>' +
+      '<p class="muted">' + t('appDesc') + '</p>' +
+      '<h3>' + icon('shield') + ' ' + t('aboutPrivacyTitle') + '</h3><p>' + t('aboutPrivacy') + '</p>' +
+      '<h3>' + icon('medical') + ' ' + t('aboutMedicalTitle') + '</h3><p class="disclaimer">' + t('disclaimer') + '</p>' +
+      '<h3>' + t('aboutLicensesTitle') + '</h3><p class="muted">' + t('aboutLicenses') + '</p>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    if (!dlg.open) dlg.showModal();
+  }
+
+  // Úvodný sprievodca pri prvom spustení: 1) jazyk a vzhľad, 2) núdzové údaje, 3) prvý liek. Upozornenie je v kroku 1.
+  var ONB_STEPS = 3;
+  function openOnboarding(step) {
+    var dots = '<div class="onb-dots">' + [0, 1, 2].map(function (i) { return '<i class="' + (i === step ? 'on' : '') + '"></i>'; }).join('') + '</div>';
+    var body;
+    if (step === 0) {
+      var langOptions = I18N.languages().map(function (l) {
+        return '<option value="' + esc(l.code) + '"' + (l.code === I18N.lang() ? ' selected' : '') + '>' + esc(l.flag + ' ' + l.name) + '</option>';
+      }).join('');
+      var curPal = PALETTES[getPref('palette')] ? getPref('palette') : 'lamp';
+      body = '<div class="onb-step"><div class="onb-ico">' + icon('heart') + '</div><p>' + t('onbWelcome') + '</p></div>' +
+        '<label>' + t('langLabel') + '<select id="d-lang">' + langOptions + '</select></label>' +
+        '<div class="swatches">' + PALETTE_KEYS.map(function (k) {
+          return '<button type="button" data-pal="' + k + '" aria-label="' + PALETTES[k].label + '" title="' + PALETTES[k].label + '" aria-pressed="' + (k === curPal) + '" style="background:' + PALETTES[k].swatch + '"></button>';
+        }).join('') + '</div>' +
+        '<p class="disclaimer">' + t('disclaimer') + '</p>';
+    } else if (step === 1) {
+      body = '<div class="onb-step"><div class="onb-ico">' + icon('medical') + '</div><h3>' + t('iceFillTitle') + '</h3><p class="muted">' + t('onbIce') + '</p></div>' +
+        '<button type="button" class="btn primary block" data-onb="ice">' + t('iceFillBtn') + '</button>';
+    } else {
+      body = '<div class="onb-step"><div class="onb-ico">' + icon('pill') + '</div><h3>' + t('onbMedTitle') + '</h3><p class="muted">' + t('onbMed') + '</p></div>' +
+        '<button type="button" class="btn primary block" data-onb="med">' + t('addMed') + '</button>';
+    }
+    document.getElementById('dlg-title').textContent = step === 0 ? t('onbTitle') : t('onbStep', { n: step + 1, total: ONB_STEPS });
+    dlgFields.innerHTML = body + dots +
+      '<div class="form-actions" style="margin-top:6px">' +
+      '<button type="button" class="btn" data-onb="skip">' + t('onbSkip') + '</button>' +
+      '<button type="button" class="btn primary" data-onb="next">' + (step === ONB_STEPS - 1 ? t('onbDone') : t('onbNext')) + '</button></div>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    document.getElementById('dlg-cancel').hidden = true;
+    onbStep = step;
+    if (!dlg.open) dlg.showModal();
+  }
+  var onbStep = 0;
+  function finishOnboarding() { setPref('onboarded', '1'); dlg.close(); render(); }
+  function onbAction(a) {
+    if (a === 'skip') { finishOnboarding(); return; }
+    if (a === 'next') { if (onbStep >= ONB_STEPS - 1) finishOnboarding(); else openOnboarding(onbStep + 1); return; }
+    // Formulár sa otvorí v tom istom okne; sprievodca sa tým ukončí.
+    setPref('onboarded', '1');
+    if (a === 'ice') forms.ice();
+    if (a === 'med') forms.med(null);
+  }
+
+  function openData() {
+    HCStore.listProfiles().then(function (list) {
+      var count = HC.dataCount(state);
+      var persistText = persistGranted === true ? t('persistYes')
+        : persistGranted === false ? t('persistNo')
+        : t('persistUnknown');
+      var langOptions = I18N.languages().map(function (l) {
+        return '<option value="' + esc(l.code) + '"' + (l.code === I18N.lang() ? ' selected' : '') + '>' + esc(l.flag + ' ' + l.name) + '</option>';
+      }).join('');
+      var profOptions = list.map(function (p) {
+        return '<option value="' + esc(p.id) + '"' + (profile && p.id === profile.id ? ' selected' : '') + '>' + esc(p.name) + (p.encrypted ? ' · ' + t('profileEncBadge') : '') + '</option>';
+      }).join('');
+      var enc = profile && profile.encrypted;
+      var curPal = PALETTES[getPref('palette')] ? getPref('palette') : 'lamp';
+      var palOptions = PALETTE_KEYS.map(function (k) {
+        return '<option value="' + k + '"' + (k === curPal ? ' selected' : '') + '>' + PALETTES[k].label + '</option>';
+      }).join('');
+      var swatchHtml = PALETTE_KEYS.map(function (k) {
+        return '<button type="button" data-pal="' + k + '" aria-label="' + PALETTES[k].label + '" title="' + PALETTES[k].label + '" aria-pressed="' + (k === curPal) + '" style="background:' + PALETTES[k].swatch + '"></button>';
+      }).join('');
+      document.getElementById('dlg-title').textContent = t('settingsTitle');
+      dlgFields.innerHTML =
+        '<h3>' + t('profilesTitle') + '</h3>' +
+        '<label>' + t('profileActive') + '<select id="d-prof">' + profOptions + '</select></label>' +
+        '<div class="stack inline"><button type="button" class="btn small" id="d-prof-new">' + t('profileNew') + '</button>' +
+        '<button type="button" class="btn small" id="d-prof-rename">' + t('profileRename') + '</button>' +
+        '<button type="button" class="btn small danger" id="d-prof-del">' + t('profileDelete') + '</button></div>' +
+        '<div class="stack inline">' +
+        (enc
+          ? '<button type="button" class="btn small" id="d-enc-pass">' + t('profileChangePass') + '</button>' +
+            '<button type="button" class="btn small" id="d-enc-off">' + t('profileDecrypt') + '</button>' +
+            '<button type="button" class="btn small" id="d-lock">' + t('profileLock') + '</button>'
+          : '<button type="button" class="btn small" id="d-enc-on">' + t('profileEncrypt') + '</button>') +
+        '</div>' +
+        (enc ? '<label>' + t('autoLockLabel') + '<select id="d-autolock">' + [['', t('autoLockOff')], ['0', t('autoLockNow')], ['1', t('autoLockMin', { n: 1 })], ['5', t('autoLockMin', { n: 5 })], ['15', t('autoLockMin', { n: 15 })]].map(function (o) {
+            return '<option value="' + o[0] + '"' + ((getPref('autoLock') || '') === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
+          }).join('') + '</select></label><p class="muted small-note">' + t('autoLockNote') + '</p>' : '') +
+        '<label>' + t('langLabel') + '<select id="d-lang">' + langOptions + '</select></label>' +
+        '<label>' + t('palLabel') + '<select id="d-pal">' + palOptions + '</select></label>' +
+        '<div class="swatches">' + swatchHtml + '</div>' +
+        '<label>' + t('palMode') + '<select id="d-mode">' +
+          '<option value="dark"' + (getPref('mode') === 'light' ? '' : ' selected') + '>' + t('palDark') + '</option>' +
+          '<option value="light"' + (getPref('mode') === 'light' ? ' selected' : '') + '>' + t('palLight') + '</option></select></label>' +
+        '<label>' + t('emergencyCountryLabel') + '<select id="d-emergency">' + emergencyOptions() + '</select></label>' +
+        '<h3 style="margin-top:6px">' + t('unitsTitle') + '</h3>' +
+        '<label>' + t('fGlucoseUnit') + '<select id="d-u-glu"><option value="mmol">mmol/L</option><option value="mgdl"' + (units().glucose === 'mgdl' ? ' selected' : '') + '>mg/dL</option></select></label>' +
+        '<label>' + t('fTempUnit') + '<select id="d-u-temp"><option value="c">°C</option><option value="f"' + (units().temp === 'f' ? ' selected' : '') + '>°F</option></select></label>' +
+        '<label>' + t('fHeight') + '<input id="d-height" type="number" min="50" max="250" step="1" inputmode="numeric" value="' + esc(state.settings.heightCm || '') + '"></label>' +
+        '<h3 style="margin-top:6px">' + t('privacyTitle') + '</h3>' +
+        '<p>' + t('dataLocal') + '</p>' +
+        '<p class="muted">' + t('itemsStored', { n: count }) + '</p>' +
+        '<p class="muted">' + persistText + '</p>' +
+        '<p class="muted">' + (state.settings.lastExport ? t('lastExport', { date: fmtDate(state.settings.lastExport) }) : t('noExport')) + '</p>' +
+        '<div class="stack"><button type="button" class="btn" id="d-ice">' + t('formIce') + '</button>' +
+        '<button type="button" class="btn" id="d-export">' + t('btnExport') + '</button>' +
+        '<label class="btn" style="text-align:center;cursor:pointer;color:var(--fg)">' + t('btnImport') + '<input type="file" accept="application/json,.json" id="d-import" hidden></label>' +
+        '<button type="button" class="btn danger" id="d-wipe">' + t('eraseProfile') + '</button></div>' +
+        '<div class="stack inline" style="margin-top:6px"><button type="button" class="btn small" id="d-about">' + t('aboutTitle') + '</button>' +
+        '<button type="button" class="btn small" id="d-onb">' + t('onbRestart') + '</button></div>';
+      dlgErr.hidden = true;
+      setDlgMode(false);
+      if (!dlg.open) dlg.showModal();
+    }).catch(function (err) { showError(err); });
+  }
+
+  // Udalosti dialógu nastavení sú zavesené raz (delegujú sa cez dlgFields).
+  dlgFields.addEventListener('click', onDataClick);
+  dlgFields.addEventListener('change', onDataChange);
+
+  // Záloha: prílohy idú do JSON ako base64; pri zašifrovanom profile sa celá záloha zašifruje jeho heslom.
+  function doExport() {
+    var attachmentData = {};
+    return Promise.all(state.attachments.map(function (a) {
+      return attachmentBytes(a.id).then(function (buf) {
+        attachmentData[a.id] = SB.toB64(buf);
+      }).catch(function () { /* chýbajúca príloha sa do zálohy nepridá */ });
+    })).then(function () {
+      var json = HC.exportJSON(state, attachmentData);
+      if (encKey) return SB.seal(encKey, encSalt, json).then(function (env) { return JSON.stringify(env, null, 2); });
+      toast(t('plainBackupWarn'));
+      return json;
+    }).then(function (text) {
+      downloadBlob('health-companion-zaloha-' + today() + '.json', 'application/json', text);
+      commit(function () { state.settings.lastExport = today(); });
+    }).catch(showError);
+  }
+
+  // Pripraví náhľad importu a ponúkne zlúčenie alebo nahradenie.
+  function showImportOptions(text) {
+    var parsed = HC.importJSON(text);
+    pendingImport = parsed;
+    var n = HC.dataCount(parsed.state);
+    document.getElementById('dlg-title').textContent = t('importTitle');
+    dlgFields.innerHTML =
+      '<p>' + t('importText', { n: n }) + '</p>' +
+      '<div class="stack"><button type="button" class="btn primary" id="d-merge">' + t('mergeBtn') + '</button>' +
+      '<button type="button" class="btn danger" id="d-replace">' + t('replaceBtn') + '</button>' +
+      '<button type="button" class="btn" id="d-cancel-import">' + t('cancel') + '</button></div>' +
+      '<p class="muted">' + t('importHint') + '</p>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    if (!dlg.open) dlg.showModal();
+  }
+
+  // Zlúči alebo nahradí údaje a prílohy zo zálohy.
+  function applyImport(replace) {
+    var imp = pendingImport;
+    pendingImport = null;
+    if (!imp) return;
+    if (replace) {
+      confirmDelete(t('confirmReplace'), t('confirmContinue')).then(function (ok) { if (ok) runImport(imp, true); });
+      return;
+    }
+    runImport(imp, false);
+  }
+  function runImport(imp, replace) {
+    var pid = profile.id;
+    var keepFiles = replace ? Promise.resolve(HCStore.listFiles(pid).then(function (files) {
+      return Promise.all(files.map(function (f) { return HCStore.deleteFile(f.id); }));
+    })) : Promise.resolve();
+    keepFiles.then(function () {
+      var metas = imp.state.attachments || [];
+      return Promise.all(Object.keys(imp.attachmentData).map(function (id) {
+        var meta = findBy(metas, id) || {};
+        return saveAttachmentFile(id, meta.mime || 'application/octet-stream', SB.fromB64(imp.attachmentData[id]).buffer);
+      }));
+    }).then(function () {
+      state = replace ? imp.state : HC.mergeState(state, imp.state);
+      save();
+      dlg.close();
+      render();
+      toast(replace ? t('importReplaced') : t('importMerged'));
+    }).catch(showError);
+  }
+
+  function onDataClick(e) {
+    var pal = e.target.closest && e.target.closest('[data-pal]');
+    if (pal) { setPalette(pal.dataset.pal); if (dlgFields.querySelector('[data-onb]')) openOnboarding(onbStep); else openData(); return; }
+    if (e.target.closest && e.target.closest('[data-act="edit-ice"]')) { forms.ice(); return; }
+    var sh = e.target.closest && e.target.closest('[data-sheet]');
+    if (sh) { var it = sheetItems[Number(sh.dataset.sheet)]; if (it) it.run(); return; }
+    if (e.target.closest && e.target.closest('#d-about')) { openAbout(); return; }
+    if (e.target.closest && e.target.closest('#d-onb')) { openOnboarding(0); return; }
+    var ob = e.target.closest && e.target.closest('[data-onb]');
+    if (ob) { onbAction(ob.dataset.onb); return; }
+    var id = e.target.id;
+    if (id === 'd-export') doExport();
+    else if (id === 'd-ice') forms.ice();
+    else if (id === 'd-prof-new') forms.profileNew();
+    else if (id === 'd-prof-rename') forms.profileRename();
+    else if (id === 'd-prof-del') {
+      HCStore.listProfiles().then(function (list) {
+        if (list.length <= 1) { toast(t('cannotDeleteLast')); return; }
+        return confirmDelete(t('confirmDeleteProfile')).then(function (ok) {
+          if (!ok) return;
+          var del = profile.id;
+          var other = list.filter(function (p) { return p.id !== del; })[0];
+          return flush().then(function () { return HCStore.deleteProfile(del); }).then(function () { activate(other); });
+        });
+      }).catch(showError);
+    }
+    else if (id === 'd-enc-on') enableEncryption(false);
+    else if (id === 'd-enc-pass') enableEncryption(true);
+    else if (id === 'd-enc-off') disableEncryption();
+    else if (id === 'd-lock') lockNow();
+    else if (id === 'd-wipe') {
+      confirmDelete(t('confirmWipe')).then(function (ok) {
+        if (!ok) return;
+        var lang = state.settings.lang;
+        HCStore.listFiles(profile.id).then(function (files) {
+          return Promise.all(files.map(function (f) { return HCStore.deleteFile(f.id); }));
+        }).then(function () {
+          state = HC.emptyState();
+          state.settings.lang = lang;
+          save(); dlg.close(); render();
+          toast(t('wipeDone'));
+        }).catch(showError);
+      });
+    } else if (id === 'd-merge' || id === 'd-replace') {
+      applyImport(id === 'd-replace');
+    } else if (id === 'd-cancel-import') {
+      pendingImport = null;
+      openData();
+    }
+  }
+
+  function onDataChange(e) {
+    var target = e.target;
+    if (target.id === 'd-prof') { switchProfile(target.value); return; }
+    if (target.id === 'd-lang') {
+      var inOnb = !!dlgFields.querySelector('[data-onb]');
+      setLanguage(target.value);
+      if (inOnb) openOnboarding(onbStep); else openData();
+      return;
+    }
+    if (target.id === 'd-pal') { setPalette(target.value); openData(); return; }
+    if (target.id === 'd-mode') { setMode(target.value); openData(); return; }
+    if (target.id === 'd-autolock') { setPref('autoLock', target.value); return; }
+    if (target.id === 'd-u-glu' || target.id === 'd-u-temp') {
+      commit(function () {
+        var u = Object.assign({}, state.settings.units || {});
+        if (target.id === 'd-u-glu') u.glucose = target.value; else u.temp = target.value;
+        state.settings.units = u;
+      });
+      return;
+    }
+    if (target.id === 'd-height') {
+      var hv = target.value.trim();
+      if (hv !== '' && !(Number(hv) >= 50 && Number(hv) <= 250)) { toast(t('errHeight')); return; }
+      commit(function () { state.settings.heightCm = hv === '' ? null : Number(hv); });
+      return;
+    }
+    if (target.name === 'type' && dlgState && dlgState.spec.some(function (f) { return f.name === 'pulse'; })) { syncMeasureForm(); return; }
+    if (target.id === 'd-emergency') {
+      commit(function () { state.settings.emergency = target.value || null; });
+      openData();
+      return;
+    }
+    if (target.id !== 'd-import' || !target.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var text = String(reader.result);
+      try {
+        if (HC.isEncryptedBackup(text)) {
+          var env = JSON.parse(text);
+          openForm(t('encryptedImportTitle'), [
+            { name: '_note', type: 'note', label: t('encryptedImportText') },
+            { name: 'pass', label: t('fPass'), type: 'password', required: true }
+          ], {}, function (v) {
+            return SB.open(v.pass, env).then(function (json) {
+              showImportOptions(json);
+              return null;
+            }, function () { return t('passWrong'); });
+          });
+        } else {
+          showImportOptions(text);
+        }
+      } catch (err) { toast(err.message); }
+    };
+    reader.readAsText(target.files[0]);
+    target.value = '';
+  }
+
+  // ---------- Tlačová správa pre lekára ----------
+  function buildReport(days) {
+    var tod = today(), now = nowTime();
+    var from = HC.addDays(tod, -days);
+    var ice = state.settings.ice || {};
+    var symptoms = sortBy(state.symptoms.filter(function (s) { return s.date >= from && s.date <= tod; }), 'date', true);
+    var visits = sortBy(state.visits.filter(function (v) { return v.date >= from && v.date <= tod; }), 'date', true);
+    var activeMeds = state.meds.filter(function (m) { return HC.medActiveOn(m, tod); });
+    var problems = state.problems.filter(function (p) { return p.status === 'aktívny'; });
+    var checkups = state.checkups.map(function (c) { return { c: c, s: HC.checkupStatus(c, tod) }; });
+    var openQ = HC.openQuestionsFor(state.questions, null);
+    var stLabel = { overdue: t('statusOverdue'), soon: t('statusSoon'), unknown: t('statusUnknown'), ok: t('statusOk') };
+
+    var h = '<h1>' + t('rptTitle') + '</h1>' +
+      '<p class="muted">' + t('rptPeriod', { from: fmtDate(from), to: fmtDate(tod), days: days }) + '</p>';
+
+    h += '<h2>' + t('rptIce') + '</h2>' + (hasICE()
+      ? '<p>' + t('rptBlood', { v: esc(bloodLabel(ice.blood) || '—') }) + '</p><p>' + t('rptAllergies', { v: esc(ice.allergies || '—') }) + '</p><p>' + t('rptConditions', { v: esc(ice.conditions || '—') }) + '</p><p>' + t('rptContact', { v: esc([iceContact().name, iceContact().phone].filter(Boolean).join(', ') || '—') }) + '</p>'
+      : '<p class="muted">' + t('rptNoIce') + '</p>');
+
+    h += '<h2>' + t('rptMeds') + '</h2>' + (activeMeds.length
+      ? '<table><tr><th>' + t('thMed') + '</th><th>' + t('thDose') + '</th><th>' + t('thTimes') + '</th><th>' + t('thTakenSkipped') + '</th><th>' + t('thAdherence') + '</th></tr>' + activeMeds.map(function (m) {
+          var c = HC.adherence(state, from, tod, tod, now, m.id);
+          return '<tr><td>' + esc(m.name) + '</td><td>' + esc(m.dose || '—') + '</td><td>' + esc((m.times || []).join(', ')) + '</td><td>' + c.taken + ' / ' + c.skipped + '</td><td>' + (c.percent === null ? '—' : c.percent + ' %') + '</td></tr>';
+        }).join('') + '</table>'
+      : '<p class="muted">' + t('rptNoMeds') + '</p>');
+
+    h += '<h2>' + t('rptProblems') + '</h2>' + (problems.length
+      ? '<ul>' + problems.map(function (p) { return '<li>' + esc(p.name) + (p.since ? ' ' + t('rptSince', { date: fmtDate(p.since) }) : '') + (p.notes ? ' – ' + esc(p.notes) : '') + '</li>'; }).join('') + '</ul>'
+      : '<p class="muted">' + t('rptNoProblems') + '</p>');
+
+    h += '<h2>' + t('rptSymptoms') + '</h2>';
+    var series = HC.severityByDay(state.symptoms, from, tod);
+    if (series.length) {
+      var W = 600, H = 160, n = Math.max(days, 1);
+      var pts = series.map(function (p) {
+        var x = (HC.daysBetween(from, p.date) / n) * W;
+        var y = H - (p.max / 10) * H;
+        return { x: x, y: y, p: p };
+      });
+      h += '<svg class="chart" viewBox="0 0 ' + W + ' ' + (H + 24) + '" role="img" aria-label="' + esc(t('rptChartLabel')) + '">' +
+        '<line x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '" stroke="#999"/>' +
+        '<line x1="0" y1="' + (H / 2) + '" x2="' + W + '" y2="' + (H / 2) + '" stroke="#ddd" stroke-dasharray="4 4"/>' +
+        '<polyline fill="none" stroke="#b3261e" stroke-width="2" points="' + pts.map(function (q) { return q.x.toFixed(1) + ',' + q.y.toFixed(1); }).join(' ') + '"/>' +
+        pts.map(function (q) { return '<circle cx="' + q.x.toFixed(1) + '" cy="' + q.y.toFixed(1) + '" r="3" fill="#b3261e"/>'; }).join('') +
+        '<text x="0" y="' + (H + 18) + '" font-size="12">' + fmtDate(from) + '</text>' +
+        '<text x="' + W + '" y="' + (H + 18) + '" font-size="12" text-anchor="end">' + fmtDate(tod) + '</text>' +
+        '<text x="4" y="12" font-size="11">10</text><text x="4" y="' + (H - 2) + '" font-size="11">0</text>' +
+        '</svg><p class="muted">' + t('rptChartCaption') + '</p>';
+    }
+    h += symptoms.length ? '<table><tr><th>' + t('thDate') + '</th><th>' + t('thSymptom') + '</th><th>' + t('thSeverity') + '</th><th>' + t('thDuration') + '</th><th>' + t('thMedsBefore') + '</th></tr>' + symptoms.map(function (s) {
+      var meds = HC.medsBeforeSymptom(state, s, 3);
+      var med = s.medId ? findBy(state.meds, s.medId) : null;
+      return '<tr><td>' + fmtDate(s.date) + (s.time ? ' ' + esc(s.time) : '') + '</td><td>' + esc(s.name) + (med ? ' (' + esc(med.name) + ')' : '') + '</td><td>' + s.severity + '/10</td><td>' + esc(s.duration || '—') + '</td><td>' + esc(meds.join(', ') || '—') + '</td></tr>';
+    }).join('') + '</table>' : '<p class="muted">' + t('rptNoSymptoms') + '</p>';
+
+    h += '<h2>' + t('rptMeasures') + '</h2>';
+    var ms = state.measurements.filter(function (m) { return m.date >= from && m.date <= tod; });
+    // Súhrn: priemer, min, max a počet za obdobie; pri tlaku aj kategória priemeru a graf.
+    var sumRows = Object.keys(HC.MEASURE_TYPES).map(function (k) {
+      var pts = k === 'pulse' ? HC.pulseSeries(state.measurements, from, tod) : HC.measurementSeries(state.measurements, k, from, tod);
+      var st = HC.measureStats(pts);
+      if (!st.n) return '';
+      var two = k === 'bp' && st.second;
+      var whole = k === 'bp' || k === 'pulse';
+      function f(x) { return (whole ? String(Math.round(st.main[x])) : dispVal(k, st.main[x])) + (two ? '/' + Math.round(st.second[x]) : ''); }
+      return '<tr><td>' + esc(measureLabel(k)) + ' (' + esc(HC.displayUnit(k, units())) + ')</td><td>' + esc(f('avg')) + (two ? ' – ' + esc(t('bp_' + HC.bpClass(st.main.avg, st.second.avg))) : '') + '</td><td>' + esc(f('min')) + '</td><td>' + esc(f('max')) + '</td><td>' + st.n + '</td></tr>';
+    }).join('');
+    if (sumRows) {
+      h += '<h3>' + t('rptMeasureSummary') + '</h3><table><tr><th>' + t('fMType') + '</th><th>' + t('statAvg') + '</th><th>' + t('statMin') + '</th><th>' + t('statMax') + '</th><th>n</th></tr>' + sumRows + '</table>';
+      var bpS = averageSameTime(HC.measurementSeries(state.measurements, 'bp', from, tod));
+      if (bpS.length > 1) {
+        h += '<h3>' + esc(measureLabel('bp')) + ' (mmHg)</h3>' + lineChart([
+          { color: '#1f5fbf', points: bpS.map(function (p) { return { x: p.date, t: p.time, y: p.value }; }) },
+          { color: '#b3261e', points: bpS.map(function (p) { return { x: p.date, t: p.time, y: p.value2 }; }) }
+        ], from, tod, [
+          { y: IDEAL_BP.sys, color: '#1f5fbf', label: String(IDEAL_BP.sys) },
+          { y: IDEAL_BP.dia, color: '#b3261e', label: String(IDEAL_BP.dia) }
+        ]) + '<p class="muted">' + t('bpClassNote') + '</p>';
+      }
+    }
+    h += ms.length ? '<table><tr><th>' + t('thDate') + '</th><th>' + t('fMType') + '</th><th>' + t('thValue') + '</th><th>' + t('fTime') + '</th></tr>' +
+      sortBy(ms, 'date', true).map(function (m) {
+        return '<tr><td>' + fmtDate(m.date) + '</td><td>' + esc(measureLabel(m.type)) + '</td><td>' + esc(measureText(m)) + '</td><td>' + esc(m.time || '—') + '</td></tr>';
+      }).join('') + '</table>' : '<p class="muted">' + t('rptNoMeasures') + '</p>';
+
+    h += '<h2>' + t('rptLabs') + '</h2>';
+    var labRows = HC.labNames(state.labs).map(function (name) {
+      var list = HC.labSeries(state.labs, name).filter(function (l) { return l.date >= from && l.date <= tod; });
+      return list.length ? list[list.length - 1] : null;
+    }).filter(Boolean);
+    h += labRows.length ? '<table><tr><th>' + t('fLabName') + '</th><th>' + t('thDate') + '</th><th>' + t('thValue') + '</th><th>' + t('trendTitle') + '</th></tr>' +
+      labRows.map(function (l) {
+        var st = HC.labStatus(l);
+        return '<tr><td>' + esc(l.name) + '</td><td>' + fmtDate(l.date) + '</td><td>' + esc(fmtNum(l.value)) + ' ' + esc(l.unit || '') + '</td><td>' + (st === 'low' ? t('labLow') : st === 'high' ? t('labHigh') : st === 'ok' ? t('labOk') : '—') + '</td></tr>';
+      }).join('') + '</table>' : '<p class="muted">' + t('rptNoLabs') + '</p>';
+
+    h += '<h2>' + t('rptVisits') + '</h2>' + (visits.length
+      ? '<ul>' + visits.map(function (v) { return '<li>' + fmtDate(v.date) + ' – ' + esc(v.doctor || v.specialty) + (v.reason ? ': ' + esc(v.reason) : '') + (v.diagnosis ? '. ' + t('rptDiagnosis', { v: esc(v.diagnosis) }) : '') + '</li>'; }).join('') + '</ul>'
+      : '<p class="muted">' + t('rptNoVisits') + '</p>');
+
+    h += '<h2>' + t('rptCheckups') + '</h2>' + (checkups.length
+      ? '<ul>' + checkups.map(function (x) {
+          return '<li>' + esc(x.c.name) + ' – ' + stLabel[x.s.status] + (x.s.dueDate ? ' ' + t('rptDue', { date: fmtDate(x.s.dueDate) }) : '') + '</li>';
+        }).join('') + '</ul>'
+      : '<p class="muted">' + t('rptNoCheckups') + '</p>');
+
+    h += '<h2>' + t('rptVacc') + '</h2>' + (state.vaccinations.length
+      ? '<ul>' + state.vaccinations.map(function (v) { return '<li>' + esc(v.name) + ' – ' + fmtDate(v.date) + (v.nextDate ? ' (' + t('nextDue') + ' ' + fmtDate(v.nextDate) + ')' : '') + '</li>'; }).join('') + '</ul>'
+      : '<p class="muted">' + t('rptNoVacc') + '</p>');
+
+    h += '<h2>' + t('rptContacts') + '</h2>' + (state.contacts.length
+      ? '<ul>' + state.contacts.map(function (c) { return '<li>' + esc(c.name) + (c.specialty ? ' (' + esc(c.specialty) + ')' : '') + (c.phone ? ' – ' + esc(c.phone) : '') + (c.address ? ', ' + esc(c.address) : '') + '</li>'; }).join('') + '</ul>'
+      : '');
+
+    h += '<h2>' + t('rptQuestions') + '</h2>' + (openQ.length
+      ? '<ol>' + openQ.map(function (q) { return '<li>' + esc(q.text) + '</li>'; }).join('') + '</ol>'
+      : '<p class="muted">' + t('rptNoQuestions') + '</p>');
+
+    h += '<p class="disclaimer" style="margin-top:14px">' + t('rptDisclaimer') + '</p>';
+    return h;
+  }
+
+  function reportDocument(days) {
+    return '<!doctype html><html lang="' + esc(I18N.info(I18N.lang()).htmlLang) + '"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1"><title>' + esc(t('rptTitle')) + '</title>' +
+      '<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#111;font-size:14px}' +
+      'table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #ccc;text-align:left;padding:4px;vertical-align:top}' +
+      'h1{font-size:20px}h2{font-size:15px;border-bottom:1px solid #999;margin:16px 0 6px}.muted{color:#555;font-size:12px}</style></head>' +
+      '<body>' + buildReport(days) + '</body></html>';
+  }
+
+  function shareReport(days) {
+    var file = new File([reportDocument(days)], 'health-companion-prehlad-' + today() + '.html', { type: 'text/html' });
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+      navigator.share({ title: t('shareFileName'), files: [file] }).catch(function () { /* zrušené používateľom */ });
+    } else {
+      downloadBlob(file.name, 'text/html', file);
+      toast(t('fileDownloaded'));
+    }
+  }
+
+  function openReport() {
+    openForm(t('formReport'), [
+      { name: 'days', label: t('fPeriod'), type: 'select', options: [
+        { value: '30', label: t('period30') }, { value: '90', label: t('period90') }, { value: '180', label: t('period180') }
+      ] }
+    ], { days: '90' }, function (v) {
+      var days = Number(v.days) || 90;
+      document.getElementById('print-root').innerHTML = buildReport(days);
+      dlg.close();
+      setTimeout(function () { window.print(); }, 150);
+      return null;
+    });
+    var fa = dlgForm.querySelector('.form-actions');
+    var share = document.createElement('button');
+    share.type = 'button'; share.className = 'btn'; share.id = 'dlg-share'; share.textContent = t('shareBtn');
+    share.addEventListener('click', function () { shareReport(Number(dlgForm.elements.days.value) || 90); });
+    fa.insertBefore(share, fa.firstChild);
+  }
+
+  // Príloha: otvorí sa v dialógu (fotka) alebo ako odkaz na stiahnutie (PDF).
+  function openAttachment(id) {
+    var meta = findBy(state.attachments, id);
+    if (!meta) return;
+    HCStore.getFile(id).then(function (rec) {
+      if (!rec) throw new Error(t('attNotFound'));
+      return attachmentBytes(id).then(function (buf) {
+        return new Blob([buf], { type: rec.mime });
+      });
+    }).then(function (blob) {
+      var url = URL.createObjectURL(blob);
+      document.getElementById('dlg-title').textContent = meta.name;
+      var isImg = String(meta.mime).indexOf('image/') === 0;
+      dlgFields.innerHTML = (isImg ? '<img src="' + url + '" alt="' + esc(meta.name) + '" style="max-width:100%;border-radius:12px">' : '<p class="muted">PDF</p>') +
+        '<a class="btn primary block" href="' + url + '" download="' + esc(meta.name) + '">' + t('attDownload') + '</a>';
+      dlgErr.hidden = true;
+      setDlgMode(false);
+      if (!dlg.open) dlg.showModal();
+    }).catch(showError);
+  }
+
+  // ---------- Hlavné ovládanie ----------
+  function render() {
+    var html = views[view]();
+    var main = document.getElementById('view');
+    main.innerHTML = html;
+    main.dataset.tab = view;
+    justTaken = null; // animácia „fajky“ sa spustí len raz, po zmene
+    document.querySelectorAll('#tabs button').forEach(function (b) {
+      if (b.dataset.tab === view) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+  }
+
+  function exportMeasureCsv() {
+    downloadBlob('health-companion-merania-' + today() + '.csv', 'text/csv', '\ufeff' + HC.measurementsCSV(state.measurements));
+  }
+  // Ponuka akcií v okne (napr. menu ⋯ na záložke Merania).
+  var sheetItems = [];
+  function openSheet(title, items) {
+    sheetItems = items;
+    document.getElementById('dlg-title').textContent = title;
+    dlgFields.innerHTML = '<div class="sheet-list">' + items.map(function (it, i) {
+      return '<button type="button" class="btn block" data-sheet="' + i + '">' + icon(it.ico) + esc(it.label) + '</button>';
+    }).join('') + '</div>';
+    dlgErr.hidden = true;
+    setDlgMode(false);
+    if (!dlg.open) dlg.showModal();
+  }
+  // Zmena výberu v obsahu záložky (obdobie grafu).
+  document.getElementById('view').addEventListener('change', function (e) {
+    if (e.target.dataset && e.target.dataset.change === 'mperiod') {
+      measurePeriod = e.target.value; setPref('mPeriod', measurePeriod); render();
+    }
+  });
+
+  function setView(v) { view = v; render(); window.scrollTo(0, 0); }
+
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-tab]');
+    if (b) setView(b.dataset.tab);
+  });
+  document.getElementById('btn-info').addEventListener('click', openInfo);
+  document.getElementById('btn-data').addEventListener('click', openData);
+  document.getElementById('btn-home').addEventListener('click', function () { setView('today'); });
+
+  document.getElementById('view').addEventListener('click', function (e) {
+    var el = e.target.closest('[data-act]');
+    if (!el) return;
+    var act = el.dataset.act, id = el.dataset.id;
+    var m, s, p, v, q, c, added;
+    switch (act) {
+      case 'toggle-dose':
+        var key = el.dataset.key, date = el.dataset.date, mode = el.dataset.mode;
+        var cur = (state.taken[date] && state.taken[date][key]) || null;
+        var curStatus = HC.doseStatus(cur);
+        var next = curStatus === mode ? null : mode;
+        justTaken = next === 'taken' ? key + '|' + date : null;
+        if (next === 'taken') haptic('light');
+        commit(function () {
+          state.taken = HC.setDoseStatus(state.taken, date, key, next);
+          // Zásoby: označenie ako užité odpočíta kus, zrušenie ho vráti.
+          var med = findBy(state.meds, key.split('|')[0]);
+          if (med && typeof med.stock === 'number') {
+            if (curStatus !== 'taken' && next === 'taken') med.stock = Math.max(0, med.stock - 1);
+            if (curStatus === 'taken' && next !== 'taken') med.stock = med.stock + 1;
+          }
+        });
+        break;
+      case 'snooze-dose':
+        var sk = el.dataset.key, sd = el.dataset.date;
+        var until = HC.addMinutes(nowTime(), HC.SNOOZE_MINUTES);
+        commit(function () { state.snoozes = HC.setSnooze(state.snoozes, sd, sk, until); });
+        toast(t('snoozedTo', { time: until }));
+        break;
+      case 'notify':
+        if ('Notification' in window) {
+          Notification.requestPermission().then(function (perm) {
+            toast(perm === 'granted' ? t('notifyOk') : t('notifyNo'));
+            render();
+          });
+        }
+        break;
+      case 'export-backup': doExport(); break;
+      case 'edit-ice': forms.ice(); break;
+      case 'show-ice': showIce(); break;
+      case 'add-med': forms.med(null); break;
+      case 'edit-med': forms.med(findBy(state.meds, id)); break;
+      case 'toggle-med':
+        m = findBy(state.meds, id); commit(function () { m.active = m.active === false; }); break;
+      case 'toggle-reminders':
+        m = findBy(state.meds, id); commit(function () { m.remindersOff = !m.remindersOff; }); break;
+      case 'del-med':
+        confirmDelete(t('confirmDeleteMed')).then(function (ok) { if (ok) commit(function () { state.meds = removeBy(state.meds, id); }); }); break;
+      case 'add-symptom': forms.symptom(null); break;
+      case 'edit-symptom': forms.symptom(findBy(state.symptoms, id)); break;
+      case 'del-symptom':
+        confirmDelete(t('confirmDeleteSymptom')).then(function (ok) { if (ok) commit(function () { state.symptoms = removeBy(state.symptoms, id); }); }); break;
+      case 'add-problem': forms.problem(null); break;
+      case 'edit-problem': forms.problem(findBy(state.problems, id)); break;
+      case 'del-problem':
+        confirmDelete(t('confirmDeleteProblem')).then(function (ok) { if (ok) commit(function () { state.problems = removeBy(state.problems, id); }); }); break;
+      case 'set-mtype':
+        measureType = el.dataset.type; render(); break;
+      case 'measure-menu':
+        openSheet(t('measureTitle'), [
+          { ico: 'bell', label: t('mRemindTitle'), run: function () { forms.measureRemind(); } },
+          { ico: 'download', label: t('csvBtn'), run: function () { dlg.close(); exportMeasureCsv(); } }
+        ]);
+        break;
+      case 'dismiss':
+        commit(function () { var d = Object.assign({}, state.settings.dismissed || {}); d[el.dataset.key] = today(); state.settings.dismissed = d; });
+        break;
+      case 'measure-remind': forms.measureRemind(); break;
+      case 'add-measure': forms.measure(null); break;
+      case 'edit-measure': forms.measure(findBy(state.measurements, id)); break;
+      case 'del-measure':
+        confirmDelete(t('confirmDeleteMeasure')).then(function (ok) { if (ok) commit(function () { state.measurements = removeBy(state.measurements, id); }); }); break;
+      case 'csv-measure': exportMeasureCsv(); break;
+      case 'add-lab': forms.lab(null); break;
+      case 'edit-lab': forms.lab(findBy(state.labs, id)); break;
+      case 'del-lab':
+        confirmDelete(t('confirmDeleteLab')).then(function (ok) { if (ok) commit(function () { state.labs = removeBy(state.labs, id); }); }); break;
+      case 'add-vacc': forms.vacc(null); break;
+      case 'edit-vacc': forms.vacc(findBy(state.vaccinations, id)); break;
+      case 'del-vacc':
+        confirmDelete(t('confirmDeleteVacc')).then(function (ok) { if (ok) commit(function () { state.vaccinations = removeBy(state.vaccinations, id); }); }); break;
+      case 'add-contact': forms.contact(null); break;
+      case 'edit-contact': forms.contact(findBy(state.contacts, id)); break;
+      case 'del-contact':
+        confirmDelete(t('confirmDeleteContact')).then(function (ok) { if (ok) commit(function () { state.contacts = removeBy(state.contacts, id); }); }); break;
+      case 'add-att': forms.attachment(); break;
+      case 'open-att': openAttachment(id); break;
+      case 'del-att':
+        confirmDelete(t('confirmDeleteAtt')).then(function (ok) {
+          if (!ok) return;
+          HCStore.deleteFile(id).then(function () {
+            commit(function () { state.attachments = removeBy(state.attachments, id); });
+          }).catch(showError);
+        });
+        break;
+      case 'add-visit': forms.visit(null); break;
+      case 'edit-visit': forms.visit(findBy(state.visits, id)); break;
+      case 'del-visit':
+        confirmDelete(t('confirmDeleteVisit')).then(function (ok) {
+          if (ok) commit(function () {
+            state.visits = removeBy(state.visits, id);
+            // otázky, ktoré patrili k zmazanej návšteve, zostanú ako nepriradené
+            state.questions.forEach(function (x) { if (x.visitId === id) x.visitId = null; });
+            state.attachments.forEach(function (x) { if (x.visitId === id) x.visitId = null; });
+          });
+        }); break;
+      case 'prep-visit':
+        v = findBy(state.visits, id);
+        showText(t('prepTitle'), HC.prepSummary(state, v, today()));
+        break;
+      case 'report': openReport(); break;
+      case 'add-question': forms.question(null); break;
+      case 'edit-question': forms.question(findBy(state.questions, id)); break;
+      case 'toggle-question':
+        q = findBy(state.questions, id); commit(function () { q.done = !q.done; }); break;
+      case 'del-question':
+        confirmDelete(t('confirmDeleteQuestion')).then(function (ok) { if (ok) commit(function () { state.questions = removeBy(state.questions, id); }); }); break;
+      case 'copy-questions':
+        showText(t('questionsTitle'), HC.questionsText(HC.openQuestionsFor(state.questions, null), ''));
+        break;
+      case 'add-checkup': forms.checkup(null); break;
+      case 'edit-checkup': forms.checkup(findBy(state.checkups, id)); break;
+      case 'add-standard-checkups':
+        added = HC.missingStandardCheckups(state.checkups);
+        if (!added.length) { toast(t('stdAllHave')); break; }
+        commit(function () {
+          added.forEach(function (s) {
+            state.checkups.push({ id: HC.newId(), stdKey: s.key, name: s.name, intervalMonths: s.intervalMonths, lastDate: null, notes: t('stdNote') });
+          });
+        });
+        toast(t('stdAdded', { n: added.length }));
+        break;
+      case 'done-checkup':
+        c = findBy(state.checkups, id); commit(function () { c.lastDate = today(); }); toast(t('doneToast')); break;
+      case 'del-checkup':
+        confirmDelete(t('confirmDeleteCheckup')).then(function (ok) { if (ok) commit(function () { state.checkups = removeBy(state.checkups, id); }); }); break;
+    }
+  });
+
+  // ---------- Natívne pripomienky (Capacitor): systémové budíky aj so zamknutou obrazovkou ----------
+  var NATIVE = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+  var LN = NATIVE && window.Capacitor.Plugins ? window.Capacitor.Plugins.LocalNotifications : null;
+  var NATIVE_DAYS = 2;   // koľko dní dopredu sa dávky plánujú (obnoví sa pri každej zmene a otvorení)
+  var NATIVE_MAX = 60;   // limit čakajúcich pripomienok (iOS povoľuje 64)
+  // Zvuk: res/raw/reminder_chime.wav (2 s), názov bez prípony (Android). iOS používa vlastný súbor v bundle.
+  var NATIVE_CHANNEL = 'meds_chime'; var NATIVE_SOUND = 'reminder_chime';
+  var channelReady = false;
+
+  // Stabilné číslo pripomienky, aby sa dala neskôr zrušiť.
+  function nativeId(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return (Math.abs(h) % 2000000000) + 1;
+  }
+  function ensureChannel() {
+    if (channelReady) return Promise.resolve();
+    channelReady = true;
+    // Zvuk kanála sa nedá zmeniť po vytvorení, preto je kanál s novým ID a starý sa zmaže.
+    return LN.deleteChannel({ id: 'meds' }).catch(function () {})
+      .then(function () {
+        return LN.createChannel({ id: NATIVE_CHANNEL, name: t('reminderTitle'), importance: 5, visibility: 1, sound: NATIVE_SOUND, vibration: true });
+      }).catch(function () {});
+  }
+  function cancelNative() {
+    return LN.getPending().then(function (r) {
+      var ids = (r.notifications || []).map(function (n) { return { id: n.id }; });
+      return ids.length ? LN.cancel({ notifications: ids }) : null;
+    });
+  }
+  // Prepíše všetky naplánované pripomienky podľa aktuálneho stavu (lieky, dávky, odklady).
+  function scheduleNative() {
+    if (!LN) return Promise.resolve();
+    // Zamknutý profil: pripomienky sa zrušia; pri automatickom zamknutí ostanú naplánované.
+    if (!profile || (profile.encrypted && !encKey)) return autoLocked ? Promise.resolve() : cancelNative().catch(function () {});
+    var now = new Date(), tod = today(), list = [];
+    for (let i = 0; i <= NATIVE_DAYS; i++) {
+      let day = HC.addDays(tod, i);
+      HC.medDosesOn(state.meds, state.taken, day).forEach(function (d) {
+        if (d.status || d.remindersOff) return;
+        var rt = HC.reminderTime(d, state.snoozes, day);
+        var at = new Date(day + 'T' + rt + ':00');
+        if (at <= now) return;
+        list.push({
+          id: nativeId(day + '|' + d.key + '|' + rt),
+          title: t('reminderTitle'),
+          body: d.name + (d.dose ? ' – ' + d.dose : '') + ' (' + rt + ')',
+          channelId: NATIVE_CHANNEL,
+          sound: NATIVE_SOUND,
+          schedule: { at: at, allowWhileIdle: true }
+        });
+      });
+      var mr = state.settings.measureRemind;
+      HC.measureRemindersFor(mr, state.measurements, day).forEach(function (rt) {
+        var at = new Date(day + 'T' + rt + ':00');
+        if (at <= now) return;
+        list.push({
+          id: nativeId(day + '|measure|' + rt),
+          title: t('mRemindTitle'),
+          body: t('mRemindBody', { type: measureLabel(mr.type) }) + ' (' + rt + ')',
+          channelId: NATIVE_CHANNEL,
+          sound: NATIVE_SOUND,
+          schedule: { at: at, allowWhileIdle: true }
+        });
+      });
+    }
+    list.sort(function (a, b) { return a.schedule.at - b.schedule.at; });
+    list = list.slice(0, NATIVE_MAX);
+    return LN.checkPermissions().then(function (p) {
+      return p.display === 'granted' ? p : LN.requestPermissions();
+    }).then(function (p) {
+      if (!p || p.display !== 'granted') return null;
+      return ensureChannel().then(cancelNative).then(function () {
+        return list.length ? LN.schedule({ notifications: list }) : null;
+      });
+    }).catch(function () { /* bez oprávnenia sa nič neplánuje */ });
+  }
+
+  // Tlačidlo Späť na Androide: zatvorí okno, potom sa vráti na Dnes, až potom ukončí appku.
+  (function () {
+    var AppP = capPlugin('App');
+    if (!AppP) return;
+    AppP.addListener('backButton', function () {
+      if (cdlg.open) { cdlg.close(); return; }
+      if (dlg.open) { if (!mustUnlock) dlg.close(); return; }
+      if (view !== 'today') { setView('today'); return; }
+      AppP.exitApp();
+    });
+  })();
+
+  // ---------- Pripomienky (kým je appka otvorená) ----------
+  // Notifikácie sú len pomocné: prehliadač ich môže zahodiť alebo oneskoriť (uspané zariadenie, šetrenie batérie).
+  var notified = {};
+  var lastCheckDate = today(), lastCheckTime = nowTime();
+  function showReminder(title, opts) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if ('serviceWorker' in navigator) {
+      // Na Androide Chrome konštruktor Notification nefunguje, preto ide cez service worker.
+      navigator.serviceWorker.ready
+        .then(function (reg) { return reg.showNotification(title, opts); })
+        .catch(function () { try { new Notification(title, opts); } catch (e) { /* bez notifikácií */ } });
+      return;
+    }
+    try { new Notification(title, opts); } catch (e) { /* bez notifikácií */ }
+  }
+  // Kontroluje dávky od poslednej kontroly (nie len presnú minútu), aby sa tik časovača nedal preskočiť.
+  function checkReminders() {
+    if (NATIVE) return; // v natívnej appke pripomienky plánuje systém (scheduleNative)
+    if (!profile || (profile.encrypted && !encKey)) return; // zamknutý profil: nič nepripomíname
+    var tod = today(), now = nowTime();
+    if (tod !== lastCheckDate) { lastCheckDate = tod; lastCheckTime = '00:00'; }
+    var prev = lastCheckTime;
+    var due = HC.medDosesOn(state.meds, state.taken, tod).filter(function (d) {
+      if (d.status || d.remindersOff) return false;
+      var rt = HC.reminderTime(d, state.snoozes, tod);
+      return rt > prev && rt <= now;
+    });
+    lastCheckTime = now;
+    var mr = state.settings.measureRemind;
+    HC.measureRemindersFor(mr, state.measurements, tod).forEach(function (rt) {
+      var k = tod + '|measure|' + rt;
+      if (!(rt > prev && rt <= now) || notified[k]) return;
+      notified[k] = true;
+      showReminder(t('mRemindTitle'), { body: t('mRemindBody', { type: measureLabel(mr.type) }) + ' (' + rt + ')', tag: k, icon: 'icons/icon-192.png' });
+    });
+    due.forEach(function (d) {
+      var rt = HC.reminderTime(d, state.snoozes, tod);
+      var k = tod + '|' + d.key + '|' + rt;
+      if (notified[k]) return;
+      notified[k] = true;
+      showReminder(t('reminderTitle'), { body: d.name + (d.dose ? ' – ' + d.dose : '') + ' (' + rt + ')', tag: k, icon: 'icons/icon-192.png' });
+    });
+  }
+  setInterval(function () { checkReminders(); if (view === 'today' && profile) render(); }, 60000);
+  // Automatické zamknutie zašifrovaného profilu po návrate z pozadia (predvoľba zariadenia autoLock, minúty).
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { hiddenAt = Date.now(); return; }
+    var lim = getPref('autoLock');
+    var away = hiddenAt == null ? 0 : Date.now() - hiddenAt;
+    hiddenAt = null;
+    if (lim != null && lim !== '' && profile && profile.encrypted && encKey && !mustUnlock && away >= Number(lim) * 60000) lockNow(true);
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { checkReminders(); scheduleNative(); } });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+
+  // ---------- Inštalácia na zariadenie ----------
+  var installBtn = document.getElementById('btn-install');
+  var deferredPrompt = null;
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+
+  if (!isStandalone) {
+    // Chrome, Edge a Android: prehliadač pošle udalosť, keď je appka inštalovateľná
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.hidden = false;
+    });
+    // iPhone/iPad nemajú inštalačné API: ukážeme postup cez Zdieľať
+    if (isIOS) installBtn.hidden = false;
+  }
+  window.addEventListener('appinstalled', function () { installBtn.hidden = true; deferredPrompt = null; });
+
+  installBtn.addEventListener('click', function () {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function () { deferredPrompt = null; installBtn.hidden = true; });
+    } else if (isIOS) {
+      showText(t('iosTitle'), t('iosSteps'));
+    } else {
+      toast(t('installHintGeneric'));
+    }
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>
