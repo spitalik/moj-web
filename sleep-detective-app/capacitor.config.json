@@ -1,0 +1,6 @@
+{
+  "appId": "sk.sleepdetective.app",
+  "appName": "Sleep Detective",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}

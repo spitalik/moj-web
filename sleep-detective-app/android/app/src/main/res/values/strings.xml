@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sleep Detective</string>
+    <string name="title_activity_main">Sleep Detective</string>
+    <string name="package_name">sk.sleepdetective.app</string>
+    <string name="custom_url_scheme">sk.sleepdetective.app</string>
+</resources>

@@ -892,6 +892,98 @@ async function asyncTests() {
     assert.ok(view().includes('rastových grafov') && !view().includes('nadváha'), 'u mladistvých sa nemá hodnotiť podľa BMI dospelých');
   });
   URL.createObjectURL = realCreate;
+
+  await at('natívna appka (Capacitor): zdieľanie súborov, zapnutá obrazovka, tlačidlo Späť', async () => {
+    const calls = [];
+    const docs = new Map();   // falošný súborový systém: "DIRECTORY:cesta" -> { data, mtime }
+    let back = null;
+    window.Capacitor = { isNativePlatform: () => true, Plugins: {
+      Filesystem: {
+        requestPermissions: async () => ({ publicStorage: 'granted' }),
+        writeFile: async o => {
+          calls.push(['write', o.path, o.directory, o.data.length > 0]);
+          docs.set(o.directory + ':' + o.path, { data: o.data, mtime: Date.now() });
+          return { uri: 'file:///' + o.directory + '/' + o.path };
+        },
+        readdir: async o => {
+          const pre = o.directory + ':' + o.path + '/';
+          const files = [...docs.entries()].filter(([k]) => k.startsWith(pre)).map(([k, v]) => ({ name: k.slice(pre.length), type: 'file', mtime: v.mtime, size: v.data.length }));
+          if (!files.length) throw new Error('Directory does not exist');
+          return { files };
+        },
+        readFile: async o => { const f = docs.get(o.directory + ':' + o.path); if (!f) throw new Error('File does not exist'); return { data: f.data }; },
+        rmdir: async o => { calls.push(['rmdir', o.path]); }
+      },
+      Share: { share: async o => { calls.push(['share', o.files[0]]); } },
+      KeepAwake: { keepAwake: async () => { calls.push(['awake']); }, allowSleep: async () => { calls.push(['sleep']); } },
+      App: { addListener: (ev, fn) => { if (ev === 'backButton') back = fn; }, minimizeApp: async () => { calls.push(['minimize']); } }
+    } };
+    const ua = navigator.userAgent;
+    navigator.userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)';   // v natívnej appke na iPhone sa nemá ponúkať „Pridať na plochu“
+    store['sleepDetective.settings.v1'] = JSON.stringify({ recNotice: true });
+    new Function(script)();
+    navigator.userAgent = ua;
+    await settle();
+    assert.ok(calls.some(c => c[0] === 'rmdir' && c[1] === 'export'), 'pri štarte sa nevyčistili staré exporty');
+    assert.ok(!view().includes('Pridaj si appku na plochu'), 'natívna appka ponúka inštaláciu');
+    assert.ok(typeof back === 'function', 'chýba obsluha tlačidla Späť');
+
+    calls.length = 0;
+    // Stiahnuť zálohu a Obnoviť zo zálohy používajú ten istý priečinok Dokumenty/SleepDetective
+    store['sleepDetective.data.v2'] = JSON.stringify({ nights: [{ date: '2027-01-08', quality: 4, duration: 7.5, latency: 10, wakes: 0, energy: 4 }, { date: '2027-01-09', quality: 3, duration: 6.5, latency: 22, wakes: 1, energy: 3 }], evenings: {}, sounds: {} });
+    winListeners.storage({ key: 'sleepDetective.data.v2' });
+    click({ act: 'settings' });
+    assert.ok(sheet().includes('Zálohy sa ukladajú do priečinka Dokumenty/SleepDetective'), 'nastavenia neuvádzajú priečinok záloh');
+    click({ act: 'import' }); await settle();
+    assert.ok(sheet().includes('V priečinku zatiaľ nie je žiadna záloha'), 'prázdny priečinok záloh');
+    click({ act: 'settings' }); click({ act: 'export' }); await settle();
+    const w = calls.find(c => c[0] === 'write');
+    assert.ok(w && /^SleepDetective\/sleep-detective-\d{4}-\d\d-\d\d\.json$/.test(w[1]) && w[2] === 'DOCUMENTS' && w[3], 'záloha sa nezapísala: ' + JSON.stringify(calls));
+    assert.ok(!calls.some(c => c[0] === 'share'), 'záloha sa má uložiť do priečinka, nie zdieľať');
+    assert.ok(els['#toast'].textContent.includes('Dokumenty/SleepDetective/sleep-detective-'), 'toast neuvádza, kam sa záloha uložila');
+    const name = w[1].split('/')[1];
+    const before = data().nights.length;
+    assert.ok(before > 0, 'test potrebuje záznamy v zálohe');
+    click({ act: 'import' }); await settle();
+    assert.ok(sheet().includes('data-name="' + name + '"'), 'uložená záloha chýba v zozname na obnovenie');
+    assert.ok(sheet().includes('Vybrať súbor z iného miesta'));
+    store['sleepDetective.data.v2'] = JSON.stringify({ nights: [], evenings: {}, sounds: {} });   // dáta sa medzitým zmenili
+    winListeners.storage({ key: 'sleepDetective.data.v2' });
+    click({ act: 'importNative', name }); await settle();
+    assert.ok(modal().innerHTML.includes('Obnoviť zo zálohy?'), 'chýba potvrdenie obnovenia');
+    click({ act: 'modalOk' }); await settle();
+    assert.strictEqual(data().nights.length, before, 'záloha z priečinka sa neobnovila');
+    click({ act: 'importNative', name: '../hack.json' }); await settle();
+    assert.ok(modal().hidden, 'cesta mimo priečinka záloh sa nesmie otvoriť');
+    click({ act: 'settings' });
+    back();
+    assert.strictEqual(els['#sheet'].hidden, true, 'Späť nezavrelo nastavenia');
+
+    calls.length = 0;
+    click({ tab: 'case' }); click({ act: 'report' });
+    assert.ok(sheet().includes('Zdieľať prehľad') && !sheet().includes('Vytlačiť'), 'v natívnej appke nemá byť tlač');
+    click({ act: 'printReport' }); await settle();
+    assert.ok(calls.some(c => c[0] === 'write' && /prehlad-.*\.html$/.test(c[1])), 'prehľad sa nezapísal ako HTML');
+    back(); back();
+    assert.strictEqual(els['#sheet'].hidden, true);
+
+    calls.length = 0;
+    fakeNow = new RealDate(2027, 1, 3, 23, 0, 0).getTime();
+    click({ tab: 'today' });
+    click({ act: 'startNight' }); await settle();
+    assert.ok(calls.some(c => c[0] === 'awake'), 'obrazovka sa nedrží zapnutá (KeepAwake)');
+    assert.ok(els['#n-tip'].textContent.includes('obrazovka zostane zapnutá'), 'nočná obrazovka hlási chýbajúci zámok obrazovky: ' + els['#n-tip'].textContent);
+    for (let i = 0; i < 700; i++) { fakeNow += 100; tickAll(); }
+    back();
+    assert.strictEqual(els['#night'].hidden, false, 'Späť počas záznamu zavrelo nočnú obrazovku');
+    assert.ok(els['#toast'].textContent.includes('Ukončiť záznam'));
+    click({ act: 'askStopNight' }); click({ act: 'modalOk' }); await settle();
+    assert.ok(calls.some(c => c[0] === 'sleep'), 'po skončení záznamu sa obrazovka neuvoľnila');
+    click({ act: 'close' });
+    back();
+    assert.ok(calls.some(c => c[0] === 'minimize'), 'Späť na úvodnej obrazovke má appku odložiť');
+    delete window.Capacitor;
+  });
   console.log(ok + ' testov prešlo');
 }
 asyncTests();

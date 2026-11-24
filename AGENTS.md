@@ -12,7 +12,7 @@ A collection of **independent, zero-build static PWAs**, one per top-level folde
 | [math/](math/index.html) | Matematika krok za krokom: lessons and exercises, 12 languages |
 | [phys/](phys/index.html) | Fyzika krok za krokom: same architecture as `math/` |
 | [juro/](juro/index.html) | Juro: tools for lawyers, Slovak only ([README](juro/README.md)) |
-| [sleep-detective/](sleep-detective/index.html) | Sleep Detective: sleep diary and night sound recording, Slovak only |
+| [sleep-detective-app/](sleep-detective-app/index.html) | Sleep Detective: sleep diary and night sound recording, Slovak only; PWA and Android/iOS app (Capacitor) |
 | [blood-pressure/](blood-pressure/index.html) | Blood Pressure: blood pressure diary and 7-day home measurement, Slovak only |
 | [health-companion-app/](health-companion-app/index.html) | Health Companion: medications, symptoms, measurements, doctor visits, check-ups, questions for the doctor; 12 languages; PWA and Android app (Capacitor) |
 
@@ -29,7 +29,7 @@ From the repo root run `python -m http.server 8000` and open `http://localhost:8
 - `math/`: `node tools/validate.js` (also in CI: `.github/workflows/math-validate.yml`); after changing lessons or translations `node tools/index_build.js`.
 - `phys/`: `node tools/validate.js`, `node tools/index_build.js`.
 - `juro/`: `node tools/test.js`.
-- `sleep-detective/`: `node tools/test.js` (sound detector, then the app scenarios in `tools/test-app.js`).
+- `sleep-detective-app/`: `node tools/test.js` (sound detector, then the app scenarios in `tools/test-app.js`); Android: `node tools/build_www.js`, `npx cap sync`, then `gradlew assembleDebug` in `android/`; iOS: Xcode on a Mac.
 - `blood-pressure/`: `node tools/test.js` (app scenarios with a fake DOM).
 - `health-companion-app/`: `node tools/test.js` (logic in `logic.js`); Android: `node tools/build_www.js`, `npx cap sync android`, then `gradlew assembleDebug` in `android/`.
 - `jocadium/`: no tests, verify in a browser.
@@ -38,7 +38,7 @@ From the repo root run `python -m http.server 8000` and open `http://localhost:8
 
 - **Each app is self-contained in its own folder.** Fonts, libraries, icons, sounds, translations and tools live inside it (fonts in `fonts/` or `vendor/fonts/`, libraries in `vendor/`). Never reference a file outside the app's folder (no `../` out of it, no root-absolute `/…` path) and never share files between apps; if two apps need the same font or library, each gets its own copy with its licence.
 - **No runtime requests to third parties**: no Google Fonts, CDNs, analytics or trackers (it would send users' IP addresses to them, which conflicts with GDPR).
-- **Respect licences**: only use assets and libraries whose licence allows it, ship their licence files and record them (`jocadium/NOTICE`, `*/THIRD-PARTY-NOTICES.md`, `sleep-detective/fonts/OFL-*.txt`, `blood-pressure/fonts/OFL-*.txt`). Do not copy protected content, names or look of existing games or brands.
+- **Respect licences**: only use assets and libraries whose licence allows it, ship their licence files and record them (`jocadium/NOTICE`, `*/THIRD-PARTY-NOTICES.md`, `sleep-detective-app/fonts/OFL-*.txt`, `blood-pressure/fonts/OFL-*.txt`). Do not copy protected content, names or look of existing games or brands.
 - **Privacy / GDPR**: keep user data on the device (localStorage / IndexedDB), collect only what a feature needs, say what is stored, and let users export and fully delete it.
 - **Bump the `CACHE` version in the app's `sw.js` on any change** to its files, and add new files needed offline to its `ASSETS` list.
 - When changing a PWA, keep its manifest, `icons/` and `sw.js` registration in sync.

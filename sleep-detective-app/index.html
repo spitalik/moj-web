@@ -371,6 +371,12 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
   const nightsWord = n => n === 1 ? "noc" : (n >= 2 && n <= 4 ? "noci" : "nocí");
   const recordsWord = n => n === 1 ? "záznam" : (n >= 2 && n <= 4 ? "záznamy" : "záznamov");
 
+  // ---------- Natívna appka (Capacitor: Android, iOS) ----------
+  // V prehliadači window.Capacitor nie je a appka beží ako PWA. V natívnej appke sa súbory namiesto
+  // sťahovania zdieľajú (Filesystem + Share), obrazovku drží zapnutú KeepAwake a tlačidlo Späť rieši App.
+  const NATIVE = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform());
+  const plugin = name => NATIVE && window.Capacitor.Plugins ? window.Capacitor.Plugins[name] || null : null;
+
   // ---------- Stav ----------
   // D = dáta, ktoré zadal používateľ. SET = nastavenia. UI = stav obrazovky (neukladá sa).
   const DATA_KEY = "sleepDetective.data.v2";
@@ -1037,7 +1043,8 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
       '<button class="btn ghost" data-act="report" type="button">Prehľad pre lekára</button>' +
       '<button class="btn ghost" data-act="import" type="button">Obnoviť zo zálohy</button>' +
       '<input id="import-file" type="file" accept=".json,application/json" hidden>' +
-      '<p class="small muted">Záloha obsahuje záznamy a nastavenia, nie zvukové nahrávky.</p>' +
+      '<p class="small muted">Záloha obsahuje záznamy a nastavenia, nie zvukové nahrávky.' +
+        (plugin("Filesystem") ? " Zálohy sa ukladajú do priečinka " + esc(backupPlace()) + " a odtiaľ ich appka aj obnovuje." : "") + "</p>" +
       '<button class="btn danger" data-act="askReset" type="button">Vymazať všetky dáta</button>' +
       '<button class="link" data-act="privacy" type="button">Ochrana súkromia a licencia →</button></div>';
     h += '<p class="small muted" style="text-align:center">Sleep Detective · nie je zdravotnícka pomôcka</p>';
@@ -1063,7 +1070,10 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     let h = '<div class="sheet-top"><button class="icon-btn" data-act="settings" type="button" aria-label="Späť">←</button><span class="eyebrow">Súkromie</span><span style="width:38px"></span></div><div class="scroll">';
     h += '<div class="head"><h2>Ochrana súkromia</h2></div>';
     h += '<div class="card"><h3>Kto vidí tvoje dáta</h3><p class="small">Len ty. Appka nemá server ani účet. Všetko, čo zapíšeš alebo nahráš, zostáva v úložisku prehliadača v tomto zariadení. ' +
-      "Nič sa neposiela autorovi appky ani tretím stranám: appka nemá analytiku, reklamy ani sledovanie a aj písma má uložené v sebe.</p></div>";
+      "Nič sa neposiela autorovi appky ani tretím stranám: appka nemá analytiku, reklamy ani sledovanie a aj písma má uložené v sebe.</p>" +
+      (NATIVE ? '<p class="small">Zálohy, ktoré si stiahneš, sú v priečinku ' + esc(backupPlace()) + (isIOSApp() ? "" : ", kde ich vidia aj iné appky s prístupom k súborom") +
+        ". Appka ich nemaže ani pri „Vymazať všetky dáta“ – ak ich už nepotrebuješ, vymaž ich v správcovi súborov.</p>" : "") +
+      (NATIVE ? '<p class="small">V appke pre Android je automatické zálohovanie do Google vypnuté. Na iPhone môže dáta appky obsahovať záloha celého telefónu (iCloud alebo počítač), ak ju máš zapnutú – rovnako ako pri ostatných appkách.</p>' : "") + "</div>";
     h += '<div class="card"><h3>Čo sa ukladá</h3><ul class="small plain">' +
       "<li>ranné odpovede (kvalita, dĺžka spánku, zaspávanie, prebudenia, energia),</li>" +
       "<li>večerné faktory a teplota v spálni, tvoje vlastné faktory a oslovenie,</li>" +
@@ -1109,6 +1119,30 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   }
+  // V natívnej appke sa <a download> nedá použiť: súbor sa zapíše do súkromnej cache appky
+  // a otvorí sa systémové Zdieľať (uložiť do Súborov, poslať lekárovi...). Cache sa maže pri štarte.
+  const EXPORT_DIR = "export";
+  async function saveFile(blob, name) {
+    const FS = plugin("Filesystem"), SH = plugin("Share");
+    if (!FS || !SH) { download(blob, name); return true; }
+    try {
+      // Filesystem chce base64; po kúskoch, aby veľká nahrávka nepretiekla zásobník
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      const data = btoa(bin);
+      const f = await FS.writeFile({ path: EXPORT_DIR + "/" + name, data, directory: "CACHE", recursive: true });
+      await SH.share({ title: name, files: [f.uri] });
+      return true;
+    } catch (e) {
+      if (!/cancel/i.test(String(e && (e.message || e)))) toast("Súbor sa nepodarilo uložiť ani zdieľať.");
+      return false;
+    }
+  }
+  function clearExports() {
+    const FS = plugin("Filesystem");
+    if (FS) FS.rmdir({ path: EXPORT_DIR, directory: "CACHE", recursive: true }).catch(() => { /* priečinok nie je */ });
+  }
 
   // Tabuľka pre Excel: jeden riadok na ráno, oddeľovač „;“ a desatinná čiarka (slovenské nastavenie).
   function csvText() {
@@ -1126,8 +1160,8 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     return String.fromCharCode(0xfeff) + rows.map(r => r.map(cell).join(";")).join("\r\n") + "\r\n";
   }
   function exportCsv() {
-    download(new Blob([csvText()], { type: "text/csv;charset=utf-8" }), "sleep-detective-" + today() + ".csv");
-    toast("Tabuľka CSV je stiahnutá.");
+    saveFile(new Blob([csvText()], { type: "text/csv;charset=utf-8" }), "sleep-detective-" + today() + ".csv")
+      .then(ok => { if (ok && !NATIVE) toast("Tabuľka CSV je stiahnutá."); });
   }
 
   const repDays = () => [14, 30, 90].includes(UI.repDays) ? UI.repDays : 30;
@@ -1192,11 +1226,23 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     h += '<div class="head"><h2>Prehľad pre lekára</h2><p class="small muted">Zhrnutie spánku a chrápania na vytlačenie alebo uloženie ako PDF. Vytvorí sa v zariadení, nikam sa neposiela.</p></div>';
     h += '<div class="seg" role="group" aria-label="Obdobie" style="--n:3">' + [14, 30, 90].map(d => '<button type="button" data-repdays="' + d + '" aria-pressed="' + (d === days) + '">' + d + " dní</button>").join("") + "</div>";
     h += '<div class="card">' + reportHtml(days) + "</div>";
-    h += '<button class="btn" data-act="printReport" type="button">Vytlačiť / uložiť PDF</button>';
+    h += '<button class="btn" data-act="printReport" type="button">' + (NATIVE ? "Zdieľať prehľad" : "Vytlačiť / uložiť PDF") + "</button>";
+    if (NATIVE) h += '<p class="small muted">Prehľad sa uloží ako stránka HTML. Otvoríš ju v prehliadači, odkiaľ sa dá vytlačiť alebo uložiť ako PDF, alebo ju rovno pošleš.</p>';
     h += '<button class="btn ghost" data-act="exportCsv" type="button">Stiahnuť tabuľku (CSV)</button></div>';
     showSheet(h);
   }
+  // Samostatná stránka s prehľadom (natívna appka nemá window.print): biely papier, systémové písmo.
+  function reportDoc() {
+    return '<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+      "<title>Sleep Detective – prehľad spánku</title><style>" +
+      "body{font:15px/1.45 system-ui,sans-serif;color:#000;background:#fff;margin:0 auto;max-width:760px;padding:16px}" +
+      "h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:18px 0 6px}p{margin:4px 0}" +
+      "table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:4px 6px;border-bottom:1px solid #999;vertical-align:top}" +
+      "th{font-weight:500;color:#333}.rep-wide{overflow-x:auto}.rep-wide td,.rep-wide th{white-space:nowrap}.rep-note{color:#333;font-size:13px;margin-top:14px}" +
+      "@media print{@page{margin:14mm}body{padding:0}}</style></head><body>" + reportHtml(repDays()) + "</body></html>";
+  }
   function printReport() {
+    if (NATIVE) { saveFile(new Blob([reportDoc()], { type: "text/html" }), "sleep-detective-prehlad-" + today() + ".html"); return; }
     const el = $("#print");
     if (!el) return;
     el.innerHTML = reportHtml(repDays());
@@ -1490,7 +1536,11 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
 
   async function requestWake() {
     try {
-      if ("wakeLock" in navigator) {
+      const KA = plugin("KeepAwake");
+      if (KA) {
+        await KA.keepAwake();
+        wake = { release: () => KA.allowSleep() };   // natívny príznak obrazovky, pri prepnutí appky sa nestratí
+      } else if ("wakeLock" in navigator) {
         wake = await navigator.wakeLock.request("screen");
         wake.addEventListener("release", () => { wake = null; updateNight(); updateStandby(); });
       }
@@ -1508,14 +1558,16 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
   }
   async function openRecording(auto) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.SleepSound) {
-      infoModal("Nahrávanie tu nefunguje", "Tento prehliadač nedovoľuje použiť mikrofón. Skús Chrome alebo Safari a appku otvor cez https.");
+      infoModal("Nahrávanie tu nefunguje", NATIVE ? "Toto zariadenie nedovoľuje appke použiť mikrofón." : "Tento prehliadač nedovoľuje použiť mikrofón. Skús Chrome alebo Safari a appku otvor cez https.");
       return;
     }
     let stream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
     } catch (e) {
-      infoModal("Mikrofón nie je povolený", "Bez mikrofónu appka nemôže počúvať chrápanie a hluk. Povoľ mikrofón pre túto stránku v nastaveniach prehliadača a skús to znova.");
+      infoModal("Mikrofón nie je povolený", "Bez mikrofónu appka nemôže počúvať chrápanie a hluk. " + (NATIVE
+        ? "Povoľ mikrofón pre Sleep Detective v nastaveniach telefónu (Aplikácie → Sleep Detective → Povolenia) a skús to znova."
+        : "Povoľ mikrofón pre túto stránku v nastaveniach prehliadača a skús to znova."));
       return;
     }
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -1959,11 +2011,7 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     try { blob = await IDB.get(btn.dataset.id); } catch (e) { /* nižšie */ }
     if (!blob) { toast("Nahrávka v úložisku chýba."); return; }
     const ext = /mp4/.test(blob.type) ? "m4a" : /ogg/.test(blob.type) ? "ogg" : "webm";
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = btn.dataset.name + "." + ext;
-    document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    saveFile(blob, btn.dataset.name + "." + ext);
   }
 
   // Po štarte: rozpracovaný záznam bez bežiaceho nahrávania = appka bola zatvorená; staré ukážky mažeme.
@@ -2035,22 +2083,91 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
     UI.tab = "exp"; closeSheet();
   }
 
-  function exportData() {
+  // Natívna appka: zálohy sa ukladajú do jedného priečinka a „Obnoviť zo zálohy“ ponúkne zálohy práve
+  // z neho. Android: verejné Dokumenty/SleepDetective (súbor prežije odinštalovanie appky).
+  // iOS: Súbory → Na mojom iPhone → Sleep Detective → SleepDetective.
+  const BACKUP_DIR = "SleepDetective";
+  const isIOSApp = () => NATIVE && typeof window.Capacitor.getPlatform === "function" && window.Capacitor.getPlatform() === "ios";
+  const backupPlace = () => isIOSApp() ? "Súbory → Na mojom iPhone → Sleep Detective → " + BACKUP_DIR : "Dokumenty/" + BACKUP_DIR;
+  async function fsReady(FS) {
+    // Android 10 a starší pýtajú povolenie na úložisko; novšie verzie ho na vlastné súbory nepotrebujú
+    try { if (FS.requestPermissions) await FS.requestPermissions(); } catch (e) { /* skúsime aj tak */ }
+  }
+
+  async function exportData() {
     // zvukové ukážky sa do zálohy nedávajú (sú veľké a citlivé), len súhrny nocí
-    const blob = new Blob([JSON.stringify({ app: "sleep-detective", exported: new Date().toISOString(), note: "Bez zvukových ukážok.", data: D, settings: SET }, null, 2)], { type: "application/json" });
-    download(blob, "sleep-detective-" + today() + ".json");
+    const text = JSON.stringify({ app: "sleep-detective", exported: new Date().toISOString(), note: "Bez zvukových ukážok.", data: D, settings: SET }, null, 2);
+    const name = "sleep-detective-" + today() + ".json";
+    const FS = plugin("Filesystem");
+    let ok = true;
+    if (FS) {
+      try {
+        await fsReady(FS);
+        await FS.writeFile({ path: BACKUP_DIR + "/" + name, data: text, directory: "DOCUMENTS", encoding: "utf8", recursive: true });
+        toast("Záloha je uložená: " + backupPlace() + "/" + name);
+      } catch (e) {
+        // priečinok nie je dostupný (napr. zakázané povolenie): ponúkneme aspoň zdieľanie
+        ok = await saveFile(new Blob([text], { type: "application/json" }), name);
+      }
+    } else {
+      download(new Blob([text], { type: "application/json" }), name);
+      toast("Záloha je stiahnutá.");
+    }
+    if (!ok) return;
     SET.lastBackup = today(); SET.backupSnooze = null; saveSet();
     if (!$("#sheet").hidden && $("#sheet").innerHTML.includes('data-act="askReset"')) openSettings(); else if ($("#sheet").hidden) render();
-    toast("Záloha je stiahnutá.");
+  }
+
+  // Zoznam záloh v priečinku BACKUP_DIR (najnovšie hore). Zálohu z iného miesta otvorí systémový výber súboru.
+  async function openBackups() {
+    const FS = plugin("Filesystem");
+    let files = [];
+    try {
+      await fsReady(FS);
+      const r = await FS.readdir({ path: BACKUP_DIR, directory: "DOCUMENTS" });
+      files = (r.files || []).map(f => typeof f === "string" ? { name: f } : f)
+        .filter(f => /\.json$/i.test(f.name) && f.type !== "directory")
+        .sort((a, b) => (b.mtime || 0) - (a.mtime || 0) || (a.name < b.name ? 1 : -1));
+    } catch (e) { /* priečinok ešte neexistuje */ }
+    let h = '<div class="sheet-top"><button class="icon-btn" data-act="settings" type="button" aria-label="Späť">←</button><span class="eyebrow">Záloha</span><span style="width:38px"></span></div><div class="scroll">';
+    h += '<div class="head"><h2>Obnoviť zo zálohy</h2><p class="small muted">Zálohy z priečinka ' + esc(backupPlace()) + ", kam ich ukladá tlačidlo Stiahnuť zálohu.</p></div>";
+    h += '<div class="card">';
+    if (!files.length) h += '<p class="small muted">V priečinku zatiaľ nie je žiadna záloha.</p>';
+    files.forEach(f => {
+      const when = f.mtime ? new Date(Number(f.mtime)).toLocaleString("sk-SK", { day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+      h += '<button class="sound-row" data-act="importNative" data-name="' + esc(f.name) + '" type="button"><span class="muted">' + esc(when) + "</span><span>" + esc(f.name) +
+        (f.size ? ' <span class="muted">· ' + Math.max(1, Math.round(f.size / 1024)) + " kB</span>" : "") + '</span><span class="t-lamp">→</span></button>';
+    });
+    h += "</div>";
+    h += '<button class="btn ghost" data-act="importPick" type="button">Vybrať súbor z iného miesta</button>' +
+      '<input id="import-file" type="file" accept=".json,application/json" hidden>' +
+      '<p class="small muted">Napríklad zálohu z iného telefónu, z e-mailu alebo z cloudu. ' +
+      (isIOSApp() ? "" : "Zálohu, ktorú uložila predchádzajúca inštalácia appky, Android niekedy v zozname neukáže – vtedy ju vyber týmto tlačidlom.") + "</p></div>";
+    showSheet(h);
+  }
+  async function importNative(name) {
+    const FS = plugin("Filesystem");
+    if (!FS || !/^[\w.\-]+\.json$/i.test(name)) return;
+    try {
+      const r = await FS.readFile({ path: BACKUP_DIR + "/" + name, directory: "DOCUMENTS", encoding: "utf8" });
+      importText(typeof r.data === "string" ? r.data : await r.data.text());
+    } catch (e) {
+      infoModal("Zálohu sa nepodarilo otvoriť", "Súbor sa nedá prečítať. Skús ho vybrať tlačidlom Vybrať súbor z iného miesta.");
+    }
   }
 
   // Obnovenie zo zálohy: nahradí všetky dáta. Nahrávky v zálohe nie sú – ponecháme tie, ktoré
   // v tomto zariadení ešte sú a záloha ich pozná; ostatné sa zmažú ako osirelé.
+  const importFail = () => infoModal("Zálohu sa nepodarilo načítať", "Súbor nie je záloha zo Sleep Detective alebo je poškodený. Tvoje dáta ostali bez zmeny.");
   function importFile(file) {
     if (!file) return;
     if (rec || startingRec) { toast("Najprv ukonči nočný záznam."); return; }
-    const fail = () => infoModal("Zálohu sa nepodarilo načítať", "Súbor nie je záloha zo Sleep Detective alebo je poškodený. Tvoje dáta ostali bez zmeny.");
-    file.text().then(txt => {
+    file.text().then(importText).catch(importFail);
+  }
+  function importText(txt) {
+    if (rec || startingRec) { toast("Najprv ukonči nočný záznam."); return; }
+    const fail = importFail;
+    {
       let b;
       try { b = JSON.parse(txt); } catch (e) { fail(); return; }
       const d = b && b.data;
@@ -2098,7 +2215,7 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
         closeModal(); closeSheet();
         toast("Dáta sú obnovené zo zálohy.");
       });
-    }).catch(fail);
+    }
   }
 
   function resetAll() {
@@ -2223,7 +2340,11 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
         });
         break;
       }
-      case "import": { const f = $("#import-file"); if (f) { f.value = ""; f.click(); } break; }
+      case "import":
+        if (plugin("Filesystem")) { openBackups(); break; }
+        // falls through
+      case "importPick": { const f = $("#import-file"); if (f) { f.value = ""; f.click(); } break; }
+      case "importNative": importNative(b.dataset.name); break;
       case "askReset":
         confirmModal({
           title: "Vymazať všetky dáta?",
@@ -2319,7 +2440,7 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
   const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   function installCard() {
-    if (isStandalone() || SET.installDismissed) return "";
+    if (NATIVE || isStandalone() || SET.installDismissed) return "";
     if (installPrompt) {
       return '<div class="card"><h3>Nainštaluj si appku</h3><p class="small muted">Otvoríš ju z plochy jedným ťuknutím a funguje aj bez internetu.</p>' +
         '<div class="row"><button class="btn" data-act="install" type="button" style="flex:1">Inštalovať</button><button class="btn ghost" data-act="installLater" type="button">Neskôr</button></div></div>';
@@ -2365,7 +2486,19 @@ ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column;
   setInterval(autoCheck, 10000);
   autoCheck();
 
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  // Tlačidlo Späť v Androide: zavrie okno alebo obrazovku; počas nočného záznamu appku nezavrie,
+  // inak by sa záznam zastavil. Na úvodnej obrazovke appku len odloží do pozadia.
+  const APP = plugin("App");
+  if (APP) APP.addListener("backButton", () => {
+    if (!$("#modal").hidden) closeModal();
+    else if (!$("#night").hidden) { if (standby && !rec) cancelStandby(); else toast("Záznam ukončíš tlačidlom Ukončiť záznam."); }
+    else if (!$("#sheet").hidden) closeSheet();
+    else if (UI.tab !== "today") { UI.tab = "today"; UI.msg = null; render(); }
+    else if (APP.minimizeApp) APP.minimizeApp().catch(() => {});
+  });
+  clearExports();
+
+  if (!NATIVE && "serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => { /* offline režim nie je dostupný */ });
   }
 })();
