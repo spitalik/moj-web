@@ -68,14 +68,19 @@ h3 { font-size: 15px; }
 p { margin: 0; }
 
 header.top {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
   padding: 14px 16px 10px; position: sticky; top: 0; z-index: 5;
   background: var(--bg); border-bottom: 1px solid var(--line);
 }
 header.top .brand { font-weight: 700; font-size: 17px; background: none; border: 0; color: var(--fg); padding: 6px 4px; border-radius: 10px; }
 header.top .brand:hover { background: var(--card-2); }
 header.top .brand span { color: var(--accent); }
-header.top .top-actions { display: flex; align-items: center; gap: 8px; }
+/* „Health“ biele (v svetlom režime farbou textu, aby bolo čitateľné), „Companion“ farbou palety */
+header.top .brand .brand-1 { color: #fff; }
+:root[data-theme="light"] header.top .brand .brand-1 { color: var(--fg); }
+header.top .top-left { display: flex; justify-self: start; }
+header.top .top-actions { display: flex; align-items: center; gap: 8px; justify-self: end; }
+header.top .brand { justify-self: center; text-align: center; }
 .btn {
   border: 1px solid var(--line); background: var(--card); color: var(--fg);
   border-radius: 12px; padding: 9px 14px; min-height: 40px; font-weight: 600;
@@ -256,14 +261,16 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
 </head>
 <body>
 <header class="top">
-  <button class="brand" id="btn-home" data-i18n-aria="homeAria"><span data-i18n="appName">Health Companion</span></button>
+  <div class="top-left">
+    <button class="btn icon" id="btn-data" data-i18n-aria="settingsAria" data-i18n-title="settingsAria">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </div>
+  <button class="brand" id="btn-home" data-i18n-aria="homeAria"><span class="brand-1">Health</span> <span>Companion</span></button>
   <div class="top-actions">
     <button class="btn small" id="btn-install" hidden data-i18n="install">Nainštalovať</button>
     <button class="btn icon" id="btn-info" data-i18n-aria="infoAria" data-i18n-title="infoAria">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.5" r="0.6" fill="currentColor"/></svg>
-    </button>
-    <button class="btn icon" id="btn-data" data-i18n-aria="settingsAria" data-i18n-title="settingsAria">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     </button>
   </div>
 </header>
