@@ -1,8 +1,8 @@
 {
   "name": "Sleep Detective",
   "short_name": "Sleep Detective",
-  "description": "Zisti, čo ti kazí spánok: ranný a večerný záznam, podozriví a 7-dňové experimenty.",
-  "lang": "sk",
+  "description": "Find out what ruins your sleep: morning and evening log, suspects and 7-night experiments.",
+  "lang": "en",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

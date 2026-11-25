@@ -28,6 +28,12 @@
 
         </activity>
 
+        <!-- Nočný záznam na pozadí: služba na popredí typu „microphone“ so stálym upozornením v lište -->
+        <service
+            android:name=".RecordingService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -45,6 +51,11 @@
     <!-- Nočný záznam zvuku (getUserMedia vo WebView). Zvuk zostáva len v zariadení. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Záznam aj so zamknutou obrazovkou: služba na popredí, upozornenie v lište, procesor nezaspí -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Zálohy v Dokumenty/SleepDetective: Android 10 a starší potrebujú povolenie na úložisko, novšie nie. -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />

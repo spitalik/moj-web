@@ -12,8 +12,8 @@ A collection of **independent, zero-build static PWAs**, one per top-level folde
 | [math/](math/index.html) | Matematika krok za krokom: lessons and exercises, 12 languages |
 | [phys/](phys/index.html) | Fyzika krok za krokom: same architecture as `math/` |
 | [juro/](juro/index.html) | Juro: tools for lawyers, Slovak only ([README](juro/README.md)) |
-| [sleep-detective-app/](sleep-detective-app/index.html) | Sleep Detective: sleep diary and night sound recording, Slovak only; PWA and Android/iOS app (Capacitor) |
-| [blood-pressure/](blood-pressure/index.html) | Blood Pressure: blood pressure diary and 7-day home measurement, Slovak only |
+| [sleep-detective-app/](sleep-detective-app/index.html) | Sleep Detective: sleep diary and night sound recording, 12 languages (English by default, texts in `i18n/`); PWA and Android/iOS app (Capacitor) |
+| [blood-pressure/](blood-pressure/index.html) | Blood Pressure: blood pressure diary and 7-day home measurement, 12 languages |
 | [health-companion-app/](health-companion-app/index.html) | Health Companion: medications, symptoms, measurements, doctor visits, check-ups, questions for the doctor; 12 languages; PWA and Android app (Capacitor) |
 
 The root `index.html` is only a placeholder link page. Root `tools/` holds old scripts for a former layout and is not used by any app.
@@ -29,7 +29,7 @@ From the repo root run `python -m http.server 8000` and open `http://localhost:8
 - `math/`: `node tools/validate.js` (also in CI: `.github/workflows/math-validate.yml`); after changing lessons or translations `node tools/index_build.js`.
 - `phys/`: `node tools/validate.js`, `node tools/index_build.js`.
 - `juro/`: `node tools/test.js`.
-- `sleep-detective-app/`: `node tools/test.js` (sound detector, then the app scenarios in `tools/test-app.js`); Android: `node tools/build_www.js`, `npx cap sync`, then `gradlew assembleDebug` in `android/`; iOS: Xcode on a Mac.
+- `sleep-detective-app/`: `node tools/test.js` (sound detector, then the app scenarios in `tools/test-app.js`, which also checks that all 12 dictionaries in `i18n/` have the same keys as `i18n/sk.js`; add every new text to all of them; app code is in `app.js` and `boot.js`, never inline in `index.html`, because of its Content-Security-Policy); Android: `node tools/build_www.js`, `npx cap sync`, then `gradlew assembleDebug` in `android/`; iOS: Xcode on a Mac.
 - `blood-pressure/`: `node tools/test.js` (app scenarios with a fake DOM).
 - `health-companion-app/`: `node tools/test.js` (logic in `logic.js`); Android: `node tools/build_www.js`, `npx cap sync android`, then `gradlew assembleDebug` in `android/`.
 - `jocadium/`: no tests, verify in a browser.
@@ -43,4 +43,5 @@ From the repo root run `python -m http.server 8000` and open `http://localhost:8
 - **Bump the `CACHE` version in the app's `sw.js` on any change** to its files, and add new files needed offline to its `ASSETS` list.
 - When changing a PWA, keep its manifest, `icons/` and `sw.js` registration in sync.
 - Keep edits small and scoped to one app. Always use full paths from the repo root, because `index.html`, `sw.js` and `tools/test.js` exist in several apps.
+- **Security check on every change**: escape untrusted text before `innerHTML` or attributes (`esc()` / `textContent`), no `eval` / `new Function` on data, validate imported, restored and stored data (types, `YYYY-MM-DD` dates, known keys, no `__proto__`), no inline `<script>` or `on…=` handlers (CSP), native: `allowBackup="false"`, non-public components `exported="false"`, minimal permissions. When a change reads external data, add a test with hostile input (e.g. a tampered backup).
 - Apps are used mainly on Android phones as installed PWAs: support touch, small screens and offline use.

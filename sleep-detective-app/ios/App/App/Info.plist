@@ -5,13 +5,13 @@
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>sk</string>
+	<string>en</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Sleep Detective počas nočného záznamu počúva chrápanie a hluk v spálni. Zvuk a nahrávky zostávajú len v tomto telefóne.</string>
+	<string>During night recording, Sleep Detective listens for snoring and noise in the bedroom. Sound and recordings stay on this phone only.</string>
 	<key>CFBundleDisplayName</key>
         <string>Sleep Detective</string>
 	<key>CFBundleExecutable</key>

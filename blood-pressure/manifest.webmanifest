@@ -1,8 +1,8 @@
 {
   "name": "Blood Pressure",
   "short_name": "Tlak",
-  "description": "Denník krvného tlaku: ranné a večerné merania, priemery, 7-dňové domáce meranie a prehľad pre lekára.",
-  "lang": "sk",
+  "description": "Blood pressure diary: morning and evening readings, averages, 7-day home monitoring and a report for your doctor.",
+  "lang": "en",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

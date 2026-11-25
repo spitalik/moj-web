@@ -22,6 +22,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    // Výstupný súbor: app/build/outputs/apk/<debug|release>/sleep-detective.apk
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "sleep-detective.apk"
+        }
+    }
 }
 
 repositories {

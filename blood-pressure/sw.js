@@ -1,9 +1,24 @@
 /* Service worker Blood Pressure: offline režim a inštalovateľnosť.
    Pri zmene súborov zvýš verziu CACHE, inak si používatelia načítajú starú verziu. */
-const CACHE = 'blood-pressure-v1';
+const CACHE = 'blood-pressure-v2';
 const ASSETS = [
   './',
   './index.html',
+  './boot.js',
+  './app.js',
+  './i18n/core.js',
+  './i18n/sk.js',
+  './i18n/en.js',
+  './i18n/es.js',
+  './i18n/pt.js',
+  './i18n/de.js',
+  './i18n/fr.js',
+  './i18n/it.js',
+  './i18n/ru.js',
+  './i18n/tr.js',
+  './i18n/ja.js',
+  './i18n/ko.js',
+  './i18n/zh.js',
   './manifest.webmanifest',
   './icons/logo.svg',
   './icons/icon-192.png',

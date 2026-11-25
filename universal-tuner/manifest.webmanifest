@@ -1,8 +1,8 @@
 {
   "name": "Universal Tuner",
   "short_name": "Tuner",
-  "description": "Ladička pre gitaru, basu, ukulele, husle a ďalšie nástroje. Funguje aj bez internetu.",
-  "lang": "sk",
+  "description": "Tuner for guitar, bass, ukulele, violin and other instruments. Works offline too.",
+  "lang": "en",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -5,7 +5,12 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1])[1];
+// hlavný skript appky je v app.js (index.html ho načíta cez <script src>, Content-Security-Policy nepovolí vložený skript)
+const script = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+assert.ok(!/<script>/.test(html) && !/\son[a-z]+=/.test(html), 'index.html obsahuje skript vložený priamo do stránky – CSP ho zablokuje');
+assert.ok(/http-equiv="Content-Security-Policy"/.test(html), 'index.html nemá Content-Security-Policy');
+const LANGS = ['sk', 'en', 'es', 'pt', 'de', 'fr', 'it', 'ru', 'tr', 'ja', 'ko', 'zh'];
+LANGS.forEach(l => assert.ok(html.includes('<script src="i18n/' + l + '.js"></script>'), 'index.html nenačíta i18n/' + l + '.js'));
 
 // ---- falošný čas: 16. 11. 2026, hodina a posun dní nastavuje test ----
 const RealDate = Date;
@@ -28,7 +33,13 @@ const els = {};
 ['view', 'sheet', 'modal', 'toast', 'theme-color', 'print', 'set-gsys', 'set-gdia', 'err-goal', 'import-file', 'f-dia'].forEach(id => { els['#' + id] = el(id); });
 const listeners = {};
 const store = {};
-global.localStorage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
+// Scenáre kontrolujú slovenské texty: bez zvoleného jazyka appka dostane slovenčinu.
+// Test predvoleného jazyka (angličtina po inštalácii) to vypne cez forceSk = false.
+let forceSk = true;
+global.localStorage = { getItem: k => {
+    if (k === 'bloodPressure.settings.v1' && forceSk) { const v = JSON.parse(store[k] || '{}') || {}; if (!v.lang) return JSON.stringify(Object.assign(v, { lang: 'sk' })); }
+    return k in store ? store[k] : null;
+  }, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
 const downloads = [];
 global.URL.createObjectURL = b => { downloads.push(b); return 'blob:x'; };
 global.URL.revokeObjectURL = () => {};
@@ -38,11 +49,16 @@ global.document = {
   addEventListener: (t, f) => { listeners[t] = f; },
   createElement: () => ({ click() {}, remove() {} }), body: { appendChild() {} }
 };
-global.window = { addEventListener() {} };
+const winListeners = {};
+global.window = { addEventListener(t, f) { winListeners[t] = f; } };
 global.matchMedia = () => ({ matches: false, addEventListener() {} });
 Object.defineProperty(global, 'navigator', { value: { userAgent: 'node', platform: '', maxTouchPoints: 0 }, writable: true, configurable: true });
 global.location = { protocol: 'file:' };
 
+// preklady: jadro a všetky slovníky (v prehliadači ich načítajú <script src="i18n/…">)
+global.self = global;
+['core'].concat(LANGS).forEach(f => new Function(fs.readFileSync(path.join(__dirname, '..', 'i18n', f + '.js'), 'utf8')).call(global));
+window.BPI18N = global.BPI18N;
 new Function(script)();
 
 const view = () => els['#view'].innerHTML, sheet = () => els['#sheet'].innerHTML, modal = () => els['#modal'];
@@ -264,6 +280,64 @@ async function asyncTests() {
   t('poškodené merania v zálohe sa vynechajú', () => {
     click({ act: 'modalOk' });
     assert.strictEqual(data().readings.length, 1);
+  });
+
+  t('jazyky: úplné slovníky, po inštalácii angličtina, výber jazyka v nastaveniach', () => {
+    const I = global.BPI18N, sk = I.dict('sk');
+    const ph = x => [...new Set(JSON.stringify(x).match(/\{\w+\}/g) || [])].sort().join();
+    assert.strictEqual(I.languages().length, 12, 'má byť 12 jazykov');
+    I.languages().forEach(({ code }) => {
+      const d = I.dict(code);
+      assert.ok(d._dec && d._name && d._htmlLang && d._flag, code + ': chýba _dec/_name/_htmlLang/_flag');
+      Object.keys(d).forEach(k => assert.ok(k in sk, code + ': kľúč navyše ' + k));
+      Object.keys(sk).filter(k => k[0] !== '_').forEach(k => {
+        assert.ok(k in d, code + ': chýba ' + k);
+        if (Array.isArray(sk[k])) assert.strictEqual(d[k].length, sk[k].length, code + ': dĺžka ' + k);
+        else if (typeof sk[k] === 'object') assert.ok(d[k].other && Object.values(d[k]).every(v => v.includes('{n}')), code + ': množné číslo ' + k);
+        else assert.strictEqual(ph(d[k]), ph(sk[k]), code + ': premenné v ' + k);
+      });
+    });
+    const en = I.dict('en'), de = I.dict('de');
+    // čistá inštalácia: angličtina, dátumy po anglicky
+    forceSk = false;
+    const saved = Object.assign({}, store);
+    Object.keys(store).forEach(k => delete store[k]);
+    winListeners.storage({ key: null });
+    click({ tab: 'today' });
+    assert.strictEqual(I.lang(), 'en');
+    assert.strictEqual(document.documentElement.attrs.lang, 'en');
+    assert.ok(view().includes(en.howWorks) && view().includes('Monday'), 'úvod nie je po anglicky');
+    // výber jazyka v nastaveniach
+    click({ act: 'settings' });
+    assert.ok(sheet().includes('id="set-lang"') && sheet().includes('Slovenčina') && sheet().includes('Deutsch') && sheet().includes('中文'), 'chýba výber jazyka');
+    listeners.change({ target: { id: 'set-lang', value: 'de' } });
+    assert.strictEqual(settings().lang, 'de', 'jazyk sa neuložil');
+    assert.ok(sheet().includes(de.appearance), 'nastavenia sa neprepli');
+    click({ act: 'close' });
+    add(150, 85, 70);
+    assert.ok(sheet().includes(de['cat.g1']), 'kategória nie je po nemecky');
+    click({ act: 'close' });
+    assert.ok(view().includes('Montag'), 'dátum nie je po nemecky');
+    click({ act: 'exportCsv' });
+    // neplatný jazyk a podvrhnuté nastavenia (napr. zo zálohy) = angličtina, nič navyše
+    store['bloodPressure.settings.v1'] = JSON.stringify({ lang: '__proto__', theme: '<b>', arm: 'X', name: 5, goalSys: '<i>' });
+    winListeners.storage({ key: 'bloodPressure.settings.v1' });
+    assert.strictEqual(I.lang(), 'en');
+    click({ act: 'settings' });
+    assert.ok(!sheet().includes('<b>') && !sheet().includes('<i>'), 'podvrhnuté nastavenia sa dostali do stránky');
+    click({ act: 'close' });
+    // staré nastavenia bez jazyka (verzia len po slovensky) = slovenčina
+    Object.keys(store).forEach(k => delete store[k]);
+    Object.assign(store, saved);
+    store['bloodPressure.settings.v1'] = JSON.stringify(Object.assign(JSON.parse(saved['bloodPressure.settings.v1'] || '{}'), { lang: undefined }));
+    winListeners.storage({ key: null });
+    assert.strictEqual(I.lang(), 'sk');
+    forceSk = true;
+  });
+  const csv = downloads[downloads.length - 1];
+  const csvTxt = await csv.text();
+  t('CSV v nemčine má nemecké hlavičky a oddeľovač ;', () => {
+    assert.ok(csvTxt.replace(/^﻿/, '').startsWith(BPI18N.dict('de').csvHead[0] + ';'), csvTxt.slice(0, 40));
   });
 }
 

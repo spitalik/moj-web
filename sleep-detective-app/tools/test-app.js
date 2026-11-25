@@ -6,7 +6,10 @@ const path = require('path');
 const assert = require('assert');
 const INDEX = path.join(__dirname, '..', 'index.html');
 const html = fs.readFileSync(INDEX, 'utf8');
-const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1])[1];
+// hlavný skript appky je v app.js (index.html ho načíta cez <script src>, Content-Security-Policy nepovolí vložený skript)
+const script = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+assert.ok(!/<script>/.test(html), 'index.html obsahuje skript vložený priamo do stránky – CSP ho zablokuje');
+assert.ok(/http-equiv="Content-Security-Policy"/.test(html), 'index.html nemá Content-Security-Policy');
 
 // ---- falošný čas ----
 const RealDate = Date;
@@ -35,7 +38,10 @@ const els = { '#night': el('night'), '#n-clock': el('nc'), '#n-sub': el('ns'), '
 const listeners = {};
 const store = {};
 global.localStorage = {
-  getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; }
+  getItem: k => {
+    if (k === SET_KEY && forceSk) { const v = JSON.parse(store[k] || '{}') || {}; if (!v.lang) return JSON.stringify(Object.assign(v, { lang: 'sk' })); }
+    return k in store ? store[k] : null;
+  }, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; }
 };
 global.document = {
   documentElement: el('html'), visibilityState: 'visible',
@@ -97,6 +103,15 @@ FakeMR.prototype.stop = function () {
   this.ondataavailable && this.ondataavailable({ data: new Blob(['zvuk']) });
   this.onstop && this.onstop();
 };
+// preklady: jadro a všetky slovníky (v prehliadači ich načítajú <script src="i18n/…">)
+const I18N_DIR = path.join(__dirname, '..', 'i18n');
+global.self = global;
+['core'].concat(['sk', 'en', 'es', 'pt', 'de', 'fr', 'it', 'ru', 'tr', 'ja', 'ko', 'zh'])
+  .forEach(f => new Function(fs.readFileSync(path.join(I18N_DIR, f + '.js'), 'utf8')).call(global));
+// Scenáre kontrolujú slovenské texty: bez zvoleného jazyka appka dostane slovenčinu.
+// Test predvoleného jazyka (angličtina po inštalácii) to vypne cez forceSk = false.
+let forceSk = true;
+const SET_KEY = 'sleepDetective.settings.v1';
 const sound = fs.readFileSync(path.join(__dirname, '..', 'sound.js'), 'utf8');
 new Function(sound).call(global);
 window.SleepSound = global.SleepSound;
@@ -611,7 +626,7 @@ async function asyncTests() {
     const backup = { app: 'sleep-detective', exported: '2026-12-01T08:00:00Z', data: { nights: [{ date: '2026-11-30', quality: 4 }], evenings: {}, exp: null, verdicts: {}, closed: [], sounds: { [K]: night } },
       settings: { theme: 'light', clipSnoreN: 2, soundClips: false, installDismissed: false } };
     await pick(JSON.stringify(backup));
-    assert.ok(modal().innerHTML.includes('Obnoviť zo zálohy?') && modal().innerHTML.includes('1 ranných'), 'chýba potvrdenie');
+    assert.ok(modal().innerHTML.includes('Obnoviť zo zálohy?') && modal().innerHTML.includes('1 ranný záznam'), 'chýba potvrdenie');
     assert.strictEqual(store['sleepDetective.data.v2'], before, 'dáta sa zmenili pred potvrdením');
     click({ act: 'modalOk' });
     for (let i = 0; i < 8; i++) await flush();
@@ -623,6 +638,49 @@ async function asyncTests() {
     assert.ok(idbStore.has('clip-' + old), 'zmazala sa nahrávka, ktorú záloha pozná');
     assert.ok(!idbStore.has('clip-' + (old + 1)), 'osirelá nahrávka ostala v zariadení');
     assert.ok(idbStore.has('clip-' + now), 'čerstvá nahrávka (iná karta) sa nemala zmazať');
+  });
+
+  await at('bezpečnosť: podvrhnutá záloha nevloží do stránky HTML ani kód', async () => {
+    els['#import-file'] = Object.assign(el('import-file'), { id: 'import-file', value: 'x', click() {} });
+    const pick = async txt => { listeners.change({ target: { id: 'import-file', files: [{ text: async () => txt }] } }); for (let i = 0; i < 6; i++) await flush(); };
+    const X = '<img src=x onerror="alert(1)">';
+    const evil = { app: 'sleep-detective', exported: X, data: {
+      nights: [{ date: '2026-11-14', quality: X, duration: 7, latency: X, wakes: 0, energy: 3 }, { date: X, quality: 3 }],
+      evenings: { '2026-11-13': { f: { coffee: true, [X]: true }, temp: X, saved: true }, [X]: { f: {}, saved: true } },
+      exp: { k: 'constructor', start: '2026-11-10', length: 7 },
+      verdicts: { alcohol: { confirmed: true, text: X, advice: X }, [X]: { confirmed: true } },
+      closed: [{ k: '__proto__', icon: X, name: X, when: X, tone: '"><script>alert(1)</script>', lab: 'constructor', label: X, text: X },
+        { k: 'coffee', icon: X, from: X, to: X, tone: 't-bad', lab: 'guilty', r: { c: 'fewKept', kept: X, total: X } }],
+      sounds: { [X]: { clips: [] }, '2026-11-14': { start: 1, end: 2, snoreMin: X, clips: [{ id: X, t: 1, kind: X, peak: X }], segs: [] } },
+      custom: [{ k: 'cabc', name: X, icon: X }],
+      __proto__: { polluted: true } },
+      settings: { name: X, autoFrom: X, autoTo: X, soundSensitivity: X, theme: X, lang: X, fullKeepDays: X } };
+    await pick(JSON.stringify(evil));
+    assert.ok(!/<img|<script/i.test(modal().innerHTML), 'potvrdenie obnovy obsahuje HTML zo zálohy');
+    click({ act: 'modalOk' });
+    for (let i = 0; i < 8; i++) await flush();
+    const raw = store['sleepDetective.data.v2'];
+    assert.ok(!/[<>"`]/.test(JSON.parse(raw).closed.map(c => c.name + c.icon + c.text + c.label).join('')), 'uložené texty obsahujú znaky HTML');
+    assert.ok(!raw.includes('<img'), 'do úložiska sa dostal HTML kód');
+    const d = data();
+    assert.deepStrictEqual(d.nights.map(n => n.date), ['2026-11-14'], 'noc s neplatným dátumom ostala');
+    assert.deepStrictEqual(Object.keys(d.evenings), ['2026-11-13']);
+    assert.strictEqual(d.exp, null, 'experiment s neznámym faktorom ostal');
+    assert.strictEqual(({}).polluted, undefined, 'záloha zmenila prototyp objektov');
+    const seen = [];
+    for (const tab of ['today', 'log', 'case', 'exp']) { click({ tab }); seen.push(view()); }
+    click({ act: 'settings' }); seen.push(sheet()); click({ act: 'close' });
+    const all = seen.join('\n');
+    { const m = all.match(/.{0,120}(<img|<script|<svg).{0,80}/i); assert.ok(!m, 'v stránke je HTML zo zálohy: ' + (m && m[0])); }
+    assert.ok(all.includes('&lt;img'), 'meno sa nezobrazilo ošetrené');
+    // spustenie s takými dátami už v úložisku (napr. obnovené pred touto opravou)
+    store['sleepDetective.data.v2'] = JSON.stringify(evil.data);
+    winListeners.storage({ key: 'sleepDetective.data.v2' });
+    click({ tab: 'exp' });
+    assert.ok(!/<img|<script/i.test(view()), 'staré dáta v úložisku vložili HTML');
+    click({ tab: 'today' });
+    store['sleepDetective.settings.v1'] = JSON.stringify({ lang: 'sk' });
+    winListeners.storage({ key: 'sleepDetective.settings.v1' });
   });
 
   await at('vymazať všetky dáta zmaže aj všetky nahrávky', async () => {
@@ -853,7 +911,7 @@ async function asyncTests() {
     fakeNow = day(14, 9);
     click({ tab: 'case' });
     assert.ok(view().includes('Od 1. 1. máš o 5 kg menej. Chrápanie predtým 50 min za noc, odvtedy 10 min.'), 'chýba vývoj: ' + (view().match(/Od 1\. 1\.[^<]*/) || [''])[0]);
-    assert.ok(view().includes('v optimálnom rozmedzí'), '75 kg pri 175 cm je optimálna hmotnosť');
+    assert.ok(view().includes('v optimálnom rozmedzí'), '75 kg pri 175 cm je optimálna hmotnosť: ' + view().slice(view().indexOf('Hmotnosť a spánok'), view().indexOf('Hmotnosť a spánok') + 1200));
   });
 
   await at('vek a pohlavie: rozmedzie od 65 rokov, cieľ podľa pohlavia, apnoe, do 18 rokov', async () => {
@@ -1038,6 +1096,126 @@ async function asyncTests() {
     back();
     assert.ok(calls.some(c => c[0] === 'minimize'), 'Späť na úvodnej obrazovke má appku odložiť');
     delete window.Capacitor;
+  });
+
+  await at('natívny Android: nočný záznam beží na pozadí (služba na popredí), ukončenie z upozornenia', async () => {
+    const calls = [];
+    let stopFromNotification = null, failStart = false, bgOpts = null;
+    window.Capacitor = { isNativePlatform: () => true, getPlatform: () => 'android', Plugins: {
+      KeepAwake: { keepAwake: async () => { calls.push('awake'); }, allowSleep: async () => { calls.push('sleep'); } },
+      BackgroundRecording: {
+        start: async o => { calls.push('bg-start'); bgOpts = o; if (failStart) throw new Error('nejde'); },
+        stop: async () => { calls.push('bg-stop'); },
+        addListener: (ev, fn) => { if (ev === 'stop') stopFromNotification = fn; }
+      }
+    } };
+    store['sleepDetective.settings.v1'] = JSON.stringify({ recNotice: true });
+    new Function(script)();
+    await settle();
+    assert.strictEqual(typeof stopFromNotification, 'function', 'appka nepočúva na „Ukončiť záznam“ z upozornenia');
+    fakeNow = new RealDate(2027, 1, 10, 23, 0, 0).getTime();
+    click({ tab: 'today' });
+    click({ act: 'startNight' }); await settle();
+    assert.ok(calls.includes('bg-start'), 'služba na popredí sa nespustila');
+    assert.ok(bgOpts && bgOpts.title === 'Nočný záznam beží' && bgOpts.stop === 'Ukončiť záznam', 'texty upozornenia nie sú v jazyku appky');
+    assert.ok(!calls.includes('awake'), 'pri zázname na pozadí sa obrazovka nemá držať zapnutá');
+    assert.ok(els['#n-tip'].textContent.includes('Telefón môžeš zamknúť'), els['#n-tip'].textContent);
+    for (let i = 0; i < 700; i++) { fakeNow += 100; tickAll(); }
+    stopFromNotification(); await settle();
+    assert.ok(calls.includes('bg-stop'), 'služba sa po ukončení nezastavila');
+    assert.strictEqual(els['#night'].hidden, true, 'záznam sa z upozornenia neukončil');
+    assert.ok(data().sounds['2027-02-11'], 'noc ukončená z upozornenia sa neuložila');
+    click({ act: 'close' });
+    // keď sa služba nedá spustiť, appka aspoň drží obrazovku zapnutú
+    calls.length = 0; failStart = true;
+    fakeNow = new RealDate(2027, 1, 11, 23, 0, 0).getTime();
+    click({ act: 'startNight' }); await settle();
+    assert.ok(calls.includes('awake'), 'bez služby sa nedrží obrazovka');
+    assert.ok(!els['#n-tip'].textContent.includes('Telefón môžeš zamknúť'), 'appka tvrdí, že beží na pozadí, hoci služba nebeží');
+    for (let i = 0; i < 700; i++) { fakeNow += 100; tickAll(); }
+    click({ act: 'askStopNight' }); click({ act: 'modalOk' }); await settle();
+    assert.ok(!calls.includes('bg-stop'), 'nespustená služba sa nemá zastavovať');
+    click({ act: 'close' });
+    click({ act: 'settings' }); click({ act: 'privacy' });
+    assert.ok(sheet().includes('aj keď je obrazovka zamknutá'), 'súkromie nespomína záznam na pozadí');
+    click({ act: 'close' });
+    delete window.Capacitor;
+  });
+
+  await at('texty v nastaveniach zodpovedajú správaniu appky', async () => {
+    store['sleepDetective.settings.v1'] = JSON.stringify({ autoOn: true, soundAudio: true, soundFull: true, fullKeepDays: 3, recNotice: true });
+    new Function(script)();
+    await settle();
+    click({ act: 'settings' });
+    assert.ok(sheet().includes('ak v tú noc už nejaký záznam bežal'), 'chýba, že sa v tú istú noc znova nespustí');
+    assert.ok(sheet().includes('mimo neho sú len v zálohe'), 'text o nahrávkach nespomína zálohu');
+    assert.ok(sheet().includes('Predvolená prehliadača'), 'na webe má byť „prehliadača“');
+    // staré časti celej noci sa zmažú aj pri odchode z nastavení cez Ochranu súkromia
+    const old = 'full-' + new RealDate(2026, 0, 1).getTime();
+    idbStore.set(old, { type: 'audio/webm', buf: new ArrayBuffer(4) });
+    store['sleepDetective.data.v2'] = JSON.stringify({ nights: [], evenings: {}, sounds: { '2026-01-01': { rec: 1, end: 2, snoreMin: 0, noise: 0, partial: false, clips: [], segs: [{ id: old, t: 1, end: 2 }] } } });
+    winListeners.storage({ key: 'sleepDetective.data.v2' });
+    click({ act: 'settings' }); click({ act: 'privacy' }); click({ act: 'close' }); await settle();
+    assert.strictEqual(data().sounds['2026-01-01'].segs.length, 0, 'staré časti celej noci sa po odchode z nastavení nezmazali');
+  });
+
+  await at('jazyky: úplné slovníky, po inštalácii angličtina, výber jazyka v nastaveniach', async () => {
+    // všetky slovníky majú všetky kľúče, rovnaké premenné, rovnako dlhé zoznamy a tvar „other“ v množnom čísle
+    const sk = SDI18N.dict('sk');
+    const ph = x => [...new Set(JSON.stringify(x).match(/\{\w+\}/g) || [])].sort().join();
+    assert.strictEqual(SDI18N.languages().length, 12, 'má byť 12 jazykov');
+    SDI18N.languages().forEach(({ code }) => {
+      const d = SDI18N.dict(code);
+      assert.ok(d._dec && d._name && d._htmlLang, code + ': chýba _dec/_name/_htmlLang');
+      Object.keys(d).forEach(k => assert.ok(k in sk, code + ': kľúč navyše ' + k));
+      Object.keys(sk).filter(k => k[0] !== '_').forEach(k => {
+        assert.ok(k in d, code + ': chýba ' + k);
+        if (Array.isArray(sk[k])) assert.strictEqual(d[k].length, sk[k].length, code + ': dĺžka ' + k);
+        else if (typeof sk[k] === 'object') assert.ok(d[k].other && Object.values(d[k]).every(v => v.includes('{n}')), code + ': množné číslo ' + k);
+        else assert.strictEqual(ph(d[k]), ph(sk[k]), code + ': premenné v ' + k);
+      });
+    });
+    // čistá inštalácia: angličtina
+    forceSk = false;
+    Object.keys(store).forEach(k => delete store[k]);
+    delete window.Capacitor;
+    new Function(script)();
+    await settle();
+    const en = SDI18N.dict('en'), de = SDI18N.dict('de');
+    assert.strictEqual(SDI18N.lang(), 'en', 'po inštalácii nie je angličtina');
+    assert.strictEqual(document.documentElement.attrs.lang, 'en');
+    assert.ok(view().includes(en.how1), 'úvod nie je po anglicky');
+    // výber jazyka v nastaveniach
+    click({ act: 'settings' });
+    assert.ok(sheet().includes('id="set-lang"') && sheet().includes('Slovenčina') && sheet().includes('Deutsch'), 'chýba výber jazyka');
+    assert.ok(sheet().includes(en.appearance), 'nastavenia nie sú po anglicky');
+    listeners.change({ target: { id: 'set-lang', value: 'de' } });
+    assert.strictEqual(JSON.parse(store['sleepDetective.settings.v1']).lang, 'de', 'jazyk sa neuložil');
+    assert.ok(sheet().includes(de.appearance) && !sheet().includes(en.appearance + '<'), 'nastavenia sa neprepli');
+    click({ act: 'close' });
+    assert.ok(view().includes(de.how1), 'obrazovka Dnes nie je po nemecky');
+    // verdikt experimentu sa skladá v zvolenom jazyku; starší záznam s hotovým textom ostane
+    setData({ closed: [
+      { k: 'coffee', icon: '☕', name: 'x', from: '2027-01-01', to: '2027-01-07', tone: 't-bad', lab: 'guilty', r: { c: 'res', m: 'latency', before: 40, during: 15 } },
+      { icon: '🍷', name: 'Bez alkoholu', when: '1. 1. – 7. 1.', tone: 't-good', label: 'Nepotvrdené', text: 'Starý text.' }
+    ], verdicts: { coffee: { confirmed: true, r: { c: 'res', m: 'latency', before: 40, during: 15 } } } });
+    click({ tab: 'exp' });
+    assert.ok(view().includes(de['fac.coffee.exp']) && view().includes(de.labelGuilty), 'uzavretý prípad nie je po nemecky');
+    assert.ok(view().includes('Starý text.') && view().includes('Nepotvrdené'), 'starší záznam s textom zmizol');
+    // späť do slovenčiny: všetko po slovensky aj bez reštartu
+    click({ act: 'settings' });
+    listeners.change({ target: { id: 'set-lang', value: 'sk' } });
+    click({ act: 'close' });
+    assert.ok(view().includes('Bez kávy po 14:00') && view().includes('Vina potvrdená'), 'po prepnutí do slovenčiny ostali cudzie texty');
+    click({ tab: 'today' });
+    assert.strictEqual(document.documentElement.attrs.lang, 'sk');
+    // neznámy jazyk v nastaveniach = angličtina
+    store['sleepDetective.settings.v1'] = JSON.stringify({ lang: 'xx' });
+    winListeners.storage({ key: 'sleepDetective.settings.v1' });
+    assert.strictEqual(SDI18N.lang(), 'en');
+    forceSk = true;
+    store['sleepDetective.settings.v1'] = JSON.stringify({ lang: 'sk' });
+    winListeners.storage({ key: 'sleepDetective.settings.v1' });
   });
   console.log(ok + ' testov prešlo');
 }

@@ -5,7 +5,12 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1])[1];
+// hlavný skript appky je v app.js (index.html ho načíta cez <script src>, Content-Security-Policy nepovolí vložený skript)
+const script = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+assert.ok(!/<script>/.test(html) && !/\son[a-z]+=/.test(html), 'index.html obsahuje skript vložený priamo do stránky – CSP ho zablokuje');
+assert.ok(/http-equiv="Content-Security-Policy"/.test(html), 'index.html nemá Content-Security-Policy');
+const LANGS = ['sk', 'en', 'es', 'pt', 'de', 'fr', 'it', 'ru', 'tr', 'ja', 'ko', 'zh'];
+LANGS.forEach(l => assert.ok(html.includes('<script src="i18n/' + l + '.js"></script>'), 'index.html nenačíta i18n/' + l + '.js'));
 
 // ---- falošný čas a časovače (spúšťame ich ručne) ----
 const RealDate = Date;
@@ -44,8 +49,14 @@ let importClicked = 0;
 els['#import-file'] = Object.assign(el('import'), { value: '', click() { importClicked++; } });
 const listeners = {};
 const store = {};
+// Scenáre kontrolujú slovenské texty: bez zvoleného jazyka appka dostane slovenčinu.
+// Test predvoleného jazyka (angličtina po inštalácii) to vypne cez forceSk = false.
+let forceSk = true;
 global.localStorage = {
-  getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; }
+  getItem: k => {
+    if (k === 'universalTuner.settings.v1' && forceSk) { const v = JSON.parse(store[k] || '{}') || {}; if (!v.lang) return JSON.stringify(Object.assign(v, { lang: 'sk' })); }
+    return k in store ? store[k] : null;
+  }, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; }
 };
 const downloads = [];
 global.document = {
@@ -102,6 +113,10 @@ const pitch = fs.readFileSync(path.join(__dirname, '..', 'pitch.js'), 'utf8');
 new Function(pitch).call(global);
 window.TunerPitch = global.TunerPitch;
 const P = global.TunerPitch;
+// preklady: jadro a všetky slovníky (v prehliadači ich načítajú <script src="i18n/…">)
+global.self = global;
+['core'].concat(LANGS).forEach(f => new Function(fs.readFileSync(path.join(__dirname, '..', 'i18n', f + '.js'), 'utf8')).call(global));
+window.UTI18N = global.UTI18N;
 new Function(script)();
 
 // ---- pomocníci ----
@@ -401,6 +416,54 @@ t('odchod z appky vypne mikrofón', () => {
   assert.strictEqual(intervals.size, 0, 'žiadne počúvanie na pozadí');
   document.visibilityState = 'visible';
   assert.ok(view().includes('Spustiť ladenie'));
+});
+
+t('jazyky: úplné slovníky, po inštalácii angličtina, výber jazyka v nastaveniach', () => {
+  const I = global.UTI18N, sk = I.dict('sk');
+  const ph = x => [...new Set(JSON.stringify(x).match(/\{\w+\}/g) || [])].sort().join();
+  assert.strictEqual(I.languages().length, 12, 'má byť 12 jazykov');
+  I.languages().forEach(({ code }) => {
+    const d = I.dict(code);
+    assert.ok(d._dec && d._name && d._htmlLang && d._flag, code + ': chýba _dec/_name/_htmlLang/_flag');
+    Object.keys(d).forEach(k => assert.ok(k in sk, code + ': kľúč navyše ' + k));
+    Object.keys(sk).filter(k => k[0] !== '_').forEach(k => {
+      assert.ok(k in d, code + ': chýba ' + k);
+      if (typeof sk[k] === 'object') assert.ok(d[k].other && Object.values(d[k]).every(v => v.includes('{n}')), code + ': množné číslo ' + k);
+      else assert.strictEqual(ph(d[k]), ph(sk[k]), code + ': premenné v ' + k);
+    });
+    assert.ok(/^[a-z0-9-]+$/.test(d.backupFile), code + ': názov súboru zálohy');
+  });
+  // čistá inštalácia: angličtina a anglické názvy tónov
+  forceSk = false;
+  Object.keys(store).forEach(k => delete store[k]);
+  winListeners.storage({ key: null });
+  click({ tab: 'tune' });
+  const en = I.dict('en'), de = I.dict('de');
+  assert.strictEqual(I.lang(), 'en');
+  assert.strictEqual(document.documentElement.attrs.lang, 'en');
+  assert.ok(view().includes(en['inst.guitar']) && view().includes(en.startTuning), 'úvod nie je po anglicky');
+  assert.ok(view().includes('E2 A2 D3 G3 B3 E4'), 'v angličtine sú anglické názvy tónov');
+  // výber jazyka v nastaveniach
+  click({ act: 'settings' });
+  assert.ok(sheet().includes('id="set-lang"') && sheet().includes('Slovenčina') && sheet().includes('Deutsch') && sheet().includes('日本語'), 'chýba výber jazyka');
+  listeners.change({ target: { id: 'set-lang', value: 'de', dataset: {} } });
+  assert.strictEqual(settings().lang, 'de', 'jazyk sa neuložil');
+  assert.ok(sheet().includes(de.appearance), 'nastavenia sa neprepli');
+  click({ act: 'closeSheet' });
+  assert.ok(view().includes(de['inst.guitar']) && view().includes(de.startTuning), 'Ladiť nie je po nemecky');
+  click({ tab: 'inst' });
+  assert.ok(view().includes(de.whatTune));
+  // neplatný jazyk (aj zo zálohy či úložiska) = angličtina, nič sa nerozbije
+  store['universalTuner.settings.v1'] = JSON.stringify({ lang: '__proto__', theme: 'dark' });
+  winListeners.storage({ key: 'universalTuner.settings.v1' });
+  assert.strictEqual(I.lang(), 'en');
+  // staré nastavenia bez jazyka (verzia len po slovensky) = slovenčina
+  store['universalTuner.settings.v1'] = JSON.stringify({ theme: 'dark', notation: 'sk' });
+  winListeners.storage({ key: 'universalTuner.settings.v1' });
+  assert.strictEqual(I.lang(), 'sk');
+  click({ tab: 'tune' });
+  assert.ok(view().includes('Spustiť ladenie') && view().includes('H3'));
+  forceSk = true;
 });
 
 (async () => {
