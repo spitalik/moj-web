@@ -1,0 +1,6 @@
+{
+  "appId": "sk.jocadium.app",
+  "appName": "Jocadium",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}

@@ -1,10 +1,10 @@
-/* Prepojenie s Jocadiom (zbierka hier v ../jocadium): pre 1.–4. ročník hry, ktoré precvičujú čísla,
+/* Prepojenie s Jocadiom (zbierka hier v ../jocadium-app): pre 1.–4. ročník hry, ktoré precvičujú čísla,
    logiku a priestorovú predstavivosť – ako prestávka v lekcii a odmena za zvládnutú lekciu.
-   Panel sa ukáže, len ak je Jocadium dostupné vedľa aplikácie (napr. moj-web/jocadium a moj-web/math). */
+   Panel sa ukáže, len ak je Jocadium dostupné vedľa aplikácie (napr. moj-web/jocadium-app a moj-web/math). */
 (function () {
   'use strict';
   const { t, esc } = APP;
-  const BASE = '../jocadium/';
+  const BASE = '../jocadium-app/';
   const LEVELS_WITH_GAMES = ['r1', 'r2', 'r3', 'r4'];
 
   const GAMES = {

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Universal Tuner</string>
+    <string name="title_activity_main">Universal Tuner</string>
+    <string name="package_name">sk.universaltuner.app</string>
+    <string name="custom_url_scheme">sk.universaltuner.app</string>
+</resources>

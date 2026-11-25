@@ -1,0 +1,21 @@
+{
+  "name": "blood-pressure-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Blood Pressure – denník krvného tlaku (PWA + Android/iOS cez Capacitor)",
+  "license": "MIT",
+  "scripts": {
+    "test": "node tools/test.js",
+    "build:www": "node tools/build_www.js",
+    "sync": "node tools/build_www.js && npx cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/ios": "^8.6.2",
+    "@capacitor/share": "^8.0.3"
+  }
+}

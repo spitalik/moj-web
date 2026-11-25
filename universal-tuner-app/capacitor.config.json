@@ -1,0 +1,6 @@
+{
+  "appId": "sk.universaltuner.app",
+  "appName": "Universal Tuner",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}

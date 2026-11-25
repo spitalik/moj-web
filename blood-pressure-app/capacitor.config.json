@@ -1,0 +1,6 @@
+{
+  "appId": "sk.bloodpressure.app",
+  "appName": "Blood Pressure",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
