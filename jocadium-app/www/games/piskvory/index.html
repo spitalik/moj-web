@@ -248,8 +248,9 @@ const layer = document.createElement('canvas');
 const lctx = layer.getContext('2d');
 let CELL = 26, PAD = 26, SIZE = 0, DPR = 1, RAD = 11;
 
-const px = c => PAD + c * CELL;
-const py = r => PAD + r * CELL;
+// Kamene sedia v strede policok (ako piskvorky na papieri), nie na krizeniach.
+const px = c => PAD + (c + 0.5) * CELL;
+const py = r => PAD + (r + 0.5) * CELL;
 
 // ── rozmery a DPI ─────────────────────────────────────────────────────────
 let vw = -1, vh = -1;   // naposledy videný viewport (aj 0, kým sa stránka nerozloží)
@@ -287,13 +288,13 @@ function layout() {
   const availH = winH - padY - wrapPad - 4 - (row ? 0 : others + gap * gaps);
   const avail = Math.max(238, Math.min(availW, availH));
 
-  // Okraj okolo mriezky staci na polomer kamena a trochu vzduchu; cele policko
-  // navyse po kazdej strane bola zbytocna dan - tie dve tretiny su teraz v hre.
-  const PADR = 0.66;
-  CELL = Math.max(14, Math.floor(avail / (N - 1 + PADR * 2)));
-  PAD  = Math.round(CELL * PADR);
-  SIZE = CELL * (N - 1) + PAD * 2;
-  RAD  = CELL * 0.42;
+  // N x N policok; kamene su vnutri policok, takze okolo mriezky staci len
+  // tenky okraj (pulzujuci kruzok posledneho tahu z neho mierne vytrca).
+  const PADR = 0.16;
+  CELL = Math.max(14, Math.floor(avail / (N + PADR * 2)));
+  PAD  = Math.max(3, Math.round(CELL * PADR));
+  SIZE = CELL * N + PAD * 2;
+  RAD  = CELL * 0.4;
   DPR  = Math.min(window.devicePixelRatio || 1, 2.5);
   [[canvas, ctx], [layer, lctx]].forEach(([cv, cc]) => {
     cv.width  = Math.round(SIZE * DPR);
@@ -362,22 +363,17 @@ function paintLayer() {
   lctx.lineWidth = 1;
   lctx.strokeStyle = 'rgba(255,255,255,0.085)';
   lctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const p = Math.round(px(i)) + 0.5;
-    lctx.moveTo(p, py(0)); lctx.lineTo(p, py(N - 1));
-    lctx.moveTo(px(0), p); lctx.lineTo(px(N - 1), p);
+  // vnútorné čiary medzi políčkami (N+1 čiar vrátane okraja, okraj kreslí strokeRect)
+  const end = PAD + CELL * N;
+  for (let i = 1; i < N; i++) {
+    const p = Math.round(PAD + i * CELL) + 0.5;
+    lctx.moveTo(p, PAD); lctx.lineTo(p, end);
+    lctx.moveTo(PAD, p); lctx.lineTo(end, p);
   }
   lctx.stroke();
   lctx.strokeStyle = 'rgba(255,255,255,0.19)';
   lctx.lineWidth = 1.4;
-  lctx.strokeRect(px(0), py(0), CELL * (N - 1), CELL * (N - 1));
-
-  // orientačné body
-  const st = [3, 7, 11];
-  lctx.fillStyle = 'rgba(255,255,255,0.24)';
-  for (const r of st) for (const c of st) {
-    lctx.beginPath(); lctx.arc(px(c), py(r), Math.max(1.5, CELL * 0.08), 0, 6.2832); lctx.fill();
-  }
+  lctx.strokeRect(PAD, PAD, CELL * N, CELL * N);
 
   // kamene (okrem toho, ktorý sa práve animuje)
   for (let i = 0; i < N * N; i++) {
@@ -481,7 +477,7 @@ function render(ts) {
   }
 }
 
-// Prst zakryva prave to miesto, na ktore mieri, takze okolie krizenia sa
+// Prst zakryva prave to miesto, na ktore mieri, takze okolie policka sa
 // zobrazi este raz zvacsene nad nim. Vidiet tam aj susedne kamene - bez toho sa
 // neda povedat, ci piatka sedi.
 function drawPending(i) {
@@ -495,8 +491,11 @@ function drawPending(i) {
   if (!occupied) drawStone(ctx, cx, cy, RAD * 0.9, cur, 1, 0);
   ctx.globalAlpha = 0.5;
   ctx.strokeStyle = col; ctx.lineWidth = 1.3;
-  ctx.beginPath(); ctx.moveTo(PAD * 0.3, cy); ctx.lineTo(SIZE - PAD * 0.3, cy);
-  ctx.moveTo(cx, PAD * 0.3); ctx.lineTo(cx, SIZE - PAD * 0.3); ctx.stroke();
+  // riadok a stĺpec cez stred políčka + obrys samotného políčka
+  ctx.beginPath(); ctx.moveTo(PAD, cy); ctx.lineTo(SIZE - PAD, cy);
+  ctx.moveTo(cx, PAD); ctx.lineTo(cx, SIZE - PAD); ctx.stroke();
+  ctx.globalAlpha = 0.85; ctx.lineWidth = 1.6;
+  ctx.strokeRect(cx - CELL / 2, cy - CELL / 2, CELL, CELL);
   ctx.restore();
 
   // lupa
@@ -528,9 +527,11 @@ function cellAt(e) {
   const rect = canvas.getBoundingClientRect();
   const x = (e.clientX - rect.left) * (SIZE / rect.width);
   const y = (e.clientY - rect.top) * (SIZE / rect.height);
-  const c = Math.round((x - PAD) / CELL), r = Math.round((y - PAD) / CELL);
-  // ťuk sa prilepí na najbližší priesečník — na mobile to odpúšťa nepresnosť
-  if (r < 0 || r >= N || c < 0 || c >= N) return -1;
+  // ťuk patrí políčku, v ktorom leží; mimo plátna nič
+  if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) return -1;
+  // tenký okraj okolo mriežky sa priráta krajnému políčku — na mobile to odpúšťa nepresnosť
+  const c = Math.min(N - 1, Math.max(0, Math.floor((x - PAD) / CELL)));
+  const r = Math.min(N - 1, Math.max(0, Math.floor((y - PAD) / CELL)));
   return r * N + c;
 }
 

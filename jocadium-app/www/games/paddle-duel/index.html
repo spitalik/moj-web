@@ -202,7 +202,7 @@ const keys = {};
 const pointers = new Map();
 
 function newPaddle(side) {
-  return {y: H / 2 - PAD_H / 2, vy: 0, hit: 0, target: null, side};
+  return {y: H / 2 - PAD_H / 2, vy: 0, hit: 0, target: null, drag: 0, side};
 }
 
 function serve(dir) {
@@ -217,6 +217,7 @@ function serve(dir) {
 function startGame() {
   SFX.play('start');
   p1 = newPaddle('p1'); p2 = newPaddle('p2');
+  pointers.clear();                      // staré ťahy patria k starým pádlam
   score = {a:0, b:0}; updateHud();
   parts = []; ripples = []; flash = null; shake = 0;
   document.getElementById('overlay').classList.add('hide');
@@ -290,11 +291,13 @@ function frame(ts) {
 function movePaddle(p, dt, up, dn) {
   const spd = 430 * SCL;
   const before = p.y;
-  if (p.target !== null) {
-    // ťah prstom / myšou — stred pádla ide za ukazovateľom
-    const want = clamp(p.target - PAD_H / 2, 0, H - PAD_H);
-    const step = spd * 1.9 * dt;
-    p.y += clamp(want - p.y, -step, step);
+  if (p.drag) {
+    // ťah prstom — relatívny posun 1:1, bez obmedzenia rýchlosti
+    p.y = clamp(p.y + p.drag, 0, H - PAD_H);
+    p.drag = 0;
+  } else if (p.target !== null) {
+    // myš — stred pádla hneď pod kurzorom (bez dobiehania)
+    p.y = clamp(p.target - PAD_H / 2, 0, H - PAD_H);
   }
   if (up) p.y -= spd * dt;
   if (dn) p.y += spd * dt;
@@ -597,31 +600,55 @@ document.addEventListener('keydown', e => {
   if (e.code === 'KeyP' || e.code === 'Escape') { if (state !== ST.MENU && state !== ST.OVER) togglePause(); return; }
   if (e.code === 'Space') { if (state === ST.MENU || state === ST.OVER) startGame(); else togglePause(); return; }
   keys[e.code] = true;
+  // klávesnica preberá pádlo od myši, inak by ho kurzor stále ťahal späť
+  if (p1 && (e.code === 'KeyW' || e.code === 'KeyS' || (mode === 'cpu' && e.code.startsWith('Arrow')))) p1.target = null;
+  if (p2 && mode === '2p' && e.code.startsWith('Arrow')) p2.target = null;
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
+// Prst / pero: relatívny ťah odkiaľkoľvek na svojej polovici obrazovky – pádlo sa
+// posunie presne o toľko, o koľko prst (1:1), takže ho palec nezakrýva a netreba
+// trafiť pádlo. Myš: stred pádla priamo pod kurzorom (stačí pohyb, netreba klikať).
+const playing = () => state === ST.PLAY || state === ST.SERVE;
 function sideFor(x) { return (mode === 'cpu' || x < W / 2) ? p1 : p2; }
 C.addEventListener('pointerdown', e => {
   if (state === ST.MENU || state === ST.OVER || !p1) return;
+  e.preventDefault();
   try { C.setPointerCapture(e.pointerId); } catch (_) {}
   const p = sideFor(e.clientX);
-  pointers.set(e.pointerId, p);
-  p.target = e.clientY;
-});
-C.addEventListener('pointermove', e => {
-  const p = pointers.get(e.pointerId);
-  if (p) { p.target = e.clientY; return; }
-  // myš bez stlačenia ovláda ľavé pádlo
-  if (e.pointerType === 'mouse' && p1 && (state === ST.PLAY || state === ST.SERVE)) p1.target = e.clientY;
-});
+  if (e.pointerType === 'mouse') {
+    pointers.set(e.pointerId, {p, y: e.clientY, mouse: true});
+    if (playing()) p.target = e.clientY;
+    return;
+  }
+  // ďalší prst na tej istej strane preberá ovládanie (nesčítavajú sa)
+  for (const [id, q] of pointers) if (q.p === p && !q.mouse) pointers.delete(id);
+  p.target = null;                       // ťah prstom má prednosť pred myšou
+  pointers.set(e.pointerId, {p, y: e.clientY, mouse: false});
+}, {passive: false});
+function onMove(e) {
+  const q = pointers.get(e.pointerId);
+  if (!q) {
+    // myš bez stlačenia ovláda ľavé pádlo
+    if (e.pointerType === 'mouse' && p1 && playing()) p1.target = e.clientY;
+    return;
+  }
+  e.preventDefault();
+  if (q.mouse) { if (playing()) q.p.target = e.clientY; return; }
+  // počas pauzy sa posun nezbiera, aby pádlo po návrate neodskočilo
+  if (playing()) q.p.drag += e.clientY - q.y;
+  q.y = e.clientY;
+}
+C.addEventListener('pointermove', onMove, {passive: false});
 function dropPointer(e) {
-  const p = pointers.get(e.pointerId);
-  if (!p) return;
-  if (p.side !== 'p1' || e.pointerType !== 'mouse') p.target = null;
+  const q = pointers.get(e.pointerId);
+  if (!q) return;
+  if (!q.mouse || q.p.side !== 'p1') q.p.target = null;
   pointers.delete(e.pointerId);
 }
 C.addEventListener('pointerup', dropPointer);
 C.addEventListener('pointercancel', dropPointer);
+C.addEventListener('contextmenu', e => e.preventDefault());
 
 document.getElementById('m-cpu').onclick = () => setMode('cpu');
 document.getElementById('m-2p').onclick  = () => setMode('2p');

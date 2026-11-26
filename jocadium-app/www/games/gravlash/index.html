@@ -442,6 +442,15 @@
                 }
             }
 
+            // Na dotykovom displeji sa lod ovlada prstom - ten je pod lodou, preto
+            // je lod v portrete vyssie a spodna cast obrazovky (~24 %) zostava
+            // volna pre prst, ktory tak lod nezakryva. S mysou/klavesnicou
+            // zostava lod pri spodnom okraji ako predtym.
+            let touchMode = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+            function playerLaneY() {
+                return touchMode ? H - Math.max(70, Math.round(H * 0.24)) : H - 70;
+            }
+
             function initPlayerPosition() {
                 if (isLandscape) {
                     player.x = 70;
@@ -450,7 +459,7 @@
                     player.targetX = player.x;
                 } else {
                     player.x = W / 2;
-                    player.y = H - 70;
+                    player.y = playerLaneY();
                     player.targetX = player.x;
                     player.targetY = player.y;
                 }
@@ -687,7 +696,8 @@
                 } else {
                     player.targetX = Math.max(player.size, Math.min(W - player.size, player.targetX));
                     player.x += (player.targetX - player.x) * player.lerp;
-                    player.y = H - 70;
+                    // plynuly presun, ak sa rezim (dotyk/mys) zmeni pocas hry
+                    player.y += (playerLaneY() - player.y) * 0.2;
                 }
 
                 // Trail
@@ -1283,6 +1293,7 @@
 
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
+                touchMode = true;
                 initAudio();
                 if (!gameOver) {
                     handlePointer(e.touches[0].clientX, e.touches[0].clientY);

@@ -521,7 +521,7 @@ body{
 
         function newGame() {
             SFX.play('start');
-            shots = 0; fouls = 0; over = false; won = false; aim = null;
+            shots = 0; fouls = 0; over = false; won = false; aim = null; aimId = null;
             pottedThisShot = []; settling = false;
             rack();
             bestSpan.textContent = best[diffKey] || 0;
@@ -535,9 +535,14 @@ body{
         }
 
         // ----- OVLADANIE -----
+        // Pozn.: pri touchend je e.touches prázdny (ale truthy) TouchList, preto
+        // e.touches[0] bolo undefined a releaseAim padol -> strela sa nevykonala.
+        // Teraz používame pointer eventy (myš aj dotyk) so zachytením ukazovateľa.
+        let aimId = null;   // pointerId, ktorý práve mieri
         function pointer(e) {
             const rect = canvas.getBoundingClientRect();
-            const src = e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e);
+            const src = (e.touches && e.touches.length) ? e.touches[0]
+                : (e.changedTouches && e.changedTouches.length) ? e.changedTouches[0] : e;
             return {
                 x: (src.clientX - rect.left) / rect.width * W,
                 y: (src.clientY - rect.top) / rect.height * H,
@@ -553,13 +558,13 @@ body{
         function moveAim(e) { if (aim) aim = pointer(e); }
         function releaseAim(e) {
             if (!aim) return;
-            SFX.play('shoot');
-            const p = pointer(e);
+            const p = e._p || pointer(e);   // _p: posledná pozícia pri pointercancel
             const c = cue();
             const dx = c.x - p.x, dy = c.y - p.y;         // pull back from the cue ball
             const len = Math.hypot(dx, dy);
             aim = null;
             if (len < 8) return;
+            SFX.play('shoot');   // zvuk až po overení, že ide o skutočnú strelu
             const power = Math.min(len, 120) * SETUP[diffKey].power;
             c.vx = dx / len * power;
             c.vy = dy / len * power;
@@ -569,13 +574,38 @@ body{
             statusLine.textContent = '';
         }
 
-        canvas.addEventListener('mousedown', startAim);
-        canvas.addEventListener('mousemove', moveAim);
-        canvas.addEventListener('mouseup', releaseAim);
-        canvas.addEventListener('mouseleave', () => { aim = null; });
-        canvas.addEventListener('touchstart', e => { e.preventDefault(); startAim(e); }, { passive: false });
-        canvas.addEventListener('touchmove', e => { e.preventDefault(); moveAim(e); }, { passive: false });
-        canvas.addEventListener('touchend', e => { e.preventDefault(); releaseAim(e); }, { passive: false });
+        // Pointer eventy: myš aj dotyk. setPointerCapture + poslucháči na window,
+        // aby pustenie kdekoľvek (aj mimo plátna) vystrelilo.
+        canvas.addEventListener('pointerdown', e => {
+            if (aimId !== null || (e.pointerType === 'mouse' && e.button !== 0)) return;
+            startAim(e);
+            if (!aim) return;
+            e.preventDefault();
+            aimId = e.pointerId;
+            try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+        window.addEventListener('pointermove', e => {
+            if (e.pointerId !== aimId) return;
+            e.preventDefault();
+            moveAim(e);
+        }, { passive: false });
+        window.addEventListener('pointerup', e => {
+            if (e.pointerId !== aimId) return;
+            aimId = null;
+            e.preventDefault();
+            releaseAim(e);
+        });
+        // Prehliadač prevzal gesto (napr. systémové gesto): vystreľ podľa poslednej pozície,
+        // ak je ťah dosť dlhý (releaseAim sám ignoruje príliš krátky ťah).
+        window.addEventListener('pointercancel', e => {
+            if (e.pointerId !== aimId) return;
+            aimId = null;
+            const last = aim;
+            if (last) releaseAim({ clientX: 0, clientY: 0, _p: last });
+        });
+        // Zabráni posúvaniu/zoomu stránky počas mierenia na starších prehliadačoch
+        canvas.addEventListener('touchstart', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
+        canvas.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
 
         restartBtn.addEventListener('click', newGame);
         newGameBtn.addEventListener('click', newGame);

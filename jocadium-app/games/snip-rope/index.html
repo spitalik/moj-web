@@ -264,8 +264,8 @@ body{
 
         <div id="info-panel">
             <div class="info-card">
-                <h3 id="lbl-attempts">Pokusy</h3>
-                <span class="value" id="attemptsValue">1</span>
+                <h3 id="lbl-lives">Životy</h3>
+                <span class="value" id="livesValue">♥♥♥</span>
             </div>
             <div class="info-card">
                 <h3 id="lbl-score">Skóre</h3>
@@ -281,10 +281,11 @@ body{
             <canvas id="gameCanvas"></canvas>
             <div id="miss-flash"></div>
             <div id="win-overlay">
-                <h2 id="lbl-win">Chytené!</h2>
-                <p><span id="lbl-final-attempts">Pokusy:</span> <span id="finalAttempts">1</span></p>
+                <h2 id="lbl-win">Koniec hry</h2>
+                <p><span id="lbl-final-caught">Chytené!</span> <span id="finalCaught">0</span></p>
                 <p style="font-size:16px; color:#fbbf24;"><span id="lbl-final-score">Skóre:</span> <span id="finalScore">0</span></p>
-                <button id="nextBtn">Ďalšia hádanka</button>
+                <p id="recordLine" style="display:none; color:#ffd166; font-weight:700;"></p>
+                <button id="nextBtn">Hrať znova</button>
             </div>
         </div>
 
@@ -302,12 +303,13 @@ body{
 
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
-            const attemptsSpan = document.getElementById('attemptsValue');
+            const livesSpan = document.getElementById('livesValue');
             const scoreSpan = document.getElementById('scoreValue');
             const bestSpan = document.getElementById('bestValue');
             const winOverlay = document.getElementById('win-overlay');
-            const finalAttempts = document.getElementById('finalAttempts');
+            const finalCaught = document.getElementById('finalCaught');
             const finalScore = document.getElementById('finalScore');
+            const recordLine = document.getElementById('recordLine');
             const nextBtn = document.getElementById('nextBtn');
             const newLevelBtn = document.getElementById('newLevelBtn');
             const sizeGroup = document.getElementById('sizeGroup');
@@ -319,14 +321,15 @@ body{
             document.getElementById('lbl-size-s').textContent = t('snpEasy');
             document.getElementById('lbl-size-m').textContent = t('snpMedium');
             document.getElementById('lbl-size-l').textContent = t('snpHard');
-            document.getElementById('lbl-attempts').textContent = t('snpAttempts');
+            document.getElementById('lbl-lives').textContent = t('uiLives');
             document.getElementById('lbl-score').textContent = t('snpScore');
             document.getElementById('lbl-best').textContent = t('snpBest');
-            document.getElementById('lbl-win').textContent = t('snpWin');
-            document.getElementById('lbl-final-attempts').textContent = t('snpAttempts') + ':';
+            document.getElementById('lbl-win').textContent = t('uiGameOver');
+            document.getElementById('lbl-final-caught').textContent = t('snpWin');
             document.getElementById('lbl-final-score').textContent = t('snpScore') + ':';
-            nextBtn.textContent = t('snpNewLevel');
-            document.getElementById('lbl-newlevel').textContent = t('snpNewLevel');
+            recordLine.textContent = t('uiNewRecord');
+            nextBtn.textContent = t('uiPlayAgain');
+            document.getElementById('lbl-newlevel').textContent = t('uiNewGame');
             document.getElementById('rules').textContent = t('snpRules');
 
             // ----- FYZIKA (musí presne zodpovedať Python overovaču) -----
@@ -365,10 +368,18 @@ body{
             let level = null;
             let px, py, prevx, prevy;
             let cut = false;
-            let solved = false;
-            let failed = false;
-            let attempts = 1;
+            let solved = false;     // gulička je v košíku (kolo vyhraté)
+            let failed = false;     // kolo stratené (hrot, okraj košíka, mimo plochy)
+            let over = false;       // koniec hry – minuli sa všetky životy
+            const MAX_LIVES = 3;
+            const POINTS = 100;     // body za chytenie
+            const STREAK_BONUS = 25; // príplatok za každé ďalšie chytenie po sebe
+            let lives = MAX_LIVES;
             let score = 0;
+            let caught = 0;
+            let streak = 0;
+            let roundTimer = 0;     // odložený prechod do ďalšieho kola / opakovania
+            let bestAtStart = 0;
             const bestKey = () => 'sniprope_best_' + diffKey;
             let best = 0;
             function loadBest() {
@@ -379,9 +390,40 @@ body{
             let acc = 0;
             let lastTs = null;
             let ballR = 12;
-            let catchAnim = 0;
+            let catchAt = 0;        // čas chytenia (pre nápis s bodmi)
+            let catchPts = 0;
 
             bestSpan.textContent = best;
+
+            // ----- KOŠÍK: jediná geometria pre kreslenie aj pre zásah -----
+            // Otvor je vo výške rim (target.y - 8), vnútorná polovičná šírka otvoru
+            // je target.r, dno je o BASKET_DEPTH nižšie a košík sa k nemu zužuje.
+            const BASKET_DEPTH = 24;
+            function basketGeom() {
+                const t = level.target;
+                const rim = t.y - 8;
+                return {
+                    cx: t.x, rim: rim, floor: rim + BASKET_DEPTH,
+                    top: t.r, bottom: t.r * 0.8,
+                    // vnútorná polovičná šírka v danej výške
+                    halfAt(y) {
+                        const k = Math.max(0, Math.min(1, (y - rim) / BASKET_DEPTH));
+                        return t.r - t.r * 0.2 * k;
+                    }
+                };
+            }
+            // Chytenie: stred guličky prejde rovinou otvoru zhora nadol a v tom
+            // mieste je aspoň polovicou guličky medzi stenami košíka.
+            const CATCH_TOL = 0.5;  // násobok ballR
+            function checkBasket(ox, oy) {
+                const b = basketGeom();
+                if (!(oy < b.rim && py >= b.rim)) return 0;          // neprechádza otvorom zhora
+                const x = ox + (px - ox) * (b.rim - oy) / (py - oy);
+                const d = Math.abs(x - b.cx);
+                if (d <= b.top - ballR * CATCH_TOL) return 1;         // dnu
+                if (d < b.top + ballR + 3) return -1;                 // narazila na okraj
+                return 0;                                             // padá mimo košíka
+            }
 
             function pickLevel(diff) {
                 const arr = LEVELS[diff];
@@ -400,23 +442,42 @@ body{
                 cut = false;
                 solved = false;
                 failed = false;
-                catchAnim = 0;
+                catchAt = 0;
             }
 
+            function renderLives() {
+                livesSpan.textContent = '♥'.repeat(lives) + '♡'.repeat(MAX_LIVES - lives);
+            }
+
+            // nová hra: skóre od nuly, plné životy
             function newLevel() {
                 SFX.play('start');
+                clearTimeout(roundTimer);
                 loadBest();       // rekord patri k aktualnej obtiaznosti
+                bestAtStart = best;
                 paused = false;
+                over = false;
                 level = pickLevel(diffKey);
-                attempts = 1;
+                lives = MAX_LIVES;
                 score = 0;
-                attemptsSpan.textContent = attempts;
+                caught = 0;
+                streak = 0;
+                renderLives();
                 scoreSpan.textContent = '0';
                 winOverlay.classList.remove('visible');
+                missFlash.classList.remove('show');
+                resetBall();
+            }
+
+            // ďalšie kolo v tej istej hre (skóre a životy ostávajú)
+            function nextRound() {
+                level = pickLevel(diffKey);
                 resetBall();
             }
 
             function stepPhysics() {
+                if (solved) { settleInBasket(); return; }
+                const ox = px, oy = py;
                 const vx = (px - prevx) * DAMPING;
                 const vy = (py - prevy) * DAMPING;
                 const nx = px + vx;
@@ -436,7 +497,7 @@ body{
                     }
                 }
 
-                if (solved || failed) return;
+                if (failed || over) return;
 
                 for (const hz of level.hazards) {
                     if (px >= hz.x && px <= hz.x + hz.w && py >= hz.y && py <= hz.y + hz.h) {
@@ -448,41 +509,80 @@ body{
                     triggerFail();
                     return;
                 }
-                const t = level.target;
-                if (Math.hypot(px - t.x, py - t.y) < t.r) {
+                if (!cut) return;
+                const hit = checkBasket(ox, oy);
+                if (hit === 1) {
                     triggerWin();
+                } else if (hit === -1) {
+                    // odraz od okraja košíka von a nahor
+                    const b = basketGeom();
+                    const side = px < b.cx ? -1 : 1;
+                    py = b.rim;
+                    prevx = px - side * Math.max(Math.abs(vx) * 0.6, 1.5);
+                    prevy = py + Math.abs(vy) * 0.35;
+                    triggerFail();
                 }
             }
 
+            // gulička v košíku: padá, odrazí sa od dna a stien a zostane ležať
+            function settleInBasket() {
+                const b = basketGeom();
+                const vx = (px - prevx) * 0.92;
+                const vy = (py - prevy) * 0.92;
+                prevx = px; prevy = py;
+                px += vx;
+                py += vy + GRAVITY * FIXED_DT * FIXED_DT;
+                const lowest = b.floor - ballR;
+                if (py > lowest) {
+                    py = lowest;
+                    prevy = py + vy * 0.35;              // slabý odskok
+                    if (Math.abs(vy) < 0.6) prevy = py;  // dobehla, leží
+                }
+                const lim = Math.max(0, b.halfAt(py) - ballR);
+                if (px > b.cx + lim) { px = b.cx + lim; prevx = px + Math.abs(vx) * 0.3; }
+                else if (px < b.cx - lim) { px = b.cx - lim; prevx = px - Math.abs(vx) * 0.3; }
+            }
+
             function triggerFail() {
-                SFX.play('lose');
                 failed = true;
+                streak = 0;
+                lives = Math.max(0, lives - 1);
+                SFX.play(lives > 0 ? 'hurt' : 'lose');
+                renderLives();
                 missFlash.classList.add('show');
-                setTimeout(() => {
+                clearTimeout(roundTimer);
+                roundTimer = setTimeout(() => {
                     missFlash.classList.remove('show');
-                    attempts++;
-                    attemptsSpan.textContent = attempts;
-                    resetBall();
+                    if (lives <= 0) { gameOver(); return; }
+                    resetBall();      // ten istý hlavolam znova
                 }, 420);
             }
 
             function triggerWin() {
                 SFX.play('win');
                 solved = true;
-                catchAnim = 1;
-                const penalty = Math.max(0, attempts - 1) * 30;
-                score = Math.max(20, 150 - penalty);
+                caught++;
+                streak++;
+                catchPts = POINTS + (streak - 1) * STREAK_BONUS;
+                catchAt = performance.now();
+                score += catchPts;
                 scoreSpan.textContent = score;
                 if (score > best) {
                     best = score;
                     bestSpan.textContent = best;
-                    localStorage.setItem(bestKey(), String(best));
+                    try { localStorage.setItem(bestKey(), String(best)); } catch (e) { /* úložisko nedostupné */ }
                 }
-                setTimeout(() => {
-                    finalAttempts.textContent = attempts;
-                    finalScore.textContent = score;
-                    winOverlay.classList.add('visible');
-                }, 420);
+                // gulička chvíľu zostane ležať v košíku, potom príde ďalšie kolo
+                clearTimeout(roundTimer);
+                roundTimer = setTimeout(nextRound, 1300);
+            }
+
+            function gameOver() {
+                over = true;
+                finalCaught.textContent = caught;
+                finalScore.textContent = score;
+                recordLine.style.display = (score > bestAtStart && score > 0) ? '' : 'none';
+                winOverlay.classList.add('visible');
             }
 
             // ----- STRIHANIE (swipe cez lano) -----
@@ -509,7 +609,7 @@ body{
             }
 
             function tryCut(fromPt, toPt) {
-                if (cut || solved || failed || !level) return;
+                if (cut || solved || failed || over || !level) return;
                 SFX.play('whoosh');
                 const anchorPt = { x: level.anchor.x, y: level.anchor.y };
                 const ballPt = { x: px, y: py };
@@ -540,6 +640,7 @@ body{
             document.addEventListener('keydown', (e) => {
                 if (e.key === ' ' || e.key === 'Enter') {
                     e.preventDefault();
+                    if (over) { newLevel(); return; }   // po konci hry Enter/medzerník = hrať znova
                     if (!cut && !solved && !failed) cut = true;
                 }
             });
@@ -570,20 +671,24 @@ body{
                     }
                 }
 
-                // target (basket)
-                const t = level.target;
-                const pulse = 1 + Math.sin(Date.now() / 260) * 0.06;
+                // košík – zadná (vnútorná) časť, gulička sa kreslí pred ňou
+                const b = basketGeom();
+                if (!solved) {
+                    // jemné zelené označenie otvoru (len v šírke otvoru)
+                    const pulse = 0.22 + Math.sin(Date.now() / 260) * 0.08;
+                    ctx.fillStyle = 'rgba(74,222,128,' + pulse.toFixed(3) + ')';
+                    ctx.beginPath();
+                    ctx.ellipse(b.cx, b.rim, b.top, 7, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.fillStyle = '#3a2212';
                 ctx.beginPath();
-                ctx.arc(t.x, t.y, t.r * pulse, 0, Math.PI * 2);
-                const tg = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, t.r * pulse);
-                tg.addColorStop(0, 'rgba(74,222,128,0.32)');
-                tg.addColorStop(1, 'rgba(74,222,128,0.02)');
-                ctx.fillStyle = tg;
+                ctx.moveTo(b.cx - b.top, b.rim);
+                ctx.lineTo(b.cx + b.top, b.rim);
+                ctx.lineTo(b.cx + b.bottom, b.floor);
+                ctx.lineTo(b.cx - b.bottom, b.floor);
+                ctx.closePath();
                 ctx.fill();
-                ctx.font = (t.r * 0.9) + 'px serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('🧺', t.x, t.y + 2);
 
                 // anchor
                 ctx.fillStyle = '#475569';
@@ -602,11 +707,9 @@ body{
                 }
 
                 // ball
-                if (!(solved && catchAnim <= 0)) {
-                    const scale = solved ? Math.max(0, 1 - (1 - catchAnim)) : 1;
+                {
                     ctx.save();
                     ctx.translate(px, py);
-                    ctx.scale(scale, scale);
                     const bg = ctx.createRadialGradient(-ballR * 0.3, -ballR * 0.3, 1, 0, 0, ballR);
                     bg.addColorStop(0, '#fff1f2');
                     bg.addColorStop(1, '#fb7185');
@@ -619,12 +722,66 @@ body{
                     ctx.stroke();
                     ctx.restore();
                 }
-                if (catchAnim > 0) catchAnim = Math.max(0, catchAnim - 0.06);
+
+                // košík – predná stena: prútiky s medzerami, aby bolo vidno guličku vnútri
+                const wallAt = (k) => b.top + (b.bottom - b.top) * k;   // polovičná šírka v pomere hĺbky
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = 'rgba(176,112,52,0.9)';
+                ctx.lineWidth = 2;
+                const slats = Math.max(3, Math.round(b.top / 6));
+                for (let i = 0; i <= slats; i++) {
+                    const f = -1 + 2 * i / slats;
+                    ctx.beginPath();
+                    ctx.moveTo(b.cx + f * b.top, b.rim);
+                    ctx.lineTo(b.cx + f * b.bottom, b.floor);
+                    ctx.stroke();
+                }
+                ctx.strokeStyle = 'rgba(214,150,80,0.85)';
+                for (const k of [0.45, 0.8]) {
+                    const y = b.rim + BASKET_DEPTH * k, w = wallAt(k);
+                    ctx.beginPath();
+                    ctx.moveTo(b.cx - w, y);
+                    ctx.lineTo(b.cx + w, y);
+                    ctx.stroke();
+                }
+                // steny a dno
+                ctx.strokeStyle = '#c08443';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(b.cx - b.top, b.rim);
+                ctx.lineTo(b.cx - b.bottom, b.floor);
+                ctx.lineTo(b.cx + b.bottom, b.floor);
+                ctx.lineTo(b.cx + b.top, b.rim);
+                ctx.stroke();
+                // okraj (obruč) otvoru
+                ctx.strokeStyle = '#e0a458';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(b.cx - b.top - 2, b.rim);
+                ctx.lineTo(b.cx + b.top + 2, b.rim);
+                ctx.stroke();
+                ctx.lineCap = 'butt';
+
+                // nápis pri chytení: „Chytené! +body“
+                if (catchAt) {
+                    const age = (performance.now() - catchAt) / 1000;
+                    if (age < 1.2) {
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0, 1 - age / 1.2);
+                        ctx.fillStyle = '#4ade80';
+                        ctx.font = '800 16px Syne, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        const tx = Math.max(80, Math.min(CW - 80, b.cx));
+                        ctx.fillText(t('snpWin') + ' +' + catchPts, tx, b.rim - 26 - age * 22);
+                        ctx.restore();
+                    }
+                }
             }
 
             let paused = false;
             function togglePause() {
-                if (solved) return;
+                if (solved || over) return;
                 paused = !paused;
                 pauseBtn.classList.toggle('paused', paused);
             }
