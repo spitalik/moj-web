@@ -529,6 +529,14 @@ SDI18N.add("fr", {
   recNoticeTitle: "Avant de commencer à enregistrer",
   recNoticeText: "Le micro écoute toute la nuit. Si quelqu’un d’autre dort dans la chambre, l’appli capte aussi son ronflement et sa voix. Préviens cette personne à l’avance et n’enregistre qu’avec son accord. Si tu ne veux garder aucun son, désactive « Garder les enregistrements sonores » dans les réglages – l’appli détectera alors seulement le ronflement et le bruit. Tout reste uniquement sur cet appareil.",
   recNoticeOk: "Compris, continuer",
+  powerTitle: "Pour que l’enregistrement nocturne ne s’arrête pas",
+  powerText: "Certains téléphones endorment les applis écran éteint pour économiser la batterie, et l’enregistrement s’arrête. Autorisez Sleep Detective à fonctionner en arrière-plan.",
+  powerVendor: "Dans l’écran suivant, réglez la batterie de Sleep Detective sur « Aucune restriction » et, si l’option existe, activez le démarrage automatique.",
+  powerOk: "Configurer",
+  powerLater: "Pas maintenant",
+  powerHint: "Le téléphone a sans doute endormi l’appli pendant la nuit pour économiser la batterie. Autorisez-la à fonctionner en arrière-plan sans restriction.",
+  powerFix: "Réglages batterie",
+  powerSetHint: "Si l’enregistrement s’arrête pendant la nuit, autorisez l’appli à fonctionner en arrière-plan sans restriction de batterie.",
 
   // ---- Actions, sauvegarde, restauration ----
   oneExp: "Une seule expérience à la fois, pour savoir clairement ce qui a marché. Termine d’abord « {exp} ».",

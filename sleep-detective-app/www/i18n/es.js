@@ -529,6 +529,14 @@ SDI18N.add("es", {
   recNoticeTitle: "Antes de empezar a grabar",
   recNoticeText: "El micrófono escucha toda la noche. Si alguien más duerme contigo en la habitación, la app también captará sus ronquidos y su voz. Díselo antes y graba solo con su consentimiento. Si no quieres guardar ningún sonido, desactiva en los ajustes “Guardar grabaciones de sonido”: la app entonces solo reconocerá ronquidos y ruido. Todo se queda solo en este dispositivo.",
   recNoticeOk: "Entendido, continuar",
+  powerTitle: "Que el registro nocturno no se corte",
+  powerText: "Algunos teléfonos duermen las apps con la pantalla apagada para ahorrar batería y el registro se detiene. Permite que Sleep Detective funcione en segundo plano.",
+  powerVendor: "En la siguiente pantalla, pon la batería de Sleep Detective en “Sin restricciones” y, si existe, activa el inicio automático.",
+  powerOk: "Configurar",
+  powerLater: "Ahora no",
+  powerHint: "Probablemente el teléfono durmió la app durante la noche para ahorrar batería. Permite que funcione en segundo plano sin restricciones.",
+  powerFix: "Ajustes de batería",
+  powerSetHint: "Si el registro se corta por la noche, permite que la app funcione en segundo plano sin restricciones de batería.",
 
   // ---- Acciones, copia, restauración ----
   oneExp: "Solo puede haber un experimento a la vez, para que quede claro qué ha funcionado. Primero termina “{exp}”.",

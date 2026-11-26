@@ -135,6 +135,7 @@
     soundAudio: true, soundFull: false, fullKeepDays: 14,
     autoOn: false, autoFrom: "22:30", autoTo: "07:00",
     recNotice: false,       // používateľ videl upozornenie o ľuďoch v izbe pred prvým nahrávaním
+    powerAsked: false,      // Android: pred prvým záznamom sme ponúkli nastavenie batérie (beh na pozadí)
     lastBackup: null, backupSnooze: null };   // dátum poslednej stiahnutej zálohy a odloženia pripomienky   // automatické spustenie a ukončenie nočného záznamu   // fullKeepDays: koľko dní uchovávať nahrávky celej noci (1–14)   // soundAudio: ukladať nahrávky vôbec; soundFull: aj celú noc, nielen ukážky   // ukážky: počet za noc a dĺžka v s pre každý druh zvuku
   const UI = { tab: "today", logMode: new Date().getHours() >= 15 ? "evening" : "morning", msg: null, evDate: null };   // evDate: doplňovaný včerajší večer
 
@@ -692,7 +693,12 @@
     { key: "energy",   vals: [1, 2, 3, 4, 5], num: true }
   ].map(q => {
     const K = q.key.charAt(0).toUpperCase() + q.key.slice(1);
-    return Object.assign(q, { get title() { return L("q" + K); }, get opts() { const l = L("o" + K); return q.vals.map((v, i) => [v, Array.isArray(l) ? l[i] : String(v)]); } });
+    // texty sa čítajú až pri zobrazení (getter), aby platil aktuálny jazyk; Object.assign by getter zavolal
+    // hneď pri načítaní a otázky by ostali v jazyku spustenia
+    return Object.defineProperties(q, {
+      title: { get() { return L("q" + K); } },
+      opts: { get() { const l = L("o" + K); return q.vals.map((v, i) => [v, Array.isArray(l) ? l[i] : String(v)]); } }
+    });
   });
   let ci = null;
   // date: ráno, ku ktorému check-in patrí (dnes, alebo včera pri doplnení). Oprava prepíše starý záznam.
@@ -793,6 +799,7 @@
         '<label class="small" for="set-auto-to">' + L("autoTo") + '<input id="set-auto-to" type="text" inputmode="numeric" autocomplete="off" maxlength="5" value="' + esc(SET.autoTo) + '"></label></div>' +
         '<p class="small num-err" id="err-auto" role="alert" hidden></p>' +
         '<p class="small muted">' + L("autoNote") + (bgPlugin() ? " " + L("autoNoteBg") : "") + "</p>" : "") +
+      (powerApi() ? '<p class="small muted">' + L("powerSetHint") + '</p><button class="btn ghost" data-act="fixPower" type="button">' + L("powerFix") + "</button>" : "") +
       check("set-audio", SET.soundAudio, L("audioLabel"), L("audioHint"));
     if (SET.soundAudio) {
       const kb = SET.clipKbps || 128;
@@ -1234,18 +1241,19 @@
   function closeSheet() { stopPlaying(); if (UI.pruneOnClose || $("#sheet").innerHTML.includes('id="set-keep"')) { UI.pruneOnClose = false; pruneFiles(); } $("#sheet").hidden = true; $("#sheet").innerHTML = ""; ci = null; render(); }
 
   // Potvrdzovacie okno
-  let modalOk = null;
+  let modalOk = null, modalCancel = null;
   function confirmModal(o, onOk) {
     const m = $("#modal");
     m.innerHTML = '<div class="modal-card" role="alertdialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-text">' +
       '<h3 id="modal-title">' + o.title + '</h3><p id="modal-text" class="small">' + o.text + "</p>" +
-      '<div class="row"><button class="btn ghost" data-act="modalCancel" type="button">' + L("cancel") + "</button>" + '' +
+      '<div class="row"><button class="btn ghost" data-act="modalCancel" type="button">' + (o.cancel || L("cancel")) + "</button>" +
       '<button class="btn ' + (o.danger ? "danger-fill" : "") + '" data-act="modalOk" type="button">' + o.ok + "</button></div></div>";
     m.hidden = false;
     modalOk = onOk;
+    modalCancel = o.onCancel || null;
     m.querySelector('[data-act="modalCancel"]').focus();
   }
-  function closeModal() { $("#modal").hidden = true; $("#modal").innerHTML = ""; modalOk = null; }
+  function closeModal() { $("#modal").hidden = true; $("#modal").innerHTML = ""; modalOk = null; modalCancel = null; }
 
   let toastT;
   function toast(t) { const el = $("#toast"); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2800); }
@@ -1344,20 +1352,13 @@
       infoModal(L("micDeniedTitle"), L("micDeniedText") + " " + L(NATIVE ? "micDeniedNative" : "micDeniedWeb"));
       return;
     }
-    const AC = window.AudioContext || window.webkitAudioContext;
-    const ctx = new AC();
-    try { await ctx.resume(); } catch (e) { /* nič */ }
-    const an = ctx.createAnalyser();
-    an.fftSize = 2048; an.smoothingTimeConstant = 0;
-    const src = ctx.createMediaStreamSource(stream);
-    src.connect(an);
     const now = Date.now();
     const w = autoWindow(now);
     if (w) markAuto(w.key);   // v tomto okne sa už automaticky znova nespustí
     standby = false;
     rec = {
-      stream, ctx, an, src, start: now, auto: !!auto, autoEnd: SET.autoOn ? nextAutoEnd(now) : Infinity,
-      td: new Float32Array(an.fftSize), fd: new Float32Array(an.frequencyBinCount),
+      stream, ctx: null, an: null, src: null, sr: 48000, start: now, auto: !!auto, autoEnd: SET.autoOn ? nextAutoEnd(now) : Infinity,
+      td: new Float32Array(FFT_N), fd: new Float32Array(FFT_N / 2),
       det: new SleepSound.Detector({ sensitivity: SET.soundSensitivity }),
       clips: [], clipRec: null, clipDone: null, lastClipT: 0, db: -100, n: 0, live: { snoreMin: 0, noise: 0 },
       full: !!(SET.soundAudio && SET.soundFull), segs: [], segRec: null, segFrom: 0, segDones: []
@@ -1375,6 +1376,66 @@
     }
     showNight();
     requestWake();
+    if (!startDirect(r)) await startWebAudio(r);
+  }
+
+  // Zvuk čítame priamo z mikrofónu (MediaStreamTrackProcessor), kde to prehliadač vie. Web Audio totiž
+  // spracúva zvuk len vtedy, keď beží aj (tichý) výstup do reproduktora – a ten niektoré telefóny pri
+  // zhasnutej obrazovke zastavia (Xiaomi PowerKeeper: „pause zero data process“), čím sa zastaví celý záznam.
+  // Priame čítanie od výstupu nezávisí: snímky poháňa samotný mikrofón, spektrum počítame sami (sound.js).
+  const FFT_N = 2048;
+  function startDirect(r) {
+    const tr = r.stream.getAudioTracks ? r.stream.getAudioTracks()[0] : null;
+    if (!tr || typeof window.MediaStreamTrackProcessor !== "function") return false;
+    let reader;
+    try { reader = new window.MediaStreamTrackProcessor({ track: tr }).readable.getReader(); } catch (e) { return false; }
+    r.reader = reader;
+    r.ring = new Float32Array(FFT_N); r.ringPos = 0; r.since = 0;
+    (async () => {
+      let buf = new Float32Array(0), got = 0;
+      try {
+        while (rec === r) {
+          const { value: f, done } = await reader.read();
+          if (done || !f) break;
+          try {
+            const n = f.numberOfFrames;
+            if (buf.length < n) buf = new Float32Array(n);
+            f.copyTo(buf, { planeIndex: 0, format: "f32-planar" });
+            r.sr = f.sampleRate || r.sr;
+            got++;
+            for (let i = 0; i < n; i++) { r.ring[r.ringPos] = buf[i]; r.ringPos = (r.ringPos + 1) % FFT_N; }
+            r.since += n;
+            const step = Math.round(r.sr / 10);   // snímka každých 100 ms zvuku
+            while (r.since >= step && rec === r) { r.since -= step; tick(); }
+          } finally { f.close(); }
+        }
+      } catch (e) {
+        // prehliadač priame čítanie nezvládol hneď na začiatku: použijeme Web Audio
+        if (!got && rec === r) { r.ring = null; r.reader = null; startWebAudio(r); }
+      }
+    })();
+    return true;
+  }
+
+  async function startWebAudio(r) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AC();
+    r.ctx = ctx; r.sr = ctx.sampleRate;
+    try { await ctx.resume(); } catch (e) { /* nič */ }
+    const an = ctx.createAnalyser();
+    an.fftSize = FFT_N; an.smoothingTimeConstant = 0;
+    const src = ctx.createMediaStreamSource(r.stream);
+    src.connect(an);
+    r.an = an; r.src = src;
+    // Systém môže zvuk pozastaviť (zhasnutá obrazovka, hovor, iná appka) – hneď ho znova spustíme,
+    // inak by sa do rána nič nenahralo. V prehliadači bez dotyku resume() zlyhá, vtedy pomôže ťuknutie.
+    ctx.onstatechange = () => {
+      if (rec !== r) return;
+      if (ctx.state === "suspended" || ctx.state === "interrupted") ctx.resume().catch(() => {});
+      updateNight();
+    };
+    if (rec !== r) { ctx.close().catch(() => {}); return; }
+    updateNight();
     // Snímky zvuku poháňa zvukové vlákno (AudioWorklet), nie časovač – časovače Chrome pri zamknutej
     // obrazovke spomalí, zvuk z mikrofónu beží ďalej. Bez AudioWorklet použijeme časovač.
     if (!(await startWorklet(r)) && rec === r) r.timer = setInterval(tick, 100);
@@ -1400,10 +1461,16 @@
 
   function tick() {
     const r = rec; if (!r) return;
-    r.an.getFloatTimeDomainData(r.td);
-    r.an.getFloatFrequencyData(r.fd);
+    if (r.ring) {
+      // posledných FFT_N vzoriek z mikrofónu v správnom poradí, spektrum ako AnalyserNode
+      r.td.set(r.ring.subarray(r.ringPos), 0); r.td.set(r.ring.subarray(0, r.ringPos), FFT_N - r.ringPos);
+      SleepSound.spectrumDb(r.td, r.fd);
+    } else if (r.an) {
+      r.an.getFloatTimeDomainData(r.td);
+      r.an.getFloatFrequencyData(r.fd);
+    } else return;
     const db = SleepSound.levelDb(r.td);
-    const low = SleepSound.lowRatio(r.fd, r.ctx.sampleRate, r.an.fftSize);
+    const low = SleepSound.lowRatio(r.fd, r.sr, FFT_N);
     r.db = db;
     const ev = r.det.feed(Date.now(), db, low);
     if (ev && ev.type === "start") maybeClip(r, ev.t);
@@ -1518,8 +1585,9 @@
   function closeAudio(r) {
     clearInterval(r.timer);
     if (r.worklet) { r.worklet.port.onmessage = null; try { r.worklet.disconnect(); } catch (e) { /* nič */ } }
+    if (r.reader) { r.reader.cancel().catch(() => {}); r.reader = null; }
     r.stream.getTracks().forEach(tr => tr.stop());
-    r.ctx.close().catch(() => {});
+    if (r.ctx) r.ctx.close().catch(() => {});
     if (wake) { wake.release().catch(() => {}); wake = null; }
     const BG = bgPlugin();
     if (BG && r.bg !== false) BG.stop().catch(() => {});
@@ -1663,13 +1731,14 @@
     $("#n-snore").textContent = r.live.snoreMin;
     $("#n-noise").textContent = r.live.noise;
     const tip = $("#n-tip");
-    if (r.bg === true && r.ctx.state !== "suspended") {
+    const st = r.ctx ? r.ctx.state : "running";
+    if (r.bg === true && st !== "suspended") {
       tip.className = "night-tip";
       tip.textContent = L("tipBg");
-    } else if (r.ctx.state === "suspended") {
+    } else if (st === "suspended") {
       tip.className = "night-tip warn";
       tip.textContent = L("tipSuspended");
-    } else if (!wake && r.worklet) {
+    } else if (!wake && (r.worklet || r.ring)) {
       tip.className = "night-tip warn";
       tip.textContent = L("tipWorklet");
     } else if (!wake) {
@@ -1719,8 +1788,11 @@
       stat(s.noise, L("soundsLabel")) + stat(s.loudest ? clock(s.loudest.t) : "–", L("statLoudest")) + "</div>";
     if (s.gapMin > 0) h += '<p class="small t-lamp">' + L("gapLine", { m: s.gapMin }) + "</p>";
     if (s.interrupted) h += '<p class="small t-lamp">' + L("interruptedLine", { time: clock(s.end) }) + "</p>";
+    if ((s.gapMin > 0 || s.interrupted) && powerApi()) h += '<p class="small">' + L("powerHint") + '</p><button class="btn ghost" data-act="fixPower" type="button">' + L("powerFix") + "</button>";
     h += soundChart(s) +
-      '<div class="legend"><span><i style="background:var(--lamp)"></i>' + L("legendSnore") + '</span><span><i style="background:var(--bar)"></i>' + L("legendLoud") + "</span></div></div>";
+      '<div class="legend"><span><i style="background:var(--lamp)"></i>' + L("legendSnore") + '</span><span><i style="background:var(--bar)"></i>' + L("legendLoud") + "</span></div>" +
+      // vymazanie hneď pod súhrnom noci, nie na konci okna, kde ho na Androide prekrývajú systémové tlačidlá
+      '<button class="btn danger del-night" data-act="askDelSound" data-key="' + key + '" type="button">' + L("btnDelSound") + "</button></div>";
     h += '<div class="card"><div class="eyebrow">' + L("clipsEyebrow") + "</div>";
     if (s.clips && s.clips.length) {
       s.clips.slice().sort((a, b) => a.t - b.t).forEach(c => {
@@ -1746,7 +1818,6 @@
       h += '<p class="small muted">' + L("segHint") + "</p></div>";
     }
     h += '<p class="small muted">' + L("soundDisclaimer") + "</p>";
-    h += '<button class="btn danger" data-act="askDelSound" data-key="' + key + '" type="button">' + L("btnDelSound") + "</button>";
     h += "</div>";
     showSheet(h);
     markMissingClips(nightFiles(s));
@@ -1844,6 +1915,35 @@
   function withRecNotice(go) {
     if (SET.recNotice) { go(); return; }
     confirmModal({ title: REC_NOTICE.title, text: REC_NOTICE.text, ok: L("recNoticeOk") }, () => { SET.recNotice = true; saveSet(); closeModal(); go(); });
+  }
+
+  // Šetrenie batérie: niektoré telefóny (najmä Xiaomi, Huawei, Oppo, Vivo, Samsung) uspia appku pri zhasnutej
+  // obrazovke aj so službou na popredí. Zakázať im to nevieme, len pred prvým záznamom zavedieme používateľa
+  // do systémového okna „beh na pozadí“ a do nastavení batérie výrobcu. Neskôr cez Nastavenia alebo ranný prehľad.
+  const STRICT_VENDORS = /xiaomi|redmi|poco|huawei|honor|oppo|realme|oneplus|vivo|iqoo|samsung|meizu|asus|tecno|infinix|itel|hmd|nokia|lenovo|motorola|zte|nubia/;
+  const powerApi = () => { const BG = bgPlugin(); return BG && typeof BG.power === "function" ? BG : null; };
+  async function powerState() {
+    const BG = powerApi();
+    if (!BG) return null;
+    try { const p = await BG.power(); return { ignoring: !!(p && p.ignoring), strict: STRICT_VENDORS.test(String(p && p.vendor || "").toLowerCase()) }; } catch (e) { return null; }
+  }
+  async function withPower(go) {
+    if (SET.powerAsked || !powerApi()) { go(); return; }
+    const p = await powerState();
+    if (!p || (p.ignoring && !p.strict)) { go(); return; }
+    const done = () => { SET.powerAsked = true; saveSet(); };
+    confirmModal({ title: L("powerTitle"), text: L("powerText") + (p.strict ? " " + L("powerVendor") : ""), ok: L("powerOk"), cancel: L("powerLater"),
+      onCancel: () => { done(); go(); } }, async () => { done(); closeModal(); await fixPower(p); go(); });
+  }
+  async function fixPower(known) {
+    const BG = powerApi();
+    if (!BG) return;
+    const p = known || await powerState();
+    if (!p) return;
+    try {
+      if (!p.ignoring && typeof BG.askBattery === "function") await BG.askBattery();
+      if (p.strict && typeof BG.vendorSettings === "function") await BG.vendorSettings();
+    } catch (e) { /* nastavenia sa neotvorili */ }
   }
 
   function infoModal(title, text) {
@@ -2115,7 +2215,7 @@
         D = nd;
         D.nights.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
         if (b.settings && typeof b.settings === "object") {
-          const keep = { installDismissed: SET.installDismissed, recNotice: SET.recNotice, lastBackup: SET.lastBackup, backupSnooze: SET.backupSnooze };
+          const keep = { installDismissed: SET.installDismissed, recNotice: SET.recNotice, powerAsked: SET.powerAsked, lastBackup: SET.lastBackup, backupSnooze: SET.backupSnooze };
           try { localStorage.setItem(SET_KEY, JSON.stringify(b.settings)); } catch (e) { /* nič */ }
           load();   // rovnaká kontrola a prevod starších nastavení ako pri spustení
           D = nd;
@@ -2201,7 +2301,7 @@
 
   document.addEventListener("click", e => {
     // prehliadač mohol pri automatickom spustení zvuk pozastaviť – dotyk ho spustí
-    if (rec && rec.ctx.state === "suspended") rec.ctx.resume().then(updateNight).catch(() => {});
+    if (rec && rec.ctx && rec.ctx.state === "suspended") rec.ctx.resume().then(updateNight).catch(() => {});
     const b = e.target.closest("button");
     if (!b) return;
     if (b.dataset.tab) { UI.tab = b.dataset.tab; UI.msg = null; UI.evDate = null; render(); return; }
@@ -2223,8 +2323,9 @@
     if (b.dataset.repdays) { UI.repDays = Number(b.dataset.repdays); openReport(); return; }
     switch (b.dataset.act) {
       case "settings": openSettings(); break;
-      case "startNight": withRecNotice(() => startRecording()); break;
-      case "standby": withRecNotice(showStandby); break;
+      case "startNight": withRecNotice(() => withPower(() => startRecording())); break;
+      case "fixPower": fixPower(); break;
+      case "standby": withRecNotice(() => withPower(showStandby)); break;
       case "cancelStandby": cancelStandby(); break;
       case "askStopNight":
         confirmModal({ title: L("stopQ"), text: L("stopText"), ok: L("btnStopRec") }, () => { closeModal(); stopRecording(); });
@@ -2302,7 +2403,7 @@
         }, resetAll);
         break;
       case "modalOk": if (modalOk) modalOk(); break;
-      case "modalCancel": closeModal(); break;
+      case "modalCancel": { const c = modalCancel; closeModal(); if (c) c(); break; }
       case "install":
         if (installPrompt) {
           installPrompt.prompt();

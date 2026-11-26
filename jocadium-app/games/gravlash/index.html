@@ -200,7 +200,7 @@
     .fbtn:active{transform:translateY(1px);}
     #orientation-hint{font-size:10.5px;color:var(--fdim);}
     /* prekryv je stlpcovy flex: na nizkych obrazovkach sa scroluje po hlavnej osi, nie do strany */
-    @media (max-height:820px){.ui-overlay{justify-content:flex-start !important;align-items:center !important;overflow-y:auto !important;}}
+    @media (max-height:820px){.ui-overlay{justify-content:flex-start !important;justify-content:safe center !important;align-items:center !important;overflow-y:auto !important;}}
     </style>
 </head>
 <body>

@@ -98,6 +98,7 @@ public class RecordingService extends Service {
 
     @Override
     public void onDestroy() {
+        NightWebView.setKeepAwake(false);
         if (lock != null && lock.isHeld()) lock.release();
         lock = null;
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);

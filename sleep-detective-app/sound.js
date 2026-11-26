@@ -180,7 +180,40 @@
     return rms > 0 ? 20 * Math.log10(rms) : -100;
   }
 
-  const api = { Detector, lowRatio, levelDb, BUCKET_MS, SENSITIVITY };
+  // Spektrum v dB ako AnalyserNode.getFloatFrequencyData (Blackmanovo okno, |X|/N, bez vyhladzovania),
+  // keď appka číta zvuk priamo z mikrofónu bez Web Audio. samples: N vzoriek (N = mocnina 2), out: N/2 hodnôt.
+  const fftCache = {};
+  function fftTables(n) {
+    if (fftCache[n]) return fftCache[n];
+    const win = new Float32Array(n), cos = new Float32Array(n / 2), sin = new Float32Array(n / 2), rev = new Uint32Array(n);
+    const a0 = 0.42, a1 = 0.5, a2 = 0.08;
+    for (let i = 0; i < n; i++) win[i] = a0 - a1 * Math.cos(2 * Math.PI * i / n) + a2 * Math.cos(4 * Math.PI * i / n);
+    for (let i = 0; i < n / 2; i++) { cos[i] = Math.cos(2 * Math.PI * i / n); sin[i] = -Math.sin(2 * Math.PI * i / n); }
+    const bits = Math.log2(n);
+    for (let i = 0; i < n; i++) { let r = 0; for (let b = 0; b < bits; b++) r |= ((i >> b) & 1) << (bits - 1 - b); rev[i] = r; }
+    return (fftCache[n] = { win, cos, sin, rev, re: new Float64Array(n), im: new Float64Array(n) });
+  }
+  function spectrumDb(samples, out) {
+    const n = samples.length, t = fftTables(n), re = t.re, im = t.im;
+    for (let i = 0; i < n; i++) { re[t.rev[i]] = samples[i] * t.win[i]; im[t.rev[i]] = 0; }
+    for (let size = 2; size <= n; size <<= 1) {
+      const half = size >> 1, step = n / size;
+      for (let i = 0; i < n; i += size) {
+        for (let j = 0, k = 0; j < half; j++, k += step) {
+          const a = i + j, b = a + half;
+          const tr = re[b] * t.cos[k] - im[b] * t.sin[k], ti = re[b] * t.sin[k] + im[b] * t.cos[k];
+          re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+        }
+      }
+    }
+    for (let i = 0; i < out.length; i++) {
+      const m = Math.sqrt(re[i] * re[i] + im[i] * im[i]) / n;
+      out[i] = m > 0 ? Math.max(-200, 20 * Math.log10(m)) : -200;
+    }
+    return out;
+  }
+
+  const api = { Detector, lowRatio, levelDb, spectrumDb, BUCKET_MS, SENSITIVITY };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SleepSound = api;
 })(this);

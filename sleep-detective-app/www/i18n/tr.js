@@ -528,6 +528,14 @@ SDI18N.add("tr", {
   recNoticeTitle: "Kayda başlamadan önce",
   recNoticeText: "Mikrofon bütün gece dinler. Odada seninle başka biri uyuyorsa uygulama onun horlamasını ve konuşmasını da yakalar. Bunu ona önceden söyle ve sadece onun izniyle kaydet. Hiç ses saklamak istemiyorsan ayarlarda „Ses kayıtlarını sakla“ seçeneğini kapat – uygulama o zaman sadece horlamayı ve gürültüyü tanır. Her şey sadece bu cihazda kalır.",
   recNoticeOk: "Anladım, devam et",
+  powerTitle: "Gece kaydı kesilmesin",
+  powerText: "Bazı telefonlar pil tasarrufu için ekran kapalıyken uygulamaları uyutur ve kayıt durur. Sleep Detective'in arka planda çalışmasına izin ver.",
+  powerVendor: "Sonraki ekranda Sleep Detective için pil kullanımını “Kısıtlama yok” yap ve varsa otomatik başlatmayı aç.",
+  powerOk: "Ayarla",
+  powerLater: "Şimdi değil",
+  powerHint: "Telefon pil tasarrufu için uygulamayı gece büyük ihtimalle uyuttu. Arka planda kısıtlamasız çalışmasına izin ver.",
+  powerFix: "Pil ayarları",
+  powerSetHint: "Kayıt gece kesiliyorsa uygulamanın pil kısıtlaması olmadan arka planda çalışmasına izin ver.",
 
   // ---- İşlemler, yedek, geri yükleme ----
   oneExp: "Neyin işe yaradığı net olsun diye aynı anda sadece bir deney sürer. Önce „{exp}“ deneyini bitir.",

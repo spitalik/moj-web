@@ -101,6 +101,8 @@ header{padding:44px 0 0;display:flex;align-items:flex-start;justify-content:spac
 /* CARD */
 .game-card{background:var(--bg1);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;text-decoration:none;color:inherit;display:flex;flex-direction:column;transition:border-color .22s,transform .22s;position:relative;animation:fadeUp .35s ease both;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+/* návrat z hry: karty hneď viditeľné (postupné objavovanie by kartu v strede zoznamu ukázalo až o niekoľko sekúnd) */
+#games-grid.no-anim .game-card{animation:none;}
 .game-card:hover{border-color:var(--border-h);transform:translateY(-3px);}
 .game-card:active{transform:scale(0.98);}
 .card-hero{height:120px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;font-size:52px;}
@@ -525,18 +527,50 @@ function renderGames(){
 document.getElementById('filters').addEventListener('click',e=>{
   const btn=e.target.closest('.filter-btn');if(!btn)return;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');activeTag=btn.dataset.tag;renderGames();
+  btn.classList.add('active');activeTag=btn.dataset.tag;gridAnim();renderGames();
 });
-document.getElementById('search').addEventListener('input',e=>{searchQuery=e.target.value;renderGames();});
+document.getElementById('search').addEventListener('input',e=>{searchQuery=e.target.value;gridAnim();renderGames();});
+function gridAnim(){ document.getElementById('games-grid').classList.remove('no-anim'); }
 
 // spustenie hry cez kartičku sa započíta (zápis stihne prebehnúť pred odchodom)
+// a zapamätá sa, kde v zozname bola: po návrate z hry sa stránka vráti na to isté miesto
+const RETURN_KEY='jocadium_return';
 document.getElementById('games-grid').addEventListener('click',e=>{
   const card=e.target.closest('.game-card');
   if(!card) return;
   const file=card.getAttribute('href');
   const g=GAMES.find(x=>x.file===file);
-  if(g) countPlay(g.id);
+  if(!g) return;
+  countPlay(g.id);
+  const top=Math.round(card.getBoundingClientRect().top);
+  try{ sessionStorage.setItem(RETURN_KEY,JSON.stringify({id:g.id,top,tag:activeTag,q:searchQuery.slice(0,100)})); }catch(e){}
 });
+// Návrat z hry (odkaz Späť v hre aj systémové Späť v appke načítajú stránku nanovo):
+// obnoví filter a hľadanie a posunie zoznam tak, aby kartička naposledy spustenej hry bola tam, kde bola.
+// Hľadá sa podľa hry, nie podľa výšky stránky: pri „Najhranejšie“ sa hra po spustení môže posunúť vyššie.
+function restoreReturn(){
+  let s=null;
+  try{ s=JSON.parse(sessionStorage.getItem(RETURN_KEY)||'null'); sessionStorage.removeItem(RETURN_KEY); }catch(e){ return; }
+  if(!s||typeof s!=='object') return;
+  const g=GAMES.find(x=>x.id===s.id); if(!g) return;
+  if(typeof s.tag==='string'&&Object.prototype.hasOwnProperty.call(TAG_FILTER,s.tag)){
+    activeTag=s.tag;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.tag===activeTag));
+  }
+  if(typeof s.q==='string'){ searchQuery=s.q.slice(0,100); document.getElementById('search').value=searchQuery; }
+  const grid=document.getElementById('games-grid');
+  grid.classList.add('no-anim');
+  renderGames();
+  const top=Math.min(Math.max(Number.isFinite(s.top)?s.top:120,0),window.innerHeight-60);
+  const go=()=>{
+    const el=[...grid.querySelectorAll('.game-card')].find(a=>a.getAttribute('href')===g.file);
+    if(el) window.scrollTo(0,Math.max(0,el.getBoundingClientRect().top+window.scrollY-top));
+  };
+  go();
+  requestAnimationFrame(go);
+  // písma môžu po načítaní mierne zmeniť výšku kartičiek
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(go);
+}
 
 // ── PWA ───────────────────────────────────────────────────────────────────
 let deferredPrompt=null;
@@ -588,6 +622,7 @@ if(!NATIVE&&'serviceWorker' in navigator){
 
 // ── Init ──────────────────────────────────────────────────────────────────
 applyLang();
+restoreReturn();
 </script>
 </body>
 </html>

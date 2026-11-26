@@ -60,6 +60,7 @@ const mic = { amp: 0.001, low: false };
 const tracksStopped = [];
 navigator.mediaDevices = { getUserMedia: async () => ({ getTracks: () => [{ stop() { tracksStopped.push(1); } }] }) };
 global.AudioContext = function () {
+  global.lastCtx = this;
   this.sampleRate = 48000;
   this.resume = () => Promise.resolve();
   this.close = () => Promise.resolve();
@@ -310,6 +311,9 @@ async function asyncTests() {
 
   await at('vymazanie jednej noci vyžaduje potvrdenie', async () => {
     click({ act: 'soundReport', key: '2026-12-02' });
+    // tlačidlo je hneď pod súhrnom noci, nie na konci okna (tam ho na Androide prekrývajú systémové tlačidlá)
+    const del = sheet().indexOf('data-act="askDelSound"'), clipsAt = sheet().indexOf('class="eyebrow">Ukážky');
+    assert.ok(del > 0 && clipsAt > 0 && del < clipsAt, 'vymazanie nie je pri súhrne noci (pred ukážkami)');
     click({ act: 'askDelSound', key: '2026-12-02' });
     assert.ok(data().sounds['2026-12-02'], 'zmazané pred potvrdením');
     click({ act: 'modalOk' });
@@ -598,6 +602,67 @@ async function asyncTests() {
     assert.strictEqual(node.port.onmessage, null, 'po ukončení zostal AudioWorklet pripojený');
     click({ act: 'close' });
     global.workletOn = false; delete global.AudioWorkletNode; delete window.AudioWorkletNode;
+  });
+
+  await at('zvuk priamo z mikrofónu (MediaStreamTrackProcessor): bez Web Audio, chrápanie sa rozpozná', async () => {
+    // Xiaomi zastaví tichý zvukový výstup pri zhasnutej obrazovke – priame čítanie od výstupu nezávisí
+    let pending = null, cancelled = 0, ctxs = 0;
+    const OldAC = global.AudioContext;
+    global.AudioContext = window.AudioContext = function () { ctxs++; OldAC.call(this); };
+    const realGum = navigator.mediaDevices.getUserMedia;
+    navigator.mediaDevices.getUserMedia = async () => { const tr = { stop() { tracksStopped.push(1); } }; return { getTracks: () => [tr], getAudioTracks: () => [tr] }; };
+    global.MediaStreamTrackProcessor = window.MediaStreamTrackProcessor = function () {
+      this.readable = { getReader: () => ({ read: () => new Promise(res => { pending = res; }), cancel: async () => { cancelled++; if (pending) pending({ done: true }); } }) };
+    };
+    let ph = 0;
+    const frame = () => ({ numberOfFrames: 4800, sampleRate: 48000, close() {},
+      copyTo(buf) { const hz = mic.low ? 150 : 2500; for (let i = 0; i < 4800; i++) buf[i] = mic.amp * 1.41 * Math.sin(2 * Math.PI * hz * (ph++) / 48000); } });
+    fakeNow = at2(21, 23, 0);
+    click({ act: 'startNight' }); await settle();
+    assert.strictEqual(typeof pending, 'function', 'mikrofón sa nečíta priamo');
+    for (let i = 0; i < 3000; i++) {
+      fakeNow += 100;
+      const sec = i / 10, snoring = sec >= 30 && sec < 270 && (sec % 4) < 1.2;
+      mic.amp = snoring ? 0.02 : 0.001; mic.low = snoring;
+      const p = pending; pending = null; p({ value: frame(), done: false });
+      await Promise.resolve(); await Promise.resolve();
+    }
+    assert.strictEqual(ctxs, 0, 'pri priamom čítaní sa nemá vytvárať AudioContext (zvukový výstup)');
+    assert.ok(els['#n-snore'].textContent !== '' && els['#n-tip'].textContent.length > 0);
+    click({ act: 'askStopNight' }); click({ act: 'modalOk' }); await settle();
+    const s = data().sounds['2026-12-21'];
+    assert.ok(s && s.snoreMin >= 3, 'chrápanie pri priamom čítaní ' + (s && s.snoreMin));
+    assert.strictEqual(cancelled, 1, 'čítanie mikrofónu sa po ukončení nezastavilo');
+    click({ act: 'close' });
+    // prehliadač priame čítanie nezvládne (chyba pri prvej snímke) → Web Audio
+    click({ act: 'startNight' }); await settle();
+    const p = pending; pending = null;
+    p({ value: { numberOfFrames: 10, sampleRate: 48000, close() {}, copyTo() { throw new Error('nejde'); } }, done: false }); await settle();
+    assert.strictEqual(ctxs, 1, 'po zlyhaní priameho čítania sa nepoužil Web Audio');
+    for (let i = 0; i < 700; i++) { fakeNow += 100; tickAll(); }
+    click({ act: 'askStopNight' }); click({ act: 'modalOk' }); await settle(); click({ act: 'close' });
+    delete global.MediaStreamTrackProcessor; delete window.MediaStreamTrackProcessor;
+    global.AudioContext = window.AudioContext = OldAC;
+    navigator.mediaDevices.getUserMedia = realGum;
+  });
+
+  await at('systém pozastaví zvuk (zhasnutá obrazovka, hovor) – záznam ho sám znova spustí', async () => {
+    fakeNow = at2(22, 23, 0);
+    click({ act: 'startNight' }); await settle();
+    const ctx = global.lastCtx;
+    let resumed = 0;
+    ctx.resume = () => { resumed++; ctx.state = 'running'; return Promise.resolve(); };
+    assert.strictEqual(typeof ctx.onstatechange, 'function', 'záznam nesleduje stav zvuku');
+    ctx.state = 'suspended'; ctx.onstatechange();
+    assert.strictEqual(resumed, 1, 'pozastavený zvuk sa znova nespustil');
+    ctx.state = 'interrupted'; ctx.onstatechange();
+    assert.strictEqual(resumed, 2, 'prerušený zvuk (iOS) sa znova nespustil');
+    ctx.state = 'running'; ctx.onstatechange();
+    assert.strictEqual(resumed, 2, 'bežiaci zvuk sa spúšťal zbytočne');
+    for (let i = 0; i < 50; i++) { fakeNow += 100; tickAll(); }
+    click({ act: 'askStopNight' }); click({ act: 'modalOk' }); await settle(); click({ act: 'close' });
+    ctx.state = 'suspended'; ctx.onstatechange();
+    assert.strictEqual(resumed, 2, 'po ukončení záznamu sa zvuk znova spustil');
   });
 
   await at('obnovenie zo zálohy: zlý súbor nič nezmení, dobrý nahradí dáta a nastavenia', async () => {
@@ -1142,6 +1207,63 @@ async function asyncTests() {
     delete window.Capacitor;
   });
 
+  await at('natívny Android: šetrenie batérie – pred prvým záznamom ponuka nastavenia, v nastaveniach a po prerušení', async () => {
+    const calls = [];
+    let ignoring = false, vendor = 'Xiaomi';
+    window.Capacitor = { isNativePlatform: () => true, getPlatform: () => 'android', Plugins: {
+      KeepAwake: { keepAwake: async () => {}, allowSleep: async () => {} },
+      BackgroundRecording: {
+        start: async () => { calls.push('bg-start'); }, stop: async () => {}, addListener: () => {},
+        power: async () => ({ ignoring, vendor }),
+        askBattery: async () => { calls.push('ask'); ignoring = true; return { ignoring, vendor }; },
+        vendorSettings: async () => { calls.push('vendor'); return { ignoring, vendor }; }
+      }
+    } };
+    store['sleepDetective.settings.v1'] = JSON.stringify({ recNotice: true });
+    new Function(script)();
+    await settle();
+    fakeNow = new RealDate(2027, 1, 12, 23, 0, 0).getTime();
+    click({ tab: 'today' });
+    click({ act: 'startNight' }); await settle();
+    assert.strictEqual(els['#modal'].hidden, false, 'pred prvým záznamom sa neponúklo nastavenie batérie');
+    assert.ok(els['#modal'].innerHTML.includes('Bez obmedzení') && els['#modal'].innerHTML.includes('Teraz nie'), 'Xiaomi: chýba návod pre nastavenia výrobcu');
+    assert.ok(!calls.includes('bg-start'), 'záznam sa spustil pred odpoveďou');
+    click({ act: 'modalOk' }); await settle();
+    assert.deepStrictEqual(calls.slice(0, 3), ['ask', 'vendor', 'bg-start'], 'poradie: systémové okno, nastavenia výrobcu, potom záznam: ' + calls);
+    assert.ok(JSON.parse(store['sleepDetective.settings.v1']).powerAsked, 'ponuka sa nezapamätala');
+    // noc s prerušením: ranný prehľad ponúkne nastavenie batérie
+    for (let i = 0; i < 3000; i++) fakeNow += 100, tickAll();
+    fakeNow += 30 * 60000;   // appka spala pol hodiny
+    for (let i = 0; i < 3000; i++) fakeNow += 100, tickAll();
+    click({ act: 'askStopNight' }); click({ act: 'modalOk' }); await settle();
+    assert.ok(sheet().includes('prerušený') && sheet().includes('data-act="fixPower"'), 'ranný prehľad po prerušení neponúka nastavenie batérie');
+    calls.length = 0;
+    click({ act: 'fixPower' }); await settle();
+    assert.deepStrictEqual(calls, ['vendor'], 'už povolené: otvoria sa len nastavenia výrobcu');
+    click({ act: 'close' });
+    // druhý záznam sa už nepýta; zrušenie ponuky záznam aj tak spustí
+    calls.length = 0;
+    click({ act: 'startNight' }); await settle();
+    assert.strictEqual(els['#modal'].hidden, true, 'ponuka sa pýta každú noc');
+    assert.ok(calls.includes('bg-start'));
+    click({ act: 'askStopNight' }); click({ act: 'modalOk' }); await settle(); click({ act: 'close' });
+    click({ act: 'settings' });
+    assert.ok(sheet().includes('data-act="fixPower"'), 'v nastaveniach chýba nastavenie batérie');
+    click({ act: 'close' });
+    // iný telefón, ešte bez povolenia: „Teraz nie“ spustí záznam bez nastavení
+    store['sleepDetective.settings.v1'] = JSON.stringify({ recNotice: true });
+    ignoring = false; vendor = 'Google'; calls.length = 0;
+    new Function(script)();
+    await settle();
+    click({ tab: 'today' });
+    click({ act: 'startNight' }); await settle();
+    assert.ok(!els['#modal'].innerHTML.includes('Bez obmedzení'), 'Google: návod pre výrobcu navyše');
+    click({ act: 'modalCancel' }); await settle();
+    assert.deepStrictEqual(calls, ['bg-start'], '„Teraz nie“ nemá otvárať nastavenia: ' + calls);
+    click({ act: 'askStopNight' }); click({ act: 'modalOk' }); await settle(); click({ act: 'close' });
+    delete window.Capacitor;
+  });
+
   await at('texty v nastaveniach zodpovedajú správaniu appky', async () => {
     store['sleepDetective.settings.v1'] = JSON.stringify({ autoOn: true, soundAudio: true, soundFull: true, fullKeepDays: 3, recNotice: true });
     new Function(script)();
@@ -1179,6 +1301,7 @@ async function asyncTests() {
     forceSk = false;
     Object.keys(store).forEach(k => delete store[k]);
     delete window.Capacitor;
+    SDI18N.setLang(SDI18N.DEFAULT);   // ako pri skutočnom štarte: core.js začína v predvolenom jazyku
     new Function(script)();
     await settle();
     const en = SDI18N.dict('en'), de = SDI18N.dict('de');
@@ -1209,6 +1332,13 @@ async function asyncTests() {
     assert.ok(view().includes('Bez kávy po 14:00') && view().includes('Vina potvrdená'), 'po prepnutí do slovenčiny ostali cudzie texty');
     click({ tab: 'today' });
     assert.strictEqual(document.documentElement.attrs.lang, 'sk');
+    // ranný check-in po prepnutí jazyka: otázky aj možnosti v novom jazyku, nie v jazyku spustenia (angličtine)
+    click({ act: 'checkin' });
+    assert.ok(sheet().includes(sk.qQuality) && sheet().includes(sk.oQuality[0]), 'otázka check-inu nie je po slovensky');
+    assert.ok(!sheet().includes(en.qQuality) && !sheet().includes(en.oQuality[0]), 'v check-ine ostala angličtina');
+    click({ ans: '4' });
+    assert.ok(sheet().includes(sk.qDuration) && sheet().includes(sk.oDuration[0]), 'druhá otázka nie je po slovensky');
+    click({ act: 'close' });
     // neznámy jazyk v nastaveniach = angličtina
     store['sleepDetective.settings.v1'] = JSON.stringify({ lang: 'xx' });
     winListeners.storage({ key: 'sleepDetective.settings.v1' });

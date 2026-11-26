@@ -103,6 +103,20 @@ t('podiel nízkych frekvencií a hlasitosť', () => {
   assert.strictEqual(S.levelDb(new Float32Array(10)), -100);
 });
 
+t('spektrum priamo z mikrofónu (bez Web Audio): tón na správnom mieste, chrápanie vs. pískanie', () => {
+  const n = 2048, rate = 48000, out = new Float32Array(n / 2);
+  const tone = (hz, amp) => Float32Array.from({ length: n }, (_, i) => amp * Math.sin(2 * Math.PI * hz * i / rate));
+  S.spectrumDb(tone(1500, 0.5), out);
+  const peak = out.indexOf(Math.max(...out));
+  assert.ok(Math.abs(peak - 1500 / (rate / n)) <= 1, 'vrchol na ' + peak);
+  // ako AnalyserNode: amplitúda 0,5 s Blackmanovým oknom ≈ 20·log10(0,5·0,42/2) ≈ −19,6 dB
+  assert.ok(Math.abs(out[peak] - -19.6) < 1.5, 'úroveň ' + out[peak]);
+  assert.ok(S.lowRatio(S.spectrumDb(tone(150, 0.1), out), rate, n) > 0.95, 'nízky tón');
+  assert.ok(S.lowRatio(S.spectrumDb(tone(2500, 0.1), out), rate, n) < 0.05, 'vysoký tón');
+  S.spectrumDb(new Float32Array(n), out);
+  assert.ok(out.every(v => v === -200), 'ticho');
+});
+
 console.log(`Detektor zvuku: ${ok} testov prešlo`);
 
 // scenáre celej appky (index.html) – potrebujú vlastné náhrady Date, DOM a mikrofónu, preto až po detektore

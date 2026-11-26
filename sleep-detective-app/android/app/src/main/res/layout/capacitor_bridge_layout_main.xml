@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nahrádza rovnomenný layout z Capacitoru: namiesto CapacitorWebView používa NightWebView,
+     ktoré počas nočného záznamu nenechá Chromium zmraziť stránku pri zhasnutej obrazovke. -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <sk.sleepdetective.app.NightWebView
+        android:id="@+id/webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

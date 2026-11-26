@@ -528,6 +528,14 @@ SDI18N.add("de", {
   recNoticeTitle: "Bevor du aufnimmst",
   recNoticeText: "Das Mikrofon hört die ganze Nacht zu. Wenn noch jemand mit dir im Zimmer schläft, erfasst die App auch dessen Schnarchen und Stimme. Sag es der Person vorher und nimm nur mit ihrer Zustimmung auf. Wenn du keinen Ton speichern willst, schalte in den Einstellungen „Tonaufnahmen speichern“ aus – die App erkennt dann nur Schnarchen und Lärm. Alles bleibt nur auf diesem Gerät.",
   recNoticeOk: "Verstanden, weiter",
+  powerTitle: "Damit die Nachtaufnahme nicht abbricht",
+  powerText: "Manche Handys schicken Apps bei ausgeschaltetem Bildschirm schlafen, um Akku zu sparen, und die Aufnahme stoppt. Erlaube Sleep Detective, im Hintergrund zu laufen.",
+  powerVendor: "Stelle im nächsten Fenster den Akku für Sleep Detective auf „Keine Einschränkungen“ und schalte, falls vorhanden, den Autostart ein.",
+  powerOk: "Einrichten",
+  powerLater: "Jetzt nicht",
+  powerHint: "Das Handy hat die App in der Nacht wohl schlafen geschickt, um Akku zu sparen. Erlaube ihr, ohne Einschränkungen im Hintergrund zu laufen.",
+  powerFix: "Akku einstellen",
+  powerSetHint: "Wenn die Aufnahme nachts abbricht, erlaube der App, ohne Akku-Einschränkungen im Hintergrund zu laufen.",
 
   // ---- Aktionen, Backup, Wiederherstellung ----
   oneExp: "Es läuft immer nur ein Experiment, damit klar ist, was gewirkt hat. Schließ zuerst „{exp}“ ab.",

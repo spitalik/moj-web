@@ -528,6 +528,14 @@ SDI18N.add("en", {
   recNoticeTitle: "Before you start recording",
   recNoticeText: "The microphone listens all night. If someone else sleeps in the room with you, the app also picks up their snoring and voice. Tell them beforehand and record only with their consent. If you don't want to save any sound, turn off “Save audio recordings” in settings – the app will then only detect snoring and noise. Everything stays only on this device.",
   recNoticeOk: "Got it, continue",
+  powerTitle: "Keep the night recording running",
+  powerText: "Some phones put apps to sleep when the screen is off to save battery, and the recording stops. Allow Sleep Detective to run in the background.",
+  powerVendor: "In the next screen, set battery use for Sleep Detective to “Unrestricted” and, if available, turn on autostart.",
+  powerOk: "Set up",
+  powerLater: "Not now",
+  powerHint: "The phone probably put the app to sleep during the night to save battery. Allow it to run in the background without restrictions.",
+  powerFix: "Battery settings",
+  powerSetHint: "If the recording stops during the night, allow the app to run in the background without battery restrictions.",
 
   // ---- Actions, backup, restore ----
   oneExp: "Only one experiment runs at a time, so it's clear what worked. Finish “{exp}” first.",

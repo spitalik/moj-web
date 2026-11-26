@@ -529,6 +529,14 @@ SDI18N.add("it", {
   recNoticeTitle: "Prima di iniziare a registrare",
   recNoticeText: "Il microfono ascolta tutta la notte. Se nella stanza dorme anche qualcun altro, l'app capta anche il suo russamento e la sua voce. Avvisa prima questa persona e registra solo con il suo consenso. Se non vuoi salvare nessun audio, disattiva nelle impostazioni «Salva le registrazioni audio» – l'app riconoscerà solo russamento e rumori. Tutto resta solo su questo dispositivo.",
   recNoticeOk: "Ho capito, continua",
+  powerTitle: "Perché la registrazione notturna non si interrompa",
+  powerText: "Alcuni telefoni sospendono le app a schermo spento per risparmiare batteria e la registrazione si ferma. Consenti a Sleep Detective di funzionare in background.",
+  powerVendor: "Nella schermata successiva imposta la batteria di Sleep Detective su “Nessuna restrizione” e, se c’è, attiva l’avvio automatico.",
+  powerOk: "Imposta",
+  powerLater: "Non ora",
+  powerHint: "Probabilmente il telefono ha sospeso l’app durante la notte per risparmiare batteria. Consentile di funzionare in background senza restrizioni.",
+  powerFix: "Impostazioni batteria",
+  powerSetHint: "Se la registrazione si interrompe di notte, consenti all’app di funzionare in background senza restrizioni della batteria.",
 
   // ---- Azioni, backup, ripristino ----
   oneExp: "Si può fare un solo esperimento alla volta, così è chiaro cosa ha funzionato. Prima termina «{exp}».",

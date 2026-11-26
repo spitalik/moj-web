@@ -531,6 +531,14 @@ SDI18N.add("sk", {
   recNoticeTitle: "Skôr než začneš nahrávať",
   recNoticeText: "Mikrofón počúva celú noc. Ak s tebou v izbe spí niekto ďalší, appka zachytí aj jeho chrápanie a hlas. Povedz mu o tom vopred a nahrávaj len s jeho súhlasom. Ak nechceš ukladať žiadny zvuk, vypni v nastaveniach „Ukladať zvukové nahrávky“ – appka potom len rozpozná chrápanie a hluk. Všetko zostáva len v tomto zariadení.",
   recNoticeOk: "Rozumiem, pokračovať",
+  powerTitle: "Aby záznam v noci nevypadol",
+  powerText: "Niektoré telefóny pri zhasnutej obrazovke uspia appky, aby šetrili batériu, a záznam sa preruší. Povoľ Sleep Detective beh na pozadí.",
+  powerVendor: "V ďalšom okne nastav pre Sleep Detective batériu na „Bez obmedzení“ a ak tam je, zapni aj automatické spustenie.",
+  powerOk: "Nastaviť",
+  powerLater: "Teraz nie",
+  powerHint: "Telefón appku počas noci asi uspal, aby šetril batériu. Povoľ jej beh na pozadí bez obmedzení.",
+  powerFix: "Nastaviť batériu",
+  powerSetHint: "Ak sa záznam v noci prerušuje, povoľ appke beh na pozadí bez obmedzení batérie.",
 
   // ---- Akcie, záloha, obnova ----
   oneExp: "Naraz beží len jeden experiment, aby bolo jasné, čo zabralo. Najprv dokonči „{exp}“.",
