@@ -340,13 +340,22 @@ function step(dx, dy) {
     bump = {r, c, dx, dy, t: 1};
     return;
   }
+  // gulička sa kotúľa až po najbližšiu stenu (alebo kým nedôjde do východu)
+  let nr = r, nc = c, n = 0;
+  do {
+    nr += dy; nc += dx; n++;
+    seen[nr][nc] = 1;
+    trail.push({r: nr, c: nc, t: 1});
+  } while (!(nr === exitCell.r && nc === exitCell.c) && open(nr, nc, dy, dx));
+  if (trail.length > 60) trail.splice(0, trail.length - 60);
   player.fromR = r; player.fromC = c;
-  player.r = r + dy; player.c = c + dx;
+  player.r = nr; player.c = nc;
   player.t = 0;
-  seen[player.r][player.c] = 1;
-  trail.push({r: player.r, c: player.c, t: 1});
-  if (trail.length > 60) trail.shift();
-  if (hintPath && hintPath.length > 1 && hintPath[1][0] === player.r && hintPath[1][1] === player.c) hintPath.shift();
+  player.n = n;
+  if (hintPath) {
+    const i = hintPath.findIndex(([hr, hc]) => hr === nr && hc === nc);
+    if (i > 0) hintPath = hintPath.slice(i);
+  }
 }
 
 function reachExit() {
@@ -402,11 +411,9 @@ function frame(ts) {
     timeMs += dt * 1000;
     if (Math.floor(timeMs / 1000) !== before) document.getElementById('hud-time').textContent = Math.floor(timeMs / 1000);
     if (player.t < 1) {
-      player.t = Math.min(1, player.t + dt * 11);
+      // dlhší presun trvá dlhšie, ale rýchlosť rastie, aby dlhé chodby nezdržiavali
+      player.t = Math.min(1, player.t + dt * 11 / Math.pow(player.n || 1, 0.6));
       if (player.t >= 1 && Math.round(player.r) === exitCell.r && Math.round(player.c) === exitCell.c) reachExit();
-    } else if (held.dx || held.dy) {
-      held.t -= dt;
-      if (held.t <= 0) { held.t = 0.115; step(held.dx, held.dy); }
     }
   }
 
