@@ -510,6 +510,7 @@
 
   function validateVisit(v) {
     return (parseISO(v.date) ? null : T('errVisitDate')) ||
+      (v.time && !isValidTime(v.time) ? T('errTime') : null) ||
       (v.nextVisit && !parseISO(v.nextVisit) ? T('errNextVisit') : null) ||
       (requireText(v.doctor || v.specialty, T('labelDoctorOrSpecialty')));
   }

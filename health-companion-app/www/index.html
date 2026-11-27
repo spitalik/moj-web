@@ -760,7 +760,16 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       no.focus();
     });
   }
-  function visitLabel(v) { return v ? fmtDate(v.date) + ' – ' + (v.doctor || v.specialty || '') : ''; }
+  function visitLabel(v) { return v ? fmtDate(v.date) + (v.time ? ' ' + v.time : '') + ' – ' + (v.doctor || v.specialty || '') : ''; }
+  var visitCtx = null; // otvorený formulár návštevy (pre pridanie nového lekára)
+  // Lekár návštevy zo zoznamu: podľa contactId, pri starších návštevách podľa zhodného mena.
+  function visitContactId(v) {
+    if (v.contactId && findBy(state.contacts, v.contactId)) return v.contactId;
+    var name = String(v.doctor || '').trim().toLowerCase();
+    var hit = name ? state.contacts.filter(function (c) { return String(c.name || '').trim().toLowerCase() === name; })[0] : null;
+    return hit ? hit.id : '';
+  }
+  function visitKey(v) { return v.date + ' ' + (v.time || ''); }
   function downloadBlob(name, type, data) {
     var blob = data instanceof Blob ? data : new Blob([data], { type: type });
     var a = document.createElement('a');
@@ -1100,7 +1109,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
 
     if (todayVisits.length) {
       html += '<section class="card"><h2>' + t('todayVisits') + '</h2><div class="stack">' + todayVisits.map(function (v) {
-        return '<div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(v.reason || '') + '</div></div><span class="badge">' + fmtDate(v.date) + '</span></div>';
+        return '<div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(v.reason || '') + '</div></div><span class="badge">' + (v.time ? esc(v.time) : fmtDate(v.date)) + '</span></div>';
       }).join('') + '</div></section>';
     }
 
@@ -1300,10 +1309,10 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     html += '</section>';
 
     html += '<div class="section-head"><h2>' + t('visitsTitle') + '</h2>' + roundAdd('add-visit', t('addVisit')) + '</div>';
-    var visits = sortBy(state.visits, 'date', true);
+    var visits = state.visits.slice().sort(function (a, b) { return visitKey(a) < visitKey(b) ? 1 : visitKey(a) > visitKey(b) ? -1 : 0; });
     if (!visits.length) html += '<div class="empty">' + t('visitsEmpty') + '</div>';
     html += visits.map(function (v) {
-      return '<section class="card"><div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong>' + (v.specialty && v.doctor ? ' <span class="muted">(' + esc(v.specialty) + ')</span>' : '') + '<div class="muted">' + fmtDate(v.date) + '</div></div></div>' +
+      return '<section class="card"><div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong>' + (v.specialty && v.doctor ? ' <span class="muted">(' + esc(v.specialty) + ')</span>' : '') + '<div class="muted">' + fmtDate(v.date) + (v.time ? ' · ' + esc(v.time) : '') + '</div></div></div>' +
         (v.reason ? '<p style="margin-top:6px"><strong>' + t('reasonLabel') + '</strong> ' + esc(v.reason) + '</p>' : '') +
         (v.diagnosis ? '<p><strong>' + t('diagnosisLabel') + '</strong> ' + esc(v.diagnosis) + '</p>' : '') +
         (v.prescriptions ? '<p><strong>' + t('prescribedLabel') + '</strong> ' + esc(v.prescriptions) + '</p>' : '') +
@@ -1315,9 +1324,9 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     // Kontakty
     html += '<div class="section-head"><h2>' + t('contactsTitle') + '</h2>' + roundAdd('add-contact', t('addContact')) + '</div>';
     if (!state.contacts.length) html += '<div class="empty">' + t('contactsEmpty') + '</div>';
-    html += state.contacts.map(function (c) {
+    html += sortBy(state.contacts, 'name').map(function (c) {
       return '<section class="card"><div class="row"><div><strong>' + esc(c.name) + '</strong>' + (c.specialty ? ' <span class="muted">(' + esc(c.specialty) + ')</span>' : '') + '</div>' +
-        (c.phone ? '<a class="btn small primary" href="tel:' + esc(String(c.phone).replace(/\s+/g, '')) + '">' + t('callBtn') + '</a>' : '') + '</div>' +
+        (c.phone ? '<a class="btn small primary" href="' + esc(HC.telHref(c.phone)) + '">' + icon('phone') + ' ' + t('callBtn') + '</a>' : '') + '</div>' +
         (c.phone ? '<div class="muted" style="margin-top:4px">' + esc(c.phone) + '</div>' : '') +
         (c.address ? '<div class="muted">' + esc(c.address) + '</div>' : '') +
         (c.hours ? '<div class="muted">' + t('fHours') + ': ' + esc(c.hours) + '</div>' : '') +
@@ -1441,20 +1450,39 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         return null;
       });
     },
-    visit: function (v0) {
+    // Návšteva: lekár sa vyberá zo zoznamu mojich lekárov; posledná možnosť pridá nového lekára do zoznamu.
+    // draft = rozpísané hodnoty formulára (po pridaní nového lekára sa formulár obnoví).
+    visit: function (v0, draft) {
       var isEdit = !!v0;
+      var base = draft || (isEdit ? v0 : { date: today() });
+      var cur = draft ? draft.contactId : (isEdit ? visitContactId(v0) : '');
+      var options = [{ value: '', label: t('pickDoctor') }].concat(sortBy(state.contacts, 'name').map(function (c) {
+        return { value: c.id, label: c.name + (c.specialty ? ' – ' + c.specialty : '') };
+      }));
+      // Staršia návšteva s lekárom, ktorý nie je v zozname: jeho meno ostane ako možnosť.
+      if (isEdit && !visitContactId(v0) && (v0.doctor || v0.specialty)) {
+        options.push({ value: '__keep', label: (v0.doctor || v0.specialty) + (v0.doctor && v0.specialty ? ' – ' + v0.specialty : '') });
+        if (!draft) cur = '__keep';
+      }
+      options.push({ value: '__new', label: t('addDoctorOption') });
       openForm(isEdit ? t('formVisitEdit') : t('formVisitNew'), [
         { name: 'date', label: t('fVisitDate'), type: 'date', required: true },
-        { name: 'doctor', label: t('fDoctor'), placeholder: t('phDoctor') },
-        { name: 'specialty', label: t('fSpecialty'), placeholder: t('phSpecialty') },
+        { name: 'time', label: t('fVisitTime'), type: 'time' },
+        { name: 'contactId', label: t('fVisitDoctor'), type: 'select', options: options },
         { name: 'reason', label: t('fReason'), type: 'textarea' },
         { name: 'diagnosis', label: t('fDiagnosis'), type: 'textarea' },
         { name: 'prescriptions', label: t('fPrescriptions'), type: 'textarea' },
         { name: 'nextVisit', label: t('fNextVisit'), type: 'date' },
         { name: 'notes', label: t('fNotesGeneric'), type: 'textarea' }
-      ], isEdit ? v0 : { date: today() },
+      ], Object.assign({}, base, { contactId: cur || '' }),
       function (v) {
-        var obj = { date: v.date, doctor: v.doctor, specialty: v.specialty, reason: v.reason, diagnosis: v.diagnosis, prescriptions: v.prescriptions, nextVisit: v.nextVisit || null, notes: v.notes };
+        if (!v.contactId || v.contactId === '__new') return t('errPickDoctor');
+        var c = v.contactId === '__keep' ? null : findBy(state.contacts, v.contactId);
+        var obj = {
+          date: v.date, time: v.time || '', contactId: c ? c.id : null,
+          doctor: c ? c.name : v0.doctor, specialty: c ? (c.specialty || '') : v0.specialty,
+          reason: v.reason, diagnosis: v.diagnosis, prescriptions: v.prescriptions, nextVisit: v.nextVisit || null, notes: v.notes
+        };
         var err = HC.validateVisit(obj);
         if (err) return err;
         commit(function () {
@@ -1463,6 +1491,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         });
         return null;
       });
+      visitCtx = { v0: v0 };
     },
     question: function (q) {
       var isEdit = !!q;
@@ -1604,7 +1633,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         return null;
       });
     },
-    contact: function (c) {
+    contact: function (c, onSaved) {
       var isEdit = !!c;
       openForm(isEdit ? t('formContactEdit') : t('formContactNew'), [
         { name: 'name', label: t('fCName'), required: true, placeholder: t('phCName') },
@@ -1618,11 +1647,15 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         var obj = { name: v.name, specialty: v.specialty, phone: v.phone, address: v.address, hours: v.hours, notes: v.notes };
         var err = HC.validateContact(obj);
         if (err) return err;
+        var saved = isEdit ? c : Object.assign({ id: HC.newId() }, obj);
         commit(function () {
-          if (isEdit) Object.assign(c, obj);
-          else state.contacts.push(Object.assign({ id: HC.newId() }, obj));
+          if (isEdit) {
+            Object.assign(c, obj);
+            state.visits.forEach(function (x) { if (x.contactId === c.id) { x.doctor = c.name; x.specialty = c.specialty || ''; } });
+          } else state.contacts.push(saved);
         });
         toast(t('contactSaved'));
+        if (onSaved) setTimeout(function () { onSaved(saved); }, 0); // po zatvorení tohto formulára
         return null;
       });
     },
@@ -1989,6 +2022,13 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     }
     if (target.id === 'd-pal') { setPalette(target.value); openData(); return; }
     if (target.id === 'd-mode') { setMode(target.value); openData(); return; }
+    if (target.name === 'contactId' && target.value === '__new' && visitCtx) {
+      var ctx = visitCtx, draft = readForm();
+      forms.contact(null, function (c) { forms.visit(ctx.v0, Object.assign(draft, { contactId: c.id })); });
+      // Zrušenie formulára lekára vráti rozpísanú návštevu.
+      dlgCancelAction = function () { forms.visit(ctx.v0, Object.assign(draft, { contactId: '' })); };
+      return;
+    }
     if (target.id === 'd-autolock') { setPref('autoLock', target.value); return; }
     if (target.id === 'd-u-glu' || target.id === 'd-u-temp') {
       commit(function () {
@@ -2133,7 +2173,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       }).join('') + '</table>' : '<p class="muted">' + t('rptNoLabs') + '</p>';
 
     h += '<h2>' + t('rptVisits') + '</h2>' + (visits.length
-      ? '<ul>' + visits.map(function (v) { return '<li>' + fmtDate(v.date) + ' – ' + esc(v.doctor || v.specialty) + (v.reason ? ': ' + esc(v.reason) : '') + (v.diagnosis ? '. ' + t('rptDiagnosis', { v: esc(v.diagnosis) }) : '') + '</li>'; }).join('') + '</ul>'
+      ? '<ul>' + visits.map(function (v) { return '<li>' + fmtDate(v.date) + (v.time ? ' ' + esc(v.time) : '') + ' – ' + esc(v.doctor || v.specialty) + (v.reason ? ': ' + esc(v.reason) : '') + (v.diagnosis ? '. ' + t('rptDiagnosis', { v: esc(v.diagnosis) }) : '') + '</li>'; }).join('') + '</ul>'
       : '<p class="muted">' + t('rptNoVisits') + '</p>');
 
     h += '<h2>' + t('rptCheckups') + '</h2>' + (checkups.length

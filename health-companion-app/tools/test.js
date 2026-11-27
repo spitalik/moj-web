@@ -356,6 +356,12 @@ test('jednotky a BMI', () => {
   assert.strictEqual(HC.bmi(80, null), null);
 });
 
+test('návšteva: nepovinný čas sa kontroluje', () => {
+  assert.strictEqual(HC.validateVisit({ date: '2026-11-27', doctor: 'MUDr. Nováková' }), null);
+  assert.strictEqual(HC.validateVisit({ date: '2026-11-27', time: '09:30', doctor: 'MUDr. Nováková' }), null);
+  assert.ok(HC.validateVisit({ date: '2026-11-27', time: '25:00', doctor: 'MUDr. Nováková' }));
+});
+
 test('os grafu: okrúhle hodnoty', () => {
   assert.deepStrictEqual(HC.niceTicks(71.6, 136.4, 4), [60, 80, 100, 120, 140]);
   assert.deepStrictEqual(HC.niceTicks(36.4, 37.9, 4), [36, 36.5, 37, 37.5, 38]);
