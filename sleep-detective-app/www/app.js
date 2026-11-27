@@ -1340,43 +1340,164 @@
     startingRec = true;
     try { await openRecording(auto); } finally { startingRec = false; }
   }
-  async function openRecording(auto) {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.SleepSound) {
-      infoModal(L("recUnavTitle"), L(NATIVE ? "recUnavNative" : "recUnavWeb"));
-      return;
-    }
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-    } catch (e) {
-      infoModal(L("micDeniedTitle"), L("micDeniedText") + " " + L(NATIVE ? "micDeniedNative" : "micDeniedWeb"));
-      return;
-    }
-    const now = Date.now();
-    const w = autoWindow(now);
-    if (w) markAuto(w.key);   // v tomto okne sa už automaticky znova nespustí
-    standby = false;
-    rec = {
-      stream, ctx: null, an: null, src: null, sr: 48000, start: now, auto: !!auto, autoEnd: SET.autoOn ? nextAutoEnd(now) : Infinity,
+  // texty upozornenia v lište v jazyku appky
+  const notifTexts = () => ({ title: L("notifTitle"), text: L("notifText"), stop: L("btnStopRec"), channel: L("notifChannel") });
+  const micDenied = () => infoModal(L("micDeniedTitle"), L("micDeniedText") + " " + L(NATIVE ? "micDeniedNative" : "micDeniedWeb"));
+  const getMic = () => navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+  function newRec(start, o) {
+    return Object.assign({
+      stream: null, ctx: null, an: null, src: null, sr: 48000, start, auto: false, autoEnd: SET.autoOn ? nextAutoEnd(start) : Infinity,
       td: new Float32Array(FFT_N), fd: new Float32Array(FFT_N / 2),
       det: new SleepSound.Detector({ sensitivity: SET.soundSensitivity }),
       clips: [], clipRec: null, clipDone: null, lastClipT: 0, db: -100, n: 0, live: { snoreMin: 0, noise: 0 },
-      full: !!(SET.soundAudio && SET.soundFull), segs: [], segRec: null, segFrom: 0, segDones: []
-    };
-    if (rec.full) startSeg(rec);
+      full: !!(SET.soundAudio && SET.soundFull), segs: [], segRec: null, segFrom: 0, segDones: [],
+      native: false, nIdx: 0, lastT: 0, storedAt: start, segAsk: new Set(), segQ: Promise.resolve()
+    }, o);
+  }
+  async function openRecording(auto) {
+    let NC = nativeCap();
+    if (!window.SleepSound || (!NC && (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia))) {
+      infoModal(L("recUnavTitle"), L(NATIVE ? "recUnavNative" : "recUnavWeb"));
+      return;
+    }
+    const now = Date.now();
+    const full = !!(SET.soundAudio && SET.soundFull);
+    let stream = null;
+    if (NC) {
+      // Android: mikrofón počúva služba appky, WebView len spracúva hotové snímky (pozri pollNative)
+      try {
+        const res = await NC.start(Object.assign(notifTexts(), { capture: true, rec: now, keep: !!SET.soundAudio, full, kbps: SET.clipKbps }));
+        if (!res || !res.capture) throw new Error("no capture");
+      } catch (e) {
+        if (e && e.code === "mic") { micDenied(); return; }
+        NC = null;   // stará služba bez počúvania: počúvame vo WebView ako doteraz
+      }
+    }
+    if (!NC) {
+      try { stream = await getMic(); } catch (e) { micDenied(); return; }
+    }
+    const w = autoWindow(now);
+    if (w) markAuto(w.key);   // v tomto okne sa už automaticky znova nespustí
+    standby = false;
+    rec = newRec(now, { stream, auto: !!auto, full, native: !!NC, bg: NC ? true : undefined });
+    if (rec.full && !NC) startSeg(rec);
     // požiadame, aby prehliadač ukážky nemazal pri nedostatku miesta
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* nič */ }
     const r = rec;
     const BG = bgPlugin();
-    if (BG) {
+    if (BG && !NC) {
       r.bg = "starting";
-      // texty upozornenia v lište v jazyku appky
-      BG.start({ title: L("notifTitle"), text: L("notifText"), stop: L("btnStopRec"), channel: L("notifChannel") }).then(() => { if (rec === r) { r.bg = true; updateNight(); } else BG.stop().catch(() => {}); })
+      BG.start(notifTexts()).then(() => { if (rec === r) { r.bg = true; updateNight(); } else BG.stop().catch(() => {}); })
         .catch(() => { r.bg = false; if (rec === r) requestWake(); });   // bez služby aspoň držíme obrazovku
     }
     showNight();
     requestWake();
+    if (NC) pollNative(r);
+    else if (!startDirect(r)) await startWebAudio(r);
+  }
+
+  // ---------- Počúvanie v službe Androidu ----------
+  // Proces WebView je izolovaný a nevzťahuje sa naň výnimka zo šetrenia batérie. HyperOS (Xiaomi) ho pri zhasnutej
+  // obrazovke ukončí, keď minie viac ako 2 % procesora, a už len odovzdávanie zvuku z mikrofónu do WebView stojí
+  // okolo 3 %. Preto mikrofón číta služba (NightCapture.java) a počíta hlasitosť aj spektrum rovnako ako sound.js;
+  // appka si snímky vyzdvihuje po dávkach (každú sekundu pri rozsvietenej obrazovke, inak každých 10 s)
+  // a spracuje ich tým istým detektorom. Ukážky a časti celej noci kóduje do AAC tiež služba.
+  const nativeCap = () => { const BG = bgPlugin(); return BG && typeof BG.drain === "function" ? BG : null; };
+  const CLIP_PRE = 500;   // ukážka začne kúsok pred zvukom
+  function b64Blob(data, mime) {
+    const bin = atob(String(data || "")), u = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return new Blob([u], { type: /^audio\/[\w.+-]+$/.test(mime || "") ? mime : "audio/mp4" });
+  }
+  function pollNative(r) {
+    const NC = nativeCap();
+    if (rec !== r || !NC) return;
+    NC.drain({ from: r.nIdx }).then(d => {
+      if (rec !== r) return;
+      feedNative(r, d);
+      if (d && d.error && !r.heard) { webFallback(r); return; }
+      r.poll = setTimeout(() => pollNative(r), d && d.screen ? 1000 : 10000);
+    }, e => {
+      if (rec !== r) return;
+      if (e && e.code === "fgs" && !r.heard) { webFallback(r, true); return; }   // služba sa nespustila
+      r.poll = setTimeout(() => pollNative(r), 5000);
+    });
+  }
+  function feedNative(r, d) {
+    if (!d || typeof d !== "object") return;
+    const t = Array.isArray(d.t) ? d.t : [], db = Array.isArray(d.db) ? d.db : [], low = Array.isArray(d.low) ? d.low : [];
+    const n = Math.min(t.length, db.length, low.length);
+    if (Number(d.sr) > 0) r.sr = Number(d.sr);
+    r.batch = true;
+    for (let i = 0; i < n; i++) {
+      const ti = Number(t[i]);
+      if (Number.isFinite(ti) && ti >= r.lastT) { feedTick(r, ti, Number(db[i]) || -100, Number(low[i]) || 0); r.lastT = ti; }
+    }
+    r.batch = false;
+    r.nIdx += n;
+    if (n) {
+      r.heard = true;
+      if (rec === r && r.lastT - r.storedAt >= 60000) { storeNight(r, r.lastT, true); r.storedAt = r.lastT; }   // každú minútu
+    }
+    r.nativeErr = d.error && !d.running ? String(d.error) : null;
+    (Array.isArray(d.segs) ? d.segs : []).forEach(g => {
+      const st = Number(g && g.t), end = Number(g && g.end);
+      if (!Number.isFinite(st) || !Number.isFinite(end) || r.segAsk.has(st)) return;
+      r.segAsk.add(st);
+      const id = "full-" + st;
+      r.segQ = r.segQ.then(() => nativeCap().segment({ t: st }))
+        .then(x => IDB.put(id, b64Blob(x.data, x.mime)))
+        .then(() => { if (!r.segs.some(g => g.id === id)) r.segs.push({ id, t: st, end }); r.segs.sort((a, b) => a.t - b.t); nativeSaved(r); })
+        .catch(() => {});
+    });
+    updateNight();
+  }
+  // Nová nahrávka je v IndexedDB: hneď ju zapíšeme aj do rozpracovanej noci, inak by sa po páde WebView stratila.
+  function nativeSaved(r) {
+    if (rec === r && r.lastT) storeNight(r, r.lastT, true);
+  }
+  // Služba mikrofón neotvorila (napr. ho drží iná appka): skúsime počúvať vo WebView.
+  async function webFallback(r, noService) {
+    r.native = false;
+    if (noService) { r.bg = false; requestWake(); }   // bez služby aspoň držíme obrazovku
+    try { r.stream = await getMic(); } catch (e) { if (rec === r) { abortRecording(); micDenied(); } return; }
+    if (rec !== r) { r.stream.getTracks().forEach(tr => tr.stop()); return; }
+    if (r.full) startSeg(r);
     if (!startDirect(r)) await startWebAudio(r);
+  }
+  // Na konci noci: služba prestane počúvať, appka spracuje zvyšné snímky a vyzdvihne nahrávky.
+  async function finishNative(r) {
+    clearTimeout(r.poll);
+    const NC = nativeCap();
+    if (!NC) return;
+    try { await NC.finish(); feedNative(r, await NC.drain({ from: r.nIdx })); } catch (e) { /* služba už nebeží */ }
+  }
+  // Appka sa znova otvorila (napr. systém ukončil proces WebView) a služba medzitým počúvala ďalej:
+  // nadviažeme na rozpracovaný záznam. Detektor znova prejde všetky snímky noci (služba si ich drží),
+  // nové ukážky vznikajú až od posledného uloženia; staršie ostávajú.
+  function resumeNative() {
+    const NC = nativeCap();
+    if (!NC || typeof NC.status !== "function" || !window.SleepSound) return;
+    startingRec = true;
+    NC.status().then(st => {
+      if (!st || !st.capture || rec || !Number.isFinite(Number(st.rec))) return;
+      const start = Number(st.rec);
+      const key = Object.keys(D.sounds).find(k => D.sounds[k].rec === start);
+      const old = key ? D.sounds[key] : null;
+      if (old) { old.partial = true; delete old.interrupted; }
+      standby = false;
+      const r = rec = newRec(start, { native: true, bg: true, full: !!st.full });
+      if (old) {
+        r.clips = (old.clips || []).map(c => ({ id: c.id, t: c.t }));
+        r.segs = (old.segs || []).map(g => ({ id: g.id, t: g.t, end: g.end }));
+        r.lastClipT = Math.max(0, ...r.clips.map(c => c.t));
+        r.replayUntil = old.end || 0;
+        r.segs.forEach(g => r.segAsk.add(g.t));
+      }
+      showNight();
+      requestWake();
+      pollNative(r);
+    }).catch(() => {}).then(() => { startingRec = false; });
   }
 
   // Zvuk čítame priamo z mikrofónu (MediaStreamTrackProcessor), kde to prehliadač vie. Web Audio totiž
@@ -1469,18 +1590,21 @@
       r.an.getFloatTimeDomainData(r.td);
       r.an.getFloatFrequencyData(r.fd);
     } else return;
-    const db = SleepSound.levelDb(r.td);
-    const low = SleepSound.lowRatio(r.fd, r.sr, FFT_N);
+    feedTick(r, Date.now(), SleepSound.levelDb(r.td), SleepSound.lowRatio(r.fd, r.sr, FFT_N));
+  }
+  // Jedna snímka zvuku (každých 100 ms): now = čas snímky (pri počúvaní v službe prichádzajú po dávkach).
+  function feedTick(r, now, db, low) {
     r.db = db;
-    const ev = r.det.feed(Date.now(), db, low);
-    if (ev && ev.type === "start") maybeClip(r, ev.t);
+    const ev = r.det.feed(now, db, low);
+    // po obnovení appky detektor znova prejde celú noc; ukážky starších zvukov už existujú
+    if (ev && ev.type === "start" && !(now <= r.replayUntil)) maybeClip(r, ev.t, now);
     if (ev && ev.type === "end" && r.clipRec && ev.event.start === r.clipT) clipKnown(r, ev.event.kind);
-    if (r.clipRec && Date.now() - r.clipFrom >= r.clipLen) stopClip(r);
-    if (r.segRec && Date.now() - r.segFrom >= SEG_MS) { r.segRec.stop(); startSeg(r); }
-    if (r.n > 0 && r.n % 600 === 0) storeNight(r, Date.now(), true);   // každú minútu
+    if (r.clipRec && now - r.clipFrom >= r.clipLen) stopClip(r, now);
+    if (r.segRec && now - r.segFrom >= SEG_MS) { r.segRec.stop(); startSeg(r); }
+    if (!r.native && r.n > 0 && r.n % 600 === 0) storeNight(r, now, true);   // každú minútu (služba: feedNative)
     if (++r.n % 10 === 0) {
-      if (r.n % 100 === 0) { const s = r.det.summary(Date.now()); r.live = { snoreMin: s.snoreMin, noise: s.noise }; }
-      updateNight();
+      if (r.n % 100 === 0) { const s = r.det.summary(now); r.live = { snoreMin: s.snoreMin, noise: s.noise }; }
+      if (!r.batch) updateNight();
     }
   }
 
@@ -1517,17 +1641,19 @@
     }));
     mr.start();
   }
-  function maybeClip(r, t) {
-    const mime = clipMime(), sn = clipConf("snore"), no = clipConf("noise");
+  function maybeClip(r, t, now) {
+    const mime = r.native ? "audio/mp4" : clipMime(), sn = clipConf("snore"), no = clipConf("noise");
     if (mime === null || (!sn.n && !no.n) || r.clipRec || t - r.lastClipT < CLIP_SPACING) return;
     let mr;
-    try { mr = new MediaRecorder(r.stream, recOpts(mime)); } catch (e) { return; }
+    if (r.native) mr = { native: true, state: "recording" };   // zvuk drží služba, ukážku si vypýtame v stopClip
+    else try { mr = new MediaRecorder(r.stream, recOpts(mime)); } catch (e) { return; }
     r.lastClipT = t;
-    r.clipRec = mr; r.clipT = t; r.clipFrom = Date.now(); r.clipDrop = false;
+    r.clipRec = mr; r.clipT = t; r.clipFrom = now; r.clipDrop = false;
     r.clipLen = Math.max(sn.n ? sn.ms : 0, no.n ? no.ms : 0);
     // počas chrápania (už rozpoznaná séria) bude aj ďalší zvuk pravdepodobne chrápanie
     const last = r.det.events[r.det.events.length - 1];
     if (last && last.kind === "snore" && t - last.end < 15000 && sn.n) r.clipLen = sn.ms;
+    if (r.native) return;
     const chunks = [];
     mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
     r.clipDone = new Promise(done => {
@@ -1549,8 +1675,19 @@
     else if (kind === "noise") r.clipLen = no.n ? no.ms : 0;
     if (!r.clipLen) { r.clipDrop = true; stopClip(r); }
   }
-  function stopClip(r) {
-    if (r.clipRec && r.clipRec.state !== "inactive") r.clipRec.stop();
+  function stopClip(r, now) {
+    const c = r.clipRec;
+    if (!c) return;
+    if (!c.native) { if (c.state !== "inactive") c.stop(); return; }
+    r.clipRec = null;
+    if (r.clipDrop) return;
+    const t = r.clipT, id = "clip-" + t, from = Math.min(t, r.clipFrom) - CLIP_PRE;
+    const to = Math.min(now || Date.now(), r.clipFrom + r.clipLen);
+    r.clipDone = (r.clipDone || Promise.resolve())
+      .then(() => nativeCap().clip({ from, to }))
+      .then(x => IDB.put(id, b64Blob(x.data, x.mime)))
+      .then(() => { if (!r.clips.some(c => c.id === id)) r.clips.push({ id, t }); trimClips(r); nativeSaved(r); })
+      .catch(() => {});
   }
   // Počet ukážok podľa nastavení; pri prebytku zahodíme najtichšiu.
   function trimClips(r) {
@@ -1584,9 +1721,10 @@
 
   function closeAudio(r) {
     clearInterval(r.timer);
+    clearTimeout(r.poll);
     if (r.worklet) { r.worklet.port.onmessage = null; try { r.worklet.disconnect(); } catch (e) { /* nič */ } }
     if (r.reader) { r.reader.cancel().catch(() => {}); r.reader = null; }
-    r.stream.getTracks().forEach(tr => tr.stop());
+    if (r.stream) r.stream.getTracks().forEach(tr => tr.stop());
     if (r.ctx) r.ctx.close().catch(() => {});
     if (wake) { wake.release().catch(() => {}); wake = null; }
     const BG = bgPlugin();
@@ -1597,12 +1735,14 @@
     const r = rec; if (!r) return;
     standby = false;
     rec = null;
+    if (r.native) await finishNative(r);
     const end = Date.now();
     r.det.flush(end);
-    if (r.clipRec && r.clipRec.state !== "inactive") r.clipRec.stop();
+    stopClip(r, end);
     if (r.segRec && r.segRec.state !== "inactive") r.segRec.stop();
     if (r.clipDone) await r.clipDone;
     await Promise.all(r.segDones);
+    await r.segQ;
     closeAudio(r);
     hideNight();
     if (end - r.start < MIN_REC_MS) {
@@ -1623,7 +1763,8 @@
   function abortRecording() {
     const r = rec; if (!r) return;
     rec = null;
-    if (r.clipRec && r.clipRec.state !== "inactive") { r.clipRec.onstop = null; r.clipRec.stop(); }
+    if (r.clipRec && !r.clipRec.native && r.clipRec.state !== "inactive") { r.clipRec.onstop = null; r.clipRec.stop(); }
+    r.clipRec = null;
     if (r.segRec && r.segRec.state !== "inactive") { r.segRec.onstop = null; r.segRec.stop(); }
     closeAudio(r);
     hideNight();
@@ -1731,7 +1872,7 @@
     $("#n-snore").textContent = r.live.snoreMin;
     $("#n-noise").textContent = r.live.noise;
     const tip = $("#n-tip");
-    const st = r.ctx ? r.ctx.state : "running";
+    const st = r.ctx ? r.ctx.state : r.native && r.nativeErr ? "suspended" : "running";
     if (r.bg === true && st !== "suspended") {
       tip.className = "night-tip";
       tip.textContent = L("tipBg");
@@ -2532,6 +2673,7 @@
   });
 
   load();
+  resumeNative();   // pred tidySounds: rozpracovaný záznam, ktorý služba ešte počúva, nie je prerušený
   tidySounds();
   applyTheme();
   applyLang();

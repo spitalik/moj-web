@@ -10,6 +10,7 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import java.io.File;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.ServiceCompat;
 
@@ -18,17 +19,36 @@ import androidx.core.app.ServiceCompat;
  *
  * Android dovolí appke používať mikrofón so zamknutou obrazovkou alebo na pozadí len vtedy, keď beží
  * služba typu „microphone“ so stálym upozornením v lište. Používateľ tak vždy vidí, že mikrofón je zapnutý.
- * Služba sama nič nenahráva: zvuk ďalej spracúva appka vo WebView (sound.js), služba len drží appku
- * nažive a procesor zobudený (PARTIAL_WAKE_LOCK), aby sa záznam pri vypnutej obrazovke neprerušil.
+ * Služba drží appku nažive a procesor zobudený (PARTIAL_WAKE_LOCK) a v Androide aj sama počúva (NightCapture):
+ * číta mikrofón a počíta hlasitosť a spektrum, appka vo WebView si výsledky len vyzdvihuje. Keby systém
+ * proces WebView ukončil, služba počúva ďalej a appka po obnovení nadviaže (MainActivity).
  */
 public class RecordingService extends Service {
     static final String CHANNEL = "night-recording";
     static final int NOTIFICATION_ID = 4711;
     static final String ACTION_STOP = "sk.sleepdetective.app.STOP_RECORDING";
     static final String EXTRA_TITLE = "title", EXTRA_TEXT = "text", EXTRA_STOP = "stop", EXTRA_CHANNEL = "channel";
+    static final String EXTRA_CAPTURE = "capture", EXTRA_REC = "rec", EXTRA_KEEP = "keep", EXTRA_FULL = "full", EXTRA_BITRATE = "bitrate";
     private static final long MAX_LOCK_MS = 16L * 60 * 60 * 1000;   // poistka: najviac 16 hodín
 
     private PowerManager.WakeLock lock;
+    /** Počúvanie bežiaceho záznamu (null = appka počúva sama vo WebView alebo nič nebeží). */
+    static volatile NightCapture capture;
+    /** Prečo sa služba nespustila (null = v poriadku); appka potom počúva vo WebView. */
+    static volatile String failure;
+
+    static File captureDir(android.content.Context c) {
+        File d = new File(c.getCacheDir(), "night");
+        //noinspection ResultOfMethodCallIgnored
+        d.mkdirs();
+        return d;
+    }
+
+    private static void clearDir(File d) {
+        File[] fs = d.listFiles();
+        if (fs != null) for (File f : fs) //noinspection ResultOfMethodCallIgnored
+            f.delete();
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -65,13 +85,34 @@ public class RecordingService extends Service {
             .addAction(0, stopLabel, stopPi)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build();
+        if (intent == null) { stopSelf(); return START_NOT_STICKY; }   // obnova po páde bez pokynov appky
         int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE : 0;
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, n, type);
+        try {
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, n, type);
+        } catch (RuntimeException e) {
+            // Android nedovolí službu s mikrofónom, keď appka nie je na obrazovke alebo chýba povolenie mikrofónu.
+            // Bez tohto by spadla celá appka.
+            failure = "fgs";
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         if (lock == null) {
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
             lock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SleepDetective:night");
             lock.setReferenceCounted(false);
             lock.acquire(MAX_LOCK_MS);
+        }
+        if (intent != null && intent.getBooleanExtra(EXTRA_CAPTURE, false)) {
+            long rec = intent.getLongExtra(EXTRA_REC, 0);
+            NightCapture c = capture;
+            if (c == null || c.recStart != rec) {
+                if (c != null) c.halt();
+                File dir = captureDir(this);
+                clearDir(dir);
+                c = new NightCapture(dir, rec, intent.getBooleanExtra(EXTRA_KEEP, false), intent.getBooleanExtra(EXTRA_FULL, false), intent.getIntExtra(EXTRA_BITRATE, 64000));
+                capture = c;
+                c.start();
+            }
         }
         return START_NOT_STICKY;
     }
@@ -98,6 +139,10 @@ public class RecordingService extends Service {
 
     @Override
     public void onDestroy() {
+        NightCapture c = capture;
+        capture = null;
+        if (c != null) c.halt();
+        clearDir(captureDir(this));   // nevyzdvihnuté časti nahrávky nikomu nepatria
         NightWebView.setKeepAwake(false);
         if (lock != null && lock.isHeld()) lock.release();
         lock = null;

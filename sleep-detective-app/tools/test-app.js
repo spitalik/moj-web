@@ -1264,6 +1264,113 @@ async function asyncTests() {
     delete window.Capacitor;
   });
 
+  await at('natívny Android: mikrofón počúva služba (nie WebView), snímky po dávkach, ukážky a celá noc z AAC, obnova po páde WebView', async () => {
+    // HyperOS ukončí proces WebView, ktorý pri zhasnutej obrazovke minie > 2 % procesora – mikrofón preto číta služba
+    const S = window.SleepSound, N = 2048, td = new Float32Array(N), fd = new Float32Array(N / 2);
+    const snap = (amp, low) => { const hz = low ? 150 : 2500; for (let i = 0; i < N; i++) td[i] = amp * 1.41 * Math.sin(2 * Math.PI * hz * i / 48000); S.spectrumDb(td, fd); return [S.levelDb(td), S.lowRatio(fd, 48000, N)]; };
+    const QUIET = snap(0.001, false), SNORE = snap(0.02, true);
+    const ticks = { t: [], db: [], low: [] };
+    const hear = (sec, snoring) => { for (let i = 0; i < sec * 10; i++) { fakeNow += 100; const v = snoring && (i / 10) % 4 < 1.2 ? SNORE : QUIET; ticks.t.push(fakeNow); ticks.db.push(v[0]); ticks.low.push(v[1]); } };
+    // vyzdvihovanie snímok ide cez setTimeout (1–10 s): spúšťame ho ručne
+    const realST = global.setTimeout, polls = [];
+    global.setTimeout = window.setTimeout = (fn, ms) => ms >= 1000 && ms <= 10000 ? (polls.push(fn), -1) : realST(fn, ms);
+    const runPolls = async () => { polls.splice(0).forEach(f => f()); for (let i = 0; i < 4; i++) await settle(); };
+    const realGum = navigator.mediaDevices.getUserMedia;
+    let gum = 0;
+    navigator.mediaDevices.getUserMedia = async () => { gum++; throw new Error('mikrofón nedostupný'); };
+    let cap = null, segs = [], err = null, denyMic = false, fgsFail = false;
+    const calls = [], clipsAsked = [];
+    window.Capacitor = { isNativePlatform: () => true, getPlatform: () => 'android', Plugins: {
+      KeepAwake: { keepAwake: async () => { calls.push('awake'); }, allowSleep: async () => {} },
+      BackgroundRecording: {
+        start: async o => { calls.push('start'); if (denyMic) { const e = new Error('denied'); e.code = 'mic'; throw e; } cap = { rec: o.rec, keep: o.keep, full: o.full, kbps: o.kbps, capture: o.capture, title: o.title }; return { capture: true }; },
+        stop: async () => { calls.push('stop'); cap = null; },
+        addListener: () => {},
+        status: async () => cap ? { capture: true, running: true, rec: cap.rec, full: cap.full } : { capture: false },
+        drain: async ({ from }) => { if (fgsFail) { const e = new Error('fgs'); e.code = 'fgs'; throw e; } if (!cap) throw new Error('none'); return { from, t: ticks.t.slice(from), db: ticks.db.slice(from), low: ticks.low.slice(from), sr: 48000, running: !err, error: err, screen: true, segs: segs.slice() }; },
+        clip: async ({ from, to }) => { clipsAsked.push([from, to]); return { data: Buffer.from('m4a-ukazka').toString('base64'), mime: 'audio/mp4' }; },
+        segment: async ({ t }) => { segs = segs.filter(g => g.t !== t); return { data: Buffer.from('m4a-cela-noc').toString('base64'), mime: 'audio/mp4' }; },
+        finish: async () => { calls.push('finish'); }
+      }
+    } };
+    try {
+      store['sleepDetective.settings.v1'] = JSON.stringify({ recNotice: true, powerAsked: true, soundAudio: true, soundFull: true, clipKbps: 32, clipSnoreN: 12 });
+      new Function(script)();
+      await settle();
+      fakeNow = new RealDate(2027, 2, 1, 23, 0, 0).getTime();
+      click({ tab: 'today' });
+      click({ act: 'startNight' }); await settle();
+      assert.ok(cap && cap.capture === true && cap.keep === true && cap.full === true && cap.kbps === 32 && typeof cap.rec === 'number', 'služba nemá počúvať: ' + JSON.stringify(cap));
+      assert.strictEqual(cap.title, 'Nočný záznam beží', 'texty upozornenia nie sú v jazyku appky');
+      assert.strictEqual(gum, 0, 'mikrofón sa nemá otvárať vo WebView');
+      assert.strictEqual(els['#night'].hidden, false);
+      assert.ok(!calls.includes('awake'), 'so službou sa obrazovka nemá držať zapnutá');
+      const start = cap.rec;
+      hear(60, false); hear(300, true); hear(30, false);
+      await runPolls();
+      assert.ok(Number(els['#n-snore'].textContent) >= 3, 'nočná obrazovka neukazuje chrápanie zo služby: ' + els['#n-snore'].textContent);
+      assert.ok(clipsAsked.length >= 1 && clipsAsked.every(([a, b]) => b > a && b - a <= 11000), 'ukážky sa nevypýtali zo služby: ' + JSON.stringify(clipsAsked));
+      const clipIds = [...idbStore.keys()].filter(k => k.startsWith('clip-') && idbStore.get(k).type === 'audio/mp4');
+      assert.ok(clipIds.length >= 1, 'ukážka zo služby sa neuložila');
+      // hotová časť celej noci
+      segs.push({ t: start, end: fakeNow });
+      await runPolls();
+      assert.ok(idbStore.get('full-' + start) && idbStore.get('full-' + start).type === 'audio/mp4', 'časť celej noci sa nevyzdvihla');
+      assert.strictEqual(segs.length, 0);
+      const key = '2027-03-02';
+      assert.ok(data().sounds[key] && data().sounds[key].partial, 'rozpracovaná noc sa priebežne neukladá');
+      // systém ukončil proces WebView: appka sa znova načíta, služba medzitým počúva ďalej
+      polls.length = 0;
+      hear(120, true);
+      new Function(script)();
+      await settle(); await runPolls();
+      assert.strictEqual(els['#night'].hidden, false, 'appka po obnovení nenadviazala na záznam');
+      assert.ok(data().sounds[key].partial && !data().sounds[key].interrupted, 'noc, ktorú služba ďalej počúva, je označená ako prerušená');
+      assert.strictEqual(gum, 0);
+      hear(60, false);
+      await runPolls();
+      click({ act: 'askStopNight' }); click({ act: 'modalOk' });
+      for (let i = 0; i < 4; i++) await settle();
+      assert.ok(calls.indexOf('finish') >= 0 && calls.indexOf('finish') < calls.lastIndexOf('stop'), 'služba sa neukončila v poradí finish → stop: ' + calls);
+      const s = data().sounds[key];
+      assert.ok(s && !s.partial && !s.interrupted && s.rec === start, 'noc sa neuložila ako jeden celý záznam');
+      assert.ok(s.snoreMin >= 4, 'chrápanie pred aj po obnovení: ' + s.snoreMin);
+      assert.ok(s.end - start >= 9 * 60000, 'záznam nepokrýva celú noc: ' + (s.end - start));
+      const ids = s.clips.map(c => c.id);
+      assert.ok(ids.length >= 1 && new Set(ids).size === ids.length, 'ukážky sa po obnovení zdvojili: ' + ids);
+      assert.ok(clipIds.every(id => ids.includes(id)), 'ukážky spred obnovenia sa stratili: ' + clipIds + ' / ' + ids + ' / ' + JSON.stringify(s.clips));
+      assert.ok(s.segs.some(g => g.id === 'full-' + start), 'časť celej noci chýba v zázname');
+      click({ act: 'close' });
+      // mikrofón nepovolený
+      denyMic = true;
+      click({ act: 'startNight' }); await settle();
+      assert.strictEqual(els['#night'].hidden, true, 'bez povolenia mikrofónu sa záznam spustil');
+      assert.ok(els['#modal'].innerHTML.includes('mikrofón') || els['#modal'].innerHTML.includes('Mikrofón'), 'chýba hláška o mikrofóne');
+      click({ act: 'modalOk' });
+      // služba mikrofón neotvorila (drží ho iná appka): skúsi sa WebView, a keď ani to nejde, záznam sa zruší s hláškou
+      denyMic = false; err = 'busy'; ticks.t.length = ticks.db.length = ticks.low.length = 0;
+      click({ act: 'startNight' }); await settle(); await runPolls();
+      assert.strictEqual(gum, 1, 'pri chybe služby sa nepoužil mikrofón vo WebView');
+      assert.strictEqual(els['#night'].hidden, true, 'záznam bez mikrofónu beží ďalej');
+      assert.ok(calls[calls.length - 1] === 'stop', 'služba ostala bežať');
+      click({ act: 'modalOk' });
+      // Android nedovolil službu s mikrofónom (appka nebola na obrazovke): počúva sa vo WebView a drží sa obrazovka
+      err = null; fgsFail = true; calls.length = 0;
+      navigator.mediaDevices.getUserMedia = async () => { gum++; const tr = { stop() {} }; return { getTracks: () => [tr], getAudioTracks: () => [tr] }; };
+      click({ act: 'startNight' }); await settle(); await runPolls();
+      assert.strictEqual(gum, 2, 'bez služby sa nepoužil mikrofón vo WebView');
+      assert.strictEqual(els['#night'].hidden, false, 'záznam bez služby nebeží');
+      assert.ok(calls.includes('awake'), 'bez služby sa nedrží obrazovka');
+      assert.ok(!els['#n-tip'].textContent.includes('Telefón môžeš zamknúť'), 'appka tvrdí, že beží na pozadí: ' + els['#n-tip'].textContent);
+      for (let i = 0; i < 700; i++) { fakeNow += 100; tickAll(); }
+      click({ act: 'askStopNight' }); click({ act: 'modalOk' }); await settle(); click({ act: 'close' });
+    } finally {
+      global.setTimeout = window.setTimeout = realST;
+      navigator.mediaDevices.getUserMedia = realGum;
+      delete window.Capacitor;
+    }
+  });
+
   await at('texty v nastaveniach zodpovedajú správaniu appky', async () => {
     store['sleepDetective.settings.v1'] = JSON.stringify({ autoOn: true, soundAudio: true, soundFull: true, fullKeepDays: 3, recNotice: true });
     new Function(script)();
