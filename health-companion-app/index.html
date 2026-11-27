@@ -173,6 +173,13 @@ dialog form h2 { padding-right: 44px; }
 .btn-round { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); line-height: 1; padding: 0; display: grid; place-items: center; box-shadow: var(--shadow); }
 .btn-round:hover { filter: brightness(1.08); }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.times-field { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.times-field legend { padding: 0; margin-bottom: 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.times-list { display: flex; flex-direction: column; gap: 6px; }
+.time-row { display: flex; align-items: center; gap: 8px; }
+.time-row input { flex: 1; }
+.time-row .x { flex: none; width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--card-2); color: var(--muted); display: grid; place-items: center; }
+.times-field .add-time { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }
 input, select, textarea {
   background: var(--card-2); border: 1px solid var(--line); border-radius: 10px;
   padding: 9px 10px; color: var(--fg); font-size: 16px; width: 100%;
@@ -940,6 +947,13 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         return '<option value="' + esc(o.value) + '"' + (String(v) === String(o.value) ? ' selected' : '') + '>' + esc(o.label) + '</option>';
       }).join('') + '</select>';
       else if (f.type === 'checkbox') return '<label class="check-row"><input type="checkbox" name="' + f.name + '"' + (v ? ' checked' : '') + '> ' + esc(f.label) + '</label>';
+      else if (f.type === 'times') {
+        var list = Array.isArray(v) ? v.slice() : (v ? String(v).split(',') : []);
+        if (!list.length) list = [''];
+        return '<fieldset class="times-field" name="' + f.name + '"><legend>' + esc(f.label) + '</legend><div class="times-list">' +
+          list.map(function (x) { return timeRow(String(x).trim()); }).join('') + '</div>' +
+          '<button type="button" class="btn small add-time" data-add-time>' + icon('plus') + ' ' + esc(t('addTime')) + '</button></fieldset>';
+      }
       else if (f.type === 'file') input = '<input name="' + f.name + '" type="file"' + (f.accept ? ' accept="' + esc(f.accept) + '"' : '') + req + '>';
       else input = '<input name="' + f.name + '" type="' + (f.type || 'text') + '" value="' + esc(v) + '"' + ph + req +
         (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') + (f.step ? ' step="' + f.step + '"' : '') + '>';
@@ -959,10 +973,22 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     dlgForm.elements['value2'].closest('label').hidden = !two;
     dlgForm.elements['pulse'].closest('label').hidden = !two;
   }
+  // Jeden riadok s časom užitia a tlačidlom na odstránenie.
+  function timeRow(val) {
+    return '<div class="time-row"><input type="time" value="' + esc(val || '') + '" aria-label="' + esc(t('fTimes')) + '">' +
+      '<button type="button" class="x" data-del-time aria-label="' + esc(t('removeTime')) + '" title="' + esc(t('removeTime')) + '">' + icon('close') + '</button></div>';
+  }
   function readForm() {
     var out = {};
     dlgState.spec.forEach(function (f) {
       if (f.type === 'note') return;
+      if (f.type === 'times') {
+        // vyplnené časy, bez duplicít, zoradené
+        var vals = [].slice.call(dlgForm.querySelectorAll('fieldset[name="' + f.name + '"] input[type="time"]'))
+          .map(function (i) { return i.value.trim(); }).filter(Boolean);
+        out[f.name] = vals.filter(function (x, i) { return vals.indexOf(x) === i; }).sort();
+        return;
+      }
       var el = dlgForm.elements[f.name];
       if (!el) return;
       if (f.type === 'file') out[f.name] = el.files && el.files[0] ? el.files[0] : null;
@@ -1396,16 +1422,16 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       openForm(isEdit ? t('formMedEdit') : t('formMedNew'), [
         { name: 'name', label: t('fMedName'), required: true, placeholder: t('phMed') },
         { name: 'dose', label: t('fDose'), placeholder: t('phDose') },
-        { name: 'times', label: t('fTimes'), required: true, placeholder: t('phTimes') },
+        { name: 'times', label: t('fTimes'), type: 'times' },
         { name: 'stock', label: t('fStock'), type: 'number', min: 0 },
         { name: 'startDate', label: t('fStart'), type: 'date' },
         { name: 'endDate', label: t('fEnd'), type: 'date' },
         { name: 'notes', label: t('fNotes'), type: 'textarea' }
-      ], isEdit ? { name: m.name, dose: m.dose, times: (m.times || []).join(', '), stock: m.stock, startDate: m.startDate, endDate: m.endDate, notes: m.notes } : { startDate: today() },
+      ], isEdit ? { name: m.name, dose: m.dose, times: (m.times || []).slice(), stock: m.stock, startDate: m.startDate, endDate: m.endDate, notes: m.notes } : { startDate: today() },
       function (v) {
         var obj = {
           name: v.name, dose: v.dose, notes: v.notes,
-          times: v.times.split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+          times: v.times,
           stock: v.stock === '' || v.stock == null ? null : Number(v.stock),
           startDate: v.startDate || null, endDate: v.endDate || null
         };
@@ -1976,6 +2002,21 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
   function onDataClick(e) {
     var pal = e.target.closest && e.target.closest('[data-pal]');
     if (pal) { setPalette(pal.dataset.pal); if (dlgFields.querySelector('[data-onb]')) openOnboarding(onbStep); else openData(); return; }
+    var addT = e.target.closest && e.target.closest('[data-add-time]');
+    if (addT) {
+      var listEl = addT.parentNode.querySelector('.times-list');
+      listEl.insertAdjacentHTML('beforeend', timeRow(''));
+      var inp = listEl.lastElementChild.querySelector('input');
+      inp.focus();
+      try { if (inp.showPicker) inp.showPicker(); } catch (er) { /* výber času sa otvorí po ťuknutí */ }
+      return;
+    }
+    var delT = e.target.closest && e.target.closest('[data-del-time]');
+    if (delT) {
+      var row = delT.closest('.time-row');
+      if (row.parentNode.children.length > 1) row.remove(); else row.querySelector('input').value = '';
+      return;
+    }
     if (e.target.closest && e.target.closest('[data-act="edit-ice"]')) { forms.ice(); return; }
     var sh = e.target.closest && e.target.closest('[data-sheet]');
     if (sh) { var it = sheetItems[Number(sh.dataset.sheet)]; if (it) it.run(); return; }
