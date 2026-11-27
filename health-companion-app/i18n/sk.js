@@ -427,6 +427,7 @@ HCI18N.add('sk', {
   fNextVisit: 'Ďalšia návšteva',
   fNextVisitTime: "Čas ďalšej návštevy (nepovinné)",
   createNextVisit: "Založiť návštevu",
+  visitDetail: "Zobraziť detail návštevy",
   nextVisitDone: "založená",
   nextVisitCreatedToast: "Návšteva {date} je založená. Po návšteve ju doplňte.",
   formQNew: 'Nová otázka pre lekára',

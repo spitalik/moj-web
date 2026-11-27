@@ -427,6 +427,7 @@ HCI18N.add('ru', {
   fNextVisit: 'Следующий визит',
   fNextVisitTime: "Время следующего визита (необязательно)",
   createNextVisit: "Создать визит",
+  visitDetail: "Показать детали визита",
   nextVisitDone: "создан",
   nextVisitCreatedToast: "Визит {date} создан. Дополните его после приёма.",
   formQNew: 'Новый вопрос врачу',

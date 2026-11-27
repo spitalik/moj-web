@@ -427,6 +427,7 @@ HCI18N.add('de', {
   fNextVisit: 'Nächster Besuch',
   fNextVisitTime: "Uhrzeit des nächsten Besuchs (optional)",
   createNextVisit: "Besuch anlegen",
+  visitDetail: "Besuchsdetails anzeigen",
   nextVisitDone: "angelegt",
   nextVisitCreatedToast: "Besuch am {date} angelegt. Ergänzen Sie ihn nach dem Besuch.",
   formQNew: 'Neue Frage an den Arzt',

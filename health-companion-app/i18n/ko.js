@@ -427,6 +427,7 @@ HCI18N.add('ko', {
   fNextVisit: '다음 방문',
   fNextVisitTime: "다음 방문 시간 (선택)",
   createNextVisit: "방문 만들기",
+  visitDetail: "방문 상세 보기",
   nextVisitDone: "생성됨",
   nextVisitCreatedToast: "{date} 방문을 만들었습니다. 방문 후 내용을 채우세요.",
   formQNew: '의사에게 할 새 질문',

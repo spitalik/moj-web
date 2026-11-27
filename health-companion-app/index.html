@@ -113,6 +113,12 @@ main[data-tab="checkups"] { --sec: var(--c-checkups); }
 .hero .meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 13px; }
 .big-val { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.row.link { cursor: pointer; margin: -6px -8px; padding: 6px 8px; border-radius: 12px; transition: background .15s; }
+.row.link:hover, .row.link:focus-visible { background: var(--card-2); outline: none; }
+.row.link .go { display: flex; align-items: center; gap: 6px; flex: none; }
+.row.link .go > .ico { width: 18px; height: 18px; color: var(--muted); }
+.card.flash { animation: flash 1.6s ease-out; }
+@keyframes flash { 0%, 40% { box-shadow: 0 0 0 3px var(--sec, var(--accent)); } 100% { box-shadow: 0 0 0 3px transparent; } }
 .stack { display: flex; flex-direction: column; gap: 8px; }
 .stack.inline { flex-direction: row; gap: 6px; flex-wrap: wrap; }
 .muted { color: var(--muted); font-size: 13px; }
@@ -728,7 +734,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z"/>',
     pill: '<rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="M8.5 8.5l7 7"/>',
     globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
-    backup: '<path d="M4 7v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7"/><path d="M12 3v10M8 9l4 4 4-4"/>'
+    backup: '<path d="M4 7v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7"/><path d="M12 3v10M8 9l4 4 4-4"/>',
+    chevron: '<path d="M9 6l6 6-6 6"/>'
   };
   function icon(name) { return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + (ICON_PATHS[name] || '') + '</svg>'; }
 
@@ -777,6 +784,11 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     return hit ? hit.id : '';
   }
   function visitKey(v) { return v.date + ' ' + (v.time || ''); }
+  // Riadok návštevy na záložke Dnes – ťuknutím sa otvorí detail na záložke Lekár.
+  function visitLinkRow(v, inner, right) {
+    return '<div class="row link" data-act="open-visit" data-id="' + esc(v.id) + '" role="button" tabindex="0" title="' + esc(t('visitDetail')) + '">' +
+      inner + '<span class="go">' + right + icon('chevron') + '</span></div>';
+  }
   // Ďalšia návšteva už bola založená ako samostatná návšteva (a tá ešte existuje).
   function nextVisitCreated(v) { return !!(v.nextVisitId && findBy(state.visits, v.nextVisitId)); }
   function nextVisitText(v) { return fmtDate(v.nextVisit) + (v.nextVisitTime ? ' ' + v.nextVisitTime : ''); }
@@ -1144,7 +1156,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
 
     if (todayVisits.length) {
       html += '<section class="card"><h2>' + t('todayVisits') + '</h2><div class="stack">' + todayVisits.map(function (v) {
-        return '<div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(v.reason || '') + '</div></div><span class="badge">' + (v.time ? esc(v.time) : fmtDate(v.date)) + '</span></div>';
+        return visitLinkRow(v, '<div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(v.reason || '') + '</div></div>', '<span class="badge">' + (v.time ? esc(v.time) : fmtDate(v.date)) + '</span>');
       }).join('') + '</div></section>';
     }
 
@@ -1163,8 +1175,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     if (upcomingVisits.length) {
       html += '<section class="card"><h2>' + t('upcomingVisits') + '</h2><div class="stack">' + upcomingVisits.slice(0, 3).map(function (u) {
         var v = u.v;
-        return '<div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(fmtDate(u.date) + (u.time ? ' · ' + u.time : '')) +
-          (u.planned && v.reason ? ' · ' + esc(v.reason) : '') + '</div></div>' + (u.planned ? '<span class="badge ok">' + t('nextVisitDone') + '</span>' : createVisitBtn(v)) + '</div>';
+        return visitLinkRow(v, '<div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(fmtDate(u.date) + (u.time ? ' · ' + u.time : '')) +
+          (u.planned && v.reason ? ' · ' + esc(v.reason) : '') + '</div></div>', u.planned ? '<span class="badge ok">' + t('nextVisitDone') + '</span>' : createVisitBtn(v));
       }).join('') + '</div></section>';
     }
 
@@ -1349,7 +1361,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     var visits = state.visits.slice().sort(function (a, b) { return visitKey(a) < visitKey(b) ? 1 : visitKey(a) > visitKey(b) ? -1 : 0; });
     if (!visits.length) html += '<div class="empty">' + t('visitsEmpty') + '</div>';
     html += visits.map(function (v) {
-      return '<section class="card"><div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong>' + (v.specialty && v.doctor ? ' <span class="muted">(' + esc(v.specialty) + ')</span>' : '') + '<div class="muted">' + fmtDate(v.date) + (v.time ? ' · ' + esc(v.time) : '') + '</div></div></div>' +
+      return '<section class="card" id="visit-' + esc(v.id) + '"><div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong>' + (v.specialty && v.doctor ? ' <span class="muted">(' + esc(v.specialty) + ')</span>' : '') + '<div class="muted">' + fmtDate(v.date) + (v.time ? ' · ' + esc(v.time) : '') + '</div></div></div>' +
         (v.reason ? '<p style="margin-top:6px"><strong>' + t('reasonLabel') + '</strong> ' + esc(v.reason) + '</p>' : '') +
         (v.diagnosis ? '<p><strong>' + t('diagnosisLabel') + '</strong> ' + esc(v.diagnosis) + '</p>' : '') +
         (v.prescriptions ? '<p><strong>' + t('prescribedLabel') + '</strong> ' + esc(v.prescriptions) + '</p>' : '') +
@@ -2346,6 +2358,9 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
   });
 
   function setView(v) { view = v; render(); window.scrollTo(0, 0); }
+  document.getElementById('view').addEventListener('keydown', function (e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[role="button"][data-act]')) { e.preventDefault(); e.target.click(); }
+  });
 
   document.getElementById('tabs').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-tab]');
@@ -2461,6 +2476,15 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
             state.attachments.forEach(function (x) { if (x.visitId === id) x.visitId = null; });
           });
         }); break;
+      case 'open-visit':
+        setView('doctor');
+        var card = document.getElementById('visit-' + id);
+        if (card) {
+          card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          card.classList.add('flash');
+          setTimeout(function () { card.classList.remove('flash'); }, 1700);
+        }
+        break;
       case 'create-next-visit':
         v = findBy(state.visits, id);
         if (!v || !v.nextVisit || nextVisitCreated(v)) break;

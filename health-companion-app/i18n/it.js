@@ -427,6 +427,7 @@ HCI18N.add('it', {
   fNextVisit: 'Prossima visita',
   fNextVisitTime: "Ora della prossima visita (facoltativo)",
   createNextVisit: "Crea visita",
+  visitDetail: "Mostra dettagli della visita",
   nextVisitDone: "creata",
   nextVisitCreatedToast: "Visita del {date} creata. Completala dopo la visita.",
   formQNew: 'Nuova domanda per il medico',

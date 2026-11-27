@@ -427,6 +427,7 @@ HCI18N.add('zh', {
   fNextVisit: '下次就诊',
   fNextVisitTime: "下次就诊时间（可选）",
   createNextVisit: "创建就诊",
+  visitDetail: "查看就诊详情",
   nextVisitDone: "已创建",
   nextVisitCreatedToast: "已创建 {date} 的就诊，就诊后请补充内容。",
   formQNew: '新增向医生提出的问题',

@@ -427,6 +427,7 @@ HCI18N.add('ja', {
   fNextVisit: '次回の診察',
   fNextVisitTime: "次回の時刻（任意）",
   createNextVisit: "通院を登録",
+  visitDetail: "通院の詳細を表示",
   nextVisitDone: "登録済み",
   nextVisitCreatedToast: "{date} の通院を登録しました。受診後に追記してください。",
   formQNew: '医師への新しい質問',

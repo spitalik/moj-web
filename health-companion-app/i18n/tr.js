@@ -427,6 +427,7 @@ HCI18N.add('tr', {
   fNextVisit: 'Sonraki randevu',
   fNextVisitTime: "Sonraki ziyaret saati (isteğe bağlı)",
   createNextVisit: "Ziyaret oluştur",
+  visitDetail: "Ziyaret ayrıntılarını göster",
   nextVisitDone: "oluşturuldu",
   nextVisitCreatedToast: "{date} ziyareti oluşturuldu. Ziyaretten sonra doldurun.",
   formQNew: 'Doktora yeni soru',
