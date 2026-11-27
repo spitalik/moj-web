@@ -770,6 +770,12 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     return hit ? hit.id : '';
   }
   function visitKey(v) { return v.date + ' ' + (v.time || ''); }
+  // Ďalšia návšteva už bola založená ako samostatná návšteva (a tá ešte existuje).
+  function nextVisitCreated(v) { return !!(v.nextVisitId && findBy(state.visits, v.nextVisitId)); }
+  function nextVisitText(v) { return fmtDate(v.nextVisit) + (v.nextVisitTime ? ' ' + v.nextVisitTime : ''); }
+  function createVisitBtn(v) {
+    return '<button class="btn small primary" data-act="create-next-visit" data-id="' + esc(v.id) + '">' + icon('plus') + ' ' + t('createNextVisit') + '</button>';
+  }
   function downloadBlob(name, type, data) {
     var blob = data instanceof Blob ? data : new Blob([data], { type: type });
     var a = document.createElement('a');
@@ -1030,8 +1036,11 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
       .filter(function (x) { return x.s.status === 'overdue' || (x.s.days !== null && x.s.days <= 5); });
     var todayVisits = state.visits.filter(function (v) { return v.date === tod; });
     var horizon = HC.addDays(tod, 5);
-    var upcomingVisits = state.visits.filter(function (v) { return v.nextVisit && v.nextVisit >= tod && v.nextVisit <= horizon; })
-      .sort(function (a, b) { return a.nextVisit < b.nextVisit ? -1 : 1; });
+    var upcomingVisits = state.visits.filter(function (v) { return v.nextVisit && !nextVisitCreated(v) && v.nextVisit >= tod && v.nextVisit <= horizon; })
+      .map(function (v) { return { v: v, date: v.nextVisit, time: v.nextVisitTime || '', planned: false }; })
+      .concat(state.visits.filter(function (v) { return v.date > tod && v.date <= horizon; })
+        .map(function (v) { return { v: v, date: v.date, time: v.time || '', planned: true }; }))
+      .sort(function (a, b) { var x = a.date + ' ' + a.time, y = b.date + ' ' + b.time; return x < y ? -1 : x > y ? 1 : 0; });
     var html = '';
 
     // Súhrn dňa: hotové dávky, ďalšia dávka a séria bez vynechania
@@ -1126,8 +1135,10 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
     }
 
     if (upcomingVisits.length) {
-      html += '<section class="card"><h2>' + t('upcomingVisits') + '</h2><div class="stack">' + upcomingVisits.slice(0, 3).map(function (v) {
-        return '<div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(v.reason || '') + '</div></div><span class="badge">' + fmtDate(v.nextVisit) + '</span></div>';
+      html += '<section class="card"><h2>' + t('upcomingVisits') + '</h2><div class="stack">' + upcomingVisits.slice(0, 3).map(function (u) {
+        var v = u.v;
+        return '<div class="row"><div><strong>' + esc(v.doctor || v.specialty) + '</strong><div class="muted">' + esc(fmtDate(u.date) + (u.time ? ' · ' + u.time : '')) +
+          (u.planned && v.reason ? ' · ' + esc(v.reason) : '') + '</div></div>' + (u.planned ? '<span class="badge ok">' + t('nextVisitDone') + '</span>' : createVisitBtn(v)) + '</div>';
       }).join('') + '</div></section>';
     }
 
@@ -1316,7 +1327,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         (v.reason ? '<p style="margin-top:6px"><strong>' + t('reasonLabel') + '</strong> ' + esc(v.reason) + '</p>' : '') +
         (v.diagnosis ? '<p><strong>' + t('diagnosisLabel') + '</strong> ' + esc(v.diagnosis) + '</p>' : '') +
         (v.prescriptions ? '<p><strong>' + t('prescribedLabel') + '</strong> ' + esc(v.prescriptions) + '</p>' : '') +
-        (v.nextVisit ? '<p style="margin-top:6px"><span class="badge">' + t('nextVisitBadge', { date: fmtDate(v.nextVisit) }) + '</span></p>' : '') +
+        (v.nextVisit ? '<div class="row" style="margin-top:6px"><span class="badge">' + esc(t('nextVisitBadge', { date: nextVisitText(v) })) +
+          (nextVisitCreated(v) ? ' · ' + t('nextVisitDone') : '') + '</span>' + (nextVisitCreated(v) ? '' : createVisitBtn(v)) + '</div>' : '') +
         (v.notes ? '<p class="muted" style="margin-top:6px">' + esc(v.notes) + '</p>' : '') +
         '<div class="form-actions" style="margin-top:8px"><button class="btn small" data-act="prep-visit" data-id="' + esc(v.id) + '">' + t('prepVisit') + '</button><button class="btn small" data-act="edit-visit" data-id="' + esc(v.id) + '">' + t('edit') + '</button><button class="btn small danger" data-act="del-visit" data-id="' + esc(v.id) + '">' + t('remove') + '</button></div></section>';
     }).join('');
@@ -1473,6 +1485,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         { name: 'diagnosis', label: t('fDiagnosis'), type: 'textarea' },
         { name: 'prescriptions', label: t('fPrescriptions'), type: 'textarea' },
         { name: 'nextVisit', label: t('fNextVisit'), type: 'date' },
+        { name: 'nextVisitTime', label: t('fNextVisitTime'), type: 'time' },
         { name: 'notes', label: t('fNotesGeneric'), type: 'textarea' }
       ], Object.assign({}, base, { contactId: cur || '' }),
       function (v) {
@@ -1481,7 +1494,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
         var obj = {
           date: v.date, time: v.time || '', contactId: c ? c.id : null,
           doctor: c ? c.name : v0.doctor, specialty: c ? (c.specialty || '') : v0.specialty,
-          reason: v.reason, diagnosis: v.diagnosis, prescriptions: v.prescriptions, nextVisit: v.nextVisit || null, notes: v.notes
+          reason: v.reason, diagnosis: v.diagnosis, prescriptions: v.prescriptions, nextVisit: v.nextVisit || null, nextVisitTime: v.nextVisit ? (v.nextVisitTime || '') : '', notes: v.notes
         };
         var err = HC.validateVisit(obj);
         if (err) return err;
@@ -2407,6 +2420,15 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
             state.attachments.forEach(function (x) { if (x.visitId === id) x.visitId = null; });
           });
         }); break;
+      case 'create-next-visit':
+        v = findBy(state.visits, id);
+        if (!v || !v.nextVisit || nextVisitCreated(v)) break;
+        var nv = { id: HC.newId(), date: v.nextVisit, time: v.nextVisitTime || '', contactId: v.contactId || null, doctor: v.doctor, specialty: v.specialty,
+          reason: '', diagnosis: '', prescriptions: '', nextVisit: null, nextVisitTime: '', notes: '' };
+        commit(function () { state.visits.push(nv); v.nextVisitId = nv.id; });
+        haptic('light');
+        toast(t('nextVisitCreatedToast', { date: fmtDate(nv.date) + (nv.time ? ' ' + nv.time : '') }));
+        break;
       case 'prep-visit':
         v = findBy(state.visits, id);
         showText(t('prepTitle'), HC.prepSummary(state, v, today()));

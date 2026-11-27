@@ -360,6 +360,8 @@ test('návšteva: nepovinný čas sa kontroluje', () => {
   assert.strictEqual(HC.validateVisit({ date: '2026-11-27', doctor: 'MUDr. Nováková' }), null);
   assert.strictEqual(HC.validateVisit({ date: '2026-11-27', time: '09:30', doctor: 'MUDr. Nováková' }), null);
   assert.ok(HC.validateVisit({ date: '2026-11-27', time: '25:00', doctor: 'MUDr. Nováková' }));
+  assert.strictEqual(HC.validateVisit({ date: '2026-11-27', doctor: 'MUDr. Nováková', nextVisit: '2027-02-15', nextVisitTime: '08:15' }), null);
+  assert.ok(HC.validateVisit({ date: '2026-11-27', doctor: 'MUDr. Nováková', nextVisit: '2027-02-15', nextVisitTime: '8.15' }));
 });
 
 test('os grafu: okrúhle hodnoty', () => {

@@ -512,6 +512,7 @@
     return (parseISO(v.date) ? null : T('errVisitDate')) ||
       (v.time && !isValidTime(v.time) ? T('errTime') : null) ||
       (v.nextVisit && !parseISO(v.nextVisit) ? T('errNextVisit') : null) ||
+      (v.nextVisitTime && !isValidTime(v.nextVisitTime) ? T('errTime') : null) ||
       (requireText(v.doctor || v.specialty, T('labelDoctorOrSpecialty')));
   }
 
